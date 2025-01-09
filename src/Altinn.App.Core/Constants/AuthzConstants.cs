@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Constants;
 
 /// <summary>
-/// Constands related to authorization.
+/// Constants related to authorization.
 /// </summary>
 public static class AuthzConstants
 {

@@ -37,55 +37,55 @@ public class AccessTokenTests
     public void Equals_SameToken_ShouldReturnTrue()
     {
         // Arrange
-        var token1 = JwtToken.Parse(_validTokens[0]);
-        var token2 = JwtToken.Parse(_validTokens[0]);
+        var stringValue = _validTokens[0];
+        var token1 = JwtToken.Parse(stringValue);
+        var token2 = JwtToken.Parse(stringValue);
 
         // Act
         bool result1 = token1.Equals(token2);
         bool result2 = token1 == token2;
         bool result3 = token1 != token2;
+        bool result4 = token1.Equals(stringValue);
+        bool result5 = token1 == stringValue;
+        bool result6 = token1 != stringValue;
+        bool result7 = stringValue == token1;
+        bool result8 = stringValue != token1;
 
         // Assert
         result1.Should().BeTrue();
         result2.Should().BeTrue();
         result3.Should().BeFalse();
+        result4.Should().BeTrue();
+        result5.Should().BeTrue();
+        result6.Should().BeFalse();
+        result7.Should().BeTrue();
+        result8.Should().BeFalse();
     }
 
     [Fact]
     public void Equals_DifferentToken_ShouldReturnFalse()
     {
         // Arrange
-        var token1 = JwtToken.Parse(_validTokens[0]);
-        var token2 = JwtToken.Parse(_validTokens[1]);
+        var stringValue1 = _validTokens[0];
+        var stringValue2 = _validTokens[1];
+        var token1 = JwtToken.Parse(stringValue1);
+        var token2 = JwtToken.Parse(stringValue2);
 
         // Act
         bool result1 = token1.Equals(token2);
         bool result2 = token1 == token2;
         bool result3 = token1 != token2;
+        bool result4 = token1.Equals(stringValue2);
+        bool result5 = token1 == stringValue2;
+        bool result6 = token1 != stringValue2;
 
         // Assert
         result1.Should().BeFalse();
         result2.Should().BeFalse();
         result3.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ToString_ShouldReturnMaskedToken()
-    {
-        // Arrange
-        var token = JwtToken.Parse(_validTokens[0]);
-
-        // Act
-        var maskedToken1 = token.ToString();
-        var maskedToken2 = $"{token}";
-
-        // Assert
-        maskedToken1.Should().Be(maskedToken2);
-        maskedToken1
-            .Should()
-            .Be(
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.<masked>"
-            );
+        result4.Should().BeFalse();
+        result5.Should().BeFalse();
+        result6.Should().BeTrue();
     }
 
     [Fact]
@@ -168,6 +168,7 @@ public class AccessTokenTests
         var accessToken = JwtToken.Parse(encodedToken.AccessToken);
 
         // Act, Assert
+        accessToken.ToString().Should().NotBe(encodedToken.AccessToken);
         accessToken.ToStringUnmasked().Should().Be(encodedToken.AccessToken);
         accessToken.ToString().Should().NotContain(encodedToken.Components.Signature);
         $"{accessToken}".Should().NotContain(encodedToken.Components.Signature);

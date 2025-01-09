@@ -33,9 +33,18 @@ public class LanguageCodeTests
     [Fact]
     public void Equality_WorksAsExpected()
     {
-        var langCode1A = LanguageCode<Iso6391>.Parse(_validIso6391Codes[0]);
-        var langCode1B = LanguageCode<Iso6391>.Parse(_validIso6391Codes[0]);
-        var langCode2 = LanguageCode<Iso6391>.Parse(_validIso6391Codes[2]);
+        var code1 = _validIso6391Codes[0];
+        var code2 = _validIso6391Codes[2];
+        var langCode1A = LanguageCode<Iso6391>.Parse(code1);
+        var langCode1B = LanguageCode<Iso6391>.Parse(code1);
+        var langCode2 = LanguageCode<Iso6391>.Parse(code2);
+
+        Assert.True(langCode1A == code1);
+        Assert.True(langCode1A != code2);
+        Assert.True(code1 == langCode1A);
+        Assert.True(code2 != langCode1A);
+        Assert.True(langCode1A.Equals(code1));
+        Assert.False(langCode1A.Equals(code2));
 
         Assert.True(langCode1A == langCode1B);
         Assert.True(langCode1A != langCode2);

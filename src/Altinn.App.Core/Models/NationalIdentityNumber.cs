@@ -100,8 +100,16 @@ public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumbe
     /// <inheritdoc/>
     public bool Equals(NationalIdentityNumber other) => Value == other.Value;
 
+    /// <summary>
+    /// Indicates whether the current object is equal to the provided string value.
+    /// </summary>
+    /// <param name="other">A <see cref="string"/> to compare with this object.</param>
+    /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
+    public bool Equals(string? other) => Value == other;
+
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is NationalIdentityNumber other && Equals(other);
+    public override bool Equals(object? obj) =>
+        obj is NationalIdentityNumber other && Equals(other) || obj is string otherString && Equals(otherString);
 
     /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode();
@@ -120,6 +128,26 @@ public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumbe
     /// Determines whether two specified instances of <see cref="NationalIdentityNumber"/> are not equal.
     /// </summary>
     public static bool operator !=(NationalIdentityNumber left, NationalIdentityNumber right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="NationalIdentityNumber"/> is equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator ==(NationalIdentityNumber left, string right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="NationalIdentityNumber"/> is not equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator !=(NationalIdentityNumber left, string right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is equal to the specified <see cref="NationalIdentityNumber"/>.
+    /// </summary>
+    public static bool operator ==(string left, NationalIdentityNumber right) => right.Equals(left);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is not equal to the specified <see cref="NationalIdentityNumber"/>.
+    /// </summary>
+    public static bool operator !=(string left, NationalIdentityNumber right) => !right.Equals(left);
 
     /// <summary>
     /// Implicit conversion from <see cref="NationalIdentityNumber"/> to string.

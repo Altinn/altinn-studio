@@ -52,7 +52,7 @@ public sealed record SendCorrespondencePayload : CorrespondencePayloadBase
 public sealed record GetCorrespondenceStatusPayload : CorrespondencePayloadBase
 {
     internal Guid CorrespondenceId { get; init; }
-    internal override string RequiredScope => CorrespondenceApiScopes.Read;
+    internal override string RequiredScope => CorrespondenceApiScopes.Write;
 
     /// <summary>
     /// Instantiates a new payload for <see cref="CorrespondenceClient.GetStatus"/>.

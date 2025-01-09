@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Constants;
 
 namespace Altinn.App.Core.Models;
 
@@ -28,6 +29,7 @@ internal class OrganisationNumberJsonConverterAttribute : JsonConverterAttribute
 internal class OrganisationNumberJsonConverter : JsonConverter<OrganisationNumber>
 {
     private OrganisationNumberFormat _format { get; init; }
+    private const string OrgUrnPrefix = $"{AltinnUrns.OrganisationNumber}:";
 
     public OrganisationNumberJsonConverter(OrganisationNumberFormat format)
     {
@@ -45,8 +47,15 @@ internal class OrganisationNumberJsonConverter : JsonConverter<OrganisationNumbe
             throw new JsonException("Expected string token for OrganisationNumber property.");
         }
 
-        var numberValue = reader.GetString() ?? throw new JsonException("OrganisationNumber string value is null.");
-        return OrganisationNumber.Parse(numberValue);
+        var tokenValue = reader.GetString() ?? throw new JsonException("OrganisationNumber string value is null.");
+
+        // Trim the urn:altinn:organization:identifier-no prefix if present
+        if (tokenValue.StartsWith(OrgUrnPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            tokenValue = tokenValue[OrgUrnPrefix.Length..];
+        }
+
+        return OrganisationNumber.Parse(tokenValue);
     }
 
     public override void Write(Utf8JsonWriter writer, OrganisationNumber value, JsonSerializerOptions options)

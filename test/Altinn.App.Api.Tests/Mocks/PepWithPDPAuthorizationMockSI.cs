@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using System.Xml;
-using Altinn.App.Api.Tests.Constants;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
@@ -22,22 +22,6 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     private readonly IInstanceClient _instanceClient;
 
     private readonly PepSettings _pepSettings;
-
-    private const string OrgAttributeId = "urn:altinn:org";
-
-    private const string AppAttributeId = "urn:altinn:app";
-
-    private const string InstanceAttributeId = "urn:altinn:instance-id";
-
-    private const string TaskAttributeId = "urn:altinn:task";
-
-    private const string EndEventAttributeId = "urn:altinn:end-event";
-
-    private const string PartyAttributeId = "urn:altinn:partyid";
-
-    private const string UserAttributeId = "urn:altinn:userid";
-
-    private const string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
     public PepWithPDPAuthorizationMockSI(IInstanceClient instanceClient, IOptions<PepSettings> pepSettings)
     {
@@ -133,22 +117,17 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
             {
                 AddIfValueDoesNotExist(
                     resourceContextAttributes,
-                    XacmlRequestAttribute.OrgAttribute,
+                    AltinnUrns.Org,
                     resourceAttributes.OrgValue,
                     instanceData.Org
                 );
                 string app = instanceData.AppId.Split("/")[1];
-                AddIfValueDoesNotExist(
-                    resourceContextAttributes,
-                    XacmlRequestAttribute.AppAttribute,
-                    resourceAttributes.AppValue,
-                    app
-                );
+                AddIfValueDoesNotExist(resourceContextAttributes, AltinnUrns.App, resourceAttributes.AppValue, app);
                 if (instanceData.Process?.CurrentTask != null)
                 {
                     AddIfValueDoesNotExist(
                         resourceContextAttributes,
-                        XacmlRequestAttribute.TaskAttribute,
+                        AltinnUrns.Task,
                         resourceAttributes.TaskValue,
                         instanceData.Process.CurrentTask.ElementId
                     );
@@ -157,7 +136,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
                 {
                     AddIfValueDoesNotExist(
                         resourceContextAttributes,
-                        XacmlRequestAttribute.EndEventAttribute,
+                        AltinnUrns.EndEvent,
                         string.Empty,
                         instanceData.Process.EndEvent
                     );
@@ -165,7 +144,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
                 AddIfValueDoesNotExist(
                     resourceContextAttributes,
-                    XacmlRequestAttribute.PartyAttribute,
+                    AltinnUrns.PartyId,
                     resourceAttributes.ResourcePartyValue,
                     instanceData.InstanceOwner.PartyId
                 );
@@ -192,7 +171,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     private static XacmlAttribute GetAttribute(string attributeId, string attributeValue)
     {
         XacmlAttribute attribute = new(new Uri(attributeId), false);
-        if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
+        if (attributeId.Equals(AltinnUrns.PartyId))
         {
             // When Party attribute is missing from input it is good to return it so PEP can get this information
             attribute.IncludeInResult = true;
@@ -219,7 +198,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
         foreach (XacmlAttribute xacmlAttribute in subjectContextAttributes.Attributes)
         {
-            if (xacmlAttribute.AttributeId.OriginalString.Equals(UserAttributeId))
+            if (xacmlAttribute.AttributeId.OriginalString.Equals(AltinnUrns.UserId))
             {
                 subjectUserId = Convert.ToInt32(xacmlAttribute.AttributeValues.First().Value);
             }
@@ -241,32 +220,32 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
         foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
         {
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.OrgAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.Org))
             {
                 resourceAttributes.OrgValue = attribute.AttributeValues.First().Value;
             }
 
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.App))
             {
                 resourceAttributes.AppValue = attribute.AttributeValues.First().Value;
             }
 
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.InstanceAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.InstanceId))
             {
                 resourceAttributes.InstanceValue = attribute.AttributeValues.First().Value;
             }
 
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PartyAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.PartyId))
             {
                 resourceAttributes.ResourcePartyValue = attribute.AttributeValues.First().Value;
             }
 
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.Task))
             {
                 resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
             }
 
-            if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppResourceAttribute))
+            if (attribute.AttributeId.OriginalString.Equals(AltinnUrns.AppResource))
             {
                 resourceAttributes.AppResourceValue = attribute.AttributeValues.First().Value;
             }
@@ -277,7 +256,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
     private static XacmlAttribute GetRoleAttribute(List<Role> roles)
     {
-        XacmlAttribute attribute = new(new Uri(AltinnRoleAttributeId), false);
+        XacmlAttribute attribute = new(new Uri(AltinnUrns.RoleCode), false);
         foreach (Role role in roles)
         {
             attribute.AttributeValues.Add(
@@ -323,7 +302,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
                 foreach (XacmlAttribute xacmlAttribute in attr.Attributes)
                 {
                     if (
-                        xacmlAttribute.AttributeId.OriginalString.Equals(OrgAttributeId)
+                        xacmlAttribute.AttributeId.OriginalString.Equals(AltinnUrns.Org)
                         && xacmlAttribute.AttributeValues.FirstOrDefault() != null
                     )
                     {
@@ -331,7 +310,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
                     }
 
                     if (
-                        xacmlAttribute.AttributeId.OriginalString.Equals(AppAttributeId)
+                        xacmlAttribute.AttributeId.OriginalString.Equals(AltinnUrns.App)
                         && xacmlAttribute.AttributeValues.FirstOrDefault() != null
                     )
                     {

@@ -72,103 +72,74 @@ public class NationalIdentityNumberTests
         }
     }
 
-    // [Fact]
-    // public void TryParse_ValidNumber_ShouldReturnTrue()
-    // {
-    //     foreach (var validOrgNumber in ValidNationalIdentityNumbers)
-    //     {
-    //         OrganisationNumber.TryParse(validOrgNumber, out var parsed).Should().BeTrue();
-    //         parsed.Get(OrganisationNumberFormat.Local).Should().Be(validOrgNumber);
-    //     }
-    // }
-    //
-    // [Fact]
-    // public void TryParse_InvalidNumber_ShouldReturnFalse()
-    // {
-    //     foreach (var invalidOrgNumber in InvalidNationalIdentityNumbers)
-    //     {
-    //         OrganisationNumber.TryParse(invalidOrgNumber, out _).Should().BeFalse();
-    //     }
-    // }
-    //
-    // [Fact]
-    // public void Equals_SameNumber_ShouldReturnTrue()
-    // {
-    //     // Arrange
-    //     var number1 = OrganisationNumber.Parse(ValidNationalIdentityNumbers[0]);
-    //     var number2 = OrganisationNumber.Parse(ValidNationalIdentityNumbers[0]);
-    //
-    //     // Act
-    //     bool result1 = number1.Equals(number2);
-    //     bool result2 = number1 == number2;
-    //     bool result3 = number1 != number2;
-    //
-    //     // Assert
-    //     result1.Should().BeTrue();
-    //     result2.Should().BeTrue();
-    //     result3.Should().BeFalse();
-    // }
-    //
-    // [Fact]
-    // public void Equals_DifferentNumber_ShouldReturnFalse()
-    // {
-    //     // Arrange
-    //     var number1 = OrganisationNumber.Parse(ValidNationalIdentityNumbers[0]);
-    //     var number2 = OrganisationNumber.Parse(ValidNationalIdentityNumbers[1]);
-    //
-    //     // Act
-    //     bool result1 = number1.Equals(number2);
-    //     bool result2 = number1 == number2;
-    //     bool result3 = number1 != number2;
-    //
-    //     // Assert
-    //     result1.Should().BeFalse();
-    //     result2.Should().BeFalse();
-    //     result3.Should().BeTrue();
-    // }
-    //
-    // [Fact]
-    // public void ToString_ShouldReturnLocalFormat()
-    // {
-    //     // Arrange
-    //     var rawLocal = ValidNationalIdentityNumbers[0];
-    //     var number = OrganisationNumber.Parse(rawLocal);
-    //
-    //     // Act
-    //     var stringified1 = number.ToString();
-    //     var stringified2 = $"{number}";
-    //
-    //     // Assert
-    //     stringified1.Should().Be(rawLocal);
-    //     stringified2.Should().Be(rawLocal);
-    // }
-    //
-    // [Fact]
-    // public void GetMethod_ShouldReturnCorrectFormats()
-    // {
-    //     // Arrange
-    //     var rawLocal = ValidNationalIdentityNumbers[0];
-    //     var number = OrganisationNumber.Parse(rawLocal);
-    //
-    //     // Act
-    //     var stringified1 = number.Get(OrganisationNumberFormat.Local);
-    //     var stringified2 = number.Get(OrganisationNumberFormat.International);
-    //
-    //     // Assert
-    //     stringified1.Should().Be(rawLocal);
-    //     stringified2.Should().Be($"0192:{rawLocal}");
-    // }
-    //
-    // [Fact]
-    // public void ImplicitConversion_ShouldReturnFullTokenString()
-    // {
-    //     // Arrange
-    //     var token = AccessToken.Parse(_validTokens[0]);
-    //
-    //     // Act
-    //     string tokenString = token;
-    //
-    //     // Assert
-    //     tokenString.Should().Be(_validTokens[0]);
-    // }
+    [Fact]
+    public void Equals_SameNumber_ShouldReturnTrue()
+    {
+        // Arrange
+        var stringValue = ValidNationalIdentityNumbers[0];
+        var number1 = NationalIdentityNumber.Parse(stringValue);
+        var number2 = NationalIdentityNumber.Parse(stringValue);
+
+        // Act
+        bool result1 = number1.Equals(number2);
+        bool result2 = number1 == number2;
+        bool result3 = number1 != number2;
+        bool result4 = number1.Equals(stringValue);
+        bool result5 = number1 == stringValue;
+        bool result6 = number1 != stringValue;
+        bool result7 = stringValue == number1;
+        bool result8 = stringValue != number1;
+
+        // Assert
+        result1.Should().BeTrue();
+        result2.Should().BeTrue();
+        result3.Should().BeFalse();
+        result4.Should().BeTrue();
+        result5.Should().BeTrue();
+        result6.Should().BeFalse();
+        result7.Should().BeTrue();
+        result8.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Equals_DifferentNumber_ShouldReturnFalse()
+    {
+        // Arrange
+        var stringValue1 = ValidNationalIdentityNumbers[0];
+        var stringValue2 = ValidNationalIdentityNumbers[1];
+        var number1 = NationalIdentityNumber.Parse(stringValue1);
+        var number2 = NationalIdentityNumber.Parse(stringValue2);
+
+        // Act
+        bool result1 = number1.Equals(number2);
+        bool result2 = number1 == number2;
+        bool result3 = number1 != number2;
+        bool result4 = number1.Equals(stringValue2);
+        bool result5 = number1 == stringValue2;
+        bool result6 = number1 != stringValue2;
+
+        // Assert
+        result1.Should().BeFalse();
+        result2.Should().BeFalse();
+        result3.Should().BeTrue();
+        result4.Should().BeFalse();
+        result5.Should().BeFalse();
+        result6.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnCorrectValue()
+    {
+        // Arrange
+        var stringValue = ValidNationalIdentityNumbers[0];
+        var number = NationalIdentityNumber.Parse(stringValue);
+
+        // Act
+        var stringified1 = number.ToString();
+        var stringified2 = $"{number}";
+
+        // Assert
+        stringified1.Should().Be(stringValue);
+        stringified2.Should().Be(stringValue);
+    }
 }

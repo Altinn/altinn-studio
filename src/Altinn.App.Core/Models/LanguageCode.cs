@@ -97,8 +97,17 @@ public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode
     /// <inheritdoc/>
     public bool Equals(LanguageCode<TLangCodeStandard> other) => Value == other.Value;
 
+    /// <summary>
+    /// Indicates whether the current object is equal to the provided string value.
+    /// </summary>
+    /// <param name="other">A <see cref="string"/> to compare with this object.</param>
+    /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
+    public bool Equals(string? other) => Value == other;
+
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is LanguageCode<TLangCodeStandard> other && Equals(other);
+    public override bool Equals(object? obj) =>
+        obj is LanguageCode<TLangCodeStandard> other && Equals(other)
+        || obj is string otherString && Equals(otherString);
 
     /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode();
@@ -119,6 +128,26 @@ public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode
     /// </summary>
     public static bool operator !=(LanguageCode<TLangCodeStandard> left, LanguageCode<TLangCodeStandard> right) =>
         !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="LanguageCode{TLangCodeStandard}"/> is equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator ==(LanguageCode<TLangCodeStandard> left, string right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="LanguageCode{TLangCodeStandard}"/> is not equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator !=(LanguageCode<TLangCodeStandard> left, string right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is equal to the specified <see cref="LanguageCode{TLangCodeStandard}"/>.
+    /// </summary>
+    public static bool operator ==(string left, LanguageCode<TLangCodeStandard> right) => right.Equals(left);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is not equal to the specified <see cref="LanguageCode{TLangCodeStandard}"/>.
+    /// </summary>
+    public static bool operator !=(string left, LanguageCode<TLangCodeStandard> right) => !right.Equals(left);
 
     /// <summary>
     /// Implicit conversion from <see cref="LanguageCode{TLangCodeStandard}"/> to string.

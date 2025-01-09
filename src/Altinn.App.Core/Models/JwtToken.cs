@@ -94,8 +94,16 @@ public readonly partial struct JwtToken : IEquatable<JwtToken>
     /// <inheritdoc/>
     public bool Equals(JwtToken other) => Value == other.Value;
 
+    /// <summary>
+    /// Indicates whether the current object is equal to the provided string value.
+    /// </summary>
+    /// <param name="other">A <see cref="string"/> to compare with this object.</param>
+    /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
+    public bool Equals(string? other) => Value == other;
+
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is JwtToken other && Equals(other);
+    public override bool Equals(object? obj) =>
+        obj is JwtToken other && Equals(other) || obj is string otherString && Equals(otherString);
 
     /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode();
@@ -119,6 +127,26 @@ public readonly partial struct JwtToken : IEquatable<JwtToken>
     /// Determines whether two specified instances of <see cref="JwtToken"/> are not equal.
     /// </summary>
     public static bool operator !=(JwtToken left, JwtToken right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="JwtToken"/> is equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator ==(JwtToken left, string right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="JwtToken"/> is not equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator !=(JwtToken left, string right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is equal to the specified <see cref="JwtToken"/>.
+    /// </summary>
+    public static bool operator ==(string left, JwtToken right) => right.Equals(left);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is not equal to the specified <see cref="JwtToken"/>.
+    /// </summary>
+    public static bool operator !=(string left, JwtToken right) => !right.Equals(left);
 
     /// <summary>
     /// Implicit conversion from <see cref="JwtToken"/> to string.

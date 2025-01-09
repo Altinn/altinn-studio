@@ -116,8 +116,16 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     /// <inheritdoc/>
     public bool Equals(OrganisationNumber other) => _local == other._local;
 
+    /// <summary>
+    /// Indicates whether the current object is equal to the provided string value.
+    /// </summary>
+    /// <param name="other">A <see cref="string"/> to compare with this object.</param>
+    /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
+    public bool Equals(string? other) => _local == other || _international == other;
+
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is OrganisationNumber other && Equals(other);
+    public override bool Equals(object? obj) =>
+        obj is OrganisationNumber other && Equals(other) || obj is string str && Equals(str);
 
     /// <inheritdoc/>
     public override int GetHashCode() => _local.GetHashCode();
@@ -136,4 +144,24 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     /// Determines whether two specified instances of <see cref="OrganisationNumber"/> are not equal.
     /// </summary>
     public static bool operator !=(OrganisationNumber left, OrganisationNumber right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="OrganisationNumber"/> is equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator ==(OrganisationNumber left, string right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="OrganisationNumber"/> is not equal to the specified <see cref="string"/>.
+    /// </summary>
+    public static bool operator !=(OrganisationNumber left, string right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is equal to the specified <see cref="OrganisationNumber"/>.
+    /// </summary>
+    public static bool operator ==(string left, OrganisationNumber right) => right.Equals(left);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="string"/> is not equal to the specified <see cref="OrganisationNumber"/>.
+    /// </summary>
+    public static bool operator !=(string left, OrganisationNumber right) => !right.Equals(left);
 }

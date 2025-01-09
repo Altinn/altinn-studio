@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
+using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Correspondence.Models;
@@ -284,7 +285,7 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         Validate();
 
         AddRequired(content, ResourceId, "Correspondence.ResourceId");
-        AddRequired(content, Sender.Get(OrganisationNumberFormat.International), "Correspondence.Sender");
+        AddRequired(content, Sender.ToUrnFormattedString(), "Correspondence.Sender");
         AddRequired(content, SendersReference, "Correspondence.SendersReference");
         AddRequired(content, AllowSystemDeleteAfter, "Correspondence.AllowSystemDeleteAfter");
         AddIfNotNull(content, MessageSender, "Correspondence.MessageSender");
@@ -294,7 +295,7 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         AddIfNotNull(content, IsConfirmationNeeded?.ToString(), "Correspondence.IsConfirmationNeeded");
         AddDictionaryItems(content, PropertyList, x => x, key => $"Correspondence.PropertyList.{key}");
         AddListItems(content, ExistingAttachments, x => x.ToString(), i => $"Correspondence.ExistingAttachments[{i}]");
-        AddListItems(content, Recipients, GetFormattedRecipient, i => $"Recipients[{i}]");
+        AddListItems(content, Recipients, x => x.ToUrnFormattedString(), i => $"Recipients[{i}]");
 
         Content.Serialise(content);
         Notification?.Serialise(content);
@@ -345,17 +346,5 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
     private static void ValidationError(string errorMessage)
     {
         throw new CorrespondenceArgumentException(errorMessage);
-    }
-
-    private static string GetFormattedRecipient(OrganisationOrPersonIdentifier recipient)
-    {
-        return recipient switch
-        {
-            OrganisationOrPersonIdentifier.Organisation org => org.Value.Get(OrganisationNumberFormat.International),
-            OrganisationOrPersonIdentifier.Person person => person.Value.Value,
-            _ => throw new CorrespondenceArgumentException(
-                $"Unknown {nameof(OrganisationOrPersonIdentifier)} type `{recipient.GetType()}`"
-            ),
-        };
     }
 }

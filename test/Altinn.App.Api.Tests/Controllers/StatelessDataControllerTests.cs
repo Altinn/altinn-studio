@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Controllers.TestResources;
 using Altinn.App.Api.Tests.Utils;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -252,7 +253,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", string.Empty, "#integer") }),
+                new ClaimsIdentity(new List<Claim> { new Claim(AltinnUrns.PartyId, string.Empty, "#integer") }),
             }
         );
 
@@ -296,7 +297,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") }),
+                new ClaimsIdentity(new List<Claim> { new Claim(AltinnUrns.PartyId, "12345", "#integer") }),
             }
         );
         pdpMock
@@ -355,7 +356,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") }),
+                new ClaimsIdentity(new List<Claim> { new Claim(AltinnUrns.PartyId, "12345", "#integer") }),
             }
         );
         pdpMock

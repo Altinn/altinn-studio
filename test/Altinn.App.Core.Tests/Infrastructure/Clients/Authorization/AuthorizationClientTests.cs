@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -250,8 +251,8 @@ public class AuthorizationClientTests
                 new(
                     new List<Claim>
                     {
-                        new("urn:altinn:partyid", partyId, "#integer"),
-                        new("urn:altinn:authlevel", "3", "#integer"),
+                        new(AltinnUrns.PartyId, partyId, "#integer"),
+                        new(AltinnUrns.AuthenticationLevel, "3", "#integer"),
                     }
                 ),
             }
