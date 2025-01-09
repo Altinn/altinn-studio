@@ -108,7 +108,7 @@ describe('NewApplicationForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledTimes(0);
   });
 
-  it('should inform the user if he/she cannot create new application for the organization', async () => {
+  it('should notify the user if they lack permission to create a new application for the organization and disable the "Create" button', async () => {
     const user = userEvent.setup();
     (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
       data: { canCreateOrgRepo: false },
@@ -120,9 +120,10 @@ describe('NewApplicationForm', () => {
     expect(
       await screen.findByText(textMock('dashboard.missing_service_owner_rights_error_message')),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeDisabled();
   });
 
-  it('should not display error if user has access to create org', async () => {
+  it('should enable the "Create" button and not display an error if the user has permission to create an organization', async () => {
     const user = userEvent.setup();
     (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
       data: { canCreateOrgRepo: true },
@@ -134,6 +135,7 @@ describe('NewApplicationForm', () => {
     expect(
       screen.queryByText(textMock('dashboard.missing_service_owner_rights_error_message')),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
   });
 });
 
