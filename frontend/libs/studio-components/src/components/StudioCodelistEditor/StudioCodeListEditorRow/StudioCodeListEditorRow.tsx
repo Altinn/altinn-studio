@@ -49,7 +49,7 @@ export function StudioCodeListEditorRow({
   );
 
   const handleValueChange = useCallback(
-    (value: string) => {
+    (value: CodeListItemValue) => {
       const updatedItem = changeValue(item, value);
       onChange(updatedItem);
     },
@@ -66,7 +66,7 @@ export function StudioCodeListEditorRow({
 
   return (
     <StudioInputTable.Row>
-      <TextfieldCell
+      <ValueCell
         autoComplete='off'
         error={error && texts.valueErrors[error]}
         label={texts.itemValue(number)}
@@ -108,21 +108,28 @@ export function StudioCodeListEditorRow({
 type TextfieldCellProps = {
   error?: string;
   label: string;
-  onChange: (newString: string) => void;
+  onChange: (newValue: CodeListItemValue) => void;
   value: CodeListItemValue;
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
-function TextfieldCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
+function ValueCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
     ref.current?.setCustomValidity(error || '');
   }, [error]);
 
-  const handleChange = useCallback(
+  const handleTextChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
       onChange(event.target.value);
+    },
+    [onChange],
+  );
+
+  const handleNumberChange = useCallback(
+    (number: number): void => {
+      onChange(number);
     },
     [onChange],
   );
@@ -131,17 +138,31 @@ function TextfieldCell({ error, label, value, onChange, autoComplete }: Textfiel
     event.target.reportValidity();
   }, []);
 
-  return (
-    <StudioInputTable.Cell.Textfield
-      aria-label={label}
-      autoComplete={autoComplete}
-      className={classes.textfieldCell}
-      onChange={handleChange}
-      onFocus={handleFocus}
-      ref={ref}
-      value={(value as string) ?? ''}
-    />
-  );
+  if (typeof value === 'number') {
+    return (
+      <StudioInputTable.Cell.Numberfield
+        aria-label={label}
+        autoComplete={autoComplete}
+        className={classes.textfieldCell}
+        onChange={handleNumberChange}
+        onFocus={handleFocus}
+        ref={ref}
+        value={value ?? null}
+      />
+    );
+  } else {
+    return (
+      <StudioInputTable.Cell.Textfield
+        aria-label={label}
+        autoComplete={autoComplete}
+        className={classes.textfieldCell}
+        onChange={handleTextChange}
+        onFocus={handleFocus}
+        ref={ref}
+        value={(value as string) ?? ''}
+      />
+    );
+  }
 }
 
 type TextResourceIdCellProps = {
@@ -159,7 +180,7 @@ function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
   if (textResources) {
     return <TextResourceSelectorCell {...props} textResources={textResources} />;
   } else {
-    return <TextfieldCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
+    return <ValueCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
   }
 }
 
