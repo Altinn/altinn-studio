@@ -17,6 +17,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
 import { isGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -431,7 +432,9 @@ function getComponentCellData(
   displayDataProps: DisplayDataProps,
   textResourceBindings?: ITextResourceBindings,
 ) {
-  if (node && 'getDisplayData' in node.def) {
+  if (node?.type === 'Custom') {
+    return <ComponentSummary componentNode={node} />;
+  } else if (node && 'getDisplayData' in node.def && node.type) {
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     return node.def.getDisplayData(node as LayoutNode<any>, displayDataProps) || '-';
   } else if (textResourceBindings && 'title' in textResourceBindings) {

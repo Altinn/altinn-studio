@@ -20,6 +20,7 @@ import { RepeatingGroupTableTitle, useTableTitle } from 'src/layout/RepeatingGro
 import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
@@ -141,14 +142,22 @@ function DataRow({ row, node, index, pdfModeActive, columnSettings }: DataRowPro
 
   return (
     <Table.Row>
-      {cellNodes.map((node) => (
-        <DataCell
-          key={node.id}
-          node={node}
-          displayData={('getDisplayData' in node.def && node.def.getDisplayData(node as never, displayDataProps)) ?? ''}
-          columnSettings={columnSettings}
-        />
-      ))}
+      {cellNodes.map((node) =>
+        node.type === 'Custom' ? (
+          <Table.Cell key={node.id}>
+            <ComponentSummary componentNode={node} />
+          </Table.Cell>
+        ) : (
+          <DataCell
+            key={node.id}
+            node={node}
+            displayData={
+              ('getDisplayData' in node.def && node.def.getDisplayData(node as never, displayDataProps)) ?? ''
+            }
+            columnSettings={columnSettings}
+          />
+        ),
+      )}
       {!pdfModeActive && (
         <Table.Cell
           align='right'

@@ -12,6 +12,7 @@ import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
+  summaryMode?: boolean;
 };
 
 export type IPassedOnProps = Omit<PropsFromGenericComponent<'Custom'>, 'node' | 'componentValidations'> &
@@ -24,6 +25,7 @@ export type IPassedOnProps = Omit<PropsFromGenericComponent<'Custom'>, 'node' | 
 export function CustomWebComponent({
   node,
   componentValidations,
+  summaryMode = false,
   ...passThroughPropsFromGenericComponent
 }: ICustomComponentProps) {
   const langTools = useLanguage();
@@ -34,6 +36,7 @@ export function CustomWebComponent({
     ...passThroughPropsFromNode,
     text: langAsString(textResourceBindings?.title),
     getTextResourceAsString: (textResource: string) => langAsString(textResource),
+    summaryMode,
   };
   const HtmlTag = tagName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
