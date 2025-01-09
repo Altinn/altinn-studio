@@ -15,7 +15,7 @@ const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
 const handleComponentChangeMock = jest.fn();
-const getOptionListIds = jest
+const getOptionListIdsMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 
@@ -27,6 +27,19 @@ describe('OptionListSelector', () => {
     );
 
     expect(screen.getByText(textMock('ux_editor.modal_properties_code_list'))).toBeInTheDocument();
+  });
+
+  it('should not render if the list is empty', async () => {
+    renderOptionListSelector({
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
+    });
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    expect(
+      screen.queryByText(textMock('ux_editor.modal_properties_code_list')),
+    ).not.toBeInTheDocument();
   });
 
   it('should call onChange when option list changes', async () => {
@@ -65,9 +78,7 @@ describe('OptionListSelector', () => {
 
   it('should render returned error message if option list endpoint returns an error', async () => {
     renderOptionListSelector({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
-      },
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
     });
 
     expect(await screen.findByText('Error')).toBeInTheDocument();
@@ -75,13 +86,13 @@ describe('OptionListSelector', () => {
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
     renderOptionListSelector({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
-      },
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
+      ),
     ).toBeInTheDocument();
   });
 });
@@ -94,10 +105,12 @@ function getDropdownOption(): HTMLElement {
   return screen.getByText(optionListIdsMock[0]);
 }
 
-function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
+function renderOptionListSelector({
+  getOptionListIds = getOptionListIdsMock,
+  componentProps = {},
+} = {}) {
   return renderWithProviders(
     <OptionListSelector
-      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,
@@ -105,7 +118,7 @@ function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
       handleComponentChange={handleComponentChangeMock}
     />,
     {
-      queries: { getOptionListIds, ...queries },
+      queries: { getOptionListIds },
       queryClient: createQueryClientMock(),
     },
   );
