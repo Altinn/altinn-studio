@@ -414,8 +414,8 @@ function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElem
 }
 
 function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTMLElement {
-  const { valueLabel } = texts.textResourceTexts(...textPropertyCoords);
-  return screen.getByRole('textbox', { name: valueLabel });
+  const name = texts.textResourceTexts(...textPropertyCoords).valueLabel;
+  return screen.getByRole('textbox', { name });
 }
 
 function getTextResourceOption(textResource: TextResource): HTMLElement {
