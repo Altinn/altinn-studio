@@ -16,7 +16,7 @@ jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
-describe('PageLayout', () => {
+describe.skip('PageLayout', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

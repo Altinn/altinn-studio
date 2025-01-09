@@ -18,10 +18,6 @@ const loggerConfig: LoggerConfig = {
   loggingLevelTelemetry: 2,
 };
 
-// ONLY FOR TESTING! REMOVE WHEN DONE
-const triggerTests = 'Trigger tests';
-console.log(triggerTests);
-
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
