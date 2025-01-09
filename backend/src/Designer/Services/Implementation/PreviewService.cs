@@ -19,10 +19,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// Constructor
 /// </remarks>
 /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-/// <param name="dataService"></param>
 public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IPreviewService
 {
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     public const string MockDataModelIdPrefix = "MockDataModel";
     public const string MockDataTaskId = "test-datatask-id";
 
@@ -30,7 +28,7 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
     public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         bool shouldProcessActAsReceipt = task == Constants.General.CustomReceiptId;
@@ -69,7 +67,7 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
     public async Task<DataType> GetDataTypeForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         if (applicationMetadata.DataTypes is { Count: > 0 })
@@ -84,7 +82,7 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
     public async Task<List<string>> GetTasksForAllLayoutSets(string org, string app, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         try
         {
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
@@ -115,7 +113,7 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
     public async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         string task = "Task_1";
         if (!string.IsNullOrEmpty(layoutSetName))
         {
@@ -127,7 +125,7 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
 
     private async Task<List<DataElement>> GetDataTypesForInstance(string org, string app, string developer, string layoutSetName, bool shouldProcessActAsReceipt)
     {
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
         string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(altinnAppGitRepository) : dataType?.Id;
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
