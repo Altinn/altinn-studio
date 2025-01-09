@@ -46,23 +46,27 @@ export const ItemMetadataTab = () => {
     <StudioFieldset legend={t('schema_editor.metadata')}>
       <StudioTextfield
         label={t('schema_editor.metadata.maxCount')}
-        value={dataType.maxCount || 0}
+        value={dataType.maxCount}
         type='number'
         max={Number.MAX_SAFE_INTEGER}
         min={dataType.minCount || 0}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          const updatedDataType = { ...dataType, maxCount: parseInt(event.target.value) };
+          const inputValue = parseInt(event.target.value) || 0;
+          const maxCount = Math.max(inputValue, dataType.minCount || 0);
+          const updatedDataType = { ...dataType, maxCount };
           saveMetadata(updatedDataType);
         }}
       />
       <StudioTextfield
         label={t('schema_editor.metadata.minCount')}
-        value={dataType.minCount || 0}
+        value={dataType.minCount}
         type='number'
         max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          const updatedDataType = { ...dataType, minCount: parseInt(event.target.value) };
+          const inputValue = parseInt(event.target.value) || 0;
+          const minCount = Math.min(inputValue, dataType.maxCount || Number.MAX_SAFE_INTEGER);
+          const updatedDataType = { ...dataType, minCount };
           saveMetadata(updatedDataType);
         }}
       />
