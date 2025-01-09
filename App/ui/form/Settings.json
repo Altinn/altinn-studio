@@ -1,6 +1,8 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.13.0-preview.1.navigation.c84f65b3/schemas/json/layout/layoutSettings.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.13.0-preview.1.navigation.0f107dff/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
+    "showLanguageSelector": true,
+    "showExpandWidthButton": true,
     "groups": [
       {
         "name": "group.info",
