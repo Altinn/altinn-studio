@@ -904,9 +904,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public Definitions GetDefinitions()
         {
-            Stream processDefinitionStream = GetProcessDefinitionFile();
+            using Stream processDefinitionStream = GetProcessDefinitionFile();
             XmlSerializer serializer = new(typeof(Definitions));
-            return (Definitions)serializer.Deserialize(processDefinitionStream);
+            Definitions definitions = (Definitions)serializer.Deserialize(processDefinitionStream);
+
+            return definitions;
         }
 
         /// <summary>
