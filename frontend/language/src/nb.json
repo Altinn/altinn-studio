@@ -182,6 +182,7 @@
   "dashboard.loading": "Laster inn dashboardet",
   "dashboard.loading_resource_list": "Laster inn ressursliste",
   "dashboard.make_copy": "Lag kopi",
+  "dashboard.missing_service_owner_rights_error_message": "Du mangler tilgang til å opprette en ny applikasjon i valgt organisasjon.",
   "dashboard.my_apps": "Mine apper",
   "dashboard.my_data_models": "Mine datamodeller",
   "dashboard.my_resources": "Mine ressurser",

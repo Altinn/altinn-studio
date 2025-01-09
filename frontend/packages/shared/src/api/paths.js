@@ -17,6 +17,9 @@ export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app
 // App version
 export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
 
+// UserOrgPermissions
+export const userOrgPermissionsPath = (org) => `${basePath}/user/org-permissions/${org}`;
+
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
