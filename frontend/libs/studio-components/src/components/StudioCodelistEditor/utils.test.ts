@@ -2,6 +2,9 @@ import type { CodeList } from './types/CodeList';
 import {
   addEmptyCodeListItem,
   changeCodeListItem,
+  emptyBooleanItem,
+  emptyNumberItem,
+  emptyStringItem,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -24,16 +27,28 @@ const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
   describe('addEmptyCodeListItem', () => {
-    it('Adds an empty item to the code list', () => {
+    it('Adds an empty string item when the code list is empty', () => {
+      const codeList: CodeList = [];
+      const updatedCodeList = addEmptyCodeListItem(codeList);
+      expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
+    });
+
+    it("Adds an empty string item when the first item's value is a string", () => {
       const codeList = createTestCodeList();
       const updatedCodeList = addEmptyCodeListItem(codeList);
-      expect(updatedCodeList).toEqual([
-        ...codeList,
-        {
-          label: '',
-          value: '',
-        },
-      ]);
+      expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
+    });
+
+    it("Adds an empty number item when the first item's value is a number", () => {
+      const codeList: CodeList = [{ value: 1, label: 'test' }];
+      const updatedCodeList = addEmptyCodeListItem(codeList);
+      expect(updatedCodeList).toEqual([...codeList, emptyNumberItem]);
+    });
+
+    it("Adds an empty boolean item when the first item's value is a number", () => {
+      const codeList: CodeList = [{ value: false, label: 'test' }];
+      const updatedCodeList = addEmptyCodeListItem(codeList);
+      expect(updatedCodeList).toEqual([...codeList, emptyBooleanItem]);
     });
 
     it('Returns a new instance', () => {
