@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -14,8 +15,9 @@ namespace Designer.Tests.GiteaIntegrationTests
 {
     public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>
     {
-
-        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
+        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory,
+            GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(
+            factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
         }
 
@@ -31,10 +33,8 @@ namespace Designer.Tests.GiteaIntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Contain(e => e.Contains("XSRF-TOKEN"));
             string content = await response.Content.ReadAsStringAsync();
-            var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var user = JsonSerializer.Deserialize<User>(content,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             user.Login.Should().Be(expectedUserName);
             user.Email.Should().Be(expectedEmail);
@@ -62,14 +62,35 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            using var putStarredResponse = await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
+            using var putStarredResponse =
+                await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
             putStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
             await GetAndVerifyStarredRepos(targetRepo);
 
-            using var deleteStarredResponse = await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
+            using var deleteStarredResponse =
+                await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
             deleteStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
             await GetAndVerifyStarredRepos();
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername, true)]
+        [InlineData("OtherOrg", false)]
+        public async Task HasAccessToCreateRepository_ShouldReturnCorrectPermissions(string org, bool expectedCanCreate)
+        {
+            string requestUrl = $"designer/api/user/org-permissions/{org}";
+
+            using var response = await HttpClient.GetAsync(requestUrl);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            string content = await response.Content.ReadAsStringAsync();
+
+            var userRepositoryPermission = JsonSerializer.Deserialize<UserRepositoryPermission>(content,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            userRepositoryPermission.Should().NotBeNull();
+            userRepositoryPermission.CanCreateOrgRepo.Should().Be(expectedCanCreate);
         }
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
@@ -83,6 +104,5 @@ namespace Designer.Tests.GiteaIntegrationTests
                 content.Should().Contain(r => r.Name == expectedStarredRepo);
             }
         }
-
     }
 }
