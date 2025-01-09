@@ -409,8 +409,8 @@ async function switchToSearchMode(
 type TextPropertyCoords = [number, CodeListItemTextProperty];
 
 function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElement {
-  const { textResourcePickerLabel } = texts.textResourceTexts(...textPropertyCoords);
-  return screen.getByRole('combobox', { name: textResourcePickerLabel });
+  const name = texts.textResourceTexts(...textPropertyCoords).textResourcePickerLabel;
+  return screen.getByRole('combobox', { name });
 }
 
 function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTMLElement {
