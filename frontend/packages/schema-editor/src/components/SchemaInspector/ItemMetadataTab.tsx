@@ -42,6 +42,11 @@ export const ItemMetadataTab = () => {
     return <StudioErrorMessage>{t('schema_editor.metadata.not_found')}</StudioErrorMessage>;
   }
 
+  const hasMaxCountError =
+    dataType.maxCount < 0 || (dataType.maxCount < dataType.minCount && dataType.maxCount !== 0);
+  const hasMinCountError =
+    dataType.minCount < 0 || (dataType.minCount > dataType.maxCount && dataType.maxCount !== 0);
+
   return (
     <StudioFieldset legend={t('schema_editor.metadata')}>
       <StudioTextfield
@@ -50,9 +55,9 @@ export const ItemMetadataTab = () => {
         type='number'
         max={Number.MAX_SAFE_INTEGER}
         min={dataType.minCount || 0}
+        error={hasMaxCountError ? t('schema_editor.metadata.maxCount.error') : undefined}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          const inputValue = parseInt(event.target.value) || 0;
-          const maxCount = Math.max(inputValue, dataType.minCount || 0);
+          const maxCount = parseInt(event.target.value) || 0;
           const updatedDataType = { ...dataType, maxCount };
           saveMetadata(updatedDataType);
         }}
@@ -63,9 +68,9 @@ export const ItemMetadataTab = () => {
         type='number'
         max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
+        error={hasMinCountError ? t('schema_editor.metadata.minCount.error') : undefined}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          const inputValue = parseInt(event.target.value) || 0;
-          const minCount = Math.min(inputValue, dataType.maxCount || Number.MAX_SAFE_INTEGER);
+          const minCount = parseInt(event.target.value) || 0;
           const updatedDataType = { ...dataType, minCount };
           saveMetadata(updatedDataType);
         }}
