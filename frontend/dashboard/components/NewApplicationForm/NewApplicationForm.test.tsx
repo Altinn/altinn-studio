@@ -140,7 +140,7 @@ describe('NewApplicationForm', () => {
 });
 
 function renderNewApplicationForm(
-  newApplicationFormProps: Partial<NewApplicationFormProps>,
+  newApplicationFormProps?: Partial<NewApplicationFormProps>,
   services?: Partial<ServicesContextProps>,
 ) {
   return renderWithProviders(
