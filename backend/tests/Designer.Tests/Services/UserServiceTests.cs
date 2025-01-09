@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -23,8 +23,8 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData( "org1", false)]
-        [InlineData( "org2", true)]
+        [InlineData("org1", false)]
+        [InlineData("org2", true)]
         public async Task GetUserRepositoryPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
         {
             var teams = new List<Team>
