@@ -1,6 +1,6 @@
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class UserRepositoryPermission
+public class UserOrgPermission
 {
     public bool CanCreateOrgRepo { get; set; }
 }

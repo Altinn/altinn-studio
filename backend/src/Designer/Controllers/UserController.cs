@@ -87,8 +87,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("org-permissions/{org}")]
         public async Task<IActionResult> HasAccessToCreateRepository(string org)
         {
-            UserRepositoryPermission userRepository = await _userService.GetUserRepositoryPermission(org);
-            return Ok(userRepository);
+            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(org);
+            return Ok(userOrg);
         }
 
         /// <summary>

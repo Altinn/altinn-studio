@@ -25,7 +25,7 @@ namespace Designer.Tests.Services
         [Theory]
         [InlineData("org1", false)]
         [InlineData("org2", true)]
-        public async Task GetUserRepositoryPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
+        public async Task GetUserOrgPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
         {
             var teams = new List<Team>
             {
@@ -40,7 +40,7 @@ namespace Designer.Tests.Services
 
             var userService = new UserService(_httpContextAccessor.Object, _giteaApi.Object);
 
-            var result = await userService.GetUserRepositoryPermission(org);
+            var result = await userService.GetUserOrgPermission(org);
 
             Assert.NotNull(result);
             Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);

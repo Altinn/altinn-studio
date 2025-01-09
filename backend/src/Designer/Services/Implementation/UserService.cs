@@ -20,10 +20,10 @@ public class UserService : IUserService
         _giteaApi = giteaApi;
     }
 
-    public async Task<UserRepositoryPermission> GetUserRepositoryPermission(string org)
+    public async Task<UserOrgPermission> GetUserOrgPermission(string org)
     {
         bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(org);
-        return new UserRepositoryPermission() { CanCreateOrgRepo = canCreateOrgRepo };
+        return new UserOrgPermission() { CanCreateOrgRepo = canCreateOrgRepo };
     }
 
     private bool IsUserSelfOrg(string org)

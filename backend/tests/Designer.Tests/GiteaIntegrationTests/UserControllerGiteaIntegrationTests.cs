@@ -86,11 +86,11 @@ namespace Designer.Tests.GiteaIntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string content = await response.Content.ReadAsStringAsync();
 
-            var userRepositoryPermission = JsonSerializer.Deserialize<UserRepositoryPermission>(content,
+            var userOrgPermission = JsonSerializer.Deserialize<UserOrgPermission>(content,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            userRepositoryPermission.Should().NotBeNull();
-            userRepositoryPermission.CanCreateOrgRepo.Should().Be(expectedCanCreate);
+            userOrgPermission.Should().NotBeNull();
+            userOrgPermission.CanCreateOrgRepo.Should().Be(expectedCanCreate);
         }
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
