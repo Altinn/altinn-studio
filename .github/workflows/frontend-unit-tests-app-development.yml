@@ -36,5 +36,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          directory: frontend/coverage
+          directory: frontend/app-development/coverage
           fail_ci_if_error: true
