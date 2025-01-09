@@ -5,5 +5,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUserService
 {
-   public Task<UserRepositoryPermission> GetUserRepositoryPermission(string org);
+    public Task<UserRepositoryPermission> GetUserRepositoryPermission(string org);
 }
