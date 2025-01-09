@@ -17,7 +17,7 @@ env:
 
 jobs:
   typecheck:
-    name: 'Typechecking and linting'
+    name: 'Typechecking and linting app-development'
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -33,16 +33,16 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Doing the typecheck'
-        run: yarn typecheck
+        run: yarn typecheck:app-development
 
       - name: 'Running Eslint'
-        run: yarn lint --cache
+        run: yarn lint:app-development
 
       - name: 'Checking code style'
         run: yarn run codestyle:check
 
   test:
-    name: 'Testing'
+    name: 'Testing app-development'
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
