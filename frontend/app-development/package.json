@@ -38,7 +38,7 @@
     "lint": "eslint \"frontend/**/*.ts*\"",
     "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=../jest.config.js",
+    "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder)",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
   }

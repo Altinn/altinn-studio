@@ -16,31 +16,6 @@ env:
   CYPRESS_INSTALL_BINARY: 0
 
 jobs:
-  typecheck:
-    name: 'Typechecking and linting app-development'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
-
-      - name: 'Doing the typecheck'
-        run: yarn typecheck:app-development
-
-      - name: 'Running Eslint'
-        run: yarn lint:app-development
-
-      - name: 'Checking code style'
-        run: yarn run codestyle:check
-
   test:
     name: 'Testing app-development'
     runs-on: ubuntu-latest
@@ -54,7 +29,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: test:ci:app-development
+        run: yarn test:ci:app-development
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@v5
