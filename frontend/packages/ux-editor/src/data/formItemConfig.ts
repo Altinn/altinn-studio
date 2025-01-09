@@ -504,7 +504,6 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Accordion],
   formItemConfigs[ComponentType.AccordionGroup],
   formItemConfigs[ComponentType.List],
-  formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
   shouldDisplayFeature(FeatureFlag.Subform) && formItemConfigs[ComponentType.Subform],
