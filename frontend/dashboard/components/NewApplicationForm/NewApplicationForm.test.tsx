@@ -10,7 +10,6 @@ import { type Organization } from 'app-shared/types/Organization';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
@@ -144,9 +143,7 @@ function renderNewApplicationForm(
   services?: Partial<ServicesContextProps>,
 ) {
   return renderWithProviders(
-    <ServicesContextProvider>
-      <NewApplicationForm {...defaultProps} {...newApplicationFormProps} />
-    </ServicesContextProvider>,
+    <NewApplicationForm {...defaultProps} {...newApplicationFormProps} />,
     {
       queries: services,
       queryClient: createQueryClientMock(),
