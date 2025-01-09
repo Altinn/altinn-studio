@@ -23,6 +23,11 @@ export const PageLayout = (): React.ReactNode => {
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
 
+  // Make some changes here to see if test coverage is affected.
+  // JUST FOR TESTING; REMOVE LATER, DO NOT MERGE
+  const triggerChange = 'trigger change';
+  console.log(triggerChange);
+
   const { data: orgs, isPending: orgsPending } = useOrgListQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner?.login);
