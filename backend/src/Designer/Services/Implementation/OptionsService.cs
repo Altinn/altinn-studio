@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
@@ -51,14 +52,15 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
-        var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
+        List<Option> optionsList;
 
+        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
         try
         {
+            optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
             optionsList.ForEach(ValidateOption);
         }
-        catch (ValidationException)
+        catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
             throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in option list: {optionsListId}.");
         }
