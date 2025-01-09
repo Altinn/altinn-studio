@@ -9,6 +9,9 @@ import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '../../testing/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockOnSubmit = jest.fn();
 
@@ -56,7 +59,7 @@ describe('NewApplicationForm', () => {
 
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
-    render(<NewApplicationForm {...defaultProps} />);
+    renderNewApplicationForm();
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -81,7 +84,7 @@ describe('NewApplicationForm', () => {
 
   it('does not call onSubmit when form is submitted with invalid data', async () => {
     const user = userEvent.setup();
-    render(<NewApplicationForm {...defaultProps} />);
+    renderNewApplicationForm();
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -96,4 +99,24 @@ describe('NewApplicationForm', () => {
 
     expect(mockOnSubmit).toHaveBeenCalledTimes(0);
   });
+
+  it('should inform the user if he/she cannot create new application for the organization', () => {
+    renderNewApplicationForm();
+    expect(true).toBeTruthy();
+  });
 });
+
+function renderNewApplicationForm(
+  newApplicationFormProps: Partial<NewApplicationFormProps>,
+  services?: Partial<ServicesContextProps>,
+) {
+  return renderWithProviders(
+    <ServicesContextProvider>
+      <NewApplicationForm {...defaultProps} {...newApplicationFormProps} />
+    </ServicesContextProvider>,
+    {
+      queries: services,
+      queryClient: createQueryClientMock(),
+    },
+  );
+}

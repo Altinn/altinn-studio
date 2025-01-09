@@ -100,12 +100,12 @@ export const NewApplicationForm = ({
     return isOrgValid && isRepoNameValid;
   };
 
-  const createRepoAccessError =
+  const createRepoAccessError: string =
     !userOrgPermission?.canCreateOrgRepo && !isFetching
       ? t('dashboard.missing_service_owner_rights_error_message')
       : '';
 
-  const hasCreateRepoAccessError = Boolean(createRepoAccessError);
+  const hasCreateRepoAccessError: boolean = Boolean(createRepoAccessError);
 
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
