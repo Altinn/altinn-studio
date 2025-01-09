@@ -39,6 +39,6 @@ public class UserService : IUserService
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
     {
-        return team.can_create_org_repo & team.Organization.Username == org;
+        return team.can_create_org_repo && team.Organization.Username == org;
     }
 }
