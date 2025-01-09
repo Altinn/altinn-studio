@@ -119,10 +119,10 @@ export const FormComponentConfig = ({
       )}
       {grid && (
         <TextResource
-          compact
           handleIdChange={() => {}}
           label={t('ux_editor.component_properties.grid')}
           disableEditor
+          className={classes.gridButton}
         >
           <EditGrid
             key={component.id}

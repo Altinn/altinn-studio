@@ -19,6 +19,7 @@ export interface TextResourceProps {
   compact?: boolean;
   disableEditor?: boolean;
   children?: React.ReactNode;
+  className?: string;
 }
 
 export interface GenerateTextResourceIdOptions {
@@ -43,6 +44,7 @@ export const TextResource = ({
   textResourceId,
   disableEditor,
   children,
+  className,
 }: TextResourceProps) => {
   const { formItemId } = useFormItemContext();
   const { selectedFormLayoutName: formLayoutName } = useAppContext();
@@ -95,6 +97,7 @@ export const TextResource = ({
     </TextResourceFieldset>
   ) : (
     <TextResourceButton
+      className={className}
       compact={compact}
       label={label}
       onOpen={handleOpen}
@@ -169,6 +172,7 @@ type TextResourceButtonProps = {
   label: string;
   onOpen: () => void;
   textResourceId: string;
+  className?: string;
 };
 
 const TextResourceButton = ({
@@ -176,9 +180,16 @@ const TextResourceButton = ({
   label,
   onOpen,
   textResourceId,
+  className,
 }: TextResourceButtonProps) => {
   const value = useTextResourceValue(textResourceId);
   return (
-    <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
+    <StudioProperty.Button
+      compact={compact}
+      onClick={onOpen}
+      property={label}
+      value={value}
+      className={className}
+    />
   );
 };
