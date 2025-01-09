@@ -54,6 +54,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
             services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
+            services.AddScoped<IUserService, UserService>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
