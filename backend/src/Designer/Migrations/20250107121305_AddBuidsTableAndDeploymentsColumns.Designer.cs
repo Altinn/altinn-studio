@@ -3,6 +3,7 @@ using System;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    partial class DesignerdbContextModelSnapshot : ModelSnapshot
+    [Migration("20250107121305_AddBuidsTableAndDeploymentsColumns")]
+    partial class AddBuidsTableAndDeploymentsColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace Altinn.Studio.Designer.Migrations
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbObject", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -73,7 +76,7 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("app_scopes", "designer");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbObject", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +119,7 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("builds", "designer");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment", b =>
                 {
                     b.Property<long>("Sequenceno")
                         .ValueGeneratedOnAdd()
@@ -175,7 +178,7 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("deployments", "designer");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.Release", b =>
                 {
                     b.Property<long>("Sequenceno")
                         .ValueGeneratedOnAdd()
@@ -224,9 +227,9 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("releases", "designer");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment", b =>
                 {
-                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel", "Build")
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbObject", "Build")
                         .WithMany()
                         .HasForeignKey("InternalBuildId")
                         .HasConstraintName("fk_deployments_builds_buildid");
