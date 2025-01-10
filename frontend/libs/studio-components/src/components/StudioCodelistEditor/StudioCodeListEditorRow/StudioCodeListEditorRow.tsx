@@ -105,7 +105,7 @@ export function StudioCodeListEditorRow({
   );
 }
 
-type TextfieldCellProps = {
+type ValueCellProps = {
   error?: string;
   label: string;
   onChange: (newValue: CodeListItemValue) => void;
@@ -113,7 +113,7 @@ type TextfieldCellProps = {
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
-function ValueCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
+function ValueCell({ error, label, value, onChange, autoComplete }: ValueCellProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
@@ -138,7 +138,9 @@ function ValueCell({ error, label, value, onChange, autoComplete }: TextfieldCel
     event.target.reportValidity();
   }, []);
 
-  if (typeof value === 'number') {
+  const shouldRenderNumberfield = typeof value === 'number' || value === undefined; // Undefined values come from empty number field
+
+  if (shouldRenderNumberfield) {
     return (
       <StudioInputTable.Cell.Numberfield
         aria-label={label}
@@ -147,7 +149,7 @@ function ValueCell({ error, label, value, onChange, autoComplete }: TextfieldCel
         onChange={handleNumberChange}
         onFocus={handleFocus}
         ref={ref}
-        value={value ?? null}
+        value={(value as number) ?? 0}
       />
     );
   } else {
