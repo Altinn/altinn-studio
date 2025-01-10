@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Models;
 public class LayoutSets : Altinn.App.Core.Models.LayoutSets
 {
     [JsonPropertyName("$schema")]
-    public required string Schema { get; set; }
+    public string? Schema { get; set; }
 
     [JsonPropertyName("sets")]
     public new required List<LayoutSetConfig> Sets { get; set; }

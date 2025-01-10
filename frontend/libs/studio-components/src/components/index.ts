@@ -46,6 +46,7 @@ export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
 export * from './StudioProperty';
+export * from './StudioStatusRadioGroup';
 export * from './StudioRecommendedNextAction';
 export * from './StudioRedirectBox';
 export * from './StudioResizableLayout';

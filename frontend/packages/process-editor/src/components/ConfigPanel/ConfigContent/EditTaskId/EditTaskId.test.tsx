@@ -7,6 +7,7 @@ import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPa
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
 
+const task1IdMock = 'task_1';
 const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
@@ -30,7 +31,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
       return {
         getAllTasksByType: jest
           .fn()
-          .mockReturnValue([{ id: 'task_1' }, { id: 'task_2' }, { id: 'task_3' }]),
+          .mockReturnValue([{ id: task1IdMock }, { id: 'task_2' }, { id: 'task_3' }]),
       };
     }),
   };
@@ -102,7 +103,12 @@ describe('EditTaskId', () => {
       },
       {
         description: 'is not unique',
-        inputValue: 'task_1',
+        inputValue: task1IdMock,
+        expectedError: 'process_editor.validation_error.id_not_unique',
+      },
+      {
+        description: 'is not unique (case-insensitive)',
+        inputValue: task1IdMock.toUpperCase(),
         expectedError: 'process_editor.validation_error.id_not_unique',
       },
       {
