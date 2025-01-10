@@ -45,7 +45,7 @@ describe('StudioCodelistEditor utils', () => {
       expect(updatedCodeList).toEqual([...codeList, emptyNumberItem]);
     });
 
-    it("Adds an empty boolean item when the first item's value is a number", () => {
+    it("Adds an empty boolean item when the first item's value is a boolean", () => {
       const codeList: CodeList = [{ value: false, label: 'test' }];
       const updatedCodeList = addEmptyCodeListItem(codeList);
       expect(updatedCodeList).toEqual([...codeList, emptyBooleanItem]);
