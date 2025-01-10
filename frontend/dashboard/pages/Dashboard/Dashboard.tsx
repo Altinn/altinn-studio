@@ -6,7 +6,6 @@ import { StudioButton } from '@studio/components';
 import { XMarkIcon, PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
-import { DataModelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
 import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
@@ -16,8 +15,6 @@ import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { SafeErrorView } from '../../components/SafeErrorView';
 
 type DashboardProps = {
@@ -39,9 +36,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
 
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
-
-  const shouldDisplayResources =
-    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
 
   return (
     <>
@@ -114,44 +108,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   <OrgReposList user={user} organizations={organizations} />
                 </ErrorBoundary>
               </div>
-              <ErrorBoundary
-                fallback={
-                  <SafeErrorView
-                    heading={t('dashboard.all_data_models')}
-                    title={t('dashboard.view_data_models_error_title')}
-                    message={
-                      <Trans
-                        i18nKey={'dashboard.view_table_error_message'}
-                        components={{
-                          a: <Link href='/contact'> </Link>,
-                        }}
-                      ></Trans>
-                    }
-                  />
-                }
-              >
-                <DataModelsReposList user={user} organizations={organizations} />
-              </ErrorBoundary>
-              {shouldDisplayResources && (
-                <ErrorBoundary
-                  fallback={
-                    <SafeErrorView
-                      heading={t('dashboard.all_resources')}
-                      title={t('dashboard.view_resources_error_title')}
-                      message={
-                        <Trans
-                          i18nKey={'dashboard.view_table_error_message'}
-                          components={{
-                            a: <Link href='/contact'> </Link>,
-                          }}
-                        ></Trans>
-                      }
-                    />
-                  }
-                >
-                  <ResourcesRepoList user={user} organizations={organizations} />
-                </ErrorBoundary>
-              )}
             </>
           )}
         </div>
