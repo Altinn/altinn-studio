@@ -27,9 +27,9 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
 
     return (
       <div {...rest} className={className} ref={ref}>
-        <div className={classes.innerContainer}>
-          <div className={classes.iconLabelContainer}>
-            {icon ?? null}
+        {icon ?? null}
+        <div>
+          <div>
             <Paragraph size='small' className={classes.label}>
               {label}
             </Paragraph>

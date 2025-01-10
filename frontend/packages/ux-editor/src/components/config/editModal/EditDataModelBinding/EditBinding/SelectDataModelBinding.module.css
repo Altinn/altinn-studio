@@ -5,18 +5,7 @@
 }
 
 .displayTileContainer {
-  padding: 0;
-  padding-right: var(--fds-spacing-1);
-}
-
-.displayTileContainer > div {
-  display: grid;
-}
-
-.displayTileContainer > div > p {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
+  padding: 0 var(--fds-spacing-1) 0 0;
 }
 
 .selectDataModel {
