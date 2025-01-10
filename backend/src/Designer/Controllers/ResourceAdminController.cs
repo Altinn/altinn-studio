@@ -428,6 +428,52 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Route("designer/api/accesspackageservices/{accesspackage}/{env}")]
+        public async Task<ActionResult<List<AccessPackageService>>> GetServicesForAccessPackage(string org, string accesspackage, string env)
+        {
+            // POST to get all resources per access package
+            List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources([accesspackage], env);
+
+            // GET full list of resources (with apps) in environment
+            string cacheKey = $"resourcelist_with_apps${env}";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+            {
+                environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+
+                MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetPriority(CacheItemPriority.High)
+                    .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+            }
+
+            List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
+
+            OrgList orgList = await GetOrgList();
+            List<AccessPackageService> result = [];
+
+            // return resources for all subjectResources
+            resources?.ForEach(resourceMatch =>
+            {
+                ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
+
+                if (fullResource != null)
+                {
+                    orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
+
+                    result.Add(new AccessPackageService()
+                    {
+                        Identifier = resourceMatch.Value,
+                        Title = fullResource?.Title,
+                        HasCompetentAuthority = fullResource.HasCompetentAuthority,
+                        LogoUrl = organization.Logo
+                    });
+                }
+            });
+
+            return result;
+        }
+
+        [HttpGet]
         [Route("designer/api/{org}/resources/altinn2linkservices/{env}")]
         public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string env)
         {
@@ -610,7 +656,7 @@ namespace Altinn.Studio.Designer.Controllers
             return orgList;
         }
 
-        private static bool IsServiceOwner(ServiceResource? resource, string loggedInOrg)
+        private static bool IsServiceOwner(ServiceResource resource, string loggedInOrg)
         {
             if (resource?.HasCompetentAuthority == null)
             {

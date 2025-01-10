@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Models
         public string? CreatedBy { get; set; }
 
         /// <summary>
-        /// Timestamp for when the resourcefile was last changed
+        /// Timestamp for when the resource file was last changed
         /// </summary>
         public DateTime? LastChanged { get; set; }
 
@@ -34,6 +34,6 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// A list of environments the resource is deployed in
         /// </summary>
-        public IList<string> Environments { get; set; }
+        public IList<string>? Environments { get; set; }
     }
 }

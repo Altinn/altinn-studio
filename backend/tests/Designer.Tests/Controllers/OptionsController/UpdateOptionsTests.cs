@@ -63,7 +63,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
     }
 
     [Fact]
-    public async Task Put_Returns_200OK_When_Option_Values_Are_Bool_String_Double()
+    public async Task Put_Returns_200OK_When_Option_Values_Are_Bool_String_Numbers()
     {
         string repo = "app-with-options";
         string optionsListId = "test-options";
@@ -74,12 +74,13 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var stringBoolDoubleOptionsList = @"[
+        var stringBoolNumbersOptionsList = @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
+            { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        httpRequestMessage.Content = new StringContent(stringBoolDoubleOptionsList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(stringBoolNumbersOptionsList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

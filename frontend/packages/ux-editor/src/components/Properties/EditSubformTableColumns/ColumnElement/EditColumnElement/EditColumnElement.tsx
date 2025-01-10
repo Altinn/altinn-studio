@@ -18,6 +18,7 @@ import type { FormItem } from '../../../../../types/FormItem';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
+import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
 
 export type ColumnElementProps = {
@@ -62,10 +63,11 @@ export const EditColumnElement = ({
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
+    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
     const updatedTableColumn = {
       ...sourceColumn,
       headerContent: selectedComponent.textResourceBindings?.title,
-      cellContent: { query: selectedComponent.dataModelBindings?.simpleBinding },
+      cellContent: { query: binding.field },
     };
     setTableColumn(updatedTableColumn);
   };

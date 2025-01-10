@@ -3,8 +3,10 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -56,20 +58,40 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <returns>Dictionary of all option lists belonging to the app</returns>
+    /// <returns>List of <see cref="OptionListData" /> objects with all option lists belonging to the app with data
+    /// set if option list is valid, or hasError set if option list is invalid.</returns>
     [HttpGet]
     [Route("option-lists")]
-    public async Task<ActionResult<Dictionary<string, List<Option>>>> GetOptionLists(string org, string repo)
+    public async Task<ActionResult<List<OptionListData>>> GetOptionLists(string org, string repo)
     {
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string[] optionListIds = _optionsService.GetOptionsListIds(org, repo, developer);
-            Dictionary<string, List<Option>> optionLists = [];
+            List<OptionListData> optionLists = [];
             foreach (string optionListId in optionListIds)
             {
-                List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
-                optionLists.Add(optionListId, optionList);
+                try
+                {
+                    List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
+                    OptionListData optionListData = new()
+                    {
+                        Title = optionListId,
+                        Data = optionList,
+                        HasError = false
+                    };
+                    optionLists.Add(optionListData);
+                }
+                catch (InvalidOptionsFormatException)
+                {
+                    OptionListData optionListData = new()
+                    {
+                        Title = optionListId,
+                        Data = null,
+                        HasError = true
+                    };
+                    optionLists.Add(optionListData);
+                }
             }
             return Ok(optionLists);
         }
@@ -105,6 +127,25 @@ public class OptionsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Gets all usages of all optionListIds in the layouts as <see cref="RefToOptionListSpecifier"/>.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("usage")]
+    public async Task<ActionResult<List<RefToOptionListSpecifier>>> GetOptionListsReferences(string org, string repo, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        List<RefToOptionListSpecifier> optionListReferences = await _optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+        return Ok(optionListReferences);
     }
 
     /// <summary>

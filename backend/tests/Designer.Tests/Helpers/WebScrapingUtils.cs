@@ -10,7 +10,7 @@ public static class WebScrapingUtils
     /// <param name="htmlContent">The HTML content from which the substring will be extracted.</param>
     /// <param name="beforeText">The text that appears immediately before the desired substring. If there are multiple matches, only first will be considered.</param>
     /// <param name="afterText">The text that appears immediately after the desired substring.</param>
-    /// <returns>The extracted substring between <see cref="beforeText"/> and <see cref="afterText"/> if they are found in the HTML content and are in the correct order.
+    /// <returns>The extracted substring between "beforeText" and "afterText" if they are found in the HTML content and are in the correct order.
     /// Returns null if the conditions are not met.
     /// </returns>
     public static string ExtractTextBetweenMarkers(string htmlContent, string beforeText, string afterText)
