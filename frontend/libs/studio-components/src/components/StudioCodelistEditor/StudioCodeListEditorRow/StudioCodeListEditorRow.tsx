@@ -2,19 +2,23 @@ import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
-import type { FocusEvent, HTMLInputAutoCompleteAttribute } from 'react';
+import type { FocusEvent, HTMLInputAutoCompleteAttribute, ReactElement } from 'react';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
 import classes from './StudioCodeListEditorRow.module.css';
+import type { TextResource } from '../../../types/TextResource';
+import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 
 type StudioCodeListEditorRowProps = {
   error: ValueError | null;
   item: CodeListItem;
   number: number;
   onChange: (newItem: CodeListItem) => void;
+  onChangeTextResource: (newTextResource: TextResource) => void;
   onDeleteButtonClick: () => void;
+  textResources?: TextResource[];
 };
 
 export function StudioCodeListEditorRow({
@@ -22,7 +26,9 @@ export function StudioCodeListEditorRow({
   item,
   number,
   onChange,
+  onChangeTextResource,
   onDeleteButtonClick,
+  textResources,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -67,20 +73,32 @@ export function StudioCodeListEditorRow({
         onChange={handleValueChange}
         value={item.value}
       />
-      <TextfieldCell
+      <TextResourceIdCell
+        currentId={item.label}
         label={texts.itemLabel(number)}
-        onChange={handleLabelChange}
-        value={item.label}
+        number={number}
+        onChangeCurrentId={handleLabelChange}
+        onChangeTextResource={onChangeTextResource}
+        property={CodeListItemTextProperty.Label}
+        textResources={textResources}
       />
-      <TextfieldCell
+      <TextResourceIdCell
+        currentId={item.description}
         label={texts.itemDescription(number)}
-        onChange={handleDescriptionChange}
-        value={item.description}
+        number={number}
+        onChangeCurrentId={handleDescriptionChange}
+        onChangeTextResource={onChangeTextResource}
+        property={CodeListItemTextProperty.Description}
+        textResources={textResources}
       />
-      <TextfieldCell
+      <TextResourceIdCell
+        currentId={item.helpText}
         label={texts.itemHelpText(number)}
-        onChange={handleHelpTextChange}
-        value={item.helpText}
+        number={number}
+        onChangeCurrentId={handleHelpTextChange}
+        onChangeTextResource={onChangeTextResource}
+        property={CodeListItemTextProperty.HelpText}
+        textResources={textResources}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>
@@ -122,6 +140,47 @@ function TextfieldCell({ error, label, value, onChange, autoComplete }: Textfiel
       onFocus={handleFocus}
       ref={ref}
       value={(value as string) ?? ''}
+    />
+  );
+}
+
+type TextResourceIdCellProps = {
+  currentId: string;
+  label: string;
+  number: number;
+  onChangeCurrentId: (newId: string) => void;
+  onChangeTextResource: (newTextResource: TextResource) => void;
+  property: CodeListItemTextProperty;
+  textResources?: TextResource[];
+};
+
+function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
+  const { currentId, onChangeCurrentId, textResources, label } = props;
+  if (textResources) {
+    return <TextResourceSelectorCell {...props} textResources={textResources} />;
+  } else {
+    return <TextfieldCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
+  }
+}
+
+function TextResourceSelectorCell({
+  currentId,
+  number,
+  onChangeCurrentId,
+  onChangeTextResource,
+  property,
+  textResources,
+}: Required<TextResourceIdCellProps>) {
+  const {
+    texts: { textResourceTexts },
+  } = useStudioCodeListEditorContext();
+  return (
+    <StudioInputTable.Cell.TextResource
+      currentId={currentId}
+      onChangeCurrentId={onChangeCurrentId}
+      onChangeTextResource={onChangeTextResource}
+      textResources={textResources}
+      texts={textResourceTexts(number, property)}
     />
   );
 }

@@ -4,6 +4,7 @@ import { Accordion } from '@digdir/designsystemet-react';
 import { StudioAlert, type CodeList as StudioComponentsCodeList } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { useTranslation } from 'react-i18next';
+import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
@@ -11,6 +12,7 @@ export type CodeListsProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
   codeListNames: string[];
+  codeListsUsages: CodeListReference[];
 };
 
 export function CodeLists({
@@ -19,20 +21,38 @@ export function CodeLists({
   onUpdateCodeList,
   codeListInEditMode,
   codeListNames,
+  codeListsUsages,
 }: CodeListsProps) {
-  return codeListsData.map((codeListData) => (
-    <CodeList
-      key={codeListData.title}
-      codeListData={codeListData}
-      onUpdateCodeListId={onUpdateCodeListId}
-      onUpdateCodeList={onUpdateCodeList}
-      codeListInEditMode={codeListInEditMode}
-      codeListNames={codeListNames}
-    />
-  ));
+  return codeListsData.map((codeListData) => {
+    const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
+    return (
+      <CodeList
+        key={codeListData.title}
+        codeListData={codeListData}
+        onUpdateCodeListId={onUpdateCodeListId}
+        onUpdateCodeList={onUpdateCodeList}
+        codeListInEditMode={codeListInEditMode}
+        codeListNames={codeListNames}
+        codeListSources={codeListSources}
+      />
+    );
+  });
 }
 
-type CodeListProps = Omit<CodeListsProps, 'codeListsData'> & { codeListData: CodeListData };
+export const getCodeListSourcesById = (
+  codeListsUsages: CodeListReference[],
+  codeListTitle: string,
+): CodeListIdSource[] => {
+  const codeListUsages: CodeListReference | undefined = codeListsUsages.find(
+    (codeListUsage) => codeListUsage.codeListId === codeListTitle,
+  );
+  return codeListUsages?.codeListIdSources ?? [];
+};
+
+type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & {
+  codeListData: CodeListData;
+  codeListSources: CodeListIdSource[];
+};
 
 function CodeList({
   codeListData,
@@ -40,6 +60,7 @@ function CodeList({
   onUpdateCodeList,
   codeListInEditMode,
   codeListNames,
+  codeListSources,
 }: CodeListProps) {
   const { t } = useTranslation();
 
@@ -58,6 +79,7 @@ function CodeList({
           onUpdateCodeListId={onUpdateCodeListId}
           onUpdateCodeList={onUpdateCodeList}
           codeListNames={codeListNames}
+          codeListSources={codeListSources}
         />
       </Accordion.Item>
     </Accordion>
@@ -71,6 +93,7 @@ function CodeListAccordionContent({
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
+  codeListSources,
 }: CodeListAccordionContentProps): React.ReactElement {
   const { t } = useTranslation();
 
