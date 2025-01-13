@@ -54,11 +54,6 @@ export const Summary2OverrideEntry = ({
     description: getComponentTitle(e),
   }));
 
-  const onChangeOverride = (label: keyof Summary2OverrideConfig, value: string | boolean) => {
-    const newOverride: Summary2OverrideConfig = { ...override, [label]: value };
-    onChange(newOverride);
-  };
-
   if (!open) {
     const componentNameType = componentOptions.find(
       (comp) => comp.id === override.componentId,
@@ -81,10 +76,10 @@ export const Summary2OverrideEntry = ({
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
-          onValueChange={(value) => onChangeOverride('componentId', value)}
+          onValueChange={(value) => onChange({ ...override, componentId: value })}
         ></Summary2ComponentReferenceSelector>
 
-        <OverrideShowComponentSwitch onChange={onChangeOverride} override={override} />
+        <OverrideShowComponentSwitch onChange={onChange} override={override} />
         {override.hidden ? (
           <StudioAlert>
             {t('ux_editor.component_properties.summary.override.hide_empty_fields.info_message')}
@@ -92,10 +87,10 @@ export const Summary2OverrideEntry = ({
         ) : (
           <>
             <StudioDivider className={classes.divider} />
-            <CompactViewSwitch onChange={onChangeOverride} override={override} />
+            <CompactViewSwitch onChange={onChange} override={override} />
             <ShowEmptyFieldSwitch onChange={onChange} override={override} />
             <Summary2OverrideDisplayType onChange={onChange} override={override} />
-            <EmptyTextField onChange={onChangeOverride} override={override} />
+            <EmptyTextField onChange={onChange} override={override} />
           </>
         )}
         <div className={classes.buttongroup}>

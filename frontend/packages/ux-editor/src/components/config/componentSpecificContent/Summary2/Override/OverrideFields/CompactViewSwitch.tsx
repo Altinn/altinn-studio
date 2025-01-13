@@ -9,7 +9,7 @@ import { getAllLayoutComponents } from '../../../../../../utils/formLayoutUtils'
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 type CompactViewSwitchProps = {
-  onChange: (label: keyof Summary2OverrideConfig, value: string | boolean) => void;
+  onChange: (updatedOverride: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
@@ -18,8 +18,10 @@ export const CompactViewSwitch = ({ onChange, override }: CompactViewSwitchProps
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
     onChange(event.target.value as keyof Summary2OverrideConfig, event.target.checked);
+
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
@@ -33,7 +35,9 @@ export const CompactViewSwitch = ({ onChange, override }: CompactViewSwitchProps
     <StudioSwitch
       position='right'
       size='sm'
-      onChange={handleChange}
+      onChange={(event: ChangeEvent<HTMLInputElement>) =>
+        onChange({ ...override, isCompact: event.target.checked })
+      }
       checked={override.isCompact ?? false}
       value='isCompact'
     >

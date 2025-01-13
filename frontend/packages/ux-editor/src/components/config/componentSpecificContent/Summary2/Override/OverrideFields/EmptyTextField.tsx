@@ -4,7 +4,7 @@ import { StudioAlert, StudioParagraph, StudioToggleableTextfield } from '@studio
 import { useTranslation } from 'react-i18next';
 
 type EmptyTextFieldProps = {
-  onChange: (label: keyof Summary2OverrideConfig, value: string | boolean) => void;
+  onChange: (updatedOverride: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
@@ -27,7 +27,7 @@ export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
         size: 'sm',
         value: override.emptyFieldText ?? '',
         onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-          onChange('emptyFieldText', event.target.value),
+          onChange({ ...override, emptyFieldText: event.target.value }),
       }}
       viewProps={{
         label: t('ux_editor.component_properties.summary.override.empty_field_text'),
