@@ -5,13 +5,13 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 export type StudioSearchProps = WithoutAsChild<SearchProps>;
 
 const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
-  ({ size = 'sm', label, id, ...rest }, ref) => {
+  ({ size = 'sm', label, id, className, ...rest }, ref) => {
     const generatedId = useId();
     const searchId = id ?? generatedId;
     const showLabel = !!label;
 
     return (
-      <div>
+      <div className={className}>
         {showLabel && (
           <Label htmlFor={searchId} spacing>
             {label}
