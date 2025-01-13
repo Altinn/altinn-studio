@@ -30,15 +30,10 @@ export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
           onChange('emptyFieldText', event.target.value),
       }}
       viewProps={{
+        label: t('ux_editor.component_properties.summary.override.empty_field_text'),
         style: { padding: '0' },
         icon: null,
-        children: (
-          <StudioParagraph size='small'>
-            <strong>{t('ux_editor.component_properties.summary.override.empty_field_text')}</strong>
-            <br />
-            {override.emptyFieldText}
-          </StudioParagraph>
-        ),
+        children: <StudioParagraph size='small'>{override.emptyFieldText}</StudioParagraph>,
         variant: 'tertiary',
       }}
     ></StudioToggleableTextfield>
