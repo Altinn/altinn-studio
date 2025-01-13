@@ -8,19 +8,19 @@ type ForceShowSwitchProps = {
   override: Summary2OverrideConfig;
 };
 
-export const ForceShowSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
+export const OverrideShowComponentSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
   const { t } = useTranslation();
   return (
     <StudioSwitch
       position='right'
       size='sm'
       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-        onChange(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
+        onChange(event.target.value as keyof Summary2OverrideConfig, !event.target.checked)
       }
-      checked={override.hidden ?? false}
+      checked={!override.hidden}
       value={'hidden'}
     >
-      {t('ux_editor.component_properties.summary.override.force_show')}
+      {t('ux_editor.component_properties.summary.override.show_component')}
     </StudioSwitch>
   );
 };

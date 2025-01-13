@@ -16,8 +16,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
-import { ForceShowSwitch } from './OverrideFields/ForceShowSwitch';
-import { EmptyTextField } from './OverrideFields/ExmptyTextField';
+import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
+import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
 
@@ -62,8 +62,8 @@ export const Summary2OverrideEntry = ({
           onValueChange={(value) => onChangeOverride('componentId', value)}
         ></Summmary2ComponentReferenceSelector>
 
-        <ForceShowSwitch onChange={onChangeOverride} override={override} />
-        {!override.hidden ? (
+        <OverrideShowComponentSwitch onChange={onChangeOverride} override={override} />
+        {override.hidden ? (
           <StudioAlert>
             {t('ux_editor.component_properties.summary.override.hide_empty_fields.info_message')}
           </StudioAlert>
@@ -71,7 +71,7 @@ export const Summary2OverrideEntry = ({
           <>
             <StudioDivider className={classes.divider} />
             <CompactViewSwitch onChange={onChangeOverride} override={override} />
-            <ShowEmptyFieldSwitch onChange={onChangeOverride} override={override} />
+            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
             <Summary2OverrideDisplayType onChange={onChange} override={override} />
             <EmptyTextField onChange={onChangeOverride} override={override} />
           </>

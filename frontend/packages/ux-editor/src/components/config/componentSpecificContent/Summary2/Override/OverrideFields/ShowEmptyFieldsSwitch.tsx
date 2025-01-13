@@ -4,7 +4,7 @@ import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ShowEmptyFieldSwitchProps = {
-  onChange: (label: keyof Summary2OverrideConfig, value: string | boolean) => void;
+  onChange: (override: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
@@ -14,9 +14,14 @@ export const ShowEmptyFieldSwitch = ({ onChange, override }: ShowEmptyFieldSwitc
     <StudioSwitch
       position='right'
       size='sm'
-      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-        onChange(event.target.value as keyof Summary2OverrideConfig, !event.target.checked)
-      }
+      onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const updatedOverride = {
+          ...override,
+          hideEmptyFields: !event.target.checked,
+          forceShow: event.target.checked,
+        };
+        onChange(updatedOverride);
+      }}
       checked={!override.hideEmptyFields}
       value={'hideEmptyFields'}
     >
