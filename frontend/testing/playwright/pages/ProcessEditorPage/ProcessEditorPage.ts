@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Page, Locator } from '@playwright/test';
 import { ActionsConfig } from './ActionsConfig';
 import { PolicyConfig } from './PolicyConfig';
 import { BasePage } from '../../helpers/BasePage';
@@ -73,15 +73,13 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
-    const selector = 'text=ID: Activity_';
-    await this.page.waitForSelector(selector);
-    return await this.getFullIdFromButtonSelector(selector);
+    const button = this.page.getByRole('button', { name: /^Activity_/ });
+    await button.waitFor();
+    return await this.getFullIdFromButtonSelector(button);
   }
 
   public async clickOnTaskIdEditButton(id: string): Promise<void> {
-    await this.page
-      .getByText(`${this.textMock('process_editor.configuration_panel_id_label')} ${id}`)
-      .click();
+    await this.page.getByRole('button', { name: id }).click();
   }
 
   public async waitForEditIdInputFieldToBeVisible(): Promise<void> {
@@ -123,9 +121,7 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async waitForNewTaskIdButtonToBeVisible(id: string): Promise<void> {
-    const button = this.page.getByText(
-      `${this.textMock('process_editor.configuration_panel_id_label')} ${id}`,
-    );
+    const button = this.page.getByRole('button', { name: id });
     await expect(button).toBeVisible();
   }
 
@@ -165,10 +161,9 @@ export class ProcessEditorPage extends BasePage {
     await this.page.mouse.up();
   }
 
-  private async getFullIdFromButtonSelector(selector: string): Promise<string> {
-    const button = this.page.locator(selector);
+  private async getFullIdFromButtonSelector(button: Locator): Promise<string> {
     const fullText = await button.textContent();
-    const extractedText = fullText.match(/ID: (Activity_\w+)/);
+    const extractedText = fullText.match(/(Activity_\w+)/);
     return extractedText[1];
   }
 }
