@@ -12,7 +12,7 @@ const repoName = 'ttd-resources';
 
 const originalWindowLocation = window.location;
 
-describe('MergeConflictModal', () => {
+describe('MergeConflict', () => {
   beforeEach(() => {
     delete window.location;
     window.location = {
@@ -27,7 +27,7 @@ describe('MergeConflictModal', () => {
 
   it('should reset changes when reset button is clicked', async () => {
     const user = userEvent.setup();
-    renderMergeConflictModal();
+    renderMergeConflict();
 
     const resetChangesButton = await screen.findByRole('button', {
       name: textMock('merge_conflict.remove_my_changes'),
@@ -38,7 +38,7 @@ describe('MergeConflictModal', () => {
   });
 });
 
-const renderMergeConflictModal = () => {
+const renderMergeConflict = () => {
   return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>

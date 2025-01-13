@@ -60,7 +60,7 @@ export const MigrationPage = ({
           <StudioSpinner
             size='xl'
             variant='interaction'
-            spinnerTitle='Laster inn migreringsstatus'
+            spinnerTitle={t('resourceadm.loading_migration_status')}
           />
         </div>
       );

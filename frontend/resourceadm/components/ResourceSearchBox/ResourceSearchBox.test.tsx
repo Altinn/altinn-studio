@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SearchBoxProps } from './ResourceSeachBox';
-import { SearchBox } from './ResourceSeachBox';
+import type { SearchBoxProps } from './ResourceSearchBox';
+import { SearchBox } from './ResourceSearchBox';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('SearchBox', () => {

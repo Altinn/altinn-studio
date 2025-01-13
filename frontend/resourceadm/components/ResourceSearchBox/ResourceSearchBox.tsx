@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React from 'react';
-import classes from './ResourceSeachBox.module.css';
+import classes from './ResourceSearchBox.module.css';
 import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
