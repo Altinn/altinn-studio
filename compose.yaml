@@ -7,6 +7,7 @@ volumes:
   gitea-attachments-data:
   keys:
   pgdata:
+  pgadmindata:
   redisdata:
 
 services:
@@ -189,6 +190,19 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=designerdb
 
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "81:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmindata:/var/lib/pgadmin
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
   redis:
     image: redis:alpine
     container_name: redis
@@ -207,3 +221,5 @@ services:
         - REDIS_HOSTS=redis
     ports:
         - "8081:8081"
+
+

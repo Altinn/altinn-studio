@@ -2,7 +2,7 @@
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
-public partial class Release
+public partial class ReleaseDbModel
 {
     public long Sequenceno { get; set; }
 

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class AppScopesConfiguration : IEntityTypeConfiguration<AppScopesDbObject>
+public class AppScopesConfiguration : IEntityTypeConfiguration<AppScopesDbModel>
 {
-    public void Configure(EntityTypeBuilder<AppScopesDbObject> builder)
+    public void Configure(EntityTypeBuilder<AppScopesDbModel> builder)
     {
         builder.ToTable("app_scopes", "designer");
 

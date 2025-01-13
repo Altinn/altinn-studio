@@ -26,7 +26,7 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
         var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel { Top = top, SortDirection = sortDirection };
         var result = (await repository.Get(org, app, query)).ToList();
 
@@ -49,7 +49,7 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
         var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel
         {
             Top = null,

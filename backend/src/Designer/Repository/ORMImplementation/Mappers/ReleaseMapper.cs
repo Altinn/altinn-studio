@@ -17,9 +17,9 @@ public static class ReleaseMapper
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static Release MapToDbModel(ReleaseEntity releaseEntity)
+    public static ReleaseDbModel MapToDbModel(ReleaseEntity releaseEntity)
     {
-        return new Release
+        return new ReleaseDbModel
         {
             Buildid = releaseEntity.Build.Id,
             Tagname = releaseEntity.TagName,
@@ -32,19 +32,19 @@ public static class ReleaseMapper
         };
     }
 
-    public static Release MapToDbModel(long sequenceNo, ReleaseEntity releaseEntity)
+    public static ReleaseDbModel MapToDbModel(long sequenceNo, ReleaseEntity releaseEntity)
     {
         var dbModel = MapToDbModel(releaseEntity);
         dbModel.Sequenceno = sequenceNo;
         return dbModel;
     }
 
-    public static ReleaseEntity MapToModel(Release release)
+    public static ReleaseEntity MapToModel(ReleaseDbModel releaseDbModel)
     {
-        return JsonSerializer.Deserialize<ReleaseEntity>(release.Entity, s_jsonOptions);
+        return JsonSerializer.Deserialize<ReleaseEntity>(releaseDbModel.Entity, s_jsonOptions);
     }
 
-    public static IEnumerable<ReleaseEntity> MapToModels(IEnumerable<Release> releases)
+    public static IEnumerable<ReleaseEntity> MapToModels(IEnumerable<ReleaseDbModel> releases)
     {
         return releases.Select(MapToModel);
     }

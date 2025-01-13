@@ -20,7 +20,7 @@ public class UpdateIntegrationTests : ReleaseEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task UpdateReleaseEntityAsync_WhenCalled_ShouldUpdateReleaseEntity(string releaseName)
     {
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(releaseName, buildId: buildId.ToString());
         await PrepareEntityInDatabase(releaseEntity);

@@ -36,7 +36,7 @@ public class ReleaseEntityIntegrationTestsBase : DbIntegrationTestsBase
         }
     }
 
-    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.Release MapToDbObject(ReleaseEntity entity) =>
+    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel MapToDbObject(ReleaseEntity entity) =>
         new()
         {
             Buildid = entity.Build.Id,

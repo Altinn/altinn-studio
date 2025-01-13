@@ -25,7 +25,7 @@ public static class DesignerDbFixtureExtensions
     }
 
 
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbObject MapToDbObject(AppScopesEntity entity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel MapToDbObject(AppScopesEntity entity) =>
         new()
         {
             App = entity.App,

@@ -3,8 +3,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
-using Deployment = Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
 
@@ -17,32 +17,45 @@ public static class DeploymentMapper
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static Deployment MapToDbModel(DeploymentEntity deploymentEntity)
+    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity)
     {
-        return new Deployment
+        return new DeploymentDbModel
         {
             Buildid = deploymentEntity.Build.Id,
             Tagname = deploymentEntity.TagName,
             Org = deploymentEntity.Org,
             App = deploymentEntity.App,
+            EnvName = deploymentEntity.EnvName,
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
-            Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions)
+            Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
+            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, BuildType.Deployment),
         };
     }
-    public static Deployment MapToDbModel(long sequenceNo, DeploymentEntity deploymentEntity)
+    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
     {
         var dbModel = MapToDbModel(deploymentEntity);
-        dbModel.Sequenceno = sequenceNo;
+        dbModel.Sequenceno = deploymentSequenceNo;
+        dbModel.InternalBuildId = buildId;
+        dbModel.Build.Id = buildId;
         return dbModel;
     }
 
-    public static DeploymentEntity MapToModel(Deployment deployment)
+    public static DeploymentEntity MapToModel(DeploymentDbModel dbObject)
     {
-        return JsonSerializer.Deserialize<DeploymentEntity>(deployment.Entity, s_jsonOptions);
+        return new DeploymentEntity
+        {
+            App = dbObject.App,
+            Org = dbObject.Org,
+            EnvName = dbObject.EnvName,
+            TagName = dbObject.Tagname,
+            Build = BuildMapper.MapToModel(dbObject.Build),
+            Created = dbObject.Created,
+            CreatedBy = dbObject.CreatedBy
+        };
     }
 
-    public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<Deployment> deployments)
+    public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<DeploymentDbModel> deployments)
     {
         return deployments.Select(MapToModel);
     }

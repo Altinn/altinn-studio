@@ -8,17 +8,13 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public partial class EntityAssertions
 {
-    public static void AssertEqual(AppScopesEntity appScopesEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbObject dbRecord)
+    public static void AssertEqual(AppScopesEntity appScopesEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel dbRecord)
     {
         dbRecord.App.Should().BeEquivalentTo(appScopesEntity.App);
         dbRecord.Org.Should().BeEquivalentTo(appScopesEntity.Org);
         dbRecord.CreatedBy.Should().BeEquivalentTo(appScopesEntity.CreatedBy);
         dbRecord.LastModifiedBy.Should().BeEquivalentTo(appScopesEntity.LastModifiedBy);
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (appScopesEntity.Created - dbRecord.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        dbRecord.Created.Should().BeCloseTo(appScopesEntity.Created, TimeSpan.FromMilliseconds(100));
 
         dbRecord.Version.Should().Be(appScopesEntity.Version);
         var scopesFromDb = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbRecord.Scopes, JsonOptions);
@@ -32,11 +28,7 @@ public partial class EntityAssertions
         actual.Org.Should().Be(expected.Org);
         actual.CreatedBy.Should().Be(expected.CreatedBy);
         actual.LastModifiedBy.Should().Be(expected.LastModifiedBy);
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (expected.Created - actual.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        actual.Created.Should().BeCloseTo(expected.Created, TimeSpan.FromMilliseconds(100));
 
         actual.Version.Should().Be(expected.Version);
         actual.Scopes.Should().BeEquivalentTo(expected.Scopes);

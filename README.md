@@ -61,6 +61,7 @@ The development environment consist of several services defined in [compose.yaml
 - `studio-repos` which is [gitea][14] with some custom config. More [here](gitea/README.md).
 - `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
 - `database_migrations` which is a one-time task container designed to perform and complete database migrations before exiting.
+- `pgadmin` which is a administration and development platform for PostgreSQL.
 - `redis` which is a redis cache used by designer.
 - `redis-commander` which is a ui for redis cache.
 

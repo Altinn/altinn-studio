@@ -11,7 +11,7 @@ ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
 ENV OidcLoginSettings__ClientId=dummyRequired
 ENV OidcLoginSettings__ClientSecret=dummyRequired
 
-RUN dotnet ef migrations script --project src/Designer/Designer.csproj -o /app/migrations.sql
+RUN dotnet ef migrations script --project src/Designer/Designer.csproj --idempotent -o /app/migrations.sql
 
 FROM alpine:3.21.0 AS final
 COPY --from=build /app/migrations.sql migrations.sql

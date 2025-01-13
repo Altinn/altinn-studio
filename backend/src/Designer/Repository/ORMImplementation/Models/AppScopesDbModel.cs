@@ -2,7 +2,7 @@ using System;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
-public class AppScopesDbObject
+public class AppScopesDbModel
 {
     /// <summary>
     /// The unique identifier for the object

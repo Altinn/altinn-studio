@@ -13,9 +13,9 @@ public class AppScopesMapper
         WriteIndented = false
     };
 
-    public static AppScopesDbObject MapToDbModel(AppScopesEntity appScopes)
+    public static AppScopesDbModel MapToDbModel(AppScopesEntity appScopes)
     {
-        return new AppScopesDbObject
+        return new AppScopesDbModel
         {
             App = appScopes.App,
             Org = appScopes.Org,
@@ -27,24 +27,24 @@ public class AppScopesMapper
         };
     }
 
-    public static AppScopesDbObject MapToDbModel(AppScopesEntity appScopes, long id)
+    public static AppScopesDbModel MapToDbModel(AppScopesEntity appScopes, long id)
     {
         var dbModel = MapToDbModel(appScopes);
         dbModel.Id = id;
         return dbModel;
     }
 
-    public static AppScopesEntity MapToModel(AppScopesDbObject appScopesDbObject)
+    public static AppScopesEntity MapToModel(AppScopesDbModel appScopesDbModel)
     {
         return new AppScopesEntity
         {
-            App = appScopesDbObject.App,
-            Org = appScopesDbObject.Org,
-            Created = appScopesDbObject.Created,
-            Scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(appScopesDbObject.Scopes, s_jsonOptions),
-            CreatedBy = appScopesDbObject.CreatedBy,
-            LastModifiedBy = appScopesDbObject.LastModifiedBy,
-            Version = appScopesDbObject.Version
+            App = appScopesDbModel.App,
+            Org = appScopesDbModel.Org,
+            Created = appScopesDbModel.Created,
+            Scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(appScopesDbModel.Scopes, s_jsonOptions),
+            CreatedBy = appScopesDbModel.CreatedBy,
+            LastModifiedBy = appScopesDbModel.LastModifiedBy,
+            Version = appScopesDbModel.Version
         };
     }
 }
