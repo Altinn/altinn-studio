@@ -12,28 +12,33 @@ export type Summary2OverrideProps = {
 
 export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps) => {
   const { t } = useTranslation();
+  const [openOverrides, setOpenOverrides] = React.useState([]);
 
   const addOverride = (): void => {
     const updatedOverrides = [...(overrides || [])];
     updatedOverrides.push({ componentId: '' });
+    openOverrides.push(overrides.length);
     onChange(updatedOverrides);
   };
 
   const onChangeOverride =
     (index: number): ((override: any) => void) =>
-      (override: any) => {
-        const updatedOverrides = [...overrides];
-        updatedOverrides[index] = override;
-        onChange(updatedOverrides);
-      };
+    (override: any) => {
+      const updatedOverrides = [...overrides];
+      updatedOverrides[index] = override;
+      onChange(updatedOverrides);
+    };
 
   const onDeleteOverride =
     (index: number): (() => void) =>
-      () => {
-        const updatedOverrides = [...overrides];
-        updatedOverrides.splice(index, 1);
-        onChange(updatedOverrides);
-      };
+    () => {
+      const updatedOverrides = [...overrides];
+      updatedOverrides.splice(index, 1);
+      setOpenOverrides((prev) => {
+        return prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i));
+      });
+      onChange(updatedOverrides);
+    };
 
   return (
     <>
@@ -41,6 +46,13 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
         <div style={{ marginBottom: 'var(--fds-spacing-4)' }}>
           {overrides.map((override, index) => (
             <Summary2OverrideEntry
+              index={index + 1}
+              open={openOverrides.includes(index)}
+              setOpen={(open) =>
+                open
+                  ? setOpenOverrides([...openOverrides, index])
+                  : setOpenOverrides(openOverrides.filter((i) => i !== index))
+              }
               key={`${index}${override.componentId}`}
               override={override}
               onChange={onChangeOverride(index)}

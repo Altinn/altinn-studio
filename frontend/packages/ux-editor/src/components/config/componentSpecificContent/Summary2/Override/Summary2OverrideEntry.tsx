@@ -5,6 +5,7 @@ import {
   StudioCard,
   StudioDeleteButton,
   StudioDivider,
+  StudioProperty,
 } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import classes from './Summary2OverrideEntry.module.css';
@@ -22,12 +23,18 @@ import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
 
 type Summary2OverrideEntryProps = {
+  index: number;
+  open: boolean;
+  setOpen: (open: boolean) => void;
   override: Summary2OverrideConfig;
   onChange: (override: Summary2OverrideConfig) => void;
   onDelete: () => void;
 };
 
 export const Summary2OverrideEntry = ({
+  index,
+  open,
+  setOpen,
   override,
   onChange,
   onDelete,
@@ -51,6 +58,21 @@ export const Summary2OverrideEntry = ({
     const newOverride: Summary2OverrideConfig = { ...override, [label]: value };
     onChange(newOverride);
   };
+
+  if (!open) {
+    const componentNameType = componentOptions.find(
+      (comp) => comp.id === override.componentId,
+    ).description;
+    return (
+      <StudioProperty.Button
+        className={classes.property}
+        property={t('ux_editor.component_properties.summary.overrides.nth', { n: index })}
+        value={`${componentNameType} (ID:${override.componentId})`}
+        icon={false}
+        onClick={() => setOpen(true)}
+      />
+    );
+  }
 
   return (
     <StudioCard className={classes.card}>
@@ -83,6 +105,7 @@ export const Summary2OverrideEntry = ({
             title={t('general.save')}
             variant='secondary'
             color='success'
+            onClick={() => setOpen(false)}
           />
           <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
         </div>
