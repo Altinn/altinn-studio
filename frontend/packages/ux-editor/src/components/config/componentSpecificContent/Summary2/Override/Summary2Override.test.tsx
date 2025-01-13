@@ -343,7 +343,7 @@ describe('Summary2Override', () => {
 
 const overrideCollapsedButton = (n: number) =>
   screen.getByRole('button', {
-    name: new RegExp(`ux_editor\.component_properties\.summary\.overrides\.nth.*:${n}}`),
+    name: new RegExp(`ux_editor.component_properties.summary.overrides.nth.*:${n}}`),
   });
 
 const addNewOverrideButton = () =>
