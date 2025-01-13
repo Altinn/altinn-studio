@@ -36,7 +36,7 @@
   "app_content_library.code_lists.no_content": "Dette biblioteket har ingen kodelister",
   "app_content_library.code_lists.page_name": "Kodelister",
   "app_content_library.code_lists.save_new_code_list": "Lagre",
-  "app_content_library.code_lists.search_placeholder": "Søk på kodelister",
+  "app_content_library.code_lists.search_label": "Søk på kodelister",
   "app_content_library.code_lists.upload_code_list": "Last opp din egen kodeliste",
   "app_content_library.images.info_box.description": "Du kan bruke bildene i biblioteket til å legge inn bilder i skjemaet. Du kan også laste opp et bilde med organisasjonens logo, og legge det som logobilde i innstillingene for appen.",
   "app_content_library.images.info_box.title": "Hva kan du bruke bildene til?",
