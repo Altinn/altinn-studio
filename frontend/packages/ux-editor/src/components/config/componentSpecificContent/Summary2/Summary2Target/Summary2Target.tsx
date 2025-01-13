@@ -110,7 +110,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
             value={target.id}
             options={componentOptions}
             onValueChange={handleTargetIdChange}
-          ></Summary2ComponentReferenceSelector>
+          />
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield
