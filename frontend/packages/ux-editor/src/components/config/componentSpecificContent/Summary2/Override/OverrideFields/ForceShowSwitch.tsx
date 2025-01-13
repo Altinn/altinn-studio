@@ -15,7 +15,7 @@ export const OverrideShowComponentSwitch = ({ onChange, override }: ForceShowSwi
       position='right'
       size='sm'
       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-        onChange(event.target.value as keyof Summary2OverrideConfig, !event.target.checked)
+        onChange('hidden', !event.target.checked)
       }
       checked={!override.hidden}
       value={'hidden'}
