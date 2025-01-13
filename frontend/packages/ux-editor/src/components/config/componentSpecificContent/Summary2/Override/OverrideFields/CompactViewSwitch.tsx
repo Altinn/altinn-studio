@@ -19,9 +19,6 @@ export const CompactViewSwitch = ({ onChange, override }: CompactViewSwitchProps
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
-    onChange(event.target.value as keyof Summary2OverrideConfig, event.target.checked);
-
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
