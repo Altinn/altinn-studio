@@ -108,14 +108,12 @@ export const TextEditor = ({
                 </div>
               }
             </Chip.Toggle>
-            <div>
-              <StudioSearch
-                label={t('text_editor.search_for_text')}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onClear={handleClearSearch}
-              />
-            </div>
+            <StudioSearch
+              label={t('text_editor.search_for_text')}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onClear={handleClearSearch}
+            />
           </div>
         </div>
         <div className={classes.textEditorBody}>

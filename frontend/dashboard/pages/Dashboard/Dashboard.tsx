@@ -48,15 +48,13 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
       <CenterContainer>
         <div className={classes.createServiceContainer}>
           <div className={classes.topBar}>
-            <div className={classes.searchFieldContainer}>
-              <StudioSearch
-                label={t('dashboard.search')}
-                value={searchText}
-                onChange={handleChangeSearch}
-                onKeyDown={handleKeyDown}
-                onClear={handleClearSearch}
-              />
-            </div>
+            <StudioSearch
+              label={t('dashboard.search')}
+              value={searchText}
+              onChange={handleChangeSearch}
+              onKeyDown={handleKeyDown}
+              onClear={handleClearSearch}
+            />
             <Link href={'/dashboard/' + selectedContext + '/new'} className={classes.newLink}>
               <span>{t('dashboard.new_service')}</span>
               <PlusCircleFillIcon className={classes.plusFillIcon} />
