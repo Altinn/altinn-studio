@@ -269,6 +269,14 @@ describe('StudioCodeListEditor', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('Does not trigger onAddOrDeleteItem while the code list is invalid', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const addButton = screen.getByRole('button', { name: texts.add });
+    await user.click(addButton);
+    expect(onAddOrDeleteItem).not.toHaveBeenCalled();
+  });
+
   it('Does trigger onInvalid if the code list is invalid', async () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });

@@ -71,6 +71,17 @@ function StatefulCodeListEditor({
     setCodeList(defaultCodeList);
   }, [defaultCodeList]);
 
+  const handleAddOrDeleteAny = useCallback(
+    (newCodeList: CodeList) => {
+      isCodeListValid(newCodeList) && onAddOrDeleteItem?.(newCodeList);
+    },
+    [onAddOrDeleteItem],
+  );
+
+  const handleBlurAny = useCallback(() => {
+    onBlurAny?.(codeList);
+  }, [onBlurAny, codeList]);
+
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
@@ -79,14 +90,10 @@ function StatefulCodeListEditor({
     [onChange, onInvalid],
   );
 
-  const handleBlurAny = useCallback(() => {
-    onBlurAny?.(codeList);
-  }, [onBlurAny, codeList]);
-
   return (
     <ControlledCodeListEditor
       codeList={codeList}
-      onAddOrDeleteItem={onAddOrDeleteItem}
+      onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
       onChange={handleChange}
     />
