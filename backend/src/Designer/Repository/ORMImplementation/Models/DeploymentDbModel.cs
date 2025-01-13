@@ -26,5 +26,13 @@ public partial class DeploymentDbModel
 
     public long? InternalBuildId { get; set; }
 
+    public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
+
     public BuildDbModel Build { get; set; } = null!;
+}
+
+public enum DeploymentType
+{
+    Deploy = 0,
+    Decommission = 1
 }

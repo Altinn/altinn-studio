@@ -63,12 +63,11 @@ export class ActionsConfig extends BasePage {
       .click();
   }
 
-  public async editAction(action: string): Promise<void> {
+  public async editAction(): Promise<void> {
     await this.page
       .getByRole('button', {
         name: this.textMock('process_editor.configuration_panel_actions_action_label', {
           actionIndex: '1',
-          actionName: action,
         }),
       })
       .click();

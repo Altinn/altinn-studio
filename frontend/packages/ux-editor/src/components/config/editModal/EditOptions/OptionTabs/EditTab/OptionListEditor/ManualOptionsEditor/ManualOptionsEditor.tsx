@@ -25,7 +25,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
-    const handleBlurAny = (options: Option[]) => {
+    const handleOptionsListChange = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -55,7 +55,8 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
         >
           <StudioCodeListEditor
             codeList={component.options}
-            onBlurAny={handleBlurAny}
+            onAddOrDeleteItem={handleOptionsListChange}
+            onBlurAny={handleOptionsListChange}
             texts={editorTexts}
           />
         </StudioModal.Dialog>

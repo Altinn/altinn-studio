@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -26,6 +28,9 @@ public class CreateIntegrationTests : DeploymentEntityIntegrationTestsBase
             d.Org == org &&
             d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());
+
+
+        dbRecord.DeploymentType.Should().Be(DeploymentType.Deploy);
 
         EntityAssertions.AssertEqual(deploymentEntity, dbRecord);
     }

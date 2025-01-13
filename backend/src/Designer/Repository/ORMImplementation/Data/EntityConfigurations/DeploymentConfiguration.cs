@@ -62,5 +62,10 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<DeploymentDbMode
             .WithMany()
             .HasForeignKey(d => d.InternalBuildId)
             .HasConstraintName("fk_deployments_builds_buildid");
+
+        builder.Property(e => e.DeploymentType)
+            .HasColumnType("integer")
+            .HasColumnName("deployment_type")
+            .HasDefaultValue(DeploymentType.Deploy);
     }
 }

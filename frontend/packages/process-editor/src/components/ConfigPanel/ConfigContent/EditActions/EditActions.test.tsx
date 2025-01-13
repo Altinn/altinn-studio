@@ -111,7 +111,6 @@ describe('EditActions', () => {
     const viewModeElement = screen.getByText(
       textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     );
     expect(viewModeElement).toBeInTheDocument();
@@ -159,7 +158,7 @@ describe('EditActions', () => {
       getUniqueKey: () => [],
     }));
 
-    await renderEditActions();
+    renderEditActions();
     const addButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_add_new'),
     });
@@ -194,7 +193,6 @@ describe('EditActions', () => {
     const viewModeElement = screen.getByText(
       textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     );
     expect(viewModeElement).toBeInTheDocument();

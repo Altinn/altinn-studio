@@ -3,3 +3,11 @@
   flex-direction: column;
   gap: var(--fds-spacing-2);
 }
+
+.codeListUsageButton {
+  display: contents;
+}
+
+.seeUsageIcon {
+  font-size: var(--fds-sizing-5);
+}
