@@ -19,7 +19,7 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Update_ShouldUpdateRecordInDatabase(string org)
     {
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,
@@ -35,7 +35,7 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
 
         await repository.Update(deploymentEntity);
 
-        var dbRecord = await DbFixture.DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
+        var dbRecord = await DbFixture.DbContext.Deployments.Include(d => d.Build).AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
             d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());
