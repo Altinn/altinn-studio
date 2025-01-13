@@ -1,10 +1,10 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
@@ -37,9 +37,9 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
   }
 
   return (
-    <Grid
-      container={true}
-      item={true}
+    <Flex
+      container
+      item
       data-componentid={node.id}
       data-componentbaseid={node.baseId}
       ref={ref}
@@ -49,13 +49,13 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
       {mode === 'hideTable' && editingId === undefined && <ModeOnlyTable />}
       {mode === 'hideTable' && editingId !== undefined && <ModeOnlyEdit editingId={editingId} />}
       {mode === 'showAll' && <ModeShowAll />}
-      <Grid
-        item={true}
-        xs={12}
+      <Flex
+        item
+        size={{ xs: 12 }}
       >
         <AllComponentValidations node={node} />
-      </Grid>
-    </Grid>
+      </Flex>
+    </Flex>
   );
 });
 RepeatingGroupContainer.displayName = 'RepeatingGroupContainer';

@@ -1,0 +1,16 @@
+.dateComponent {
+  display: flex;
+  flex-grow: 0;
+  max-width: 100%;
+  flex-basis: 100%;
+}
+.icon {
+  width: 24px;
+  margin-right: 12px;
+}
+.vertical {
+  flex-direction: column;
+}
+.horizontal {
+  flex-direction: row;
+}

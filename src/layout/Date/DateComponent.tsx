@@ -2,10 +2,10 @@ import React from 'react';
 
 import cn from 'classnames';
 
+import classes from 'src/app-components/Date/Date.module.css';
+import { DisplayDate } from 'src/app-components/Date/DisplayDate';
 import { getLabelId } from 'src/components/label/Label';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { Date } from 'src/layout/Date/Date';
-import classes from 'src/layout/Date/DateComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -14,7 +14,7 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
 
   if (!textResourceBindings?.title) {
     return (
-      <Date
+      <DisplayDate
         value={value}
         format={format}
       />
@@ -30,7 +30,7 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
         className: cn(classes.dateComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
       }}
     >
-      <Date
+      <DisplayDate
         value={value}
         iconUrl={icon}
         iconAltText={textResourceBindings.title}

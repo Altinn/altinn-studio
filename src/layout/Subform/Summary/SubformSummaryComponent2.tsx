@@ -1,8 +1,8 @@
 import React, { type PropsWithChildren } from 'react';
 
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/components/label/Label';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -81,12 +81,12 @@ const DoSummaryWrapper = ({
   return (
     <div className={classes.summaryWrapperMargin}>
       <FormProvider>
-        <Grid
-          container={true}
+        <Flex
+          container
           spacing={6}
           alignItems='flex-start'
         >
-          <Grid item={true}>
+          <Flex item>
             <div className={classes_singlevaluesummary.labelValueWrapper}>
               <Label
                 node={node}
@@ -104,9 +104,9 @@ const DoSummaryWrapper = ({
                 {dataElementId}
               </Heading>
             </div>
-          </Grid>
+          </Flex>
           <LayoutSetSummary />
-        </Grid>
+        </Flex>
       </FormProvider>
     </div>
   );

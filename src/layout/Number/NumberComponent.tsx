@@ -2,11 +2,11 @@ import React from 'react';
 
 import cn from 'classnames';
 
+import { DisplayNumber } from 'src/app-components/Number/DisplayNumber';
+import classes from 'src/app-components/Number/Number.module.css';
 import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { Number } from 'src/layout/Number/Number';
-import classes from 'src/layout/Number/NumberComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -19,7 +19,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
 
   if (!textResourceBindings?.title) {
     return (
-      <Number
+      <DisplayNumber
         value={value}
         currentLanguage={currentLanguage}
         formatting={formatting}
@@ -36,7 +36,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
         className: cn(classes.numberComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
       }}
     >
-      <Number
+      <DisplayNumber
         value={value}
         currentLanguage={currentLanguage}
         iconUrl={icon}

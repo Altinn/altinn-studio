@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Grid } from '@material-ui/core';
-
+import { Flex } from 'src/app-components/Flex/Flex';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
@@ -39,15 +38,15 @@ export const ErrorReport = ({ renderIds, formErrors, taskErrors }: IErrorReportP
           title={<Lang id='form_filler.error_report_header' />}
           variant={PANEL_VARIANT.Error}
         >
-          <Grid
-            container={true}
-            item={true}
+          <Flex
+            container
+            item
             spacing={6}
             alignItems='flex-start'
           >
-            <Grid
+            <Flex
               item
-              xs={12}
+              size={{ xs: 12 }}
             >
               <ul className={classes.errorList}>
                 {taskErrors.map((error) => (
@@ -68,14 +67,14 @@ export const ErrorReport = ({ renderIds, formErrors, taskErrors }: IErrorReportP
                   />
                 ))}
               </ul>
-            </Grid>
+            </Flex>
             {renderIds.map((id) => (
               <GenericComponentById
                 key={id}
                 id={id}
               />
             ))}
-          </Grid>
+          </Flex>
         </Panel>
       </FullWidthWrapper>
     </div>

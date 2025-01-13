@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
@@ -49,36 +48,26 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
   const { langAsString } = useLanguage();
   return (
     <ComponentStructureWrapper node={node}>
-      <Grid
-        container={true}
-        direction='row'
-        alignItems='center'
+      <Heading
+        id={id}
+        {...getHeaderProps(size)}
       >
-        <Grid item={true}>
-          <Heading
-            id={id}
-            {...getHeaderProps(size)}
-          >
+        <Lang
+          id={textResourceBindings?.title}
+          node={node}
+        />
+      </Heading>
+      {textResourceBindings?.help && (
+        <HelpTextContainer
+          helpText={
             <Lang
-              id={textResourceBindings?.title}
+              id={textResourceBindings.help}
               node={node}
             />
-          </Heading>
-        </Grid>
-        {textResourceBindings?.help && (
-          <Grid item={true}>
-            <HelpTextContainer
-              helpText={
-                <Lang
-                  id={textResourceBindings.help}
-                  node={node}
-                />
-              }
-              title={langAsString(textResourceBindings?.title)}
-            />
-          </Grid>
-        )}
-      </Grid>
+          }
+          title={langAsString(textResourceBindings?.title)}
+        />
+      )}
     </ComponentStructureWrapper>
   );
 };

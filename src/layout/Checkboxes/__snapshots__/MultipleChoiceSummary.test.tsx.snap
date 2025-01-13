@@ -6,8 +6,9 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     style="display: none;"
   />
   <div
-    class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    class="col-xs-12 item"
     data-testid="multiple-choice-summary"
+    style="display: block;"
   >
     <ul
       class="MuiList-root makeStyles-list-3 MuiList-padding"

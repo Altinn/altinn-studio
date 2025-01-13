@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Grid } from '@material-ui/core';
 import { formatDate } from 'date-fns';
 
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateConstraint, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -65,10 +65,10 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
     >
       <ComponentStructureWrapper node={node}>
         <div className={styles.calendarGrid}>
-          <Grid
+          <Flex
             container
             item
-            xs={12}
+            size={{ xs: 12 }}
           >
             <div className={styles.calendarInputWrapper}>
               <DatePickerControl
@@ -88,7 +88,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
                 calendarIconTitle={langAsString('date_picker.aria_label_icon')}
               />
             </div>
-          </Grid>
+          </Flex>
           <span className={`${styles.formatText} no-visual-testing`}>
             {langAsString('date_picker.format_text', [formatDate(new Date(), dateFormat)])}
           </span>

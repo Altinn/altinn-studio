@@ -1,9 +1,9 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import Grid from '@material-ui/core/Grid';
 import cn from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AltinnSubstatusPaper } from 'src/components/molecules/AltinnSubstatusPaper';
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
@@ -93,12 +93,12 @@ function ProgressBar({ type }: { type: ProcessTaskType | PresentationType }) {
   }
 
   return (
-    <Grid
+    <Flex
       item
       aria-live='polite'
     >
       <Progress />
-    </Grid>
+    </Flex>
   );
 }
 

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
 import { Spinner, Table } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 import dot from 'dot-object';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
@@ -72,10 +72,10 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
 
   return (
     <ComponentStructureWrapper node={node}>
-      <Grid
+      <Flex
         id={node.id}
-        container={true}
-        item={true}
+        container
+        item
         data-componentid={node.id}
         data-componentbaseid={node.baseId}
       >
@@ -164,7 +164,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
             </Button>
           </div>
         )}
-      </Grid>
+      </Flex>
     </ComponentStructureWrapper>
   );
 }

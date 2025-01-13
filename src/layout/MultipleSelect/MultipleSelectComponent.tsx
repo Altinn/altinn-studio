@@ -103,6 +103,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
                 : undefined
             }
             autoComplete={autocomplete}
+            style={{ width: '100%' }}
           >
             <Combobox.Empty>
               <Lang id='form_filler.no_options_found' />

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -61,8 +61,8 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
             role='tabpanel'
             className={classes.tabContent}
           >
-            <Grid
-              container={true}
+            <Flex
+              container
               spacing={6}
               alignItems='flex-start'
             >
@@ -72,7 +72,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
                   id={nodeId}
                 />
               ))}
-            </Grid>
+            </Flex>
           </DesignsystemetTabs.Content>
         ))}
       </DesignsystemetTabs>

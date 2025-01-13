@@ -1,8 +1,7 @@
 import React from 'react';
 import type { RouteProps } from 'react-router-dom';
 
-import Grid from '@material-ui/core/Grid';
-
+import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnError } from 'src/components/altinnError';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 
@@ -16,8 +15,8 @@ export type IInstantiationErrorPageProps = {
 export function InstantiationErrorPage({ content, statusCode, title, showContactInfo }: IInstantiationErrorPageProps) {
   return (
     <InstantiationContainer>
-      <Grid
-        container={true}
+      <Flex
+        container
         direction='row'
       >
         <AltinnError
@@ -26,7 +25,7 @@ export function InstantiationErrorPage({ content, statusCode, title, showContact
           statusCode={statusCode}
           showContactInfo={showContactInfo}
         />
-      </Grid>
+      </Flex>
     </InstantiationContainer>
   );
 }

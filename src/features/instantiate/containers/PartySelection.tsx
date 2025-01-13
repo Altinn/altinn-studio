@@ -3,10 +3,11 @@ import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
 import { LegacyCheckbox } from '@digdir/design-system-react';
-import { Grid, makeStyles, Typography } from '@material-ui/core';
+import { makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -46,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '8px 12px 0 12px',
     width: '100%',
     '@media screen and (min-width: 768px)': {
-      width: '50%',
+      width: '50% !important',
     },
   },
   partySelectionSubTitle: {
@@ -131,8 +132,8 @@ export const PartySelection = () => {
           />
         ))}
         {hasMoreParties ? (
-          <Grid
-            container={true}
+          <Flex
+            container
             direction='row'
           >
             <Button
@@ -145,7 +146,7 @@ export const PartySelection = () => {
               />
               {langAsString('party_selection.load_more')}
             </Button>
-          </Grid>
+          </Flex>
         ) : null}
       </>
     );
@@ -234,8 +235,8 @@ export const PartySelection = () => {
       <Helmet>
         <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
       </Helmet>
-      <Grid
-        container={true}
+      <Flex
+        container
         direction='row'
         style={{
           display: 'flex',
@@ -249,9 +250,9 @@ export const PartySelection = () => {
           {langAsString('party_selection.header')}
         </Typography>
         {templateErrorMessage()}
-      </Grid>
-      <Grid
-        container={true}
+      </Flex>
+      <Flex
+        container
         direction='column'
         className={classes.partySearchFieldContainer}
       >
@@ -263,33 +264,33 @@ export const PartySelection = () => {
           value={filterString}
           inputMode='search'
         />
-      </Grid>
-      <Grid
-        container={true}
+      </Flex>
+      <Flex
+        container
         direction='column'
       >
-        <Grid
-          container={true}
+        <Flex
+          container
           justifyContent='space-between'
           direction='row'
         >
-          <Grid item={true}>
+          <Flex item>
             <Typography className={classes.partySelectionSubTitle}>
               {langAsString('party_selection.subheader')}
             </Typography>
-          </Grid>
+          </Flex>
 
-          <Grid item={true}>
-            <Grid
-              container={true}
+          <Flex item>
+            <Flex
+              container
               direction='row'
             >
-              <Grid
-                item={true}
+              <Flex
+                item
                 className={classes.partySelectionCheckbox}
               >
-                <Grid
-                  container={true}
+                <Flex
+                  container
                   direction='row'
                 >
                   <LegacyCheckbox
@@ -297,14 +298,14 @@ export const PartySelection = () => {
                     onChange={toggleShowDeleted}
                     label={langAsString('party_selection.show_deleted')}
                   />
-                </Grid>
-              </Grid>
-              <Grid
-                item={true}
+                </Flex>
+              </Flex>
+              <Flex
+                item
                 className={classes.partySelectionCheckbox}
               >
-                <Grid
-                  container={true}
+                <Flex
+                  container
                   direction='row'
                 >
                   <LegacyCheckbox
@@ -312,14 +313,14 @@ export const PartySelection = () => {
                     onChange={toggleShowSubUnits}
                     label={langAsString('party_selection.show_sub_unit')}
                   />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
+                </Flex>
+              </Flex>
+            </Flex>
+          </Flex>
+        </Flex>
         {renderParties()}
         {errorCode === 'explained' && (
-          <Grid style={{ padding: 12 }}>
+          <Flex style={{ padding: 12 }}>
             <Typography
               variant='h2'
               style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: 12 }}
@@ -335,9 +336,9 @@ export const PartySelection = () => {
                 }
               />
             </Typography>
-          </Grid>
+          </Flex>
         )}
-      </Grid>
+      </Flex>
     </InstantiationContainer>
   );
 };

@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Grid, List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
+import { List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import type { DisplayDataProps } from 'src/features/displayData';
@@ -40,9 +41,9 @@ export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryPro
   const formData = getFormData(props);
 
   return (
-    <Grid
+    <Flex
       item
-      xs={12}
+      size={{ xs: 12 }}
       data-testid='multiple-choice-summary'
     >
       {Object.keys(formData).length === 0 ? (
@@ -68,6 +69,6 @@ export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryPro
           ))}
         </List>
       )}
-    </Grid>
+    </Flex>
   );
 }

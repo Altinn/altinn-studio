@@ -93,6 +93,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
     characterLimit: !readOnly ? characterLimit : undefined,
+    style: { width: '100%' },
   };
 
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);

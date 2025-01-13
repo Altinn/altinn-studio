@@ -2,14 +2,13 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
-import { gridBreakpoints } from 'src/utils/formComponentUtils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -110,12 +109,12 @@ export function Label(props: LabelProps) {
 
 function LabelGridItemWrapper({ children, labelGrid }: PropsWithChildren<{ labelGrid?: IGridStyling }>) {
   return (
-    <Grid
+    <Flex
       item
-      {...gridBreakpoints(labelGrid)}
+      size={labelGrid ?? { xs: 12 }}
     >
       {children}
-    </Grid>
+    </Flex>
   );
 }
 

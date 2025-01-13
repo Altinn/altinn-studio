@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Grid, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnInformationPaper } from 'src/components/molecules/AltinnInformationPaper';
 
 export interface IInformationPaperProps {
@@ -12,11 +13,11 @@ export interface IInformationPaperProps {
 export function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {
   return (
     <AltinnInformationPaper>
-      <Grid
-        container={true}
+      <Flex
+        container
         direction='column'
       >
-        <Grid item={true}>
+        <Flex item>
           <Typography
             id='substatus-label'
             style={{
@@ -26,16 +27,16 @@ export function AltinnSubstatusPaper({ label, description }: IInformationPaperPr
           >
             {label}
           </Typography>
-        </Grid>
-        <Grid item={true}>
+        </Flex>
+        <Flex item>
           <Typography
             id='substatus-description'
             style={{ fontSize: '1.125rem' }}
           >
             {description}
           </Typography>
-        </Grid>
-      </Grid>
+        </Flex>
+      </Flex>
     </AltinnInformationPaper>
   );
 }

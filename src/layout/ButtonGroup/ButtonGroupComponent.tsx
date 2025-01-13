@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { Grid } from '@material-ui/core';
-
 import type { PropsFromGenericComponent } from '..';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import classes from 'src/layout/ButtonGroup/ButtonGroupComponent.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -25,7 +24,7 @@ export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGeneric
       help={getHelpTextComponent()}
     >
       <ComponentStructureWrapper node={node}>
-        <Grid
+        <Flex
           item
           container
           alignItems='center'
@@ -37,7 +36,7 @@ export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGeneric
               id={id}
             />
           ))}
-        </Grid>
+        </Flex>
       </ComponentStructureWrapper>
     </Fieldset>
   );

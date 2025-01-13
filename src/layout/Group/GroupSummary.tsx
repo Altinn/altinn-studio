@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -57,13 +57,13 @@ function ChildComponent({
 
   if (child.isType('Group')) {
     return (
-      <Grid item>
+      <Flex item>
         <GroupSummary
           componentNode={child}
           hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
           summaryOverride={summaryOverride}
         />
-      </Grid>
+      </Flex>
     );
   }
 
@@ -90,16 +90,18 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
       className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
       data-testid={dataTestId}
     >
-      <Heading
-        size={isNestedGroup ? 'xsmall' : 'small'}
-        level={headingLevel}
-      >
-        <Lang
-          id={summaryTitle ?? title}
-          node={componentNode}
-        />
-      </Heading>
-      <Grid
+      {(summaryTitle || title) && (
+        <Heading
+          size={isNestedGroup ? 'xsmall' : 'small'}
+          level={headingLevel}
+        >
+          <Lang
+            id={summaryTitle ?? title}
+            node={componentNode}
+          />
+        </Heading>
+      )}
+      <Flex
         container
         spacing={6}
         alignItems='flex-start'
@@ -109,7 +111,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
           hierarchyLevel={hierarchyLevel}
           summaryOverride={summaryOverride}
         />
-      </Grid>
+      </Flex>
     </section>
   );
 };

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import Grid from '@material-ui/core/Grid';
-
+import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
@@ -122,8 +121,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           messageKey='form_filler.required_description'
         />
       )}
-      <Grid
-        container={true}
+      <Flex
+        container
         spacing={6}
         alignItems='flex-start'
       >
@@ -133,9 +132,9 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
             id={id}
           />
         ))}
-        <Grid
+        <Flex
           item={true}
-          xs={12}
+          size={{ xs: 12 }}
           aria-live='polite'
           className={classes.errorReport}
         >
@@ -144,8 +143,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
             formErrors={formErrors}
             taskErrors={taskErrors}
           />
-        </Grid>
-      </Grid>
+        </Flex>
+      </Flex>
       <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
     </>

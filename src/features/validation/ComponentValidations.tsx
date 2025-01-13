@@ -50,42 +50,44 @@ export function ComponentValidations({ validations, node: _node }: Props) {
   const info = validationsOfSeverity(filteredValidations, 'info');
   const success = validationsOfSeverity(filteredValidations, 'success');
 
+  if (!node || !filteredValidations?.length) {
+    return null;
+  }
+
   return (
     <div
       aria-live='assertive'
       style={{ display: 'contents' }}
     >
-      {node && validations?.length ? (
-        <div data-validation={node.id}>
-          {errors.length > 0 && (
-            <ErrorValidations
-              validations={errors}
-              node={node}
-            />
-          )}
-          {warnings.length > 0 && (
-            <SoftValidations
-              validations={warnings}
-              severity='warning'
-              node={node}
-            />
-          )}
-          {info.length > 0 && (
-            <SoftValidations
-              validations={info}
-              severity='info'
-              node={node}
-            />
-          )}
-          {success.length > 0 && (
-            <SoftValidations
-              validations={success}
-              severity='success'
-              node={node}
-            />
-          )}
-        </div>
-      ) : null}
+      <div data-validation={node.id}>
+        {errors.length > 0 && (
+          <ErrorValidations
+            validations={errors}
+            node={node}
+          />
+        )}
+        {warnings.length > 0 && (
+          <SoftValidations
+            validations={warnings}
+            severity='warning'
+            node={node}
+          />
+        )}
+        {info.length > 0 && (
+          <SoftValidations
+            validations={info}
+            severity='info'
+            node={node}
+          />
+        )}
+        {success.length > 0 && (
+          <SoftValidations
+            validations={success}
+            severity='success'
+            node={node}
+          />
+        )}
+      </div>
     </div>
   );
 }

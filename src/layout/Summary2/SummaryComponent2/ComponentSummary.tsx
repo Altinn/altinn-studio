@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import classes from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2.module.css';
 import { useSummary2Store } from 'src/layout/Summary2/summaryStoreContext';
-import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
+import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -72,12 +72,12 @@ export function ComponentSummary({ componentNode }: ComponentSummaryProps) {
   }
 
   return (
-    <Grid
-      item={true}
+    <Flex
+      item
       className={cn(pageBreakStyles(componentNodeItem?.pageBreak), classes.summaryItem)}
-      {...gridBreakpoints(componentNodeItem.grid)}
+      size={componentNodeItem.grid}
     >
       {renderedComponent}
-    </Grid>
+    </Flex>
   );
 }

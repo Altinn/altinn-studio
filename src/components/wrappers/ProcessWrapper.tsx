@@ -2,9 +2,8 @@ import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Route, Routes } from 'react-router-dom';
 
-import Grid from '@material-ui/core/Grid';
-
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
@@ -48,9 +47,9 @@ function NavigationError({ label }: NavigationErrorProps) {
       <Helmet>
         <title>{`${getPageTitle(appName, langAsString(label), appOwner)}`}</title>
       </Helmet>
-      <Grid
-        item={true}
-        xs={12}
+      <Flex
+        item
+        size={{ xs: 12 }}
         aria-live='polite'
       >
         <div>
@@ -70,7 +69,7 @@ function NavigationError({ label }: NavigationErrorProps) {
             </Button>
           </div>
         )}
-      </Grid>
+      </Flex>
     </>
   );
 }

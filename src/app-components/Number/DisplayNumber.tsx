@@ -2,8 +2,8 @@ import React from 'react';
 
 import { formatNumericText } from '@digdir/design-system-react';
 
+import classes from 'src/app-components/Number/Number.module.css';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
-import classes from 'src/layout/Number/Number.module.css';
 import type { CompInternal } from 'src/layout/layout';
 
 type Formatting = Exclude<CompInternal<'Input'>['formatting'], undefined>;
@@ -17,7 +17,14 @@ interface NumberProps {
   labelId?: string;
 }
 
-export const Number = ({ value, formatting, iconUrl, iconAltText, labelId, currentLanguage = 'nb' }: NumberProps) => {
+export const DisplayNumber = ({
+  value,
+  formatting,
+  iconUrl,
+  iconAltText,
+  labelId,
+  currentLanguage = 'nb',
+}: NumberProps) => {
   const numberFormatting = getMapToReactNumberConfig(formatting, value.toString(), currentLanguage);
   const displayData = numberFormatting?.number ? formatNumericText(value.toString(), numberFormatting.number) : value;
 

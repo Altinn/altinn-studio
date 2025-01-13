@@ -2,11 +2,11 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -183,17 +183,17 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
         )
       ) : (
         <Table.Cell className={classes.mobileTableCell}>
-          <Grid
-            container={true}
+          <Flex
+            container
             spacing={6}
           >
             {tableNodes.map(
               (n, i, { length }) =>
                 !isEditingRow &&
                 (shouldEditInTable(editForGroup, n, columnSettings) ? (
-                  <Grid
-                    container={true}
-                    item={true}
+                  <Flex
+                    container
+                    item
                     key={n.id}
                     ref={(ref) => refSetter && refSetter(index, `component-${n.id}`, ref)}
                   >
@@ -203,11 +203,11 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                         grid: {},
                       }}
                     />
-                  </Grid>
+                  </Flex>
                 ) : (
-                  <Grid
-                    container={true}
-                    item={true}
+                  <Flex
+                    container
+                    item
                     key={n.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
@@ -220,10 +220,10 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                     </b>
                     <span className={classes.contentFormatting}>{displayData[i]}</span>
                     {i < length - 1 && <div style={{ height: 8 }} />}
-                  </Grid>
+                  </Flex>
                 )),
             )}
-          </Grid>
+          </Flex>
         </Table.Cell>
       )}
       {!mobileView ? (

@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -69,9 +69,9 @@ export const RepeatingGroupSummary = ({
         {rows.map((row, index) => (
           <React.Fragment key={row?.uuid}>
             {index != 0 && <hr className={classes.rowDivider} />}
-            <Grid
+            <Flex
               key={row?.uuid}
-              container={true}
+              container
               spacing={6}
               alignItems='flex-start'
             >
@@ -81,7 +81,7 @@ export const RepeatingGroupSummary = ({
                   componentId={nodeId}
                 />
               ))}
-            </Grid>
+            </Flex>
           </React.Fragment>
         ))}
       </div>

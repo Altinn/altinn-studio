@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 
-import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
+import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
@@ -223,20 +223,19 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
 
   return (
     <FormComponentContextProvider value={formComponentContext}>
-      <Grid
+      <Flex
         data-componentbaseid={node.baseId}
         data-componentid={node.id}
         data-componenttype={node.type}
         ref={containerDivRef}
         item
         container
+        size={grid}
         key={`grid-${id}`}
-        {...gridBreakpoints(grid)}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
-        alignItems='flex-start'
       >
         <RenderComponent {...componentProps} />
-      </Grid>
+      </Flex>
     </FormComponentContextProvider>
   );
 }

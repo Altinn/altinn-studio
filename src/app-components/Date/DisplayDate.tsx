@@ -2,7 +2,7 @@ import React from 'react';
 
 import { formatDate, isValid, parseISO } from 'date-fns';
 
-import classes from 'src/layout/Date/Date.module.css';
+import classes from 'src/app-components/Date/Date.module.css';
 
 interface DateProps {
   format?: string;
@@ -12,7 +12,7 @@ interface DateProps {
   labelId?: string;
 }
 
-export const Date = ({ value, format, iconUrl, iconAltText, labelId }: DateProps) => {
+export const DisplayDate = ({ value, format, iconUrl, iconAltText, labelId }: DateProps) => {
   const parsedValue = parseISO(value);
   let displayData = parsedValue.toDateString();
   if (!isValid(parsedValue)) {

@@ -6,10 +6,6 @@
   box-shadow: none;
 }
 
-.blueDark {
-  color: var(--fds-semantic-surface-action-default);
-}
-
 .default {
   background-color: transparent;
 }

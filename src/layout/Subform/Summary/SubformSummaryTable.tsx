@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Paragraph, Spinner, Table } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
@@ -141,10 +141,10 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
 
   return (
     <ComponentStructureWrapper node={targetNode}>
-      <Grid
+      <Flex
         id={targetNode.id}
-        container={true}
-        item={true}
+        container
+        item
         data-componentid={targetNode.id}
         data-componentbaseid={targetNode.baseId}
       >
@@ -195,7 +195,7 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
             ))}
           </Table.Body>
         </Table>
-      </Grid>
+      </Flex>
     </ComponentStructureWrapper>
   );
 }

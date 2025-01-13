@@ -50,42 +50,6 @@ export const AltinnAppTheme = {
       transparentBlue: 'rgba(227, 247, 255, 0.5)',
     },
   },
-  overrides: {
-    MuiToolbar: {
-      regular: {
-        '@media (min-width: 600px)': {
-          minHeight: 55,
-        },
-      },
-    },
-    MuiPickersToolbar: {
-      toolbar: {
-        backgroundColor: '#022F51',
-        height: '96px',
-      },
-    },
-    MuiPickersToolbarText: {
-      toolbarTxt: {
-        color: '#fff',
-      },
-    },
-    MuiPickersCalendarHeader: {
-      dayLabel: {
-        color: '#6A6A6A',
-      },
-    },
-    MuiPickersDay: {
-      daySelected: {
-        backgroundColor: '#022F51',
-      },
-    },
-  },
-  props: {
-    MuiButtonBase: {
-      disableRipple: true,
-      disableTouchRipple: true,
-    },
-  },
   sharedStyles: {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
     linkBorderBottom: '1px solid #0062BA',

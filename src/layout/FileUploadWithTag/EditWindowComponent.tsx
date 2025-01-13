@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 import { Combobox } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import deepEqual from 'fast-deep-equal';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
@@ -87,14 +87,13 @@ export function EditWindowComponent({
       id={`attachment-edit-window-${uniqueId}`}
       className={classes.editContainer}
     >
-      <Grid
+      <Flex
         justifyContent='space-between'
-        container={true}
-        spacing={0}
+        container
         direction='row'
         style={{ flexWrap: 'nowrap' }}
       >
-        <Grid
+        <Flex
           className={classes.textContainer}
           style={{ flexShrink: 1 }}
         >
@@ -102,8 +101,8 @@ export function EditWindowComponent({
             attachment={attachment}
             mobileView={mobileView}
           />
-        </Grid>
-        <Grid
+        </Flex>
+        <Flex
           className={classes.textContainer}
           style={{ flexShrink: 0 }}
         >
@@ -134,9 +133,9 @@ export function EditWindowComponent({
               />
             </div>
           </div>
-        </Grid>
-      </Grid>
-      <Grid
+        </Flex>
+      </Flex>
+      <Flex
         container
         direction='column'
         className={classes.gap}
@@ -159,16 +158,14 @@ export function EditWindowComponent({
             }}
           />
         ) : (
-          <Grid
+          <Flex
             container
             direction='row'
-            wrap='wrap'
             className={classes.gap}
           >
-            <Grid
-              item={true}
-              style={{ minWidth: '150px' }}
-              xs
+            <Flex
+              item
+              style={{ minWidth: '150px', flexGrow: 1, maxWidth: '100%', flexBasis: 0 }}
             >
               <Combobox
                 id={`attachment-tag-dropdown-${uniqueId}`}
@@ -200,10 +197,10 @@ export function EditWindowComponent({
                   </Combobox.Option>
                 ))}
               </Combobox>
-            </Grid>
-            <Grid
-              item={true}
-              xs='auto'
+            </Flex>
+            <Flex
+              item
+              size={{ xs: 'auto' }}
             >
               {attachment.updating ? (
                 <AltinnLoader
@@ -222,10 +219,10 @@ export function EditWindowComponent({
                   <Lang id='general.save' />
                 </Button>
               )}
-            </Grid>
-          </Grid>
+            </Flex>
+          </Flex>
         )}
-      </Grid>
+      </Flex>
       {hasErrors ? (
         <div
           style={{

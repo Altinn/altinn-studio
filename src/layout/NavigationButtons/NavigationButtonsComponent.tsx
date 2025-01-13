@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Grid } from '@material-ui/core';
-
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useIsSaving } from 'src/features/formData/FormDataWrite';
@@ -116,7 +115,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
       >
         {showBackToSummaryButton && (
-          <Grid item>
+          <Flex item>
             <Button
               disabled={isSaving}
               ref={refNext}
@@ -124,10 +123,10 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             >
               <Lang id={returnToViewText} />
             </Button>
-          </Grid>
+          </Flex>
         )}
         {showNextButton && (
-          <Grid item>
+          <Flex item>
             <Button
               disabled={isSaving}
               ref={refNext}
@@ -137,10 +136,13 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             >
               <Lang id={nextTextKey} />
             </Button>
-          </Grid>
+          </Flex>
         )}
         {!disablePrevious && showBackButton && (
-          <Grid item>
+          <Flex
+            item
+            style={{ flex: 0 }}
+          >
             <Button
               disabled={isSaving}
               ref={refPrev}
@@ -149,7 +151,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             >
               <Lang id={backTextKey} />
             </Button>
-          </Grid>
+          </Flex>
         )}
       </div>
     </ComponentStructureWrapper>

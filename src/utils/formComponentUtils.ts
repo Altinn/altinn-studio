@@ -7,7 +7,6 @@ import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type {
   IDataModelBindingsList,
-  IGridStyling,
   IPageBreak,
   ITableColumnFormatting,
   ITableColumnProperties,
@@ -112,17 +111,6 @@ export function smartLowerCaseFirst(text: string | undefined): string | undefine
 
   return lowerCaseFirst(text, firstLetterIdx);
 }
-
-export const gridBreakpoints = (grid?: IGridStyling) => {
-  const { xs, sm, md, lg, xl } = grid ?? {};
-  return {
-    xs: xs ?? 12,
-    ...(sm && { sm }),
-    ...(md && { md }),
-    ...(lg && { lg }),
-    ...(xl && { xl }),
-  };
-};
 
 export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined) => {
   if (!pageBreak) {

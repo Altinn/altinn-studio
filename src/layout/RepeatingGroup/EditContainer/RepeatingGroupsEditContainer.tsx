@@ -1,11 +1,11 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Flex } from 'src/app-components/Flex/Flex';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -118,14 +118,14 @@ function RepeatingGroupsEditContainerInternal({
       data-testid='group-edit-container'
     >
       {editForRow?.deleteButton !== false && editForGroup?.mode === 'showAll' && (
-        <Grid
-          item={true}
-          container={true}
+        <Flex
+          item
+          container
           direction='column'
           alignItems='flex-end'
           spacing={6}
         >
-          <Grid item={true}>
+          <Flex item>
             <Button
               variant='tertiary'
               color='danger'
@@ -136,20 +136,21 @@ function RepeatingGroupsEditContainerInternal({
               <Lang id='general.delete' />
               <DeleteIcon fontSize='1rem' />
             </Button>
-          </Grid>
-        </Grid>
+          </Flex>
+        </Flex>
       )}
-      <Grid
-        container={true}
-        item={true}
+      <Flex
+        container
+        item
         direction='row'
         spacing={6}
       >
-        <Grid
-          container={true}
+        <Flex
+          container
           alignItems='flex-start'
-          item={true}
+          item
           spacing={6}
+          style={{ flexBasis: 'auto' }}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
           {row?.itemIds?.map((nodeId) => (
@@ -161,17 +162,17 @@ function RepeatingGroupsEditContainerInternal({
               tableColumns={group.tableColumns}
             />
           ))}
-        </Grid>
-        <Grid item={true}>
+        </Flex>
+        <Flex item>
           {editForGroup?.multiPage && (
-            <Grid
-              container={true}
+            <Flex
+              container
               direction='row'
               spacing={2}
               style={{ marginBottom: 12 }}
             >
               {hasPrevMultiPage && (
-                <Grid item={true}>
+                <Flex item>
                   <Button
                     variant='tertiary'
                     color='second'
@@ -184,10 +185,10 @@ function RepeatingGroupsEditContainerInternal({
                     />
                     <Lang id='general.back' />
                   </Button>
-                </Grid>
+                </Flex>
               )}
               {hasNextMultiPage && (
-                <Grid item={true}>
+                <Flex item>
                   <Button
                     variant='tertiary'
                     color='second'
@@ -200,17 +201,17 @@ function RepeatingGroupsEditContainerInternal({
                       aria-hidden='true'
                     />
                   </Button>
-                </Grid>
+                </Flex>
               )}
-            </Grid>
+            </Flex>
           )}
-          <Grid
-            container={true}
+          <Flex
+            container
             direction='row'
             spacing={2}
           >
             {saveAndNextButtonVisible && (
-              <Grid item={true}>
+              <Flex item>
                 <Button
                   id={`next-button-grp-${id}`}
                   onClick={() => openNextForEditing()}
@@ -220,10 +221,10 @@ function RepeatingGroupsEditContainerInternal({
                 >
                   <Lang id={texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next'} />
                 </Button>
-              </Grid>
+              </Flex>
             )}
             {saveButtonVisible && (
-              <Grid item={true}>
+              <Flex item>
                 <Button
                   id={`save-button-${id}`}
                   onClick={() => closeForEditing({ index: row.index, uuid: row.uuid })}
@@ -233,11 +234,11 @@ function RepeatingGroupsEditContainerInternal({
                 >
                   <Lang id={texts?.save_button ? texts?.save_button : 'general.save_and_close'} />
                 </Button>
-              </Grid>
+              </Flex>
             )}
-          </Grid>
-        </Grid>
-      </Grid>
+          </Flex>
+        </Flex>
+      </Flex>
     </div>
   );
 }

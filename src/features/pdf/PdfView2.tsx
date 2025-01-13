@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
@@ -197,8 +197,8 @@ function PlainPage({ pageKey }: { pageKey: string }) {
 
   return (
     <div className={classes.page}>
-      <Grid
-        container={true}
+      <Flex
+        container
         spacing={6}
         alignItems='flex-start'
       >
@@ -208,7 +208,7 @@ function PlainPage({ pageKey }: { pageKey: string }) {
             node={node}
           />
         ))}
-      </Grid>
+      </Flex>
     </div>
   );
 }
@@ -232,8 +232,8 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
 
   return (
     <div className={classes.page}>
-      <Grid
-        container={true}
+      <Flex
+        container
         spacing={6}
         alignItems='flex-start'
       >
@@ -243,7 +243,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
             node={node}
           />
         ))}
-      </Grid>
+      </Flex>
     </div>
   );
 }

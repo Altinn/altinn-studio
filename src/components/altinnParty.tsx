@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
+import { makeStyles, Paper, Typography } from '@material-ui/core';
 import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -77,6 +78,7 @@ const useStyles = makeStyles((theme) => ({
       cursor: 'pointer',
     },
   },
+
   subUnitListHeaderIcon: {
     fontSize: '2rem',
     color: theme.altinnPalette.primary.blue,
@@ -139,13 +141,13 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         transition={subUnitsExpanded}
         onClickExpand={expandSubUnits}
         listHeader={
-          <Grid
-            container={true}
+          <Flex
+            container
             direction='row'
             className={classes.subUnitListHeader}
           >
-            <Grid
-              container={true}
+            <Flex
+              container
               direction='row'
               alignItems='center'
               className={classes.subUnitListHeaderWrapper}
@@ -165,30 +167,30 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 &nbsp;
                 <Lang id='party_selection.unit_type_subunit_plural' />
               </Typography>
-            </Grid>
-          </Grid>
+            </Flex>
+          </Flex>
         }
       >
         {party.childParties.map((childParty: IParty, index: number) => (
-          <Grid
+          <Flex
             data-testid='AltinnParty-SubUnitWrapper'
             key={index}
-            container={true}
+            container
             direction='column'
             className={classes.subUnitWrapper}
           >
-            <Grid
+            <Flex
               key={index}
               role='button'
               className={classes.subUnit}
-              container={true}
+              container
               direction='column'
               onClick={onClickParty.bind(null, childParty)}
               onKeyPress={onKeyPress.bind(null, childParty)}
               tabIndex={subUnitsExpanded ? 0 : undefined}
             >
-              <Grid
-                container={true}
+              <Flex
+                container
                 direction='row'
                 alignItems='center'
                 className={classes.subUnitTextWrapper}
@@ -199,9 +201,9 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                   <Lang id='party_selection.unit_org_number' />
                   &nbsp;{childParty.orgNumber}
                 </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
+              </Flex>
+            </Flex>
+          </Flex>
         ))}
       </AltinnCollapsableList>
     );
@@ -209,11 +211,11 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
 
   return (
     <Paper className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
-      <Grid
+      <Flex
         id={`party-${party.partyId}`}
         role='button'
         data-testid='AltinnParty-PartyWrapper'
-        container={true}
+        container
         direction='row'
         alignItems='center'
         className={cn(classes.partyWrapper, { [classes.partyWrapperDisabled]: party.onlyHierarchyElementWithNoAccess })}
@@ -224,13 +226,13 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         {isOrg ? (
           <Buildings3Icon
             data-testid='org-icon'
-            style={{ fontSize: '2rem' }}
+            fontSize='2rem'
             aria-hidden
           />
         ) : (
           <PersonIcon
             data-testid='person-icon'
-            style={{ fontSize: '2rem' }}
+            fontSize='2rem'
             aria-hidden
           />
         )}
@@ -242,7 +244,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
             ? `${langAsString('party_selection.unit_org_number')} ${party.orgNumber}`
             : `${langAsString('party_selection.unit_personal_number')} ${party.ssn}`}
         </Typography>
-      </Grid>
+      </Flex>
       {renderSubunits()}
     </Paper>
   );

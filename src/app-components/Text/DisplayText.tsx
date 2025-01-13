@@ -1,6 +1,6 @@
 import React from 'react';
 
-import classes from 'src/layout/Text/Text.module.css';
+import classes from 'src/app-components/Text/Text.module.css';
 
 interface TextProps {
   value: string;
@@ -9,7 +9,7 @@ interface TextProps {
   labelId?: string;
 }
 
-export const Text = ({ value, iconUrl, iconAltText, labelId }: TextProps) => (
+export const DisplayText = ({ value, iconUrl, iconAltText, labelId }: TextProps) => (
   <>
     {iconUrl && (
       <img

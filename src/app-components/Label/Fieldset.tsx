@@ -2,19 +2,19 @@ import React from 'react';
 import type { JSX, PropsWithChildren, ReactElement } from 'react';
 
 import { Fieldset as DesignsystemetFieldset, Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
+import { Flex } from 'src/app-components/Flex/Flex';
 import labelClasses from 'src/app-components/Label/Label.module.css';
-import type { GridSize } from 'src/app-components/Label/types';
+import type { IGridStyling } from 'src/layout/common.generated';
 
 export type FieldsetProps = {
   id?: string;
   legend: string | ReactElement | undefined;
   legendSize?: Extract<DesignsystemetLabelProps['size'], 'sm' | 'md' | 'lg' | 'xl'>;
   className?: string;
-  grid?: GridSize;
+  grid?: IGridStyling;
   optionalIndicator?: ReactElement;
   help?: ReactElement;
   description?: ReactElement;
@@ -41,31 +41,31 @@ export function Fieldset({
 }: PropsWithChildren<FieldsetProps>) {
   if (!legend) {
     return (
-      <Grid
+      <Flex
         id={id}
         container
         spacing={2}
       >
-        <Grid
+        <Flex
           item
-          {...(grid ?? { xs: 12 })}
+          size={grid ?? { xs: 12 }}
           className={className}
         >
           {children}
-        </Grid>
-      </Grid>
+        </Flex>
+      </Flex>
     );
   }
 
   return (
-    <Grid
+    <Flex
       id={id}
       container
       spacing={2}
     >
-      <Grid
+      <Flex
         item
-        {...(grid ?? { xs: 12 })}
+        size={grid ?? { xs: 12 }}
       >
         <DesignsystemetFieldset
           className={cn(className)}
@@ -92,7 +92,7 @@ export function Fieldset({
         >
           {children}
         </DesignsystemetFieldset>
-      </Grid>
-    </Grid>
+      </Flex>
+    </Flex>
   );
 }
