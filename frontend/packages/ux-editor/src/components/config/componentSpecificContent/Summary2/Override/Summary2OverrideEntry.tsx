@@ -62,12 +62,12 @@ export const Summary2OverrideEntry = ({
   if (!open) {
     const componentNameType = componentOptions.find(
       (comp) => comp.id === override.componentId,
-    ).description;
+    )?.description;
     return (
       <StudioProperty.Button
         className={classes.property}
         property={t('ux_editor.component_properties.summary.overrides.nth', { n: index })}
-        value={`${componentNameType} (ID:${override.componentId})`}
+        value={componentNameType && `${componentNameType} (ID:${override.componentId})`}
         icon={false}
         onClick={() => setOpen(true)}
       />
