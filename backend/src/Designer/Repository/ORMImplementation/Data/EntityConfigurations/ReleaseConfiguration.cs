@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class ReleaseConfiguration : IEntityTypeConfiguration<Release>
+public class ReleaseConfiguration : IEntityTypeConfiguration<ReleaseDbModel>
 {
-    public void Configure(EntityTypeBuilder<Release> builder)
+    public void Configure(EntityTypeBuilder<ReleaseDbModel> builder)
     {
         builder.HasKey(e => e.Sequenceno).HasName("releases_pkey");
 
