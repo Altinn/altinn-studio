@@ -95,6 +95,26 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
+        public async Task UpdateLayoutSet_NewLayoutSetNameDoesNotMatchRegex_ReturnsBadRequest(string org, string app, string developer,
+            string oldLayoutSetName)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            string newLayoutSetName = ".abc";
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+            };
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
         public async Task UpdateLayoutSetName_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
             string oldLayoutSetName)

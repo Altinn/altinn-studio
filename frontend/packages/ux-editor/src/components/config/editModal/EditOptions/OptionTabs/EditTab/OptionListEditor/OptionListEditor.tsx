@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner, StudioErrorMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -7,25 +7,47 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
+import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function OptionListEditor({
-  component,
-  handleComponentChange,
-}: OptionListEditorProps): React.ReactNode {
+export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
+  ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
+    const handleDelete = () => {
+      const updatedComponent = resetComponentOptions(component);
+      handleOptionsChange(updatedComponent, handleComponentChange);
+    };
+
+    if (component.options !== undefined) {
+      return (
+        <ManualOptionsEditor
+          ref={dialogRef}
+          component={component}
+          handleComponentChange={handleComponentChange}
+          handleDelete={handleDelete}
+        />
+      );
+    }
+
+    return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
+  },
+);
+
+type OptionsListResolverProps = {
+  handleDelete: () => void;
+  optionsId: string;
+};
+
+function OptionListResolver({
+  handleDelete,
+  optionsId,
+}: OptionsListResolverProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
-
-  if (component.options !== undefined) {
-    return (
-      <ManualOptionsEditor component={component} handleComponentChange={handleComponentChange} />
-    );
-  }
+  const { status } = useOptionListQuery(org, app, optionsId);
 
   switch (status) {
     case 'pending':
@@ -39,7 +61,9 @@ export function OptionListEditor({
         </StudioErrorMessage>
       );
     case 'success': {
-      return <LibraryOptionsEditor optionsId={component.optionsId} optionsList={optionsList} />;
+      return <LibraryOptionsEditor handleDelete={handleDelete} optionsId={optionsId} />;
     }
   }
 }
+
+OptionListEditor.displayName = 'OptionListEditor';

@@ -22,6 +22,7 @@ import {
   getTitleIdForColumn,
   getValueOfTitleId,
 } from '../../utils/editSubformTableColumnsUtils';
+import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -64,10 +65,11 @@ export const EditColumnElement = ({
     const selectedComponentId = values[0];
     const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
 
+    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
     const updatedTableColumn = {
       ...sourceColumn,
-      headerContent: selectedComponent.textResourceBindings.title,
-      cellContent: { query: selectedComponent.dataModelBindings.simpleBinding },
+      headerContent: selectedComponent.textResourceBindings?.title,
+      cellContent: { query: binding.field },
     };
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
