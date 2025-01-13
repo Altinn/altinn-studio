@@ -30,6 +30,7 @@ import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
+  onAddOrDeleteItem?: (codeList: CodeList) => void;
   onBlurAny?: (codeList: CodeList) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
@@ -50,6 +51,7 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onChangeTextResource,
@@ -57,6 +59,17 @@ function StatefulCodeListEditor({
   textResources,
 }: StatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = usePropState<CodeList>(defaultCodeList);
+
+  const handleAddOrDeleteAny = useCallback(
+    (newCodeList: CodeList) => {
+      isCodeListValid(newCodeList) && onAddOrDeleteItem?.(newCodeList);
+    },
+    [onAddOrDeleteItem],
+  );
+
+  const handleBlurAny = useCallback(() => {
+    isCodeListValid(codeList) && onBlurAny?.(codeList);
+  }, [onBlurAny, codeList]);
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
@@ -66,13 +79,10 @@ function StatefulCodeListEditor({
     [onChange, onInvalid, setCodeList],
   );
 
-  const handleBlurAny = useCallback(() => {
-    isCodeListValid(codeList) && onBlurAny?.(codeList);
-  }, [onBlurAny, codeList]);
-
   return (
     <ControlledCodeListEditor
       codeList={codeList}
+      onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
@@ -88,6 +98,7 @@ type ControlledCodeListEditorProps = Override<
 
 function ControlledCodeListEditor({
   codeList,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onChangeTextResource,
@@ -101,13 +112,15 @@ function ControlledCodeListEditor({
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
     onChange(updatedCodeList);
-  }, [codeList, onChange]);
+    onAddOrDeleteItem?.(updatedCodeList);
+  }, [codeList, onChange, onAddOrDeleteItem]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
       <CodeListTable
         codeList={codeList}
         errorMap={errorMap}
+        onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
         onChange={onChange}
         onChangeTextResource={onChangeTextResource}
@@ -161,6 +174,7 @@ function TableHeadings(): ReactElement {
 
 function TableBody({
   codeList,
+  onAddOrDeleteItem,
   onChange,
   onChangeTextResource,
   errorMap,
@@ -170,8 +184,9 @@ function TableBody({
     (index: number) => {
       const updatedCodeList = removeCodeListItem(codeList, index);
       onChange(updatedCodeList);
+      onAddOrDeleteItem?.(updatedCodeList);
     },
-    [codeList, onChange],
+    [codeList, onChange, onAddOrDeleteItem],
   );
 
   const handleChange = useCallback(
