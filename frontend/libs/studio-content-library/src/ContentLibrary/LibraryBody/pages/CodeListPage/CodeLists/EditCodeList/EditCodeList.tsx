@@ -1,13 +1,19 @@
-import type { CodeList, CodeListEditorTexts } from '@studio/components';
-import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components';
+import type {
+  CodeList as StudioComponentsCodeList,
+  CodeList,
+  CodeListEditorTexts,
+} from '@studio/components';
+import { StudioModal, StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
-import { updateCodeListWithMetadata } from '../CodeLists';
+import { EyeIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
+import type { CodeListIdSource } from '../../types/CodeListReference';
+import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 
 export type EditCodeListProps = {
   codeList: CodeList;
@@ -15,6 +21,7 @@ export type EditCodeListProps = {
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
+  codeListSources: CodeListIdSource[];
 };
 
 export function EditCodeList({
@@ -23,6 +30,7 @@ export function EditCodeList({
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
+  codeListSources,
 }: EditCodeListProps): React.ReactElement {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
@@ -32,7 +40,7 @@ export function EditCodeList({
     if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
   };
 
-  const handleBlurAny = (updatedCodeList: CodeList): void => {
+  const handleCodeListChange = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
@@ -46,6 +54,8 @@ export function EditCodeList({
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
+  const codeListHasUsages = codeListSources.length > 0;
+
   return (
     <div className={classes.editCodeList}>
       <StudioToggleableTextfield
@@ -57,7 +67,48 @@ export function EditCodeList({
         })}
         value={codeListTitle}
       />
-      <StudioCodeListEditor codeList={codeList} onBlurAny={handleBlurAny} texts={editorTexts} />
+      <StudioCodeListEditor
+        codeList={codeList}
+        onAddOrDeleteItem={handleCodeListChange}
+        onBlurAny={handleCodeListChange}
+        texts={editorTexts}
+      />
+      {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
     </div>
+  );
+}
+
+export const updateCodeListWithMetadata = (
+  currentCodeListWithMetadata: CodeListWithMetadata,
+  updatedCodeList: StudioComponentsCodeList,
+): CodeListWithMetadata => {
+  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
+};
+
+export type ShowCodeListUsagesSourcesModalProps = {
+  codeListSources: CodeListIdSource[];
+};
+
+function ShowCodeListUsagesSourcesModal({
+  codeListSources,
+}: ShowCodeListUsagesSourcesModalProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <StudioModal.Root>
+      <StudioModal.Trigger
+        icon={<EyeIcon className={classes.seeUsageIcon} />}
+        variant='tertiary'
+        className={classes.codeListUsageButton}
+      >
+        {t('app_content_library.code_lists.code_list_show_usage')}
+      </StudioModal.Trigger>
+      <StudioModal.Dialog
+        closeButtonTitle={t('general.close')}
+        heading={t('app_content_library.code_lists.code_list_show_usage_modal_title')}
+      >
+        <CodeListUsages codeListSources={codeListSources} />
+      </StudioModal.Dialog>
+    </StudioModal.Root>
   );
 }

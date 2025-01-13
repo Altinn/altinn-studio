@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
+public class DeploymentConfiguration : IEntityTypeConfiguration<DeploymentDbModel>
 {
-    public void Configure(EntityTypeBuilder<Deployment> builder)
+    public void Configure(EntityTypeBuilder<DeploymentDbModel> builder)
     {
         builder.HasKey(e => e.Sequenceno).HasName("deployments_pkey");
 
@@ -22,6 +22,10 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
         builder.Property(e => e.App)
             .HasColumnType("character varying")
             .HasColumnName("app");
+
+        builder.Property(e => e.EnvName)
+            .HasColumnType("character varying")
+            .HasColumnName("envname");
 
         builder.Property(e => e.Buildid)
             .HasColumnType("character varying")
@@ -46,5 +50,22 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
         builder.Property(e => e.Tagname)
             .HasColumnType("character varying")
             .HasColumnName("tagname");
+
+        builder.Property(e => e.CreatedBy)
+            .HasColumnType("character varying")
+            .HasColumnName("created_by");
+
+        builder.Property(e => e.InternalBuildId)
+            .HasColumnName("internal_build_id");
+
+        builder.HasOne(d => d.Build)
+            .WithMany()
+            .HasForeignKey(d => d.InternalBuildId)
+            .HasConstraintName("fk_deployments_builds_buildid");
+
+        builder.Property(e => e.DeploymentType)
+            .HasColumnType("integer")
+            .HasColumnName("deployment_type")
+            .HasDefaultValue(DeploymentType.Deploy);
     }
 }
