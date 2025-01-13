@@ -396,6 +396,15 @@ describe('StudioCodeListEditor', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('Does not trigger onBlurAny while the code list is invalid', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    await user.type(validValueInput, 'new value');
+    await user.tab();
+    expect(onBlurAny).not.toHaveBeenCalled();
+  });
+
   it('Does not trigger onAddOrDeleteItem while the code list is invalid', async () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });

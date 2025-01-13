@@ -68,7 +68,7 @@ function StatefulCodeListEditor({
   );
 
   const handleBlurAny = useCallback(() => {
-    onBlurAny?.(codeList);
+    isCodeListValid(codeList) && onBlurAny?.(codeList);
   }, [onBlurAny, codeList]);
 
   const handleChange = useCallback(
