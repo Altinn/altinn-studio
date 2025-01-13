@@ -4,6 +4,10 @@
   gap: var(--fds-spacing-4);
 }
 
+.card span {
+  overflow: hidden;
+}
+
 .content {
   gap: var(--fds-spacing-4);
   padding: var(--fds-spacing-4);
