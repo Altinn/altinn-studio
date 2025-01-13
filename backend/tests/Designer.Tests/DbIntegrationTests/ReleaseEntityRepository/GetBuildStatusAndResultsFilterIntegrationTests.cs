@@ -23,7 +23,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
     {
         int numberOfEntities = statusReleaseCombinationsInDb.Count;
         string tagName = Guid.NewGuid().ToString();
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, numberOfEntities).ToList();
         for (int i = 0; i < numberOfEntities; i++)
         {
