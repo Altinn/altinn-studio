@@ -40,11 +40,11 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
    * Function that resets the repo
    */
   const handleClickResetRepo = () => {
-    resetRepo(undefined, {
-      onSuccess: () => {
-        window.location.reload();
-      },
-    });
+    if (!isRemovingChanges) {
+      resetRepo(undefined, {
+        onSuccess: () => window.location.reload(),
+      });
+    }
   };
 
   return (
@@ -68,13 +68,7 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
         </StudioParagraph>
       </div>
       <div>
-        <StudioButton
-          onClick={() => {
-            if (!isRemovingChanges) {
-              handleClickResetRepo();
-            }
-          }}
-        >
+        <StudioButton onClick={handleClickResetRepo}>
           {t('merge_conflict.remove_my_changes')}
         </StudioButton>
       </div>
