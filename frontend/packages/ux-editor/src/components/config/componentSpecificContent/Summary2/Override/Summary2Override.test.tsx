@@ -39,7 +39,7 @@ describe('Summary2Override', () => {
 
   it('should be able to show "vis type" comobox when componenetId is checkbox', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: 'Checkboxes' }] });
+    render({ overrides: [{ componentId: 'Checkboxes', hidden: false }] });
     await user.click(addNewOverrideButton());
     expect(
       screen.getByRole('combobox', {
@@ -86,7 +86,7 @@ describe('Summary2Override', () => {
 
   it('should be able to change override hidden', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1' }] });
+    render({ overrides: [{ componentId: '1', hidden: false }] });
     await user.click(
       screen.getByRole('checkbox', {
         name: textMock('ux_editor.component_properties.summary.override.hidden'),
@@ -99,23 +99,9 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('should be able to change override forceShow', async () => {
-    const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1' }] });
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: textMock('ux_editor.component_properties.summary.override.force_show'),
-      }),
-    );
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', forceShow: true }]),
-      ),
-    );
-  });
   it('should be able to change override hideEmptyFields', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1' }] });
+    render({ overrides: [{ componentId: '1', hidden: false }] });
     await user.click(
       screen.getByRole('checkbox', {
         name: textMock('ux_editor.component_properties.summary.override.hide_empty_fields'),
@@ -123,7 +109,9 @@ describe('Summary2Override', () => {
     );
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', hideEmptyFields: true }]),
+        expect.arrayContaining([
+          { componentId: '1', hideEmptyFields: true, hidden: false, forceShow: false },
+        ]),
       ),
     );
   });
@@ -311,9 +299,13 @@ describe('Summary2Override', () => {
   it('should be able to change override emptyFieldText', async () => {
     const user = userEvent.setup();
     render({
-      overrides: [{ componentId: '1' }],
+      overrides: [{ componentId: '1', hidden: false, hideEmptyFields: false }],
     });
     const emptyFieldText = 'asdf;ljr%';
+    const textFieldButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.summary.override.empty_field_text'),
+    });
+    await user.click(textFieldButton);
     await user.type(
       screen.getByLabelText(
         textMock('ux_editor.component_properties.summary.override.empty_field_text'),
@@ -322,7 +314,9 @@ describe('Summary2Override', () => {
     );
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', emptyFieldText }]),
+        expect.arrayContaining([
+          { componentId: '1', emptyFieldText, hidden: false, hideEmptyFields: false },
+        ]),
       ),
     );
   });
