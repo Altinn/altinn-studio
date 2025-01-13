@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { isAxiosError } from 'axios';
-
 import { Loader } from 'src/core/loading/Loader';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
@@ -10,6 +8,7 @@ import { useInstantiation } from 'src/features/instantiate/InstantiationContext'
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
+import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 
 export const InstantiateContainer = () => {

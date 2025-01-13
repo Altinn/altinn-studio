@@ -8,6 +8,7 @@ interface LanguageCtx {
   current: string;
   profileLoaded: boolean;
   updateProfile: (profile: IProfile) => void;
+  noProfileFound: () => void;
   setWithLanguageSelector: (language: string) => void;
 }
 
@@ -18,6 +19,9 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
     current: 'nb',
     profileLoaded: false,
     updateProfile: () => {
+      throw new Error('LanguageProvider not initialized');
+    },
+    noProfileFound: () => {
       throw new Error('LanguageProvider not initialized');
     },
     setWithLanguageSelector: () => {
@@ -46,19 +50,28 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     localStorage.setItem(localStorageKey, newLanguage);
   };
 
+  const noProfileFound = () => {
+    // Just mark it as loaded, so we can continue loading language resources
+    setProfileLoaded(true);
+  };
+
   const setWithLanguageSelector = (language: string) => {
     setCurrent(language);
     localStorage.setItem(`selectedAppLanguage${window.app}${userId}`, language);
   };
 
-  return <Provider value={{ current, profileLoaded, updateProfile, setWithLanguageSelector }}>{children}</Provider>;
+  return (
+    <Provider value={{ current, profileLoaded, updateProfile, setWithLanguageSelector, noProfileFound }}>
+      {children}
+    </Provider>
+  );
 };
 
 export const useCurrentLanguage = () => useCtx().current;
 export const useIsProfileLanguageLoaded = () => useCtx().profileLoaded;
 export const useSetCurrentLanguage = () => {
-  const { setWithLanguageSelector, updateProfile } = useCtx();
-  return { setWithLanguageSelector, updateProfile };
+  const { setWithLanguageSelector, updateProfile, noProfileFound } = useCtx();
+  return { setWithLanguageSelector, updateProfile, noProfileFound };
 };
 
 function getLanguageQueryParam() {

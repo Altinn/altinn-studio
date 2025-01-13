@@ -75,6 +75,7 @@ interface InstanceRouterProps {
   taskId?: string;
   instanceId?: string;
   alwaysRouteToChildren?: boolean;
+  query?: string;
 }
 
 interface ExtendedRenderOptionsWithInstance extends ExtendedRenderOptions, InstanceRouterProps {}
@@ -246,11 +247,13 @@ export function InstanceRouter({
   taskId = 'Task_1',
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
+  query,
 }: PropsWithChildren<InstanceRouterProps>) {
+  const path = `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
   return (
     <MemoryRouter
       basename='/ttd/test'
-      initialEntries={[`/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`]}
+      initialEntries={[query ? `${path}?${query}` : path]}
     >
       <Routes>
         <Route
