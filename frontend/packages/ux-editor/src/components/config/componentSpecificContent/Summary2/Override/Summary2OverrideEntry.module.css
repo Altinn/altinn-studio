@@ -8,6 +8,10 @@
   overflow: hidden;
 }
 
+.property {
+  padding-left: var(--fds-spacing-0);
+}
+
 .content {
   gap: var(--fds-spacing-4);
   padding: var(--fds-spacing-4);
