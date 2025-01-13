@@ -9,7 +9,7 @@ type Summary2ComponentTargetIdProps = {
   onValueChange: (value: string) => void;
 };
 
-export const Summmary2ComponentReferenceSelector = ({
+export const Summary2ComponentReferenceSelector = ({
   label,
   value,
   options,

@@ -15,7 +15,7 @@ export const ComponentMainConfig = ({
   component,
   handleComponentChange,
 }: ComponentMainConfigProps) => {
-  const [accordionOpen, setAccordionOpen] = React.useState<string[]>([]);
+  const [accordionOpen, setAccordionOpen] = React.useState<Record<string, boolean>>({});
   const { t } = useTranslation();
 
   const handleOverridesChange = (updatedOverrides: Summary2OverrideConfig[]): void => {
@@ -36,7 +36,7 @@ export const ComponentMainConfig = ({
                 })
               }
             >
-              {t('Overstyr hva som skal vises')}
+              {t('ux_editor.component_properties.summary.override.title')}
             </Accordion.Header>
             <Accordion.Content>
               <Summary2Override overrides={component.overrides} onChange={handleOverridesChange} />

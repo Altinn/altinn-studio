@@ -1473,6 +1473,7 @@
   "ux_editor.component_properties.summary.override.hide_empty_fields.info_message": "Du kan bare skjule komponenten fra oppsummeringen hvis feltet er valgfritt.",
   "ux_editor.component_properties.summary.override.is_compact": "Bruk kompakt visning",
   "ux_editor.component_properties.summary.override.show_component": "Vis komponenten",
+  "ux_editor.component_properties.summary.override.title": "Overstyr hva som skal vises",
   "ux_editor.component_properties.summary.overrides": "Overstyringer",
   "ux_editor.component_properties.summary.overrides.nth": "Overstyring {{n}}",
   "ux_editor.component_properties.summaryDelimiter": "Skillelinje for sammendragsvisningsceller",

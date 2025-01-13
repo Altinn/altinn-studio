@@ -14,7 +14,7 @@ import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useAppContext, useComponentTitle } from '@altinn/ux-editor/hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
+import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
 import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
@@ -77,12 +77,12 @@ export const Summary2OverrideEntry = ({
   return (
     <StudioCard className={classes.card}>
       <StudioCard.Content className={classes.content}>
-        <Summmary2ComponentReferenceSelector
+        <Summary2ComponentReferenceSelector
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
           onValueChange={(value) => onChangeOverride('componentId', value)}
-        ></Summmary2ComponentReferenceSelector>
+        ></Summary2ComponentReferenceSelector>
 
         <OverrideShowComponentSwitch onChange={onChangeOverride} override={override} />
         {override.hidden ? (
