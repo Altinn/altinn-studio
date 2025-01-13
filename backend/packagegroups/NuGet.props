@@ -32,8 +32,8 @@
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
-    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
-    <PackageReference Update="Scrutor" Version="4.2.2" />
+    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="4.0.0" />
+    <PackageReference Update="Scrutor" Version="5.1.1" />
     <PackageReference Update="Polly" Version="8.5.0" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.2.0" />
@@ -66,7 +66,7 @@
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
-    <PackageReference Update="Testcontainers" Version="3.10.0" />
+    <PackageReference Update="Testcontainers" Version="4.1.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="9.0.0" />
