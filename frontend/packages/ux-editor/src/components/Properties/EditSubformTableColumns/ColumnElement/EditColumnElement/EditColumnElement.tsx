@@ -56,13 +56,16 @@ export const EditColumnElement = ({
     (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
   );
 
+  const getSelectedComponentId = components.find((comp) => comp.id === tableColumn.componentId);
+
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
     const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
     const updatedTableColumn = {
-      ...sourceColumn,
+      ...tableColumn,
+      componentId: selectedComponent.id,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
     };
@@ -76,6 +79,7 @@ export const EditColumnElement = ({
         <EditColumnElementComponentSelect
           components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
+          selectedComponentId={getSelectedComponentId ? [getSelectedComponentId.id] : []}
         />
         <StudioTextfield
           label={
@@ -121,10 +125,12 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
+  selectedComponentId?: string[];
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
+  selectedComponentId,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
@@ -150,6 +156,7 @@ export const EditColumnElementComponentSelect = ({
       size='sm'
       onValueChange={onSelectComponent}
       id='columncomponentselect'
+      value={selectedComponentId}
     >
       {subformComponentOptions}
     </StudioCombobox>
