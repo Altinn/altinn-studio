@@ -117,7 +117,7 @@ describe('Summary2Override', () => {
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.arrayContaining([
-          { componentId: '1', hideEmptyFields: true, hidden: false, forceShow: false },
+          { componentId: '1', forceShow: false, hidden: false, hideEmptyFields: true },
         ]),
       ),
     );
