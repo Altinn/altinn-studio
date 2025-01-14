@@ -1,1 +1,5 @@
-export type HTMLCellInputElement = HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement;
+export type HTMLCellInputElement =
+  | HTMLInputElement
+  | HTMLTextAreaElement
+  | HTMLButtonElement
+  | HTMLDivElement;
