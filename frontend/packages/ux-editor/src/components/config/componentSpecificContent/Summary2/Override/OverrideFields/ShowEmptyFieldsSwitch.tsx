@@ -22,8 +22,7 @@ export const ShowEmptyFieldSwitch = ({ onChange, override }: ShowEmptyFieldSwitc
         };
         onChange(updatedOverride);
       }}
-      checked={!override.hideEmptyFields}
-      value={'hideEmptyFields'}
+      checked={override.forceShow}
     >
       {t('ux_editor.component_properties.summary.override.hide_empty_fields')}
     </StudioSwitch>
