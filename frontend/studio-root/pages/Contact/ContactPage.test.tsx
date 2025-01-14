@@ -58,8 +58,12 @@ describe('ContactPage', () => {
     });
     render(<ContactPage />);
 
-    expect(screen.queryByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
-    expect(screen.queryByText(textMock('contact.altinn_servicedesk.content')));
+    expect(
+      screen.queryByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('contact.altinn_servicedesk.content')),
+    ).not.toBeInTheDocument();
   });
 
   it('should display contact information to "Altinn Servicedesk" if user belongs to an org', () => {
