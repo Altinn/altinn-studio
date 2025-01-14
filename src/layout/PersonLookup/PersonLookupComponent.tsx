@@ -154,109 +154,108 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
       help={getHelpTextComponent()}
       size='sm'
     >
-      <ComponentStructureWrapper
-        node={node}
-        className={classes.componentWrapper}
-      >
-        <div className={classes.ssnLabel}>
-          <Label
-            htmlFor={`${id}_ssn`}
-            label={langAsString('person_lookup.ssn_label')}
+      <ComponentStructureWrapper node={node}>
+        <div className={classes.componentWrapper}>
+          <div className={classes.ssnLabel}>
+            <Label
+              htmlFor={`${id}_ssn`}
+              label={langAsString('person_lookup.ssn_label')}
+              required={required}
+              requiredIndicator={<RequiredIndicator required={required} />}
+              description={
+                hasSuccessfullyFetched ? (
+                  <Description
+                    description={langAsString('person_lookup.from_registry_description')}
+                    componentId={`${id}_ssn`}
+                    style={{ fontSize: '1rem' }}
+                  />
+                ) : undefined
+              }
+            />
+          </div>
+          <NumericInput
+            id={`${id}_ssn`}
+            aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
+            value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
+            className={classes.ssn}
             required={required}
-            requiredIndicator={<RequiredIndicator required={required} />}
-            description={
-              hasSuccessfullyFetched ? (
-                <Description
-                  description={langAsString('person_lookup.from_registry_description')}
-                  componentId={`${id}_ssn`}
-                  style={{ fontSize: '1rem' }}
-                />
-              ) : undefined
+            readOnly={hasSuccessfullyFetched}
+            error={
+              (ssnErrors?.length && <Lang id={ssnErrors.join(' ')} />) ||
+              (hasValidationErrors(bindingValidations?.person_lookup_ssn) && (
+                <ComponentValidations validations={bindingValidations?.person_lookup_ssn} />
+              ))
             }
+            onValueChange={(e) => {
+              setTempSsn(e.value);
+            }}
+            onBlur={(e) => handleValidateSsn(e.target.value)}
+            allowLeadingZeros
           />
-        </div>
-        <NumericInput
-          id={`${id}_ssn`}
-          aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
-          value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
-          className={classes.ssn}
-          required={required}
-          readOnly={hasSuccessfullyFetched}
-          error={
-            (ssnErrors?.length && <Lang id={ssnErrors.join(' ')} />) ||
-            (hasValidationErrors(bindingValidations?.person_lookup_ssn) && (
-              <ComponentValidations validations={bindingValidations?.person_lookup_ssn} />
-            ))
-          }
-          onValueChange={(e) => {
-            setTempSsn(e.value);
-          }}
-          onBlur={(e) => handleValidateSsn(e.target.value)}
-          allowLeadingZeros
-        />
-        <div className={classes.nameLabel}>
-          <Label
-            htmlFor={`${id}_name`}
+          <div className={classes.nameLabel}>
+            <Label
+              htmlFor={`${id}_name`}
+              required={required}
+              requiredIndicator={<RequiredIndicator required={required} />}
+              label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
+              description={
+                hasSuccessfullyFetched ? (
+                  <Description
+                    description={langAsString('person_lookup.from_registry_description')}
+                    componentId={`${id}_name`}
+                  />
+                ) : undefined
+              }
+            />
+          </div>
+          <Input
+            id={`${id}_name`}
+            aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
+            value={hasSuccessfullyFetched ? person_lookup_name : tempName}
+            className={classes.name}
+            type='text'
             required={required}
-            requiredIndicator={<RequiredIndicator required={required} />}
-            label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
-            description={
-              hasSuccessfullyFetched ? (
-                <Description
-                  description={langAsString('person_lookup.from_registry_description')}
-                  componentId={`${id}_name`}
-                />
-              ) : undefined
+            readOnly={hasSuccessfullyFetched}
+            error={
+              (nameErrors?.length && <Lang id={nameErrors.join(' ')} />) ||
+              (hasValidationErrors(bindingValidations?.person_lookup_name) && (
+                <ComponentValidations validations={bindingValidations?.person_lookup_name} />
+              ))
             }
+            onChange={(e) => {
+              setTempName(e.target.value);
+            }}
+            onBlur={(e) => handleValidateName(e.target.value)}
           />
-        </div>
-        <Input
-          id={`${id}_name`}
-          aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
-          value={hasSuccessfullyFetched ? person_lookup_name : tempName}
-          className={classes.name}
-          type='text'
-          required={required}
-          readOnly={hasSuccessfullyFetched}
-          error={
-            (nameErrors?.length && <Lang id={nameErrors.join(' ')} />) ||
-            (hasValidationErrors(bindingValidations?.person_lookup_name) && (
-              <ComponentValidations validations={bindingValidations?.person_lookup_name} />
-            ))
-          }
-          onChange={(e) => {
-            setTempName(e.target.value);
-          }}
-          onBlur={(e) => handleValidateName(e.target.value)}
-        />
 
-        <div className={classes.submit}>
-          {!hasSuccessfullyFetched ? (
-            <Button
-              onClick={handleSubmit}
-              variant='secondary'
-              isLoading={isFetching}
+          <div className={classes.submit}>
+            {!hasSuccessfullyFetched ? (
+              <Button
+                onClick={handleSubmit}
+                variant='secondary'
+                isLoading={isFetching}
+              >
+                Hent opplysninger
+              </Button>
+            ) : (
+              <Button
+                variant='secondary'
+                color='danger'
+                onClick={handleClear}
+              >
+                Fjern
+              </Button>
+            )}
+          </div>
+          {data?.error && (
+            <ErrorMessage
+              size='sm'
+              className={classes.apiError}
             >
-              Hent opplysninger
-            </Button>
-          ) : (
-            <Button
-              variant='secondary'
-              color='danger'
-              onClick={handleClear}
-            >
-              Fjern
-            </Button>
+              <Lang id={data.error} />
+            </ErrorMessage>
           )}
         </div>
-        {data?.error && (
-          <ErrorMessage
-            size='sm'
-            className={classes.apiError}
-          >
-            <Lang id={data.error} />
-          </ErrorMessage>
-        )}
       </ComponentStructureWrapper>
     </Fieldset>
   );
