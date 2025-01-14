@@ -42,8 +42,12 @@ export const EditColumnElement = ({
   const [tableColumn, setTableColumn] = useState(sourceColumn);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const [selectedComponentBindings, setSelectedComponentBindings] = useState<any[]>([]);
-  const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<any[]>([]);
+  const [selectedComponentBindings, setSelectedComponentBindings] = useState<
+    Array<Record<string, string>>
+  >([]);
+  const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<
+    Array<Record<string, string>>
+  >([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
   const textKeyValue = textResourceByLanguageAndIdSelector(
