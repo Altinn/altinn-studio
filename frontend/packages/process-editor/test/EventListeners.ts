@@ -1,11 +1,11 @@
 import { ArrayUtils } from '@studio/pure-functions';
 
-type ListenerMap<EventMap extends Record<string, (...args: any[]) => void>> = Map<
+type ListenerMap<EventMap extends Record<string, (...args: unknown[]) => void>> = Map<
   keyof EventMap,
   Array<EventMap[keyof EventMap]>
 >;
 
-export class EventListeners<EventMap extends Record<string, (...args: any[]) => void>> {
+export class EventListeners<EventMap extends Record<string, (...args: unknown[]) => void>> {
   private readonly list: ListenerMap<EventMap>;
 
   constructor() {
@@ -45,7 +45,7 @@ export class EventListeners<EventMap extends Record<string, (...args: any[]) => 
   remove<Key extends keyof EventMap>(eventName: Key, callback: EventMap[Key]): void {
     if (!this.functionExists<Key>(eventName, callback))
       throw new Error(
-        `The provided callback function does not exist on the ${eventName.toString()} listener.`,
+        `The provided callback function does not exist on the ${eventName as string} listener.`,
       );
     this.removeListener<Key>(eventName, callback);
   }
