@@ -57,8 +57,6 @@ export const NewApplicationForm = ({
     enabled: Boolean(currentSelectedOrg),
   });
 
-  console.log(userOrgPermission);
-
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
       event.target.value,
