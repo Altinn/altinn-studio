@@ -25,7 +25,6 @@ export const DataModelBindingsCombobox = ({
     ?.map((binding, index) => {
       if (!binding || Object.entries(binding).length === 0) return null;
       const [key] = Object.entries(binding)[0];
-      if (!key) return null;
       const value = convertDataBindingToInternalFormat(component, key);
       const keyLabel =
         key === 'simpleBinding'

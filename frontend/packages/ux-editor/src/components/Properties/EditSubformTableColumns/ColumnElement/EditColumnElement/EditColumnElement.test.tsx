@@ -141,6 +141,44 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onSelectComponent).toHaveBeenCalledTimes(1);
     expect(onSelectComponent).toHaveBeenCalledWith([subformLayoutMock.component2Id]);
   });
+
+  it('should render multiple data model bindings label when there are multiple data model bindings', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect({
+      selectedComponentBindings: [{}, {}],
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    expect(
+      screen.getByText(
+        textMock(
+          'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+        ),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render multiple data model bindings label when there are not multiple data model bindings', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect({
+      selectedComponentBindings: [{}],
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    expect(
+      screen.queryByText(
+        textMock(
+          'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+        ),
+      ),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const renderEditColumnElementComponentSelect = (
