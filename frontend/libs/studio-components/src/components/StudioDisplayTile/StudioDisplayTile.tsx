@@ -1,7 +1,7 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import cn from 'classnames';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { Label, Paragraph } from '@digdir/designsystemet-react';
 import classes from './StudioDisplayTile.module.css';
 
 export type StudioDisplayTileProps = {
@@ -27,12 +27,12 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
     const className = cn(givenClassName, classes.container, hasPrefixIcon && classes.prefixIcon);
 
     return (
-      <div {...rest} className={className} ref={ref}>
+      <div {...rest} aria-label={label} className={className} ref={ref}>
         {icon}
         <div className={classes.ellipsis}>
-          <Paragraph size='small' className={classes.label}>
+          <Label size='small' className={classes.label}>
             {label}
-          </Paragraph>
+          </Label>
           <Paragraph size='small' className={classes.ellipsis}>
             {value}
           </Paragraph>
