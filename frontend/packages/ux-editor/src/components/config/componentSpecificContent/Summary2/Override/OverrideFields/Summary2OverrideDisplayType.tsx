@@ -4,9 +4,10 @@ import type {
   Summary2OverrideConfig,
   SummaryCustomTargetType,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { type CustomConfigType, useCustomConfigType } from './hook/useCustomConfigType';
+import { type CustomConfigType, useCustomConfigType } from '../hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
-import { mapSelectedTypeToConfig } from './utils';
+import { mapSelectedTypeToConfig } from '../utils';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
@@ -24,6 +25,14 @@ export const Summary2OverrideDisplayType = ({
     const summary2OverrideConfig = mapSelectedTypeToConfig(newSelectedType, override.componentId);
     onChange(summary2OverrideConfig);
   };
+
+  const checkboxOrMultipleselect =
+    override.componentId.includes(ComponentType.MultipleSelect) ||
+    override.componentId.includes(ComponentType.Checkboxes);
+
+  if (!checkboxOrMultipleselect) {
+    return null;
+  }
 
   return (
     <StudioCard.Content>
