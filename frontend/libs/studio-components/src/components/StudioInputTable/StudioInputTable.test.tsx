@@ -20,6 +20,7 @@ import {
   textResourceSearchLabel,
   textResourceValueLabel,
   numberfieldLabel,
+  booleanToggleLabel,
 } from './test-data/testTableData';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -121,10 +122,12 @@ describe('StudioInputTable', () => {
     expect(getTextfieldInRow(1)).toHaveFocus();
     await user.keyboard('{Enter}'); // Move down to textfield 2
     expect(getTextfieldInRow(2)).toHaveFocus();
-    await user.keyboard('{ArrowRight}'); // Move right to numberfield 2
-    expect(getNumberfieldInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to textarea 2
     expect(getTextareaInRow(2)).toHaveFocus();
+    await user.keyboard('{ArrowRight}'); // Move right to numberfield 2
+    expect(getNumberfieldInRow(2)).toHaveFocus();
+    await user.keyboard('{ArrowRight}'); // Move right to boolean toggle 2
+    expect(getBooleanToggleInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to text resource 2
     expect(getTextResourceValueInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Unselect text in text resource 2
@@ -538,10 +541,12 @@ const getCheckboxInRow = (rowNumber: number): HTMLInputElement =>
 const getTextbox = (name: string) => screen.getByRole('textbox', { name });
 const getTextfieldInRow = (rowNumber: number): HTMLInputElement =>
   getTextbox(textfieldLabel(rowNumber)) as HTMLInputElement;
-const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
-  getTextbox(numberfieldLabel(rowNumber)) as HTMLInputElement;
 const getTextareaInRow = (rowNumber: number): HTMLTextAreaElement =>
   getTextbox(textareaLabel(rowNumber)) as HTMLTextAreaElement;
+const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
+  getTextbox(numberfieldLabel(rowNumber)) as HTMLInputElement;
+const getBooleanToggleInRow = (rowNumber: number): HTMLDivElement =>
+  screen.getByTestId(booleanToggleLabel(rowNumber)) as HTMLDivElement;
 const getButton = (name: string): HTMLButtonElement =>
   screen.getByRole('button', { name }) as HTMLButtonElement;
 const getButtonInRow = (rowNumber: number): HTMLButtonElement =>
@@ -575,7 +580,7 @@ const placeCaretAtPosition = (
   position: number,
 ): void => element.setSelectionRange(position, position);
 
-const expectedNumberOfColumns = 7;
+const expectedNumberOfColumns = 8;
 const expectedNumberOfHeaderRows = 1;
 const expectedNumberOfBodyRows = 3;
 const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRows;

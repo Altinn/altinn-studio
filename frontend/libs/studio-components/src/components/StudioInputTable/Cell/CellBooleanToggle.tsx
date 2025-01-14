@@ -22,6 +22,7 @@ export class CellBooleanToggle extends BaseInputCell<HTMLDivElement, CellBoolean
       <StudioTable.Cell className={className}>
         <StudioBooleanToggleGroup
           ref={ref}
+          size='sm'
           trueLabel={trueLabel}
           falseLabel={falseLabel}
           {...rest}

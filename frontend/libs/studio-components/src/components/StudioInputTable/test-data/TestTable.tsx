@@ -12,6 +12,7 @@ import {
   textHeader,
   textResourceHeader,
   textResourceTexts,
+  booleanToggleHeader,
 } from './testTableData';
 import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
@@ -23,8 +24,9 @@ export function TestTable(props: StudioInputTableProps): ReactElement {
           <StudioInputTable.HeaderCell.Checkbox aria-label={headerCheckboxLabel} />
           <StudioInputTable.HeaderCell>{textHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textfieldHeader}</StudioInputTable.HeaderCell>
-          <StudioInputTable.HeaderCell>{numberfieldHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textareaHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{numberfieldHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{booleanToggleHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textResourceHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{buttonHeader}</StudioInputTable.HeaderCell>
         </StudioInputTable.Row>
@@ -55,14 +57,20 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         name={testData.textfieldName(rn)}
         label={testData.textfieldLabel(rn)}
       />
+      <StudioInputTable.Cell.Textarea
+        name={testData.textareaName(rn)}
+        label={testData.textareaLabel(rn)}
+      />
       <StudioInputTable.Cell.Numberfield
         name={testData.numberfieldName(rn)}
         label={testData.numberfieldLabel(rn)}
         onChange={() => {}}
       />
-      <StudioInputTable.Cell.Textarea
-        name={testData.textareaName(rn)}
-        label={testData.textareaLabel(rn)}
+      <StudioInputTable.Cell.BooleanToggle
+        data-testid={testData.booleanToggleLabel(rn)}
+        trueLabel='True'
+        falseLabel='False'
+        onChange={() => {}}
       />
       <StudioInputTable.Cell.TextResource
         textResources={textResourcesMock}
