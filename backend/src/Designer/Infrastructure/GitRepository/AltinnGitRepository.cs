@@ -116,16 +116,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all texts files regardless of location in repository.
-        /// </summary>
-        public IList<string> GetLanguageFiles()
-        {
-            IEnumerable<string> languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
-
-            return languageFiles.ToList();
-        }
-
-        /// <summary>
         /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
         /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
         /// </summary>
