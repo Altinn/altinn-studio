@@ -163,6 +163,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
     // Inject errors from console/window.logError into the full error list for this layout-set
     const devToolsLoggers = windowLoggers.map((func) => window[func] as jest.Mock);
+    // eslint-disable-next-line no-console
     const browserLoggers = consoleLoggers.map((func) => console[func] as jest.Mock);
     for (const _mock of [...devToolsLoggers, ...browserLoggers]) {
       const mock = _mock as jest.Mock;
