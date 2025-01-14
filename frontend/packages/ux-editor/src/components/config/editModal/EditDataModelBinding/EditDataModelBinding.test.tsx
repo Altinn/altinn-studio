@@ -20,7 +20,6 @@ const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {
     returnValue: 'returnValue',
     key: 'key',
   },
-  helpText: 'helpText',
 };
 
 type renderEditDataModelBinding = {
