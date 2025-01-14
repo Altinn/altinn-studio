@@ -148,13 +148,37 @@ describe('editSubformTableColumnsUtils', () => {
 
   describe('getTitleIdForColumn', () => {
     it('should return a titleId with the correct prefix', () => {
-      const titleId = getTitleIdForColumn('subform_table_column_title_123');
-      expect(titleId).toEqual('subform_table_column_title_123');
+      const titleId = getTitleIdForColumn({
+        titleId: 'subform_table_column_title_subformId',
+        subformId: 'subformId',
+        textResources: {},
+      });
+      expect(titleId).toEqual('subform_table_column_title_subformId');
     });
 
     it('should return a titleId with a random number if the input does not have the correct prefix', () => {
-      const titleId = getTitleIdForColumn('not_correct_prefix');
+      const titleId = getTitleIdForColumn({
+        titleId: 'not_correct_prefix',
+        subformId: 'subformId',
+        textResources: {},
+      });
       expect(titleId.startsWith('subform_table_column_title_')).toBeTruthy();
+    });
+
+    it('should return a titleId with a random number if the input is not unique', () => {
+      const textResources = {
+        nb: [{ id: 'subform_table_column_title_123', value: 'title' }],
+      };
+
+      const titleId = getTitleIdForColumn({
+        titleId: 'subform_table_column_title_subformId',
+        subformId: 'subformId',
+        textResources,
+      });
+
+      const isUnique = (id: string): boolean =>
+        !textResources.nb.some((resource) => resource.id === id);
+      expect(isUnique(titleId)).toBeTruthy();
     });
   });
 });

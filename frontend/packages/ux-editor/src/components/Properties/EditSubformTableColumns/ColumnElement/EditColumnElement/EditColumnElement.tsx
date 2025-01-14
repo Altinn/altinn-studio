@@ -46,7 +46,13 @@ export const EditColumnElement = ({
   const [title, setTitle] = useState<string>(
     getValueOfTitleId(sourceColumn.headerContent, textResources),
   );
-  const [uniqueTitleId, _] = useState(getTitleIdForColumn(tableColumn.headerContent));
+  const [uniqueTitleId, _] = useState(
+    getTitleIdForColumn({
+      titleId: tableColumn.headerContent,
+      subformId: subformLayout,
+      textResources,
+    }),
+  );
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
   const { mutate: textIdMutation } = useTextIdMutation(org, app);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
@@ -57,7 +63,7 @@ export const EditColumnElement = ({
   };
 
   const handleDelete = () => {
-    textIdMutation([{ oldId: tableColumn.headerContent }]);
+    textIdMutation([{ oldId: uniqueTitleId }]);
     onDeleteColumn();
   };
 

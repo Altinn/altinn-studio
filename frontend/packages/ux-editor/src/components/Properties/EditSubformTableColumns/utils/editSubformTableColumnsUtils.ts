@@ -1,7 +1,7 @@
 import { type FormItem } from '@altinn/ux-editor/types/FormItem';
 import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
-import { type IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IInternalLayout, IFormLayouts } from '@altinn/ux-editor/types/global';
 import { type ITextResources } from 'app-shared/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
 import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
@@ -26,11 +26,10 @@ export const filterOutTableColumn = (
 
 export const getComponentsForSubformTable = (formLayouts: IFormLayouts): FormItem[] | undefined => {
   const components = formLayouts
-    ? Object.values(formLayouts).flatMap((layout: any) => {
+    ? Object.values(formLayouts).flatMap((layout: IInternalLayout) => {
         return getAllLayoutComponents(layout);
       })
     : [];
-
   return componentsWithLabelAndDataModel(components);
 };
 
@@ -44,7 +43,30 @@ export const getValueOfTitleId = (titleId: string, textResources: ITextResources
   return textResourceByLanguageAndIdSelector('nb', titleId)(textResources)?.value;
 };
 
-export const getTitleIdForColumn = (titleId: string): string => {
+type TitleIdForColumn = {
+  titleId: string;
+  subformId: string;
+  textResources: ITextResources;
+};
+
+export const getTitleIdForColumn = ({
+  titleId,
+  subformId,
+  textResources,
+}: TitleIdForColumn): string => {
   const prefixTitleId = 'subform_table_column_title_';
-  return titleId.startsWith(prefixTitleId) ? titleId : prefixTitleId + getRandNumber();
+
+  if (titleId.startsWith(prefixTitleId)) {
+    return titleId;
+  }
+
+  const resourcesArray = Object.values(textResources).flat();
+  const isUnique = (id: string): boolean => !resourcesArray.some((resource) => resource.id === id);
+
+  let uniqueTitleId = prefixTitleId + subformId;
+  while (!isUnique(uniqueTitleId)) {
+    uniqueTitleId = prefixTitleId + getRandNumber();
+  }
+
+  return uniqueTitleId;
 };
