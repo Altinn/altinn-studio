@@ -22,13 +22,8 @@ describe('StudioDisplayTile', () => {
     expect(screen.getByText(value)).toBeInTheDocument();
   });
 
-  it('should show the padlock icon when by default', () => {
+  it('should show the padlock icon by default', () => {
     render(<StudioDisplayTile {...defaultProps} />);
-    expect(screen.getByTestId(padlockIconTestId)).toBeInTheDocument();
-  });
-
-  it('should show the padlock icon when showPadlock is true', () => {
-    render(<StudioDisplayTile {...defaultProps} showPadlock />);
     expect(screen.getByTestId(padlockIconTestId)).toBeInTheDocument();
   });
 
