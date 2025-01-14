@@ -51,9 +51,10 @@ namespace Altinn.Studio.Designer.Infrastructure
                 options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
-            services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
-            services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
+            services.AddScoped<IReleaseRepository, ReleaseRepository>();
+            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
+            services.AddScoped<IUserService, UserService>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();

@@ -48,6 +48,7 @@ export enum QueryKey {
   IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
+  DataType = 'DataType',
 
   // Resourceadm
   ResourceList = 'ResourceList',
@@ -70,4 +71,5 @@ export enum QueryKey {
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
   Altinn2DelegationCount = 'Altinn2DelegationCount',
+  UpdateDataType = 'UpdateDataType',
 }

@@ -95,6 +95,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
   getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
+  getDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDeployments: jest
     .fn()
@@ -209,6 +210,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
   createRepoCommit: jest

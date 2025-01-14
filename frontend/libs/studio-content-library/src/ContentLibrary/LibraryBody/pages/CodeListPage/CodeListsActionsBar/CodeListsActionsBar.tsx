@@ -1,6 +1,5 @@
 import React from 'react';
-import { Search } from '@digdir/designsystemet-react';
-import { StudioFileUploader } from '@studio/components';
+import { StudioFileUploader, StudioSearch } from '@studio/components';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../CodeListPage';
@@ -36,10 +35,9 @@ export function CodeListsActionsBar({
 
   return (
     <div className={classes.actionsBar}>
-      <Search
+      <StudioSearch
         className={classes.searchField}
-        size='sm'
-        placeholder={t('app_content_library.code_lists.search_placeholder')}
+        label={t('app_content_library.code_lists.search_label')}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader
