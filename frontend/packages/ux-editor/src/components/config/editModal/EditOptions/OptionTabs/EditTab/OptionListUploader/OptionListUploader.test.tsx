@@ -80,7 +80,6 @@ function getFileInput() {
 function renderEditOptionList({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <OptionListUploader
-      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,
