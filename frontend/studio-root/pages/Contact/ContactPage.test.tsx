@@ -71,7 +71,9 @@ describe('ContactPage', () => {
       data: { belongsToOrg: true },
     });
     render(<ContactPage />);
-    expect(screen.getByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
-    expect(screen.getByText(textMock('contact.altinn_servicedesk.content')));
+    expect(
+      screen.getByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.altinn_servicedesk.content'))).toBeInTheDocument();
   });
 });
