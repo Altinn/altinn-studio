@@ -50,6 +50,6 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
         var responseContent = await response.Content.ReadAsAsync<BelongsToOrgDto>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.False(responseContent.BelongsToOrg); // Expecting false as the user is anonymous
+        Assert.False(responseContent.BelongsToOrg);
     }
 }
