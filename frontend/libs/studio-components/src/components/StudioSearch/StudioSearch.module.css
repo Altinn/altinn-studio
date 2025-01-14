@@ -1,0 +1,3 @@
+.studioSearch [id^='search-error'] {
+  display: none;
+}
