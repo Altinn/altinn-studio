@@ -63,17 +63,18 @@ export const EditColumnElement = ({
   }, [components]);
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
-    if (selectedComponent) {
-      const bindings = Object.entries(selectedComponent.dataModelBindings || {})
-        .filter(([, value]) => value)
-        .map(([key, value]) => ({ [key]: value }));
-      setSelectedComponentBindings(bindings);
-
-      setFilteredDatamodelBindings(bindings);
-    } else {
+    if (!selectedComponent?.dataModelBindings) {
       setSelectedComponentBindings([]);
       setFilteredDatamodelBindings([]);
+      return;
     }
+
+    const bindings = Object.entries(selectedComponent.dataModelBindings)
+      .filter(([, value]) => Boolean(value))
+      .map(([key, value]) => ({ [key]: value }));
+
+    setSelectedComponentBindings(bindings);
+    setFilteredDatamodelBindings(bindings);
   };
 
   const selectComponent = (values: string[]) => {

@@ -99,6 +99,26 @@ describe('EditColumnElementComponentSelect', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('should not show bindings when the selected component has no dataModelBindings', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect();
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    await user.click(screen.getByText(new RegExp(`${subformLayoutMock.component2Id}`)));
+    expect(
+      screen.queryByText(
+        textMock(
+          'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+        ),
+      ),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const renderEditColumnElementComponentSelect = (
@@ -108,6 +128,9 @@ const renderEditColumnElementComponentSelect = (
     <EditColumnElementComponentSelect
       components={defaultComponents}
       onSelectComponent={jest.fn()}
+      selectedComponentBindings={[]}
+      filteredDatamodelBindings={[]}
+      component={defaultComponents[0]}
       {...props}
     />,
   );
