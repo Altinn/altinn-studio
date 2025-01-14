@@ -45,7 +45,7 @@ export class EventListeners<EventMap extends Record<string, (...args: unknown[])
   remove<Key extends keyof EventMap>(eventName: Key, callback: EventMap[Key]): void {
     if (!this.functionExists<Key>(eventName, callback))
       throw new Error(
-        `The provided callback function does not exist on the ${eventName as string} listener.`,
+        `The provided callback function does not exist on the ${String(eventName)} listener.`,
       );
     this.removeListener<Key>(eventName, callback);
   }
@@ -74,11 +74,8 @@ export class EventListeners<EventMap extends Record<string, (...args: unknown[])
     return this.list.get(eventName) as EventMap[Key][] | undefined;
   }
 
-  private set<Key extends keyof EventMap>(
-    eventName: Key,
-    callbacks: EventMap[Key][],
-  ): ListenerMap<EventMap> {
-    return this.list.set(eventName, callbacks);
+  private set<Key extends keyof EventMap>(eventName: Key, callbacks: EventMap[Key][]): void {
+    this.list.set(eventName, callbacks);
   }
 
   clear(): void {
