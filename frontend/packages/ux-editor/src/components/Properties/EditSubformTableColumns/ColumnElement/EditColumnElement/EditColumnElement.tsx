@@ -20,7 +20,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
-
+import { useMultipleDataModelBinding } from './useMultipleDataModelBindings';
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
@@ -42,6 +42,8 @@ export const EditColumnElement = ({
   const [tableColumn, setTableColumn] = useState(sourceColumn);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const [selectedComponentBindings, setSelectedComponentBindings] = useState<any[]>([]);
+  const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<any[]>([]);
 
   const textKeyValue = textResourceByLanguageAndIdSelector(
     'nb',
@@ -59,10 +61,31 @@ export const EditColumnElement = ({
     return filterComponentsWithLabelAndBindings(components);
   }, [components]);
 
+  const multipleDatamodelBindings = useMultipleDataModelBinding(components);
+
+  const updateSelectBindings = (selectedComponent: FormItem | undefined) => {
+    if (selectedComponent) {
+      const bindings = Object.entries(selectedComponent.dataModelBindings || {})
+        .filter(([, value]) => value)
+        .map(([key, value]) => ({ [key]: value }));
+      setSelectedComponentBindings(bindings);
+
+      const componentBindings = multipleDatamodelBindings.filter((binding) =>
+        Object.keys(binding).some((key) => selectedComponent.dataModelBindings?.[key]),
+      );
+
+      setFilteredDatamodelBindings(componentBindings);
+    } else {
+      setSelectedComponentBindings([]);
+      setFilteredDatamodelBindings([]);
+    }
+  };
+
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
+    updateSelectBindings(selectedComponent);
     const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
     const updatedTableColumn = {
       ...sourceColumn,
@@ -79,6 +102,8 @@ export const EditColumnElement = ({
         <EditColumnElementComponentSelect
           components={componentsWithLabelAndBindings}
           onSelectComponent={selectComponent}
+          selectedComponentBindings={selectedComponentBindings}
+          filteredDatamodelBindings={filteredDatamodelBindings}
         />
         <StudioTextfield
           label={
@@ -124,10 +149,16 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
+  selectedComponentBindings?: any[];
+  filteredDatamodelBindings?: any[];
+  component?: FormItem;
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
+  selectedComponentBindings,
+  filteredDatamodelBindings,
+  component,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
@@ -143,18 +174,47 @@ export const EditColumnElementComponentSelect = ({
         {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
       </StudioCombobox.Empty>
     );
-
   return (
-    <StudioCombobox
-      label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
-      description={t(
-        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+    <>
+      <StudioCombobox
+        label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+        description={t(
+          'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+        )}
+        size='sm'
+        onValueChange={onSelectComponent}
+        id='columncomponentselect'
+      >
+        {subformComponentOptions}
+      </StudioCombobox>
+
+      {selectedComponentBindings.length > 1 && (
+        <StudioCombobox
+          key={filteredDatamodelBindings.length}
+          label={t(
+            'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+          )}
+          description={t(
+            'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
+          )}
+          size='sm'
+          onValueChange={undefined}
+        >
+          {filteredDatamodelBindings.map((binding, index) => {
+            const [key, value] = Object.entries(binding)[0];
+            const keyLabel =
+              t(`ux_editor.modal_properties_data_model_label.${key}`, key) ||
+              t(`ux_editor.component_title.${component.type}`);
+            const fieldValue =
+              typeof value === 'object' ? (value as { field: string }).field : undefined;
+            return (
+              <StudioCombobox.Option key={index} value={key} description={fieldValue} aria-hidden>
+                {keyLabel}
+              </StudioCombobox.Option>
+            );
+          })}
+        </StudioCombobox>
       )}
-      size='sm'
-      onValueChange={onSelectComponent}
-      id='columncomponentselect'
-    >
-      {subformComponentOptions}
-    </StudioCombobox>
+    </>
   );
 };
