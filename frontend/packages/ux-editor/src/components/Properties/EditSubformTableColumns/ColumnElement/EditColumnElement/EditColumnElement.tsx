@@ -186,7 +186,7 @@ export const EditColumnElementComponentSelect = ({
         {subformComponentOptions}
       </StudioCombobox>
 
-      {selectedComponentBindings.length > 1 && (
+      {selectedComponentBindings?.length > 1 && (
         <DataModelBindingsCombobox
           filteredDatamodelBindings={filteredDatamodelBindings}
           onSelectComponent={onSelectComponent}
