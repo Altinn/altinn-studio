@@ -3,15 +3,3 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
-.displayTileContainer {
-  padding: 0 var(--fds-spacing-1) 0 0;
-}
-
-.selectDataModel {
-  width: 100%;
-}
-
-.selectDataModel {
-  width: 100%;
-}
