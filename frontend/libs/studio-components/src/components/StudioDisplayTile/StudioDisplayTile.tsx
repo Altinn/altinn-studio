@@ -23,18 +23,19 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
     }: StudioDisplayTileProps,
     ref,
   ): React.ReactElement => {
-    const className = cn(givenClassName, classes.container);
+    const hasPrefixIcon = !!icon;
+    const className = cn(givenClassName, classes.container, hasPrefixIcon && classes.prefixIcon);
 
     return (
       <div {...rest} className={className} ref={ref}>
-        {icon ?? null}
-        <div>
-          <div>
-            <Paragraph size='small' className={classes.label}>
-              {label}
-            </Paragraph>
-          </div>
-          <Paragraph size='small'>{value}</Paragraph>
+        {icon}
+        <div className={classes.ellipsis}>
+          <Paragraph size='small' className={classes.label}>
+            {label}
+          </Paragraph>
+          <Paragraph size='small' className={classes.ellipsis}>
+            {value}
+          </Paragraph>
         </div>
         {showPadlock && <PadlockLockedFillIcon data-testid='padlockIconTestId' />}
       </div>
