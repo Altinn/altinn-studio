@@ -129,17 +129,44 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
    * Datepicker has a custom format validation which give a better error message than what the schema provides.
    * Filter out the schema format vaildation to avoid duplicate error messages.
    */
-  private schemaFormatFilter(validation: BaseValidation): boolean {
+  private static schemaFormatFilter(validation: BaseValidation): boolean {
     return !(
       validation.source === FrontendValidationSource.Schema && validation.message.key === 'validation_errors.pattern'
     );
   }
 
-  getValidationFilters(
-    _node: LayoutNode<'Datepicker'>,
-    _nodeDataSelector: NodeDataSelector,
-  ): ValidationFilterFunction[] {
-    return [this.schemaFormatFilter];
+  /**
+   * Avoid duplicate validation message.
+   */
+  private static schemaFormatMinimumFilter(validation: BaseValidation): boolean {
+    return !(
+      validation.source === FrontendValidationSource.Schema &&
+      validation.message.key === 'validation_errors.formatMinimum'
+    );
+  }
+
+  /**
+   * Avoid duplicate validation message.
+   */
+  private static schemaFormatMaximumFilter(validation: BaseValidation): boolean {
+    return !(
+      validation.source === FrontendValidationSource.Schema &&
+      validation.message.key === 'validation_errors.formatMaximum'
+    );
+  }
+
+  getValidationFilters(node: LayoutNode<'Datepicker'>, selector: NodeDataSelector): ValidationFilterFunction[] {
+    const filters = [Datepicker.schemaFormatFilter];
+
+    if (selector((picker) => picker(node)?.item?.minDate, [node])) {
+      filters.push(Datepicker.schemaFormatMinimumFilter);
+    }
+
+    if (selector((picker) => picker(node)?.item?.maxDate, [node])) {
+      filters.push(Datepicker.schemaFormatMaximumFilter);
+    }
+
+    return filters;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {

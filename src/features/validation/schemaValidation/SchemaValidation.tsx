@@ -44,7 +44,8 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
       const valid = validator.validate(`schema${rootElementPath}`, structuredClone(formData));
       const validations: FieldValidations = {};
       if (!valid) {
-        for (const error of validator.errors || []) {
+        const errors = validator.errors ?? [];
+        for (const error of errors) {
           /**
            * Skip schema validation for empty fields and ignore required errors.
            * JSON schema required does not work too well for our use case. The expectation that a missing field should give an error is not necessarily true,
@@ -60,6 +61,19 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
             error.keyword === 'required' ||
             error.keyword === 'oneOf' ||
             error.params?.type === 'null'
+          ) {
+            continue;
+          }
+
+          /**
+           * Don't include errors for formatMinimum and formatMaximum if the value violates the format itself
+           */
+          if (
+            (error.keyword === 'formatMinimum' ||
+              error.keyword === 'formatMaximum' ||
+              error.keyword === 'formatExclusiveMinimum' ||
+              error.keyword === 'formatExclusiveMaximum') &&
+            !!errors.find((e) => e.keyword === 'format' && e.instancePath === error.instancePath)
           ) {
             continue;
           }

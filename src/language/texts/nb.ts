@@ -395,6 +395,8 @@ export function nb(): FixedLanguageList {
       enum: 'Kun verdiene {0} er tillatt',
       minItems: 'Minst {0} rader er påkrevd',
       maxItems: 'Maks {0} rader er tillatt',
+      formatMinimum: 'Minste gyldig verdi er {0}',
+      formatMaximum: 'Største gyldig verdi er {0}',
     },
     map_component: {
       selectedLocation: 'Valgt lokasjon: {0}° nord, {1}° øst',
