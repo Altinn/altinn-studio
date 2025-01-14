@@ -23,17 +23,17 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
     mutationFn: ({ optionListId, optionsList }: UpdateOptionListMutationArgs) => {
       return updateOptionList(org, app, optionListId, optionsList);
     },
-    onSuccess: (updatedOptionList: Option[], { optionListId }) => {
+    onSuccess: (updatedOptionsList: Option[], { optionListId }) => {
       const oldData: OptionsListsResponse = queryClient.getQueryData([
         QueryKey.OptionLists,
         org,
         app,
       ]);
       if (isOptionsListInOptionListsCache(oldData)) {
-        const newData = updateListInOptionListsData(optionListId, updatedOptionList, oldData);
+        const newData = updateListInOptionsListsData(optionListId, updatedOptionsList, oldData);
         queryClient.setQueryData([QueryKey.OptionLists, org, app], newData);
       }
-      queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], updatedOptionList);
+      queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], updatedOptionsList);
       void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] });
     },
     meta,
@@ -42,16 +42,48 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
 
 const isOptionsListInOptionListsCache = (data: OptionsListsResponse | null): boolean => !!data;
 
-const updateListInOptionListsData = (
-  optionListId: string,
-  updatedOptionList: OptionsList,
+const updateListInOptionsListsData = (
+  optionsListId: string,
+  updatedOptionsList: OptionsList,
   oldData: OptionsListsResponse,
 ): OptionsListsResponse => {
-  const oldOptionsListData: OptionsListData = oldData.find(
-    (optionListData) => optionListData.title === optionListId,
+  const [oldOptionsListData, optionsListExists]: [OptionsListData | undefined, boolean] =
+    getOldOptionsListData(oldData, optionsListId);
+  if (optionsListExists) {
+    return updateExistingOptionsList(oldData, oldOptionsListData, updatedOptionsList);
+  }
+  return addNewOptionsList(oldData, optionsListId, updatedOptionsList);
+};
+
+const getOldOptionsListData = (
+  oldData: OptionsListsResponse,
+  optionsListId: string,
+): [OptionsListData | undefined, boolean] => {
+  const oldOptionsListData = oldData.find(
+    (optionsListData) => optionsListData.title === optionsListId,
   );
-  return ArrayUtils.replaceByPredicate(oldData, (optionList) => optionList.title === optionListId, {
-    ...oldOptionsListData,
-    data: updatedOptionList,
-  });
+  return [oldOptionsListData, !!oldOptionsListData];
+};
+
+const updateExistingOptionsList = (
+  oldData: OptionsListsResponse,
+  oldOptionsListData: OptionsListData,
+  newOptionsList: OptionsList,
+) => {
+  return ArrayUtils.replaceByPredicate(
+    oldData,
+    (optionsList) => optionsList.title === oldOptionsListData.title,
+    {
+      ...oldOptionsListData,
+      data: newOptionsList,
+    },
+  );
+};
+
+const addNewOptionsList = (
+  oldData: OptionsListsResponse,
+  optionsListTitle: string,
+  newOptionsList: OptionsList,
+) => {
+  return ArrayUtils.prepend(oldData, { title: optionsListTitle, data: newOptionsList });
 };
