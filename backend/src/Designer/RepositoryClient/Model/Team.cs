@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         public string Name { get; set; }
 
-        public bool can_create_org_repo { get; set; }
+        public bool CanCreateOrgRepo { get; set; }
 
         /// <summary>
         /// The organization that owns the team

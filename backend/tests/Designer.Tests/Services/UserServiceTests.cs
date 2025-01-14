@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -11,15 +12,11 @@ namespace Designer.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IGitea> _giteaApi;
 
         public UserServiceTests()
         {
-            _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _giteaApi = new Mock<IGitea>();
-            var context = new DefaultHttpContext();
-            _httpContextAccessor.Setup(req => req.HttpContext).Returns(context);
         }
 
         [Theory]
@@ -29,18 +26,18 @@ namespace Designer.Tests.Services
         {
             var teams = new List<Team>
             {
-                new Team
+                new()
                 {
-                    Organization = new Organization { Username = org },
-                    can_create_org_repo = expectedCanCreate
+                    Organization = new Organization { Username = org }, CanCreateOrgRepo = expectedCanCreate
                 }
             };
 
             _giteaApi.Setup(api => api.GetTeams()).ReturnsAsync(teams);
 
-            var userService = new UserService(_httpContextAccessor.Object, _giteaApi.Object);
+            var userService = new UserService(_giteaApi.Object);
 
-            var result = await userService.GetUserOrgPermission(org);
+            AltinnOrgContext altinnOrgContext = AltinnOrgContext.FromOrg(org, "developer");
+            var result = await userService.GetUserOrgPermission(altinnOrgContext);
 
             Assert.NotNull(result);
             Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);

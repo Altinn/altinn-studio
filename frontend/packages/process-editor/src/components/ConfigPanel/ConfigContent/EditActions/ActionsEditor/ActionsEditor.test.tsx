@@ -21,7 +21,6 @@ describe('ActionsEditor', () => {
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     });
     expect(actionButton).toBeInTheDocument();
@@ -40,7 +39,6 @@ describe('ActionsEditor', () => {
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     });
     expect(actionButton).toBeInTheDocument();
@@ -52,7 +50,6 @@ describe('ActionsEditor', () => {
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     });
 
@@ -77,7 +74,6 @@ describe('ActionsEditor', () => {
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     });
     expect(actionButton).toBeInTheDocument();
@@ -112,7 +108,6 @@ describe('ActionsEditor', () => {
     const actionButton = screen.queryByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
-        actionName: 'reject',
       }),
     });
     expect(actionButton).not.toBeInTheDocument();

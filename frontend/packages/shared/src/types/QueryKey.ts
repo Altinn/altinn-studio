@@ -51,6 +51,7 @@ export enum QueryKey {
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
+  DataType = 'DataType',
 
   // Resourceadm
   ResourceList = 'ResourceList',
@@ -76,4 +77,5 @@ export enum QueryKey {
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
   Altinn2DelegationCount = 'Altinn2DelegationCount',
+  UpdateDataType = 'UpdateDataType',
 }

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Antiforgery;
@@ -87,7 +89,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("org-permissions/{org}")]
         public async Task<IActionResult> HasAccessToCreateRepository(string org)
         {
-            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnOrgContext editingContext = AltinnOrgContext.FromOrg(org, developer);
+            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(editingContext);
             return Ok(userOrg);
         }
 
