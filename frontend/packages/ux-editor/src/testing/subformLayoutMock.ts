@@ -8,7 +8,7 @@ const component1Id = 'SubformComponent1';
 const component1: FormComponent = {
   id: component1Id,
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path', binding2: ' path2' },
+  dataModelBindings: { simpleBinding: 'some-path', binding2: 'path2' },
   textResourceBindings: { title: 'some-title' },
   itemType: 'COMPONENT',
 };
