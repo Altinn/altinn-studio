@@ -143,6 +143,20 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {
-    return this.validateDataModelBindingsSimple(ctx);
+    const validation = this.validateDataModelBindingsAny(ctx, 'simpleBinding', ['string']);
+    const [errors, result] = [validation[0] ?? [], validation[1]];
+
+    if (result?.format === 'date-time' && ctx.item.timeStamp === false) {
+      errors.push(
+        `simpleBinding-datamodellbindingen peker på en streng med "format": "date-time", men komponenten har "timeStamp": false. Komponenten lagrer feil format i henhold til datamodellen.`,
+      );
+    }
+    if (result?.format === 'date' && (ctx.item.timeStamp === undefined || ctx.item.timeStamp === true)) {
+      errors.push(
+        `simpleBinding-datamodellbindingen peker på en streng med "format": "date" men komponenten har "timeStamp": true${ctx.item.timeStamp ? '' : ' (default)'}. Komponenten lagrer feil format i henhold til datamodellen.`,
+      );
+    }
+
+    return errors;
   }
 }
