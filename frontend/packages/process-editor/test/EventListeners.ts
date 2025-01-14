@@ -71,7 +71,7 @@ export class EventListeners<EventMap extends Record<string, (...args: any[]) => 
   }
 
   private get<Key extends keyof EventMap>(eventName: Key): EventMap[Key][] | undefined {
-    return this.list.get(eventName) as EventMap[Key][];
+    return this.list.get(eventName) as EventMap[Key][] | undefined;
   }
 
   private set<Key extends keyof EventMap>(
