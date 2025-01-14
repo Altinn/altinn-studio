@@ -8,7 +8,6 @@ export enum FeatureFlag {
   ComponentConfigBeta = 'componentConfigBeta',
   ExportForm = 'exportForm',
   Maskinporten = 'maskinporten',
-  MultipleDataModelsPerTask = 'multipleDataModelsPerTask',
   OptionListEditor = 'optionListEditor',
   AccessPackages = 'accessPackages',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
