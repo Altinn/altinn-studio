@@ -1,11 +1,10 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -16,13 +15,6 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
 {
     public FetchBelongsToOrgTests(WebApplicationFactory<Program> factory) : base(factory)
     {
-    }
-
-    protected override void ConfigureTestServices(IServiceCollection services)
-    {
-        services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
     }
 
 
@@ -38,5 +30,26 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(responseContent.BelongsToOrg);
+    }
+
+    [Fact]
+    public async Task UsersThatDoNotBelongsToOrg_ShouldReturn_False_IfAnonymousUser()
+    {
+        var anonymousClient = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("", _ => { });
+            });
+        }).CreateDefaultClient();
+
+        string url = "/designer/api/contact/belongs-to-org";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        var response = await anonymousClient.SendAsync(httpRequestMessage);
+        var responseContent = await response.Content.ReadAsAsync<BelongsToOrgDto>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(responseContent.BelongsToOrg); // Expecting false as the user is anonymous
     }
 }
