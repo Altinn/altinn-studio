@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
