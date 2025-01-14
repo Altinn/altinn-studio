@@ -117,7 +117,7 @@ describe('Summary2Override', () => {
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.arrayContaining([
-          { componentId: '1', forceShow: false, hidden: false, hideEmptyFields: true },
+          { componentId: '1', forceShow: true, hidden: false, hideEmptyFields: false },
         ]),
       ),
     );
@@ -317,7 +317,7 @@ describe('Summary2Override', () => {
   it('should be able to change override emptyFieldText', async () => {
     const user = userEvent.setup();
     render({
-      overrides: [{ componentId: '1', hidden: false, hideEmptyFields: false }],
+      overrides: [{ componentId: '1', hidden: false, hideEmptyFields: false, forceShow: true }],
     });
     await userEvent.click(overrideCollapsedButton(1));
     const emptyFieldText = 'asdf;ljr%';
@@ -334,7 +334,13 @@ describe('Summary2Override', () => {
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.arrayContaining([
-          { componentId: '1', emptyFieldText, hidden: false, hideEmptyFields: false },
+          {
+            componentId: '1',
+            emptyFieldText,
+            forceShow: true,
+            hidden: false,
+            hideEmptyFields: false,
+          },
         ]),
       ),
     );
