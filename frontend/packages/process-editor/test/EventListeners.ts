@@ -1,58 +1,87 @@
 import { ArrayUtils } from '@studio/pure-functions';
 
-export class EventListeners {
-  private list: Map<string, Function[]>;
+type ListenerMap<EventMap extends Record<string, (...args: any[]) => void>> = Map<
+  keyof EventMap,
+  Array<EventMap[keyof EventMap]>
+>;
+
+export class EventListeners<EventMap extends Record<string, (...args: any[]) => void>> {
+  private readonly list: ListenerMap<EventMap>;
 
   constructor() {
-    this.list = new Map<string, Function[]>();
+    this.list = new Map();
   }
 
-  triggerEvent(eventName: string, ...params: any[]): void {
+  triggerEvent<Key extends keyof EventMap>(
+    eventName: Key,
+    ...params: Parameters<EventMap[Key]>
+  ): void {
     if (this.has(eventName)) {
       const functions = this.get(eventName);
       functions.forEach((fun) => fun(...params));
     }
   }
 
-  add(eventName: string, callback: Function): void {
-    if (this.has(eventName)) this.addListenerToCurrentList(eventName, callback);
-    else this.createNewListenerList(eventName, [callback]);
+  add<Key extends keyof EventMap>(eventName: Key, callback: EventMap[Key]): void {
+    if (this.has(eventName)) this.addListenerToCurrentList<Key>(eventName, callback);
+    else this.createNewListenerList<Key>(eventName, [callback]);
   }
 
-  private addListenerToCurrentList(eventName: string, callback: Function): void {
-    const currentListeners = this.get(eventName);
-    this.set(eventName, [...currentListeners, callback]);
+  private addListenerToCurrentList<Key extends keyof EventMap>(
+    eventName: Key,
+    callback: EventMap[Key],
+  ): void {
+    const currentListeners = this.get<Key>(eventName);
+    this.set<Key>(eventName, [...currentListeners, callback]);
   }
 
-  private createNewListenerList(eventName: string, callbacks: Function[]): void {
-    this.set(eventName, callbacks);
+  private createNewListenerList<Key extends keyof EventMap>(
+    eventName: Key,
+    callbacks: EventMap[Key][],
+  ): void {
+    this.set<Key>(eventName, callbacks);
   }
 
-  remove(eventName: string, callback: Function): void {
-    if (this.has(eventName)) {
-      this.removeListener(eventName, callback);
-    }
+  remove<Key extends keyof EventMap>(eventName: Key, callback: EventMap[Key]): void {
+    if (!this.functionExists<Key>(eventName, callback))
+      throw new Error(
+        `The provided callback function does not exist on the ${eventName.toString()} listener.`,
+      );
+    this.removeListener<Key>(eventName, callback);
   }
 
-  private removeListener(eventName: string, callback: Function): void {
-    const currentList = this.get(eventName);
-    const newList = ArrayUtils.removeItemByValue<Function>(currentList, callback);
-    this.set(eventName, newList);
+  private functionExists<Key extends keyof EventMap>(
+    eventName: Key,
+    callback: EventMap[Key],
+  ): boolean {
+    return this.has(eventName) && this.get<Key>(eventName).includes(callback);
   }
 
-  private has(eventName: string): boolean {
+  private removeListener<Key extends keyof EventMap>(
+    eventName: Key,
+    callback: EventMap[Key],
+  ): void {
+    const currentList = this.get<Key>(eventName);
+    const newList = ArrayUtils.removeItemByValue<EventMap[Key]>(currentList, callback);
+    this.set<Key>(eventName, newList);
+  }
+
+  private has(eventName: keyof EventMap): boolean {
     return this.list.has(eventName);
   }
 
-  private get(eventName: string): Function[] | undefined {
-    return this.list.get(eventName);
+  private get<Key extends keyof EventMap>(eventName: Key): EventMap[Key][] | undefined {
+    return this.list.get(eventName) as EventMap[Key][];
   }
 
-  private set(eventName: string, callbacks: Function[]): Map<string, Function[]> {
+  private set<Key extends keyof EventMap>(
+    eventName: Key,
+    callbacks: EventMap[Key][],
+  ): ListenerMap<EventMap> {
     return this.list.set(eventName, callbacks);
   }
 
   clear(): void {
-    return this.list.clear();
+    this.list.clear();
   }
 }

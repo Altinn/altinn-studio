@@ -3,7 +3,7 @@ import { EventListeners } from './EventListeners';
 describe('EventListeners', () => {
   describe('add', () => {
     it('Adds a listener to the given event', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{ event: () => void }>();
       const fun = jest.fn();
       const eventName = 'event';
 
@@ -14,7 +14,7 @@ describe('EventListeners', () => {
     });
 
     it('Supports adding multiple listeners to the same event', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{ event: () => void }>();
       const fun1 = jest.fn();
       const fun2 = jest.fn();
       const eventName = 'event';
@@ -28,7 +28,7 @@ describe('EventListeners', () => {
     });
 
     it('Supports adding listeners to multiple events', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<Record<'event1' | 'event2', () => void>>();
       const event1Fun = jest.fn();
       const event2Fun = jest.fn();
       const event1Name = 'event1';
@@ -46,7 +46,7 @@ describe('EventListeners', () => {
 
   describe('remove', () => {
     it('Removes the given function from the given event listener', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{ event: () => void }>();
       const fun = jest.fn();
       const eventName = 'event';
       eventListeners.add(eventName, fun);
@@ -58,7 +58,9 @@ describe('EventListeners', () => {
     });
 
     it('Does not remove other functions than the given one', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<
+        Record<'event.of.interest' | 'another.event', () => void>
+      >();
       const funToRemove = jest.fn();
       const funOnSameEvent = jest.fn();
       const funOnAnotherEvent = jest.fn();
@@ -76,11 +78,21 @@ describe('EventListeners', () => {
       expect(funOnAnotherEvent).toHaveBeenCalled();
       expect(funToRemove).not.toHaveBeenCalled();
     });
+
+    it('Throws the expected error when attempting to remove a function that is not added', () => {
+      const eventListeners = new EventListeners<{ event: () => void }>();
+      const fun = jest.fn();
+      const eventName = 'event';
+
+      expect(() => eventListeners.remove(eventName, fun)).toThrowError(
+        `The provided callback function does not exist on the ${eventName} listener.`,
+      );
+    });
   });
 
   describe('triggerEvent', () => {
     it('Calls all the functions added to the given event listener with correct parameters', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{ event: (p: string) => void }>();
       const fun1 = jest.fn();
       const fun2 = jest.fn();
       const eventName = 'event';
@@ -97,7 +109,9 @@ describe('EventListeners', () => {
     });
 
     it('Supports functions with multiple parameters', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{
+        event: (p1: string, p2: number, p3: boolean) => void;
+      }>();
       const fun = jest.fn();
       const eventName = 'event';
       eventListeners.add(eventName, fun);
@@ -112,7 +126,7 @@ describe('EventListeners', () => {
     });
 
     it('Supports functions with no parameters', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<{ event: () => void }>();
       const fun = jest.fn();
       const eventName = 'event';
       eventListeners.add(eventName, fun);
@@ -124,7 +138,9 @@ describe('EventListeners', () => {
     });
 
     it('Does not call functions on other listeners than the given one', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<
+        Record<'event.of.interest' | 'another.event', () => void>
+      >();
       const funOfInterest = jest.fn();
       const funOnAnotherEvent = jest.fn();
       const eventOfInterestName = 'event.of.interest';
@@ -141,7 +157,7 @@ describe('EventListeners', () => {
 
   describe('clear', () => {
     it('Removes all listeners', () => {
-      const eventListeners = new EventListeners();
+      const eventListeners = new EventListeners<Record<'event1' | 'event2', () => void>>();
       const event1Fun1 = jest.fn();
       const event1Fun2 = jest.fn();
       const event2Fun = jest.fn();
