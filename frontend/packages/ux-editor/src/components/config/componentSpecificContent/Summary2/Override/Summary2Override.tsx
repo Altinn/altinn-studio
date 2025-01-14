@@ -16,8 +16,8 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
 
   const addOverride = (): void => {
     const updatedOverrides = [...(overrides || [])];
-    updatedOverrides.push({ componentId: '' });
     openOverrides.push(updatedOverrides.length);
+    updatedOverrides.push({ componentId: '' });
     onChange(updatedOverrides);
   };
 

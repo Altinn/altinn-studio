@@ -88,8 +88,8 @@ export const Summary2OverrideEntry = ({
           <>
             <StudioDivider className={classes.divider} />
             <CompactViewSwitch onChange={onChange} override={override} />
-            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
             <Summary2OverrideDisplayType onChange={onChange} override={override} />
+            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}

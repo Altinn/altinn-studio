@@ -11,7 +11,7 @@ type EmptyTextFieldProps = {
 export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
   const { t } = useTranslation();
 
-  if (override.hideEmptyFields) {
+  if (override.hideEmptyFields || !override.forceShow) {
     return (
       <StudioAlert>
         {t('ux_editor.component_properties.summary.override.hide_empty_fields.info_message')}
