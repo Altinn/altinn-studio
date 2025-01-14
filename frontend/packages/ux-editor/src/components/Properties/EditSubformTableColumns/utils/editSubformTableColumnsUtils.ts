@@ -24,16 +24,14 @@ export const filterOutTableColumn = (
   return tableColumns.filter((tableColumn: TableColumn) => tableColumn !== tableColumnToRemove);
 };
 
-export const getComponentsForSubformTable = (formLayouts: IFormLayouts): FormItem[] | undefined => {
-  const components = formLayouts
-    ? Object.values(formLayouts).flatMap((layout: IInternalLayout) => {
-        return getAllLayoutComponents(layout);
-      })
-    : [];
+export const getComponentsForSubformTable = (formLayouts: IFormLayouts): FormItem[] => {
+  const components = Object.values(formLayouts ?? {}).flatMap((layout: IInternalLayout) =>
+    getAllLayoutComponents(layout),
+  );
   return componentsWithLabelAndDataModel(components);
 };
 
-const componentsWithLabelAndDataModel = (components: FormItem[]): FormItem[] | undefined => {
+const componentsWithLabelAndDataModel = (components: FormItem[]): FormItem[] => {
   return components.filter(
     (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
   );
