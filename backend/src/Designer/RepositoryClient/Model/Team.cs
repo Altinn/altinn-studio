@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
