@@ -20,7 +20,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
-import { useMultipleDataModelBinding } from './useMultipleDataModelBindings';
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
@@ -44,6 +43,7 @@ export const EditColumnElement = ({
   const { data: textResources } = useTextResourcesQuery(org, app);
   const [selectedComponentBindings, setSelectedComponentBindings] = useState<any[]>([]);
   const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<any[]>([]);
+  const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
   const textKeyValue = textResourceByLanguageAndIdSelector(
     'nb',
@@ -61,8 +61,6 @@ export const EditColumnElement = ({
     return filterComponentsWithLabelAndBindings(components);
   }, [components]);
 
-  const multipleDatamodelBindings = useMultipleDataModelBinding(components);
-
   const updateSelectBindings = (selectedComponent: FormItem | undefined) => {
     if (selectedComponent) {
       const bindings = Object.entries(selectedComponent.dataModelBindings || {})
@@ -70,11 +68,7 @@ export const EditColumnElement = ({
         .map(([key, value]) => ({ [key]: value }));
       setSelectedComponentBindings(bindings);
 
-      const componentBindings = multipleDatamodelBindings.filter((binding) =>
-        Object.keys(binding).some((key) => selectedComponent.dataModelBindings?.[key]),
-      );
-
-      setFilteredDatamodelBindings(componentBindings);
+      setFilteredDatamodelBindings(bindings);
     } else {
       setSelectedComponentBindings([]);
       setFilteredDatamodelBindings([]);
@@ -82,8 +76,9 @@ export const EditColumnElement = ({
   };
 
   const selectComponent = (values: string[]) => {
-    const selectedComponentId = values[0];
-    const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
+    const componentId = values[0];
+    setSelectedComponentId(componentId);
+    const selectedComponent = components.find((comp) => comp.id === componentId);
 
     updateSelectBindings(selectedComponent);
     const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
@@ -101,6 +96,7 @@ export const EditColumnElement = ({
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
           components={componentsWithLabelAndBindings}
+          component={components.find((comp) => comp.id === selectedComponentId)}
           onSelectComponent={selectComponent}
           selectedComponentBindings={selectedComponentBindings}
           filteredDatamodelBindings={filteredDatamodelBindings}
@@ -201,10 +197,12 @@ export const EditColumnElementComponentSelect = ({
           onValueChange={undefined}
         >
           {filteredDatamodelBindings.map((binding, index) => {
-            const [key, value] = Object.entries(binding)[0];
+            const [key] = Object.entries(binding)[0];
+            const value = convertDataBindingToInternalFormat(component, key);
             const keyLabel =
-              t(`ux_editor.modal_properties_data_model_label.${key}`, key) ||
-              t(`ux_editor.component_title.${component.type}`);
+              key === 'simpleBinding'
+                ? t(`ux_editor.component_title.${component?.type}`)
+                : t(`ux_editor.modal_properties_data_model_label.${key}`);
             const fieldValue =
               typeof value === 'object' ? (value as { field: string }).field : undefined;
             return (
