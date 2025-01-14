@@ -547,14 +547,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("option-list-ids")]
         public ActionResult GetOptionListIds(string org, string app)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
-            if (optionListIds.Length == 0)
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
+                return Ok(optionListIds);
+            }
+            catch (LibGit2Sharp.NotFoundException)
             {
                 return NoContent();
             }
-            return Ok(optionListIds);
         }
 
         [HttpGet("app-version")]
