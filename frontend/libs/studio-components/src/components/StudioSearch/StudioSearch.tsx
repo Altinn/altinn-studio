@@ -11,6 +11,7 @@ const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
     const searchId = id ?? generatedId;
     const showLabel = !!label;
 
+    // TODO: Remove studioSearch css class when Design System is updated. See issue: https://github.com/digdir/designsystemet/issues/2765
     return (
       <div className={className}>
         {showLabel && (
