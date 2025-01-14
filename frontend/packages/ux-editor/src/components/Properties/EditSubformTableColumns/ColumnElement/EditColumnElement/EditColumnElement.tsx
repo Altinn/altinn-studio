@@ -20,6 +20,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
+import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
@@ -61,7 +62,7 @@ export const EditColumnElement = ({
     return filterComponentsWithLabelAndBindings(components);
   }, [components]);
 
-  const updateSelectBindings = (selectedComponent: FormItem | undefined) => {
+  const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (selectedComponent) {
       const bindings = Object.entries(selectedComponent.dataModelBindings || {})
         .filter(([, value]) => value)
@@ -79,8 +80,9 @@ export const EditColumnElement = ({
     const componentId = values[0];
     setSelectedComponentId(componentId);
     const selectedComponent = components.find((comp) => comp.id === componentId);
+    if (!selectedComponent) return;
 
-    updateSelectBindings(selectedComponent);
+    selectComponentBinding(selectedComponent);
     const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
     const updatedTableColumn = {
       ...sourceColumn,
@@ -185,33 +187,11 @@ export const EditColumnElementComponentSelect = ({
       </StudioCombobox>
 
       {selectedComponentBindings.length > 1 && (
-        <StudioCombobox
-          key={filteredDatamodelBindings.length}
-          label={t(
-            'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
-          )}
-          description={t(
-            'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
-          )}
-          size='sm'
-          onValueChange={undefined}
-        >
-          {filteredDatamodelBindings.map((binding, index) => {
-            const [key] = Object.entries(binding)[0];
-            const value = convertDataBindingToInternalFormat(component, key);
-            const keyLabel =
-              key === 'simpleBinding'
-                ? t(`ux_editor.component_title.${component?.type}`)
-                : t(`ux_editor.modal_properties_data_model_label.${key}`);
-            const fieldValue =
-              typeof value === 'object' ? (value as { field: string }).field : undefined;
-            return (
-              <StudioCombobox.Option key={index} value={key} description={fieldValue} aria-hidden>
-                {keyLabel}
-              </StudioCombobox.Option>
-            );
-          })}
-        </StudioCombobox>
+        <DataModelBindingsCombobox
+          filteredDatamodelBindings={filteredDatamodelBindings}
+          onSelectComponent={onSelectComponent}
+          component={component}
+        />
       )}
     </>
   );
