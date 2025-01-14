@@ -40,7 +40,7 @@ export function EditCodeList({
     if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
   };
 
-  const handleBlurAny = (updatedCodeList: CodeList): void => {
+  const handleCodeListChange = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
@@ -79,7 +79,12 @@ export function EditCodeList({
           }),
         }}
       />
-      <StudioCodeListEditor codeList={codeList} onBlurAny={handleBlurAny} texts={editorTexts} />
+      <StudioCodeListEditor
+        codeList={codeList}
+        onAddOrDeleteItem={handleCodeListChange}
+        onBlurAny={handleCodeListChange}
+        texts={editorTexts}
+      />
       {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
     </div>
   );
