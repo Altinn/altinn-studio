@@ -85,9 +85,12 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string content = await response.Content.ReadAsStringAsync();
+            var deserializeOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
 
-            var userOrgPermission = JsonSerializer.Deserialize<UserOrgPermission>(content,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var userOrgPermission = JsonSerializer.Deserialize<Team>(content, deserializeOptions);
 
             userOrgPermission.Should().NotBeNull();
             userOrgPermission.CanCreateOrgRepo.Should().Be(expectedCanCreate);
