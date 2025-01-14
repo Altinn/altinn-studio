@@ -17,9 +17,12 @@ jobs:
       }}
     steps:
       - name: Validate tag
+        env:
+          REGEX: "${{ github.event.release.prerelease && '^v(\\d+)\\.(\\d+)\\.(\\d+)-(preview|rc)\\.\\d+$' ||
+                                                         '^v(\\d+)\\.(\\d+)\\.(\\d+)$' }}"
         run: |
           echo "Validating that the tag is in the correct format"
-          echo "${{ github.event.release.tag_name }}" | grep -P '^v(\d+)\.(\d+)\.(\d+)(-(preview|rc)\d+$|$)'
+          echo "${{ github.event.release.tag_name }}" | grep -P $REGEX
 
       - uses: actions/checkout@v4
         with:
