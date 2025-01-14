@@ -339,7 +339,38 @@ describe('Summary2Override', () => {
       ),
     );
   });
+
+  it('should show info message when hideEmptyFields is true', async () => {
+    render({ overrides: [{ componentId: '1', hideEmptyFields: true }] });
+    await userEvent.click(overrideCollapsedButton(1));
+    expect(
+      screen.getByText(
+        textMock('ux_editor.component_properties.summary.override.hide_empty_fields.info_message'),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should collapse and uncollapse override', async () => {
+    render({ overrides: [{ componentId: '1' }] });
+    await userEvent.click(overrideCollapsedButton(1));
+    expect(
+      screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.overrides.nth.*:1}'),
+      }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(overrideCloseButton());
+    expect(
+      screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.overrides.nth.*:1}'),
+      }),
+    ).not.toBeInTheDocument();
+  });
 });
+
+const overrideCloseButton = () =>
+  screen.getByRole('button', {
+    name: /general.save/i,
+  });
 
 const overrideCollapsedButton = (n: number) =>
   screen.getByRole('button', {
