@@ -63,7 +63,7 @@ export const getTitleIdForColumn = ({
 
   let uniqueTitleId = prefixTitleId + subformId;
   while (!isUnique(uniqueTitleId)) {
-    uniqueTitleId = prefixTitleId + getRandNumber();
+    uniqueTitleId = prefixTitleId + subformId + getRandNumber();
   }
 
   return uniqueTitleId;
