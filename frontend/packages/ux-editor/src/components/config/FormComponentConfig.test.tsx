@@ -160,6 +160,88 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
+  it('should render CollapsiblePropertyEditor for the "sortOrder" property', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            sortOrder: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.sortOrder')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.sortOrder'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should render CollapsiblePropertyEditor for the "showValidations" property and EditStringValue for other properties', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            showValidations: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['true', 'false'],
+              },
+            },
+            anotherProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.showValidations')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render CollapsiblePropertyEditor for "preselectedOptionIndex" and EditNumberValue for other properties', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            preselectedOptionIndex: {
+              type: 'number',
+              enum: [0, 1, 2],
+            },
+            anotherNumberProperty: {
+              type: 'number',
+              description: 'A sample number property',
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.preselectedOptionIndex_button')),
+    ).toBeInTheDocument();
+  });
+
   it('should not render property if it is null', () => {
     render({
       props: {

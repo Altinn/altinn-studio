@@ -12,3 +12,7 @@
 .downIcon {
   font-size: var(--fds-sizing-6);
 }
+
+.gridButton {
+  padding: 0;
+}

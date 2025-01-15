@@ -1,0 +1,23 @@
+.collapsibleContainer {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-3);
+  padding-top: var(--fds-spacing-3);
+}
+
+.collapsibleContainerClosed {
+  padding: 0;
+}
+
+.editorContent {
+  flex: 1;
+}
+
+.button {
+  display: flex;
+  gap: var(--fds-spacing-3);
+  padding-left: 0;
+}

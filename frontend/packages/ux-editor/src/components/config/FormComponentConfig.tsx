@@ -18,6 +18,8 @@ import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
+import { TextResource } from '../TextResource/TextResource';
+import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -116,17 +118,106 @@ export const FormComponentConfig = ({
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
       {grid && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.grid')}
-          </Heading>
+        <TextResource
+          handleIdChange={() => {}}
+          label={t('ux_editor.component_properties.grid')}
+          disableEditor
+          className={classes.gridButton}
+        >
           <EditGrid
             key={component.id}
             component={component}
             handleComponentChange={handleComponentUpdate}
           />
-        </>
+        </TextResource>
       )}
+      {/** String properties */}
+      {stringPropertyKeys.map((propertyKey) => {
+        const isSortOrder = propertyKey === 'sortOrder';
+        if (isSortOrder) {
+          return (
+            <CollapsiblePropertyEditor
+              key={propertyKey}
+              label={t('ux_editor.component_properties.sortOrder')}
+            >
+              <EditStringValue
+                component={component}
+                handleComponentChange={handleComponentUpdate}
+                propertyKey={propertyKey}
+                helpText={isSortOrder ? '' : properties[propertyKey]?.description}
+                enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+              />
+            </CollapsiblePropertyEditor>
+          );
+        }
+        return (
+          <EditStringValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+          />
+        );
+      })}
+      {/** Array properties with enum values) */}
+      {arrayPropertyKeys.map((propertyKey) => {
+        const isShowValidations = propertyKey === 'showValidations';
+        return isShowValidations ? (
+          <CollapsiblePropertyEditor
+            key={propertyKey}
+            label={t('ux_editor.component_properties.showValidations')}
+          >
+            <EditStringValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              key={propertyKey}
+              helpText={isShowValidations ? '' : properties[propertyKey]?.description}
+              enumValues={properties[propertyKey]?.items?.enum}
+              multiple={true}
+            />
+          </CollapsiblePropertyEditor>
+        ) : (
+          <EditStringValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.items?.enum}
+            multiple={true}
+          />
+        );
+      })}
+      {/** Number properties (number and integer types) */}
+      {numberPropertyKeys.map((propertyKey) => {
+        const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
+        return isPreselectedOptionIndex ? (
+          <CollapsiblePropertyEditor
+            key={propertyKey}
+            label={t('ux_editor.component_properties.preselectedOptionIndex_button')}
+          >
+            <EditNumberValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              key={propertyKey}
+              enumValues={properties[propertyKey]?.enum}
+              helpText={t('ux_editor.component_properties.preselected_help_text')}
+            />
+          </CollapsiblePropertyEditor>
+        ) : (
+          <EditNumberValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+          />
+        );
+      })}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
@@ -190,49 +281,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
-      {/** String properties */}
-      {stringPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
-          />
-        );
-      })}
-
-      {/** Number properties (number and integer types) */}
-      {numberPropertyKeys.map((propertyKey) => {
-        return (
-          <EditNumberValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={t('ux_editor.component_properties.preselected_help_text')}
-            enumValues={properties[propertyKey]?.enum}
-          />
-        );
-      })}
-
-      {/** Array properties with enum values) */}
-      {arrayPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
-        );
-      })}
 
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {

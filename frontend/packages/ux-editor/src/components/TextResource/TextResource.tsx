@@ -17,6 +17,9 @@ export interface TextResourceProps {
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;
+  disableEditor?: boolean;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export interface GenerateTextResourceIdOptions {
@@ -39,6 +42,9 @@ export const TextResource = ({
   handleRemoveTextResource,
   label,
   textResourceId,
+  disableEditor,
+  children,
+  className,
 }: TextResourceProps) => {
   const { formItemId } = useFormItemContext();
   const { selectedFormLayoutName: formLayoutName } = useAppContext();
@@ -85,9 +91,13 @@ export const TextResource = ({
       onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
-    />
+      showTextResourceEditor={!disableEditor}
+    >
+      {children}
+    </TextResourceFieldset>
   ) : (
     <TextResourceButton
+      className={className}
       compact={compact}
       label={label}
       onOpen={handleOpen}
@@ -104,6 +114,8 @@ type TextResourceFieldsetProps = {
   onReferenceChange: (id: string) => void;
   onSetCurrentValue: (value: string) => void;
   textResourceId: string;
+  showTextResourceEditor?: boolean;
+  children?: React.ReactNode;
 };
 
 const TextResourceFieldset = ({
@@ -114,6 +126,8 @@ const TextResourceFieldset = ({
   onReferenceChange,
   onSetCurrentValue,
   textResourceId,
+  showTextResourceEditor = true,
+  children,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
 
@@ -123,27 +137,32 @@ const TextResourceFieldset = ({
       legend={legend}
       menubar={
         <>
-          <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
+          {showTextResourceEditor && <span>{t('language.' + DEFAULT_LANGUAGE)}</span>}
           <StudioButton
             icon={<XMarkIcon />}
             onClick={onClose}
             title={t('general.close')}
             variant='secondary'
           />
-          <StudioDeleteButton
-            confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-            disabled={!onDelete}
-            onDelete={() => onDelete?.()}
-            title={t('general.delete')}
-          />
+          {showTextResourceEditor && (
+            <StudioDeleteButton
+              confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
+              disabled={!onDelete}
+              onDelete={() => onDelete?.()}
+              title={t('general.delete')}
+            />
+          )}
         </>
       }
     >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onReferenceChange={onReferenceChange}
-        onSetCurrentValue={onSetCurrentValue}
-      />
+      {showTextResourceEditor && (
+        <TextResourceEditor
+          textResourceId={textResourceId}
+          onReferenceChange={onReferenceChange}
+          onSetCurrentValue={onSetCurrentValue}
+        />
+      )}
+      {children}
     </StudioProperty.Fieldset>
   );
 };
@@ -153,6 +172,7 @@ type TextResourceButtonProps = {
   label: string;
   onOpen: () => void;
   textResourceId: string;
+  className?: string;
 };
 
 const TextResourceButton = ({
@@ -160,9 +180,16 @@ const TextResourceButton = ({
   label,
   onOpen,
   textResourceId,
+  className,
 }: TextResourceButtonProps) => {
   const value = useTextResourceValue(textResourceId);
   return (
-    <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
+    <StudioProperty.Button
+      compact={compact}
+      onClick={onOpen}
+      property={label}
+      value={value}
+      className={className}
+    />
   );
 };
