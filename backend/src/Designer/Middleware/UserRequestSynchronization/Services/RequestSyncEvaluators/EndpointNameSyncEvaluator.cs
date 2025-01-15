@@ -76,6 +76,18 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             GenerateFrozenSet(
                 nameof(DeploymentsController.Create)
             )
+        },
+        {
+            TrimmedControllerName(nameof(DatamodelsController)),
+            GenerateFrozenSet(
+                nameof(DatamodelsController.Get)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(PreviewController)),
+            GenerateFrozenSet(
+                nameof(PreviewController.Datamodel)
+            )
         }
     }.ToFrozenDictionary();
 
