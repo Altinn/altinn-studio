@@ -6,7 +6,7 @@ import classes from './ContactSection.module.css';
 export type ContactSectionProps = {
   title: string;
   description: string;
-  link: {
+  link?: {
     name: string;
     href: string;
   };
@@ -31,7 +31,7 @@ export const ContactSection = ({
         </StudioHeading>
         <StudioParagraph spacing>{description}</StudioParagraph>
         {additionalContent && <span>{additionalContent}</span>}
-        <StudioLink href={link.href}>{link.name}</StudioLink>
+        {link && <StudioLink href={link.href}>{link.name}</StudioLink>}
       </div>
     </section>
   );

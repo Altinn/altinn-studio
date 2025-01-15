@@ -23,5 +23,10 @@ namespace Altinn.Studio.Designer.Helpers
         {
             return context.GetTokenAsync("access_token");
         }
+
+        public static bool IsAuthenticated(HttpContext context)
+        {
+            return context.User.Identity?.IsAuthenticated ?? false;
+        }
     }
 }
