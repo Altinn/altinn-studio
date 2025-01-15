@@ -1,11 +1,11 @@
 import type { CodeListData } from '@studio/content-library';
 import { convertOptionsListsDataToCodeListsData } from './convertOptionsListsDataToCodeListsData';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 
 describe('convertOptionsListsDataToCodeListsData', () => {
   it('converts option lists data to code lists data correctly', () => {
     const optionListId: string = 'optionListId';
-    const optionListsData: OptionsListsResponse = [
+    const optionListsData: OptionListsResponse = [
       {
         title: optionListId,
         data: [
@@ -30,7 +30,7 @@ describe('convertOptionsListsDataToCodeListsData', () => {
 
   it('sets hasError to true in result when optionListsResponse returns an option list with error', () => {
     const optionListId: string = 'optionListId';
-    const optionListsData: OptionsListsResponse = [
+    const optionListsData: OptionListsResponse = [
       {
         title: optionListId,
         data: null,
@@ -42,7 +42,7 @@ describe('convertOptionsListsDataToCodeListsData', () => {
   });
 
   it('returns a result with empty code list data array when the input option list data is empty', () => {
-    const optionListsData: OptionsListsResponse = [];
+    const optionListsData: OptionListsResponse = [];
     const result: CodeListData[] = convertOptionsListsDataToCodeListsData(optionListsData);
     expect(result).toEqual([]);
   });

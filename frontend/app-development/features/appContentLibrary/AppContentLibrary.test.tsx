@@ -11,7 +11,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList } from '@studio/components';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
@@ -19,7 +19,7 @@ const updateCodeListIdButtonTextMock = 'Update Code List Id';
 const codeListNameMock = 'codeListNameMock';
 const newCodeListNameMock = 'newCodeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
-const optionListsDataMock: OptionsListsResponse = [{ title: codeListNameMock, data: codeListMock }];
+const optionListsDataMock: OptionListData[] = [{ title: codeListNameMock, data: codeListMock }];
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
@@ -147,7 +147,7 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
 type renderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
   shouldPutDataOnCache?: boolean;
-  optionListsData?: OptionsListsResponse;
+  optionListsData?: OptionListData[];
 };
 
 const renderAppContentLibrary = ({
