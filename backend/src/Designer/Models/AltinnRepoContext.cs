@@ -1,5 +1,4 @@
-﻿using System;
-using Altinn.Studio.Designer.Helpers;
+﻿using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -21,19 +20,10 @@ namespace Altinn.Studio.Designer.Models
 
         protected AltinnRepoContext(string org, string repo)
         {
-            ValidateOrganization(org);
+            Guard.AssertValidateOrganization(org);
             Guard.AssertValidAppRepoName(repo);
             Org = org;
             Repo = repo;
-        }
-
-        private void ValidateOrganization(string org)
-        {
-            Guard.AssertNotNullOrEmpty(org, nameof(org));
-            if (!AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(org))
-            {
-                throw new ArgumentException("Provided organization name is not valid");
-            }
         }
 
         public static AltinnRepoContext FromOrgRepo(string org, string repo)

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Textfield, Link } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
-import { XMarkIcon, PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
+import { Link } from '@digdir/designsystemet-react';
+import { StudioSearch } from '@studio/components';
+import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
@@ -48,23 +48,13 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
       <CenterContainer>
         <div className={classes.createServiceContainer}>
           <div className={classes.topBar}>
-            <div className={classes.searchFieldContainer}>
-              <Textfield
-                label={t('dashboard.search')}
-                value={searchText}
-                onChange={handleChangeSearch}
-                onKeyDown={handleKeyDown}
-              />
-              {searchText && (
-                <StudioButton
-                  className={classes.clearSearchButton}
-                  aria-label={t('dashboard.clear_search')}
-                  onClick={handleClearSearch}
-                  icon={<XMarkIcon />}
-                  variant='tertiary'
-                />
-              )}
-            </div>
+            <StudioSearch
+              label={t('dashboard.search')}
+              value={searchText}
+              onChange={handleChangeSearch}
+              onKeyDown={handleKeyDown}
+              onClear={handleClearSearch}
+            />
             <Link href={'/dashboard/' + selectedContext + '/new'} className={classes.newLink}>
               <span>{t('dashboard.new_service')}</span>
               <PlusCircleFillIcon className={classes.plusFillIcon} />
