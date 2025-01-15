@@ -10,9 +10,12 @@ export default {
     {
       name: 'url-override',
       configureServer: (server) => {
+        const { printUrls } = server;
         server.printUrls = () => {
           const { logger } = server.config;
+          printUrls();
           const url = 'http://studio.localhost/';
+          logger.info(`  ${colors.green('➜')}  ${colors.bold('Studio running on:')}`);
           logger.info(`  ${colors.green('➜')}  ${colors.bold('URL')}:     ${colors.cyan(url)}`);
         };
       },
