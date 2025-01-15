@@ -6,9 +6,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfig
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../../../hooks/useBpmnEditor', () => ({
-  useBpmnEditor: jest.fn().mockReturnValue({
-    canvasRef: { current: document.createElement('div') },
-  }),
+  useBpmnEditor: jest.fn(),
 }));
 
 describe('BPMNEditor', () => {

@@ -60,6 +60,7 @@ export const ProcessEditor = (): React.ReactElement => {
     false,
   );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  console.log('layoutSets processeditor', layoutSets?.sets);
 
   const pendingApiOperations: boolean =
     mutateBpmnPending ||
@@ -88,6 +89,7 @@ export const ProcessEditor = (): React.ReactElement => {
   };
 
   const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
+    console.log('add', layoutSets.sets);
     const onProcessTaskAddHandler = new OnProcessTaskAddHandler(
       org,
       app,
