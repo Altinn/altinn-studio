@@ -5,7 +5,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 

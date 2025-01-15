@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
-using FluentAssertions;
 
 namespace Designer.Tests.DbIntegrationTests;
 

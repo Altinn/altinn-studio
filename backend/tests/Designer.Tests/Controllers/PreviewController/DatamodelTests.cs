@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;

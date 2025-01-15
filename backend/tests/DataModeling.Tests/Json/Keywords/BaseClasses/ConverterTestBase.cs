@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
-using FluentAssertions;
 using Json.Schema;
 using SharedResources.Tests;
 

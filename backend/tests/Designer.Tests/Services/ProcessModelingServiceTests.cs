@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Moq;
 using NuGet.Versioning;
 using SharedResources.Tests;

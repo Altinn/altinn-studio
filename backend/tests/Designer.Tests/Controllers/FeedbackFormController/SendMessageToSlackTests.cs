@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.FeedbackFormController.Base;
 using Designer.Tests.Controllers.FeedbackFormController.Utils;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 

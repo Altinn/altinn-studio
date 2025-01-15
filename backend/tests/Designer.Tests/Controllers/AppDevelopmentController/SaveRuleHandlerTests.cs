@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using SharedResources.Tests;

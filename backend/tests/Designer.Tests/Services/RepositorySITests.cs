@@ -19,7 +19,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

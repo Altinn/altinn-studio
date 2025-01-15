@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
-using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;

@@ -6,9 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController

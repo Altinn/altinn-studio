@@ -4,11 +4,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests

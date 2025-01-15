@@ -4,7 +4,6 @@ using Altinn.Studio.DataModeling.Converter.Csharp;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;

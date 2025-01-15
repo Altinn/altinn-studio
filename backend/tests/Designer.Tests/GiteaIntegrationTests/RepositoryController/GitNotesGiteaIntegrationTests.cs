@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController

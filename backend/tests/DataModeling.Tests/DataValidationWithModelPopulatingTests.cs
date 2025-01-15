@@ -11,7 +11,6 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 

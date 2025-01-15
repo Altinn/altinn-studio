@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Altinn.Studio.DataModeling.Json.Formats;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Formats;

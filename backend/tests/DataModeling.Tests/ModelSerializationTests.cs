@@ -3,7 +3,6 @@ using System.Xml.Linq;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
 using DataModeling.Tests.Utils;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;

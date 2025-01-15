@@ -4,7 +4,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.AppScopesRepository;

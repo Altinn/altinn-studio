@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using FluentAssertions;
 using SharedResources.Tests;
 
 namespace Designer.Tests.Controllers.DataModelsController.Utils

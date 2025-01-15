@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;

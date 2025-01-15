@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.AnsattPortenController.Base;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

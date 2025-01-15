@@ -2,7 +2,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Xunit;

@@ -21,7 +21,6 @@ using Altinn.Studio.DataModeling.Validator.Json;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Json.Pointer;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc;
