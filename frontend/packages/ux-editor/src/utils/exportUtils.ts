@@ -48,7 +48,7 @@ export class ExportUtils {
       formId: this.layoutSetName,
       pages: [],
     };
-    this.pageOrder.forEach((layoutName: string, index: number) => {
+    this.pageOrder?.forEach((layoutName: string, index: number) => {
       exportForm.pages.push(this.generateLayoutExportFormat(layoutName, index));
     });
     return exportForm;
