@@ -1,5 +1,0 @@
-.downloadWrapper {
-  display: flex;
-  gap: var(--fds-spacing-2);
-  flex-direction: column;
-}

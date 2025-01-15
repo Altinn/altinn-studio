@@ -34,6 +34,6 @@
 
 .buttonWrapper {
   display: flex;
-  align-self: flex-start;
+  align-self: flex-end;
   margin-left: 0.5rem;
 }
