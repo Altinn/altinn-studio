@@ -224,7 +224,7 @@ describe('Party selection', () => {
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
-    cy.get('[data-testid=StatusCode').should('exist');
+    cy.get('[data-testid=StatusCode]').should('exist');
     cy.allowFailureOnEnd();
   });
 
