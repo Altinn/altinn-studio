@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import classes from './TextEditor.module.css';
 import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { SearchField } from '@altinn/altinn-design-system';
 import { Chip } from '@digdir/designsystemet-react';
 import { ArrowsUpDownIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSearch } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -88,6 +87,8 @@ export const TextEditor = ({
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
 
+  const handleClearSearch = () => setSearchQuery('');
+
   return (
     <div className={classes.textEditor}>
       <div className={classes.textEditorMain}>
@@ -107,14 +108,12 @@ export const TextEditor = ({
                 </div>
               }
             </Chip.Toggle>
-            <div>
-              <SearchField
-                id='text-editor-search'
-                label={t('text_editor.search_for_text')}
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
+            <StudioSearch
+              label={t('text_editor.search_for_text')}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onClear={handleClearSearch}
+            />
           </div>
         </div>
         <div className={classes.textEditorBody}>

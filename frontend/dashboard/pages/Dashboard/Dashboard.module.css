@@ -51,11 +51,6 @@
   display: inline;
 }
 
-.searchFieldContainer {
-  display: flex;
-  align-items: flex-end;
-}
-
 .clearSearchButton {
   height: 32px;
   width: 32px;
