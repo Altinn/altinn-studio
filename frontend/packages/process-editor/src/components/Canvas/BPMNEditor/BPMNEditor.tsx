@@ -4,7 +4,7 @@ import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 import './BPMNEditor.css';
 
 export const BPMNEditor = (): React.ReactElement => {
-  const { canvasRef } = useBpmnEditor();
+  const canvasRef = useBpmnEditor();
 
-  return <div className={classes.editorContainer} ref={canvasRef}></div>;
+  return <div className={classes.editorContainer} ref={canvasRef} />;
 };

@@ -44,9 +44,7 @@ export function CodeListsActionsBar({
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
-        className={classes.searchField}
         label={t('app_content_library.code_lists.search_label')}
-        size='sm'
         onChange={handleChangeSearch}
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
         onClear={handleClearSearch}
