@@ -184,7 +184,9 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
 
   await processEditorPage.customReceiptConfig.waitForSaveNewCustomReceiptButtonToBeVisible();
   await processEditorPage.customReceiptConfig.clickOnSaveNewCustomReceiptButton();
-  await processEditorPage.customReceiptConfig.waitForEditLayoutSetIdButtonToBeVisible();
+  await processEditorPage.customReceiptConfig.waitForEditLayoutSetIdButtonToBeVisible(
+    newLayoutSetId,
+  );
 
   // --------------------- Check that files are uploaded to Gitea ---------------------
   await goToGiteaAndNavigateToApplicationMetadataFile(header, giteaPage);

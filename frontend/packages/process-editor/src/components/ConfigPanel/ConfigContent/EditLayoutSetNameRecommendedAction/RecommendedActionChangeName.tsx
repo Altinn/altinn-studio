@@ -45,8 +45,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
     >
       <StudioIconTextfield
         error={newNameError}
-        icon={<KeyVerticalIcon />}
-        size='sm'
+        Icon={KeyVerticalIcon}
         label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setNewName(event.target.value);

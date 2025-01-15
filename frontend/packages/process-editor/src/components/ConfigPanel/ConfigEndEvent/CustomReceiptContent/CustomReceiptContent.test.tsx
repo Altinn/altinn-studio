@@ -93,12 +93,13 @@ describe('CustomReceiptContent', () => {
   });
 
   it('shows the custom receipt when there is an existing custom receipt layout set id', () => {
+    const existingCustomReceiptLayoutSetId = 'existingCustomReceiptLayoutSetId';
     renderCustomReceiptContent({
-      existingCustomReceiptLayoutSetId: 'testId',
+      existingCustomReceiptLayoutSetId,
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      name: existingCustomReceiptLayoutSetId,
     });
     expect(toggleableTextfieldButton).toBeInTheDocument();
   });

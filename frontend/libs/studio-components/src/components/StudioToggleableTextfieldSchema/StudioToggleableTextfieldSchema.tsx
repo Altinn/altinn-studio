@@ -25,10 +25,11 @@ export const StudioToggleableTextfieldSchema = forwardRef<
 >(
   (
     {
+      error,
       layoutSchema,
       relatedSchemas,
-      inputProps,
       propertyPath,
+      onChange,
       onError,
       onIsViewMode,
       ...rest
@@ -48,8 +49,8 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       }
 
       if (propertyId) {
-        const error = jsonSchemaValidator.validateProperty(propertyId, newValue);
-        return error ? createSchemaError(error, 'Result of validate property') : null;
+        const schemaError = jsonSchemaValidator.validateProperty(propertyId, newValue);
+        return schemaError ? createSchemaError(schemaError, 'Result of validate property') : null;
       }
 
       return null;
@@ -59,18 +60,15 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       const validationError = validateAgainstSchema(event);
 
       onError?.(validationError || null);
-      inputProps.onChange?.(event);
+      onChange?.(event);
     };
 
     return (
       <StudioToggleableTextfield
         {...rest}
         ref={ref}
-        inputProps={{
-          ...inputProps,
-          onChange: (event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event),
-          error: inputProps.error,
-        }}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event)}
+        error={error}
         onIsViewMode={onIsViewMode}
       />
     );

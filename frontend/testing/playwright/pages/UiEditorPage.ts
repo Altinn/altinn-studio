@@ -232,7 +232,8 @@ export class UiEditorPage extends BasePage {
   }
 
   public async deleteOldComponentId(): Promise<void> {
-    await this.page.getByRole('button', { name: /ID:/ }).click();
+    const button = this.page.getByRole('button', { name: /^Input-/ });
+    await button.click();
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
       .clear();

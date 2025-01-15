@@ -46,7 +46,7 @@ describe('EditTaskId', () => {
 
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_change_task_id'),
+        name: mockBpmnDetails.id,
       }),
     ).toBeInTheDocument();
   });
@@ -56,12 +56,14 @@ describe('EditTaskId', () => {
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: mockBpmnDetails.id,
     });
     await user.click(editButton);
 
     expect(
-      screen.getByLabelText(textMock('process_editor.configuration_panel_change_task_id')),
+      screen.getByRole('textbox', {
+        name: textMock('process_editor.configuration_panel_change_task_id_label'),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -76,13 +78,13 @@ describe('EditTaskId', () => {
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: mockBpmnDetails.id,
     });
     await user.click(editButton);
 
-    const input = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_change_task_id'),
-    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
 
     await user.clear(input);
     await user.type(input, newId);
@@ -146,13 +148,13 @@ describe('EditTaskId', () => {
         render(<EditTaskId />);
 
         const editButton = screen.getByRole('button', {
-          name: textMock('process_editor.configuration_panel_change_task_id'),
+          name: mockBpmnDetails.id,
         });
         await user.click(editButton);
 
-        const input = screen.getByLabelText(
-          textMock('process_editor.configuration_panel_change_task_id'),
-        );
+        const input = screen.getByRole('textbox', {
+          name: textMock('process_editor.configuration_panel_change_task_id_label'),
+        });
 
         await user.clear(input);
         if (inputValue !== '') await user.type(input, inputValue);
@@ -174,13 +176,13 @@ describe('EditTaskId', () => {
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: mockBpmnDetails.id,
     });
     await user.click(editButton);
 
-    const input = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_change_task_id'),
-    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
 
     await user.clear(input);
     await user.type(input, mockBpmnDetails.id);

@@ -21,8 +21,3 @@
   gap: var(--fds-spacing-2);
   padding-inline: var(--custom-receipt-spacing);
 }
-
-.textfield {
-  padding-inline: var(--custom-receipt-spacing);
-  padding-block: var(--fds-spacing-1);
-}
