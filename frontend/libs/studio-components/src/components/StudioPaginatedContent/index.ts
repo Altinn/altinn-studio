@@ -1,0 +1,1 @@
+export { StudioPaginatedContent } from './StudioPaginatedContent';
