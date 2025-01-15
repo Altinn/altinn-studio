@@ -13,6 +13,8 @@ import {
   textResourceHeader,
   textResourceTexts,
   booleanToggleHeader,
+  booleanFalseLabel,
+  booleanTrueLabel,
 } from './testTableData';
 import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
@@ -67,9 +69,8 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         onChange={() => {}}
       />
       <StudioInputTable.Cell.BooleanToggle
-        data-testid={testData.booleanToggleLabel(rn)}
-        trueLabel='True'
-        falseLabel='False'
+        trueLabel={booleanTrueLabel}
+        falseLabel={booleanFalseLabel}
         onChange={() => {}}
       />
       <StudioInputTable.Cell.TextResource
