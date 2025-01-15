@@ -127,6 +127,7 @@ export const EditColumnElement = ({
             cellContent={tableColumn.cellContent.query}
             title={title}
             setTitle={setTitle}
+            disableCellContent={selectedComponentBindings.length > 1}
           />
         )}
         <div className={classes.buttons}>

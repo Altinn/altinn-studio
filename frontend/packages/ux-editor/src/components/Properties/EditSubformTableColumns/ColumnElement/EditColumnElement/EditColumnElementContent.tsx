@@ -8,12 +8,14 @@ type EditColumnElementContentProps = {
   title: string;
   setTitle: (title: string) => void;
   cellContent: string;
+  disableCellContent?: boolean;
 };
 
 export const EditColumnElementContent = ({
   title,
   setTitle,
   cellContent,
+  disableCellContent,
 }: EditColumnElementContentProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const { t } = useTranslation();
@@ -40,12 +42,14 @@ export const EditColumnElementContent = ({
         />
       )}
 
-      <StudioDisplayTile
-        className={classes.componentCellContent}
-        label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
-        value={cellContent}
-        showPadlock={false}
-      />
+      {!disableCellContent && (
+        <StudioDisplayTile
+          className={classes.componentCellContent}
+          label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
+          value={cellContent}
+          showPadlock={false}
+        />
+      )}
     </div>
   );
 };
