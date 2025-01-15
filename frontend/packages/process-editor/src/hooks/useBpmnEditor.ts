@@ -1,5 +1,4 @@
-import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
-import type BpmnModeler from 'bpmn-js/lib/Modeler';
+import { useEffect, useCallback } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
@@ -11,14 +10,10 @@ import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 // Wrapper around bpmn-js to Reactify it
 
-type UseBpmnViewerResult = {
-  canvasRef: MutableRefObject<HTMLDivElement>;
-  modelerRef: MutableRefObject<BpmnModeler>;
-};
+export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
-export const useBpmnEditor = (): UseBpmnViewerResult => {
+export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
-  const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
   const { addAction } = useStudioRecommendedNextActionContext();
@@ -98,14 +93,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     });
   };
 
-  useEffect(() => {
-    if (!canvasRef.current) {
-      console.log('Canvas reference is not yet available in the DOM.');
-    }
+  const canvasRef = useCallback((div: HTMLDivElement) => {
     // GetModeler can only be fetched from this hook once since the modeler creates a
     // new instance and will attach the same canvasRef container to all instances it fetches.
     // Set modelerRef.current to the Context so that it can be used in other components
-    modelerRef.current = getModeler(canvasRef.current);
+    modelerRef.current = getModeler(div);
 
     initializeEditor().then(() => {
       // Wait for the initializeEditor to be initialized before attaching event listeners, to avoid trigger add.shape events on first draw
@@ -123,5 +115,5 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { canvasRef, modelerRef };
+  return canvasRef;
 };
