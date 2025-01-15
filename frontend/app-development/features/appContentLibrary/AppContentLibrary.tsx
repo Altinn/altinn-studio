@@ -1,5 +1,6 @@
 import type { CodeListReference, CodeListWithMetadata } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
+import type { ReactElement } from 'react';
 import React from 'react';
 import { useOptionListsQuery, useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -16,28 +17,51 @@ import {
   useUpdateOptionListIdMutation,
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListsUsage } from './utils/mapToCodeListsUsage';
+import type { OptionListData } from 'app-shared/types/OptionList';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const { data: optionListsData, isPending: optionListsDataPending } = useOptionListsQuery(
+  const { data: optionListDataList, isPending: optionListsDataPending } = useOptionListsQuery(
     org,
     app,
   );
+  const { data: optionListUsages, isPending: optionListsUsageIsPending } =
+    useOptionListsReferencesQuery(org, app);
+
+  if (optionListsDataPending || optionListsUsageIsPending) {
+    return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
+  } else {
+    return (
+      <AppContentLibraryWithData
+        optionListDataList={optionListDataList}
+        optionListUsages={optionListUsages}
+      />
+    );
+  }
+}
+
+type AppContentLibraryWithDataProps = {
+  optionListDataList: OptionListData[];
+  optionListUsages: OptionListReferences;
+};
+
+function AppContentLibraryWithData({
+  optionListDataList,
+  optionListUsages,
+}: AppContentLibraryWithDataProps): ReactElement {
+  const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
-  const { data: optionListsUsages, isPending: optionListsUsageIsPending } =
-    useOptionListsReferencesQuery(org, app);
 
-  if (optionListsDataPending || optionListsUsageIsPending)
-    return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
+  const codeListsData = convertOptionsListsDataToCodeListsData(optionListDataList);
 
-  const codeListsData = convertOptionsListsDataToCodeListsData(optionListsData);
-
-  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage({ optionListsUsages });
+  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage(optionListUsages);
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
