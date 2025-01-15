@@ -1,4 +1,4 @@
-import React, from 'react';
+import React from 'react';
 import { StudioFileUploader, StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
@@ -13,17 +13,22 @@ export type CodeListsActionsBarProps = {
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
-  onSetCodeListSearchPattern: (codeListPatternMatch: string) => void;
+  onSetSearchString: (searchString: string) => void;
 };
 
 export function CodeListsActionsBar({
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
-  onSetCodeListSearchPattern,
+  onSetSearchString,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
+
+  const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
+    onSetSearchString(event.target.value);
+
+  const handleClearSearch = () => onSetSearchString('');
 
   const onSubmit = (file: File) => {
     const fileNameError = FileNameUtils.findFileNameError(
@@ -42,11 +47,9 @@ export function CodeListsActionsBar({
         className={classes.searchField}
         label={t('app_content_library.code_lists.search_label')}
         size='sm'
-        onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          onSetCodeListSearchPattern(event.target.value)
-        }
+        onChange={handleChangeSearch}
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
-        onClear={() => onSetCodeListSearchPattern('')}
+        onClear={handleClearSearch}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader

@@ -1,5 +1,9 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import { filterCodeLists, getCodeListSourcesById, getCodeListUsageCount } from './codeListPageUtils';
+import {
+  filterCodeLists,
+  getCodeListSourcesById,
+  getCodeListUsageCount,
+} from './codeListPageUtils';
 import type { CodeListData } from '../CodeListPage';
 
 const codeListId1: string = 'codeListId1';
@@ -121,12 +125,12 @@ describe('filterCodeLists', () => {
     expect(result).toEqual([]);
   });
 
-  it('should handle an empty code list array', () => {
+  it('should support an empty code list array', () => {
     const result = filterCodeLists([], 'Fruits');
     expect(result).toEqual([]);
   });
 
-  it('should handle special characters in search strings', () => {
+  it('should support special characters in search strings', () => {
     const specialCharacterCodeLists: CodeListData[] = [
       { title: 'Cakes & Cookies' },
       { title: 'Ice-Cream' },
