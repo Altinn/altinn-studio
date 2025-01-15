@@ -1,0 +1,49 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "target": {
+          "type": "layoutSet",
+          "id": "",
+          "taskId": "layoutSet-new"
+        },
+        "id": "Summary2-6VQ3LC",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "page",
+          "id": "Side1",
+          "taskId": "layoutSet-new"
+        },
+        "id": "Summary2-LZxPWb",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "page",
+          "id": "Side2",
+          "taskId": "layoutSet-new"
+        },
+        "id": "Summary2-El9z2Y",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "component",
+          "id": "Input-hqcYqo",
+          "taskId": "layoutSet-new"
+        },
+        "id": "Summary2-SMqpYV",
+        "type": "Summary2"
+      },
+      {
+        "id": "NavigationButtons-5ukC2N",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
