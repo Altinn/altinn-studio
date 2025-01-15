@@ -138,23 +138,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-            // In some weird cases these two alternate ways of reading a file sometimes works while the other fails.
-            // Experienced in both 0678.xsd in ttd-datamodels and resource.en.json in hvem-er-hvem.
-            // Opening the file in an editor and saving it resolved the issue for 0678.xsd. Is most likely related to BOM
-            // and that the BOM bytes isn't removed on read in the ReadTextAsync method.
-            // Should try to fix this as this method is more performant than ReadAllTextAsync.
-            // return await ReadTextAsync(absoluteFilePath)
-            try
-            {
-                File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
-            }
-            catch (IOException)
-            {
-                Thread.Sleep(1000);
-                File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-                return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
-            }
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
 
         /// <summary>
