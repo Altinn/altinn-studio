@@ -1,6 +1,6 @@
 .container {
   display: flex;
   flex-direction: column;
-  padding: var(--fds-spacing-4);
+  padding: var(--fds-spacing-3);
   gap: var(--fds-spacing-2);
 }

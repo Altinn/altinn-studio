@@ -73,12 +73,11 @@ type EditUrlProps = {
 
 const EditUrl = ({ url, existingImageUrl, onBlur }: EditUrlProps): React.ReactElement => {
   const { t } = useTranslation();
-  const [isViewMode, setIsViewMode] = useState<boolean>(false);
+  const [isViewMode, setIsViewMode] = useState<boolean>();
   const label = t('ux_editor.properties_panel.images.enter_external_url');
   const noUrlText = t('ux_editor.properties_panel.images.external_url_not_added');
   const value = calculateViewValue(url, noUrlText, isViewMode);
 
-  debugger;
   return isInitialUrlProvided(url, existingImageUrl) ? (
     <StudioToggleableTextfield
       onIsViewMode={setIsViewMode}

@@ -3,6 +3,7 @@
   justify-content: flex-start;
   align-items: center;
   border-radius: 0;
+  border: none;
   width: 100%;
 }
 
@@ -13,7 +14,7 @@
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
-  gap: var(--fds-spacing-1);
+  gap: var(--fds-spacing-2);
 }
 
 .textContainer,
