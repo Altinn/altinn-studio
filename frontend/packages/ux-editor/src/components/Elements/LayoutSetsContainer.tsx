@@ -4,7 +4,7 @@ import { useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioCombobox } from '@studio/components';
+import { StudioCombobox, StudioPageSpinner } from '@studio/components';
 import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
@@ -41,6 +41,13 @@ export function LayoutSetsContainer() {
       onLayoutSetNameChange(layoutSetName);
     }
   };
+
+  if (
+    layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName) === undefined
+  ) {
+    handleLayoutSetChange(layoutSets.sets[0].id);
+    return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
+  }
 
   return (
     <div className={classes.root}>
