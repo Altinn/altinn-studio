@@ -1,0 +1,26 @@
+.root {
+  padding-top: var(--fds-spacing-10);
+  background-image: url('https://altinn.studio/designer/img/Altinn-studio-stor.svg');
+  background-position: center 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.menuItemCard {
+  max-width: 500px;
+  height: 300px;
+}
+
+.menuItems {
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-10);
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  padding: var(--fds-spacing-4);
+  border-radius: var(--fds-border-radius-2);
+  background-color: var(--fds-color-background-1);
+  box-shadow: var(--fds-shadow-1);
+  transition: background-color 0.2s;
+}

@@ -12,6 +12,8 @@ import { PageLayout } from 'dashboard/pages/PageLayout';
 import { Trans, useTranslation } from 'react-i18next';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 import { Link } from '@digdir/designsystemet-react';
+import { LandingPage } from 'dashboard/pages/LandingPage/LandingPage';
+import { ContentLibrary } from 'dashboard/pages/ContentLibrary/ContentLibrary';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -65,12 +67,17 @@ export const App = (): JSX.Element => {
           <Route path={DASHBOARD_ROOT_ROUTE} element={<PageLayout />}>
             <Route
               path='/:selectedContext?'
+              element={<LandingPage user={user} organizations={organizations} />}
+            />
+            <Route
+              path='/:selectedContext/apps'
               element={<Dashboard user={user} organizations={organizations} />}
             />
             <Route
               path='/:selectedContext/new'
               element={<CreateService organizations={organizations} user={user} />}
             />
+            <Route path='/:selectedContext/content-library' element={<ContentLibrary />} />
           </Route>
         </Routes>
       </div>
