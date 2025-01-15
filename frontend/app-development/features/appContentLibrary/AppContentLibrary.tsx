@@ -14,6 +14,7 @@ import {
   useAddOptionListMutation,
   useUpdateOptionListMutation,
   useUpdateOptionListIdMutation,
+  useDeleteOptionListMutation,
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListsUsage } from './utils/mapToCodeListsUsage';
 
@@ -24,6 +25,7 @@ export function AppContentLibrary(): React.ReactElement {
     org,
     app,
   );
+  const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
@@ -65,6 +67,7 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeListsData,
+          onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
