@@ -231,8 +231,8 @@ export class UiEditorPage extends BasePage {
     await expect(newTreeItemLabel).toBeVisible();
   }
 
-  public async deleteOldComponentId(componentId: string): Promise<void> {
-    const button = this.page.getByRole('button', { name: componentId });
+  public async deleteOldComponentId(): Promise<void> {
+    const button = this.page.getByRole('button', { name: /^Input-/ });
     await button.click();
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))

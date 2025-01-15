@@ -2,7 +2,7 @@
   display: flex;
   gap: var(--fds-spacing-2);
   align-items: flex-start;
-  padding: var(--fds-spacing-2) var(--fds-spacing-2);
+  padding: var(--fds-spacing-2);
 }
 
 .prefixIcon {

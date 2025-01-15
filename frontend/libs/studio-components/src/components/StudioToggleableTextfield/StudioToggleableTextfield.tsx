@@ -1,6 +1,5 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
-
 import { StudioIconTextfield } from '../StudioIconTextfield';
 import { KeyVerticalIcon } from '../../../../studio-icons';
 
@@ -74,9 +73,9 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
     if (isViewMode)
       return (
         <StudioTextfieldToggleView
-          onClick={toggleViewMode}
           Icon={Icon}
           label={label}
+          onClick={toggleViewMode}
           title={title}
           value={value}
         />
@@ -84,15 +83,15 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
 
     return (
       <StudioIconTextfield
-        ref={ref}
-        label={label}
-        title={title}
-        value={value}
+        autoFocus
+        error={error || errorMessage}
         Icon={Icon}
+        label={label}
         onBlur={handleBlur}
         onChange={handleOnChange}
-        error={error || errorMessage}
-        autoFocus
+        ref={ref}
+        title={title}
+        value={value}
       />
     );
   },

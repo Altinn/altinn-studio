@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 export type StudioTextfieldToggleViewProps = Omit<StudioButtonProps, 'icon'> & {
   Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  label?: string;
+  label: string;
 };
 
 export const StudioTextfieldToggleView = ({

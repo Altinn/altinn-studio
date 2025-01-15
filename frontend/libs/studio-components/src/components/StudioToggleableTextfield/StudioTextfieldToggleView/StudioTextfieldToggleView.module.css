@@ -11,7 +11,6 @@
   grid-template-columns: auto 1fr;
   text-align: left;
   align-items: center;
-  justify-content: space-between;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
   gap: var(--fds-spacing-1);

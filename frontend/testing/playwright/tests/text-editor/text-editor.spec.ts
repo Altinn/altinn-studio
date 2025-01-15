@@ -59,7 +59,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
 
-  await uiEditorPage.deleteOldComponentId(COMPONENT_ID);
+  await uiEditorPage.deleteOldComponentId();
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
   await uiEditorPage.waitForXAmountOfMilliseconds(1000); // Wait for the API call to be done
 

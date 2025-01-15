@@ -74,17 +74,12 @@ type EditUrlProps = {
 const EditUrl = ({ url, existingImageUrl, onBlur }: EditUrlProps): React.ReactElement => {
   const { t } = useTranslation();
   const [isViewMode, setIsViewMode] = useState<boolean>(false);
-
-  const noUrlProvided = url === undefined && !existingImageUrl;
   const label = t('ux_editor.properties_panel.images.enter_external_url');
   const noUrlText = t('ux_editor.properties_panel.images.external_url_not_added');
-  const currentUrl = !url ? noUrlText : url;
-  const showValue = currentUrl !== noUrlText || isViewMode;
-  const value = showValue ? currentUrl : undefined;
+  const value = calculateViewValue(url, noUrlText, isViewMode);
 
-  return noUrlProvided ? (
-    <StudioIconTextfield label={label} value={url} onBlur={onBlur} Icon={LinkIcon} />
-  ) : (
+  debugger;
+  return isInitialUrlProvided(url, existingImageUrl) ? (
     <StudioToggleableTextfield
       onIsViewMode={setIsViewMode}
       Icon={LinkIcon}
@@ -93,8 +88,24 @@ const EditUrl = ({ url, existingImageUrl, onBlur }: EditUrlProps): React.ReactEl
       title={url}
       value={value}
     />
+  ) : (
+    <StudioIconTextfield label={label} value={url} onBlur={onBlur} Icon={LinkIcon} />
   );
 };
 
 const isBLurInitialWithEmptyInput = (existingUrl: string, newUrl: string) =>
   newUrl === '' && existingUrl === undefined;
+
+const isInitialUrlProvided = (url: string, existingImageUrl: string) =>
+  url !== undefined || !!existingImageUrl;
+
+const calculateViewValue = (
+  url: string,
+  noUrlText: string,
+  isViewMode: boolean,
+): string | undefined => {
+  const currentUrl = !url ? noUrlText : url;
+  const currentUrlIsUserProvided = currentUrl !== noUrlText;
+  const showValue = currentUrlIsUserProvided || isViewMode;
+  return showValue ? currentUrl : undefined;
+};
