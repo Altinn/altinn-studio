@@ -77,23 +77,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<List<Organization>> GetUserOrganizations();
 
         /// <summary>
-        /// List all branches with commit for a repo
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repo">The name of the repo</param>
-        /// <returns>The repoList</returns>
-        Task<List<Branch>> GetBranches(string org, string repo);
-
-        /// <summary>
-        /// Returns information about a given branch
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="branch">Name of branch</param>
-        /// <returns>The branch info</returns>
-        Task<Branch> GetBranch(string org, string repository, string branch);
-
-        /// <summary>
         /// Creates a new branch in the given repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>

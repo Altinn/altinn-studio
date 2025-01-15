@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -9,7 +8,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
-using NuGet.Versioning;
 using SharedResources.Tests;
 using Xunit;
 
@@ -26,24 +24,6 @@ namespace Designer.Tests.Services
             var schemaModelServiceMock = new Mock<ISchemaModelService>();
             _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
             _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, schemaModelServiceMock.Object);
-        }
-
-        [Theory]
-        [MemberData(nameof(TemplatesTestData))]
-        public void GetProcessDefinitionTemplates_GivenVersion_ReturnsListOfTemplates(string versionString, params string[] expectedTemplates)
-        {
-            SemanticVersion version = SemanticVersion.Parse(versionString);
-
-            IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object, _appDevelopmentService);
-
-            var result = processModelingService.GetProcessDefinitionTemplates(version).ToList();
-
-            result.Count.Should().Be(expectedTemplates.Length);
-
-            foreach (string expectedTemplate in expectedTemplates)
-            {
-                result.Should().Contain(expectedTemplate);
-            }
         }
 
         [Theory]
