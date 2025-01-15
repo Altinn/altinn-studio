@@ -31,15 +31,16 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             TrimmedControllerName(nameof(AppDevelopmentController)),
             GenerateFrozenSet(
-                nameof(AppDevelopmentController.SaveFormLayout),
-                nameof(AppDevelopmentController.UpdateFormLayoutName),
-                nameof(AppDevelopmentController.SaveLayoutSettings),
-                nameof(AppDevelopmentController.SaveRuleHandler),
-                nameof(AppDevelopmentController.SaveRuleConfig),
                 nameof(AppDevelopmentController.AddLayoutSet),
-                nameof(AppDevelopmentController.UpdateLayoutSetName),
                 nameof(AppDevelopmentController.DeleteFormLayout),
-                nameof(AppDevelopmentController.DeleteLayoutSet)
+                nameof(AppDevelopmentController.DeleteLayoutSet),
+                nameof(AppDevelopmentController.GetModelMetadata),
+                nameof(AppDevelopmentController.SaveFormLayout),
+                nameof(AppDevelopmentController.SaveLayoutSettings),
+                nameof(AppDevelopmentController.SaveRuleConfig),
+                nameof(AppDevelopmentController.SaveRuleHandler),
+                nameof(AppDevelopmentController.UpdateFormLayoutName),
+                nameof(AppDevelopmentController.UpdateLayoutSetName)
             )
         },
         {
