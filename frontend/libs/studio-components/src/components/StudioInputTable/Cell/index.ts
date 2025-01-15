@@ -12,11 +12,14 @@ import { CellCheckbox } from './CellCheckbox';
 import type { InputCellComponent } from '../types/InputCellComponent';
 import type { CellTextResourceInputProps } from './CellTextResource';
 import { CellTextResource } from './CellTextResource';
+import type { CellBooleanToggleProps } from './CellBooleanToggle';
+import { CellBooleanToggle } from './CellBooleanToggle';
 
 type CellComponent = typeof Cell & {
   Textfield: InputCellComponent<CellTextfieldProps, HTMLInputElement>;
-  Numberfield: InputCellComponent<CellNumberfieldProps, HTMLInputElement>;
   Textarea: InputCellComponent<CellTextareaProps, HTMLTextAreaElement>;
+  Numberfield: InputCellComponent<CellNumberfieldProps, HTMLInputElement>;
+  BooleanToggle: InputCellComponent<CellBooleanToggleProps, HTMLDivElement>;
   Button: InputCellComponent<CellButtonProps, HTMLButtonElement>;
   Checkbox: InputCellComponent<CellCheckboxProps, HTMLInputElement>;
   TextResource: InputCellComponent<CellTextResourceInputProps, HTMLInputElement>;
@@ -25,10 +28,13 @@ type CellComponent = typeof Cell & {
 export const StudioInputTableCell = Cell as CellComponent;
 
 StudioInputTableCell.Textfield = new CellTextfield('StudioInputTable.Cell.Textfield').component();
+StudioInputTableCell.Textarea = new CellTextarea('StudioInputTable.Cell.Textarea').component();
 StudioInputTableCell.Numberfield = new CellNumberfield(
   'StudioInputTable.Cell.Numberfield',
 ).component();
-StudioInputTableCell.Textarea = new CellTextarea('StudioInputTable.Cell.Textarea').component();
+StudioInputTableCell.BooleanToggle = new CellBooleanToggle(
+  'StudioInputTable.Cell.BooleanToggle',
+).component();
 StudioInputTableCell.Button = new CellButton('StudioInputTable.Cell.Button').component();
 StudioInputTableCell.Checkbox = new CellCheckbox('StudioInputTable.Cell.Checkbox').component();
 StudioInputTableCell.TextResource = new CellTextResource(
