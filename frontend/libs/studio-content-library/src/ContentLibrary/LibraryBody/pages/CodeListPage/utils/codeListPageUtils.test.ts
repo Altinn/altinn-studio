@@ -1,5 +1,10 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import { getCodeListSourcesById, getCodeListUsageCount } from './codeListPageUtils';
+import {
+  filterCodeLists,
+  getCodeListSourcesById,
+  getCodeListUsageCount,
+} from './codeListPageUtils';
+import type { CodeListData } from '../CodeListPage';
 
 const codeListId1: string = 'codeListId1';
 const codeListId2: string = 'codeListId2';
@@ -84,5 +89,53 @@ describe('getCodeListUsageCount', () => {
     const usageCount = getCodeListUsageCount(codeListSources);
 
     expect(usageCount).toBe(0);
+  });
+});
+
+describe('filterCodeLists', () => {
+  const codeLists: CodeListData[] = [
+    { title: 'Fruits' },
+    { title: 'Vegetables' },
+    { title: 'Dairy Products' },
+    { title: 'Frozen Foods' },
+  ];
+
+  it('should return all code lists when the search string is empty', () => {
+    const result = filterCodeLists(codeLists, '');
+    expect(result).toEqual(codeLists);
+  });
+
+  it('should filter code lists by exact match', () => {
+    const result = filterCodeLists(codeLists, 'Fruits');
+    expect(result).toEqual([{ title: 'Fruits' }]);
+  });
+
+  it('should filter code lists by partial match', () => {
+    const result = filterCodeLists(codeLists, 'Food');
+    expect(result).toEqual([{ title: 'Frozen Foods' }]);
+  });
+
+  it('should filter code lists case-insensitively', () => {
+    const result = filterCodeLists(codeLists, 'fruits');
+    expect(result).toEqual([{ title: 'Fruits' }]);
+  });
+
+  it('should return an empty array when no matches are found', () => {
+    const result = filterCodeLists(codeLists, 'Meat');
+    expect(result).toEqual([]);
+  });
+
+  it('should support an empty code list array', () => {
+    const result = filterCodeLists([], 'Fruits');
+    expect(result).toEqual([]);
+  });
+
+  it('should support special characters in search strings', () => {
+    const specialCharacterCodeLists: CodeListData[] = [
+      { title: 'Cakes & Cookies' },
+      { title: 'Ice-Cream' },
+    ];
+    const result = filterCodeLists(specialCharacterCodeLists, '&');
+    expect(result).toEqual([{ title: 'Cakes & Cookies' }]);
   });
 });
