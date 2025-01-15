@@ -1,11 +1,8 @@
 import type { MutationMeta } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Option } from 'app-shared/types/Option';
-import type {
-  OptionsList,
-  OptionsListData,
-  OptionsListsResponse,
-} from 'app-shared/types/api/OptionsLists';
+import type { OptionList, OptionListData } from 'app-shared/types/OptionList';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { ArrayUtils } from '@studio/pure-functions';
@@ -24,7 +21,7 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
       return updateOptionList(org, app, optionListId, optionsList);
     },
     onSuccess: (updatedOptionsList: Option[], { optionListId }) => {
-      const oldData: OptionsListsResponse = queryClient.getQueryData([
+      const oldData: OptionListsResponse = queryClient.getQueryData([
         QueryKey.OptionLists,
         org,
         app,
@@ -40,14 +37,14 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
   });
 };
 
-const isOptionsListInOptionListsCache = (data: OptionsListsResponse | null): boolean => !!data;
+const isOptionsListInOptionListsCache = (data: OptionListsResponse | null): boolean => !!data;
 
 const updateListInOptionsListsData = (
   optionsListId: string,
-  updatedOptionsList: OptionsList,
-  oldData: OptionsListsResponse,
-): OptionsListsResponse => {
-  const [oldOptionsListData, optionsListExists]: [OptionsListData | undefined, boolean] =
+  updatedOptionsList: OptionList,
+  oldData: OptionListsResponse,
+): OptionListsResponse => {
+  const [oldOptionsListData, optionsListExists]: [OptionListData | undefined, boolean] =
     getOldOptionsListData(oldData, optionsListId);
   if (optionsListExists) {
     return updateExistingOptionsList(oldData, oldOptionsListData, updatedOptionsList);
@@ -56,9 +53,9 @@ const updateListInOptionsListsData = (
 };
 
 const getOldOptionsListData = (
-  oldData: OptionsListsResponse,
+  oldData: OptionListsResponse,
   optionsListId: string,
-): [OptionsListData | undefined, boolean] => {
+): [OptionListData | undefined, boolean] => {
   const oldOptionsListData = oldData.find(
     (optionsListData) => optionsListData.title === optionsListId,
   );
@@ -66,9 +63,9 @@ const getOldOptionsListData = (
 };
 
 const updateExistingOptionsList = (
-  oldData: OptionsListsResponse,
-  oldOptionsListData: OptionsListData,
-  newOptionsList: OptionsList,
+  oldData: OptionListsResponse,
+  oldOptionsListData: OptionListData,
+  newOptionsList: OptionList,
 ) => {
   return ArrayUtils.replaceByPredicate(
     oldData,
@@ -81,9 +78,9 @@ const updateExistingOptionsList = (
 };
 
 const addNewOptionsList = (
-  oldData: OptionsListsResponse,
+  oldData: OptionListsResponse,
   optionsListTitle: string,
-  newOptionsList: OptionsList,
+  newOptionsList: OptionList,
 ) => {
   return ArrayUtils.prepend(oldData, { title: optionsListTitle, data: newOptionsList });
 };

@@ -10,7 +10,7 @@ import type {
 import type { IFormLayouts, IOption, ITextResourceBindings } from '../types/global';
 import { internalLayoutToExternal } from '../converters/formLayoutConverters';
 import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
 export class ExportUtils {
   private readonly pageOrder: string[];
@@ -18,7 +18,7 @@ export class ExportUtils {
   private readonly layoutSetName: string;
   private readonly appId: string;
   private readonly textResources: ITextResources;
-  private readonly optionListsData: OptionsListsResponse;
+  private readonly optionListsData: OptionListData[];
   private readonly defaultLanguage: string;
   private readonly includeRestProperties: boolean;
 
@@ -28,7 +28,7 @@ export class ExportUtils {
     layoutSetName: string,
     appId: string,
     textResources: ITextResources,
-    optionListsData: OptionsListsResponse,
+    optionListsData: OptionListData[],
     defaultLanguage: string,
     includeRestProperties: boolean = false,
   ) {
