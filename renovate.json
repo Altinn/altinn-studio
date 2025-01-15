@@ -4,5 +4,11 @@
     "local>Altinn/renovate-config"
   ],
   "labels": ["dependency"],
-  "baseBranches": ["main"]
+  "baseBranches": ["main"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["/dotnet(-|\\/)sdk/", "/^Microsoft\\.AspNetCore/", "/^Microsoft\\.Extensions/", "!Microsoft.Extensions.Caching.Hybrid"],
+      "allowedVersions": "<=8"
+    }
+  ]
 }
