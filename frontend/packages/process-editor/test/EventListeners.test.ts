@@ -42,6 +42,20 @@ describe('EventListeners', () => {
       expect(event1Fun).toHaveBeenCalledTimes(1);
       expect(event2Fun).toHaveBeenCalledTimes(1);
     });
+
+    it('Supports adding the same function to multiple events', () => {
+      const eventListeners = new EventListeners<Record<'event1' | 'event2', () => void>>();
+      const fun = jest.fn();
+      const event1Name = 'event1';
+      const event2Name = 'event2';
+
+      eventListeners.add(event1Name, fun);
+      eventListeners.add(event2Name, fun);
+      eventListeners.triggerEvent(event1Name);
+      eventListeners.triggerEvent(event2Name);
+
+      expect(fun).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('remove', () => {
@@ -79,12 +93,29 @@ describe('EventListeners', () => {
       expect(funToRemove).not.toHaveBeenCalled();
     });
 
+    it('Does only remove the function on the given event listener when the same function also exists on another listener', () => {
+      const eventListeners = new EventListeners<
+        Record<'event.of.interest' | 'another.event', () => void>
+      >();
+      const funToRemoveFromSingleEvent = jest.fn();
+      const eventOfInterestName = 'event.of.interest';
+      const anotherEventName = 'another.event';
+      eventListeners.add(eventOfInterestName, funToRemoveFromSingleEvent);
+      eventListeners.add(anotherEventName, funToRemoveFromSingleEvent);
+
+      eventListeners.remove(eventOfInterestName, funToRemoveFromSingleEvent);
+      eventListeners.triggerEvent(eventOfInterestName);
+      eventListeners.triggerEvent(anotherEventName);
+
+      expect(funToRemoveFromSingleEvent).toHaveBeenCalledTimes(1);
+    });
+
     it('Throws the expected error when attempting to remove a function that is not added', () => {
       const eventListeners = new EventListeners<{ event: () => void }>();
       const fun = jest.fn();
       const eventName = 'event';
 
-      expect(() => eventListeners.remove(eventName, fun)).toThrowError(
+      expect(() => eventListeners.remove(eventName, fun)).toThrow(
         `The provided callback function does not exist on the ${eventName} listener.`,
       );
     });
