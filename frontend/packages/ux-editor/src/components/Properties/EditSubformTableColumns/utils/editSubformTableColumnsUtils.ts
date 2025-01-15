@@ -32,9 +32,14 @@ export const getComponentsForSubformTable = (formLayouts: IFormLayouts): FormIte
 };
 
 const componentsWithLabelAndDataModel = (components: FormItem[]): FormItem[] => {
-  return components.filter(
-    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
-  );
+  return components.filter((comp) => {
+    const hasTitle = comp.textResourceBindings?.title;
+    const hasMultipleDataModelBinding =
+      comp.dataModelBindings &&
+      Object.keys(comp.dataModelBindings).length > 0 &&
+      Object.values(comp.dataModelBindings).some((binding) => !!binding);
+    return hasTitle && hasMultipleDataModelBinding;
+  });
 };
 
 export const getValueOfTitleId = (titleId: string, textResources: ITextResources): string => {

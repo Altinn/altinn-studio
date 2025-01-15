@@ -1,4 +1,4 @@
-import React, { useMemo, useState, type ReactElement } from 'react';
+import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import { type TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,6 @@ import {
   getValueOfTitleId,
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
-import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -65,22 +64,6 @@ export const EditColumnElement = ({
     Array<Record<string, string>>
   >([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
-
-  const textKeyValue = textResourceByLanguageAndIdSelector(
-    'nb',
-    tableColumn.headerContent,
-  )(textResources)?.value;
-  const components = useMemo(() => {
-    return formLayouts
-      ? Object.values(formLayouts).flatMap((layout) => {
-          return getAllLayoutComponents(layout);
-        })
-      : [];
-  }, [formLayouts]);
-
-  const componentsWithLabelAndBindings = useMemo(() => {
-    return filterComponentsWithLabelAndBindings(components);
-  }, [components]);
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (!selectedComponent?.dataModelBindings) {
@@ -133,6 +116,7 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
+          component={availableComponents.find((comp) => comp.id === selectedComponentId)}
           components={availableComponents}
           onSelectComponent={selectComponent}
           selectedComponentBindings={selectedComponentBindings}
