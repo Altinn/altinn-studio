@@ -20,7 +20,6 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
     {
     }
 
-
     [Fact]
     public async Task UsersThatBelongsToOrg_ShouldReturn_True()
     {
