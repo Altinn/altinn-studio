@@ -6,6 +6,7 @@ import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/config
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
+import classes from './ConfigViewerPanel.module.css';
 
 export const ConfigViewerPanel = (): React.ReactElement => {
   return (
@@ -52,7 +53,7 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-      <div>
+      <div className={classes.container}>
         {propertiesToDisplay.map(({ label, value }) => (
           <StudioDisplayTile key={label} label={label} value={value} />
         ))}

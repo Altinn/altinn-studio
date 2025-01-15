@@ -9,15 +9,19 @@ import {
   StudioDeleteButton,
   StudioDivider,
   StudioParagraph,
-  StudioTextfield,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
-import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../../../types/FormItem';
-import { PadlockLockedFillIcon } from '@studio/icons';
+import { EditColumnElementContent } from './EditColumnElementContent';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
+import { useTextIdMutation } from 'app-development/hooks/mutations';
+import {
+  getComponentsForSubformTable,
+  getTitleIdForColumn,
+  getValueOfTitleId,
+} from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
@@ -26,7 +30,7 @@ export type ColumnElementProps = {
   columnNumber: number;
   onDeleteColumn: () => void;
   onEdit: (tableColumn: TableColumn) => void;
-  layoutSetName: string;
+  subformLayout: string;
 };
 
 export const EditColumnElement = ({
@@ -34,14 +38,26 @@ export const EditColumnElement = ({
   columnNumber,
   onDeleteColumn,
   onEdit,
-  layoutSetName,
+  subformLayout,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const subformLayout = layoutSetName;
-  const [tableColumn, setTableColumn] = useState(sourceColumn);
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const [tableColumn, setTableColumn] = useState(sourceColumn);
+  const [title, setTitle] = useState<string>(
+    getValueOfTitleId(sourceColumn.headerContent, textResources),
+  );
+  const [uniqueTitleId, _] = useState(
+    getTitleIdForColumn({
+      titleId: tableColumn.headerContent,
+      subformId: subformLayout,
+      textResources,
+    }),
+  );
+  const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
+  const { mutate: textIdMutation } = useTextIdMutation(org, app);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
+
   const [selectedComponentBindings, setSelectedComponentBindings] = useState<
     Array<Record<string, string>>
   >([]);
@@ -81,10 +97,20 @@ export const EditColumnElement = ({
     setFilteredDatamodelBindings(bindings);
   };
 
+  const handleSave = () => {
+    upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
+    onEdit({ ...tableColumn, headerContent: uniqueTitleId });
+  };
+
+  const handleDelete = () => {
+    textIdMutation([{ oldId: uniqueTitleId }]);
+    onDeleteColumn();
+  };
+
   const selectComponent = (values: string[]) => {
     const componentId = values[0];
     setSelectedComponentId(componentId);
-    const selectedComponent = components.find((comp) => comp.id === componentId);
+    const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
     if (!selectedComponent) return;
 
     selectComponentBinding(selectedComponent);
@@ -94,38 +120,39 @@ export const EditColumnElement = ({
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
     };
+
+    setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
     setTableColumn(updatedTableColumn);
   };
+
+  const availableComponents = getComponentsForSubformTable(formLayouts);
+  const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
 
   return (
     <StudioCard className={classes.wrapper}>
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          components={componentsWithLabelAndBindings}
-          component={components.find((comp) => comp.id === selectedComponentId)}
+          components={availableComponents}
           onSelectComponent={selectComponent}
           selectedComponentBindings={selectedComponentBindings}
           filteredDatamodelBindings={filteredDatamodelBindings}
         />
-        <StudioTextfield
-          label={
-            <>
-              <PadlockLockedFillIcon />
-              {t('ux_editor.modal_properties_textResourceBindings_title')}
-            </>
-          }
-          disabled={true}
-          size='sm'
-          value={textKeyValue}
-        />
+        {tableColumn.headerContent && (
+          <EditColumnElementContent
+            cellContent={tableColumn.cellContent.query}
+            title={title}
+            setTitle={setTitle}
+          />
+        )}
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
-            onClick={() => onEdit(tableColumn)}
+            onClick={handleSave}
             title={t('general.save')}
-          ></StudioActionCloseButton>
-          <StudioDeleteButton title={t('general.delete')} onDelete={onDeleteColumn} />
+            disabled={isSaveButtonDisabled}
+          />
+          <StudioDeleteButton title={t('general.delete')} onDelete={handleDelete} />
         </div>
       </StudioCard.Content>
     </StudioCard>
@@ -165,18 +192,6 @@ export const EditColumnElementComponentSelect = ({
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
-  const subformComponentOptions =
-    components.length > 0 ? (
-      components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
-        </StudioCombobox.Option>
-      ))
-    ) : (
-      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
-        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-      </StudioCombobox.Empty>
-    );
   return (
     <>
       <StudioCombobox
@@ -188,7 +203,14 @@ export const EditColumnElementComponentSelect = ({
         onValueChange={onSelectComponent}
         id='columncomponentselect'
       >
-        {subformComponentOptions}
+        {components.map((comp: FormItem) => (
+          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+            {comp.id}
+          </StudioCombobox.Option>
+        ))}
+        <StudioCombobox.Empty key={'noComponentsWithLabel'}>
+          {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
+        </StudioCombobox.Empty>
       </StudioCombobox>
 
       {selectedComponentBindings?.length > 1 && (
