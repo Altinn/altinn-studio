@@ -39,9 +39,8 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
         {
             builder.ConfigureTestServices(services =>
             {
-                // Replace the authentication scheme with a mocked scheme
                 services.AddAuthentication("Anonymous")
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandlerAnonymous>("Anonymous", options => { });
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Anonymous", options => { });
             });
         }).CreateDefaultClient();
 
@@ -53,7 +52,7 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
         var responseContent = await response.Content.ReadAsAsync<BelongsToOrgDto>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.False(responseContent.BelongsToOrg); // Expecting false as the user is anonymous
+        Assert.False(responseContent.BelongsToOrg);
     }
 
 }
