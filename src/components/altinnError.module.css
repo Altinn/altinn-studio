@@ -20,7 +20,7 @@
 }
 .title {
   font-weight: 500;
-  color: #022f51;
+  color: var(--colors-primary-blueDarker);
 }
 
 .imageContainer {

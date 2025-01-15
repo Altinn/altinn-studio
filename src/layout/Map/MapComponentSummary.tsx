@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { Map } from 'src/layout/Map/Map';
@@ -23,12 +23,9 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
 
   if (markerBinding && !markerLocationIsValid) {
     return (
-      <Typography
-        variant='body1'
-        className={classes.emptyField}
-      >
+      <span className={classes.emptyField}>
         <Lang id='general.empty_summary' />
-      </Typography>
+      </span>
     );
   }
 
@@ -41,12 +38,12 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
         isSummary={true}
       />
       {markerLocation && (
-        <Typography className={classes.footer}>
+        <Paragraph className={classes.footer}>
           <Lang
             id='map_component.selectedLocation'
             params={[markerLocation.latitude, markerLocation.longitude]}
           />
-        </Typography>
+        </Paragraph>
       )}
     </>
   );

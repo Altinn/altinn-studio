@@ -1,0 +1,17 @@
+.listItemTextPadding {
+  padding-left: 0;
+}
+
+.transformArrowRight {
+  transform: rotate(-90deg);
+}
+
+.transition {
+  transition-duration: 0.1s;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+.collapsedTitle {
+  font-size: 20px;
+}

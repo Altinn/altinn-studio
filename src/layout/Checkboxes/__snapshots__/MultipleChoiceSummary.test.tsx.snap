@@ -11,34 +11,24 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     style="display: block;"
   >
     <ul
-      class="MuiList-root makeStyles-list-3 MuiList-padding"
+      class="list"
     >
       <li
-        class="MuiListItem-root makeStyles-listItem-4 MuiListItem-gutters"
+        class="listItem"
       >
         <div
-          class="MuiListItemText-root"
-          id="some-key"
+          class="data"
         >
-          <span
-            class="MuiTypography-root makeStyles-data-5 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
-          >
-            This is a text
-          </span>
+          This is a text
         </div>
       </li>
       <li
-        class="MuiListItem-root makeStyles-listItem-4 MuiListItem-gutters"
+        class="listItem"
       >
         <div
-          class="MuiListItemText-root"
-          id="some-other-key"
+          class="data"
         >
-          <span
-            class="MuiTypography-root makeStyles-data-5 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
-          >
-            This is another text
-          </span>
+          This is another text
         </div>
       </li>
     </ul>

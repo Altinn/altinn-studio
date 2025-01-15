@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core';
 import cn from 'classnames';
+
+import classes from 'src/components/LandmarkShortcuts.module.css';
 
 export interface ILandmarkShortcutsProps {
   shortcuts: ILandmarkShortcut[];
@@ -12,28 +13,7 @@ interface ILandmarkShortcut {
   text: React.ReactNode;
 }
 
-const useStyles = makeStyles({
-  button: {
-    textDecoration: 'underline',
-    textAlign: 'left',
-    padding: '5px',
-    paddingLeft: '10px',
-  },
-  srOnly: {
-    position: 'absolute',
-    clip: 'rect(0,0,0,0)',
-    border: 0,
-    '&:focus': {
-      position: 'relative',
-      width: 'auto',
-      height: 'auto',
-    },
-  },
-});
-
 export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
-  const classes = useStyles();
-
   const handleClick = (id: string) => {
     // workaround because we still use a hash-router (sigh...)
     // can be replaced by the more elegant solution <a href="#main-content></a> once this is no longer the case.

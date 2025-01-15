@@ -1,35 +1,25 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { makeStyles, Typography } from '@material-ui/core';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+
+import classes from 'src/components/organisms/AltinnReceipt.module.css';
 
 export interface IReceiptComponentProps {
   body: string | JSX.Element | JSX.Element[] | null;
   title: string | JSX.Element | JSX.Element[] | null;
 }
 
-const useStyles = makeStyles(() => ({
-  paddingTop24: {
-    paddingTop: '1.5rem',
-  },
-  wordBreak: {
-    wordBreak: 'break-word',
-  },
-}));
-
 export function ReceiptComponentSimple({ title, body }: IReceiptComponentProps) {
-  const classes = useStyles();
-
   return (
     <div className={classes.wordBreak}>
-      <Typography variant='h2'>{title}</Typography>
-
-      <Typography
-        variant='body1'
-        className={classes.paddingTop24}
+      <Heading
+        level={2}
+        size='medium'
       >
-        {body}
-      </Typography>
+        {title}
+      </Heading>
+      <Paragraph className={classes.paddingTop24}>{body}</Paragraph>
     </div>
   );
 }

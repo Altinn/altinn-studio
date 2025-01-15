@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
-import cn from 'classnames';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -133,7 +132,7 @@ export function OrganisationLookupComponent({
     >
       <ComponentStructureWrapper node={node}>
         <div className={classes.componentWrapper}>
-          <div className={cn(classes.label, classes.orgnrLabel)}>
+          <div className={classes.orgnrLabel}>
             <Label
               htmlFor={`${id}_orgnr`}
               label={langAsString('organisation_lookup.orgnr_label')}

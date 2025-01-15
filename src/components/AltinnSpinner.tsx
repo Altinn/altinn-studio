@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { CircularProgress, createStyles, makeStyles, Typography } from '@material-ui/core';
+import { CircularProgress, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';
 
+import classes from 'src/components/AltinnSpinner.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IAltinnSpinnerComponentProvidedProps {
@@ -12,27 +13,8 @@ export interface IAltinnSpinnerComponentProvidedProps {
   styleObj?: ArgumentArray;
 }
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    spinner: {
-      color: theme.altinnPalette.primary.blueDark,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-      display: 'inline-block',
-    },
-    spinnerText: {
-      display: 'inline-block',
-      fontSize: 16,
-      marginLeft: '10px',
-      verticalAlign: 'middle',
-      marginBottom: '25px',
-    },
-  }),
-);
-
 export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
   const { id, spinnerText, styleObj } = props;
-  const classes = useStyles(props);
   const { langAsString } = useLanguage();
 
   return (

@@ -17,8 +17,9 @@ export const ignoredConsoleMessages = [
   // This ia a bug we should fix, but it's not critical.
   /^FormProvider re-rendered/,
 
-  // Warning from MUI, because we're stuck on an old version. Shows up in the Confirm task (in all-process-steps.ts).
-  // Might be fixed after: https://github.com/Altinn/app-frontend-react/pull/2567
+  // Warning from MUI, because we're stuck on an old version.
+  // Shows up in the Confirm task (in all-process-steps.ts) and MultipleChoiceSummary.test.tsx
+  // https://github.com/Altinn/app-frontend-react/issues/2902
   /Warning: findDOMNode is deprecated and will be removed in the next major release/,
 
   // Bug when showing a Grid component

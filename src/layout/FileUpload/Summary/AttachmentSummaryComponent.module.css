@@ -24,7 +24,7 @@
   grid-column: span 2;
   column-gap: 2rem;
   row-gap: 1rem;
-  border-top: 1px dashed #008fd6;
+  border-top: 1px dashed var(--colors-primary-blueMedium);
   margin-top: 0.5rem;
   padding-top: 0.5rem;
 }

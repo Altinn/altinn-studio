@@ -3,7 +3,7 @@
 }
 
 .border {
-  border: 2px solid #efefef;
+  border: 2px solid var(--colors-primary-greyLight);
   margin: 12px 0;
   padding: 12px;
 }
@@ -26,7 +26,7 @@
 }
 
 .labelError {
-  color: #d5203b;
+  color: var(--colors-primary-red);
 }
 .link {
   background: none;

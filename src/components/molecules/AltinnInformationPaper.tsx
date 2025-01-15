@@ -2,24 +2,14 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { Paper } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    background: theme.altinnPalette.primary.white,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
-    borderRadius: 0,
-    fontSize: 16,
-    padding: 24,
-  },
-}));
+import classes from 'src/components/molecules/AltinnInformationPaper.module.css';
 
 export interface IAltinnInformationPaperProps {
   children: JSX.Element[] | JSX.Element;
 }
 
 export function AltinnInformationPaper({ children }: IAltinnInformationPaperProps) {
-  const classes = useStyles();
   return (
     <Paper
       elevation={0}

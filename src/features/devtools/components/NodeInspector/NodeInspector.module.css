@@ -72,7 +72,7 @@ dd.typeUnknown {
 .json {
   white-space: pre;
   font-family: monospace;
-  background-color: #efefef;
+  background-color: var(--colors-primary-greyLight);
   position: relative;
 }
 

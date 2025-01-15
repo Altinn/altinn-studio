@@ -1,102 +1,16 @@
 import React from 'react';
 
-import { makeStyles, Paper, Typography } from '@material-ui/core';
+import { Paper, Typography } from '@material-ui/core';
 import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
+import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PartyType } from 'src/types/shared';
 import type { IParty } from 'src/types/shared';
-
-const useStyles = makeStyles((theme) => ({
-  partyPaper: {
-    marginBottom: '0.75rem',
-    borderRadius: 0,
-    backgroundColor: theme.altinnPalette.primary.blueLighter,
-    boxShadow: theme.sharedStyles.boxShadow,
-    width: '100%',
-  },
-  partyWrapper: {
-    padding: '1.25rem',
-    gap: '0.75rem',
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-  partyWrapperDisabled: {
-    '&:hover': {
-      cursor: 'not-allowed',
-    },
-  },
-  partyPaperDisabled: {
-    marginBottom: '0.75rem',
-    borderRadius: 0,
-    backgroundColor: theme.altinnPalette.primary.blueLighter,
-    boxShadow: theme.sharedStyles.boxShadow,
-    color: theme.altinnPalette.primary.grey,
-    width: '100%',
-  },
-  partyIcon: {
-    padding: '0.75rem',
-    fontSize: '42px',
-  },
-  partyName: {
-    fontWeight: 700,
-  },
-  partyInfo: {
-    fontWeight: 300,
-    fontSize: '0.875rem',
-  },
-  subUnitWrapper: {
-    color: theme.altinnPalette.primary.black,
-  },
-  subUnitListHeaderWrapper: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-    paddingTop: '0.75rem',
-    paddingBottom: '0.75rem',
-    gap: '0.75rem',
-    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-  },
-  subUnit: {
-    width: '100%',
-    padding: '0 1.25rem',
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueLight,
-      cursor: 'pointer',
-    },
-  },
-  subUnitListHeader: {
-    paddingLeft: '1.5rem',
-    paddingRight: '1.5rem',
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueLight,
-      cursor: 'pointer',
-    },
-  },
-
-  subUnitListHeaderIcon: {
-    fontSize: '2rem',
-    color: theme.altinnPalette.primary.blue,
-  },
-  subUnitTextWrapper: {
-    padding: '1.25rem',
-    paddingLeft: '3rem',
-    gap: '0.75rem',
-    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-  },
-  subUnitTextBold: {
-    fontWeight: 700,
-  },
-  subUnitIcon: {
-    paddingLeft: '1.75rem',
-    fontSize: '2.625rem',
-  },
-}));
 
 export interface IAltinnPartyProps {
   party: IParty;
@@ -105,7 +19,6 @@ export interface IAltinnPartyProps {
 }
 
 export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
-  const classes = useStyles();
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);

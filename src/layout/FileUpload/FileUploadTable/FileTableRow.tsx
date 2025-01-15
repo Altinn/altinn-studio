@@ -13,7 +13,7 @@ import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTabl
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -124,7 +124,7 @@ const NameCell = ({
           {mobileView && (
             <div
               style={{
-                color: AltinnAppTheme.altinnPalette.primary.grey,
+                color: AltinnPalette.grey,
               }}
             >
               {attachment.uploaded ? (

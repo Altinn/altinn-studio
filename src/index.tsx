@@ -18,7 +18,7 @@ import { AppWrapper } from '@altinn/altinn-design-system';
 
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { ThemeWrapper } from 'src/components/ThemeWrapper';
+import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
@@ -69,11 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <AppWrapper>
           <LanguageProvider>
             <LangToolsStoreProvider>
-              <ThemeWrapper>
+              <ViewportWrapper>
                 <UiConfigProvider>
                   <RouterProvider router={router} />
                 </UiConfigProvider>
-              </ThemeWrapper>
+              </ViewportWrapper>
             </LangToolsStoreProvider>
           </LanguageProvider>
         </AppWrapper>

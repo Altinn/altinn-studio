@@ -23,7 +23,7 @@
 }
 
 .panel {
-  background-color: #efefef;
+  background-color: var(--colors-primary-greyLight);
   z-index: 1000;
   position: fixed;
   bottom: 0;

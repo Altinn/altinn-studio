@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -12,71 +11,9 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-const useStyles = makeStyles((theme) => ({
-  menu: {
-    listStyleType: 'none',
-    textDecoration: 'none',
-    paddingLeft: '0px',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 6,
-
-    [theme.breakpoints.down(600)]: {
-      flexDirection: 'column',
-    },
-  },
-  menuCompact: {
-    flexDirection: 'column',
-  },
-  containerBase: {
-    borderRadius: '40px',
-    margin: 2,
-    '&:active': {
-      backgroundColor: theme.altinnPalette.primary.blueDark,
-    },
-  },
-  buttonBase: {
-    cursor: 'pointer',
-    background: 'none',
-    fontFamily: 'inherit',
-    border: 'none',
-    outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-    width: '100%',
-    height: '100%',
-    display: 'block',
-    textAlign: 'left',
-    padding: '8px 14px',
-    borderRadius: '40px',
-    fontSize: '1rem',
-
-    '&:hover': {
-      outline: `3px solid ${theme.altinnPalette.primary.blueMedium}`,
-    },
-    '&:focus-within': {
-      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
-      outlineOffset: 'var(--fds-focus-border-width)',
-      boxShadow: '0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color)',
-    },
-  },
-  buttonSelected: {
-    color: theme.altinnPalette.primary.white,
-    backgroundColor: theme.altinnPalette.primary.blueDarker,
-  },
-  hidden: {
-    display: 'none !important',
-  },
-  dropdownMenuContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dropdownIcon: {
-    marginLeft: '0.625rem',
-  },
-}));
 
 export type INavigationBar = PropsFromGenericComponent<'NavigationBar'>;
 
@@ -89,33 +26,28 @@ interface INavigationButton {
 
 const NavigationButton = React.forwardRef(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ({ onClick, hidden = false, children, current, ...rest }: INavigationButton, ref: any) => {
-    const classes = useStyles();
-
-    return (
-      <button
-        hidden={hidden}
-        type='button'
-        className={cn(classes.buttonBase, {
-          [classes.buttonSelected]: current,
-          [classes.hidden]: hidden,
-        })}
-        onClick={onClick}
-        ref={ref}
-        {...(current && { 'aria-current': 'page' })}
-        {...rest}
-      >
-        {children}
-      </button>
-    );
-  },
+  ({ onClick, hidden = false, children, current, ...rest }: INavigationButton, ref: any) => (
+    <button
+      hidden={hidden}
+      type='button'
+      className={cn(classes.buttonBase, {
+        [classes.buttonSelected]: current,
+        [classes.hidden]: hidden,
+      })}
+      onClick={onClick}
+      ref={ref}
+      {...(current && { 'aria-current': 'page' })}
+      {...rest}
+    >
+      {children}
+    </button>
+  ),
 );
 
 NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBarComponent = ({ node }: INavigationBar) => {
   const { compact, validateOnForward, validateOnBackward } = useNodeItem(node);
-  const classes = useStyles();
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();

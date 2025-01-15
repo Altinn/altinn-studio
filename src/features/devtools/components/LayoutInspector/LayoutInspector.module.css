@@ -73,7 +73,7 @@
 .properties > textarea {
   box-sizing: border-box;
   width: 100%;
-  background-color: #efefef;
+  background-color: var(--colors-primary-greyLight);
   padding: 6px 4px;
   border-radius: 4px;
   line-height: 1.2;
@@ -120,7 +120,7 @@
 }
 
 .errorList code {
-  background-color: #efefef;
+  background-color: var(--colors-primary-greyLight);
   padding: 2px 4px;
   border-radius: 4px;
 }

@@ -34,9 +34,9 @@
   0%,
   100%,
   80% {
-    box-shadow: 0 0.625em 0 -0.325em #008fd6;
+    box-shadow: 0 0.625em 0 -0.325em var(--colors-primary-blueMedium);
   }
   40% {
-    box-shadow: 0 0.625em 0 0 #008fd6;
+    box-shadow: 0 0.625em 0 0 var(--colors-primary-blueMedium);
   }
 }

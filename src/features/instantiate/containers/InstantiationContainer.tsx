@@ -8,7 +8,7 @@ import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import classes from 'src/features/instantiate/containers/InstantiationContainer.module.css';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 
 export interface IInstantiateContainerProps {
@@ -16,7 +16,7 @@ export interface IInstantiateContainerProps {
 }
 
 export function InstantiationContainer({ children }: IInstantiateContainerProps) {
-  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
+  changeBodyBackground(AltinnPalette.white);
   const profile = useProfile();
 
   return (

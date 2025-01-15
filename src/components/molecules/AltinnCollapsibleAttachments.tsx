@@ -1,29 +1,13 @@
 import React from 'react';
 
-import { Collapse, List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
+import { Collapse, List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import classes from 'src/components/molecules/AltinnCollapsibleAttachments.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IDisplayAttachment } from 'src/types/shared';
-
-const useStyles = makeStyles(() => ({
-  listItemTextPadding: {
-    paddingLeft: '0',
-  },
-  transformArrowRight: {
-    transform: 'rotate(-90deg)',
-  },
-  transition: {
-    transitionDuration: '0.1s',
-    minWidth: '0px',
-    marginRight: '10px',
-  },
-  collapsedTitle: {
-    fontSize: '20px',
-  },
-}));
 
 interface IAltinnCollapsibleAttachmentsProps {
   attachments?: IDisplayAttachment[];
@@ -44,7 +28,6 @@ export function AltinnCollapsibleAttachments({
   hideCount,
 }: IAltinnCollapsibleAttachmentsProps) {
   const [open, setOpen] = React.useState(true);
-  const classes = useStyles();
   const { elementAsString } = useLanguage();
 
   function handleOpenClose() {

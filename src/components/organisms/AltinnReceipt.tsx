@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 
-import { makeStyles, Typography } from '@material-ui/core';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { Heading } from '@digdir/designsystemet-react';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
+import classes from 'src/components/organisms/AltinnReceipt.module.css';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IAttachmentGrouping, IDisplayAttachment } from 'src/types/shared';
@@ -23,33 +23,32 @@ export interface IReceiptComponentProps {
   titleSubmitted: React.ReactNode;
 }
 
-const useStyles = makeStyles(() => ({
-  instanceMetaData: {
-    marginTop: 36,
-  },
-  tableCell: {
-    borderBottom: 0,
-    paddingRight: '1.5625rem',
-  },
-  tableRow: {
-    height: 'auto',
-  },
-  paddingTop24: {
-    paddingTop: '1.5rem',
-  },
-  wordBreak: {
-    wordBreak: 'break-word',
-  },
-}));
-
 interface ICollapsibleAttacments {
   attachments: IDisplayAttachment[];
   title: React.ReactNode;
   hideCollapsibleCount?: boolean;
 }
 
+/**
+ * Watches the print media query and returns true if the page is being printed
+ */
+function useIsPrint() {
+  const [isPrint, setIsPrint] = useState(() => window.matchMedia('print').matches);
+
+  useEffect(() => {
+    const mediaQueryList = window.matchMedia('print');
+    const handleChange = (event: MediaQueryListEvent) => setIsPrint(event.matches);
+    mediaQueryList.addEventListener('change', handleChange);
+    return () => {
+      mediaQueryList.removeEventListener('change', handleChange);
+    };
+  }, []);
+
+  return isPrint;
+}
+
 const CollapsibleAttachments = ({ attachments, title, hideCollapsibleCount }: ICollapsibleAttacments) => {
-  const isPrint = useMediaQuery('print') ? false : Boolean(attachments.length > 4);
+  const isPrint = useIsPrint() ? false : Boolean(attachments.length > 4);
 
   return (
     <AltinnCollapsibleAttachments
@@ -123,49 +122,48 @@ export function ReceiptComponent({
   collapsibleTitle,
   hideCollapsibleCount,
 }: IReceiptComponentProps) {
-  const classes = useStyles();
-
-  // renders attachment groups. Always shows default group first
   return (
     <div
       data-testid='altinn-receipt'
       className={classes.wordBreak}
     >
-      <Typography variant='h2'>{title}</Typography>
+      <Heading
+        level={2}
+        size='medium'
+      >
+        {title}
+      </Heading>
       <AltinnSummaryTable summaryDataObject={instanceMetaDataObject} />
       {subtitle && (
-        <Typography
-          variant='body1'
-          className={classes.paddingTop24}
-        >
+        <div className={classes.paddingTop24}>
           <a
             className='altinnLink'
             href={subtitleurl}
           >
             {subtitle}
           </a>
-        </Typography>
+        </div>
       )}
 
-      <Typography
+      <div
         id='body-text'
-        variant='body1'
         className={classes.paddingTop24}
       >
         {body}
-      </Typography>
+      </div>
       {pdf && pdf.length > 0 && (
         <>
           {titleSubmitted && (
-            <Typography
-              variant='h3'
+            <Heading
+              level={3}
+              size='small'
               style={{
                 paddingTop: '2.562rem',
                 paddingBottom: '0.3125rem',
               }}
             >
               {titleSubmitted}
-            </Typography>
+            </Heading>
           )}
           <AltinnAttachment
             attachments={pdf}

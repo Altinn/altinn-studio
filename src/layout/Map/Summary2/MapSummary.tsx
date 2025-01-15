@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { ErrorMessage } from '@digdir/designsystemet-react';
-import { Typography } from '@material-ui/core';
+import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
@@ -75,12 +74,12 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
         isSummary={true}
       />
       {markerLocation && (
-        <Typography className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>
+        <Paragraph className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>
           <Lang
             id='map_component.selectedLocation'
             params={[markerLocation.latitude, markerLocation.longitude]}
           />
-        </Typography>
+        </Paragraph>
       )}
       {errors?.map(({ message }) => (
         <ErrorMessage key={message.key}>

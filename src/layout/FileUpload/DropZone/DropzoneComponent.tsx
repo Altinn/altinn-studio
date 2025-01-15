@@ -9,7 +9,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/DropZone/mapExtensionToAcceptMime';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import type { CompInternal } from 'src/layout/layout';
 
 export interface IDropzoneComponentProps {
@@ -37,7 +37,7 @@ export const baseStyle = {
   width: 'auto',
   height: '9.75rem',
   borderWidth: '2px',
-  borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
+  borderColor: AltinnPalette.blueMedium,
   borderStyle: 'dotted',
   cursor: 'pointer',
 };
@@ -46,7 +46,7 @@ export const activeStyle = {
 };
 export const validationErrorStyle = {
   borderStyle: 'dotted',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
+  borderColor: AltinnPalette.red,
 };
 
 export function DropzoneComponent({

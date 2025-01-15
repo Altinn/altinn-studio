@@ -6,7 +6,7 @@
 }
 
 .blueUnderLine {
-  border-bottom: 2px solid #1eadf7 !important;
+  border-bottom: 2px solid var(--colors-primary-blue) !important;
 }
 
 .fileUploadTextBoldSmall {
@@ -32,9 +32,9 @@
 }
 
 .fileUpload:focus {
-  border-color: #0062ba !important;
+  border-color: var(--colors-primary-blueDark) !important;
   border-style: solid !important;
-  outline: 2px solid #0062ba;
+  outline: 2px solid var(--colors-primary-blueDark);
   outline-offset: 0px;
 }
 

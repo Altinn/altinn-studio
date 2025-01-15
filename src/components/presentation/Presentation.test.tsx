@@ -8,7 +8,7 @@ import axios from 'axios';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
@@ -115,7 +115,7 @@ describe('Presentation', () => {
 
     const appHeader = screen.getByTestId('AltinnAppHeader');
 
-    expect(appHeader).toHaveStyle(`background-color: ${AltinnAppTheme.altinnPalette.primary.greyLight}`);
+    expect(appHeader).toHaveStyle(`background-color: ${AltinnPalette.greyLight}`);
   });
 
   it('the background color should be lightGreen if type is "ProcessTaskType.Archived"', async () => {
@@ -123,7 +123,7 @@ describe('Presentation', () => {
 
     const appHeader = screen.getByTestId('AltinnAppHeader');
 
-    expect(appHeader).toHaveStyle(`background-color: ${AltinnAppTheme.altinnPalette.primary.greenLight}`);
+    expect(appHeader).toHaveStyle(`background-color: ${AltinnPalette.greenLight}`);
   });
 });
 

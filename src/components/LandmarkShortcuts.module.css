@@ -1,0 +1,17 @@
+.button {
+  text-decoration: underline;
+  text-align: left;
+  padding: 5px 5px 5px 10px;
+}
+
+.srOnly {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.srOnly:focus {
+  position: relative;
+  width: auto;
+  height: auto;
+}

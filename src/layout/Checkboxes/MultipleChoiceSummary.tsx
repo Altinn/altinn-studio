@@ -1,42 +1,16 @@
 import React from 'react';
 
-import { List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
-
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
+import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
 import type { DisplayDataProps } from 'src/features/displayData';
 
 export interface IMultipleChoiceSummaryProps {
   getFormData: (displayDataProps: DisplayDataProps) => { [key: string]: string };
 }
 
-const useStyles = makeStyles({
-  list: {
-    padding: 0,
-  },
-  listItem: {
-    padding: 0,
-  },
-  // Match style in \src\components\summary\SingleInputSummary.tsx
-  data: {
-    overflowWrap: 'break-word',
-    fontWeight: 500,
-    fontSize: '1.125rem',
-    '& p': {
-      fontWeight: 500,
-      fontSize: '1.125rem',
-    },
-  },
-  emptyField: {
-    fontStyle: 'italic',
-    fontSize: '1rem',
-    lineHeight: 1.6875,
-  },
-});
-
 export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryProps) {
-  const classes = useStyles();
   const props = useDisplayDataProps();
   const formData = getFormData(props);
 
@@ -47,27 +21,20 @@ export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryPro
       data-testid='multiple-choice-summary'
     >
       {Object.keys(formData).length === 0 ? (
-        <Typography
-          variant='body1'
-          className={classes.emptyField}
-        >
+        <span className={classes.emptyField}>
           <Lang id='general.empty_summary' />
-        </Typography>
+        </span>
       ) : (
-        <List classes={{ root: classes.list }}>
+        <ul className={classes.list}>
           {Object.keys(formData).map((key) => (
-            <ListItem
+            <li
               key={key}
-              classes={{ root: classes.listItem }}
+              className={classes.listItem}
             >
-              <ListItemText
-                id={key}
-                primaryTypographyProps={{ classes: { root: classes.data } }}
-                primary={formData[key]}
-              />
-            </ListItem>
+              <div className={classes.data}>{formData[key]}</div>
+            </li>
           ))}
-        </List>
+        </ul>
       )}
     </Flex>
   );

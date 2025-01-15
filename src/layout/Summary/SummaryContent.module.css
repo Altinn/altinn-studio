@@ -7,7 +7,7 @@
   grid-area: label;
 }
 .labelError {
-  color: #d5203b;
+  color: var(--colors-primary-red);
 }
 
 .summary {

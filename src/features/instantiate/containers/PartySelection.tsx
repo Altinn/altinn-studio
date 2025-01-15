@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
 import { LegacyCheckbox } from '@digdir/design-system-react';
-import { makeStyles, Typography } from '@material-ui/core';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
@@ -13,6 +13,7 @@ import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
+import classes from 'src/features/instantiate/containers/PartySelection.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import {
@@ -22,68 +23,15 @@ import {
   useSetHasSelectedParty,
 } from 'src/features/party/PartiesProvider';
 import { useNavigate } from 'src/features/routing/AppRoutingContext';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
 import type { IParty } from 'src/types/shared';
 
-const useStyles = makeStyles((theme) => ({
-  partySelectionTitle: {
-    fontSize: '2.1875rem',
-    fontWeight: 200,
-    paddingBottom: 18,
-    padding: 12,
-  },
-  partySelectionError: {
-    fontSize: '1.093rem',
-    fontWeight: 300,
-    backgroundColor: theme.altinnPalette.primary.redLight,
-    padding: 12,
-    margin: 12,
-  },
-  partySearchFieldContainer: {
-    padding: '8px 12px 0 12px',
-    width: '100%',
-    '@media screen and (min-width: 768px)': {
-      width: '50% !important',
-    },
-  },
-  partySelectionSubTitle: {
-    fontSize: '1.093rem',
-    fontWeight: 600,
-    paddingTop: 24,
-    paddingBottom: 18,
-    padding: 12,
-  },
-  loadMoreButton: {
-    padding: 5,
-    backgroundColor: theme.altinnPalette.primary.white,
-    border: `2px dotted ${theme.altinnPalette.primary.blue}`,
-  },
-  loadMoreButtonIcon: {
-    marginLeft: '0.9375rem',
-  },
-  loadMoreButtonText: {
-    display: 'flex',
-    alignItems: 'center',
-    fontSize: '1.093rem',
-    marginLeft: '0.75rem',
-    fontWeight: 500,
-  },
-  partySelectionCheckbox: {
-    paddingTop: 24,
-    padding: 12,
-  },
-  checkboxLabels: {
-    paddingTop: '0.75rem',
-  },
-}));
-
 export const PartySelection = () => {
-  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
-  const classes = useStyles();
+  changeBodyBackground(AltinnPalette.white);
   const match = useMatch(`/party-selection/:errorCode`);
   const errorCode = match?.params.errorCode;
 
@@ -144,7 +92,7 @@ export const PartySelection = () => {
                 fontSize='1rem'
                 aria-hidden
               />
-              {langAsString('party_selection.load_more')}
+              <Lang id='party_selection.load_more' />
             </Button>
           </Flex>
         ) : null}
@@ -162,15 +110,15 @@ export const PartySelection = () => {
   function templateErrorMessage() {
     if (errorCode === '403') {
       return (
-        <Typography
+        <Paragraph
           data-testid={`error-code-${HttpStatusCodes.Forbidden}`}
-          className={classes.partySelectionError}
+          className={classes.error}
           id='party-selection-error'
         >
           {`${langAsString('party_selection.invalid_selection_first_part')} ${getRepresentedPartyName()}.
             ${langAsString('party_selection.invalid_selection_second_part')} ${templatePartyTypesString()}.
             ${langAsString('party_selection.invalid_selection_third_part')}`}
-        </Typography>
+        </Paragraph>
       );
     }
   }
@@ -243,18 +191,18 @@ export const PartySelection = () => {
           flexDirection: 'row',
         }}
       >
-        <Typography
-          variant='h1'
-          className={classes.partySelectionTitle}
+        <Heading
+          level={1}
+          className={classes.title}
         >
-          {langAsString('party_selection.header')}
-        </Typography>
+          <Lang id='party_selection.header' />
+        </Heading>
         {templateErrorMessage()}
       </Flex>
       <Flex
         container
         direction='column'
-        className={classes.partySearchFieldContainer}
+        className={classes.searchFieldContainer}
       >
         <Input
           size='md'
@@ -275,9 +223,9 @@ export const PartySelection = () => {
           direction='row'
         >
           <Flex item>
-            <Typography className={classes.partySelectionSubTitle}>
-              {langAsString('party_selection.subheader')}
-            </Typography>
+            <Paragraph className={classes.subTitle}>
+              <Lang id='party_selection.subheader' />
+            </Paragraph>
           </Flex>
 
           <Flex item>
@@ -287,7 +235,7 @@ export const PartySelection = () => {
             >
               <Flex
                 item
-                className={classes.partySelectionCheckbox}
+                className={classes.checkbox}
               >
                 <Flex
                   container
@@ -296,13 +244,13 @@ export const PartySelection = () => {
                   <LegacyCheckbox
                     checked={showDeleted}
                     onChange={toggleShowDeleted}
-                    label={langAsString('party_selection.show_deleted')}
+                    label={<Lang id='party_selection.show_deleted' />}
                   />
                 </Flex>
               </Flex>
               <Flex
                 item
-                className={classes.partySelectionCheckbox}
+                className={classes.checkbox}
               >
                 <Flex
                   container
@@ -311,7 +259,7 @@ export const PartySelection = () => {
                   <LegacyCheckbox
                     checked={showSubUnits}
                     onChange={toggleShowSubUnits}
-                    label={langAsString('party_selection.show_sub_unit')}
+                    label={<Lang id='party_selection.show_sub_unit' />}
                   />
                 </Flex>
               </Flex>
@@ -321,13 +269,14 @@ export const PartySelection = () => {
         {renderParties()}
         {errorCode === 'explained' && (
           <Flex style={{ padding: 12 }}>
-            <Typography
-              variant='h2'
+            <Heading
+              level={2}
+              size='medium'
               style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: 12 }}
             >
-              {langAsString('party_selection.why_seeing_this')}
-            </Typography>
-            <Typography variant='body1'>
+              <Lang id='party_selection.why_seeing_this' />
+            </Heading>
+            <Paragraph>
               <Lang
                 id={
                   appPromptForPartyOverride === 'always'
@@ -335,7 +284,7 @@ export const PartySelection = () => {
                     : 'party_selection.seeing_this_preference'
                 }
               />
-            </Typography>
+            </Paragraph>
           </Flex>
         )}
       </Flex>

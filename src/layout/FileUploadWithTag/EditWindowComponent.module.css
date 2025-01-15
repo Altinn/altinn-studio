@@ -20,7 +20,7 @@
 .textContainer {
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: #000;
+  color: var(--colors-primary-black);
   font-weight: 500;
   font-size: 0.875rem;
   min-width: 0px;
@@ -41,5 +41,5 @@
 }
 
 .select:focus {
-  outline: 2px solid #0062ba;
+  outline: 2px solid var(--colors-primary-blueDark);
 }

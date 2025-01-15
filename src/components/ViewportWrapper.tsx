@@ -1,18 +1,11 @@
 import React from 'react';
-import type { ReactNode } from 'react';
-
-import { createTheme, ThemeProvider } from '@material-ui/core';
+import type { PropsWithChildren } from 'react';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
-type ThemeWrapperProps = {
-  children?: ReactNode;
-};
-
-export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
+export const ViewportWrapper = ({ children }: PropsWithChildren) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const selectedLanguage = useCurrentLanguage();
@@ -42,24 +35,17 @@ export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
   }, [isMobile, isTablet]);
 
   return (
-    <ThemeProvider
-      theme={createTheme({
-        ...AltinnAppTheme,
-        direction,
-      })}
+    <div
+      style={
+        isRtl
+          ? {
+              direction: 'rtl',
+              textAlign: 'right',
+            }
+          : undefined
+      }
     >
-      <div
-        style={
-          isRtl
-            ? {
-                direction: 'rtl',
-                textAlign: 'right',
-              }
-            : undefined
-        }
-      >
-        {children}
-      </div>
-    </ThemeProvider>
+      {children}
+    </div>
   );
 };

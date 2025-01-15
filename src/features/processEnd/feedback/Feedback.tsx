@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import { Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -16,6 +16,7 @@ export function Feedback() {
   const appName = useAppName();
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
+
   // Continually re-fetch process data while the user is on the feedback page
   useBackoff({
     enabled: !!currentTask && !!reFetchProcessData,
@@ -27,12 +28,12 @@ export function Feedback() {
       <Helmet>
         <title>{`${getPageTitle(appName, langAsString('feedback.title'), appOwner)}`}</title>
       </Helmet>
-      <Typography variant='body1'>
+      <Paragraph>
         <Lang id='feedback.title' />
-      </Typography>
-      <Typography variant='body1'>
+      </Paragraph>
+      <Paragraph>
         <Lang id='feedback.body' />
-      </Typography>
+      </Paragraph>
       <ReadyForPrint type='load' />
     </div>
   );

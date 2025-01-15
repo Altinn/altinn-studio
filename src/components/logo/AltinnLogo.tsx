@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import classes from 'src/components/logo/AltinnLogo.module.css';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 
+/** @see altinnAppTheme.tsx */
 export enum LogoColor {
   blueDark = '#0062BA',
   blueDarker = '#022F51',

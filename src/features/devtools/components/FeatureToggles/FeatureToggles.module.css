@@ -39,7 +39,7 @@
 .sideBar pre {
   width: min-content;
   background-color: #0a0a0a;
-  color: #efefef;
+  color: var(--colors-primary-greyLight);
   padding: 0.5rem;
   font-size: 0.8rem;
   margin: 8px 0;
