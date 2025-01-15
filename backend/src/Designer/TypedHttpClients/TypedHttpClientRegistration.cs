@@ -38,6 +38,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient();
+            services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
             services.AddTransient<EnsureSuccessHandler>();
             services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
@@ -70,7 +71,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}build/builds/");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+            }).AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>().AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
         private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)

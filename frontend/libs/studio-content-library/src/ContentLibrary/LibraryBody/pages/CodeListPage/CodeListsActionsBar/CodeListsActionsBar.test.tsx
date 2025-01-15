@@ -13,12 +13,12 @@ const codeListName2 = 'codeListName2';
 describe('CodeListsActionsBar', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the search field with placeholder text', () => {
+  it('renders the search field with label', () => {
     renderCodeListsActionsBar();
-    const searchFieldPlaceHolderText = screen.getByPlaceholderText(
-      textMock('app_content_library.code_lists.search_placeholder'),
-    );
-    expect(searchFieldPlaceHolderText).toBeInTheDocument();
+    const searchFieldLabelText = screen.getByRole('searchbox', {
+      name: textMock('app_content_library.code_lists.search_label'),
+    });
+    expect(searchFieldLabelText).toBeInTheDocument();
   });
 
   it('renders the file uploader button', () => {
