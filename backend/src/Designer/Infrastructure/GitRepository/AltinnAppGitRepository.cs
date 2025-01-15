@@ -798,7 +798,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string optionsFolder = Path.Combine(OptionsFolderPath);
             if (!DirectoryExistsByRelativePath(optionsFolder))
             {
-                throw new NotFoundException("Options folder not found.");
+                return [];
             }
 
             string[] fileNames = GetFilesByRelativeDirectoryAscSorted(optionsFolder, "*.json");
