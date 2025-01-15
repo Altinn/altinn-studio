@@ -3,19 +3,6 @@
   "data": {
     "layout": [
       {
-        "displayMode": "list",
-        "hasCustomFileEndings": false,
-        "maxFileSizeInMB": 25,
-        "maxNumberOfAttachments": 1,
-        "minNumberOfAttachments": 1,
-        "id": "FileUpload-fU4NBP",
-        "type": "FileUpload",
-        "textResourceBindings": {
-          "title": "signering-av-stiftelsesdok.FileUpload-fU4NBP.title",
-          "description": "signering-av-stiftelsesdok.FileUpload-fU4NBP.description"
-        }
-      },
-      {
         "size": "L",
         "id": "Header-NfIrgi",
         "type": "Header",
