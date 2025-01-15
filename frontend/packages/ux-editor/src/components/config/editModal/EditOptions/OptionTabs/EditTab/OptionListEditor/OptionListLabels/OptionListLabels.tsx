@@ -2,10 +2,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioParagraph } from '@studio/components';
 import { useConcatOptionsLabels } from '../hooks/useConcatOptionsLabels';
-import type { OptionsList } from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
 import classes from './OptionListLabels.module.css';
 
-type OptionListLabelsProps = { optionsList: OptionsList; optionsId: string };
+type OptionListLabelsProps = { optionsList: OptionList; optionsId: string };
 
 export function OptionListLabels({
   optionsList,

@@ -1,6 +1,6 @@
 import type { CodeListIdSource } from '@studio/content-library';
 import { mapToCodeListsUsage } from './mapToCodeListsUsage';
-import type { OptionListsReferences } from 'app-shared/types/api/OptionsLists';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 
 const optionListId: string = 'optionListId';
 const optionListIdSources: CodeListIdSource[] = [
@@ -10,7 +10,7 @@ const optionListIdSources: CodeListIdSource[] = [
     componentIds: ['componentId1', 'componentId2'],
   },
 ];
-const optionListsUsages: OptionListsReferences = [
+const optionListsUsages: OptionListReferences = [
   {
     optionListId,
     optionListIdSources,

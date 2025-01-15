@@ -1,7 +1,8 @@
-import type { OptionsListData, OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListData } from 'app-shared/types/OptionList';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListData } from '@studio/content-library';
 
-export const convertOptionsListsDataToCodeListsData = (optionListsData: OptionsListsResponse) => {
+export const convertOptionsListsDataToCodeListsData = (optionListsData: OptionListsResponse) => {
   const codeListsData = [];
   optionListsData.map((optionListData) => {
     const codeListData = convertOptionsListDataToCodeListData(optionListData);
@@ -10,7 +11,7 @@ export const convertOptionsListsDataToCodeListsData = (optionListsData: OptionsL
   return codeListsData;
 };
 
-const convertOptionsListDataToCodeListData = (optionListData: OptionsListData) => {
+const convertOptionsListDataToCodeListData = (optionListData: OptionListData) => {
   const codeListData: CodeListData = {
     title: optionListData.title,
     data: optionListData.data,
