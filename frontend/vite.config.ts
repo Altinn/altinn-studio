@@ -43,9 +43,6 @@ export default {
           if (id.includes('node_modules')) {
             return 'vendor';
           }
-          if (id.includes('ux-editor-v3')) {
-            return 'ux-editor-v3';
-          }
         },
       },
     },
