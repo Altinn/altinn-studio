@@ -10,12 +10,12 @@ import { StudioNativeSelect } from '@studio/components';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
+import { useComponentPropertyHelpText } from '../../../../../hooks';
 
 type SelectDataFieldProps = {
   internalBindingFormat: InternalBindingFormat;
   handleBindingChange: (dataModelBindings: InternalBindingFormat) => void;
   bindingKey: string;
-  helpText: string;
   componentType: ComponentType;
 };
 
@@ -23,7 +23,6 @@ export const SelectDataFieldBinding = ({
   internalBindingFormat,
   handleBindingChange,
   bindingKey,
-  helpText,
   componentType,
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
@@ -35,6 +34,7 @@ export const SelectDataFieldBinding = ({
 
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
+  const componentPropertyHelpText = useComponentPropertyHelpText();
 
   // Validate datamodel as well: fallbacks to default if invalid, then user must update datafield
   const isBindingError = !isDataModelFieldValid || !isDataModelValid;
@@ -57,7 +57,7 @@ export const SelectDataFieldBinding = ({
       onChange={handleDataModelFieldChange}
       value={isBindingError ? '' : currentDataModelField}
       propertyPath={propertyPath}
-      helpText={helpText}
+      helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
       label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
         <StudioNativeSelect

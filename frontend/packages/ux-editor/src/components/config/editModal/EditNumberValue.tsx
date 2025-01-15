@@ -6,7 +6,11 @@ import { StudioDecimalInput, StudioNativeSelect } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
-import { useComponentPropertyLabel, useAppContext } from '../../../hooks';
+import {
+  useComponentPropertyLabel,
+  useAppContext,
+  useComponentPropertyHelpText,
+} from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +19,6 @@ type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType,
 export interface EditNumberValueProps<T extends ComponentType, K extends NumberKeys<FormItem<T>>>
   extends IGenericEditComponent<T> {
   propertyKey: K;
-  helpText?: string;
   enumValues?: number[];
 }
 
@@ -23,12 +26,12 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   component,
   handleComponentChange,
   propertyKey,
-  helpText,
   enumValues,
 }: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
   const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const componentPropertyHelpText = useComponentPropertyHelpText();
 
   const handleValueChange = async (newValue: number) => {
     handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue), {
@@ -45,7 +48,7 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
-      helpText={helpText}
+      helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (
           <StudioNativeSelect
