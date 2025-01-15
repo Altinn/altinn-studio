@@ -80,7 +80,8 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             TrimmedControllerName(nameof(DatamodelsController)),
             GenerateFrozenSet(
-                nameof(DatamodelsController.Get)
+                nameof(DatamodelsController.Get),
+                nameof(DatamodelsController.PutDatamodel)
             )
         },
         {
