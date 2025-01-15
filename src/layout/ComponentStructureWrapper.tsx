@@ -35,7 +35,7 @@ export function ComponentStructureWrapper<Type extends CompTypes = CompTypes>({
     <Flex
       id={`form-content-${node.id}`}
       className={className}
-      size={{ ...grid?.innerGrid, xs: 12 }}
+      size={{ xs: 12, ...grid?.innerGrid }}
       style={style}
       item
     >
