@@ -8,9 +8,9 @@
   <xs:element name="subform">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="registreringsnummer" type="xs:string" />
-        <xs:element name="aarsmodell" type="xs:string" />
-        <xs:element name="merke" type="xs:string" />
+        <xs:element name="registrationnumber" type="xs:string" />
+        <xs:element name="modelyear" type="xs:string" />
+        <xs:element name="brand" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

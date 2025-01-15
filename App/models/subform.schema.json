@@ -18,18 +18,18 @@
   "@xsdRootElement": "subform",
   "type": "object",
   "required": [
-    "registreringsnummer",
-    "aarsmodell",
-    "merke"
+    "registrationnumber",
+    "modelyear",
+    "brand"
   ],
   "properties": {
-    "registreringsnummer": {
+    "registrationnumber": {
       "type": "string"
     },
-    "aarsmodell": {
+    "modelyear": {
       "type": "string"
     },
-    "merke": {
+    "brand": {
       "type": "string"
     }
   }
