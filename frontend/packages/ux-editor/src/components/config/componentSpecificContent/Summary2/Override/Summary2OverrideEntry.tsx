@@ -51,7 +51,7 @@ export const Summary2OverrideEntry = ({
   return (
     <>
       <Summmary2ComponentReferenceSelector
-        label={t('ux_editor.component_properties.summary.override.component_id')}
+        label={t('ux_editor.component_properties.summary.override.choose_component')}
         value={override.componentId}
         options={componentOptions}
         onValueChange={(value) => onChangeOverride('componentId', value)}
@@ -125,7 +125,7 @@ const ComponentInGroupCheckbox = ({
       checked={override.isCompact ?? false}
       value='isCompact'
     >
-      {t('ux_editor.component_properties.overrides_is_compact')}
+      {t('ux_editor.component_properties.summary.override.is_compact')}
     </Checkbox>
   );
 };

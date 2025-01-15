@@ -40,7 +40,7 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
         <StudioHeading size='2xs'>{t('ux_editor.component_properties.overrides')}</StudioHeading>
       </StudioCard.Header>
       <StudioParagraph size='sm'>
-        {t('ux_editor.component_properties.overrides_description')}
+        {t('ux_editor.component_properties.summary.override.description')}
       </StudioParagraph>
       <StudioCard.Content>
         {overrides &&

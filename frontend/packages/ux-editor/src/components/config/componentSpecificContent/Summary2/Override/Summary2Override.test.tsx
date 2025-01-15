@@ -43,7 +43,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     expect(
       screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.overrides_type'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type'),
       }),
     ).toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     expect(
       screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.overrides_type'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type'),
       }),
     ).toBeInTheDocument();
   });
@@ -64,7 +64,7 @@ describe('Summary2Override', () => {
     await userEvent.click(addNewOverrideButton());
     expect(
       screen.queryByRole('combobox', {
-        name: textMock('ux_editor.component_properties.overrides_type'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type'),
       }),
     ).not.toBeInTheDocument();
   });
@@ -113,7 +113,6 @@ describe('Summary2Override', () => {
       ),
     );
   });
-
   it('should be able to change override hideEmptyFields', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: '1' }] });
@@ -133,7 +132,7 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: container1IdMock, isCompact: false }] });
     const compactCheckbox = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.overrides_is_compact'),
+      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();
     expect(compactCheckbox).not.toBeChecked();
@@ -149,7 +148,7 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: container1IdMock, isCompact: true }] });
     const compactCheckbox = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.overrides_is_compact'),
+      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();
     expect(compactCheckbox).toBeChecked();
@@ -166,17 +165,17 @@ describe('Summary2Override', () => {
     await userEvent.click(addNewOverrideButton());
     expect(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_list'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.list'),
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_string'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_not_set'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.not_set'),
       }),
     ).toBeInTheDocument();
   });
@@ -187,7 +186,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_list'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.list'),
       }),
     );
     await waitFor(() =>
@@ -203,7 +202,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_string'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
       }),
     );
     await waitFor(() =>
@@ -219,7 +218,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_not_set'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.not_set'),
       }),
     );
     await waitFor(() =>
@@ -235,7 +234,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_list'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.list'),
       }),
     );
     await waitFor(() =>
@@ -251,7 +250,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_string'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
       }),
     );
     await waitFor(() =>
@@ -267,7 +266,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_not_set'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.not_set'),
       }),
     );
     await waitFor(() =>
@@ -283,7 +282,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
     await user.click(
       screen.getByRole('option', {
-        name: textMock('ux_editor.component_properties.overrides_string'),
+        name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
       }),
     );
     await waitFor(() =>
@@ -299,7 +298,7 @@ describe('Summary2Override', () => {
     await user.click(addNewOverrideButton());
 
     const select = screen.getByRole('combobox', {
-      name: textMock('ux_editor.component_properties.overrides_type'),
+      name: textMock('ux_editor.component_properties.summary.override.display_type'),
     });
     await user.selectOptions(select, 'list');
     await waitFor(() =>
@@ -338,7 +337,7 @@ const removeOverrideButton = () => screen.getByRole('button', { name: '' });
 
 const overrideComponentSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.component_id'),
+    name: textMock('ux_editor.component_properties.summary.override.choose_component'),
   });
 
 const defaultProps = {
