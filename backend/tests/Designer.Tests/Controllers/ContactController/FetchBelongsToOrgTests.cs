@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -6,7 +5,6 @@ using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -39,17 +37,6 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
     {
         var anonymousClient = Factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((context, configBuilder) =>
-            {
-                var config = new Dictionary<string, string>
-                {
-                    { "Oidc:ClientId", "dummy-client-id" },
-                    { "Oidc:ClientSecret", "dummy-client-secret" },
-                    { "Oidc:Authority", "https://dummy-authority" }
-                };
-                configBuilder.AddInMemoryCollection(config);
-            });
-
             builder.ConfigureTestServices(services =>
             {
                 services.AddAuthentication("Anonymous")
