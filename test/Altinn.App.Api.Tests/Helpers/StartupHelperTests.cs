@@ -18,16 +18,16 @@ public class StartupHelperTests
     {
         var testDouble = new SwaggerIncludeXmlCommentsTestDouble();
         StartupHelper.IncludeXmlComments(testDouble.IncludeXmlCommentsTestDouble);
-        testDouble.GetStrings().Should().HaveCount(2);
-        testDouble.GetBools().Should().HaveCount(2);
+        testDouble.GetStrings().Should().HaveCount(1);
+        testDouble.GetBools().Should().HaveCount(1);
         testDouble
             .GetStrings()
             .Should()
             .Equal(
-                $"{AppContext.BaseDirectory}Altinn.App.Api.Tests.xml",
+                // $"{AppContext.BaseDirectory}Altinn.App.Api.Tests.xml", // Tests does not generate XML documentation
                 $"{AppContext.BaseDirectory}Altinn.App.Api.xml"
             );
-        testDouble.GetBools().Should().Equal(false, false);
+        testDouble.GetBools().Should().Equal(false);
     }
 
     [Fact]
