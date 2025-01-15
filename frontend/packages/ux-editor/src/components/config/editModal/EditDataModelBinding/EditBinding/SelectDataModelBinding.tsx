@@ -74,7 +74,6 @@ export const SelectDataModelBinding = ({
     <StudioDisplayTile
       label={t('ux_editor.modal_properties_data_model_binding')}
       value={selectedDataModel}
-      className={classes.displayTileContainer}
     />
   );
 };
