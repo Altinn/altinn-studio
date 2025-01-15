@@ -2,7 +2,6 @@ using System;
 using System.Text.Json;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
-using FluentAssertions;
 
 namespace Designer.Tests.DbIntegrationTests;
 

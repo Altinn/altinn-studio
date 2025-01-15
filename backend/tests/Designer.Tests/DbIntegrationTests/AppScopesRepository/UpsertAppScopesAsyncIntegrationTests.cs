@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 

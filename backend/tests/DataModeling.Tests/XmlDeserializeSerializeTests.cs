@@ -4,7 +4,6 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.Utils;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 

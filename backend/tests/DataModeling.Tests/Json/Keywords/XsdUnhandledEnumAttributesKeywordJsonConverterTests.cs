@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using FluentAssertions;
 using Xunit;
 using static Altinn.Studio.DataModeling.Json.Keywords.XsdUnhandledEnumAttributesKeyword;
 

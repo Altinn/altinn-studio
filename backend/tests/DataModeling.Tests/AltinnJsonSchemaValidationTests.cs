@@ -2,7 +2,6 @@
 using Altinn.Studio.DataModeling.Validator.Json;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
-using FluentAssertions;
 using Json.Pointer;
 using Xunit;
 

@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter

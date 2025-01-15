@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Json.Schema;
 using Xunit;
 

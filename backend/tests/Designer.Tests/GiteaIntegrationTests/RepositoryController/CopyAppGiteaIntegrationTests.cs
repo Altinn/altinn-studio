@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController

@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Metamodel;
 using DataModeling.Tests.BaseClasses;
 using Designer.Tests.Assertions;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 

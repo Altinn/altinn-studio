@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Altinn.Studio.DataModeling.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Utils;

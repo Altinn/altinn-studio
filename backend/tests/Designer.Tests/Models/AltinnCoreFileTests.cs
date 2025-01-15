@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests

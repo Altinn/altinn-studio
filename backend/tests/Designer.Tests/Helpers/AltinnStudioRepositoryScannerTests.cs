@@ -1,6 +1,5 @@
 using System.IO;
 using Altinn.Studio.Designer.Helpers;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.Helpers;

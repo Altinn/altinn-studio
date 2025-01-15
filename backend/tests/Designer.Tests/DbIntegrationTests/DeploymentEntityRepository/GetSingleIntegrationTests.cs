@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;

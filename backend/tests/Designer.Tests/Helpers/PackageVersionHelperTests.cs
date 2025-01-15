@@ -2,7 +2,6 @@
 using System.Linq;
 using Altinn.Studio.Designer.Helpers;
 using DotNet.Testcontainers.Builders;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.Helpers

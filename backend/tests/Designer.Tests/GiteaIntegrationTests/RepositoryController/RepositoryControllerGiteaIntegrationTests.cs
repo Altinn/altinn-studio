@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Polly;
 using Polly.Retry;
 using Xunit;

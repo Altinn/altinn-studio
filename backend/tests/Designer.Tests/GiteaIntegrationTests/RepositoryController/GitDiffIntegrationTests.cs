@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Services;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;

@@ -16,7 +16,6 @@ using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;

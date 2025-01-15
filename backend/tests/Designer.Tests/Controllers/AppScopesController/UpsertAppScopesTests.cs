@@ -11,7 +11,6 @@ using Designer.Tests.Controllers.AppScopesController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Xunit;

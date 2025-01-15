@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
-using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 

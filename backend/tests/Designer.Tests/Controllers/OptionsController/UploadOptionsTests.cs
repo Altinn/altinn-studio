@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -105,7 +104,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
 
         string optionsFileName = "missing-fields-options.json";
         string jsonOptions = @"[
-        {""value"": """" }, 
+        {""value"": """" },
         {""label"": """" },
     ]";
 

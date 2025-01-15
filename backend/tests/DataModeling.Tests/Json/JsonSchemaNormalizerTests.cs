@@ -4,7 +4,6 @@ using System.Text.Unicode;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 

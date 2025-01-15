@@ -1,5 +1,4 @@
 ﻿using Altinn.Studio.DataModeling.Utils;
-using FluentAssertions;
 using Json.Pointer;
 using Json.Schema;
 using Xunit;

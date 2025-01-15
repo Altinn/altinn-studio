@@ -1,5 +1,4 @@
 using DataModeling.Tests.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests
