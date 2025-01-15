@@ -213,5 +213,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="component">The component to add.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         public Task AddComponentToLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, object component, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Update layout references
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="referencesToUpdate">The references to update.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task<bool> UpdateLayoutReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToUpdate, CancellationToken cancellationToken);
     }
 }

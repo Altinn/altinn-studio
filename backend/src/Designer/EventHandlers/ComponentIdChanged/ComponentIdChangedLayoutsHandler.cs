@@ -15,7 +15,8 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
     public ComponentIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IAppDevelopmentService appDevelopmentService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;

@@ -1,4 +1,6 @@
-﻿using System.Net;
+using System;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -91,6 +93,50 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
             JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "component", "Side2", "Input-Om7N3y")]
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId)
+        {
+            string actualApp = "app-with-summary2-components";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
+            JsonNode layoutWithDeletedComponent = JsonNode.Parse(layout);
+            JsonArray layoutArray = layoutWithDeletedComponent["data"]["layout"] as JsonArray;
+            layoutArray?.RemoveAt(0);
+
+            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            var payload = new JsonObject
+            {
+                ["componentIdsChange"] = new JsonArray() {
+                    new JsonObject
+                    {
+                        ["oldComponentId"] = componentId,
+                    }
+                },
+                ["layout"] = layoutWithDeletedComponent
+            };
+            HttpResponseMessage response = await SendHttpRequest(url, payload);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string expectedApp = "app-with-summary2-components-after-deleting-references";
+
+            string[] layoutPaths = [
+                "component/layouts/Side1.json",
+                "component/layouts/Side2.json",
+                "component2/layouts/Side1.json",
+                "component2/layouts/Side2.json"
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
+            });
         }
 
         [Theory]
