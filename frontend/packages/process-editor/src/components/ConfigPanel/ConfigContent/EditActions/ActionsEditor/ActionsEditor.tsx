@@ -43,7 +43,6 @@ export const ActionsEditor = ({
 
   const actionLabel = t('process_editor.configuration_panel_actions_action_label', {
     actionIndex: actionIndex + 1,
-    actionName: actionElement.action,
   });
 
   if (componentMode === 'edit') {

@@ -19,7 +19,7 @@ public class GetSingleIntegrationTests : ReleaseEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task GetSingleAsync_WhenCalled_ShouldReturnSingleReleaseEntity(string releaseName)
     {
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(releaseName, buildId: buildId.ToString());
         await PrepareEntityInDatabase(releaseEntity);

@@ -60,7 +60,7 @@ test('should be possible to remove action from task', async ({
   const giteaPage = new GiteaPage(page, { app: testAppName });
   const processEditorPage = await setupProcessEditorActionConfigPanel(page, testAppName);
 
-  await processEditorPage.actionsConfig.editAction('write');
+  await processEditorPage.actionsConfig.editAction();
 
   await processEditorPage.actionsConfig.deleteAction('write');
   await commitAndPushToGitea(page, testAppName);

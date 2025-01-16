@@ -27,6 +27,7 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     modelPath,
     saveOnly,
   })}`; // Get, Put, Delete
+export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`;
 export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
 export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
@@ -184,3 +185,6 @@ export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${ba
 
 // Event Hubs
 export const SyncEventsWebSocketHub = () => '/sync-hub';
+
+// Contact
+export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;

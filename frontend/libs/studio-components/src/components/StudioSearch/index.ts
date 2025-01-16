@@ -1,0 +1,1 @@
+export { StudioSearch } from './StudioSearch';
