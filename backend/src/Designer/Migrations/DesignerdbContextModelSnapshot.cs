@@ -145,6 +145,12 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("created_by");
 
+                    b.Property<int>("DeploymentType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("deployment_type");
+
                     b.Property<string>("Entity")
                         .HasColumnType("text")
                         .HasColumnName("entity");

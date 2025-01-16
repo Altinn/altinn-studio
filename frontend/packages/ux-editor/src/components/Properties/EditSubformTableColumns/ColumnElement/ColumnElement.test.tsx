@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
@@ -31,7 +31,7 @@ const defaultProps: ColumnElementProps = {
   isInitialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
-  layoutSetName: layoutSet3SubformNameMock,
+  subformLayout: layoutSet3SubformNameMock,
 };
 
 describe('ColumnElement', () => {
@@ -39,7 +39,7 @@ describe('ColumnElement', () => {
     jest.clearAllMocks();
   });
 
-  it('should call onEdit with updated header content when header text field is blurred', async () => {
+  it('should call onEdit with updated header content when click on save button', async () => {
     const onEditMock = jest.fn();
 
     const user = userEvent.setup();
@@ -61,18 +61,25 @@ describe('ColumnElement', () => {
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
     );
 
-    await waitFor(async () => {
-      await user.click(
-        screen.getByRole('button', {
-          name: textMock('general.save'),
-        }),
-      );
-    });
+    await user.click(
+      await screen.findByText(
+        textMock('ux_editor.properties_panel.subform_table_columns.column_title_unedit'),
+      ),
+    );
+    await user.type(
+      screen.getByText(
+        textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
+      ),
+      'New Title',
+    );
+
+    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+    await user.click(saveButton);
 
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
-      headerContent: subformLayoutMock.component1.textResourceBindings.title,
+      headerContent: expect.stringContaining('subform_table_column_title_'),
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
     });
   });

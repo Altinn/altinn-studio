@@ -50,6 +50,7 @@ export * from './StudioStatusRadioGroup';
 export * from './StudioRecommendedNextAction';
 export * from './StudioRedirectBox';
 export * from './StudioResizableLayout';
+export * from './StudioSearch';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
 export * from './StudioSwitch';
