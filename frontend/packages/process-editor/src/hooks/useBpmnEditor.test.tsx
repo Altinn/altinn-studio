@@ -3,6 +3,7 @@ import type { RenderHookResult } from '@testing-library/react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { UseBpmnEditorResult } from './useBpmnEditor';
 import { useBpmnEditor } from './useBpmnEditor';
+import type { BpmnContextProviderProps } from '../contexts/BpmnContext';
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
@@ -24,6 +25,11 @@ import type { SelectionChangedEvent } from '@altinn/process-editor/types/Selecti
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 
 // Test data:
+const appLibVersion = '8.0.0';
+const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
+  appLibVersion,
+  bpmnXml: undefined,
+};
 const layoutSetId = 'someLayoutSetId';
 const layoutSets: LayoutSets = {
   sets: [
@@ -217,7 +223,7 @@ function renderWithBpmnProviders(
   props: Partial<BpmnProviderProps> = {},
 ): React.ReactElement {
   return (
-    <BpmnContextProvider appLibVersion='8.0.0'>
+    <BpmnContextProvider {...defaultBpmnContextProps}>
       <BpmnConfigPanelFormContextProvider>
         <BpmnApiContextProvider {...defaultBpmnApiContextProps} {...props?.bpmnApiContextProps}>
           <StudioRecommendedNextActionContextProvider>
