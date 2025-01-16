@@ -49,12 +49,13 @@ export function EditCodeList({
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
 
   const codeListHasUsages = codeListSources.length > 0;
+  const isCodeListEditable = codeListSources.length === 0;
 
   return (
     <div className={classes.editCodeList}>
       <EditCodeListTitle
         codeListTitle={codeListTitle}
-        codeListIsEditable={codeListSources.length === 0}
+        isCodeListEditable={isCodeListEditable}
         codeListNames={codeListNames}
         onUpdateCodeListId={onUpdateCodeListId}
       />
@@ -82,14 +83,14 @@ export const updateCodeListWithMetadata = (
 
 type EditCodeListTitleProps = {
   codeListTitle: string;
-  codeListIsEditable: boolean;
+  isCodeListEditable: boolean;
   codeListNames: string[];
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
 };
 
 function EditCodeListTitle({
   codeListTitle,
-  codeListIsEditable,
+  isCodeListEditable,
   codeListNames,
   onUpdateCodeListId,
 }: EditCodeListTitleProps): React.ReactElement {
@@ -106,7 +107,7 @@ function EditCodeListTitle({
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
-  return codeListIsEditable ? (
+  return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
       inputProps={{
