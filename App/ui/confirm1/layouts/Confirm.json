@@ -10,8 +10,7 @@
           "title": "Form.Panel-confirm1.title",
           "body": "Form.Panel-confirm1.body"
         },
-        "variant": "warning",
-        "dataModelBindings": {}
+        "variant": "warning"
       },
       {
         "id": "Input-name",
@@ -102,18 +101,14 @@
         "id": "PanelGroupConfirm",
         "type": "Group",
         "children": ["Paragraph-confirm", "ButtonGroup"],
-        "panel": {
-          "variant": "success",
-          "showIcon": false
-        }
+        "groupingIndicator": "panel"
       },
       {
         "id": "Paragraph-confirm",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Confirm.Paragraph-confirm.title"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "ButtonGroup",

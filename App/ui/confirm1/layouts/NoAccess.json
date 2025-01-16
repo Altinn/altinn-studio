@@ -10,8 +10,7 @@
             "body": "Form.Panel-noaccess.body"
           },
           "showIcon": false,
-          "variant": "warning",
-          "dataModelBindings": {}
+          "variant": "warning"
         }
       ]
     }
