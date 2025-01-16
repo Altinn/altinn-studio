@@ -1,11 +1,11 @@
 {
-  "name": "dataModel non-existant datamodel reference",
+  "name": "dataModel non-existing datamodel reference",
   "expression": [
     "dataModel",
     "a.value",
-    "non-existant"
+    "non-existing"
   ],
-  "expectsFailure": "non-existant",
+  "expectsFailure": "Data model with type non-existing not found",
   "dataModels": [
     {
       "dataElement": {

@@ -1,5 +1,5 @@
 {
-    "name": "Two strings of equal length should be equal according to equals expression",
-    "expression": ["equals", ["stringLength", "Hello"], ["stringLength", "World"]],
-    "expects": true
+  "name": "Two strings of equal length should be equal according to equals expression",
+  "expression": ["equals", ["stringLength", "Hello"], ["stringLength", "World"]],
+  "expects": true
 }

@@ -108,8 +108,8 @@
   ],
   "dataModel": {
     "gruppe1": [
-      { "comp3binding": "123", "comp4binding": "dadda" },
-      { "comp3binding": "456", "comp4binding": "dodo" }
+      { "altinnRowId": "row1", "comp3binding": "123", "comp4binding": "dadda" },
+      { "altinnRowId": "row2", "comp3binding": "456", "comp4binding": "dodo" }
     ]
   }
 }

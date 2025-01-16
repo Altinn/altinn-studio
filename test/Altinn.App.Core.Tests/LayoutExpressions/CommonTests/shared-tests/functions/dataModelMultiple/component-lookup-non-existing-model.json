@@ -1,10 +1,10 @@
 {
-  "name": "Lookup non non existant model returns null",
+  "name": "Lookup non-existing model returns null",
   "expression": [
     "component",
     "current-component"
   ],
-  "expectsFailure": "non-existant",
+  "expectsFailure": "Data model with type non-existing not found",
   "dataModels": [
     {
       "dataElement": {
@@ -39,7 +39,7 @@
             "type": "Input",
             "dataModelBindings": {
               "simpleBinding": {
-                "dataType": "non-existant",
+                "dataType": "non-existing",
                 "field": "a.value"
               }
             }

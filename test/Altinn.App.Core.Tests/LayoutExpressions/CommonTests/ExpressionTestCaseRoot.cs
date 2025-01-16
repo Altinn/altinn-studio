@@ -63,6 +63,9 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("profileSettings")]
     public ProfileSettings? ProfileSettings { get; set; }
 
+    [JsonPropertyName("positionalArguments")]
+    public List<JsonElement>? PositionalArguments { get; set; }
+
     public override string ToString()
     {
         return $"{Filename}: {Name}";
