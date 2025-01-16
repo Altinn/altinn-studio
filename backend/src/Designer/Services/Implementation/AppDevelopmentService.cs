@@ -649,6 +649,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             }
 
                             string componentId = component["id"]?.GetValue<string>();
+                            if (string.IsNullOrEmpty(componentId))
+                            {
+                                continue;
+                            }
+
                             bool isComponentDeleted = deletedComponentIdsFromCurrentLayoutSet.Contains(componentId);
 
                             if (isComponentDeleted)
