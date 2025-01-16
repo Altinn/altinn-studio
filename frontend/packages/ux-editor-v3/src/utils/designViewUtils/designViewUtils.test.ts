@@ -47,7 +47,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_length');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns format error key when name contains illegal characters', () => {
@@ -56,7 +56,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns null when oldname and new name is the same', () => {

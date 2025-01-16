@@ -48,7 +48,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_length');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns formate error when name contains period (.)', () => {
@@ -57,7 +57,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_invalid_format');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns format error key when name contains illegal characters', () => {
@@ -66,7 +66,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('validation_errors.file_name_invalid');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns null when oldname and new name is the same', () => {
