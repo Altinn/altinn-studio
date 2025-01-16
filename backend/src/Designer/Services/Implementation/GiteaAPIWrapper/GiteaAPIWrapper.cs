@@ -78,11 +78,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                teams = await response.Content.ReadAsAsync<List<Team>>() ?? new List<Team>();
+                string jsonString = await response.Content.ReadAsStringAsync();
+                var deserializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                };
+
+                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, deserializeOptions) ?? new List<Team>();
             }
             else
             {
-                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);
+                _logger.LogError("Could not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with status code " + response.StatusCode);
             }
 
             return teams;

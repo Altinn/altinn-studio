@@ -25,6 +25,15 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
+        public static void AssertValidateOrganization(string org)
+        {
+            AssertNotNullOrEmpty(org, nameof(org));
+            if (!AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(org))
+            {
+                throw new ArgumentException("Provided organization name is not valid");
+            }
+        }
+
         /// <summary>
         /// Asserts value not null.
         /// </summary>

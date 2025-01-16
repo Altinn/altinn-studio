@@ -35,10 +35,7 @@ export function CodeListsActionsBar({
 
   return (
     <div className={classes.actionsBar}>
-      <StudioSearch
-        className={classes.searchField}
-        label={t('app_content_library.code_lists.search_label')}
-      />
+      <StudioSearch label={t('app_content_library.code_lists.search_label')} />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader
         accept='.json'

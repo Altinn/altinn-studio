@@ -94,6 +94,8 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   };
 
   const canvasRef = useCallback((div: HTMLDivElement) => {
+    if (modelerRef.current) return;
+
     // GetModeler can only be fetched from this hook once since the modeler creates a
     // new instance and will attach the same canvasRef container to all instances it fetches.
     // Set modelerRef.current to the Context so that it can be used in other components
