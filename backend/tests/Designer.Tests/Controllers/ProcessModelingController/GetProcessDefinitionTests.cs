@@ -31,13 +31,13 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
             XDocument responseXml = XDocument.Parse(responseContent);
             XDocument expectedXml = XDocument.Parse(fileContent);
-            XNode.DeepEquals(responseXml, expectedXml).Should().BeTrue();
+            Assert.True(XNode.DeepEquals(responseXml, expectedXml));
         }
 
         [Theory]
@@ -48,7 +48,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<string> AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)

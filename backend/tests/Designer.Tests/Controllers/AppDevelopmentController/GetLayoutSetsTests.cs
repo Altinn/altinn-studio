@@ -31,16 +31,16 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = string.IsNullOrEmpty(layoutSetName) ? null : await response.Content.ReadAsStringAsync();
             if (string.IsNullOrEmpty(layoutSetName))
             {
-                responseContent.Should().BeNull();
+                Assert.Null(responseContent);
             }
             else
             {
-                JsonUtils.DeepEquals(expectedLayoutSets, responseContent).Should().BeTrue();
+                Assert.True(JsonUtils.DeepEquals(expectedLayoutSets, responseContent));
             }
         }
 
@@ -53,7 +53,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<string> AddLayoutSetsToRepo(string createdFolderPath, string expectedLayoutSetsPath)

@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.TextController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedContent, content).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedContent, content));
         }
     }
 }

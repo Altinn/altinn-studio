@@ -21,16 +21,15 @@ namespace Designer.Tests.Controllers.TextController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string url = $"{VersionPrefix(org, targetRepository)}/language/{language}";
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{language}.json")
-                .Should().BeTrue();
+            Assert.True(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{language}.json"));
 
             // Act
             using var response = await HttpClient.DeleteAsync(url);
 
             // Assert
             Assert.Equal(200, (int)response.StatusCode);
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{language}.json")
-                .Should().BeFalse();
+            Assert.False(TestDataHelper.FileExistsInRepo(org, targetRepository, developer,
+                $"App/config/texts/resource.{language}.json"));
         }
     }
 }

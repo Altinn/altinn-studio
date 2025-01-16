@@ -47,6 +47,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
             App = entity.App,
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created,
+            CreatedBy = entity.CreatedBy,
             Entity = JsonSerializer.Serialize(entity, JsonOptions),
             EnvName = entity.EnvName,
             Build = MapBuildToDbModel(entity.Build)

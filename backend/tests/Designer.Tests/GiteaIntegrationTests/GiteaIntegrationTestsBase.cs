@@ -181,7 +181,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             $"designer/api/repos/create-app?org={org}&repository={repoName}");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     protected static string GetCommitInfoJson(string text, string org, string repository) =>

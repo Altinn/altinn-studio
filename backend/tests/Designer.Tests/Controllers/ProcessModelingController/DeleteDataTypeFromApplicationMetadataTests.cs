@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             using var request = new HttpRequestMessage(HttpMethod.Delete, url);
             using var response = await HttpClient.SendAsync(request);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             Application appMetadata = JsonSerializer.Deserialize<Application>(appMetadataString, new JsonSerializerOptions
@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
                 PropertyNameCaseInsensitive = true
             });
 
-            appMetadata.DataTypes.Count.Should().Be(0);
+            Assert.Empty(appMetadata.DataTypes);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
@@ -41,8 +42,8 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
         var results = (await repository.Get(org, app, tagName, buildStatuses, buildResults)).ToList();
 
-        results.Should().HaveCount(expectedFoundNumber);
-        results.Should().BeEquivalentTo(exptectedEntities);
+        Assert.Equal(expectedFoundNumber, results.Count);
+        AssertionUtil.AssertEqualTo(exptectedEntities, results);
     }
 
     public static IEnumerable<object[]> TestData()

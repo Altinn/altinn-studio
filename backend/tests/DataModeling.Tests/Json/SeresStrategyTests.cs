@@ -50,7 +50,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model/JsonSchema/Seres/SeresSimpleTypeRestrictions.json")]
         public Task Analyze_SimpleType_Restriction(string path)
         {
-           JsonSchemaKeywords.RegisterXsdKeywords();
+            JsonSchemaKeywords.RegisterXsdKeywords();
 
             var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();

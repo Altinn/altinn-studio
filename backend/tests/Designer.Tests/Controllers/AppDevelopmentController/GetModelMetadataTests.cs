@@ -32,9 +32,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string responseContent = await response.Content.ReadAsStringAsync();
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            responseContent.Should().Be(expectedModelMetadata);
-            JsonUtils.DeepEquals(expectedModelMetadata, responseContent).Should().BeTrue();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedModelMetadata, responseContent);
+            Assert.True(JsonUtils.DeepEquals(expectedModelMetadata, responseContent));
         }
 
         [Theory]
@@ -51,9 +51,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string responseContent = await response.Content.ReadAsStringAsync();
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            responseContent.Should().Be(expectedModelMetadata);
-            JsonUtils.DeepEquals(expectedModelMetadata, responseContent).Should().BeTrue();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedModelMetadata, responseContent);
+            Assert.True(JsonUtils.DeepEquals(expectedModelMetadata, responseContent));
         }
 
         [Theory]
@@ -70,7 +70,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<string> AddModelMetadataToRepo(string createdFolderPath, string expectedModelMetadataPath)

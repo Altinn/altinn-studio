@@ -35,10 +35,10 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            expectedRuleHandler.Should().Be(responseContent);
+            Assert.Equal(expectedRuleHandler, responseContent);
         }
 
         [Theory]
@@ -50,7 +50,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         private static async Task<string> AddRuleHandler(string createdFolderPath, string layoutSetName, string expectedRuleHandlerPath)

@@ -30,13 +30,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string layoutFilePath = Path.Combine(TestRepoPath, relativePath);
-            File.Exists(layoutFilePath).Should().BeFalse();
+            Assert.False(File.Exists(layoutFilePath));
         }
 
         [Theory]
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

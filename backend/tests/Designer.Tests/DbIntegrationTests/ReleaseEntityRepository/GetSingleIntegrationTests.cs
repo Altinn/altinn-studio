@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
@@ -24,6 +25,6 @@ public class GetSingleIntegrationTests : ReleaseEntityIntegrationTestsBase
         await PrepareEntityInDatabase(releaseEntity);
 
         var result = (await repository.Get(releaseEntity.Org, buildId.ToString())).Single();
-        result.Should().BeEquivalentTo(releaseEntity);
+        AssertionUtil.AssertEqualTo(releaseEntity, result);
     }
 }

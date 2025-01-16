@@ -21,10 +21,11 @@ public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnecti
     {
         await When.ConnectionStarted();
 
-        Then.HubConnection.State.Should().Be(HubConnectionState.Connected);
+        Assert.True(HubConnection.State == HubConnectionState.Connected);
 
         await And.When.HubConnection.StopAsync();
-        Then.HubConnection.State.Should().Be(HubConnectionState.Disconnected);
+
+        Assert.True(HubConnection.State == HubConnectionState.Disconnected);
     }
 
     private async Task ConnectionStarted()

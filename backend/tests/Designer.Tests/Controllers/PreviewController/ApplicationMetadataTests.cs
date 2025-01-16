@@ -53,7 +53,7 @@ namespace Designer.Tests.Controllers.PreviewController
             ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
             expectedApplicationMetadata.AltinnNugetVersion = string.Empty;
             string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
-            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Designer.Tests.Controllers.PreviewController
             ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
             expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
             string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
-            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
         }
 
         [Fact]
@@ -82,10 +82,11 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");
             ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(originalApplicationMetadataString, JsonSerializerOptions);
-            originalApplicationMetadata.PartyTypesAllowed.Person.Should().BeTrue();
-            originalApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeTrue();
-            originalApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeTrue();
-            originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeTrue();
+
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.Person);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organisation);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.SubUnit);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 
             _appDevelopmentServiceMock
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
@@ -101,10 +102,11 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
 
             ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(responseBody, JsonSerializerOptions);
-            responseApplicationMetadata.PartyTypesAllowed.Person.Should().BeFalse();
-            responseApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeFalse();
-            responseApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();
-            responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeFalse();
+
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.Person);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organisation);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.SubUnit);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
         }
     }
 }

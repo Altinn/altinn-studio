@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -32,7 +33,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseString = await response.Content.ReadAsStringAsync();
             FooterFile responseFooterFile = JsonSerializer.Deserialize<FooterFile>(responseString);
 
-            responseFooterFile.Footer.Should().BeEquivalentTo(actualFooterFile.Footer);
+            AssertionUtil.AssertEqualTo(actualFooterFile.Footer, responseFooterFile.Footer);
         }
     }
 }

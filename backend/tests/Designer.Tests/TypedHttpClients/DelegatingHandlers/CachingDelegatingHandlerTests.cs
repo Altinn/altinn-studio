@@ -36,10 +36,11 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
             _memoryCache.Set($"{HttpMethod.Get}_http://nonexistingurl1234.no/", cacheResponseDataEntry);
 
             var response = await client.GetAsync("http://nonexistingurl1234.no/");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             byte[] responseArray = await response.Content.ReadAsByteArrayAsync();
-            responseArray.Should().BeEquivalentTo(expectedResponse);
+            Assert.Equal(expectedResponse, responseArray);
         }
 
         [Fact]
@@ -51,7 +52,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
 
             var response = await client.PostAsync("https://docs.altinn.studio/", null);
 
-            response.StatusCode.Should().Be(HttpStatusCode.MethodNotAllowed);
+            Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
 
             var response = await client.GetAsync("https://docs.altinn.studio/nonexisting");
 
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
@@ -75,10 +76,10 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
 
             var response = await client.GetAsync("https://docs.altinn.studio/");
 
-            response.IsSuccessStatusCode.Should().BeTrue();
-            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            _memoryCache.TryGetValue($"{HttpMethod.Get}_https://docs.altinn.studio/", out CachingDelegatingHandler.CacheResponseDataEntry _).Should().BeTrue();
+            Assert.True(_memoryCache.TryGetValue($"{HttpMethod.Get}_https://docs.altinn.studio/", out CachingDelegatingHandler.CacheResponseDataEntry _));
         }
     }
 }

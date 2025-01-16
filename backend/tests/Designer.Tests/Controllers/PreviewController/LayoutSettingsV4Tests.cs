@@ -26,7 +26,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedLayoutSettings, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedLayoutSettings, responseBody));
         }
 
     }

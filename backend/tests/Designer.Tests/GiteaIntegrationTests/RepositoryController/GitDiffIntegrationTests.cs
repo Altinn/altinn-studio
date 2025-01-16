@@ -42,14 +42,15 @@ public class GitDiffIntegrationTests : GiteaIntegrationTestsBase<GitDiffIntegrat
             Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         var updateLayoutSetNameResponse = await HttpClient.SendAsync(httpRequestMessageWithNewLayoutSetName);
-        updateLayoutSetNameResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, updateLayoutSetNameResponse.StatusCode);
 
         string getGitDiffUrl = $"designer/api/repos/repo/{org}/{targetRepo}/diff";
         using var httpRequestMessageGetGitDiff = new HttpRequestMessage(HttpMethod.Get, getGitDiffUrl);
         var gitDiffResponse = await HttpClient.SendAsync(httpRequestMessageGetGitDiff);
         string responseContent = await gitDiffResponse.Content.ReadAsStringAsync();
-        gitDiffResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        JsonUtils.DeepEquals(expectedGitDiffResponse, responseContent).Should().BeTrue();
+
+        Assert.Equal(HttpStatusCode.OK, gitDiffResponse.StatusCode);
+        Assert.True(JsonUtils.DeepEquals(expectedGitDiffResponse, responseContent));
     }
 
 }

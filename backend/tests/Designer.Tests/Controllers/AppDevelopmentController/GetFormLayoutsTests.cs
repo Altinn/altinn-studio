@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
             var responseJson = JsonNode.Parse(responseContent);
@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             foreach ((string expectedLayoutName, string expectedLayout) in expectedLayouts)
             {
                 string actualLayout = responseJson[Path.GetFileNameWithoutExtension(expectedLayoutName)].ToJsonString();
-                JsonUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
+                Assert.True(JsonUtils.DeepEquals(expectedLayout, actualLayout));
             }
         }
 

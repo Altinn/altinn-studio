@@ -35,14 +35,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
-            responseList.Count.Should().Be(3);
+            Assert.Equal(3, responseList.Count);
             foreach (string id in expectedOptionsListIds)
             {
-                responseList.Should().Contain(id);
+                Assert.Contains(id, responseList);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
 
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }

@@ -53,8 +53,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
+        Assert.NotNull(formLayout);
+        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
     }
 
     [Fact]
@@ -69,10 +69,10 @@ public class TextsServiceTest : IDisposable
         JsonNode formLayout1 = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
         JsonNode formLayout2 = await altinnAppGitRepository.GetLayout(layoutSetName2, layoutName2);
 
-        formLayout1.Should().NotBeNull();
-        formLayout2.Should().NotBeNull();
-        (formLayout1["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
-        (formLayout2["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
+        Assert.NotNull(formLayout1);
+        Assert.NotNull(formLayout2);
+        Assert.Equal("new-id", (formLayout1["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
+        Assert.Equal("new-id", (formLayout2["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
+        Assert.NotNull(formLayout);
+        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
     }
 
     [Fact]
@@ -99,8 +99,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("some-old-id");
+        Assert.NotNull(formLayout);
+        Assert.Equal("some-old-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
     }
 
     [Fact]
@@ -113,8 +113,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        formLayout.ToString().Should().NotContain("some-old-key");
+        Assert.NotNull(formLayout);
+        Assert.DoesNotContain("some-old-key", formLayout.ToString());
     }
 
     [Fact]
@@ -127,10 +127,10 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString().Should().Be("new-id");
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString().Should().Be("help-text-used-by-options");
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString().Should().Be("description-used-by-options");
+        Assert.NotNull(formLayout);
+        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
+        Assert.Equal("help-text-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString());
+        Assert.Equal("description-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString());
     }
 
     [Fact]
@@ -143,10 +143,10 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString().Should().Be("id-used-by-options");
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString().Should().Be("new-id");
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString().Should().Be("new-id");
+        Assert.NotNull(formLayout);
+        Assert.Equal("id-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
+        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString());
+        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString());
     }
 
     [Fact]
@@ -159,8 +159,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString().Should().Be("id-used-by-options");
+        Assert.NotNull(formLayout);
+        Assert.Equal("id-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
     }
 
     [Fact]
@@ -174,9 +174,9 @@ public class TextsServiceTest : IDisposable
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
-        optionsList.Should().NotBeNull();
-        (optionsList as JsonArray)[0]["label"].ToString().Should().Be("label1new");
-        (optionsList as JsonArray)[1]["label"].ToString().Should().Be("label2");
+        Assert.NotNull(optionsList);
+        Assert.Equal("label1new", (optionsList as JsonArray)[0]["label"].ToString());
+        Assert.Equal("label2", (optionsList as JsonArray)[1]["label"].ToString());
     }
 
     [Fact]
@@ -190,9 +190,9 @@ public class TextsServiceTest : IDisposable
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
-        optionsList.Should().NotBeNull();
-        (optionsList as JsonArray)[0]["label"].ToString().Should().Be("label1");
-        (optionsList as JsonArray)[1]["label"].ToString().Should().Be("label2");
+        Assert.NotNull(optionsList);
+        Assert.Equal("label1", (optionsList as JsonArray)[0]["label"].ToString());
+        Assert.Equal("label2", (optionsList as JsonArray)[1]["label"].ToString());
     }
 
     [Fact]
@@ -205,8 +205,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[3]["source"]["label"].ToString().Should().Be("source-label-new");
+        Assert.NotNull(formLayout);
+        Assert.Equal("source-label-new", (formLayout["data"]["layout"] as JsonArray)[3]["source"]["label"].ToString());
     }
 
     [Fact]
@@ -219,8 +219,8 @@ public class TextsServiceTest : IDisposable
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
 
-        formLayout.Should().NotBeNull();
-        (formLayout["data"]["layout"] as JsonArray)[3]["source"]["label"].ToString().Should().Be("source-label");
+        Assert.NotNull(formLayout);
+        Assert.Equal("source-label", (formLayout["data"]["layout"] as JsonArray)[3]["source"]["label"].ToString());
     }
 
     public void Dispose()

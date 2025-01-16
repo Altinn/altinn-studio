@@ -37,7 +37,7 @@ public class ProcessDataTypesChangedNotifyTests : DesignerEndpointsTestsBase<Pro
             Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
     public static IEnumerable<object[]> ProcessDataTypeChangedNotifyTestData()

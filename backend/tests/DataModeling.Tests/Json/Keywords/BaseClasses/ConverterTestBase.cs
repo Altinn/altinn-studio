@@ -61,10 +61,4 @@ where TKeywordType : IJsonSchemaKeyword
         return this as TTestType;
     }
 
-    // protected TTestType KeywordShouldBeNull()
-    // {
-    //     Assert.Null(Keyword);
-    //     return this as TTestType;
-    // }
-
 }

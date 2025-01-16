@@ -28,11 +28,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            responseContent.Should().Be("[\"datamodel\",\"unUsedDatamodel\",\"HvemErHvem_M\"]");
+            Assert.Equal("[\"datamodel\",\"unUsedDatamodel\",\"HvemErHvem_M\"]", responseContent);
         }
 
         [Theory]
@@ -46,11 +46,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            responseContent.Should().Be("[]");
+            Assert.Equal("[]", responseContent);
         }
     }
 }

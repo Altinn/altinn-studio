@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedDatamodel, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedDatamodel, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
         }
     }
 }

@@ -25,7 +25,7 @@ public class UpsertAppScopesAsyncIntegrationTests : DbIntegrationTestsBase
             d.Org == org &&
             d.App == app);
 
-        dbRecord.Version.Should().BeGreaterThan(0);
+        Assert.True(dbRecord.Version > 0);
         entity.Version = dbRecord.Version;
 
         EntityAssertions.AssertEqual(entity, dbRecord);
@@ -42,7 +42,7 @@ public class UpsertAppScopesAsyncIntegrationTests : DbIntegrationTestsBase
             d.Org == org &&
             d.App == app);
 
-        dbRecord.Version.Should().BeGreaterThan(0);
+        Assert.True(dbRecord.Version > 0);
         entity.Version = dbRecord.Version;
         EntityAssertions.AssertEqual(entity, dbRecord);
 
@@ -50,7 +50,7 @@ public class UpsertAppScopesAsyncIntegrationTests : DbIntegrationTestsBase
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
 
         var result = await repository.UpsertAppScopesAsync(entity);
-        result.Version.Should().NotBe(entity.Version);
+        Assert.NotEqual(entity.Version, result.Version);
         entity.Version = result.Version;
         EntityAssertions.AssertEqual(entity, result);
 

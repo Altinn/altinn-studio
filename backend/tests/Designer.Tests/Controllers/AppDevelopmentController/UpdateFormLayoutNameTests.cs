@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativeOldLayoutPath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
@@ -46,8 +46,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 : $"App/ui/{layoutSetName}/layouts/{newLayoutName}.json";
             string oldLayoutPath = Path.Combine(TestRepoPath, relativeOldLayoutPath);
             string newLayoutPath = Path.Combine(TestRepoPath, relativeNewLayoutPath);
-            File.Exists(oldLayoutPath).Should().BeFalse();
-            File.Exists(newLayoutPath).Should().BeTrue();
+            Assert.False(File.Exists(oldLayoutPath));
+            Assert.True(File.Exists(newLayoutPath));
         }
 
         [Theory]
@@ -65,7 +65,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
     }

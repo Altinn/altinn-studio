@@ -38,13 +38,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? "App/ui/RuleConfiguration.json"
                 : $"App/ui/{layoutSetName}/RuleConfiguration.json";
             string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(content, savedFile).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(content, savedFile));
         }
 
     }

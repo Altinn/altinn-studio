@@ -42,11 +42,11 @@ public class GetScopesFromMaskinPortenTests : AppScopesControllerTestsBase<GetAp
             , VersionPrefix(org, app));
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         AppScopesResponse repsponseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
         JsonArray array = (JsonArray)JsonNode.Parse(maskinPortenResponse);
-        repsponseContent.Scopes.Count.Should().Be(array.Count);
+        Assert.Equal(array.Count, repsponseContent.Scopes.Count);
     }
 
 

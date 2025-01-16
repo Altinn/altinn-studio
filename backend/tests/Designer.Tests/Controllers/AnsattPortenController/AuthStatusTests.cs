@@ -53,10 +53,10 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         AuthStatus authStatus = await response.Content.ReadAsAsync<AuthStatus>();
-        authStatus.IsLoggedIn.Should().BeFalse();
+        Assert.False(authStatus.IsLoggedIn);
     }
 
     [Fact]
@@ -74,9 +74,9 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         AuthStatus authStatus = await response.Content.ReadAsAsync<AuthStatus>();
-        authStatus.IsLoggedIn.Should().BeTrue();
+        Assert.True(authStatus.IsLoggedIn);
     }
 }

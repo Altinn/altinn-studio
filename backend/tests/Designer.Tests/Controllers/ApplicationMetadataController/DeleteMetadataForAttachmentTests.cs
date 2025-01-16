@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             var response = await HttpClient.SendAsync(requestMessage);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             ApplicationMetadata applicationMetadataAfterDelete = JsonSerializer.Deserialize<ApplicationMetadata>(currentMetadata, JsonSerializerOptions);
             Assert.DoesNotContain(applicationMetadataAfterDelete.DataTypes, x => x.Id == attacmentIdToDelete);

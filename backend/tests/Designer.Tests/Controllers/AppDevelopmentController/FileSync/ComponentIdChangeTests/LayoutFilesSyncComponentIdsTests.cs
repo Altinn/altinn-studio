@@ -51,7 +51,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -66,8 +66,8 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             ?.SelectMany(rowsAfter => rowsAfter["cells"]?.AsArray() ?? new JsonArray())
             .Any(cell => cell["component"]?.ToString() == newComponentId) ?? false;
 
-        containsOldId.Should().BeFalse();
-        containsNewId.Should().BeTrue();
+        Assert.False(containsOldId);
+        Assert.True(containsNewId);
     }
 
     [Theory]
@@ -96,7 +96,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -111,8 +111,8 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             ?.SelectMany(rowsAfter => rowsAfter["cells"]?.AsArray() ?? new JsonArray())
             .Any(cell => cell["component"]?.ToString() == newComponentId) ?? false;
 
-        containsOldId.Should().BeFalse();
-        containsNewId.Should().BeTrue();
+        Assert.False(containsOldId);
+        Assert.True(containsNewId);
     }
 
     [Theory]
@@ -136,7 +136,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -144,17 +144,17 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
         JsonNode componentWithExpression = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "header-rep2");
         JsonArray expressionOnTitle = componentWithExpression?["textResourceBindings"]?["title"].AsArray();
 
-        ContainsValue(expressionOnLayout, oldComponentId).Should().BeFalse();
-        ContainsValue(expressionOnTitle, oldComponentId).Should().BeFalse();
+        Assert.False(ContainsValue(expressionOnLayout, oldComponentId));
+        Assert.False(ContainsValue(expressionOnTitle, oldComponentId));
         if (string.IsNullOrEmpty(newComponentId))
         {
-            ContainsValue(expressionOnLayout, newComponentId).Should().BeFalse();
-            ContainsValue(expressionOnTitle, newComponentId).Should().BeFalse();
+            Assert.False(ContainsValue(expressionOnLayout, newComponentId));
+            Assert.False(ContainsValue(expressionOnTitle, newComponentId));
         }
         else
         {
-            ContainsValue(expressionOnLayout, newComponentId).Should().BeTrue();
-            ContainsValue(expressionOnTitle, newComponentId).Should().BeTrue();
+            Assert.True(ContainsValue(expressionOnLayout, newComponentId));
+            Assert.True(ContainsValue(expressionOnTitle, newComponentId));
         }
     }
 
@@ -184,7 +184,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -192,17 +192,17 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
         JsonNode componentWithExpression = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "header-rep2");
         JsonArray expressionOnTitle = componentWithExpression?["textResourceBindings"]?["title"].AsArray();
 
-        ContainsValue(expressionOnLayout, oldComponentId).Should().BeFalse();
-        ContainsValue(expressionOnTitle, oldComponentId).Should().BeFalse();
+        Assert.False(ContainsValue(expressionOnLayout, oldComponentId));
+        Assert.False(ContainsValue(expressionOnTitle, oldComponentId));
         if (string.IsNullOrEmpty(newComponentId))
         {
-            ContainsValue(expressionOnLayout, newComponentId).Should().BeFalse();
-            ContainsValue(expressionOnTitle, newComponentId).Should().BeFalse();
+            Assert.False(ContainsValue(expressionOnLayout, newComponentId));
+            Assert.False(ContainsValue(expressionOnTitle, newComponentId));
         }
         else
         {
-            ContainsValue(expressionOnLayout, newComponentId).Should().BeTrue();
-            ContainsValue(expressionOnTitle, newComponentId).Should().BeTrue();
+            Assert.True(ContainsValue(expressionOnLayout, newComponentId));
+            Assert.True(ContainsValue(expressionOnTitle, newComponentId));
         }
     }
 
@@ -227,7 +227,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -235,11 +235,11 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
 
         if (string.IsNullOrEmpty(newComponentId))
         {
-            summaryComponentWithComponentRef["componentRef"].Should().BeNull();
+            Assert.Null(summaryComponentWithComponentRef["componentRef"]);
         }
         else
         {
-            summaryComponentWithComponentRef["componentRef"].ToString().Should().Be(newComponentId);
+            Assert.Equal(newComponentId, summaryComponentWithComponentRef["componentRef"].ToString());
         }
     }
 
@@ -269,7 +269,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
@@ -277,11 +277,11 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
 
         if (string.IsNullOrEmpty(newComponentId))
         {
-            summaryComponentWithComponentRef["componentRef"].Should().BeNull();
+            Assert.Null(summaryComponentWithComponentRef["componentRef"]);
         }
         else
         {
-            summaryComponentWithComponentRef["componentRef"].ToString().Should().Be(newComponentId);
+            Assert.Equal(newComponentId, summaryComponentWithComponentRef["componentRef"].ToString());
         }
     }
 
@@ -312,20 +312,20 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode tableColumnsWithIdAsPropertyName = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "mainGroup2")["tableColumns"];
 
-        tableColumnsWithIdAsPropertyName?[oldComponentId].Should().BeNull();
+        Assert.Null(tableColumnsWithIdAsPropertyName?[oldComponentId]);
         if (string.IsNullOrEmpty(newComponentId))
         {
-            (tableColumnsWithIdAsPropertyName as JsonObject).Count.Should().Be((originalTableColumns as JsonObject).Count - 1);
+            Assert.Equal((originalTableColumns as JsonObject).Count - 1, (tableColumnsWithIdAsPropertyName as JsonObject).Count);
         }
         else
         {
-            tableColumnsWithIdAsPropertyName?[newComponentId].Should().NotBeNull();
+            Assert.NotNull(tableColumnsWithIdAsPropertyName?[newComponentId]);
         }
     }
 
@@ -359,20 +359,20 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode tableColumnsWithIdAsPropertyName = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "mainGroup2")["tableColumns"];
 
-        tableColumnsWithIdAsPropertyName?[oldComponentId].Should().BeNull();
+        Assert.Null(tableColumnsWithIdAsPropertyName?[oldComponentId]);
         if (string.IsNullOrEmpty(newComponentId))
         {
-            (tableColumnsWithIdAsPropertyName as JsonObject).Count.Should().Be((originalTableColumns as JsonObject).Count - 1);
+            Assert.Equal((originalTableColumns as JsonObject).Count - 1, (tableColumnsWithIdAsPropertyName as JsonObject).Count);
         }
         else
         {
-            tableColumnsWithIdAsPropertyName?[newComponentId].Should().NotBeNull();
+            Assert.NotNull(tableColumnsWithIdAsPropertyName?[newComponentId]);
         }
     }
 
@@ -397,21 +397,21 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode repeatingGroupComponentWithIdInTableHeaders = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "mainGroup2");
         JsonArray tableHeaders = repeatingGroupComponentWithIdInTableHeaders["tableHeaders"].AsArray();
 
-        ContainsValue(tableHeaders, oldComponentId).Should().BeFalse();
+        Assert.False(ContainsValue(tableHeaders, oldComponentId));
         if (string.IsNullOrEmpty(newComponentId))
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeFalse();
+            Assert.False(ContainsValue(tableHeaders, newComponentId));
         }
         else
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeTrue();
+            Assert.True(ContainsValue(tableHeaders, newComponentId));
         }
     }
 
@@ -441,21 +441,21 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode repeatingGroupComponentWithIdInTableHeaders = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "mainGroup2");
         JsonArray tableHeaders = repeatingGroupComponentWithIdInTableHeaders["tableHeaders"].AsArray();
 
-        ContainsValue(tableHeaders, oldComponentId).Should().BeFalse();
+        Assert.False(ContainsValue(tableHeaders, oldComponentId));
         if (string.IsNullOrEmpty(newComponentId))
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeFalse();
+            Assert.False(ContainsValue(tableHeaders, newComponentId));
         }
         else
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeTrue();
+            Assert.True(ContainsValue(tableHeaders, newComponentId));
         }
     }
 
@@ -486,24 +486,24 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetName}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode repeatingGroupComponentWithIdInTableHeaders = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "mainGroup2");
         JsonArray tableHeaders = repeatingGroupComponentWithIdInTableHeaders["tableHeaders"].AsArray();
 
-        ContainsValue(tableHeaders, oldComponentId).Should().BeFalse();
-        ContainsValue(tableHeaders, oldComponentId2).Should().BeFalse();
+        Assert.False(ContainsValue(tableHeaders, oldComponentId));
+        Assert.False(ContainsValue(tableHeaders, oldComponentId2));
         if (string.IsNullOrEmpty(newComponentId))
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeFalse();
-            ContainsValue(tableHeaders, newComponentId2).Should().BeFalse();
+            Assert.False(ContainsValue(tableHeaders, newComponentId));
+            Assert.False(ContainsValue(tableHeaders, newComponentId2));
         }
         else
         {
-            ContainsValue(tableHeaders, newComponentId).Should().BeTrue();
-            ContainsValue(tableHeaders, newComponentId2).Should().BeTrue();
+            Assert.True(ContainsValue(tableHeaders, newComponentId));
+            Assert.True(ContainsValue(tableHeaders, newComponentId2));
         }
     }
 
@@ -533,13 +533,13 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutFromRepo = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/ui/{layoutSetNameForOtherLayout}/layouts/{layoutNameThatIsAffected}.json");
         JsonNode layout = JsonNode.Parse(layoutFromRepo);
         JsonNode summaryComponentWithComponentRef = layout["data"]["layout"]?.AsArray()?.FirstOrDefault(item => item["id"]?.ToString() == "summary-1");
 
-        summaryComponentWithComponentRef["componentRef"].ToString().Should().Be(oldComponentId);
+        Assert.Equal(oldComponentId, summaryComponentWithComponentRef["componentRef"].ToString());
     }
 
     private string ArrangeApiRequestContent(string pathToLayoutToPost, List<ComponentIdChange> componentIdsChanges)

@@ -10,6 +10,6 @@ public class AltinnStudioRepositoryScannerTests
     public void ShouldBeAbleToFindRootDirectoryOfRepository()
     {
         string actual = AltinnStudioRepositoryScanner.FindRootDotEnvFilePath();
-        actual.Replace(Path.DirectorySeparatorChar, '/').Should().EndWith("altinn-studio/.env");
+        Assert.EndsWith("altinn-studio/.env", actual.Replace(Path.DirectorySeparatorChar, '/'));
     }
 }

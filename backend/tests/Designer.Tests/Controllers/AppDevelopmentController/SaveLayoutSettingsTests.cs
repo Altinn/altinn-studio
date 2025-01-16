@@ -43,13 +43,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? "App/ui/Settings.json"
                 : $"App/ui/{layoutSetName}/Settings.json";
             string savedLayoutSettings = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(layoutSettings, savedLayoutSettings).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(layoutSettings, savedLayoutSettings));
         }
     }
 }

@@ -34,11 +34,11 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             using var response = await HttpClient.PutAsync(url, new StringContent(metadata, Encoding.UTF8, MediaTypeNames.Application.Json));
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedMetadataJson, responseContent).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedMetadataJson, responseContent));
             string fileFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            JsonUtils.DeepEquals(expectedMetadataJson, fileFromRepo).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedMetadataJson, fileFromRepo));
         }
     }
 }

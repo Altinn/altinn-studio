@@ -37,7 +37,7 @@ namespace Designer.Tests.Services
 
             var service = serviceProvider.GetService<ISourceControl>();
 
-            service.Should().BeOfType<SourceControlLoggingDecorator>();
+            Assert.IsType<SourceControlLoggingDecorator>(service);
         }
 
         [Fact]

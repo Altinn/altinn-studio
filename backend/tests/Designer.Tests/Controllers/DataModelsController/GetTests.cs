@@ -2,10 +2,12 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
@@ -26,7 +28,7 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Theory]
@@ -37,22 +39,24 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         DataType dataTypeResponse = await response.Content.ReadFromJsonAsync<DataType>();
-        dataTypeResponse.Should().NotBeNull();
-        dataTypeResponse.Should().BeEquivalentTo(new DataType
-        {
-            Id = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES",
-            AllowedContentTypes = new List<string> { "application/xml" },
-            AppLogic = new ApplicationLogic
+        Assert.NotNull(dataTypeResponse);
+        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(dataTypeResponse, JsonSerializerOptions),
+            JsonSerializer.Serialize(new DataType
             {
-                AutoCreate = true,
-                ClassRef = "Altinn.App.Models.HvemErHvem_M"
-            },
-            TaskId = "Task_1",
-            MaxCount = 1,
-            MinCount = 1
-        });
+                Id = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES",
+                AllowedContentTypes = new List<string> { "application/xml" },
+                AppLogic = new ApplicationLogic
+                {
+                    AutoCreate = true,
+                    ClassRef = "Altinn.App.Models.HvemErHvem_M"
+                },
+                TaskId = "Task_1",
+                MaxCount = 1,
+                MinCount = 1
+            }, JsonSerializerOptions)
+            ));
     }
 
     [Theory]
@@ -63,7 +67,7 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        (await response.Content.ReadAsStringAsync()).Should().Be("null");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("null", await response.Content.ReadAsStringAsync());
     }
 }

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -90,18 +92,18 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        responseList.Should().BeEquivalentTo(new List<OptionListData>
-        {
-            new () { Title = "options-with-null-fields", Data = null, HasError = true },
-            new () { Title = "other-options", HasError = false },
-            new () { Title = "test-options", HasError = false },
-            new () { Title = "optionListMissingValue", Data = null, HasError = true },
-            new () { Title = "optionListMissingLabel", Data = null, HasError = true },
-            new () { Title = "optionListTrailingComma", Data = null, HasError = true },
-            new () { Title = "optionListLabelWithObject", Data = null, HasError = true },
-            new () { Title = "optionListLabelWithNumber", Data = null, HasError = true },
-            new () { Title = "optionListLabelWithBool", Data = null, HasError = true }
-        }, options => options.Excluding(x => x.Data));
+
+        Assert.Equal(9, responseList.Count);
+        Assert.Single(responseList, o => o.Title == "options-with-null-fields" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "other-options" && o.HasError == false);
+        Assert.Single(responseList, o => o.Title == "test-options" && o.HasError == false);
+        Assert.Single(responseList, o => o.Title == "optionListMissingValue" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListMissingLabel" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListTrailingComma" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithObject" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithNumber" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithBool" && o.HasError == true);
+
     }
 
     [Fact]
@@ -164,8 +166,8 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be("InvalidOptionsFormat");
+        Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 }

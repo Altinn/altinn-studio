@@ -45,16 +45,14 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
 
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, expectedModelPath);
-        Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."), RegexOptions.Multiline).Success.Should().BeTrue();
+        Assert.True(Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."),
+            RegexOptions.Multiline).Success);
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
         var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
 
-        applicationMetadata.DataTypes.Should().Contain(x => x.AppLogic != null && x.AppLogic.ClassRef ==
-                                                            $"{expectedNamespace}.{expectedTypeName}");
-
-        applicationMetadata.DataTypes.Should().NotContain(x => x.AppLogic != null && x.AppLogic.ClassRef ==
-            $"{notExpectedNamespace}.{expectedTypeName}");
+        Assert.Contains(applicationMetadata.DataTypes, x => x.AppLogic != null && x.AppLogic.ClassRef == $"{expectedNamespace}.{expectedTypeName}");
+        Assert.DoesNotContain(applicationMetadata.DataTypes, x => x.AppLogic != null && x.AppLogic.ClassRef == $"{notExpectedNamespace}.{expectedTypeName}");
     }
 
     [Theory]
@@ -70,14 +68,14 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
         Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
 
         using var response = await UploadNewXsdSchema(xsdPath, url);
-        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
 
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
 
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be(expectedErrorCode);
+        Assert.Equal(expectedErrorCode, errorCode.ToString());
     }
 
     [Theory]
@@ -92,7 +90,7 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
         Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
 
         using var response = await UploadNewXsdSchema(xsdPath, url);
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
 
@@ -106,19 +104,21 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
         string url = $"{VersionPrefix(org, targetRepo)}/datamodel?modelPath={modelPath}";
 
         using var response = await GenerateModels(expectedModelName, url);
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
-        Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."), RegexOptions.Multiline).Success.Should().BeTrue();
+        Assert.True(Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."),
+            RegexOptions.Multiline).Success);
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, "App/config/applicationmetadata.json");
         var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
 
-        applicationMetadata.DataTypes.Should().Contain(x => x.AppLogic != null && x.AppLogic.ClassRef ==
+        Assert.Contains(applicationMetadata.DataTypes, x => x.AppLogic != null && x.AppLogic.ClassRef ==
             $"{expectedNamespace}.{expectedModelName}");
 
-        applicationMetadata.DataTypes.Should().NotContain(x => x.AppLogic != null && x.AppLogic.ClassRef ==
+        Assert.DoesNotContain(applicationMetadata.DataTypes, x => x.AppLogic != null && x.AppLogic.ClassRef ==
             $"{notExpectedNamespace}.{expectedModelName}");
+
     }
 
 
@@ -136,14 +136,14 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
 
         var response =
             await GenerateNewJsonSchema(modelName, $"{VersionPrefix(org, targetRepository)}/new");
-        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
 
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
 
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be(expectedErrorCode);
+        Assert.Equal(expectedErrorCode, errorCode.ToString());
     }
 
 
@@ -158,22 +158,22 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
         initModelName = Path.GetFileNameWithoutExtension(initModelName);
 
         var newJsonSchemaResponse = await GenerateNewJsonSchema(initModelName, $"{VersionPrefix(org, targetRepository)}/new");
-        newJsonSchemaResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, newJsonSchemaResponse.StatusCode);
 
         var generateInitModelsResponse = await GenerateModels(initModelName, $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath={modelPath}");
-        generateInitModelsResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, generateInitModelsResponse.StatusCode);
         // Check classRef in application metadata
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
         var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
-        applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef.Should().Be($"Altinn.App.Models.{initModelName}.{initModelName}");
+        Assert.Equal(applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef, $"Altinn.App.Models.{initModelName}.{initModelName}");
 
         var generateNewModelsResponse = await GenerateModels(newModelName, $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath={modelPath}");
-        generateNewModelsResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, generateNewModelsResponse.StatusCode);
 
         // Check classRef in application metadata
         applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
         applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
-        applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef.Should().Be($"Altinn.App.Models.{newModelName}.{newModelName}");
+        Assert.Equal(applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef, $"Altinn.App.Models.{newModelName}.{newModelName}");
     }
 
     private async Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url)

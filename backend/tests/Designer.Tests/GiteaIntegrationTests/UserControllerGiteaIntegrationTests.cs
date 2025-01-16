@@ -28,14 +28,14 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Contain(e => e.Contains("XSRF-TOKEN"));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("XSRF-TOKEN", response.Headers.GetValues("Set-Cookie").First());
             string content = await response.Content.ReadAsStringAsync();
             var user = JsonSerializer.Deserialize<User>(content,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            user.Login.Should().Be(expectedUserName);
-            user.Email.Should().Be(expectedEmail);
+            Assert.Equal(expectedUserName, user.Login);
+            Assert.Equal(expectedEmail, user.Email);
         }
 
         [Theory]
@@ -47,10 +47,11 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             string requestUrl = "designer/api/user/repos";
             using var response = await HttpClient.GetAsync(requestUrl);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
-            content.Should().NotBeNull();
-            content.Should().Contain(r => r.Name == targetRepo);
+
+            Assert.NotNull(content);
+            Assert.Contains(content, r => r.Name == targetRepo);
         }
 
         [Theory]
@@ -62,12 +63,12 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             using var putStarredResponse =
                 await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
-            putStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.Equal(HttpStatusCode.NoContent, putStarredResponse.StatusCode);
             await GetAndVerifyStarredRepos(targetRepo);
 
             using var deleteStarredResponse =
                 await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
-            deleteStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.Equal(HttpStatusCode.NoContent, deleteStarredResponse.StatusCode);
 
             await GetAndVerifyStarredRepos();
         }
@@ -81,7 +82,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             using var response = await HttpClient.GetAsync(requestUrl);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
             var deserializeOptions = new JsonSerializerOptions
             {
@@ -90,19 +91,20 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             var userOrgPermission = JsonSerializer.Deserialize<Team>(content, deserializeOptions);
 
-            userOrgPermission.Should().NotBeNull();
-            userOrgPermission.CanCreateOrgRepo.Should().Be(expectedCanCreate);
+            Assert.NotNull(userOrgPermission);
+            Assert.Equal(expectedCanCreate, userOrgPermission.CanCreateOrgRepo);
         }
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
         {
             using var response = await HttpClient.GetAsync("designer/api/user/starred");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
-            content.Should().NotBeNull().And.HaveCount(expectedStarredRepos.Length);
+            Assert.NotNull(content);
+            Assert.Equal(expectedStarredRepos.Length, content.Count);
             foreach (string expectedStarredRepo in expectedStarredRepos)
             {
-                content.Should().Contain(r => r.Name == expectedStarredRepo);
+                Assert.Contains(content, r => r.Name == expectedStarredRepo);
             }
         }
     }

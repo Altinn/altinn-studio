@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
@@ -35,11 +36,18 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
             .Take(top)
             .ToList();
 
-        result.Count.Should().Be(top);
-        result.Should().BeEquivalentTo(expectedEntities, options =>
-            options.Using<DateTime>(ctx =>
-                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
-            ).WhenTypeIs<DateTime>());
+        Assert.Equal(top, result.Count);
+        Assert.Equal(top, result.Count);
+
+
+        expectedEntities.ToHashSet().SetEquals(result.ToHashSet());
+        var compareList = expectedEntities.Zip(result, (expected, actual) =>
+        {
+            EntityAssertions.AssertEqual(expected, actual, TimeSpan.FromMilliseconds(200));
+            return true;
+        }).ToList();
+
+        Assert.All(compareList, Assert.True);
     }
 
     [Theory]
@@ -64,11 +72,15 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
                 : deploymentEntities.OrderByDescending(d => d.Created))
             .ToList();
 
-        result.Count.Should().Be(allEntitiesCount);
-        result.Should().BeEquivalentTo(expectedEntities, options =>
-            options.Using<DateTime>(ctx =>
-                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
-            ).WhenTypeIs<DateTime>());
+        Assert.Equal(allEntitiesCount, result.Count);
+
+        var compareList = expectedEntities.Zip(result, (expected, actual) =>
+        {
+            EntityAssertions.AssertEqual(expected, actual, TimeSpan.FromMilliseconds(200));
+            return true;
+        }).ToList();
+
+        Assert.All(compareList, Assert.True);
 
     }
 

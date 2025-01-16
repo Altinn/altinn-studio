@@ -54,7 +54,7 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
 
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -83,6 +83,6 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

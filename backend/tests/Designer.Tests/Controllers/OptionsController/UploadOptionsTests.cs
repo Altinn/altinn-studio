@@ -188,8 +188,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be("InvalidOptionsFormat");
+        Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 }

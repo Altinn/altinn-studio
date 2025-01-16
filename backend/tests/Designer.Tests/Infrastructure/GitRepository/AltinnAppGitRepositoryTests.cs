@@ -42,36 +42,38 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
-            applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
-            applicationMetadata.Org.Should().Be("yabbin");
-            applicationMetadata.Title.Should().ContainValues("Hvem er hvem?", "who-is-who");
-            applicationMetadata.Title.Should().ContainKeys("nb", "en");
+            Assert.Equal("yabbin/hvem-er-hvem", applicationMetadata.Id);
+            Assert.Equal("yabbin", applicationMetadata.Org);
+            Assert.Contains("Hvem er hvem?", applicationMetadata.Title.Values);
+            Assert.Contains("who-is-who", applicationMetadata.Title.Values);
+            Assert.Contains("nb", applicationMetadata.Title.Keys);
+            Assert.Contains("en", applicationMetadata.Title.Keys);
 
-            applicationMetadata.DataTypes.Should().HaveCount(2);
-            applicationMetadata.DataTypes.First(d => d.Id == "ref-data-as-pdf").AllowedContentTypes.First().Should().Be("application/pdf");
+            Assert.Equal(2, applicationMetadata.DataTypes.Count);
+            Assert.Equal("application/pdf", applicationMetadata.DataTypes.First(d => d.Id == "ref-data-as-pdf").AllowedContentTypes.First());
 
             DataType mainDataType = applicationMetadata.DataTypes.First(d => d.Id == "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES");
-            mainDataType.AllowedContentTypes.First().Should().Be("application/xml");
-            mainDataType.AppLogic.ClassRef.Should().Be("Altinn.App.Models.HvemErHvem_M");
-            mainDataType.AppLogic.AutoCreate.Should().BeTrue();
-            mainDataType.MinCount.Should().Be(1);
-            mainDataType.MaxCount.Should().Be(1);
-            mainDataType.TaskId.Should().Be("Task_1");
+            Assert.Equal("application/xml", mainDataType.AllowedContentTypes.First());
+            Assert.Equal("Altinn.App.Models.HvemErHvem_M", mainDataType.AppLogic.ClassRef);
+            Assert.True(mainDataType.AppLogic.AutoCreate);
+            Assert.Equal(1, mainDataType.MinCount);
+            Assert.Equal(1, mainDataType.MaxCount);
+            Assert.Equal("Task_1", mainDataType.TaskId);
 
-            applicationMetadata.PartyTypesAllowed.Person.Should().BeFalse();
-            applicationMetadata.PartyTypesAllowed.Organisation.Should().BeFalse();
-            applicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();
-            applicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeFalse();
+            Assert.False(applicationMetadata.PartyTypesAllowed.Person);
+            Assert.False(applicationMetadata.PartyTypesAllowed.Organisation);
+            Assert.False(applicationMetadata.PartyTypesAllowed.SubUnit);
+            Assert.False(applicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 
             DataField dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
-            dataField.Path.Should().Be("InnrapporterteData.geekType");
-            dataField.DataTypeId.Should().Be("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES");
+            Assert.Equal("InnrapporterteData.geekType", dataField.Path);
+            Assert.Equal("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES", dataField.DataTypeId);
 
-            applicationMetadata.AutoDeleteOnProcessEnd.Should().BeFalse();
-            applicationMetadata.Created.Should().BeSameDateAs(DateTime.Parse("2021-04-08T17:42:09.0883842Z"));
-            applicationMetadata.CreatedBy.Should().Be("Ronny");
-            applicationMetadata.LastChanged.Should().BeSameDateAs(DateTime.Parse("2021-04-08T17:42:09.08847Z"));
-            applicationMetadata.LastChangedBy.Should().Be("Ronny");
+            Assert.False(applicationMetadata.AutoDeleteOnProcessEnd);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z"), applicationMetadata.Created);
+            Assert.Equal("Ronny", applicationMetadata.CreatedBy);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z"), applicationMetadata.LastChanged);
+            Assert.Equal("Ronny", applicationMetadata.LastChangedBy);
         }
 
         [Fact]
@@ -84,8 +86,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             var textResource = await altinnAppGitRepository.GetTextV1("nb");
 
-            textResource.Should().NotBeNull();
-            textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+            Assert.NotNull(textResource);
+            Assert.Equal("Hvem er hvem?", textResource.Resources.First(r => r.Id == "ServiceName").Value);
         }
 
         [Fact]
@@ -98,8 +100,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             var languages = altinnAppGitRepository.GetLanguages();
 
-            languages.Should().NotBeNull();
-            languages.ToArray().Should().Equal("en", "nb");
+            Assert.NotNull(languages);
+            Assert.Equal(2, languages.Count());
+            Assert.Equal("en", languages.First());
+            Assert.Equal("nb", languages.Last());
         }
 
         [Fact]
@@ -112,8 +116,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
 
-            layoutSetNames.Should().NotBeNull();
-            layoutSetNames.Should().HaveCount(2);
+            Assert.NotNull(layoutSetNames);
+            Assert.Equal(2, layoutSetNames.Length);
         }
 
         [Fact]
@@ -126,8 +130,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
 
-            layoutSetNames.Should().NotBeNull();
-            layoutSetNames.Should().HaveCount(1);
+            Assert.NotNull(layoutSetNames);
+            Assert.Single(layoutSetNames);
         }
 
         [Fact]
@@ -140,7 +144,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
-            appUsesLayoutSets.Should().BeTrue();
+            Assert.True(appUsesLayoutSets);
             return Task.CompletedTask;
         }
 
@@ -154,7 +158,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
-            appUsesLayoutSets.Should().BeFalse();
+            Assert.False(appUsesLayoutSets);
             return Task.CompletedTask;
         }
 
@@ -169,8 +173,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
 
-            layoutNames.Should().NotBeNull();
-            layoutNames.Should().HaveCount(2);
+            Assert.NotNull(layoutSetName);
+            Assert.Equal(2, layoutNames.Length);
             return Task.CompletedTask;
         }
 
@@ -184,8 +188,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(null);
 
-            layoutNames.Should().NotBeNull();
-            layoutNames.Should().HaveCount(2);
+            Assert.NotNull(layoutNames);
+            Assert.Equal(2, layoutNames.Length);
             return Task.CompletedTask;
         }
 
@@ -201,8 +205,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
-            formLayout.Should().NotBeNull();
-            formLayout["data"]["layout"].Should().NotBeNull();
+            Assert.NotNull(formLayout);
+            Assert.NotNull(formLayout["data"]);
+            Assert.NotNull(formLayout["data"]["layout"]);
         }
 
         [Fact]
@@ -216,8 +221,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
 
-            formLayout.Should().NotBeNull();
-            formLayout["data"]["layout"].Should().NotBeNull();
+            Assert.NotNull(formLayout);
+            Assert.NotNull(formLayout["data"]);
+            Assert.NotNull(formLayout["data"]["layout"]);
         }
 
         [Fact]
@@ -239,9 +245,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
                 JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
-                formLayoutSaved.Should().NotBeNull();
-                formLayoutSaved["data"]["layout"].Should().NotBeNull();
-                (formLayoutSaved["data"]["layout"] as JsonArray).Should().HaveCount(1);
+                Assert.NotNull(formLayoutSaved);
+                Assert.NotNull(formLayoutSaved["data"]);
+                Assert.NotNull(formLayoutSaved["data"]["layout"]);
+                Assert.Single(formLayoutSaved["data"]["layout"] as JsonArray);
             }
             finally
             {
@@ -260,11 +267,12 @@ namespace Designer.Tests.Infrastructure.GitRepository
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             string options = await altinnAppGitRepository.GetOptionsList(optionsId);
-            options.Should().NotBeNull();
+
+            Assert.NotNull(options);
             var optionsArray = JsonNode.Parse(options).AsArray();
-            optionsArray.Count.Should().Be(2);
-            optionsArray[0]["label"].ToString().Should().Be("label1");
-            optionsArray[1]["label"].ToString().Should().Be("label2");
+            Assert.Equal(2, optionsArray.Count);
+            Assert.Equal("label1", optionsArray[0]["label"].ToString());
+            Assert.Equal("label2", optionsArray[1]["label"].ToString());
         }
 
         [Fact]
@@ -289,8 +297,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
-            optionListIds.Should().NotBeNull();
-            optionListIds.Should().HaveCount(3);
+            Assert.NotNull(optionListIds);
+            Assert.Equal(3, optionListIds.Length);
             return Task.CompletedTask;
         }
 

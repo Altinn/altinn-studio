@@ -28,6 +28,6 @@ public class UseXsdFromRepoTests : DesignerEndpointsTestsBase<UseXsdFromRepoTest
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 }

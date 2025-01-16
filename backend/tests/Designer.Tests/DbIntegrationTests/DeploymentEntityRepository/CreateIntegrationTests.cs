@@ -28,8 +28,7 @@ public class CreateIntegrationTests : DeploymentEntityIntegrationTestsBase
             d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());
 
-
-        dbRecord.DeploymentType.Should().Be(DeploymentType.Deploy);
+        Assert.Equal(DeploymentType.Deploy, dbRecord.DeploymentType);
 
         EntityAssertions.AssertEqual(deploymentEntity, dbRecord);
     }
