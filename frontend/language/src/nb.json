@@ -739,6 +739,7 @@
   "process_editor.configuration_panel_header_help_text_title": "Informasjon om valgt oppgave",
   "process_editor.configuration_panel_id_label": "ID:",
   "process_editor.configuration_panel_layout_set_id_not_unique": "Navnet må være unikt",
+  "process_editor.configuration_panel_layout_set_id_invalid": "Navnet er ugyldig. Du kan bruke tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "process_editor.configuration_panel_layout_set_name": "Navn på sidegruppe: ",
   "process_editor.configuration_panel_layout_set_name_label": "Navn på sidegruppe",
   "process_editor.configuration_panel_missing_task": "Oppgave",
