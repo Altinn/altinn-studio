@@ -1,0 +1,16 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.14.1.navigation.252436e9/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "showLanguageSelector": true,
+    "groups": [
+      {
+        "name": "subgroup.reg",
+        "order": ["reg"]
+      },
+      {
+        "name": "subgroup.data",
+        "order": ["brand", "year"]
+      }
+    ]
+  }
+}

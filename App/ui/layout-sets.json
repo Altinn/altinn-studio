@@ -5,6 +5,11 @@
       "id": "form",
       "dataType": "model",
       "tasks": ["Task_1"]
+    },
+    {
+      "id": "subform",
+      "dataType": "subform",
+      "type": "subform"
     }
   ],
   "uiSettings": {

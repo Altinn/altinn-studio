@@ -2,7 +2,6 @@
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.14.1.navigation.252436e9/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "showLanguageSelector": true,
-    "showExpandWidthButton": true,
     "groups": [
       {
         "name": "group.info",
@@ -10,7 +9,15 @@
       },
       {
         "name": "group.form",
-        "order": ["firstname", "lastname", "age", "birthday", "emails", "extra"]
+        "order": [
+          "firstname",
+          "lastname",
+          "age",
+          "birthday",
+          "emails",
+          "cars",
+          "extra"
+        ]
       },
       {
         "name": "group.summary",

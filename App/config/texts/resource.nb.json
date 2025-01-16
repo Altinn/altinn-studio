@@ -112,6 +112,50 @@
     {
       "id": "tasks.form",
       "value": "Personopplysninger"
+    },
+    {
+      "id": "cars",
+      "value": "Biler"
+    },
+    {
+      "id": "subform.title",
+      "value": "Biler"
+    },
+    {
+      "id": "subform.add",
+      "value": "Legg til bil"
+    },
+    {
+      "id": "subgroup.reg",
+      "value": "Registrering"
+    },
+    {
+      "id": "subgroup.data",
+      "value": "Informasjon"
+    },
+    {
+      "id": "brand.title",
+      "value": "Merke"
+    },
+    {
+      "id": "reg.title",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "year.title",
+      "value": "Årsmodell"
+    },
+    {
+      "id": "brand",
+      "value": "Merke"
+    },
+    {
+      "id": "reg",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "year",
+      "value": "Årsmodell"
     }
   ]
 }

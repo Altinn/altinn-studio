@@ -112,6 +112,50 @@
     {
       "id": "tasks.form",
       "value": "Personal information"
+    },
+    {
+      "id": "cars",
+      "value": "Cars"
+    },
+    {
+      "id": "subform.title",
+      "value": "Cars"
+    },
+    {
+      "id": "subform.add",
+      "value": "Add car"
+    },
+    {
+      "id": "subgroup.reg",
+      "value": "Registration"
+    },
+    {
+      "id": "subgroup.data",
+      "value": "Information"
+    },
+    {
+      "id": "brand.title",
+      "value": "Brand"
+    },
+    {
+      "id": "reg.title",
+      "value": "Registration number"
+    },
+    {
+      "id": "year.title",
+      "value": "Model year"
+    },
+    {
+      "id": "brand",
+      "value": "Brand"
+    },
+    {
+      "id": "reg",
+      "value": "Registration number"
+    },
+    {
+      "id": "year",
+      "value": "Model year"
     }
   ]
 }
