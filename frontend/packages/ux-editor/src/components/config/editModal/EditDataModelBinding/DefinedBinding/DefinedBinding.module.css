@@ -1,7 +1,3 @@
 .error {
   background-color: var(--fds-semantic-surface-danger-subtle);
 }
-
-.linkIcon {
-  color: var(--fds-semantic-text-neutral-default);
-}

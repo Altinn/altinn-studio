@@ -38,6 +38,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
       compact && classes.compact,
       readOnly && classes.readOnly,
       withoutNegativeMargin && classes.withoutNegativeMargin,
+      givenIcon && hasValue && classes.definedValue,
       givenClass,
     );
 

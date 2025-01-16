@@ -51,7 +51,6 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           property={t(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           )}
-          size='small'
           icon={<PersonPencilIcon />}
         />
       ) : isSelectVisible ? (

@@ -52,7 +52,7 @@ export const DefinedBinding = ({
       onClick={onClick}
       property={label}
       title={title}
-      icon={<LinkIcon className={classes.linkIcon} />}
+      icon={<LinkIcon />}
       value={currentDataModelField}
     />
   );

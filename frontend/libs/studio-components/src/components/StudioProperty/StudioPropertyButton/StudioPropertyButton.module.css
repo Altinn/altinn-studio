@@ -58,3 +58,7 @@
 .propertyButton.withoutNegativeMargin {
   margin: 0;
 }
+
+.definedValue {
+  color: var(--fds-semantic-text-neutral-default);
+}
