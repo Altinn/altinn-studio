@@ -62,7 +62,9 @@ describe('EditDataModelBinding', () => {
     await user.click(bindingButton);
     expect(bindingButton).not.toBeInTheDocument();
 
-    const dataModelFieldSelector = screen.getByRole('combobox');
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
 
     expect(dataModelFieldSelector).toBeInTheDocument();
   };
