@@ -116,7 +116,7 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
 
         List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+            new JsonSerializerOptions { WriteIndented = true });
 
         bool optionListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
         if (optionListHasInvalidNullFields)
