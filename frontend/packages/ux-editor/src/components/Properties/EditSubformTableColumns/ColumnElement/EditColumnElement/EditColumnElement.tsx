@@ -24,6 +24,7 @@ import {
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
+
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
@@ -58,10 +59,10 @@ export const EditColumnElement = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
 
   const [selectedComponentBindings, setSelectedComponentBindings] = useState<
-    Array<Record<string, string>>
+    { [key: string]: string }[]
   >([]);
   const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<
-    Array<Record<string, string>>
+    { [key: string]: string }[]
   >([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
@@ -70,7 +71,7 @@ export const EditColumnElement = ({
       return;
     }
 
-    const bindings = Object.entries(selectedComponent.dataModelBindings)
+    const bindings = Object.entries(selectedComponent?.dataModelBindings ?? {})
       .filter(([, value]) => Boolean(value))
       .map(([key, value]) => ({ [key]: value }));
 
@@ -91,6 +92,7 @@ export const EditColumnElement = ({
   const selectComponent = (values: string[]) => {
     const componentId = values[0];
     setSelectedComponentId(componentId);
+
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
     if (!selectedComponent) return;
 
