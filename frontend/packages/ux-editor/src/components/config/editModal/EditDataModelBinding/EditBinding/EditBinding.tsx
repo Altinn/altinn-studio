@@ -10,7 +10,6 @@ import {
   getXsdDataTypeFromDataModelFields,
   type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
@@ -48,9 +47,7 @@ export const EditBinding = ({
     const selectedDataFieldElement = updatedBinding?.field;
 
     const value =
-      (shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask)
-        ? updatedBinding
-        : selectedDataFieldElement) ??
+      updatedBinding ??
       formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
 
     const dataModelBindings = { ...component.dataModelBindings };
