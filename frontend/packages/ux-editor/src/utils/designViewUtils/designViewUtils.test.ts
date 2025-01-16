@@ -42,7 +42,7 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('ux_editor.pages_error_empty');
     });
 
-    it('returns length error key when name is too long', () => {
+    it('returns name invalid error key when name is too long', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateTooLong,
         mockOldName,
@@ -51,7 +51,7 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns formate error when name contains period (.)', () => {
+    it('returns name invalid error key when name contains period (.)', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateWithPeriod,
         mockOldName,
@@ -60,7 +60,7 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns format error key when name contains illegal characters', () => {
+    it('returns name invalid error key when name contains illegal characters', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateIllegal,
         mockOldName,
