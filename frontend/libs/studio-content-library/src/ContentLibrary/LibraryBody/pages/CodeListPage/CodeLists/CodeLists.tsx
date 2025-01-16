@@ -131,7 +131,7 @@ function CodeListAccordionContent({
     <Accordion.Content>
       {codeListData.hasError ? (
         <StudioAlert size='small' severity='danger'>
-          {t('app_content_library.code_lists.fetch_error')}
+          {t('app_content_library.code_lists.format_error')}
         </StudioAlert>
       ) : (
         <EditCodeList
