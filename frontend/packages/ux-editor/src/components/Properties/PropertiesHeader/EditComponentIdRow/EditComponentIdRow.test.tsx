@@ -1,4 +1,5 @@
 import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
@@ -130,7 +131,9 @@ const defaultProps: EditComponentIdRowProps = {
   helpText,
 };
 
-const renderEditComponentIdRow = async (props: Partial<EditComponentIdRowProps> = {}) => {
+const renderEditComponentIdRow = async (
+  props: Partial<EditComponentIdRowProps> = {},
+): RenderResult => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   return renderWithProviders(<EditComponentIdRow {...defaultProps} {...props} />);
 };

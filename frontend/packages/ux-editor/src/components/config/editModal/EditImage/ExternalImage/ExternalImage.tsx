@@ -92,14 +92,16 @@ const EditUrl = ({ url, existingImageUrl, onBlur }: EditUrlProps): React.ReactEl
   );
 };
 
-const isBLurInitialWithEmptyInput = (existingUrl: string, newUrl: string) =>
+const isBLurInitialWithEmptyInput = (existingUrl: string | undefined, newUrl: string): boolean =>
   newUrl === '' && existingUrl === undefined;
 
-const isInitialUrlProvided = (url: string, existingImageUrl: string) =>
-  url !== undefined || !!existingImageUrl;
+const isInitialUrlProvided = (
+  url: string | undefined,
+  existingImageUrl: string | undefined,
+): boolean => url !== undefined || !!existingImageUrl;
 
-const calculateViewValue = (
-  url: string,
+export const calculateViewValue = (
+  url: string | undefined,
   noUrlText: string,
   isViewMode: boolean,
 ): string | undefined => {

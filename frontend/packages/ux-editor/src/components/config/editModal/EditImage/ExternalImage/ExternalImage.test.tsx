@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';
-import { ExternalImage } from './ExternalImage';
+import { calculateViewValue, ExternalImage } from './ExternalImage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -252,3 +252,49 @@ const renderExternalImage = (
 ) => {
   renderWithProviders(<ExternalImage {...defaultProps} {...props} />, { queries, queryClient });
 };
+
+describe('calculateViewValue', () => {
+  const noUrlText = 'No URL Provided';
+
+  it('should return the URL when URL is provided and view mode is false', () => {
+    const url = 'http://example.com';
+    const result = calculateViewValue(url, noUrlText, false);
+    expect(result).toBe(url);
+  });
+
+  it('should return the URL when URL is provided and view mode is true', () => {
+    const url = 'http://example.com';
+    const result = calculateViewValue(url, noUrlText, true);
+    expect(result).toBe(url);
+  });
+
+  it('should return undefined when URL is empty and view mode is false', () => {
+    const result = calculateViewValue('', noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is empty and view mode is true', () => {
+    const result = calculateViewValue('', noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+
+  it('should return undefined when URL is undefined and view mode is false', () => {
+    const result = calculateViewValue(undefined, noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is undefined and view mode is true', () => {
+    const result = calculateViewValue(undefined, noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+
+  it('should return undefined when URL is equal to noUrlText and view mode is false', () => {
+    const result = calculateViewValue(noUrlText, noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is equal to noUrlText and view mode is true', () => {
+    const result = calculateViewValue(noUrlText, noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+});

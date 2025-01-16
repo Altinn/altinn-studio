@@ -1,4 +1,5 @@
 import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
@@ -7,6 +8,8 @@ import userEvent from '@testing-library/user-event';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioIconTextfield', () => {
+  afterEach(jest.clearAllMocks);
+
   it('render the icon', async () => {
     renderStudioIconTextfield();
     expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
@@ -40,6 +43,6 @@ const defaultProps: StudioIconTextfieldProps = {
   onChange,
 };
 
-const renderStudioIconTextfield = (props: Partial<StudioIconTextfieldProps> = {}) => {
+const renderStudioIconTextfield = (props: Partial<StudioIconTextfieldProps> = {}): RenderResult => {
   return render(<StudioIconTextfield {...defaultProps} {...props} />);
 };

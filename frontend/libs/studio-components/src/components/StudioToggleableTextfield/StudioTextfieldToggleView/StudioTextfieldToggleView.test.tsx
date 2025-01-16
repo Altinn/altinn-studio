@@ -1,4 +1,5 @@
 import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
 import type { StudioTextfieldToggleViewProps } from './StudioTextfieldToggleView';
@@ -44,6 +45,8 @@ const defaultProps: StudioTextfieldToggleViewProps = {
   Icon: KeyVerticalIcon,
 };
 
-const renderStudioTextfieldToggleView = (props: Partial<StudioTextfieldToggleViewProps> = {}) => {
+const renderStudioTextfieldToggleView = (
+  props: Partial<StudioTextfieldToggleViewProps> = {},
+): RenderResult => {
   return render(<StudioTextfieldToggleView {...defaultProps} {...props} />);
 };

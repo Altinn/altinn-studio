@@ -1,19 +1,13 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
+import type { StudioIconTextfieldProps } from '../StudioIconTextfield';
 import { StudioIconTextfield } from '../StudioIconTextfield';
 import { KeyVerticalIcon } from '../../../../studio-icons';
 
 export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
-  error?: string;
-  Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  label: string;
-  onBlur?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onIsViewMode?: (isViewMode: boolean) => void;
-  title?: string;
-  value: string;
-};
+} & StudioIconTextfieldProps;
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
   (

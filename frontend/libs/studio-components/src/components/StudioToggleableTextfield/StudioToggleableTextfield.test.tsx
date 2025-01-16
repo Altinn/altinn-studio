@@ -62,7 +62,7 @@ describe('StudioToggleableTextfield', () => {
     renderStudioTextField({ error });
     await user.click(screen.getByRole('button', { name: value }));
     await user.tab();
-    expect(screen.getByRole('textbox', { name: label })).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('textbox', { name: label })).toBeInvalid();
     expect(screen.getByText(error)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: value })).not.toBeInTheDocument();
   });
