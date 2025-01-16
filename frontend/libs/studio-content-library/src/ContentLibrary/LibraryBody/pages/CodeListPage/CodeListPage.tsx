@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StudioHeading } from '@studio/components';
 import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
+import { filterCodeLists } from './utils/codeListPageUtils';
 
 export type CodeListWithMetadata = {
   codeList: CodeList;
@@ -38,7 +39,13 @@ export function CodeListPage({
   codeListsUsages,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
+  const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+
+  const filteredCodeLists: CodeListData[] = useMemo(
+    () => filterCodeLists(codeListsData, searchString),
+    [codeListsData, searchString],
+  );
 
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
@@ -60,9 +67,10 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
+        onSetSearchString={setSearchString}
       />
       <CodeLists
-        codeListsData={codeListsData}
+        codeListsData={filteredCodeLists}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}

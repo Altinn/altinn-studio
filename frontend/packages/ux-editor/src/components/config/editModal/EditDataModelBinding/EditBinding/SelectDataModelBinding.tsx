@@ -1,8 +1,7 @@
 import React, { useId } from 'react';
 import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -41,7 +40,7 @@ export const SelectDataModelBinding = ({
     handleBindingChange(dataModelBinding);
   };
 
-  return shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask) ? (
+  return (
     <FormField
       id={id}
       onChange={handleDataModelChange}
@@ -69,11 +68,6 @@ export const SelectDataModelBinding = ({
           ))}
         </StudioNativeSelect>
       )}
-    />
-  ) : (
-    <StudioDisplayTile
-      label={t('ux_editor.modal_properties_data_model_binding')}
-      value={selectedDataModel}
     />
   );
 };

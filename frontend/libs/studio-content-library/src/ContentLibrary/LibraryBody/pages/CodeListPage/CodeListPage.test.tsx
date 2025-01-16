@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListPageProps } from './CodeListPage';
+import type { CodeListData, CodeListPageProps } from './CodeListPage';
 import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -60,12 +60,41 @@ describe('CodeListPage', () => {
 
   it('renders the code list accordion', () => {
     renderCodeListPage();
-    const codeListAccordion = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeListName,
-      }),
-    );
+    const codeListAccordion = getCodeListAccordion(codeListName);
     expect(codeListAccordion).toBeInTheDocument();
+  });
+
+  it('renders all code lists when search param matches all lists', async () => {
+    const user = userEvent.setup();
+    const codeList2 = 'codeList2';
+    const codeListsSearchParam = 'code';
+    renderCodeListPage({
+      codeListsData: [...codeListsDataMock, { title: codeList2, data: codeListMock }],
+    });
+    const searchInput = screen.getByRole('searchbox');
+    await user.type(searchInput, codeListsSearchParam);
+    [codeListName, codeList2].forEach((codeListTitle) => {
+      expect(getCodeListAccordion(codeListTitle)).toBeInTheDocument();
+    });
+  });
+
+  it('renders the matching code lists when search param limits result', async () => {
+    const user = userEvent.setup();
+    const codeList2 = 'codeList2';
+    const codeListsSearchParam = '2';
+    renderCodeListPage({
+      codeListsData: [...codeListsDataMock, { title: codeList2, data: codeListMock }],
+    });
+    const searchInput = screen.getByRole('searchbox');
+    await user.type(searchInput, codeListsSearchParam);
+    expect(getCodeListAccordion(codeList2)).toBeInTheDocument();
+    expect(
+      screen.queryByTitle(
+        textMock('app_content_library.code_lists.code_list_accordion_title', {
+          codeListTitle: codeListName,
+        }),
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('render the code list accordion as default open when uploading a code list', async () => {
@@ -81,11 +110,13 @@ describe('CodeListPage', () => {
       title: uploadedCodeListName,
       data: codeListMock,
     });
-    rerender(<CodeListPage {...defaultCodeListPageProps} />);
+    const newCodeListsData: CodeListData[] = [...defaultCodeListPageProps.codeListsData];
+    rerender(<CodeListPage {...defaultCodeListPageProps} codeListsData={newCodeListsData} />);
     const codeListAccordionOpen = screen.getByRole('button', {
       name: uploadedCodeListName,
       expanded: true,
     });
+    expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
     expect(codeListAccordionOpen).toHaveAttribute('aria-expanded', 'true');
   });
 
@@ -148,6 +179,14 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   );
   const file = new File(['test'], `${fileName}.json`, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);
+};
+
+const getCodeListAccordion = (codeListTitle: string) => {
+  return screen.getByTitle(
+    textMock('app_content_library.code_lists.code_list_accordion_title', {
+      codeListTitle,
+    }),
+  );
 };
 
 const defaultCodeListPageProps: CodeListPageProps = {
