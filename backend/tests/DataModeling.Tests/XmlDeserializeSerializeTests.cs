@@ -19,15 +19,16 @@ public class XmlDeserializeSerializeTests : CsharpModelConversionTestsBase<XmlDe
             .When.LoadedXsdSchemaConvertedToJsonSchema()
             .And.ConvertedJsonSchemaConvertedToModelMetadata()
             .And.ModelMetadataConvertedToCsharpClass()
-            .And.CSharpClassesCompiledToAssembly()
-            .Then.CompiledAssembly.Should().NotBeNull();
+            .And.CSharpClassesCompiledToAssembly();
+
+        Assert.NotNull(CompiledAssembly);
 
         And.DeserializeAndSerializeShouldProduceSameXml(xmlPath);
     }
 
     private void DeserializeAndSerializeShouldProduceSameXml(string xmlPath)
     {
-        Type csharpType = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        Type csharpType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
 
         string loadedXml = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
 

@@ -43,8 +43,10 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
             .When.LoadedXsdSchemaConvertedToJsonSchema()
             .And.ConvertedJsonSchemaConvertedToModelMetadata()
             .And.ModelMetadataConvertedToCsharpClass()
-            .And.CSharpClassesCompiledToAssembly()
-            .Then.CompiledAssembly.Should().NotBeNull();
+            .And.CSharpClassesCompiledToAssembly();
+
+        Assert.NotNull(CompiledAssembly);
+
 
         When.RepresentingTypeFromLoadedFromAssembly()
             .And.RandomRepresentingObjectGenerated()
@@ -55,7 +57,7 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
 
     private DataValidationWithModelPopulatingTests RepresentingTypeFromLoadedFromAssembly()
     {
-        RepresentingType = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        RepresentingType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
         return this;
     }
 
@@ -68,7 +70,8 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
     private DataValidationWithModelPopulatingTests RepresentingObject_ShouldBeValid()
     {
         var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null, true);
-        isValid.Should().BeTrue();
+
+        Assert.True(isValid);
         return this;
     }
 
@@ -100,7 +103,8 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
         document.Schemas.Add(LoadedXsdSchema);
         ValidationEventHandler eventHandler = ValidationEventHandler;
         document.Validate(eventHandler);
-        isValid.Should().BeTrue();
+
+        Assert.True(isValid);
 
         return this;
     }
@@ -113,6 +117,7 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
         });
         var jsonNode = JsonNode.Parse(json);
         var validationResults = ConvertedJsonSchema.Evaluate(jsonNode);
-        validationResults.IsValid.Should().BeTrue();
+
+        Assert.True(validationResults.IsValid);
     }
 }

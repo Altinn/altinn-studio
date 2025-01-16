@@ -29,7 +29,7 @@ namespace DataModeling.Tests
 
             var validXml = ValidateXml(xml);
 
-            validXml.Should().BeTrue();
+            Assert.True(validXml);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace DataModeling.Tests
         {
             _TestData.Model.CSharp.melding melding = DeserializeFromXmlResource(SERESBASIC_XML_RESOURCE);
 
-            melding.E1.Should().Be("Yo");
+            Assert.Equal("Yo", melding.E1);
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace DataModeling.Tests
 
             bool validXml = ValidateXml(xml);
 
-            validXml.Should().BeTrue();
+            Assert.True(validXml);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace DataModeling.Tests
 
             var validationResults = jsonSchema.Evaluate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
 
-            validationResults.IsValid.Should().BeTrue();
+            Assert.True(validationResults.IsValid);
             return Task.CompletedTask;
         }
 
@@ -71,7 +71,7 @@ namespace DataModeling.Tests
             var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
             _TestData.Model.CSharp.melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.melding>(json);
 
-            melding.E1.Should().Be("Yo");
+            Assert.Equal("Yo", melding.E1);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace DataModeling.Tests
 
             var validationResults = jsonSchema.Evaluate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
 
-            validationResults.IsValid.Should().BeTrue();
+            Assert.True(validationResults.IsValid);
         }
 
         private static _TestData.Model.CSharp.melding DeserializeFromXmlResource(string xmlResource)

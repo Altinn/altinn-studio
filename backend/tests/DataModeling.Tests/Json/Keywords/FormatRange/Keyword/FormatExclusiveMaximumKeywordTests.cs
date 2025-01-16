@@ -13,7 +13,7 @@ public class FormatExclusiveMaximumKeywordTests : ValueKeywordTestsBase<FormatEx
     public void CreatedKeyword_ShouldHaveValue(string value)
     {
         Keyword = new FormatExclusiveMaximumKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -35,6 +35,7 @@ public class FormatExclusiveMaximumKeywordTests : ValueKeywordTestsBase<FormatEx
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }

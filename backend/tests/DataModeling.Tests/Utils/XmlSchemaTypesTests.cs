@@ -11,13 +11,13 @@ public class XmlSchemaTypesTests
     [MemberData(nameof(TestData))]
     public void AllTypesShouldContainType(string type)
     {
-        XmlSchemaTypes.AllKnownTypes.Should().Contain(type);
+        Assert.Contains(type, XmlSchemaTypes.AllKnownTypes);
     }
 
     [Fact]
     public void AllTypesShouldHave50Types()
     {
-        XmlSchemaTypes.AllKnownTypes.Count().Should().Be(49);
+        Assert.Equal(49, XmlSchemaTypes.AllKnownTypes.Count());
     }
 
     public static IEnumerable<object[]> TestData => new List<object[]>

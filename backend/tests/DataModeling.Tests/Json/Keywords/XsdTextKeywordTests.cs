@@ -12,7 +12,7 @@ public class XsdTextKeywordTests : ValueKeywordTestsBase<XsdTextKeywordTests, Xs
     public void DefaultValue_ShouldBe_False()
     {
         Keyword = new XsdTextKeyword();
-        Keyword.Value.Should().Be(false);
+        Assert.False(Keyword.Value);
     }
 
     [Theory]

@@ -33,6 +33,7 @@ public class CustomFormatsTests
         objects.Add(node[property]);
 
         var result = checkDateMethod.Invoke(null, objects.ToArray());
-        expected.Should().Be((bool)result);
+
+        Assert.Equal(expected, (bool)result);
     }
 }

@@ -27,9 +27,9 @@ namespace DataModeling.Tests
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then
-                .CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.GeneratedClassesShouldBeEquivalentToExpected(expectedCsharpClassPath);
         }
@@ -43,8 +43,9 @@ namespace DataModeling.Tests
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then.CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.PropertyShouldHaveDefinedTypeAndContainAnnotation("Root", propertyName, expectedPropertyType, restrictionString);
         }
@@ -56,12 +57,14 @@ namespace DataModeling.Tests
             Given.That.JsonSchemaLoaded(jsonSchemaPath)
                 .When.LoadedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then.CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.ClassesShouldBeGenerated(typesCreated)
-                .And.When.LoadedJsonSchemaConvertedToXsdSchema()
-                .Then.ConvertedXsdSchema.Should().NotBeNull();
+                .And.When.LoadedJsonSchemaConvertedToXsdSchema();
+
+            Assert.NotNull(ConvertedXsdSchema);
         }
 
         [Theory]
@@ -71,8 +74,9 @@ namespace DataModeling.Tests
             Given.That.JsonSchemaLoaded(jsonSchemaPath)
                 .When.LoadedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then.CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
         }
 
         private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath, bool overwriteExpected = false)
@@ -93,15 +97,16 @@ namespace DataModeling.Tests
             var expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
 
             // Compare root types.
-            var newType = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+            var newType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
             var oldType = expectedAssembly.GetType(newType.FullName);
-            oldType.Should().NotBeNull();
+            Assert.NotNull(oldType);
+
             TypeAssertions.IsEquivalentTo(oldType, newType);
         }
 
         private void PropertyShouldHaveDefinedTypeAndContainAnnotation(string className, string propertyName, string propertyType, string annotationString)
         {
-            var type = CompiledAssembly.Types().Single(type => type.Name == className);
+            var type = CompiledAssembly.GetTypes().Single(type => type.Name == className);
             TypeAssertions.PropertyShouldContainCustomAnnotationAndHaveTypeType(type, propertyName, propertyType, annotationString);
         }
 
@@ -110,8 +115,9 @@ namespace DataModeling.Tests
         {
             foreach (string className in classNames)
             {
-                var type = CompiledAssembly.Types().Single(type => type.Name == className);
-                type.Should().NotBeNull();
+                var type = CompiledAssembly.GetTypes().Single(type => type.Name == className);
+
+                Assert.NotNull(type);
             }
             return this;
         }

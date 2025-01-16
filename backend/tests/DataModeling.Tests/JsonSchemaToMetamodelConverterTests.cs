@@ -31,8 +31,9 @@ namespace DataModeling.Tests
                 .And.ExpectedMetamodelLoaded(expectedMetamodelPath)
                 .Then.MetamodelShouldBeEquivalentToExpected()
                 .And.When.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then.CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
         }
 
         // Helper methods
@@ -52,7 +53,7 @@ namespace DataModeling.Tests
 
         private JsonSchemaToMetamodelConverterTests MetamodelShouldHaveOneRootElement()
         {
-            ModelMetadata.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
+            Assert.Single(ModelMetadata.Elements.Values.Where(e => e.ParentElement == null).ToList());
             return this;
         }
     }

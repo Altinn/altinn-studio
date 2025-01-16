@@ -13,7 +13,7 @@ public class FormatExclusiveMinimumKeywordTests : ValueKeywordTestsBase<FormatEx
     public void CreatedKeyword_ShouldHaveValue(string value)
     {
         Keyword = new FormatExclusiveMinimumKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -35,6 +35,6 @@ public class FormatExclusiveMinimumKeywordTests : ValueKeywordTestsBase<FormatEx
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }

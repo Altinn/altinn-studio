@@ -10,9 +10,10 @@ namespace DataModeling.Tests
         {
             Given.That.ModelMetadataLoaded(
                     "Model/Metadata/restriction-total-digits.json")
-                .When.ModelMetadataConvertedToCsharpClass()
-                .Then.CSharpClasses.Should().NotBeNull();
-            And.CSharpClasses.Should().Contain("[Range(-7.766279631452242E+18, 7.766279631452242E+18)]");
+                .When.ModelMetadataConvertedToCsharpClass();
+
+            Assert.NotNull(CSharpClasses);
+            Assert.Contains("[Range(-7.766279631452242E+18, 7.766279631452242E+18)]", CSharpClasses);
         }
 
         [Fact]
@@ -20,10 +21,12 @@ namespace DataModeling.Tests
         {
             Given.That.ModelMetadataLoaded(
                     "Model/Metadata/restriction-total-digits.json")
-                .When.ModelMetadataConvertedToCsharpClass()
-                .Then.CSharpClasses.Should().NotBeNull();
-            And.CSharpClasses.Should().Contain("[MinLength(1)]");
-            And.CSharpClasses.Should().Contain("[MaxLength(20)]");
+                .When.ModelMetadataConvertedToCsharpClass();
+
+            Assert.NotNull(CSharpClasses);
+
+            Assert.Contains("[MinLength(1)]", CSharpClasses);
+            Assert.Contains("[MaxLength(20)]", CSharpClasses);
         }
 
         [Fact]
@@ -31,9 +34,11 @@ namespace DataModeling.Tests
         {
             Given.That.ModelMetadataLoaded(
                     "Model/Metadata/RA-0678_M.json")
-                .When.ModelMetadataConvertedToCsharpClass()
-                .Then.CSharpClasses.Should().NotBeNull();
-            And.CSharpClasses.Should().Contain("[XmlRoot(ElementName=\"melding\")]");
+                .When.ModelMetadataConvertedToCsharpClass();
+
+            Assert.NotNull(CSharpClasses);
+
+            Assert.Contains("[XmlRoot(ElementName=\"melding\")]", CSharpClasses);
         }
 
         [Fact]
@@ -41,11 +46,13 @@ namespace DataModeling.Tests
         {
             Given.That.ModelMetadataLoaded(
                     "Model/Metadata/SimpleStringArray.json")
-                .When.ModelMetadataConvertedToCsharpClass()
-                .Then.CSharpClasses.Should().NotBeNull();
-            And.CSharpClasses.Should().Contain("List<string>");
-            And.CSharpClasses.Should().NotContain("List<String>");
-            And.CSharpClasses.Should().NotContain("public class String");
+                .When.ModelMetadataConvertedToCsharpClass();
+
+            Assert.NotNull(CSharpClasses);
+
+            Assert.Contains("List<string>", CSharpClasses);
+            Assert.DoesNotContain("List<String>", CSharpClasses);
+            Assert.DoesNotContain("public class String", CSharpClasses);
         }
 
         [Fact]
@@ -53,9 +60,12 @@ namespace DataModeling.Tests
         {
             Given.That.ModelMetadataLoaded(
                     "Model/Metadata/SeresBasicSchemaWithTargetNamespace.json")
-                .When.ModelMetadataConvertedToCsharpClass()
-                .Then.CSharpClasses.Should().NotBeNull();
-            And.CSharpClasses.Should().MatchRegex("\\[XmlRoot\\(.*Namespace=\"urn:no:altinn:message\"\\)\\]");
+                .When.ModelMetadataConvertedToCsharpClass();
+
+            Assert.NotNull(CSharpClasses);
+
+            Assert.Matches("\\[XmlRoot\\(.*Namespace=\"urn:no:altinn:message\"\\)\\]", CSharpClasses);
+
         }
     }
 }

@@ -16,7 +16,7 @@ public class XsdMaxOccursKeywordTests : ValueKeywordTestsBase<XsdMaxOccursKeywor
     public void CreatedKeyword_ShouldHaveValue(string value)
     {
         Keyword = new XsdMaxOccursKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -44,6 +44,7 @@ public class XsdMaxOccursKeywordTests : ValueKeywordTestsBase<XsdMaxOccursKeywor
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }

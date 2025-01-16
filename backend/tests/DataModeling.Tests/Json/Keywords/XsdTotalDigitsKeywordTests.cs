@@ -18,7 +18,7 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
     public void CreatedKeyword_ShouldHaveValue(uint value)
     {
         Keyword = new XsdTotalDigitsKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -42,7 +42,7 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 
     [Theory]
@@ -56,7 +56,7 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
         var schema = JsonSchema.FromText(TotalDigitsSchema(totalDigitsValue));
         var node = JsonNode.Parse(TotalDigitsJson(jsonDataValue));
         var validationResults = schema.Evaluate(node, new EvaluationOptions() { ProcessCustomKeywords = true });
-        shouldBeValid.Should().Be(validationResults.IsValid);
+        Assert.Equal(shouldBeValid, validationResults.IsValid);
     }
 
     private static string TotalDigitsSchema(uint value) => @$"

@@ -21,9 +21,9 @@ namespace DataModeling.Tests.Json.Keywords
 
             Given.That.JsonSchemaLoaded(jsonSchema)
                 .When.KeywordReadFromSchema()
-                .Then.Keyword.Should().NotBeNull();
+                .Then.KeywordShouldNotBeNull();
 
-            And.Keyword.Value.Should().Be(value);
+            Assert.Equal(Keyword.Value, value);
         }
 
         [Theory]

@@ -16,8 +16,9 @@ namespace DataModeling.Tests
         public void ValidJsonSchema_ShouldNotHave_ValidationIssues(string jsonSchemaPath)
         {
             When.JsonSchemaLoaded(jsonSchemaPath)
-                .And.LoadedJsonSchemaValidated()
-                .Then.ValidationResult.IsValid.Should().BeTrue();
+                .And.LoadedJsonSchemaValidated();
+
+            Assert.True(ValidationResult.IsValid);
         }
 
         [Theory]
@@ -25,14 +26,15 @@ namespace DataModeling.Tests
         public void InvalidJsonSchema_ShouldHave_ValidationIssues(string jsonSchemaPath, params Tuple<string, string>[] expectedValidationIssues)
         {
             When.JsonSchemaLoaded(jsonSchemaPath)
-                .And.LoadedJsonSchemaValidated()
-                .Then.ValidationResult.IsValid.Should().BeFalse();
+                .And.LoadedJsonSchemaValidated();
 
-            And.ValidationResult.ValidationIssues.Should().HaveCount(expectedValidationIssues.Length);
+            Assert.False(ValidationResult.IsValid);
+
+            Assert.Equal(ValidationResult.ValidationIssues.Count, expectedValidationIssues.Length);
 
             foreach ((string expectedPointer, string expectedCode) in expectedValidationIssues)
             {
-                ValidationResult.ValidationIssues.Should().Contain(x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
+                Assert.Contains(ValidationResult.ValidationIssues, x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
             }
         }
 

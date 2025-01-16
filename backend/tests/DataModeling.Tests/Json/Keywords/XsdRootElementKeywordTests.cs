@@ -28,6 +28,7 @@ public class XsdRootElementKeywordTests : ValueKeywordTestsBase<XsdRootElementKe
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }
