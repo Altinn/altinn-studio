@@ -43,7 +43,6 @@ export const ActionsEditor = ({
 
   const actionLabel = t('process_editor.configuration_panel_actions_action_label', {
     actionIndex: actionIndex + 1,
-    actionName: actionElement.action,
   });
 
   if (componentMode === 'edit') {
@@ -92,7 +91,7 @@ const ActionEditable = ({
     !getPredefinedActions(bpmnDetails.taskType).includes(actionElement.action);
 
   return (
-    <StudioCard>
+    <StudioCard className={classes.container}>
       <StudioCard.Header className={classes.cardHeader}>
         <StudioParagraph size='small'>
           {t('process_editor.configuration_panel_actions_action_card_title', {

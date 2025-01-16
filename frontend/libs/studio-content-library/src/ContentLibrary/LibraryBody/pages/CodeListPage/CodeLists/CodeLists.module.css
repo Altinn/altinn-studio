@@ -1,0 +1,8 @@
+.codeListTitle {
+  display: flex;
+  flex-direction: column;
+}
+
+.codeListUsages {
+  font: var(--fds-typography-paragraph-xsmall);
+}

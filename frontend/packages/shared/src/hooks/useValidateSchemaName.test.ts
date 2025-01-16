@@ -60,19 +60,37 @@ describe('useValidateSchemaName', () => {
     );
   });
 
+  it('should set error when data model with same name exists (case-insensitive)', () => {
+    const { result } = renderUseValidateSchemaName();
+    const existingModelNameUpperCase = existingModelName.toUpperCase();
+
+    act(() => {
+      result.current.validateName(existingModelNameUpperCase);
+    });
+
+    expect(result.current.nameError).toBe(
+      textMock('schema_editor.error_model_name_exists', {
+        newModelName: existingModelNameUpperCase,
+      }),
+    );
+  });
+
   it('should set error when data type in appMetadata with same name exists, when the data type is not also a data model', () => {
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
-      result.current.validateName(existingModelName);
+      result.current.validateName(existingDataTypeName);
     });
 
-    expect(result.current.nameError).not.toBe(
-      textMock('schema_editor.error_data_type_name_exists'),
-    );
+    expect(result.current.nameError).toBe(textMock('schema_editor.error_data_type_name_exists'));
+  });
+
+  it('should set error when data type in appMetadata with same name exists, when the data type is not also a data model (case-insensitive)', () => {
+    const { result } = renderUseValidateSchemaName();
+    const existingDataTypeNameUpperCase = existingDataTypeName.toUpperCase();
 
     act(() => {
-      result.current.validateName(existingDataTypeName);
+      result.current.validateName(existingDataTypeNameUpperCase);
     });
 
     expect(result.current.nameError).toBe(textMock('schema_editor.error_data_type_name_exists'));
