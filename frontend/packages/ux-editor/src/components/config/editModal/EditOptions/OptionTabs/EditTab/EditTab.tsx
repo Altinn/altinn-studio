@@ -1,102 +1,107 @@
-import React, { useState } from 'react';
+import React, { createRef } from 'react';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioErrorMessage,
+  StudioSpinner,
+  usePrevious,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { StudioDeleteButton, StudioErrorMessage } from '@studio/components';
-import { AddManualOptionsModal } from './AddManualOptionsModal';
+import { useUpdate } from 'app-shared/hooks/useUpdate';
+import { useComponentErrorMessage } from '../../../../../../hooks';
+import {
+  handleOptionsChange,
+  updateComponentOptions,
+  isOptionsModifiable,
+  isOptionsIdReferenceId,
+  isInitialOptionsSet,
+} from '../utils/optionsUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
+import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import type { IGenericEditComponent } from '../../../../componentConfig';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
-import { OptionListEditor } from './/OptionListEditor';
-import { useComponentErrorMessage } from '../../../../../../hooks';
-import type { IGenericEditComponent } from '../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 
-type EditOptionChoiceProps = Pick<
+type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function EditTab({
-  component,
-  handleComponentChange,
-}: EditOptionChoiceProps): React.ReactElement {
-  const initialComponentHasOptionList: boolean = !!component.optionsId || !!component.options;
-  const [componentHasOptionList, setComponentHasOptionList] = useState<boolean>(
-    initialComponentHasOptionList,
-  );
+export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
+  const previousComponent = usePrevious(component);
+  const dialogRef = createRef<HTMLDialogElement>();
   const errorMessage = useComponentErrorMessage(component);
 
-  return (
-    <>
-      {componentHasOptionList ? (
-        <SelectedOptionList
-          setComponentHasOptionList={setComponentHasOptionList}
-          component={component}
-          handleComponentChange={handleComponentChange}
+  useUpdate(() => {
+    if (isInitialOptionsSet(previousComponent.options, component.options)) {
+      dialogRef.current.showModal();
+    }
+  }, [component, previousComponent]);
+
+  switch (status) {
+    case 'pending':
+      return (
+        <StudioSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')}
         />
-      ) : (
-        <div className={classes.optionButtons}>
-          <AddManualOptionsModal
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListSelector
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListUploader
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-        </div>
-      )}
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
+      );
+    case 'error':
+      return (
+        <StudioErrorMessage>
+          {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
         </StudioErrorMessage>
-      )}
-    </>
-  );
+      );
+    case 'success':
+      return (
+        <div className={classes.container}>
+          {isOptionsModifiable(optionListIds, component.optionsId, component.options) ? (
+            <OptionListEditor
+              ref={dialogRef}
+              component={component}
+              handleComponentChange={handleComponentChange}
+            />
+          ) : (
+            <AddOptionList component={component} handleComponentChange={handleComponentChange} />
+          )}
+          {errorMessage && (
+            <StudioErrorMessage className={classes.errorMessage} size='small'>
+              {errorMessage}
+            </StudioErrorMessage>
+          )}
+          {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
+            <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+              {t('ux_editor.options.tab_option_list_alert_title')}
+            </StudioAlert>
+          )}
+        </div>
+      );
+  }
 }
 
-type SelectedOptionListProps = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+type AddOptionListProps = EditTabProps;
 
-function SelectedOptionList({
-  setComponentHasOptionList,
-  component,
-  handleComponentChange,
-}: SelectedOptionListProps) {
+function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
   const { t } = useTranslation();
 
-  const handleDelete = () => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    const emptyOptionsId = '';
-    handleComponentChange({
-      ...component,
-      optionsId: emptyOptionsId,
-    });
-
-    setComponentHasOptionList(false);
+  const handleInitialManualOptionsChange = () => {
+    const updatedComponent = updateComponentOptions(component, []);
+    handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
   return (
-    <div className={classes.chosenOptionContainer}>
-      <OptionListEditor component={component} handleComponentChange={handleComponentChange} />
-      <div className={classes.deleteButtonContainer}>
-        <StudioDeleteButton
-          className={classes.deleteButton}
-          onDelete={handleDelete}
-          title={t('ux_editor.options.option_remove_text')}
-          variant={'tertiary'}
-        />
-      </div>
+    <div className={classes.addOptionListContainer}>
+      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
+        {t('general.create_new')}
+      </StudioButton>
+      <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
+      <OptionListUploader component={component} handleComponentChange={handleComponentChange} />
     </div>
   );
 }

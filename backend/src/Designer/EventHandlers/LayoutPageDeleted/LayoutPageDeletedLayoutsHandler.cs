@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
@@ -19,7 +20,7 @@ public class LayoutPageDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHa
             "layouts",
             async () =>
             {
-                List<Reference> referencesToDelete = [new Reference("page", notification.LayoutSetName, notification.LayoutName)];
+                List<Reference> referencesToDelete = [new Reference(ReferenceType.Layout, notification.LayoutSetName, notification.LayoutName)];
                 return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }

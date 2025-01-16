@@ -1,6 +1,6 @@
 import { StringUtils } from '@studio/pure-functions';
 
-export const FILE_NAME_REGEX = /^[a-zA-Z0-9_\-]{1,50}$/;
+export const FILE_NAME_REGEX = /^[a-zA-Z0-9_\-]{2,28}$/;
 
 export enum FileNameErrorResult {
   FileNameIsEmpty = 'fileNameIsEmpty',
@@ -49,7 +49,7 @@ export class FileNameUtils {
   };
 
   /**
-   * Validates if file name does not exist in list of invalid names and if name matches regEx.
+   * Validates if file name does not exist in list of invalid names and if name matches regEx. (case-insensitive)
    * @param fileName
    * @param invalidFileNames
    * @param regEx
@@ -65,8 +65,8 @@ export class FileNameUtils {
     }
 
     const isFileNameNotMatchingRegEx: boolean = Boolean(!fileName.match(regEx));
-    const isFileNameInInvalidList: boolean = invalidFileNames.some(
-      (invalidFileName) => invalidFileName === fileName,
+    const isFileNameInInvalidList: boolean = invalidFileNames.some((invalidFileName) =>
+      StringUtils.areCaseInsensitiveEqual(invalidFileName, fileName),
     );
 
     if (isFileNameNotMatchingRegEx) {

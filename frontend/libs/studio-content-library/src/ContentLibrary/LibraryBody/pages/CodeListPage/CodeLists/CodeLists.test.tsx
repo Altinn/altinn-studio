@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
-import { getCodeListSourcesById, updateCodeListWithMetadata, CodeLists } from './CodeLists';
+import { CodeLists } from './CodeLists';
+import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
@@ -9,9 +10,9 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
-import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 
 const codeListName = codeListsDataMock[0].title;
+const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
@@ -29,6 +30,132 @@ describe('CodeLists', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
     const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: true });
     expect(codeListAccordion).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('renders the accordion header title without usage information if not in use', () => {
+    renderCodeLists();
+    const codeListAccordionHeaderSubTitleSingle = screen.queryByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+        codeListUsagesCount: 0,
+      }),
+    );
+    const codeListAccordionHeaderSubTitlePlural = screen.queryByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+        codeListUsagesCount: 0,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitleSingle).not.toBeInTheDocument();
+    expect(codeListAccordionHeaderSubTitlePlural).not.toBeInTheDocument();
+  });
+
+  it('does not render a button to view code list usages if not in use', () => {
+    renderCodeLists();
+    const viewCodeListUsagesButton = screen.queryByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    expect(viewCodeListUsagesButton).not.toBeInTheDocument();
+  });
+
+  it('renders the accordion header title with single usage information if used once', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const codeListAccordionHeaderSubTitleSingle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+        codeListUsagesCount: 1,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
+  });
+
+  it('renders the accordion header title with plural usage information if used multiple times', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            {
+              layoutSetId: 'layoutSetId',
+              layoutName: 'layoutName',
+              componentIds: ['componentId1', 'componentId2'],
+            },
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const codeListAccordionHeaderSubTitlePlural = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+        codeListUsagesCount: 3,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitlePlural).toBeInTheDocument();
+  });
+
+  it('renders button to view code list usages if code list is in use', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const viewCodeListUsagesButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    expect(viewCodeListUsagesButton).toBeInTheDocument();
+  });
+
+  it('renders modal to see code list usages if clicking button to view code list usages', async () => {
+    const user = userEvent.setup();
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const viewCodeListUsagesButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    await user.click(viewCodeListUsagesButton);
+    const codeListUsagesModalTitle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_show_usage_modal_title'),
+    );
+    expect(codeListUsagesModalTitle).toBeInTheDocument();
+  });
+
+  it('renders button to delete code list as disabled when code list is used', async () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton).toBeDisabled();
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_disabled_title'),
+    );
   });
 
   it('renders the code list editor', () => {
@@ -100,6 +227,20 @@ describe('CodeLists', () => {
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
+
+  it('calls onDeleteCodeList when clicking delete button', async () => {
+    const user = userEvent.setup();
+    renderCodeLists();
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
+    );
+    await user.click(deleteCodeListButton);
+    expect(onDeleteCodeListMock).toHaveBeenCalledTimes(1);
+    expect(onDeleteCodeListMock).toHaveBeenLastCalledWith(codeListName);
+  });
 });
 
 const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
@@ -121,6 +262,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
 
 const defaultProps: CodeListsProps = {
   codeListsData: codeListsDataMock,
+  onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   codeListInEditMode: undefined,
@@ -156,39 +298,5 @@ describe('updateCodeListWithMetadata', () => {
       title: codeListsDataMock[0].title,
       codeList: updatedCodeList,
     });
-  });
-});
-
-const codeListId1: string = 'codeListId1';
-const codeListId2: string = 'codeListId2';
-const componentIds: string[] = ['componentId1', 'componentId2'];
-const codeListIdSources1: CodeListIdSource[] = [
-  { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds },
-];
-const codeListIdSources2: CodeListIdSource[] = [...codeListIdSources1];
-
-describe('getCodeListSourcesById', () => {
-  it('returns an array of CodeListSources if given Id is present in codeListsUsages array', () => {
-    const codeListUsages: CodeListReference[] = [
-      { codeListId: codeListId1, codeListIdSources: codeListIdSources1 },
-      { codeListId: codeListId2, codeListIdSources: codeListIdSources2 },
-    ];
-    const codeListSources = getCodeListSourcesById(codeListUsages, codeListId1);
-
-    expect(codeListSources).toBe(codeListIdSources1);
-    expect(codeListSources).not.toBe(codeListIdSources2);
-  });
-
-  it('returns an empty array if given Id is not present in codeListsUsages array', () => {
-    const codeListUsages: CodeListReference[] = [
-      { codeListId: codeListId2, codeListIdSources: codeListIdSources2 },
-    ];
-    const codeListSources = getCodeListSourcesById(codeListUsages, codeListId1);
-    expect(codeListSources).toEqual([]);
-  });
-
-  it('returns an empty array if codeListsUsages array is empty', () => {
-    const codeListSources = getCodeListSourcesById([], codeListId1);
-    expect(codeListSources).toEqual([]);
   });
 });

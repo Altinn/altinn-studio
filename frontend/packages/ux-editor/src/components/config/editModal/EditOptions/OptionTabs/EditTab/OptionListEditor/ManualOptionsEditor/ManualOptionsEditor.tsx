@@ -1,57 +1,68 @@
-import { useOptionListEditorTexts } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/hooks';
+import type { IGenericEditComponent } from '../../../../../../componentConfig';
+import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
+import React, { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StudioCodeListEditor, StudioModal } from '@studio/components';
+import { useForwardedRef } from '@studio/hooks';
+import { useOptionListEditorTexts } from '../../../hooks';
+import {
+  handleOptionsChange,
+  resetComponentOptions,
+  updateComponentOptions,
+} from '../../../utils/optionsUtils';
+import { OptionListLabels } from '../OptionListLabels';
+import { OptionListButtons } from '../OptionListButtons';
 import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
-import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
-import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
-import { useTranslation } from 'react-i18next';
-import React, { useRef } from 'react';
-import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 
-type ManualOptionsEditorProps = Pick<
-  IGenericEditComponent<SelectionComponentType>,
-  'component' | 'handleComponentChange'
->;
+type ManualOptionsEditorProps = {
+  handleDelete: () => void;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-export function ManualOptionsEditor({
-  component,
-  handleComponentChange,
-}: ManualOptionsEditorProps): React.ReactNode {
-  const { t } = useTranslation();
-  const modalRef = useRef<HTMLDialogElement>(null);
-  const editorTexts = useOptionListEditorTexts();
+export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
+  ({ component, handleComponentChange, handleDelete }, ref): React.ReactNode => {
+    const { t } = useTranslation();
+    const modalRef = useForwardedRef(ref);
+    const editorTexts = useOptionListEditorTexts();
 
-  const handleBlurAny = (options: Option[]) => {
-    if (component.optionsId) {
-      delete component.optionsId;
-    }
+    const handleOptionsListChange = (options: Option[]) => {
+      const updatedComponent = updateComponentOptions(component, options);
+      handleOptionsChange(updatedComponent, handleComponentChange);
+    };
 
-    handleComponentChange({
-      ...component,
-      options,
-    });
-  };
+    const handleClick = () => {
+      modalRef.current?.showModal();
+    };
 
-  return (
-    <>
-      <StudioProperty.Button
-        value={t('ux_editor.modal_properties_code_list_custom_list')}
-        title={t('ux_editor.options.option_edit_text')}
-        property={t('ux_editor.modal_properties_code_list_button_title_manual')}
-        onClick={() => modalRef.current.showModal()}
-      />
-      <StudioModal.Dialog
-        ref={modalRef}
-        className={classes.editOptionTabModal}
-        contentClassName={classes.content}
-        closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_code_list')}
-      >
-        <StudioCodeListEditor
-          codeList={component.options ?? []}
-          onBlurAny={handleBlurAny}
-          texts={editorTexts}
-        />
-      </StudioModal.Dialog>
-    </>
-  );
-}
+    const handleClose = () => {
+      if (component.options?.length === 0) {
+        const updatedComponent = resetComponentOptions(component);
+        handleOptionsChange(updatedComponent, handleComponentChange);
+      }
+    };
+
+    return (
+      <>
+        <OptionListLabels optionsId={component.optionsId} optionsList={component.options} />
+        <OptionListButtons handleDelete={handleDelete} handleClick={handleClick} />
+        <StudioModal.Dialog
+          ref={modalRef}
+          className={classes.editOptionTabModal}
+          contentClassName={classes.content}
+          closeButtonTitle={t('general.close')}
+          onBeforeClose={handleClose}
+          heading={t('ux_editor.options.modal_header_manual_code_list')}
+        >
+          <StudioCodeListEditor
+            codeList={component.options}
+            onAddOrDeleteItem={handleOptionsListChange}
+            onBlurAny={handleOptionsListChange}
+            texts={editorTexts}
+          />
+        </StudioModal.Dialog>
+      </>
+    );
+  },
+);
+
+ManualOptionsEditor.displayName = 'ManualOptionsEditor';
