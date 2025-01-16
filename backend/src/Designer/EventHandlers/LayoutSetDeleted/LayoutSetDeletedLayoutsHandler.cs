@@ -19,7 +19,7 @@ public class LayoutSetDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHan
             "layouts",
             async () =>
             {
-                List<Reference> referencesToDelete = [new Reference("layoutSet", notification.LayoutSetName, notification.LayoutSetName)];
+                List<Reference> referencesToDelete = [new Reference(ReferenceType.LayoutSet, notification.LayoutSetName, notification.LayoutSetName)];
                 return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }

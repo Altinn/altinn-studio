@@ -613,9 +613,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var deletedReferences = referencesToUpdate.Where(item => string.IsNullOrEmpty(item.NewId)).ToList();
 
-            var deletedLayoutsSetIds = deletedReferences.Where(item => item.Type == "layoutSet").Select(item => item.Id).ToList();
-            var deletedLayouts = deletedReferences.Where(item => item.Type == "page").ToList();
-            var deletedComponents = deletedReferences.Where(item => item.Type == "component").ToList();
+            var deletedLayoutsSetIds = deletedReferences.Where(item => item.Type == ReferenceType.LayoutSet).Select(item => item.Id).ToList();
+            var deletedLayouts = deletedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
+            var deletedComponents = deletedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
             foreach (LayoutSetConfig layoutSet in layoutSets ?? [new() { Id = null }])
             {
@@ -660,7 +660,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             {
                                 if (!isComponentDeleted)
                                 {
-                                    referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                    referencesToDelete.Add(new Reference(ReferenceType.Component, layoutSet.Id, componentId));
                                 }
 
                                 continue;
@@ -673,7 +673,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                     string subformLayoutSet = component["layoutSet"]?.GetValue<string>();
                                     if (deletedLayoutsSetIds.Contains(subformLayoutSet))
                                     {
-                                        referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                        referencesToDelete.Add(new Reference(ReferenceType.Component, layoutSet.Id, componentId));
                                         componentList.RemoveAt(i);
                                         hasLayoutChanges = true;
                                     }
@@ -692,7 +692,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                             || deletedLayoutsSetIds.Contains(layoutSetId)
                                         )
                                         {
-                                            referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                            referencesToDelete.Add(new Reference(ReferenceType.Component, layoutSet.Id, componentId));
                                             componentList.RemoveAt(i);
                                             hasLayoutChanges = true;
                                         }
@@ -725,7 +725,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         if (!isLayoutDeleted)
                         {
-                            referencesToDelete.Add(new Reference("page", layoutSet.Id, layout.Key));
+                            referencesToDelete.Add(new Reference(ReferenceType.Layout, layoutSet.Id, layout.Key));
                         }
 
                         continue;
