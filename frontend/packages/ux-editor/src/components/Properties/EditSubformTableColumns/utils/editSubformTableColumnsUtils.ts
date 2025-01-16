@@ -34,21 +34,20 @@ export const getComponentsForSubformTable = (
     getAllLayoutComponents(layout),
   );
 
-  return componentsWithLabelAndDefaultDataModel(components, defaultDataModel);
+  return componentsWithTitleAndDefaultDataModel(components, defaultDataModel);
 };
 
-const componentsWithLabelAndDefaultDataModel = (
+const componentsWithTitleAndDefaultDataModel = (
   components: FormItem[],
   defaultDataModel: string,
 ): FormItem[] => {
-  return components.filter(
-    (comp) =>
-      comp.textResourceBindings?.title &&
-      Object.keys(comp.dataModelBindings ?? {}).some(
-        (binding) =>
-          convertDataBindingToInternalFormat(comp, binding).dataType === defaultDataModel,
-      ),
-  );
+  const hasValidDataBinding = (comp: FormItem) =>
+    Object.keys(comp.dataModelBindings ?? {}).some((binding) => {
+      const { dataType, field } = convertDataBindingToInternalFormat(comp, binding);
+      return dataType === defaultDataModel || (dataType === '' && field !== '');
+    });
+
+  return components.filter((comp) => comp.textResourceBindings?.title && hasValidDataBinding(comp));
 };
 
 export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: string): string => {
