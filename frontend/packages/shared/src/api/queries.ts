@@ -4,6 +4,7 @@ import {
   appMetadataPath,
   appPolicyPath,
   appVersionPath,
+  belongsToOrg,
   branchStatusPath,
   dataModelMetadataPath,
   dataModelPath,
@@ -170,3 +171,6 @@ export const getAltinn2DelegationsCount = (org: string, serviceCode: string, ser
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
 export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);
+
+// Contact Page
+export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
