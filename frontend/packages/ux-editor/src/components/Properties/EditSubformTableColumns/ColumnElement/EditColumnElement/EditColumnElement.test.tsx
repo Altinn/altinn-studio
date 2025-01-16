@@ -194,10 +194,9 @@ describe('EditColumnElementComponentSelect', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should not update bindings when the selected component has no dataModelBindings', async () => {
+  it('should return early if selectedComponent has no dataModelBindings', async () => {
     const user = userEvent.setup();
     const onSelectComponent = jest.fn();
-
     renderEditColumnElementComponentSelect({
       onSelectComponent,
       components: [
@@ -205,23 +204,42 @@ describe('EditColumnElementComponentSelect', () => {
           id: 'component-without-bindings',
           type: subformLayoutMock.component1.type,
           itemType: 'COMPONENT',
-          dataModelBindings: { simpleBinding: '' },
+          dataModelBindings: undefined,
           textResourceBindings: {},
         },
       ],
     });
-
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
     });
 
     await user.click(componentSelect);
     const componentWithoutBindings = screen.getByText('component-without-bindings');
-    await waitFor(() => user.click(componentWithoutBindings));
-    onSelectComponent([subformLayoutMock.component1Id]);
+    await user.click(componentWithoutBindings);
 
+    await waitFor(() => {
+      expect(onSelectComponent).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(onSelectComponent).toHaveBeenCalledWith(['component-without-bindings']);
+    });
+  });
+
+  it('should return early if selectedComponent is undefined', async () => {
+    const user = userEvent.setup();
+    const onSelectComponent = jest.fn();
+    renderEditColumnElementComponentSelect({
+      onSelectComponent,
+      components: [],
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    await user.click(componentSelect);
+    onSelectComponent([undefined]);
     expect(onSelectComponent).toHaveBeenCalledTimes(1);
-    expect(onSelectComponent).toHaveBeenCalledWith([subformLayoutMock.component1Id]);
+    expect(onSelectComponent).toHaveBeenCalledWith([undefined]);
+    expect(screen.queryByRole('option', { name: /binding/i })).not.toBeInTheDocument();
   });
 });
 

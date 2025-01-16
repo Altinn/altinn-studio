@@ -162,8 +162,8 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
-  selectedComponentBindings?: any[];
-  filteredDatamodelBindings?: any[];
+  selectedComponentBindings?: Record<string, string>[];
+  filteredDatamodelBindings?: Record<string, string>[];
   component?: FormItem;
 };
 export const EditColumnElementComponentSelect = ({
