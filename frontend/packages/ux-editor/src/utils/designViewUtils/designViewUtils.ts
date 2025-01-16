@@ -26,7 +26,7 @@ export const getPageNameErrorKey = (
   } else if (!newNameCandidate) {
     return 'ux_editor.pages_error_empty';
   } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
-    return 'ux_editor.pages_error_invalid_name';
+    return 'validation_errors.name_invalid';
   } else {
     return null;
   }
