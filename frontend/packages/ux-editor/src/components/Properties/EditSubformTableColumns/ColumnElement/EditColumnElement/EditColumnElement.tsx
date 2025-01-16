@@ -67,8 +67,6 @@ export const EditColumnElement = ({
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (!selectedComponent?.dataModelBindings) {
-      setSelectedComponentBindings([]);
-      setFilteredDatamodelBindings([]);
       return;
     }
 

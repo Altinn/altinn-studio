@@ -42,6 +42,7 @@ export const EditColumnElementContent = ({
         />
       )}
 
+      {/* This is disable for now, and maybe will show it with new design for multiple data model binding  in a separate issue */}
       {!disableCellContent && (
         <StudioDisplayTile
           className={classes.componentCellContent}

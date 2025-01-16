@@ -30,7 +30,7 @@ const defaultComponents = [
     id: subformLayoutMock.component2Id,
     type: subformLayoutMock.component2.type,
     itemType: subformLayoutMock.component2.itemType,
-    dataModelBindings: {},
+    dataModelBindings: { simpleBinding: '' },
     textResourceBindings: { title: 'no-bindings-title' },
   },
 ];
@@ -145,7 +145,16 @@ describe('EditColumnElementComponentSelect', () => {
   it('should render multiple data model bindings label when there are multiple data model bindings', async () => {
     const user = userEvent.setup();
     renderEditColumnElementComponentSelect({
-      selectedComponentBindings: [{}, {}],
+      selectedComponentBindings: [
+        {
+          binding1: 'path1',
+          binding2: 'path2',
+        },
+        {
+          binding3: 'path3',
+          binding4: 'path4',
+        },
+      ],
     });
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
@@ -164,7 +173,12 @@ describe('EditColumnElementComponentSelect', () => {
   it('should not render multiple data model bindings label when there are not multiple data model bindings', async () => {
     const user = userEvent.setup();
     renderEditColumnElementComponentSelect({
-      selectedComponentBindings: [{}],
+      selectedComponentBindings: [
+        {
+          binding1: 'path1',
+          binding2: 'path2',
+        },
+      ],
     });
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
@@ -178,6 +192,36 @@ describe('EditColumnElementComponentSelect', () => {
         ),
       ),
     ).not.toBeInTheDocument();
+  });
+
+  it('should not update bindings when the selected component has no dataModelBindings', async () => {
+    const user = userEvent.setup();
+    const onSelectComponent = jest.fn();
+
+    renderEditColumnElementComponentSelect({
+      onSelectComponent,
+      components: [
+        {
+          id: 'component-without-bindings',
+          type: subformLayoutMock.component1.type,
+          itemType: 'COMPONENT',
+          dataModelBindings: { simpleBinding: '' },
+          textResourceBindings: {},
+        },
+      ],
+    });
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    await user.click(componentSelect);
+    const componentWithoutBindings = screen.getByText('component-without-bindings');
+    await waitFor(() => user.click(componentWithoutBindings));
+    onSelectComponent([subformLayoutMock.component1Id]);
+
+    expect(onSelectComponent).toHaveBeenCalledTimes(1);
+    expect(onSelectComponent).toHaveBeenCalledWith([subformLayoutMock.component1Id]);
   });
 });
 
