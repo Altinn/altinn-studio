@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;

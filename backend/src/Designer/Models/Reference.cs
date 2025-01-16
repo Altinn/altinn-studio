@@ -1,10 +1,7 @@
-namespace Altinn.Studio.Designer.Models;
 
-public record Reference(ReferenceType Type, string LayoutSetName, string Id, string NewId = null);
+using Altinn.Studio.Designer.Enums;
 
-public enum ReferenceType
+namespace Altinn.Studio.Designer.Models
 {
-    LayoutSet,
-    Layout,
-    Component
+    public record Reference(ReferenceType Type, string LayoutSetName, string Id, string NewId = null);
 }
