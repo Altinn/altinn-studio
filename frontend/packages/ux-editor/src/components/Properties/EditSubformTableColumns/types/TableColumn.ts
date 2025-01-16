@@ -1,7 +1,5 @@
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
-
 type TableColumnCellContent = {
-  query: string | InternalBindingFormat;
+  query: string;
   default?: string;
 };
 
