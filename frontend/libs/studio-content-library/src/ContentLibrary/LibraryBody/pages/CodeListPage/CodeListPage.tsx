@@ -23,6 +23,7 @@ export type CodeListData = {
 
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
+  onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
@@ -31,6 +32,7 @@ export type CodeListPageProps = {
 
 export function CodeListPage({
   codeListsData,
+  onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
   onUploadCodeList,
@@ -69,6 +71,7 @@ export function CodeListPage({
       />
       <CodeLists
         codeListsData={filteredCodeLists}
+        onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}

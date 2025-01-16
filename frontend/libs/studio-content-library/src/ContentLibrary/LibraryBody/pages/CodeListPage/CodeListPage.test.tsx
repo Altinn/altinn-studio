@@ -8,6 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 
+const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
@@ -190,6 +191,7 @@ const getCodeListAccordion = (codeListTitle: string) => {
 
 const defaultCodeListPageProps: CodeListPageProps = {
   codeListsData: codeListsDataMock,
+  onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   onUploadCodeList: onUploadCodeListMock,
