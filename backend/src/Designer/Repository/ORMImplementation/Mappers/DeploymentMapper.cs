@@ -28,6 +28,7 @@ public static class DeploymentMapper
             EnvName = deploymentEntity.EnvName,
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
+            CreatedBy = deploymentEntity.CreatedBy,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
             Build = BuildMapper.MapToDbModel(deploymentEntity.Build, BuildType.Deployment),
         };

@@ -4,7 +4,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.AppScopesRepository;
@@ -22,7 +21,7 @@ public class GetAppScopesAsyncTests : DbIntegrationTestsBase
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
         var result = await repository.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app));
 
-        result.Should().BeNull();
+        Assert.Null(result);
     }
 
 
@@ -34,7 +33,7 @@ public class GetAppScopesAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareAppScopesEntityInDatabaseAsync(entity);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
         AppScopesEntity result = await repository.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app));
-        result.Version.Should().BeGreaterThan(0);
+        Assert.True(result.Version > 0);
         entity.Version = result.Version;
         EntityAssertions.AssertEqual(result, entity);
     }

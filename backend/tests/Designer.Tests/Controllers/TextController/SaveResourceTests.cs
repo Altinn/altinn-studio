@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -36,8 +35,8 @@ namespace Designer.Tests.Controllers.TextController
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json").Should().BeTrue();
-            JsonUtils.DeepEquals(payload, TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json")).Should().BeTrue();
+            Assert.True(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json"));
+            Assert.True(JsonUtils.DeepEquals(payload, TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json")));
         }
 
 
