@@ -1,3 +1,4 @@
 .texts {
-  margin-bottom: var(--fds-spacing-7);
+  margin-bottom: var(--fds-spacing-3);
+  gap: 0;
 }
