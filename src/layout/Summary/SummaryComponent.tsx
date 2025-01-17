@@ -17,6 +17,7 @@ import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGrid, IPageBreak } from 'src/layout/common.generated';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
@@ -55,6 +56,7 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
   const pageBreak = overrides?.pageBreak ?? summaryItem?.pageBreak ?? targetItem?.pageBreak;
 
   const { langAsString } = useLanguage();
+  const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');
 
   const targetView = targetNode?.pageKey;
@@ -139,18 +141,23 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
             style={{ paddingTop: '12px' }}
             spacing={4}
           >
-            {errors.map(({ message }) => (
-              <ErrorPaper
-                key={`key-${message.key}`}
-                message={
-                  <Lang
-                    id={message.key}
-                    params={message.params}
-                    node={targetNode}
-                  />
-                }
-              />
-            ))}
+            {errors.map((error) => {
+              const key = getUniqueKeyFromObject(error);
+              const message = error.message;
+
+              return (
+                <ErrorPaper
+                  key={key}
+                  message={
+                    <Lang
+                      id={message.key}
+                      params={message.params}
+                      node={targetNode}
+                    />
+                  }
+                />
+              );
+            })}
             <Flex
               item
               size={{ xs: 12 }}
