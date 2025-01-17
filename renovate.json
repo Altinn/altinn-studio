@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>Altinn/renovate-config"],
   "labels": ["kind/dependencies"],
-  "baseBranches": ["main", "v3"],
+  "baseBranches": ["main"],
   "packageRules": [
     {
       "matchPackageNames": [
