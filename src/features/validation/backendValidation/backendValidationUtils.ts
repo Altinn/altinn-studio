@@ -54,7 +54,7 @@ function isStandardBackend(rawSource: string): boolean {
  * Extracts field validations from a list of validation issues and assigns the correct data type based on the dataElementId
  * Will skip over any validations that are missing a field and/or dataElementId
  */
-export function mapBackendIssuesToFieldValdiations(
+export function mapBackendIssuesToFieldValidations(
   issues: BackendValidationIssue[],
   defaultDataElementId: string | null,
 ): FieldValidation[] {

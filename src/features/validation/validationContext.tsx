@@ -7,7 +7,6 @@ import { immer } from 'zustand/middleware/immer';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -26,10 +25,7 @@ import {
   useGetCachedInitialValidations,
   useRefetchInitialValidations,
 } from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
-  appSupportsIncrementalValidationFeatures,
-  useShouldValidateInitial,
-} from 'src/features/validation/backendValidation/backendValidationUtils';
+import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
@@ -263,7 +259,6 @@ function UpdateShowAllErrors() {
   const taskValidations = useSelector((state) => state.state.task);
   const dataModelValidations = useSelector((state) => state.state.dataModels);
   const setShowAllErrors = useSelector((state) => state.setShowAllBackendErrors);
-  const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(useApplicationMetadata());
 
   const isFirstRender = useRef(true);
 
@@ -279,7 +274,7 @@ function UpdateShowAllErrors() {
   );
 
   // Since process/next returns non-incremental validations, we need to also check these to see when they are removed
-  const refetchInitialValidations = useRefetchInitialValidations(false, !hasIncrementalValidationFeatures);
+  const refetchInitialValidations = useRefetchInitialValidations(false);
   useEffect(() => {
     // No need to invalidate initial validations right away
     if (isFirstRender.current) {

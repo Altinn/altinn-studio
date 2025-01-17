@@ -22,7 +22,7 @@ export function useOnPageNavigationValidation() {
   const validating = Validation.useValidating();
   const pageOrder = usePageOrder();
   const traversalSelector = useNodeTraversalSelector();
-  const refetchInitialValidations = useRefetchInitialValidations(true);
+  const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent(async (currentPage: LayoutPage, config: PageValidation): Promise<boolean> => {

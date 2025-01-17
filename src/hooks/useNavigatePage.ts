@@ -214,7 +214,7 @@ export function useNavigatePage() {
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useQueryKeysAsStringAsRef();
   const getTaskType = useGetTaskTypeById();
-  const refetchInitialValidations = useRefetchInitialValidations(true);
+  const refetchInitialValidations = useRefetchInitialValidations();
 
   const { autoSaveBehavior } = usePageSettings();
   const order = usePageOrder();

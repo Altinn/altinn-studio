@@ -7,7 +7,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { type BackendFieldValidatorGroups } from 'src/features/validation';
 import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
-  mapBackendIssuesToFieldValdiations,
+  mapBackendIssuesToFieldValidations,
   mapBackendIssuesToTaskValidations,
   mapValidatorGroupsToDataModelValidations,
   useShouldValidateInitial,
@@ -25,14 +25,14 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
 
   // Map initial validations
   const enabled = useShouldValidateInitial();
-  const { data: initialValidations, isFetching } = useBackendValidationQuery(enabled);
+  const { data: initialValidations, isFetching } = useBackendValidationQuery({ enabled });
   const initialValidatorGroups: BackendFieldValidatorGroups = useMemo(() => {
     if (!initialValidations) {
       return emptyObject;
     }
     // Note that we completely ignore task validations (validations not related to form data) on initial validations,
     // this is because validations like minimum number of attachments in application metadata is not really useful to show initially
-    const fieldValidations = mapBackendIssuesToFieldValdiations(initialValidations, defaultDataElementId);
+    const fieldValidations = mapBackendIssuesToFieldValidations(initialValidations, defaultDataElementId);
     const validatorGroups: BackendFieldValidatorGroups = {};
     for (const validation of fieldValidations) {
       if (!validatorGroups[validation.source]) {
@@ -73,7 +73,7 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
       const newValidatorGroups = structuredClone(validatorGroups.current);
 
       for (const [group, validationIssues] of Object.entries(lastSaveValidations)) {
-        newValidatorGroups[group] = mapBackendIssuesToFieldValdiations(validationIssues, defaultDataElementId);
+        newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues, defaultDataElementId);
       }
 
       if (deepEqual(validatorGroups.current, newValidatorGroups)) {
