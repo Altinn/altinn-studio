@@ -15,7 +15,10 @@ export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   summaryMode?: boolean;
 };
 
-export type IPassedOnProps = Omit<PropsFromGenericComponent<'Custom'>, 'node' | 'componentValidations'> &
+export type IPassedOnProps = Omit<
+  PropsFromGenericComponent<'Custom'>,
+  'node' | 'componentValidations' | 'containerDivRef'
+> &
   Omit<CompInternal<'Custom'>, 'tagName' | 'textResourceBindings'> & {
     [key: string]: string | number | boolean | object | null | undefined;
     text: string | undefined;
@@ -31,13 +34,17 @@ export function CustomWebComponent({
   const langTools = useLanguage();
   const { language, langAsString } = langTools;
   const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useNodeItem(node);
+
+  const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
+
   const passThroughProps: IPassedOnProps = {
-    ...passThroughPropsFromGenericComponent,
+    ...restFromGeneric,
     ...passThroughPropsFromNode,
     text: langAsString(textResourceBindings?.title),
     getTextResourceAsString: (textResource: string) => langAsString(textResource),
     summaryMode,
   };
+
   const HtmlTag = tagName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wcRef = React.useRef<any>(null);
@@ -48,7 +55,16 @@ export function CustomWebComponent({
     if (current) {
       const handleChange = (customEvent: CustomEvent) => {
         const { value, field } = customEvent.detail;
-        setValue(field, value);
+        if (!dataModelBindings?.simpleBinding && !field) {
+          throw new Error(
+            'If you are not using simpleBinding, you need to include a field in your change event to indicate what datamodel binding you want to save to. See docs: https://github.com/Altinn/altinn-studio/issues/8681',
+          );
+        }
+        if (field) {
+          setValue(field, value);
+          return;
+        }
+        setValue('simpleBinding', value);
       };
 
       current.addEventListener('dataChanged', handleChange);
@@ -56,7 +72,7 @@ export function CustomWebComponent({
         current.removeEventListener('dataChanged', handleChange);
       };
     }
-  }, [setValue, wcRef]);
+  }, [dataModelBindings?.simpleBinding, setValue, wcRef]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -88,11 +104,12 @@ export function CustomWebComponent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prop = ReactDOMServer.renderToStaticMarkup(prop as any);
     } else if (['object', 'array'].includes(typeof prop)) {
-      prop = JSON.stringify(passThroughProps[key]);
+      if (key !== 'containerDivRef') {
+        prop = JSON.stringify(passThroughProps[key]);
+      }
     }
     propsAsAttributes[key] = prop;
   });
-
   return (
     <ComponentStructureWrapper node={node}>
       <HtmlTag
