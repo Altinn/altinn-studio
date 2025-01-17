@@ -19,7 +19,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -122,7 +121,7 @@ namespace Designer.Tests.Services
             {
                 await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
-                altinnStudioSettings.RepoType.Should().Be(AltinnRepositoryType.App);
+                Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
             }
             finally
             {

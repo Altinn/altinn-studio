@@ -1,6 +1,7 @@
 import React, { forwardRef, useId } from 'react';
 import { Label, Search, type SearchProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
+import classes from './StudioSearch.module.css';
 
 export type StudioSearchProps = WithoutAsChild<SearchProps>;
 
@@ -10,6 +11,7 @@ const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
     const searchId = id ?? generatedId;
     const showLabel = !!label;
 
+    // TODO: Remove studioSearch css class when Design System is updated. See issue: https://github.com/digdir/designsystemet/issues/2765
     return (
       <div className={className}>
         {showLabel && (
@@ -17,7 +19,7 @@ const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
             {label}
           </Label>
         )}
-        <Search {...rest} id={searchId} size={size} ref={ref} />
+        <Search {...rest} className={classes.studioSearch} id={searchId} size={size} ref={ref} />
       </div>
     );
   },

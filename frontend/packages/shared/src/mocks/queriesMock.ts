@@ -192,6 +192,11 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
 
+  // Queries - Contact
+  fetchBelongsToGiteaOrg: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
+
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -218,6 +223,7 @@ export const queriesMock: ServicesContextProps = {
   deleteImage: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),

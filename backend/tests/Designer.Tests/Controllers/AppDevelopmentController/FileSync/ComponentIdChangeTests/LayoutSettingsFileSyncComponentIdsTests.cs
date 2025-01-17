@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -46,15 +45,15 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
 
-        excludeFromPdfArray.Where(node => node.GetValue<string>() == oldComponentId).Should().BeEmpty();
-        excludeFromPdfArray.Should().ContainSingle(node => node.GetValue<string>() == newComponentId);
+        Assert.DoesNotContain(excludeFromPdfArray, node => node.GetValue<string>() == oldComponentId);
+        Assert.Single(excludeFromPdfArray, node => node.GetValue<string>() == newComponentId);
     }
 
     [Theory]
@@ -82,15 +81,16 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
 
-        excludeFromPdfArray.Count.Should().Be(originalExcludeFromPdfArray.Count - 1);
-        excludeFromPdfArray.Where(node => node.GetValue<string>() == oldComponentId).Should().BeEmpty();
+        Assert.DoesNotContain(excludeFromPdfArray!, node => node.GetValue<string>() == oldComponentId);
+
+        Assert.Equal(originalExcludeFromPdfArray!.Count - 1, excludeFromPdfArray.Count);
     }
 
     [Theory]
@@ -115,17 +115,18 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
             Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
 
-        excludeFromPdfArray.Where(node => node.GetValue<string>() == oldComponentId).Should().BeEmpty();
-        excludeFromPdfArray.Where(node => node.GetValue<string>() == oldComponentId2).Should().BeEmpty();
-        excludeFromPdfArray.Should().ContainSingle(node => node.GetValue<string>() == newComponentId);
-        excludeFromPdfArray.Should().ContainSingle(node => node.GetValue<string>() == newComponentId2);
+        Assert.DoesNotContain(excludeFromPdfArray, node => node.GetValue<string>() == oldComponentId);
+        Assert.DoesNotContain(excludeFromPdfArray, node => node.GetValue<string>() == oldComponentId2);
+
+        Assert.Single(excludeFromPdfArray, node => node.GetValue<string>() == newComponentId);
+        Assert.Single(excludeFromPdfArray, node => node.GetValue<string>() == newComponentId2);
     }
 
     private string ArrangeApiRequestContent(List<ComponentIdChange> componentIdsChanges)

@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Moq;
 using NuGet.Versioning;
 using SharedResources.Tests;
@@ -38,11 +37,11 @@ namespace Designer.Tests.Services
 
             var result = processModelingService.GetProcessDefinitionTemplates(version).ToList();
 
-            result.Count.Should().Be(expectedTemplates.Length);
+            Assert.Equal(expectedTemplates.Length, result.Count);
 
             foreach (string expectedTemplate in expectedTemplates)
             {
-                result.Should().Contain(expectedTemplate);
+                Assert.Contains(expectedTemplate, result);
             }
         }
 
@@ -60,7 +59,7 @@ namespace Designer.Tests.Services
             string taskType = await processModelingService.GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), "layoutSet1");
 
             // Assert
-            taskType.Should().Be("data");
+            Assert.Equal("data", taskType);
         }
 
         public static IEnumerable<object[]> TemplatesTestData => new List<object[]>
