@@ -3,7 +3,7 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
 import { useOptionListsQuery, useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { convertOptionsListsDataToCodeListsData } from './utils/convertOptionsListsDataToCodeListsData';
+import { convertOptionListDataListToCodeListDataList } from './utils/convertOptionListDataListToCodeListDataList';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -29,15 +29,15 @@ export function AppContentLibrary(): React.ReactElement {
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
-  const { data: optionListsUsages, isPending: optionListsUsageIsPending } =
+  const { data: optionListUsages, isPending: optionListsUsageIsPending } =
     useOptionListsReferencesQuery(org, app);
 
   if (optionListsDataPending || optionListsUsageIsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
-  const codeListsData = convertOptionsListsDataToCodeListsData(optionListsData);
+  const codeListsData = convertOptionListDataListToCodeListDataList(optionListsData);
 
-  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage({ optionListsUsages });
+  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage(optionListUsages);
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
@@ -57,7 +57,7 @@ export function AppContentLibrary(): React.ReactElement {
   };
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {
-    updateOptionList({ optionListId: title, optionsList: codeList });
+    updateOptionList({ optionListId: title, optionList: codeList });
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({

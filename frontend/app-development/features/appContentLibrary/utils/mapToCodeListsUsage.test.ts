@@ -10,7 +10,7 @@ const optionListIdSources: CodeListIdSource[] = [
     componentIds: ['componentId1', 'componentId2'],
   },
 ];
-const optionListsUsages: OptionListReferences = [
+const optionListUsages: OptionListReferences = [
   {
     optionListId,
     optionListIdSources,
@@ -19,7 +19,7 @@ const optionListsUsages: OptionListReferences = [
 
 describe('mapToCodeListsUsage', () => {
   it('maps optionListsUsage to codeListUsage', () => {
-    const codeListUsage = mapToCodeListsUsage({ optionListsUsages });
+    const codeListUsage = mapToCodeListsUsage(optionListUsages);
     expect(codeListUsage).toEqual([
       {
         codeListId: optionListId,
@@ -28,8 +28,8 @@ describe('mapToCodeListsUsage', () => {
     ]);
   });
 
-  it('maps undefined optionListsUsage to empty array', () => {
-    const codeListUsage = mapToCodeListsUsage({ optionListsUsages: undefined });
+  it('maps undefined optionListUsages to empty array', () => {
+    const codeListUsage = mapToCodeListsUsage(undefined);
     expect(codeListUsage).toEqual([]);
   });
 });
