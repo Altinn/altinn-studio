@@ -117,6 +117,41 @@ export const FormComponentConfig = ({
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
+
+      {!hideUnsupported && (
+        <Heading level={3} size='xxsmall'>
+          {t('ux_editor.component_other_properties_title')}
+        </Heading>
+      )}
+      {/** Boolean fields, incl. expression type */}
+      {defaultDisplayedBooleanKeys.map((propertyKey) => (
+        <EditBooleanValue
+          component={component}
+          handleComponentChange={handleComponentUpdate}
+          propertyKey={propertyKey}
+          defaultValue={properties[propertyKey].default}
+          key={propertyKey}
+        />
+      ))}
+      {showOtherComponents &&
+        restOfBooleanKeys.map((propertyKey) => (
+          <EditBooleanValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            defaultValue={properties[propertyKey].default}
+            key={propertyKey}
+          />
+        ))}
+      {restOfBooleanKeys.length > 0 && (
+        <StudioProperty.Button
+          className={classes.button}
+          icon={renderIcon}
+          onClick={() => setShowOtherComponents((prev) => !prev)}
+          property={rendertext}
+        />
+      )}
+
       {grid && (
         <TextResource
           handleIdChange={() => {}}
@@ -218,40 +253,6 @@ export const FormComponentConfig = ({
           />
         );
       })}
-      {!hideUnsupported && (
-        <Heading level={3} size='xxsmall'>
-          {t('ux_editor.component_other_properties_title')}
-        </Heading>
-      )}
-
-      {/** Boolean fields, incl. expression type */}
-      {defaultDisplayedBooleanKeys.map((propertyKey) => (
-        <EditBooleanValue
-          component={component}
-          handleComponentChange={handleComponentUpdate}
-          propertyKey={propertyKey}
-          defaultValue={properties[propertyKey].default}
-          key={propertyKey}
-        />
-      ))}
-      {showOtherComponents &&
-        restOfBooleanKeys.map((propertyKey) => (
-          <EditBooleanValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            defaultValue={properties[propertyKey].default}
-            key={propertyKey}
-          />
-        ))}
-      {restOfBooleanKeys.length > 0 && (
-        <StudioProperty.Button
-          className={classes.button}
-          icon={renderIcon}
-          onClick={() => setShowOtherComponents((prev) => !prev)}
-          property={rendertext}
-        />
-      )}
 
       {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
