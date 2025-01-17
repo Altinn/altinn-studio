@@ -27,7 +27,7 @@ describe('useUpdateOptionListMutation', () => {
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, optionListId, optionList);
   });
 
-  test('Sets the updated options list on the cache for all options lists when cache contains the list', async () => {
+  test('Sets the updated option list on the cache for all options lists when cache contains the list', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData(
       [QueryKey.OptionLists, org, app],
