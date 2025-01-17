@@ -4,7 +4,7 @@ const mockNewNameCandidateCorrect: string = 'newPage';
 const mockNewNameCandidateExists: string = 'page2';
 const mockNewNameCandidateEmpty: string = '';
 const mockNewNameCandidateTooLong: string = 'ThisStringIsTooooooooooooooLong';
-const mockNewNameCandidateIllegal: string = 'Page????';
+const mockNewNameCandidateInvalid: string = 'Page????';
 
 const mockOldName: string = 'oldName';
 const mockLayoutOrder: string[] = [mockOldName, mockNewNameCandidateExists, 'page3'];
@@ -50,9 +50,9 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns name invalid error key when name contains illegal characters', () => {
+    it('returns name invalid error key when name contains invalid characters', () => {
       const nameErrorkey = getPageNameErrorKey(
-        mockNewNameCandidateIllegal,
+        mockNewNameCandidateInvalid,
         mockOldName,
         mockLayoutOrder,
       );
