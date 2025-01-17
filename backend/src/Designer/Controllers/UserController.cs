@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
@@ -17,16 +20,19 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IGitea _giteaApi;
         private readonly IAntiforgery _antiforgery;
+        private readonly IUserService _userService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
-        public UserController(IGitea giteaWrapper, IAntiforgery antiforgery)
+        /// <param name="userService">User service</param>
+        public UserController(IGitea giteaWrapper, IAntiforgery antiforgery, IUserService userService)
         {
             _giteaApi = giteaWrapper;
             _antiforgery = antiforgery;
+            _userService = userService;
         }
 
         /// <summary>
@@ -78,6 +84,16 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var success = await _giteaApi.PutStarred(org, repository);
             return success ? NoContent() : StatusCode(418);
+        }
+
+        [HttpGet]
+        [Route("org-permissions/{org}")]
+        public async Task<IActionResult> HasAccessToCreateRepository(string org)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnOrgContext editingContext = AltinnOrgContext.FromOrg(org, developer);
+            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(editingContext);
+            return Ok(userOrg);
         }
 
         /// <summary>

@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -46,13 +45,13 @@ public class UpsertProcessDefinitionAndNotifyTests : DesignerEndpointsTestsBase<
         form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
 
         using var response = await HttpClient.PutAsync(url, form);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/process/process.bpmn");
 
         XDocument expectedXml = XDocument.Parse(processContent);
         XDocument savedXml = XDocument.Parse(savedFile);
-        XNode.DeepEquals(savedXml, expectedXml).Should().BeTrue();
+        Assert.True(XNode.DeepEquals(savedXml, expectedXml));
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()

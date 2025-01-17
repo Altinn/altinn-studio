@@ -1,45 +1,38 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
-using FluentAssertions;
+using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests;
 
 public partial class EntityAssertions
 {
-    public static void AssertEqual(AppScopesEntity appScopesEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbObject dbRecord)
+    public static void AssertEqual(AppScopesEntity appScopesEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel dbRecord)
     {
-        dbRecord.App.Should().BeEquivalentTo(appScopesEntity.App);
-        dbRecord.Org.Should().BeEquivalentTo(appScopesEntity.Org);
-        dbRecord.CreatedBy.Should().BeEquivalentTo(appScopesEntity.CreatedBy);
-        dbRecord.LastModifiedBy.Should().BeEquivalentTo(appScopesEntity.LastModifiedBy);
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (appScopesEntity.Created - dbRecord.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        Assert.Equal(dbRecord.App, appScopesEntity.App);
+        Assert.Equal(dbRecord.Org, appScopesEntity.Org);
+        Assert.Equal(dbRecord.CreatedBy, appScopesEntity.CreatedBy);
+        Assert.Equal(dbRecord.LastModifiedBy, appScopesEntity.LastModifiedBy);
+        AssertionUtil.AssertCloseTo(dbRecord.Created, appScopesEntity.Created, TimeSpan.FromMilliseconds(100));
 
-        dbRecord.Version.Should().Be(appScopesEntity.Version);
+        Assert.Equal(dbRecord.Version, appScopesEntity.Version);
         var scopesFromDb = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbRecord.Scopes, JsonOptions);
-        scopesFromDb.Should().BeEquivalentTo(appScopesEntity.Scopes);
-        dbRecord.Version.Should().Be(appScopesEntity.Version);
+        AssertionUtil.AssertEqualTo(scopesFromDb, appScopesEntity.Scopes);
+        Assert.Equal(dbRecord.Version, appScopesEntity.Version);
     }
 
     public static void AssertEqual(AppScopesEntity expected, AppScopesEntity actual)
     {
-        actual.App.Should().Be(expected.App);
-        actual.Org.Should().Be(expected.Org);
-        actual.CreatedBy.Should().Be(expected.CreatedBy);
-        actual.LastModifiedBy.Should().Be(expected.LastModifiedBy);
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (expected.Created - actual.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        Assert.Equal(expected.App, actual.App);
+        Assert.Equal(expected.Org, actual.Org);
+        Assert.Equal(expected.CreatedBy, actual.CreatedBy);
+        Assert.Equal(expected.LastModifiedBy, actual.LastModifiedBy);
+        AssertionUtil.AssertCloseTo(expected.Created, actual.Created, TimeSpan.FromMilliseconds(100));
 
-        actual.Version.Should().Be(expected.Version);
-        actual.Scopes.Should().BeEquivalentTo(expected.Scopes);
+        Assert.Equal(expected.Version, actual.Version);
+        AssertionUtil.AssertEqualTo(expected.Scopes, actual.Scopes);
     }
 
 }

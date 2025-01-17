@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -36,10 +35,10 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedLayoutSettings, responseContent).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedLayoutSettings, responseContent));
         }
 
         [Theory(Skip = "If App/ui is not present in repo, the controller returns 500")]
@@ -51,7 +50,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<string> AddLayoutSettingsToRepo(string createdFolderPath, string layoutSetName, string expectedLayoutPath)

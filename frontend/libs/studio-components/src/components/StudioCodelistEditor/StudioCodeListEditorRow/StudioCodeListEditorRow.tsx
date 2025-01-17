@@ -208,6 +208,47 @@ function TextResourceSelectorCell({
   );
 }
 
+type TextResourceIdCellProps = {
+  currentId: string;
+  label: string;
+  number: number;
+  onChangeCurrentId: (newId: string) => void;
+  onChangeTextResource: (newTextResource: TextResource) => void;
+  property: CodeListItemTextProperty;
+  textResources?: TextResource[];
+};
+
+function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
+  const { currentId, onChangeCurrentId, textResources, label } = props;
+  if (textResources) {
+    return <TextResourceSelectorCell {...props} textResources={textResources} />;
+  } else {
+    return <TextfieldCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
+  }
+}
+
+function TextResourceSelectorCell({
+  currentId,
+  number,
+  onChangeCurrentId,
+  onChangeTextResource,
+  property,
+  textResources,
+}: Required<TextResourceIdCellProps>) {
+  const {
+    texts: { textResourceTexts },
+  } = useStudioCodeListEditorContext();
+  return (
+    <StudioInputTable.Cell.TextResource
+      currentId={currentId}
+      onChangeCurrentId={onChangeCurrentId}
+      onChangeTextResource={onChangeTextResource}
+      textResources={textResources}
+      texts={textResourceTexts(number, property)}
+    />
+  );
+}
+
 type DeleteButtonCellProps = {
   number: number;
   onClick: () => void;

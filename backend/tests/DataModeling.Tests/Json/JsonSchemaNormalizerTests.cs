@@ -4,7 +4,6 @@ using System.Text.Unicode;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 
@@ -50,7 +49,7 @@ namespace DataModeling.Tests.Json
             var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
             var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
-            normalizedJsonSchemaText.Should().BeEquivalentTo(jsonSchemaText);
+            Assert.Equal(jsonSchemaText, normalizedJsonSchemaText);
             return Task.CompletedTask;
         }
 
@@ -78,7 +77,7 @@ namespace DataModeling.Tests.Json
 
             var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });
 
-            normalizedJsonSchemaText.Should().BeEquivalentTo(expectedNormalizedJsonSchemaText);
+            Assert.Equal(expectedNormalizedJsonSchemaText, normalizedJsonSchemaText);
             return Task.CompletedTask;
         }
     }

@@ -30,7 +30,7 @@ export function LibraryOptionsEditor({
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
-  const handleBlurAny = (options: Option[]) => {
+  const handleOptionsListChange = (options: Option[]) => {
     if (hasOptionListChanged(optionsList, options)) {
       updateOptionList({ optionListId: optionsId, optionsList: options });
       doReloadPreview();
@@ -59,7 +59,8 @@ export function LibraryOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={optionsList}
-          onBlurAny={handleBlurAny}
+          onAddOrDeleteItem={handleOptionsListChange}
+          onBlurAny={handleOptionsListChange}
           texts={editorTexts}
         />
       </StudioModal.Dialog>

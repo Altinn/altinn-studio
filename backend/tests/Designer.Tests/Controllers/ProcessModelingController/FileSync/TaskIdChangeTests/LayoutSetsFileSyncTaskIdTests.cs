@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -50,15 +49,15 @@ public class LayoutSetsFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutSe
         form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
 
         using var response = await HttpClient.PutAsync(url, form);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(metadata.TaskIdChange.OldId));
-        layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(metadata.TaskIdChange.NewId));
+        Assert.DoesNotContain(layoutSets.Sets, layout => layout.Tasks.Contains(metadata.TaskIdChange.OldId));
+        Assert.Contains(layoutSets.Sets, layout => layout.Tasks.Contains(metadata.TaskIdChange.NewId));
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()

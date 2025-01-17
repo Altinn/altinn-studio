@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
@@ -23,7 +23,7 @@ public class GetSucceededReleaseFromDbIntegrationTests : ReleaseEntityIntegratio
     {
         int numberOfEntities = statusReleaseCombinationsInDb.Count;
         string tagName = Guid.NewGuid().ToString();
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, numberOfEntities).ToList();
         for (int i = 0; i < numberOfEntities; i++)
         {
@@ -41,7 +41,7 @@ public class GetSucceededReleaseFromDbIntegrationTests : ReleaseEntityIntegratio
             r.Build.Result == BuildResult.Succeeded);
 
         var result = await repository.GetSucceededReleaseFromDb(org, app, tagName);
-        result.Should().BeEquivalentTo(exptectedEntity);
+        AssertionUtil.AssertEqualTo(exptectedEntity, result);
     }
 
     public static IEnumerable<object[]> TestData()

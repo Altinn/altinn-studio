@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -27,14 +26,14 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, app, version);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             List<string> responseContent = await response.Content.ReadAsAsync<List<string>>();
 
-            responseContent.Count.Should().Be(expectedTemplates.Length);
+            Assert.Equal(expectedTemplates.Length, responseContent.Count);
             foreach (string expectedTemplate in expectedTemplates)
             {
-                responseContent.Should().Contain(expectedTemplate);
+                Assert.Contains(expectedTemplate, responseContent);
             }
         }
     }

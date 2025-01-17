@@ -12,8 +12,8 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
@@ -45,14 +45,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Schema.Should().NotBeNull();
+            Assert.NotNull(layoutSetsBefore.Schema);
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
-            layoutSetsBefore.Sets.Count.Should().Be(layoutSetsAfter.Sets.Count - 1);
-            layoutSetsAfter.Schema.Should().NotBeNull();
+            Assert.Equal(layoutSetsAfter.Sets.Count - 1, layoutSetsBefore.Sets.Count);
+            Assert.NotNull(layoutSetsAfter.Schema);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
         }
 
@@ -75,7 +75,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
             Assert.Equal($"Layout set name, {layoutSetId}, already exists.", responseMessage["infoMessage"]);
@@ -101,7 +101,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
             Assert.Equal($"Layout set with task, {existingTaskId}, already exists.", responseMessage["infoMessage"]);
@@ -126,7 +126,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Theory]
@@ -148,7 +148,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Theory]
@@ -170,7 +170,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             JsonNode initialLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId);
 
@@ -182,8 +182,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             JsonArray layout = initialLayout["data"]["layout"] as JsonArray;
-            layout.Count.Should().Be(1);
-            initialLayout["data"]["layout"][0].Should().BeEquivalentTo(defaultComponent, options => options.RespectingRuntimeTypes().IgnoringCyclicReferences());
+
+            Assert.Single(layout);
+            Assert.True(JsonUtils.DeepEquals(defaultComponent.ToJsonString(), initialLayout["data"]["layout"][0].ToJsonString()));
         }
 
         [Theory]
@@ -205,7 +206,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
