@@ -156,6 +156,22 @@
     {
       "id": "year",
       "value": "Årsmodell"
+    },
+    {
+      "id": "group.important",
+      "value": "Gruppe med viktig informasjon"
+    },
+    {
+      "id": "important",
+      "value": "Viktig informasjon"
+    },
+    {
+      "id": "important.title",
+      "value": "Viktig informasjon"
+    },
+    {
+      "id": "important.body",
+      "value": "Her kommer det masse viktig informasjon som du må få med deg før du går videre!!!"
     }
   ]
 }

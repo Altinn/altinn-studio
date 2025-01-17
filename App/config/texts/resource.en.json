@@ -156,6 +156,22 @@
     {
       "id": "year",
       "value": "Model year"
+    },
+    {
+      "id": "group.important",
+      "value": "Group with important information"
+    },
+    {
+      "id": "important",
+      "value": "Important information"
+    },
+    {
+      "id": "important.title",
+      "value": "Important information"
+    },
+    {
+      "id": "important.body",
+      "value": "Here is a lot of very important information you need to read before proceeding!!!"
     }
   ]
 }
