@@ -6,7 +6,7 @@ import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponen
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
@@ -18,9 +18,13 @@ const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const queryClient = createQueryClientMock();
 
 describe('EditComponentIdRow', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    queryClient.clear();
+  });
 
   it('should render button ', async () => {
     await renderEditComponentIdRow();
@@ -113,7 +117,7 @@ describe('EditComponentIdRow', () => {
   it('should show error message when id of an attachment component type has duplicate id', async () => {
     const user = userEvent.setup();
     const idOccupiedByDataType = 'idOccupiedByDataType';
-    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+    queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
       dataTypes: [{ id: idOccupiedByDataType }],
     });
     await renderEditComponentIdRow({
@@ -146,6 +150,6 @@ const defaultProps: EditComponentIdRowProps = {
 const renderEditComponentIdRow = async (
   props: Partial<EditComponentIdRowProps> = {},
 ): Promise<RenderResult> => {
-  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  return renderWithProviders(<EditComponentIdRow {...defaultProps} {...props} />);
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  return renderWithProviders(<EditComponentIdRow {...defaultProps} {...props} />, { queryClient });
 };
