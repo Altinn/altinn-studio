@@ -6,7 +6,7 @@ import { useUpdateOptionListIdMutation } from './useUpdateOptionListIdMutation';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Option } from 'app-shared/types/Option';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 
 // Test data:
 const optionListId: string = 'optionListId';
@@ -38,7 +38,7 @@ describe('useUpdateOptionListIdMutation', () => {
     const optionListC = 'optionListC';
     const optionListZ = 'optionListZ';
     const queryClient = createQueryClientMock();
-    const oldData: OptionsListsResponse = [
+    const oldData: OptionListsResponse = [
       { title: optionListA, data: optionListMock },
       { title: optionListB, data: optionListMock },
       { title: optionListZ, data: optionListMock },
@@ -52,7 +52,7 @@ describe('useUpdateOptionListIdMutation', () => {
       optionListId: optionListA,
       newOptionListId: optionListC,
     });
-    const cacheData: OptionsListsResponse = queryClient.getQueryData([
+    const cacheData: OptionListsResponse = queryClient.getQueryData([
       QueryKey.OptionLists,
       org,
       app,
@@ -65,7 +65,7 @@ describe('useUpdateOptionListIdMutation', () => {
   test('Invalidates the optionListIds query cache', async () => {
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-    const oldData: OptionsListsResponse = [
+    const oldData: OptionListsResponse = [
       { title: 'firstOptionList', data: optionListMock },
       { title: 'optionListId', data: optionListMock },
       { title: 'lastOptionList', data: optionListMock },

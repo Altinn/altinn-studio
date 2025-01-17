@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 
@@ -28,6 +29,10 @@ public static partial class EntityGenerationUtils
 
         public static IEnumerable<ReleaseEntity> GenerateReleaseEntities(string org, string app, int count) =>
             Enumerable.Range(0, count)
-                .Select(x => GenerateReleaseEntity(org, app)).ToList();
+                .Select(x =>
+                {
+                    Thread.Sleep(1); // To ensure unique timestamps
+                    return GenerateReleaseEntity(org, app);
+                }).ToList();
     }
 }
