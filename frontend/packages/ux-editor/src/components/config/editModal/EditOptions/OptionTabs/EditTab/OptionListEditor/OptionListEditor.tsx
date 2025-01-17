@@ -61,7 +61,7 @@ function OptionListResolver({
         </StudioErrorMessage>
       );
     case 'success': {
-      return <LibraryOptionsEditor handleDelete={handleDelete} optionsId={optionsId} />;
+      return <LibraryOptionsEditor handleDelete={handleDelete} optionListId={optionsId} />;
     }
   }
 }
