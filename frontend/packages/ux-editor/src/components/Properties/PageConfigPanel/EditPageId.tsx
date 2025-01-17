@@ -48,10 +48,8 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
         label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
         viewProps={{
           value: layoutName,
-          title: t('ux_editor.modal_properties_textResourceBindings_page_id'),
         }}
         inputProps={{
-          label: t('ux_editor.modal_properties_textResourceBindings_page_id'),
           value: layoutName,
           onBlur: (event) => handleSaveNewName(event.target.value),
           size: 'small',

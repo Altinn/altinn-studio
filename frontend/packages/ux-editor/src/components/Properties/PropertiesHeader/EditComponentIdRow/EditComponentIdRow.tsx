@@ -95,7 +95,6 @@ export const EditComponentIdRow = ({
           title: component.id,
         }}
         inputProps={{
-          label: t('ux_editor.modal_properties_component_change_id'),
           value: idInputValue,
           onBlur: (event) => saveComponentUpdate(event.target.value),
           size: 'small',

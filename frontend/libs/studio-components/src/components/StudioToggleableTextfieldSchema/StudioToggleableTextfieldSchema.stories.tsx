@@ -19,7 +19,6 @@ Preview.args = {
     value: 'My awesome value',
   },
   inputProps: {
-    label: 'My awesome label',
     size: 'small',
     placeholder: 'Placeholder',
     error: '',

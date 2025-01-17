@@ -62,7 +62,7 @@ describe('StudioToggleableTextfield', () => {
   it('should not toggle view on blur when input field has error', async () => {
     const error = 'Your name is a required field';
     const user = userEvent.setup();
-    renderStudioToggleableTextfield({ inputProps: { label, error } });
+    renderStudioToggleableTextfield({ inputProps: { error } });
     await user.click(screen.getByRole('button', { name: label }));
     await user.tab();
     expect(screen.getByRole('textbox', { name: label })).toBeInvalid();

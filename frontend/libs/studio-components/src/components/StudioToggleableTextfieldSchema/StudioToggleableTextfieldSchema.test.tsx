@@ -32,6 +32,7 @@ const defaultLayoutSchemaMock: JsonSchema = {
 const value: string = 'value';
 const label: string = 'label';
 const defaultProps: StudioToggleableTextfieldSchemaProps = {
+  icon: <div />,
   label,
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
@@ -75,7 +76,7 @@ describe('StudioToggleableTextfieldSchema', () => {
   it('should not toggle to view mode on blur if input is invalid', async () => {
     const user = userEvent.setup();
     const error: string = 'error message';
-    renderStudioToggleableTextfieldSchema({ inputProps: { label, error } });
+    renderStudioToggleableTextfieldSchema({ inputProps: { error } });
     await user.click(screen.getByRole('button', { name: label }));
     await user.tab();
     expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
