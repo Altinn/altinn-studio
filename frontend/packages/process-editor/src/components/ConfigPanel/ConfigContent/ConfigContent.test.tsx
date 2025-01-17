@@ -89,11 +89,11 @@ describe('ConfigContent', () => {
   it('should render EditTaskId component', () => {
     renderConfigContent();
 
-    expect(
-      screen.getByRole('button', {
-        name: mockBpmnDetails.id,
-      }),
-    ).toBeInTheDocument();
+    const editTaskIdButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
+    expect(editTaskIdButton).toBeInTheDocument();
+    expect(editTaskIdButton).toHaveTextContent(mockBpmnDetails.id);
   });
 
   it.each(['data', 'confirmation', 'feedback', 'signing'])(

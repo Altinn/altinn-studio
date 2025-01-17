@@ -24,14 +24,19 @@ describe('EditComponentIdRow', () => {
 
   it('should render button ', async () => {
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     expect(testIdButton).toBeInTheDocument();
+    expect(testIdButton).toHaveTextContent(componentMocks[ComponentType.Input].id);
   });
 
   it('should render textField when the button is clicked', async () => {
     const user = userEvent.setup();
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -42,7 +47,9 @@ describe('EditComponentIdRow', () => {
   it('should not render the textfield when changing from edit mode to view mode ', async () => {
     const user = userEvent.setup();
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -54,7 +61,9 @@ describe('EditComponentIdRow', () => {
   it('should call onChange when user change the input in text filed.', async () => {
     const user = userEvent.setup();
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -73,7 +82,9 @@ describe('EditComponentIdRow', () => {
   it('should show error required error message when id is empty', async () => {
     const user = userEvent.setup();
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -85,7 +96,9 @@ describe('EditComponentIdRow', () => {
   it('should show error message when id is not unique', async () => {
     const user = userEvent.setup();
     await renderEditComponentIdRow();
-    const testIdButton = screen.getByRole('button', { name: componentId });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -107,7 +120,7 @@ describe('EditComponentIdRow', () => {
       component: componentMocks[ComponentType.FileUpload],
     });
     const testIdButton = screen.getByRole('button', {
-      name: componentMocks[ComponentType.FileUpload].id,
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
@@ -122,7 +135,6 @@ describe('EditComponentIdRow', () => {
   });
 });
 
-const componentId = componentMocks[ComponentType.Input].id;
 const handleComponentUpdate = jest.fn();
 const helpText = 'helpText';
 const defaultProps: EditComponentIdRowProps = {
@@ -133,7 +145,7 @@ const defaultProps: EditComponentIdRowProps = {
 
 const renderEditComponentIdRow = async (
   props: Partial<EditComponentIdRowProps> = {},
-): RenderResult => {
+): Promise<RenderResult> => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   return renderWithProviders(<EditComponentIdRow {...defaultProps} {...props} />);
 };

@@ -42,7 +42,6 @@ describe('RecommendedActionChangeName', () => {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
     await user.type(newNameInput, newLayoutSetName);
-
     expect(validateLayoutSetNameMock).toHaveBeenCalledTimes(newLayoutSetName.length);
     expect(validateLayoutSetNameMock).toHaveBeenCalledWith(newLayoutSetName, expect.any(Object));
   });

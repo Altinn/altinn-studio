@@ -10,14 +10,26 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 describe('StudioIconTextfield', () => {
   afterEach(jest.clearAllMocks);
 
-  it('render the icon', async () => {
-    renderStudioIconTextfield();
-    expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
-  });
-
   it('should render label', () => {
     renderStudioIconTextfield();
     expect(screen.getByLabelText(label)).toBeInTheDocument();
+  });
+
+  it('should render value when provided', () => {
+    const value = 'value';
+    renderStudioIconTextfield({ value });
+    expect(screen.getByRole('textbox', { name: label })).toHaveValue(value);
+  });
+
+  it('render icon when provided', () => {
+    const icon = <KeyVerticalIcon />;
+    renderStudioIconTextfield({ icon });
+    expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
+  });
+
+  it('does not render the icon if not provided', () => {
+    renderStudioIconTextfield();
+    expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
   });
 
   it('should execute onChange callback when input value changes', async () => {
@@ -38,7 +50,6 @@ describe('StudioIconTextfield', () => {
 const label = 'label';
 const onChange = jest.fn();
 const defaultProps: StudioIconTextfieldProps = {
-  Icon: KeyVerticalIcon,
   label,
   onChange,
 };

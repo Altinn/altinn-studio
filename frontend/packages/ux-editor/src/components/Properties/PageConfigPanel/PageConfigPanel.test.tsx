@@ -79,7 +79,10 @@ describe('PageConfigPanel', () => {
     });
     expect(screen.queryByRole('heading', { name: newSelectedPage })).not.toBeInTheDocument();
     screen.getByRole('heading', { name: newVisualPageName });
-    screen.getByRole('button', { name: newSelectedPage });
+    const editPageIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+    });
+    expect(editPageIdButton).toHaveTextContent(newSelectedPage);
   });
 
   it('render warning when layout is selected and has duplicated ids', () => {

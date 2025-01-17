@@ -50,21 +50,17 @@ describe('CustomReceipt', () => {
   it('calls "mutateLayoutSetId" when the layoutSet id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
-
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     });
-
     await user.click(toggleableTextfieldButton);
-
-    const textfield = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    );
+    const textfield = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    });
     const newLayoutSetId: string = 'Test2';
     await user.clear(textfield);
     await user.type(textfield, newLayoutSetId);
     await user.tab();
-
     expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledTimes(1);
     expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledWith({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
@@ -75,34 +71,29 @@ describe('CustomReceipt', () => {
   it('does not call "mutateLayoutSetId" when the layoutSet id is changed to the original id', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
-
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     });
-
+    expect(toggleableTextfieldButton).toHaveTextContent(existingCustomReceiptLayoutSetId);
     await user.click(toggleableTextfieldButton);
-
     const textfield = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
     await user.clear(textfield);
     await user.type(textfield, existingCustomReceiptLayoutSetId);
     await user.tab();
-
     expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
   it('calls "mutateDataTypes" when the data model id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
-
     const propertyButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_model', {
         dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
       }),
     });
     await user.click(propertyButton);
-
     const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
@@ -110,7 +101,6 @@ describe('CustomReceipt', () => {
     const newOption: string = mockAllDataModelIds[1];
     const option = screen.getByRole('option', { name: newOption });
     await user.click(option);
-
     expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledTimes(1);
     expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledWith({
       connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
@@ -128,28 +118,21 @@ describe('CustomReceipt', () => {
     renderCustomReceipt({
       layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
     });
-
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     });
-
     await user.click(toggleableTextfieldButton);
-
-    const inputField = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    );
-
+    const inputField = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    });
     await user.clear(inputField);
     if (invalidLayoutSetId !== emptyLayoutSetName) await user.type(inputField, invalidLayoutSetId);
     await user.tab();
-
     const errorTextKey = layoutSetIdTextKeys[invalidLayoutSetId];
-
     if (errorTextKey) {
       const error = screen.getByText(textMock(errorTextKey));
       expect(error).toBeInTheDocument();
     }
-
     expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
@@ -157,7 +140,6 @@ describe('CustomReceipt', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt();
-
     const deleteButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
     });

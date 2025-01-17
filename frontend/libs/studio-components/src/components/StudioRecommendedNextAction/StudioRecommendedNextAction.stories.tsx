@@ -55,7 +55,7 @@ export const ExampleUseCase: ExampleUseCase = (args): React.ReactElement => {
         <StudioIconTextfield
           error={name !== 'Bernard' ? 'Navnet må være Bernard' : ''}
           onChange={(e) => setName(e.target.value)}
-          Icon={KeyVerticalIcon}
+          icon={<KeyVerticalIcon />}
           size='sm'
           label='Nytt navn'
         />

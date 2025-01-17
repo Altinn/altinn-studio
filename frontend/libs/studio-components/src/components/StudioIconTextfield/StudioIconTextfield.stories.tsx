@@ -19,7 +19,7 @@ export default meta;
 export const Preview: Story = (args) => <StudioIconTextfield {...args}></StudioIconTextfield>;
 
 Preview.args = {
-  Icon: PencilIcon,
+  icon: <PencilIcon />,
   label: 'Write a text',
   value: 2.3,
   error: 'Your custom error message!',

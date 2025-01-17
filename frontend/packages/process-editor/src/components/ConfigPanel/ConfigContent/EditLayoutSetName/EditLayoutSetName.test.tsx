@@ -12,9 +12,10 @@ describe('EditLayoutSetName', () => {
   it('should render the layoutSetName button', () => {
     renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {
-      name: existingLayoutSetNameMock,
+      name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
     expect(editLayoutSetName).toBeInTheDocument();
+    expect(editLayoutSetName).toHaveTextContent(existingLayoutSetNameMock);
   });
 
   it('should call mutateLayoutSet when changing name', async () => {
@@ -23,7 +24,7 @@ describe('EditLayoutSetName', () => {
     const mutateLayoutSetIdMock = jest.fn();
     renderEditLayoutSetName({ mutateLayoutSetId: mutateLayoutSetIdMock });
     const editLayoutSetName = screen.getByRole('button', {
-      name: existingLayoutSetNameMock,
+      name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
     await user.click(editLayoutSetName);
     const inputNewLayoutSetName = screen.getByRole('textbox', {
@@ -44,7 +45,7 @@ describe('EditLayoutSetName', () => {
     const mutateLayoutSetIdMock = jest.fn();
     renderEditLayoutSetName({ mutateLayoutSetId: mutateLayoutSetIdMock });
     const editLayoutSetName = screen.getByRole('button', {
-      name: existingLayoutSetNameMock,
+      name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
     await user.click(editLayoutSetName);
     const inputNewLayoutSetName = screen.getByRole('textbox', {

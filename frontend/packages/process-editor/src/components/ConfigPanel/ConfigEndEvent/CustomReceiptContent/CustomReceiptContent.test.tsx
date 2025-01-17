@@ -99,7 +99,7 @@ describe('CustomReceiptContent', () => {
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     });
     expect(toggleableTextfieldButton).toBeInTheDocument();
   });

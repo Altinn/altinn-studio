@@ -9,7 +9,7 @@ import { ConflictingImageSourceAlert } from '../ConflictingImageSourceAlert';
 import { ExternalImageValidationStatus } from './ExternalImageValidationStatus';
 
 export interface ExternalImageProps {
-  existingImageUrl: string;
+  existingImageUrl: string | undefined;
   onUrlChange: (url: string) => void;
   onUrlDelete: () => void;
   imageOriginsFromLibrary: boolean;
@@ -22,7 +22,7 @@ export const ExternalImage = ({
   imageOriginsFromLibrary,
 }: ExternalImageProps) => {
   const { org, app } = useStudioEnvironmentParams();
-  const [url, setUrl] = useState<string>(existingImageUrl);
+  const [url, setUrl] = useState<string | undefined>(existingImageUrl);
   const { data: validationResult, status: validationStatus } = useValidateImageExternalUrlQuery(
     org,
     app,
@@ -66,8 +66,8 @@ export const ExternalImage = ({
 };
 
 type EditUrlProps = {
-  url: string;
-  existingImageUrl: string;
+  url: string | undefined;
+  existingImageUrl: string | undefined;
   onBlur: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -81,14 +81,14 @@ const EditUrl = ({ url, existingImageUrl, onBlur }: EditUrlProps): React.ReactEl
   return isInitialUrlProvided(url, existingImageUrl) ? (
     <StudioToggleableTextfield
       onIsViewMode={setIsViewMode}
-      Icon={LinkIcon}
+      icon={<LinkIcon />}
       label={label}
       onBlur={onBlur}
       title={url}
       value={value}
     />
   ) : (
-    <StudioIconTextfield label={label} value={url} onBlur={onBlur} Icon={LinkIcon} />
+    <StudioIconTextfield label={label} value={url} onBlur={onBlur} icon={<LinkIcon />} />
   );
 };
 

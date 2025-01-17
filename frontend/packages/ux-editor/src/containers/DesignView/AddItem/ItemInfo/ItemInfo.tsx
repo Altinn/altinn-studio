@@ -55,7 +55,7 @@ export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) 
           description={t('ux_editor.add_item.component_info_generated_id_description')}
         >
           <StudioIconTextfield
-            Icon={PencilIcon}
+            icon={<PencilIcon />}
             label={t('Komponent ID')}
             value={item.componentId}
             onChange={(event: any) => {

@@ -45,17 +45,22 @@ describe('StudioToggleableTextfieldSchema', () => {
   it('should toggle to edit mode when clicking edit', async () => {
     const user = userEvent.setup();
     renderStudioTextfieldSchema();
-    await user.click(screen.getByRole('button', { name: value }));
-    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+    const viewButton = screen.getByRole('button', { name: label });
+    expect(viewButton).toBeInTheDocument();
+    expect(viewButton).toHaveTextContent(value);
+    await user.click(viewButton);
+    const editTextfield = screen.getByRole('textbox', { name: label });
+    expect(editTextfield).toBeInTheDocument();
+    expect(editTextfield).toHaveValue(value);
   });
 
   it('should toggle to view mode on blur', async () => {
     const user = userEvent.setup();
     renderStudioTextfieldSchema();
-    await user.click(screen.getByRole('button', { name: value }));
-    expect(screen.queryByRole('button', { name: value })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
     await user.tab();
-    expect(screen.getByRole('button', { name: value })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
   });
 
   it('should not toggle to view mode on blur if input is invalid', async () => {
@@ -65,15 +70,15 @@ describe('StudioToggleableTextfieldSchema', () => {
       ...defaultProps,
       error,
     });
-    await user.click(screen.getByRole('button', { name: value }));
+    await user.click(screen.getByRole('button', { name: label }));
     await user.tab();
-    expect(screen.queryByRole('button', { name: value })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
   });
 
   it('should validate field against json schema and invoke "onError" if validation has errors', async () => {
     const user = userEvent.setup();
     renderStudioTextfieldSchema();
-    await user.click(screen.getByRole('button', { name: value }));
+    await user.click(screen.getByRole('button', { name: label }));
     await user.type(screen.getByRole('textbox', { name: label }), 'invalid-value-01');
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'pattern',
@@ -84,7 +89,7 @@ describe('StudioToggleableTextfieldSchema', () => {
   it('should validate field against json schema and invoke "onError" if field is required', async () => {
     const user = userEvent.setup();
     renderStudioTextfieldSchema();
-    await user.click(screen.getByRole('button', { name: value }));
+    await user.click(screen.getByRole('button', { name: label }));
     await user.clear(screen.getByRole('textbox', { name: label }));
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'required',
@@ -96,7 +101,7 @@ describe('StudioToggleableTextfieldSchema', () => {
     const user = userEvent.setup();
     const invalidValue = 'invalid-value-01';
     renderStudioTextfieldSchema();
-    await user.click(screen.getByRole('button', { name: value }));
+    await user.click(screen.getByRole('button', { name: label }));
     await user.type(screen.getByRole('textbox', { name: label }), invalidValue);
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'pattern',

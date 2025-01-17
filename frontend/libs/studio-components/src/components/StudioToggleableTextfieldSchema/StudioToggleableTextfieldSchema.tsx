@@ -5,19 +5,23 @@ import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
 } from '../StudioToggleableTextfield';
+import type { Override } from '../../types/Override';
 
 export type SchemaValidationError = {
   errorCode: string;
   details: string;
 };
 
-export type StudioToggleableTextfieldSchemaProps = {
-  layoutSchema: JsonSchema;
-  relatedSchemas: JsonSchema[];
-  propertyPath: string;
-  onIsViewMode?: (isViewMode: boolean) => void;
-  onError?: (error: SchemaValidationError | null) => void;
-} & StudioToggleableTextfieldProps;
+export type StudioToggleableTextfieldSchemaProps = Override<
+  {
+    layoutSchema: JsonSchema;
+    relatedSchemas: JsonSchema[];
+    propertyPath: string;
+    onIsViewMode?: (isViewMode: boolean) => void;
+    onError?: (error: SchemaValidationError | null) => void;
+  },
+  StudioToggleableTextfieldProps
+>;
 
 export const StudioToggleableTextfieldSchema = forwardRef<
   HTMLDivElement,
@@ -65,11 +69,11 @@ export const StudioToggleableTextfieldSchema = forwardRef<
 
     return (
       <StudioToggleableTextfield
-        {...rest}
         ref={ref}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event)}
         error={error}
         onIsViewMode={onIsViewMode}
+        {...rest}
       />
     );
   },
