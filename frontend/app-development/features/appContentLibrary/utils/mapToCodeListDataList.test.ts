@@ -1,6 +1,5 @@
 import type { CodeListData } from '@studio/content-library';
 import { mapToCodeListDataList } from './mapToCodeListDataList';
-import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListData } from 'app-shared/types/OptionList';
 
 describe('mapToCodeListDataList', () => {
@@ -43,7 +42,7 @@ describe('mapToCodeListDataList', () => {
   });
 
   it('returns a result with empty code list data array when the input option list data is empty', () => {
-    const optionListDataList: OptionListsResponse = [];
+    const optionListDataList: OptionListData[] = [];
     const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([]);
   });
