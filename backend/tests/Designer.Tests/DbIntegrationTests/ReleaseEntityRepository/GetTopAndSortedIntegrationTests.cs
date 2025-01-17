@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
@@ -36,8 +36,8 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
             .Take(top)
             .ToList();
 
-        result.Count.Should().Be(top);
-        result.Should().BeEquivalentTo(expectedEntities);
+        Assert.Equal(top, result.Count);
+        AssertionUtil.AssertEqualTo(expectedEntities, result);
     }
 
     [Theory]
@@ -58,12 +58,12 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
         var result = (await repository.Get(org, app, query)).ToList();
 
         var expectedEntities = (sortDirection == SortDirection.Ascending
-                ? releaseEntities.OrderBy(d => d.Created)
-                : releaseEntities.OrderByDescending(d => d.Created))
+                ? releaseEntities.OrderBy(r => r.Created)
+                : releaseEntities.OrderByDescending(r => r.Created))
             .ToList();
 
-        result.Count().Should().Be(allEntitiesCount);
-        result.Should().BeEquivalentTo(expectedEntities);
+        Assert.Equal(allEntitiesCount, result.Count);
+        AssertionUtil.AssertEqualTo(expectedEntities, result);
 
     }
 

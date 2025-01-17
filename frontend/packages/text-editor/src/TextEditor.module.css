@@ -18,14 +18,14 @@
   border-bottom: 1px solid #bcc7cc;
   padding: var(--fds-spacing-6);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
 }
 
 .filterAndSearch {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--fds-spacing-4);
 }
 

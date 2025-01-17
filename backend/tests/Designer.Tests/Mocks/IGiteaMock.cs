@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Utils;
+using Organization = Altinn.Studio.Designer.RepositoryClient.Model.Organization;
 
 namespace Designer.Tests.Mocks
 {
@@ -121,7 +122,13 @@ namespace Designer.Tests.Mocks
 
         public Task<List<Organization>> GetUserOrganizations()
         {
-            throw new NotImplementedException();
+            var organizations = new List<Organization>
+            {
+                new Organization { Username = "Org1", Id = 1 }, // Example items
+                new Organization { Username = "Org2", Id = 2 }
+            };
+
+            return Task.FromResult(organizations);
         }
 
         public Task<IList<Repository>> GetUserRepos()
