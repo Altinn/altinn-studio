@@ -1607,7 +1607,6 @@
   "ux_editor.file_upload_component.valid_file_endings": "Innstillinger for filopplastingskomponent",
   "ux_editor.formLayout.warning_duplicates": "Du har den samme ID-en på flere komponenter: ",
   "ux_editor.formLayout.warning_duplicates.cannot_publish": "Du kan ikke publisere appen eller konfigurere komponentene før du har rettet opp feilen.",
-  "ux_editor.id_identifier": "ID: {{item}}",
   "ux_editor.image_component.settings": "Innstillinger for bilde",
   "ux_editor.info": "Informasjon",
   "ux_editor.input_popover_label": "Gi nytt navn til siden",
