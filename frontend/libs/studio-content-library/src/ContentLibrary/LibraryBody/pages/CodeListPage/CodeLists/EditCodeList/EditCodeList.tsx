@@ -1,9 +1,10 @@
-import type {
-  CodeList as StudioComponentsCodeList,
-  CodeList,
-  CodeListEditorTexts,
+import type { CodeList, CodeListEditorTexts } from '@studio/components';
+import {
+  StudioDeleteButton,
+  StudioModal,
+  StudioCodeListEditor,
+  StudioToggleableTextfield,
 } from '@studio/components';
-import { StudioModal, StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
@@ -18,6 +19,7 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
+  onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
@@ -27,6 +29,7 @@ export type EditCodeListProps = {
 export function EditCodeList({
   codeList,
   codeListTitle,
+  onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
@@ -54,6 +57,8 @@ export function EditCodeList({
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
+  const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
+
   const codeListHasUsages = codeListSources.length > 0;
 
   return (
@@ -73,17 +78,51 @@ export function EditCodeList({
         onBlurAny={handleCodeListChange}
         texts={editorTexts}
       />
-      {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
+      <CodeListButtons
+        codeListHasUsages={codeListHasUsages}
+        codeListSources={codeListSources}
+        onDeleteCodeList={handleDeleteCodeList}
+      />
     </div>
   );
 }
 
 export const updateCodeListWithMetadata = (
   currentCodeListWithMetadata: CodeListWithMetadata,
-  updatedCodeList: StudioComponentsCodeList,
+  updatedCodeList: CodeList,
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };
+
+type CodeListButtonsProps = {
+  codeListHasUsages: boolean;
+  codeListSources: CodeListIdSource[];
+  onDeleteCodeList: (codeListId: string) => void;
+};
+
+function CodeListButtons({
+  codeListHasUsages,
+  codeListSources,
+  onDeleteCodeList,
+}: CodeListButtonsProps): React.ReactElement {
+  const { t } = useTranslation();
+  const deleteButtonTitle = codeListHasUsages
+    ? t('app_content_library.code_lists.code_list_delete_disabled_title')
+    : t('app_content_library.code_lists.code_list_delete_enabled_title');
+
+  return (
+    <div className={classes.buttons}>
+      <StudioDeleteButton
+        onDelete={onDeleteCodeList}
+        title={deleteButtonTitle}
+        disabled={codeListHasUsages}
+      >
+        {t('app_content_library.code_lists.code_list_delete')}
+      </StudioDeleteButton>
+      {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
+    </div>
+  );
+}
 
 export type ShowCodeListUsagesSourcesModalProps = {
   codeListSources: CodeListIdSource[];

@@ -12,6 +12,7 @@ import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
 const codeListName = codeListsDataMock[0].title;
+const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
@@ -137,6 +138,26 @@ describe('CodeLists', () => {
     expect(codeListUsagesModalTitle).toBeInTheDocument();
   });
 
+  it('renders button to delete code list as disabled when code list is used', async () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton).toBeDisabled();
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_disabled_title'),
+    );
+  });
+
   it('renders the code list editor', () => {
     renderCodeLists();
     const codeListEditor = screen.getByText(textMock('code_list_editor.legend'));
@@ -206,6 +227,20 @@ describe('CodeLists', () => {
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
+
+  it('calls onDeleteCodeList when clicking delete button', async () => {
+    const user = userEvent.setup();
+    renderCodeLists();
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
+    );
+    await user.click(deleteCodeListButton);
+    expect(onDeleteCodeListMock).toHaveBeenCalledTimes(1);
+    expect(onDeleteCodeListMock).toHaveBeenLastCalledWith(codeListName);
+  });
 });
 
 const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
@@ -225,6 +260,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
 
 const defaultProps: CodeListsProps = {
   codeListsData: codeListsDataMock,
+  onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   codeListInEditMode: undefined,

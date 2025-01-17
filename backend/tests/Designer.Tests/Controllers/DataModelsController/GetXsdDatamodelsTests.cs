@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -28,7 +27,7 @@ public class GetXsdDatamodelsTests : DesignerEndpointsTestsBase<GetXsdDatamodels
         var response = await HttpClient.SendAsync(httpRequestMessage);
         var altinnCoreFiles = await response.Content.ReadAsAsync<List<AltinnCoreFile>>();
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        altinnCoreFiles.Count.Should().Be(2);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(2, altinnCoreFiles.Count);
     }
 }

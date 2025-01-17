@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.FeedbackFormController.Base;
 using Designer.Tests.Controllers.FeedbackFormController.Utils;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -55,7 +54,7 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
 
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -68,7 +67,7 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -84,6 +83,6 @@ public class SendMessageToSlackTests : FeedbackFormControllerTestBase<SendMessag
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
