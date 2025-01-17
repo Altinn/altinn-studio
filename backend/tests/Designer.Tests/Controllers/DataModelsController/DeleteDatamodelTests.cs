@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -43,7 +42,7 @@ public class DeleteDatamodelTests : DesignerEndpointsTestsBase<DeleteDatamodelTe
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Theory]
@@ -55,18 +54,18 @@ public class DeleteDatamodelTests : DesignerEndpointsTestsBase<DeleteDatamodelTe
         string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath={modelPath}";
         string applicationMetadataFromRepoBefore = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
         string layoutSetsFromRepoBefore = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
-        applicationMetadataFromRepoBefore.Should().Contain("datamodel");
+        Assert.Contains("datamodel", applicationMetadataFromRepoBefore);
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepoBefore, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-        layoutSets.Sets.FindAll(set => set.DataType == "datamodel").Count.Should().Be(2);
+        Assert.Equal(2, layoutSets.Sets.FindAll(set => set.DataType == "datamodel").Count);
 
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         string applicationMetadataFromRepoAfter = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
         string layoutSetsFromRepoAfter = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
-        applicationMetadataFromRepoAfter.Should().NotContain("datamodel");
-        layoutSetsFromRepoAfter.Should().NotContain("datamodel");
+        Assert.DoesNotContain("datamodel", applicationMetadataFromRepoAfter);
+        Assert.DoesNotContain("datamodel", layoutSetsFromRepoAfter);
     }
 }

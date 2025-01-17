@@ -1,6 +1,5 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
@@ -14,7 +13,7 @@ public class FormatMinimumKeywordTests : ValueKeywordTestsBase<FormatMinimumKeyw
     public void CreatedKeyword_ShouldHaveValue(string value)
     {
         Keyword = new FormatMinimumKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -36,6 +35,6 @@ public class FormatMinimumKeywordTests : ValueKeywordTestsBase<FormatMinimumKeyw
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }
