@@ -46,7 +46,7 @@ describe('useUpdateOptionListMutation', () => {
     ]);
   });
 
-  test('Adds the new options list on the cache for all options lists when cache does not contain the list', async () => {
+  test('Adds the new option list on the cache for all options lists when cache does not contain the list', async () => {
     const queryClient = createQueryClientMock();
     const existingOptionsList = { title: 'some-other-options-list-id', data: optionList };
     queryClient.setQueryData([QueryKey.OptionLists, org, app], [existingOptionsList]);
