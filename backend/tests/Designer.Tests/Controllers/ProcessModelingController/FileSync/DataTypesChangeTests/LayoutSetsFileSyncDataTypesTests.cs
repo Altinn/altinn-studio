@@ -9,7 +9,6 @@ using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -44,14 +43,14 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == dataTypesChange.ConnectedTaskId).DataType.Should().BeNull();
+        Assert.Null(layoutSets.Sets.Find(set => set.Tasks[0] == dataTypesChange.ConnectedTaskId).DataType);
     }
 
     [Theory]
@@ -76,14 +75,14 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect);
+        Assert.Equal(dataTypeToConnect, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
@@ -108,14 +107,14 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect1);
+        Assert.Equal(dataTypeToConnect1, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
@@ -140,14 +139,14 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect2);
+        Assert.Equal(dataTypeToConnect2, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
@@ -171,14 +170,14 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
             Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutSetsFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect);
+        Assert.Equal(dataTypeToConnect, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     private async Task AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)

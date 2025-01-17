@@ -11,7 +11,6 @@ using Designer.Tests.Controllers.AppScopesController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -52,17 +51,17 @@ public class UpsertAppScopesTests : AppScopesControllerTestsBase<UpsertAppScopes
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var dbEntity = await DesignerDbFixture.DbContext.AppScopes.SingleAsync(x => x.App == app && x.Org == org);
 
-        dbEntity.Should().NotBeNull();
+        Assert.NotNull(dbEntity);
 
         var scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbEntity.Scopes, JsonSerializerOptions);
-        scopes.Should().HaveCount(payload.Scopes.Count);
+        Assert.Equal(payload.Scopes.Count, scopes.Count);
         foreach (MaskinPortenScopeEntity maskinPortenScopeEntity in scopes)
         {
-            payload.Scopes.Should().Contain(x => x.Scope == maskinPortenScopeEntity.Scope && x.Description == maskinPortenScopeEntity.Description);
+            Assert.Contains(payload.Scopes, x => x.Scope == maskinPortenScopeEntity.Scope && x.Description == maskinPortenScopeEntity.Description);
         }
     }
 

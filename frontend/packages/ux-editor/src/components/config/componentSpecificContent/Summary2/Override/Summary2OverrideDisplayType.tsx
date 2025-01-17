@@ -29,7 +29,7 @@ export const Summary2OverrideDisplayType = ({
     <StudioCard.Content>
       <StudioNativeSelect
         size='sm'
-        label={t('ux_editor.component_properties.overrides_type')}
+        label={t('ux_editor.component_properties.summary.override.display_type')}
         onChange={handleCustomTypeChange}
         value={override.displayType || 'string'}
       >
