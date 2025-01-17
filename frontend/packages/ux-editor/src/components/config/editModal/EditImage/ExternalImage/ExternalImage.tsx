@@ -50,23 +50,18 @@ export const ExternalImage = ({
   return (
     <>
       <StudioToggleableTextfield
+        icon={<LinkIcon />}
+        label={t('ux_editor.properties_panel.images.enter_external_url')}
         viewProps={{
-          children: existingImageUrl ?? url ?? (
-            <span className={classes.missingUrl}>
-              {t('ux_editor.properties_panel.images.external_url_not_added')}
-            </span>
-          ),
-          label: t('ux_editor.properties_panel.images.enter_external_url'),
+          value:
+            existingImageUrl ??
+            url ??
+            t('ux_editor.properties_panel.images.external_url_not_added'),
           title: url,
-          variant: 'tertiary',
-          fullWidth: true,
-          icon: <LinkIcon />,
         }}
         inputProps={{
-          icon: <LinkIcon />,
           value: existingImageUrl,
           onBlur: ({ target }: ChangeEvent<HTMLInputElement>) => handleBlur(target.value),
-          label: t('ux_editor.properties_panel.images.enter_external_url'),
           size: 'small',
         }}
         setViewModeByDefault={!!existingImageUrl}
