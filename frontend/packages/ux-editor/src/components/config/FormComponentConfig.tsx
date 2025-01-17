@@ -18,7 +18,6 @@ import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
-import { TextResource } from '../TextResource/TextResource';
 import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
 
 export interface IEditFormComponentProps {
@@ -153,18 +152,16 @@ export const FormComponentConfig = ({
       )}
 
       {grid && (
-        <TextResource
-          handleIdChange={() => {}}
-          label={t('ux_editor.component_properties.grid')}
-          disableEditor
-          className={classes.gridButton}
-        >
+        <>
+          <Heading level={3} size='xxsmall'>
+            {t('ux_editor.component_properties.grid')}
+          </Heading>
           <EditGrid
             key={component.id}
             component={component}
             handleComponentChange={handleComponentUpdate}
           />
-        </TextResource>
+        </>
       )}
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {

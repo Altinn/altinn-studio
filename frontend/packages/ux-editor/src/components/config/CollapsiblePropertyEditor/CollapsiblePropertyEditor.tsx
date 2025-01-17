@@ -9,11 +9,13 @@ export type CollapsiblePropertyEditorProps = {
   label?: string;
   children?: React.ReactNode;
   icon?: React.ReactNode;
+  disabledCloseButton?: boolean;
 };
 
 export const CollapsiblePropertyEditor = ({
   label,
   children,
+  disabledCloseButton = false,
   icon = <PlusCircleIcon />,
 }: CollapsiblePropertyEditorProps) => {
   const { t } = useTranslation();
@@ -33,12 +35,14 @@ export const CollapsiblePropertyEditor = ({
       ) : (
         <>
           <div className={classes.editorContent}>{children}</div>
-          <StudioButton
-            icon={<XMarkIcon />}
-            onClick={() => setIsVisible(false)}
-            title={t('general.close')}
-            variant='secondary'
-          />
+          {!disabledCloseButton && (
+            <StudioButton
+              icon={<XMarkIcon />}
+              onClick={() => setIsVisible(false)}
+              title={t('general.close')}
+              variant='secondary'
+            />
+          )}
         </>
       )}
     </div>
