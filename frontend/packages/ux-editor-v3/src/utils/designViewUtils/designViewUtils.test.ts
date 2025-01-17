@@ -50,7 +50,7 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns name invalid error key when name contains illegal characters', () => {
+    it('returns name invalid error key when name contains invalid characters', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateIllegal,
         mockOldName,
