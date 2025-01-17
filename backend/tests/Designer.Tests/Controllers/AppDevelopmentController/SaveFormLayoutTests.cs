@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -55,13 +54,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(layout, savedLayout));
         }
 
         [Theory]
@@ -86,13 +85,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(layout, savedLayout));
         }
 
         [Theory]
@@ -148,11 +147,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
             string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json").Should().BeTrue();
+            Assert.True(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json"));
             string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json");
             TextResource textResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
-            textResource.Resources.Should().NotContain(x => x.Id == "next");
-            textResource.Resources.Should().NotContain(x => x.Id == "back");
+            Assert.DoesNotContain(textResource.Resources, x => x.Id == "next");
+            Assert.DoesNotContain(textResource.Resources, x => x.Id == "back");
 
             var payload = new JsonObject
             {
@@ -160,12 +159,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string newTextFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.nb.json");
             TextResource newTextResource = JsonSerializer.Deserialize<TextResource>(newTextFile, s_jsonOptions);
-            newTextResource.Resources.Should().ContainSingle(x => x.Id == "next");
-            newTextResource.Resources.Should().ContainSingle(x => x.Id == "back");
+            Assert.Single(newTextResource.Resources, x => x.Id == "next");
+            Assert.Single(newTextResource.Resources, x => x.Id == "back");
         }
 
         private async Task<HttpResponseMessage> SendHttpRequest(string url, JsonObject payload)

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -21,7 +22,6 @@ using Altinn.Studio.DataModeling.Validator.Json;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Json.Pointer;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc;
@@ -64,7 +64,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         var response = await HttpClient.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         await FilesWithCorrectNameAndContentShouldBeCreated(modelName);
     }
 
@@ -82,19 +82,19 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         var response = await HttpClient.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var problemDetailsJson = await response.Content.ReadAsStringAsync();
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(problemDetailsJson);
 
-        problemDetails.Should().NotBeNull();
-        problemDetails.Extensions.Should().ContainKey("customErrorMessages");
+        Assert.NotNull(problemDetails);
+        Assert.Contains("customErrorMessages", problemDetails.Extensions.Keys);
 
         var customErrorMessages = problemDetails.Extensions["customErrorMessages"];
-        customErrorMessages.Should().NotBeNull();
+        Assert.NotNull(customErrorMessages);
         var customErrorMessagesElement = (JsonElement)customErrorMessages;
         var firstErrorMessage = customErrorMessagesElement.EnumerateArray().FirstOrDefault().GetString();
-        firstErrorMessage.Should().Contain("'root': member names cannot be the same as their enclosing type");
+        Assert.Contains("'root': member names cannot be the same as their enclosing type", firstErrorMessage);
     }
 
     [Theory]
@@ -112,7 +112,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         var response = await HttpClient.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Theory(Skip = "Validator is excluded from put method for now.")]
@@ -130,7 +130,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         var response = await HttpClient.SendAsync(request);
-        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         string content = await response.Content.ReadAsStringAsync();
 
         var errorResponse = JsonSerializer.Deserialize<ValidationProblemDetails>(content, new JsonSerializerOptions()
@@ -142,7 +142,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         {
             var pointerObject = JsonPointer.Parse(pointer);
             Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
-            errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)].Contains(errorCode).Should().BeTrue();
+            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)]);
         }
     }
 
@@ -165,10 +165,10 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         DataType dataTypeResponse = await response.Content.ReadFromJsonAsync<DataType>();
-        dataTypeResponse.Should().NotBeNull();
-        dataTypeResponse.Should().BeEquivalentTo(dataType);
+        Assert.NotNull(dataTypeResponse);
+        AssertionUtil.AssertEqualTo(dataType, dataTypeResponse);
     }
 
     [Theory]
@@ -190,7 +190,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         };
 
         HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
 
@@ -235,7 +235,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     private static void VerifyFileContent(string path, string expectedContent)
     {
         var fileContent = File.ReadAllText(path);
-        expectedContent.Should().Be(fileContent);
+        Assert.Equal(expectedContent, fileContent);
     }
 
     public static IEnumerable<object[]> IncompatibleSchemasTestData => new List<object[]>

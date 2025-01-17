@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using FluentAssertions;
 using Xunit;
 using static Altinn.Studio.DataModeling.Json.Keywords.XsdUnhandledEnumAttributesKeyword;
 
@@ -24,10 +23,10 @@ namespace DataModeling.Tests.Json.Keywords
             var xsdUnhandledEnumAttributesKeyword = keywordConverter.Read(ref jsonReader, typeof(XsdUnhandledAttributesKeyword), new System.Text.Json.JsonSerializerOptions());
 
             // Assert
-            xsdUnhandledEnumAttributesKeyword.Properties.Should().HaveCount(3);
-            xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "frontend").Properties.Should().HaveCount(2);
-            xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "backend").Properties.Should().HaveCount(2);
-            xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "other").Properties.Should().HaveCount(2);
+            Assert.Equal(3, xsdUnhandledEnumAttributesKeyword.Properties.Count);
+            Assert.Equal(2, xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "frontend").Properties.Count);
+            Assert.Equal(2, xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "backend").Properties.Count);
+            Assert.Equal(2, xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "other").Properties.Count);
         }
 
         [Fact]
@@ -62,7 +61,7 @@ namespace DataModeling.Tests.Json.Keywords
             var streamReader = new StreamReader(jsonStream);
             var jsonText = streamReader.ReadToEnd();
 
-            jsonText.Should().Be(@"{""@xsdUnhandledEnumAttributes"":{""frontend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784952""},""backend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784951""},""other"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784950""}}}");
+            Assert.Equal(@"{""@xsdUnhandledEnumAttributes"":{""frontend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784952""},""backend"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784951""},""other"":{""seres:elementtype"":""Datakodeelement"",""seres:guid"":""http://seres.no/guid/Kursdomene/Datakodeelement/other/784950""}}}", jsonText);
         }
     }
 }
