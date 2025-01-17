@@ -11,7 +11,7 @@ import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import classes from './LibraryOptionsEditor.module.css';
-import { OptionList } from 'app-shared/types/OptionList';
+import type { OptionList } from 'app-shared/types/OptionList';
 
 type LibraryOptionsEditorProps = {
   handleDelete: () => void;
