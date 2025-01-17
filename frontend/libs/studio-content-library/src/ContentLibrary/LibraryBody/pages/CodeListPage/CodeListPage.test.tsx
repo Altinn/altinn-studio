@@ -54,7 +54,7 @@ describe('CodeListPage', () => {
 
   it('renders the code list accordion', () => {
     renderCodeListPage();
-    const codeListAccordion = getCodeListAccordion(codeListName);
+    const codeListAccordion = getCodeListAccordion(codeListTitle);
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -67,8 +67,8 @@ describe('CodeListPage', () => {
     });
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
-    [codeListName, codeList2].forEach((codeListTitle) => {
-      expect(getCodeListAccordion(codeListTitle)).toBeInTheDocument();
+    [codeListTitle, codeList2].forEach((title) => {
+      expect(getCodeListAccordion(title)).toBeInTheDocument();
     });
   });
 
@@ -85,7 +85,7 @@ describe('CodeListPage', () => {
     expect(
       screen.queryByTitle(
         textMock('app_content_library.code_lists.code_list_accordion_title', {
-          codeListTitle: codeListName,
+          codeListTitle,
         }),
       ),
     ).not.toBeInTheDocument();
@@ -173,10 +173,10 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   await user.upload(fileUploaderButton, file);
 };
 
-const getCodeListAccordion = (codeListTitle: string) => {
+const getCodeListAccordion = (title: string) => {
   return screen.getByTitle(
     textMock('app_content_library.code_lists.code_list_accordion_title', {
-      codeListTitle,
+      codeListTitle: title,
     }),
   );
 };

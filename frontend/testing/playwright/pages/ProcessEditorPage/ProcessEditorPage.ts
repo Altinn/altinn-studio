@@ -73,13 +73,19 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
-    const button = this.page.getByRole('button', { name: /^Activity_/ });
+    const button = this.page.getByRole('button', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
     await button.waitFor();
     return await this.getFullIdFromButtonSelector(button);
   }
 
-  public async clickOnTaskIdEditButton(id: string): Promise<void> {
-    await this.page.getByRole('button', { name: id }).click();
+  public async clickOnTaskIdEditButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
+      })
+      .click();
   }
 
   public async waitForEditIdInputFieldToBeVisible(): Promise<void> {
@@ -120,8 +126,10 @@ export class ProcessEditorPage extends BasePage {
       .blur();
   }
 
-  public async waitForNewTaskIdButtonToBeVisible(id: string): Promise<void> {
-    const button = this.page.getByRole('button', { name: id });
+  public async waitForNewTaskIdButtonToBeVisible(): Promise<void> {
+    const button = this.page.getByRole('button', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
     await expect(button).toBeVisible();
   }
 

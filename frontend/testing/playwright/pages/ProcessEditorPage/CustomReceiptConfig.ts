@@ -55,9 +55,9 @@ export class CustomReceiptConfig extends BasePage {
       .click();
   }
 
-  public async waitForEditLayoutSetIdButtonToBeVisible(layoutSetId: string): Promise<void> {
+  public async waitForEditLayoutSetIdButtonToBeVisible(): Promise<void> {
     const button = this.page.getByRole('button', {
-      name: layoutSetId,
+      name: this.textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     });
     await expect(button).toBeVisible();
   }
