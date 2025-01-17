@@ -173,7 +173,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string expectedApp = "app-with-summary2-components-after-deleting-references";
 
@@ -188,7 +188,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             {
                 string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
                 string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
-                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
+                Assert.True(JsonUtils.DeepEquals(actual, expected));
             });
         }
 
