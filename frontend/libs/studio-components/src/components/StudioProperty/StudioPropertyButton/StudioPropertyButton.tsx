@@ -11,8 +11,9 @@ export type StudioPropertyButtonProps = {
   value?: ReactNode;
   compact?: boolean;
   readOnly?: boolean;
+  icon?: ReactNode;
   withoutNegativeMargin?: boolean;
-} & Omit<StudioButtonProps, 'children' | 'value'>;
+} & Omit<StudioButtonProps, 'children' | 'value' | 'icon'>;
 
 const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonProps>(
   (
@@ -38,7 +39,6 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
       compact && classes.compact,
       readOnly && classes.readOnly,
       withoutNegativeMargin && classes.withoutNegativeMargin,
-      givenIcon && hasValue && classes.definedValue,
       givenClass,
     );
 
@@ -52,14 +52,16 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
         aria-readonly={readOnly ? true : null}
         className={className}
         fullWidth
-        icon={icon}
         ref={ref}
         title={property}
         variant='tertiary'
         {...rest}
       >
         <span className={classes.content}>
-          <span className={classes.property}>{property}</span>
+          <span className={classes.property}>
+            {icon}
+            {property}
+          </span>
           <span className={classes.value}>{value}</span>
         </span>
         {readOnly ? (

@@ -86,32 +86,26 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        <div className={classes.wrapper}>
-          <StudioProperty.Group>
-            {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
-              return (
-                <div
-                  className={classes.dataModelBindings}
-                  key={`${formItem.id}-data-model-${propertyKey}`}
-                >
-                  <EditDataModelBinding
-                    component={formItem}
-                    handleComponentChange={async (updatedComponent, mutateOptions) => {
-                      handleUpdate(updatedComponent);
-                      debounceSave(formItemId, updatedComponent, mutateOptions);
-                    }}
-                    editFormId={formItemId}
-                    helpText={dataModelBindingsProperties[propertyKey]?.description}
-                    renderOptions={{
-                      key: propertyKey,
-                      label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </StudioProperty.Group>
-        </div>
+        <StudioProperty.Group className={classes.container}>
+          {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
+            return (
+              <EditDataModelBinding
+                key={`${formItem.id}-data-model-${propertyKey}`}
+                component={formItem}
+                handleComponentChange={async (updatedComponent, mutateOptions) => {
+                  handleUpdate(updatedComponent);
+                  debounceSave(formItemId, updatedComponent, mutateOptions);
+                }}
+                editFormId={formItemId}
+                helpText={dataModelBindingsProperties[propertyKey]?.description}
+                renderOptions={{
+                  key: propertyKey,
+                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+                }}
+              />
+            );
+          })}
+        </StudioProperty.Group>
       </div>
     )
   );
