@@ -3,7 +3,7 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
 import { useOptionListsQuery, useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { convertOptionListDataListToCodeListDataList } from './utils/convertOptionListDataListToCodeListDataList';
+import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -16,7 +16,7 @@ import {
   useUpdateOptionListIdMutation,
   useDeleteOptionListMutation,
 } from 'app-shared/hooks/mutations';
-import { mapToCodeListsUsage } from './utils/mapToCodeListsUsage';
+import { mapToCodeListUsages } from './utils/mapToCodeListUsages';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -37,9 +37,9 @@ export function AppContentLibrary(): React.ReactElement {
   if (optionListsDataPending || optionListsUsageIsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
-  const codeListsData = convertOptionListDataListToCodeListDataList(optionListsData);
+  const codeListsData = mapToCodeListDataList(optionListsData);
 
-  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage(optionListUsages);
+  const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });

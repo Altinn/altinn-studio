@@ -1,5 +1,5 @@
 import type { CodeListIdSource } from '@studio/content-library';
-import { mapToCodeListsUsage } from './mapToCodeListsUsage';
+import { mapToCodeListUsages } from './mapToCodeListUsages';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 
 const optionListId: string = 'optionListId';
@@ -17,10 +17,10 @@ const optionListUsages: OptionListReferences = [
   },
 ];
 
-describe('mapToCodeListsUsage', () => {
-  it('maps optionListsUsage to codeListUsage', () => {
-    const codeListUsage = mapToCodeListsUsage(optionListUsages);
-    expect(codeListUsage).toEqual([
+describe('mapToCodeListUsages', () => {
+  it('maps optionListsUsages to codeListUsages', () => {
+    const codeListUsages = mapToCodeListUsages(optionListUsages);
+    expect(codeListUsages).toEqual([
       {
         codeListId: optionListId,
         codeListIdSources: optionListIdSources,
@@ -29,7 +29,7 @@ describe('mapToCodeListsUsage', () => {
   });
 
   it('maps undefined optionListUsages to empty array', () => {
-    const codeListUsage = mapToCodeListsUsage(undefined);
-    expect(codeListUsage).toEqual([]);
+    const codeListUsages = mapToCodeListUsages(undefined);
+    expect(codeListUsages).toEqual([]);
   });
 });

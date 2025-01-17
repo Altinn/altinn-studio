@@ -1,11 +1,12 @@
 import type { CodeListData } from '@studio/content-library';
-import { convertOptionListDataListToCodeListDataList } from './convertOptionListDataListToCodeListDataList';
+import { mapToCodeListDataList } from './mapToCodeListDataList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
-describe('convertOptionsListsDataToCodeListsData', () => {
+describe('mapToCodeListDataList', () => {
   it('converts option lists data to code lists data correctly', () => {
     const optionListId: string = 'optionListId';
-    const optionListsData: OptionListsResponse = [
+    const optionListDataList: OptionListData[] = [
       {
         title: optionListId,
         data: [
@@ -15,7 +16,7 @@ describe('convertOptionsListsDataToCodeListsData', () => {
         hasError: false,
       },
     ];
-    const result: CodeListData[] = convertOptionListDataListToCodeListDataList(optionListsData);
+    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([
       {
         title: optionListId,
@@ -30,20 +31,20 @@ describe('convertOptionsListsDataToCodeListsData', () => {
 
   it('sets hasError to true in result when optionListsResponse returns an option list with error', () => {
     const optionListId: string = 'optionListId';
-    const optionListsData: OptionListsResponse = [
+    const optionListDataList: OptionListData[] = [
       {
         title: optionListId,
         data: null,
         hasError: true,
       },
     ];
-    const result: CodeListData[] = convertOptionListDataListToCodeListDataList(optionListsData);
+    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([{ title: optionListId, data: null, hasError: true }]);
   });
 
   it('returns a result with empty code list data array when the input option list data is empty', () => {
-    const optionListsData: OptionListsResponse = [];
-    const result: CodeListData[] = convertOptionListDataListToCodeListDataList(optionListsData);
+    const optionListDataList: OptionListsResponse = [];
+    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([]);
   });
 });

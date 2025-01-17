@@ -1,7 +1,7 @@
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { CodeListReference } from '@studio/content-library';
 
-export const mapToCodeListsUsage = (
+export const mapToCodeListUsages = (
   optionListUsages: OptionListReferences,
 ): CodeListReference[] => {
   if (!optionListUsages) return [];
