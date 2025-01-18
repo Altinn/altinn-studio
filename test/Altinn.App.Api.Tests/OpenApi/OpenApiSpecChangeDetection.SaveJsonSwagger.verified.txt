@@ -1,4 +1,4 @@
-﻿{
+{
   openapi: 3.0.1,
   info: {
     title: Altinn App Api,
@@ -6442,6 +6442,10 @@ to a model, and then finally the state of the instance.,
         additionalProperties: false
       },
       DataModelPairResponse: {
+        required: [
+          data,
+          dataElementId
+        ],
         type: object,
         properties: {
           dataElementId: {
@@ -6450,8 +6454,7 @@ to a model, and then finally the state of the instance.,
             format: uuid
           },
           data: {
-            description: The form data of the data element,
-            nullable: true
+            description: The form data of the data element
           }
         },
         additionalProperties: false,
@@ -6555,16 +6558,14 @@ version that supports multiple data models in the same request.
             items: {
               $ref: #/components/schemas/ValidationSourcePair
             },
-            description: The validation issues that were found during the patch operation.,
-            nullable: true
+            description: The validation issues that were found during the patch operation.
           },
           newDataModels: {
             type: array,
             items: {
               $ref: #/components/schemas/DataModelPairResponse
             },
-            description: The current data in all data models updated by the patch operation.,
-            nullable: true
+            description: The current data in all data models updated by the patch operation.
           },
           instance: {
             $ref: #/components/schemas/Instance
@@ -6574,6 +6575,9 @@ version that supports multiple data models in the same request.
         description: Represents the response from a data patch operation on the Altinn.App.Api.Controllers.DataController.
       },
       DataPostErrorResponse: {
+        required: [
+          uploadValidationIssues
+        ],
         type: object,
         properties: {
           type: {
@@ -6603,7 +6607,6 @@ version that supports multiple data models in the same request.
               $ref: #/components/schemas/ValidationIssueWithSource
             },
             description: List of the validators that reported to have relevant changes after a new data element was added,
-            nullable: true,
             readOnly: true
           }
         },
@@ -6631,16 +6634,14 @@ version that supports multiple data models in the same request.
             items: {
               $ref: #/components/schemas/ValidationSourcePair
             },
-            description: List of validation issues that reported to have relevant changes after a new data element was added,
-            nullable: true
+            description: List of validation issues that reported to have relevant changes after a new data element was added
           },
           newDataModels: {
             type: array,
             items: {
               $ref: #/components/schemas/DataModelPairResponse
             },
-            description: List of updated DataModels caused by dataProcessing,
-            nullable: true
+            description: List of updated DataModels caused by dataProcessing
           }
         },
         additionalProperties: false,
@@ -8147,8 +8148,8 @@ Validators that are not listed in the dictionary are assumed to have not been ex
             nullable: true
           },
           source: {
-            type: string,
-            nullable: true
+            minLength: 1,
+            type: string
           },
           noIncrementalUpdates: {
             type: boolean
@@ -8168,18 +8169,21 @@ Validators that are not listed in the dictionary are assumed to have not been ex
         additionalProperties: false
       },
       ValidationSourcePair: {
+        required: [
+          issues,
+          source
+        ],
         type: object,
         properties: {
           source: {
-            type: string,
-            nullable: true
+            minLength: 1,
+            type: string
           },
           issues: {
             type: array,
             items: {
               $ref: #/components/schemas/ValidationIssueWithSource
-            },
-            nullable: true
+            }
           }
         },
         additionalProperties: false

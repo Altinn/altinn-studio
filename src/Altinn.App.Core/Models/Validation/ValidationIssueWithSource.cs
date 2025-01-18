@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 
@@ -70,7 +71,7 @@ public class ValidationIssueWithSource
     /// <summary>
     /// The short name of the class that crated the message (set automatically after return of list)
     /// </summary>
-    [JsonPropertyName("source")]
+    [JsonPropertyName("source"), Required]
     public required string Source { get; set; }
 
     /// <summary>
@@ -106,6 +107,6 @@ public class ValidationIssueWithSource
 /// <param name="Source">The <see cref="IValidator.ValidationSource"/> for the Validator that created theese issues</param>
 /// <param name="Issues">List of issues</param>
 public record ValidationSourcePair(
-    [property: JsonPropertyName("source")] string Source,
-    [property: JsonPropertyName("issues")] List<ValidationIssueWithSource> Issues
+    [property: JsonPropertyName("source"), Required] string Source,
+    [property: JsonPropertyName("issues"), Required] List<ValidationIssueWithSource> Issues
 );

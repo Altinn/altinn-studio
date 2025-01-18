@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Models.Validation;
@@ -13,19 +14,19 @@ public class DataPatchResponseMultiple
     /// <summary>
     /// The validation issues that were found during the patch operation.
     /// </summary>
-    [JsonPropertyName("validationIssues")]
+    [JsonPropertyName("validationIssues"), Required]
     public required List<ValidationSourcePair> ValidationIssues { get; init; }
 
     /// <summary>
     /// The current data in all data models updated by the patch operation.
     /// </summary>
-    [JsonPropertyName("newDataModels")]
+    [JsonPropertyName("newDataModels"), Required]
     public required List<DataModelPairResponse> NewDataModels { get; init; }
 
     /// <summary>
     /// The instance with updated dataElement list.
     /// </summary>
-    [JsonPropertyName("instance")]
+    [JsonPropertyName("instance"), Required]
     public required Instance Instance { get; init; }
 }
 
@@ -35,6 +36,6 @@ public class DataPatchResponseMultiple
 /// <param name="DataElementId">The guid of the DataElement</param>
 /// <param name="Data">The form data of the data element</param>
 public record DataModelPairResponse(
-    [property: JsonPropertyName("dataElementId")] Guid DataElementId,
-    [property: JsonPropertyName("data")] object Data
+    [property: JsonPropertyName("dataElementId"), Required] Guid DataElementId,
+    [property: JsonPropertyName("data"), Required] object Data
 );
