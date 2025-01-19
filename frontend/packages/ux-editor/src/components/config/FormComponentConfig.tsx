@@ -19,6 +19,7 @@ import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
 import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
+import type { TranslationKey } from 'language/type';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -166,31 +167,21 @@ export const FormComponentConfig = ({
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
         const isSortOrder = propertyKey === 'sortOrder';
-        if (isSortOrder) {
-          return (
-            <CollapsiblePropertyEditor
-              key={propertyKey}
-              label={t('ux_editor.component_properties.sortOrder')}
-            >
-              <EditStringValue
-                component={component}
-                handleComponentChange={handleComponentUpdate}
-                propertyKey={propertyKey}
-                helpText={isSortOrder ? '' : properties[propertyKey]?.description}
-                enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
-              />
-            </CollapsiblePropertyEditor>
-          );
-        }
+        const isLayout = propertyKey === 'layout';
+
         return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
+          <CollapsiblePropertyEditor
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
-          />
+            label={t(`ux_editor.component_properties.${propertyKey}` as TranslationKey)}
+          >
+            <EditStringValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              helpText={isLayout || isSortOrder ? '' : properties[propertyKey]?.description}
+              enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+            />
+          </CollapsiblePropertyEditor>
         );
       })}
       {/** Array properties with enum values) */}

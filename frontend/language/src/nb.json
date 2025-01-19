@@ -1386,6 +1386,7 @@
   "ux_editor.component_properties.optionalIndicator": "Vis valgfri-indikator på ledetekst",
   "ux_editor.component_properties.options": "Alternativer",
   "ux_editor.component_properties.optionsId": "Kodeliste",
+  "ux_editor.component_properties.page": "Side",
   "ux_editor.component_properties.pageBreak": "PDF-innstillinger (pageBreak)",
   "ux_editor.component_properties.pageRef": "Navnet til siden det gjelder (pageRef)",
   "ux_editor.component_properties.pagination": "Sidenummerering",
