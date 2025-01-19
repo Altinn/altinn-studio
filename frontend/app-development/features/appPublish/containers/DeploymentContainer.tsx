@@ -21,6 +21,7 @@ export const DeploymentContainer = () => {
     data: environmentList = [],
     isPending: environmentListIsPending,
     isError: environmentListIsError,
+    error,
   } = useEnvironmentsQuery({ hideDefaultError: true });
   const {
     data: orgs,
@@ -49,6 +50,12 @@ export const DeploymentContainer = () => {
     );
   }
 
+  console.log({
+    environmentListIsError,
+    orgsIsError,
+    appDeploymentIsError,
+    error,
+  });
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
     return (
       <div className={classes.deployContainer}>
@@ -64,10 +71,10 @@ export const DeploymentContainer = () => {
   return (
     <div className={classes.deployContainer}>
       {orgEnvironmentList.map((orgEnvironment: Environment) => {
-        const pipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
+        const pipelineDeploymentList = appDeployment.pipelineDeploymentList?.filter(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
-        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
+        const kubernetesDeployment = appDeployment.kubernetesDeploymentList?.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
@@ -76,7 +83,7 @@ export const DeploymentContainer = () => {
             envName={orgEnvironment.name}
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
-            pipelineDeploymentList={pipelineDeploymentList}
+            pipelineDeploymentList={[]}
             kubernetesDeployment={kubernetesDeployment}
             orgName={orgName}
           />

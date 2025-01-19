@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
+import { StudioDropdownMenu, StudioDropdownMenuItem } from '@studio/components';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -44,9 +45,17 @@ export const DeploymentEnvironmentStatus = ({
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
       <Alert severity={severity} className={classes.alert}>
-        <Heading spacing level={2} size='xsmall'>
-          {envTitle}
-        </Heading>
+        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
+          <Heading spacing level={2} size='xsmall'>
+            {envTitle}
+          </Heading>
+          <StudioDropdownMenu anchorButtonProps={{ variant: 'secondary', content: 'test' }}>
+            <StudioDropdownMenu.Group>
+              <StudioDropdownMenu.Item>Avpublisere appen</StudioDropdownMenu.Item>
+              <StudioDropdownMenu.Item>Gå til miljøet</StudioDropdownMenu.Item>
+            </StudioDropdownMenu.Group>
+          </StudioDropdownMenu>
+        </div>
         <Paragraph size='small' spacing={!!footer}>
           {content}
         </Paragraph>
