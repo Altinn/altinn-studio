@@ -62,7 +62,7 @@ export const Preview: Story = () => {
 
   return (
     <StudioPaginatedContent
-      buttonTexts={{ previous: 'Previous', next: 'Next' }}
+      navigationButtonTexts={{ previous: 'Previous', next: 'Next' }}
       componentToRender={pages[currentPage]}
       navigation={navigation}
       currentPageNumber={currentPage}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { StudioPaginatedContent, type StudioPaginatedContentProps } from './StudioPaginatedContent';
 
 const navigationMock: StudioPaginatedContentProps['navigation'] = {
@@ -10,7 +10,7 @@ const navigationMock: StudioPaginatedContentProps['navigation'] = {
   onPrevious: jest.fn(),
 };
 
-const buttonTextsMock: StudioPaginatedContentProps['buttonTexts'] = {
+const buttonTextsMock: StudioPaginatedContentProps['navigationButtonTexts'] = {
   previous: 'Previous',
   next: 'Next',
 };
@@ -19,7 +19,7 @@ const defaultProps: StudioPaginatedContentProps = {
   totalPages: 5,
   currentPageNumber: 2,
   componentToRender: <div>Content</div>,
-  buttonTexts: buttonTextsMock,
+  navigationButtonTexts: buttonTextsMock,
   navigation: navigationMock,
 };
 
@@ -68,16 +68,19 @@ describe('StudioPaginatedContent', () => {
     expect(screen.getByText('Next')).toBeDisabled();
   });
 
-  it('calls onPrevious when the previous button is clicked', () => {
+  it('calls onPrevious when the previous button is clicked', async () => {
+    const user = userEvent.setup();
     renderStudioPaginatedContent();
 
-    fireEvent.click(screen.getByText('Previous'));
+    await user.click(screen.getByText('Previous'));
     expect(defaultProps.navigation.onPrevious).toHaveBeenCalled();
   });
 
-  it('calls onNext when the next button is clicked', () => {
+  it('calls onNext when the next button is clicked', async () => {
+    const user = userEvent.setup();
     renderStudioPaginatedContent();
-    fireEvent.click(screen.getByText('Next'));
+
+    await user.click(screen.getByText('Next'));
     expect(defaultProps.navigation.onNext).toHaveBeenCalled();
   });
 

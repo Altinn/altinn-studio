@@ -4,7 +4,7 @@ import { StudioButton } from '../StudioButton';
 import { ChevronLeftIcon, ChevronRightIcon } from '@studio/icons';
 import { type StudioPaginatedNavigation } from './types/StudioPaginatedNavigation';
 
-type ButtonTexts = {
+type NavigationButtonTexts = {
   previous: string;
   next: string;
 };
@@ -13,7 +13,7 @@ export type StudioPaginatedContentProps = {
   totalPages: number;
   currentPageNumber: number;
   componentToRender: ReactNode;
-  buttonTexts: ButtonTexts;
+  navigationButtonTexts: NavigationButtonTexts;
   navigation: StudioPaginatedNavigation;
 };
 
@@ -22,7 +22,7 @@ export const StudioPaginatedContent = ({
   totalPages,
   componentToRender,
   currentPageNumber,
-  buttonTexts: { previous: previousButtonText, next: nextButtonText },
+  navigationButtonTexts: { previous: previousButtonText, next: nextButtonText },
 }: StudioPaginatedContentProps): ReactElement => {
   return (
     <div className={classes.wrapper}>
@@ -32,7 +32,7 @@ export const StudioPaginatedContent = ({
           <ChevronLeftIcon className={classes.icon} />
           {previousButtonText}
         </StudioButton>
-        <NavigationCircles totalPages={totalPages} currentPageNumber={currentPageNumber} />
+        <NavigationStepIndicator totalPages={totalPages} currentPageNumber={currentPageNumber} />
         <StudioButton variant='tertiary' size='sm' onClick={onNext} disabled={!canGoNext}>
           {nextButtonText}
           <ChevronRightIcon />
@@ -47,7 +47,10 @@ type NavigationCirclesProps = {
   currentPageNumber: number;
 };
 
-const NavigationCircles = ({ totalPages, currentPageNumber }: NavigationCirclesProps) => {
+const NavigationStepIndicator = ({
+  totalPages,
+  currentPageNumber,
+}: NavigationCirclesProps): React.ReactElement => {
   return (
     <div className={classes.statusBarContainer}>
       {getArrayFromLength(totalPages).map((_, index) => (
