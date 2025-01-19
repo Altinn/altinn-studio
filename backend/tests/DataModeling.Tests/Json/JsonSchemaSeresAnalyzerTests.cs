@@ -3,7 +3,6 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using FluentAssertions;
 using Json.Pointer;
 using SharedResources.Tests;
 using Xunit;
@@ -40,7 +39,7 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexType);
+            Assert.Contains(CompatibleXsdType.ComplexType, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         }
 
         [Theory]
@@ -58,10 +57,10 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContent);
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.ComplexContentExtension);
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.SimpleContentExtension);
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.SimpleContentRestriction);
+            Assert.Contains(CompatibleXsdType.ComplexContent, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
+            Assert.Contains(CompatibleXsdType.ComplexContentExtension, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
+            Assert.DoesNotContain(CompatibleXsdType.SimpleContentExtension, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
+            Assert.DoesNotContain(CompatibleXsdType.SimpleContentRestriction, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         }
 
         [Theory]
@@ -75,8 +74,8 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContent);
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().NotContain(CompatibleXsdType.ComplexContentExtension);
+            Assert.DoesNotContain(CompatibleXsdType.ComplexContent, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
+            Assert.DoesNotContain(CompatibleXsdType.ComplexContentExtension, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         }
 
         [Theory]
@@ -93,8 +92,8 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.SimpleType);
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Attribute);
+            Assert.Contains(CompatibleXsdType.SimpleType, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
+            Assert.Contains(CompatibleXsdType.Attribute, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         }
 
         [Theory]
@@ -109,7 +108,7 @@ namespace DataModeling.Tests.Json
 
             var results = analyzer.AnalyzeSchema(schema);
 
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)).Should().Contain(CompatibleXsdType.Nillable);
+            Assert.Contains(CompatibleXsdType.Nillable, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         }
     }
 }

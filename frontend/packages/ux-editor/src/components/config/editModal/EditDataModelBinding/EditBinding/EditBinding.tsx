@@ -10,7 +10,6 @@ import {
   getXsdDataTypeFromDataModelFields,
   type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
@@ -22,7 +21,6 @@ import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 export type EditBindingProps = {
   bindingKey: string;
   component: FormItem;
-  helpText: string;
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
@@ -32,7 +30,6 @@ export type EditBindingProps = {
 export const EditBinding = ({
   bindingKey,
   component,
-  helpText,
   label,
   handleComponentChange,
   onSetDataModelSelectVisible,
@@ -48,9 +45,7 @@ export const EditBinding = ({
     const selectedDataFieldElement = updatedBinding?.field;
 
     const value =
-      (shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask)
-        ? updatedBinding
-        : selectedDataFieldElement) ??
+      updatedBinding ??
       formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
 
     const dataModelBindings = { ...component.dataModelBindings };
@@ -102,7 +97,6 @@ export const EditBinding = ({
             internalBindingFormat={internalBindingFormat}
             handleBindingChange={handleBindingChange}
             bindingKey={bindingKey}
-            helpText={helpText}
             componentType={component.type}
           />
           <EditBindingButtons

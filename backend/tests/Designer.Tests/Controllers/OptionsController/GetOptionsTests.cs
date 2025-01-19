@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
-using FluentAssertions;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -63,8 +66,24 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     {
         // Arrange
         const string repo = "app-with-options";
-        string apiUrl = $"/designer/api/ttd/{repo}/options/option-lists";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", repo, "testUser", targetRepository);
+        string apiUrl = $"/designer/api/ttd/{targetRepository}/options/option-lists";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+        string optionListMissingValue = @"[{ ""label"": ""someLabel""}]";
+        string optionListMissingLabel = @"[{ ""value"": ""someValue""}]";
+        string optionListTrailingComma = @"[{ ""value"": ""someValue"", ""label"": ""someLabel"",}]";
+        string optionListLabelWithObject = @"[{ ""value"": ""someValue"", ""label"": {}}]";
+        string optionListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
+        string optionListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory("ttd", targetRepository, "testUser");
+        string filePath = Path.Combine(repoPath, "App/options");
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingValue.json"), optionListMissingValue);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingLabel.json"), optionListMissingLabel);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListTrailingComma.json"), optionListTrailingComma);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithObject.json"), optionListLabelWithObject);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithNumber.json"), optionListLabelWithNumber);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithBool.json"), optionListLabelWithBool);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -73,12 +92,18 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        responseList.Should().BeEquivalentTo(new List<OptionListData>
-        {
-            new () { Title = "options-with-null-fields", Data = null, HasError = true },
-            new () { Title = "other-options", HasError = false },
-            new () { Title = "test-options", HasError = false }
-        }, options => options.Excluding(x => x.Data));
+
+        Assert.Equal(9, responseList.Count);
+        Assert.Single(responseList, o => o.Title == "options-with-null-fields" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "other-options" && o.HasError == false);
+        Assert.Single(responseList, o => o.Title == "test-options" && o.HasError == false);
+        Assert.Single(responseList, o => o.Title == "optionListMissingValue" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListMissingLabel" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListTrailingComma" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithObject" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithNumber" && o.HasError == true);
+        Assert.Single(responseList, o => o.Title == "optionListLabelWithBool" && o.HasError == true);
+
     }
 
     [Fact]
@@ -141,8 +166,8 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be("InvalidOptionsFormat");
+        Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 }

@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Moq;
 using Xunit;
 
@@ -45,7 +44,7 @@ public class AppDevelopmentServiceTest : IDisposable
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
         var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), null);
 
-        layoutSettings.Should().NotBeNull();
+        Assert.NotNull(layoutSettings);
     }
 
     [Fact]
@@ -73,8 +72,9 @@ public class AppDevelopmentServiceTest : IDisposable
         await _appDevelopmentService.SaveLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSettingsUpdated, layoutSetName);
         var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
 
-        layoutSettings.Should().NotBeNull();
-        (layoutSettings["pages"]["order"] as JsonArray).Should().HaveCount(3);
+        Assert.NotNull(layoutSettings);
+
+        Assert.Equal(3, ((JsonArray)layoutSettings!["pages"]!["order"]!).Count);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class AppDevelopmentServiceTest : IDisposable
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
         var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
 
-        layoutSettings.Should().NotBeNull();
+        Assert.NotNull(layoutSettings);
     }
 
 
@@ -99,8 +99,9 @@ public class AppDevelopmentServiceTest : IDisposable
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
         var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
 
-        layoutSettings.Should().NotBeNull();
-        (layoutSettings["pages"]["order"] as JsonArray).Should().HaveCount(2);
+        Assert.NotNull(layoutSettings);
+
+        Assert.Equal(2, ((JsonArray)layoutSettings!["pages"]!["order"]!).Count);
     }
 
     [Fact]
@@ -139,9 +140,10 @@ public class AppDevelopmentServiceTest : IDisposable
         List<string> layoutSetFileNamesAfterUpdate = GetFileNamesInLayoutSet(newLayoutSetName);
 
         // Assert
-        updatedLayoutSets.Sets.Should().HaveCount(4);
-        updatedLayoutSets.Sets.Find(set => set.Id == newLayoutSetName).Should().NotBeNull();
-        layoutSetFileNamesBeforeUpdate.Should().BeEquivalentTo(layoutSetFileNamesAfterUpdate);
+        Assert.Equal(4, updatedLayoutSets.Sets.Count);
+        Assert.NotNull(updatedLayoutSets.Sets.Find(set => set.Id == newLayoutSetName));
+        Assert.Equal(layoutSetFileNamesBeforeUpdate.Count, layoutSetFileNamesAfterUpdate.Count);
+
     }
 
     [Fact]
@@ -157,9 +159,9 @@ public class AppDevelopmentServiceTest : IDisposable
         var updatedLayoutSets = await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), newLayoutSet);
 
         // Assert
-        updatedLayoutSets.Should().NotBeNull();
-        updatedLayoutSets.Sets.Should().HaveCount(5);
-        updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
+        Assert.NotNull(updatedLayoutSets);
+        Assert.Equal(5, updatedLayoutSets.Sets.Count);
+        Assert.Contains(newLayoutSet, updatedLayoutSets.Sets);
     }
 
     [Fact]
@@ -191,7 +193,7 @@ public class AppDevelopmentServiceTest : IDisposable
         Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSetName(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", "someName");
 
         // Assert
-        await act.Should().ThrowAsync<NoLayoutSetsFileFoundException>();
+        await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
     }
 
     [Fact]
@@ -207,7 +209,7 @@ public class AppDevelopmentServiceTest : IDisposable
         Func<Task> act = async () => await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), new() { Id = "layoutSet1" });
 
         // Assert
-        await act.Should().ThrowAsync<NoLayoutSetsFileFoundException>();
+        await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
     }
 
     private List<string> GetFileNamesInLayoutSet(string layoutSetName)

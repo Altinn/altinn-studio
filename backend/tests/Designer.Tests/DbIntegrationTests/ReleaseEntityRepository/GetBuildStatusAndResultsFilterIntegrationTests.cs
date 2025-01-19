@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
@@ -23,7 +23,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
     {
         int numberOfEntities = statusReleaseCombinationsInDb.Count;
         string tagName = Guid.NewGuid().ToString();
-        var repository = new ORMReleaseRepository(DbFixture.DbContext);
+        var repository = new ReleaseRepository(DbFixture.DbContext);
         var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, numberOfEntities).ToList();
         for (int i = 0; i < numberOfEntities; i++)
         {
@@ -42,8 +42,8 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
         var results = (await repository.Get(org, app, tagName, buildStatuses, buildResults)).ToList();
 
-        results.Should().HaveCount(expectedFoundNumber);
-        results.Should().BeEquivalentTo(exptectedEntities);
+        Assert.Equal(expectedFoundNumber, results.Count);
+        AssertionUtil.AssertEqualTo(exptectedEntities, results);
     }
 
     public static IEnumerable<object[]> TestData()

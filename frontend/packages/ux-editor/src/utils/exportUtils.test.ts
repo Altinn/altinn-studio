@@ -5,7 +5,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import type { ExportForm } from '../types/ExportForm';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
 describe('generateExportFormFormat', () => {
   const settings = {
@@ -102,7 +102,7 @@ describe('generateExportFormFormat', () => {
       },
     ],
   };
-  const optionListsData: OptionsListsResponse = [
+  const optionListsData: OptionListData[] = [
     { title: 'optionList1', data: [{ label: 'option1', value: 'option1' }] },
   ];
 

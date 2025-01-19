@@ -1,27 +1,25 @@
 using System;
 using System.Text.Json;
+using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.Models;
-using FluentAssertions;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityAssertions
 {
 
-    public static void AssertEqual(ReleaseEntity releaseEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.Release dbRecord)
+    public static void AssertEqual(ReleaseEntity releaseEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel dbRecord)
     {
-        dbRecord.App.Should().BeEquivalentTo(releaseEntity.App);
-        dbRecord.Org.Should().BeEquivalentTo(releaseEntity.Org);
-        dbRecord.Buildid.Should().BeEquivalentTo(releaseEntity.Build.Id);
-        dbRecord.Buildresult.Should().BeEquivalentTo(releaseEntity.Build.Result.ToString());
-        dbRecord.Tagname.Should().BeEquivalentTo(releaseEntity.TagName);
+        Assert.Equal(dbRecord.App, releaseEntity.App);
+        Assert.Equal(dbRecord.Org, releaseEntity.Org);
+        Assert.Equal(dbRecord.Buildid, releaseEntity.Build.Id);
+        Assert.Equal(dbRecord.Buildresult, releaseEntity.Build.Result.ToEnumMemberAttributeValue());
+        Assert.Equal(dbRecord.Tagname, releaseEntity.TagName);
         var entityFromColumn = JsonSerializer.Deserialize<ReleaseEntity>(dbRecord.Entity, JsonOptions);
-        entityFromColumn.Should().BeEquivalentTo(releaseEntity);
+        AssertionUtil.AssertEqualTo(entityFromColumn, releaseEntity);
 
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (releaseEntity.Created - dbRecord.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        AssertionUtil.AssertCloseTo(dbRecord.Created, releaseEntity.Created, TimeSpan.FromMilliseconds(100));
     }
 }

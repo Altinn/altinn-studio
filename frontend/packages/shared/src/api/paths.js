@@ -27,6 +27,7 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     modelPath,
     saveOnly,
   })}`; // Get, Put, Delete
+export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`;
 export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
 export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
@@ -41,7 +42,7 @@ export const submitFeedbackPath = (org, app) => `${basePath}/${org}/${app}/feedb
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
-export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get
+export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get, Delete
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
 export const optionListReferencesPath = (org, app) => `${basePath}/${org}/${app}/options/usage`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
@@ -184,3 +185,6 @@ export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${ba
 
 // Event Hubs
 export const SyncEventsWebSocketHub = () => '/sync-hub';
+
+// Contact
+export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;

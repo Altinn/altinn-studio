@@ -22,6 +22,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
         await DbFixture.DbContext.Deployments.AddAsync(dbObject);
         await DbFixture.DbContext.SaveChangesAsync();
         DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+        DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
     }
 
     protected async Task PrepareEntitiesInDatabase(IEnumerable<DeploymentEntity> deploymentEntities)
@@ -33,10 +34,11 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
         foreach (var dbObject in dbObjects)
         {
             DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+            DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
         }
     }
 
-    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment MapToDbObject(DeploymentEntity entity) =>
+    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(DeploymentEntity entity) =>
         new()
         {
             Buildid = entity.Build.Id,
@@ -45,6 +47,19 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
             App = entity.App,
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created,
-            Entity = JsonSerializer.Serialize(entity, JsonOptions)
+            CreatedBy = entity.CreatedBy,
+            Entity = JsonSerializer.Serialize(entity, JsonOptions),
+            EnvName = entity.EnvName,
+            Build = MapBuildToDbModel(entity.Build)
+        };
+
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(BuildEntity buildEntity) =>
+        new()
+        {
+            ExternalId = buildEntity.Id,
+            Status = buildEntity.Status.ToString(),
+            Result = buildEntity.Result.ToString(),
+            Started = buildEntity.Started,
+            Finished = buildEntity.Finished
         };
 }
