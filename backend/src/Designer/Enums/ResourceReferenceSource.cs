@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Enums
     /// <summary>
     /// Enum for the different reference sources for resources in the resource registry
     /// </summary>
-    public enum ReferenceSource
+    public enum ResourceReferenceSource
     {
         [EnumMember(Value = "Default")]
         Default = 0,
