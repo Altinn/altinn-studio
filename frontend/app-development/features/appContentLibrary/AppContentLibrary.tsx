@@ -79,7 +79,7 @@ function AppContentLibraryWithData({
     updateOptionListId({ optionListId, newOptionListId });
   };
 
-  const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {
+  const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateOptionList({ optionListId: title, optionList: codeList });
   };
 
