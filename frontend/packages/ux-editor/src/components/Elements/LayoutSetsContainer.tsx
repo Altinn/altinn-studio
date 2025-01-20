@@ -43,7 +43,7 @@ export function LayoutSetsContainer() {
   };
 
   if (
-    layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName) === undefined
+    !layoutSets.sets.some((layoutSet) => layoutSet.id === selectedFormLayoutSetName)
   ) {
     return <StudioErrorMessage error={true}>{t('general.fetch_error_message')}</StudioErrorMessage>;
   }
