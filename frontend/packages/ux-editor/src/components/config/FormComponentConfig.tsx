@@ -45,7 +45,7 @@ export const FormComponentConfig = ({
   if (!schema?.properties) return null;
 
   const { properties } = schema;
-  const { hasCustomFileEndings, validFileEndings, grid, layoutSet } = properties;
+  const { hasCustomFileEndings, grid, layoutSet } = properties;
 
   // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
   const customProperties = [
@@ -185,7 +185,6 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey='validFileEndings'
-              helpText={validFileEndings?.description}
             />
           )}
         </>
@@ -199,7 +198,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
         );
@@ -213,7 +211,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={t('ux_editor.component_properties.preselected_help_text')}
             enumValues={properties[propertyKey]?.enum}
           />
         );
@@ -227,7 +224,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.items?.enum}
             multiple={true}
           />
