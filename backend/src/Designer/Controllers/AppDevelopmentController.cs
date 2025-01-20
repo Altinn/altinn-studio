@@ -9,7 +9,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -32,7 +31,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
-        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
         private readonly IMediator _mediator;
 
@@ -43,15 +41,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         /// <param name="mediator"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
-            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationInsightsSettings = applicationInsightsSettings;
             _mediator = mediator;
         }
@@ -541,20 +537,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string widgetSettings = _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
             return Ok(widgetSettings);
-        }
-
-        [HttpGet]
-        [Route("option-list-ids")]
-        public ActionResult GetOptionListIds(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
-            if (optionListIds.Length == 0)
-            {
-                return NoContent();
-            }
-            return Ok(optionListIds);
         }
 
         [HttpGet("app-version")]
