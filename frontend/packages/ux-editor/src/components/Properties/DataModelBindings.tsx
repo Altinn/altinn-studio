@@ -68,7 +68,7 @@ export const DataModelBindings = (): React.JSX.Element => {
 
   return (
     dataModelBindingsProperties && (
-      <div className={classes.container}>
+      <>
         {(formItem.type === ComponentType.FileUploadWithTag ||
           formItem.type === ComponentType.FileUpload) &&
           isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
@@ -86,7 +86,7 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        <StudioProperty.Group className={classes.container}>
+        <StudioProperty.Group>
           {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
             return (
               <EditDataModelBinding
@@ -105,7 +105,7 @@ export const DataModelBindings = (): React.JSX.Element => {
             );
           })}
         </StudioProperty.Group>
-      </div>
+      </>
     )
   );
 };
