@@ -109,11 +109,14 @@ function ControlledCodeListEditor({
 
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
-  const handleAddButtonClick = useCallback(() => {
-    const updatedCodeList = addEmptyCodeListItem(codeList);
-    onChange(updatedCodeList);
-    onAddOrDeleteItem?.(updatedCodeList);
-  }, [codeList, onChange, onAddOrDeleteItem]);
+  const handleAddButtonClick = useCallback(
+    (valueType) => {
+      const updatedCodeList = addEmptyCodeListItem(codeList, valueType);
+      onChange(updatedCodeList);
+      onAddOrDeleteItem?.(updatedCodeList);
+    },
+    [codeList, onChange, onAddOrDeleteItem],
+  );
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
@@ -126,7 +129,7 @@ function ControlledCodeListEditor({
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
       />
-      <AddButton onClick={handleAddButtonClick} />
+      <AddButton onClick={handleAddButtonClick} codeList={codeList} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
@@ -234,10 +237,34 @@ type AddButtonProps = {
   onClick: () => void;
 };
 
-function AddButton({ onClick }: AddButtonProps): ReactElement {
+function AddButton({ onClick, codeList }: AddButtonProps): ReactElement {
+  return isCodeListEmpty(codeList) ? (
+    <AddButtonGroup onClick={onClick} />
+  ) : (
+    <AddSingleButton onClick={onClick} />
+  );
+}
+
+function AddButtonGroup({ onClick }: AddButtonProps): ReactElement {
+  return (
+    <div className={classes.codeListEditor}>
+      <StudioButton onClick={() => onClick('string')} variant='primary' icon={<PlusIcon />}>
+        Lag kodeliste med tekst-verdier (anbefalt)
+      </StudioButton>
+      <StudioButton onClick={() => onClick('number')} variant='secondary' icon={<PlusIcon />}>
+        Lag kodeliste med tall-verdier
+      </StudioButton>
+      <StudioButton onClick={() => onClick('boolean')} variant='secondary' icon={<PlusIcon />}>
+        Lag kodeliste med boolske verdier
+      </StudioButton>
+    </div>
+  );
+}
+
+function AddSingleButton({ onClick }: AddButtonProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   return (
-    <StudioButton onClick={onClick} variant='secondary' icon={<PlusIcon />}>
+    <StudioButton onClick={() => onClick()} variant='secondary' icon={<PlusIcon />}>
       {texts.add}
     </StudioButton>
   );
