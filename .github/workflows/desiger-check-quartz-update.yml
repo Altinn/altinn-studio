@@ -21,11 +21,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: output base branch
+        id: output-base-branch
+        run: echo "base-branch=${{ github.head_ref }}"
+
       - name: Check if quartz library is updated
         id: check-quartz-update
         run: |
-          base_branch=${{ github.base_ref }} # Get the base branch
-          diff=$(git diff --unified=0 $base_branch...backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version)
+          source_branch=${{ github.head_ref }} # Get the base branch
+          diff=$(git diff --unified=0 $source_branch...backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version)
           if [ -n "$diff" ]; then
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
