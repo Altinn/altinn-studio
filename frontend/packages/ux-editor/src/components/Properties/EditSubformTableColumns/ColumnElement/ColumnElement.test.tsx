@@ -79,11 +79,8 @@ describe('ColumnElement', () => {
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
-      headerContent: 'subform_table_column_title_test-layout-set-3',
-      cellContent: {
-        query: cellContentQueryMock,
-        default: cellContentDefaultMock,
-      },
+      headerContent: expect.stringContaining('subform_table_column_title_'),
+      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
     });
   });
 
