@@ -21,15 +21,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: output base branch
-        id: output-base-branch
-        run: echo "base-branch=${{ github.head_ref }}"
-
       - name: Check if quartz library is updated
         id: check-quartz-update
         run: |
-          source_branch=${{ github.head_ref }} # Get the base branch
-          diff=$(git diff --unified=0 $source_branch...backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version)
+          git fetch origin ${{ github.base_ref }} && git checkout ${{ github.base_ref }}
+          git fetch origin ${{ github.head_ref }} && git checkout ${{ github.head_ref }}
+          diff=$(git diff --unified=0 ${{ github.base_ref }}...${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version)
           if [ -n "$diff" ]; then
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
@@ -40,7 +37,7 @@ jobs:
         id: get-quartz-version
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 backend/packagegroups/NuGet.props | grep Quartz | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
+          version=$(git diff --unified=0 ${{ github.base_ref }}...${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep Quartz | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
           echo "quartz-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify tables sql is not updated
@@ -51,11 +48,13 @@ jobs:
             jq -r '.assets[] | select(.name | contains("Quartz.NET-${{ steps.get-quartz-version.outputs.quartz-version }}.zip")) | .browser_download_url')
 
           mkdir qdwn
-          curl -L -o qdwn/quartz.zip $download_url && unzip qdwn/quartz.zip && rm qdwn/quartz.zip
+          curl -L -o qdwn/quartz.zip $download_url && unzip qdwn/quartz.zip -d qdwn && rm qdwn/quartz.zip
 
-          diff=$(diff -u backend/src/Designer/Migrations/Quartz/tables_postgres.sql qdwn/database/tables/tables_postgres.sql)
+          diff_output=$(diff -b backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql qdwn/database/tables/tables_postgres.sql)
 
-          if [ -n "$diff" ]; then
+          if [ -n "$diff_output" ]; then
+            echo "Tabled file is not up to date"
+            echo $diff_output
             exit 1;
           else
             echo "Tables file is up to date"
