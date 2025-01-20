@@ -42,9 +42,7 @@ export function LayoutSetsContainer() {
     }
   };
 
-  if (
-    !layoutSets.sets.some((layoutSet) => layoutSet.id === selectedFormLayoutSetName)
-  ) {
+  if (!layoutSets.sets.some((layoutSet) => layoutSet.id === selectedFormLayoutSetName)) {
     return <StudioErrorMessage error={true}>{t('general.fetch_error_message')}</StudioErrorMessage>;
   }
 
