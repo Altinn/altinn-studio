@@ -1,5 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
-import { CodeListItemValue } from '../types/CodeListItemValue';
+import type { CodeListItemValue } from '../types/CodeListItemValue';
 
 export function changeLabel(item: CodeListItem, label: string): CodeListItem {
   return { ...item, label };

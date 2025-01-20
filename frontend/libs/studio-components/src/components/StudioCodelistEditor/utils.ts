@@ -24,8 +24,10 @@ export function addEmptyCodeListItem(codeList: CodeList): CodeList {
 }
 
 function getEmptyItem(codeList: CodeList): CodeListItem {
-  const codeListValueType: CodeListItemValue = getCodeListValueType(codeList);
-  switch (codeListValueType) {
+  if (codeList.length === 0) return emptyStringItem;
+
+  const typeOfLastValue: CodeListItemValue = getTypeOfLastValue(codeList);
+  switch (typeOfLastValue) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
@@ -35,10 +37,9 @@ function getEmptyItem(codeList: CodeList): CodeListItem {
   }
 }
 
-function getCodeListValueType(codeList: CodeList): CodeListItemValue {
-  if (codeList.length === 0) return 'string';
-
-  switch (typeof codeList[0].value) {
+function getTypeOfLastValue(codeList: CodeList): CodeListItemValue {
+  const lastCodeListItem = codeList[codeList.length - 1];
+  switch (typeof lastCodeListItem.value) {
     case 'number':
       return 'number';
     case 'boolean':
