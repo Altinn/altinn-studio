@@ -10,7 +10,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
-import { EyeIcon } from '@studio/icons';
+import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
@@ -110,21 +110,21 @@ function EditCodeListTitle({
   return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
-        label={t('app_content_library.code_lists.code_list_edit_id_label')}
-        inputProps={{
-          title: t('app_content_library.code_lists.code_list_edit_id_title', {
-            codeListName: codeListTitle,
-          }),
-          value: codeListTitle,
-          onBlur: (event) => handleUpdateCodeListId(event.target.value),
-          size: 'small',
-        }}
-        viewProps={{
-          value: codeListTitle,
-          title: t('app_content_library.code_lists.code_list_view_id_title', {
-            codeListName: codeListTitle,
-          }),
-        }}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      inputProps={{
+        title: t('app_content_library.code_lists.code_list_edit_id_title', {
+          codeListName: codeListTitle,
+        }),
+        value: codeListTitle,
+        onBlur: (event) => handleUpdateCodeListId(event.target.value),
+        size: 'small',
+      }}
+      viewProps={{
+        value: codeListTitle,
+        title: t('app_content_library.code_lists.code_list_view_id_title', {
+          codeListName: codeListTitle,
+        }),
+      }}
     />
   ) : (
     <StudioDisplayTile
