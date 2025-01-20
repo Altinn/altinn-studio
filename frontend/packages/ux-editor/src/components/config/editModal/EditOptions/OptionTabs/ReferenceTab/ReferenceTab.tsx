@@ -64,7 +64,9 @@ export function ReferenceTab({
       <p>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
-            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/guides/options/dynamic-codelists/' })}
+            href={altinnDocsUrl({
+              relativeUrl: 'altinn-studio/guides/development/options/sources/dynamic/',
+            })}
             target='_newTab'
             rel='noopener noreferrer'
           />

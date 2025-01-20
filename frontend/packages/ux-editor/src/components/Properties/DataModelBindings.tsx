@@ -101,7 +101,6 @@ export const DataModelBindings = (): React.JSX.Element => {
                       debounceSave(formItemId, updatedComponent, mutateOptions);
                     }}
                     editFormId={formItemId}
-                    helpText={dataModelBindingsProperties[propertyKey]?.description}
                     renderOptions={{
                       key: propertyKey,
                       label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,

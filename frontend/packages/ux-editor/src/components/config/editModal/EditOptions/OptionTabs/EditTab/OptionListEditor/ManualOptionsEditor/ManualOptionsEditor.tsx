@@ -43,7 +43,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
 
     return (
       <>
-        <OptionListLabels optionsId={component.optionsId} optionsList={component.options} />
+        <OptionListLabels optionListId={component.optionsId} optionList={component.options} />
         <OptionListButtons handleDelete={handleDelete} handleClick={handleClick} />
         <StudioModal.Dialog
           ref={modalRef}

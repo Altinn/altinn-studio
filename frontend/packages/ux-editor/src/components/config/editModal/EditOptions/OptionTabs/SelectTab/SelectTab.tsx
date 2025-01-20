@@ -83,7 +83,7 @@ export function SelectTab<T extends SelectionComponentType>({
         <a
           className={classes.linkStaticCodeLists}
           href={altinnDocsUrl({
-            relativeUrl: 'altinn-studio/reference/data/options/static-codelists/',
+            relativeUrl: 'altinn-studio/guides/development/options/sources/static/',
           })}
           target='_newTab'
           rel='noopener noreferrer'

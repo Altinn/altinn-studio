@@ -6,12 +6,12 @@ import { Combobox, Textfield } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import { StudioNativeSelect } from '@studio/components';
+import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
-  helpText?: string;
   enumValues?: string[];
   multiple?: boolean;
 }
@@ -20,13 +20,13 @@ export const EditStringValue = ({
   component,
   handleComponentChange,
   propertyKey,
-  helpText,
   enumValues,
   multiple,
 }: EditStringValueProps): ReactElement => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentEnumValue = useComponentPropertyEnumValue();
+  const componentPropertyHelpText = useComponentPropertyHelpText();
 
   const handleValueChange = (newValue): void => {
     handleComponentChange({
@@ -42,7 +42,7 @@ export const EditStringValue = ({
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
-      helpText={helpText}
+      helpText={componentPropertyHelpText(propertyKey)}
       customValidationMessages={(errorCode: string) => {
         if (errorCode === 'pattern') {
           return t('validation_errors.pattern');

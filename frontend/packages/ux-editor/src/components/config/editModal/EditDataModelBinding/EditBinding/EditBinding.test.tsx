@@ -24,7 +24,6 @@ const secondDataModel = 'secondModel';
 const defaultEditBinding: EditBindingProps = {
   bindingKey: defaultBindingKey,
   component: componentMocks[ComponentType.Input],
-  helpText: undefined,
   label: defaultLabel,
   handleComponentChange: jest.fn(),
   onSetDataModelSelectVisible: jest.fn(),

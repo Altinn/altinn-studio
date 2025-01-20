@@ -10,7 +10,7 @@ import type {
 import type { IFormLayouts, IOption, ITextResourceBindings } from '../types/global';
 import { internalLayoutToExternal } from '../converters/formLayoutConverters';
 import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
 export class ExportUtils {
   private readonly pageOrder: string[];
@@ -18,7 +18,7 @@ export class ExportUtils {
   private readonly layoutSetName: string;
   private readonly appId: string;
   private readonly textResources: ITextResources;
-  private readonly optionListsData: OptionsListsResponse;
+  private readonly optionListDataList: OptionListData[];
   private readonly defaultLanguage: string;
   private readonly includeRestProperties: boolean;
 
@@ -28,7 +28,7 @@ export class ExportUtils {
     layoutSetName: string,
     appId: string,
     textResources: ITextResources,
-    optionListsData: OptionsListsResponse,
+    optionListsData: OptionListData[],
     defaultLanguage: string,
     includeRestProperties: boolean = false,
   ) {
@@ -37,7 +37,7 @@ export class ExportUtils {
     this.layoutSetName = layoutSetName;
     this.appId = appId;
     this.textResources = textResources;
-    this.optionListsData = optionListsData;
+    this.optionListDataList = optionListsData;
     this.defaultLanguage = defaultLanguage;
     this.includeRestProperties = includeRestProperties;
   }
@@ -141,7 +141,7 @@ export class ExportUtils {
       return component.options;
     }
     if (component.optionsId) {
-      const optionListData = this.optionListsData.find(
+      const optionListData = this.optionListDataList.find(
         (optionListData) => optionListData.title === component.optionsId,
       );
       return optionListData.data;
