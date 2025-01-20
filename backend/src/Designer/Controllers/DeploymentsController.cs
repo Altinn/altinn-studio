@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -112,5 +113,14 @@ namespace Altinn.Studio.Designer.Controllers
             }
             return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
+
+        [HttpPost("undeploy")]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
+        public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        }
+
     }
 }
