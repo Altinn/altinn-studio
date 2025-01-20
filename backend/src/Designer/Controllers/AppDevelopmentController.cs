@@ -24,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions that concerns app-development
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
@@ -60,6 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the designer.
         /// </summary>
         /// <returns>default view for the app builder.</returns>
+        [HttpGet]
         [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
         public async Task<IActionResult> Index(string org, string app)
         {
@@ -557,8 +559,9 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(optionListIds);
         }
 
-        [HttpGet("app-version")]
-        public VersionResponse GetAppVersion(string org, string app)
+        [HttpGet]
+        [Route("app-version")]
+        public ActionResult GetAppVersion(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
@@ -566,11 +569,13 @@ namespace Altinn.Studio.Designer.Controllers
             var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out string frontendVersion);
 
-            return new VersionResponse
-            {
-                BackendVersion = backendVersion,
-                FrontendVersion = frontendVersion
-            };
+            return Ok(
+                new VersionResponse
+                {
+                    BackendVersion = backendVersion,
+                    FrontendVersion = frontendVersion
+                }
+            );
         }
     }
 }

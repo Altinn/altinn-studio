@@ -27,6 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Initializes a new instance of the <see cref="RepositoryController"/> class.
     /// </remarks>
     [Authorize]
+    [ApiController]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
     public class RepositoryController : ControllerBase
