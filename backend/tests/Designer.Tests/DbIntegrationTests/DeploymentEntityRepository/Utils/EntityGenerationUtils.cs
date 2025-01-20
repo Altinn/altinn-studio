@@ -22,6 +22,7 @@ public static partial class EntityGenerationUtils
                 TagName = tagname ?? Guid.NewGuid().ToString(),
                 EnvName = Guid.NewGuid().ToString(),
                 Created = DateTime.UtcNow,
+                CreatedBy = "testUser"
             };
         }
 

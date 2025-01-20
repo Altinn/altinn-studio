@@ -1,11 +1,6 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAlert,
-  StudioLabelAsParagraph,
-  StudioParagraph,
-  StudioTextfield,
-} from '@studio/components';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -15,8 +10,9 @@ import {
   groupAccessPackagesByArea,
   isAccessPackageSelected,
 } from './policyAccessPackageUtils';
-import { ChosenAccessPackages } from './ChosenAccessPackages/ChosenAccessPackages';
-import { AllAccessPackages } from './AllAccessPackages/AllAccessPackages';
+import { ChosenAccessPackages } from './ChosenAccessPackages';
+import { AllAccessPackages } from './AllAccessPackages';
+import { PolicyAccessPackagesWarning } from './PolicyAccessPackagesWarning';
 
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
@@ -78,17 +74,10 @@ export const PolicyAccessPackages = (): ReactElement => {
 
   return (
     <div className={classes.accessPackages}>
-      <StudioAlert severity='warning' size='sm'>
-        <StudioLabelAsParagraph size='md' spacing>
-          {t('policy_editor.access_package_warning_header')}
-        </StudioLabelAsParagraph>
-        <StudioParagraph size='sm'>
-          {t('policy_editor.access_package_warning_body')}
-        </StudioParagraph>
-      </StudioAlert>
       <StudioLabelAsParagraph size='md' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
+      <PolicyAccessPackagesWarning />
       <ChosenAccessPackages
         chosenAccessPackages={chosenAccessPackages}
         groupedAccessPackagesByArea={groupedAccessPackagesByArea}
