@@ -5,7 +5,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { Accordion } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type {
+  Summary2OverrideConfig,
+  Summary2TargetConfig,
+} from 'app-shared/types/ComponentSpecificConfig';
 import { Summary2Target } from '../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
 import { StudioHeading } from '@studio/components';
 import { RequiredIndicator } from '../../RequiredIndicator';

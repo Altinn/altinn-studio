@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
+import { layoutSet1NameMock, layoutSetsMock } from '../../../testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 
 const summary2Component: FormItem = {
@@ -64,6 +64,7 @@ const render = (component: FormItem) => {
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
   });
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   renderWithProviders(
     <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />,
     {
