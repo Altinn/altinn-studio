@@ -211,58 +211,48 @@ export const FormComponentConfig = ({
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
         const isShowValidations = propertyKey === 'showValidations';
+        const commonProps = {
+          component,
+          handleComponentChange: handleComponentUpdate,
+          propertyKey,
+          key: propertyKey,
+          helpText: isShowValidations ? '' : properties[propertyKey]?.description,
+          enumValues: properties[propertyKey]?.items?.enum,
+          multiple: true,
+        };
         return isShowValidations ? (
           <CollapsiblePropertyEditor
             key={propertyKey}
             label={t('ux_editor.component_properties.showValidations')}
           >
-            <EditStringValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              helpText={isShowValidations ? '' : properties[propertyKey]?.description}
-              enumValues={properties[propertyKey]?.items?.enum}
-              multiple={true}
-            />
+            <EditStringValue {...commonProps} />
           </CollapsiblePropertyEditor>
         ) : (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
+          <EditStringValue {...commonProps} />
         );
       })}
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
         const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
+        const commonProps = {
+          component,
+          handleComponentChange: handleComponentUpdate,
+          propertyKey,
+          key: propertyKey,
+          enumValues: properties[propertyKey]?.enum,
+          helpText: isPreselectedOptionIndex
+            ? t('ux_editor.component_properties.preselected_help_text')
+            : undefined,
+        };
         return isPreselectedOptionIndex ? (
           <CollapsiblePropertyEditor
             key={propertyKey}
             label={t('ux_editor.component_properties.preselectedOptionIndex_button')}
           >
-            <EditNumberValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              enumValues={properties[propertyKey]?.enum}
-              helpText={t('ux_editor.component_properties.preselected_help_text')}
-            />
+            <EditNumberValue {...commonProps} />
           </CollapsiblePropertyEditor>
         ) : (
-          <EditNumberValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            enumValues={properties[propertyKey]?.enum}
-          />
+          <EditNumberValue {...commonProps} />
         );
       })}
 
