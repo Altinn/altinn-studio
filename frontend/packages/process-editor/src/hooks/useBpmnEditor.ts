@@ -10,7 +10,7 @@ import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 // Wrapper around bpmn-js to Reactify it
 
-type UseBpmnEditorResult = (div: HTMLDivElement) => void;
+export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
 export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
