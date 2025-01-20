@@ -38,6 +38,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public void AbortMerge(string org, string repository)
+        {
+            try
+            {
+                _decoratedService.AbortMerge(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "AbortMerge", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
+        {
+            try
+            {
+                _decoratedService.CheckoutLatestCommitForSpecificFile(org, repository, fileName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CheckoutLatestCommitForSpecificFile", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public Task<string> CloneRemoteRepository(string org, string repository)
         {
             try
@@ -150,6 +178,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public Commit GetInitialCommit(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetInitialCommit(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "GetInitialCommit", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             try
@@ -243,6 +285,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 LogError(ex, "GetChangedContent", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void ResetCommit(string org, string repository)
+        {
+            try
+            {
+                _decoratedService.ResetCommit(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "ResetCommit", org, repository);
                 throw;
             }
         }
