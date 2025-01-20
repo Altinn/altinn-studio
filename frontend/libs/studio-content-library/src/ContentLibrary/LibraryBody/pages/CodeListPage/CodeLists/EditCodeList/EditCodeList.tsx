@@ -10,7 +10,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
-import { EyeIcon } from '@studio/icons';
+import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
@@ -112,7 +112,10 @@ function EditCodeListTitle({
       customValidation={handleValidateCodeListId}
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
       inputProps={{
+<<<<<<< HEAD
         label: t('app_content_library.code_lists.code_list_edit_id_label'),
+=======
+>>>>>>> 00f468961 (add import)
         title: t('app_content_library.code_lists.code_list_edit_id_title', {
           codeListName: codeListTitle,
         }),
