@@ -73,14 +73,24 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
-    const selector = 'text=ID: Activity_';
-    await this.page.waitForSelector(selector);
-    return await this.getFullIdFromButtonSelector(selector);
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      })
+      .click();
+    const textbox = this.page.getByRole('textbox', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    const taskId = textbox.inputValue();
+    await textbox.blur();
+    return taskId;
   }
 
-  public async clickOnTaskIdEditButton(id: string): Promise<void> {
+  public async clickOnTaskIdEditButton(): Promise<void> {
     await this.page
-      .getByText(`${this.textMock('process_editor.configuration_panel_id_label')} ${id}`)
+      .getByRole('button', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      })
       .click();
   }
 
@@ -123,10 +133,12 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async waitForNewTaskIdButtonToBeVisible(id: string): Promise<void> {
-    const button = this.page.getByText(
-      `${this.textMock('process_editor.configuration_panel_id_label')} ${id}`,
+    const button = this.page.getByRole('button', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await expect(button).toHaveText(
+      `${this.textMock('process_editor.configuration_panel_change_task_id')}${id}`,
     );
-    await expect(button).toBeVisible();
   }
 
   public async pressEscapeOnKeyboard(): Promise<void> {
@@ -145,10 +157,6 @@ export class ProcessEditorPage extends BasePage {
     await expect(heading).toBeVisible();
   }
 
-  public async clickOnTaskTextInBpmnEditor(text: string): Promise<void> {
-    await this.page.getByText(text).click();
-  }
-
   /**
    *
    * Helper methods below this
@@ -163,12 +171,5 @@ export class ProcessEditorPage extends BasePage {
     const numberOfMouseMoveEvents: number = 20;
     await this.page.mouse.move(xPosition, yPosition, { steps: numberOfMouseMoveEvents });
     await this.page.mouse.up();
-  }
-
-  private async getFullIdFromButtonSelector(selector: string): Promise<string> {
-    const button = this.page.locator(selector);
-    const fullText = await button.textContent();
-    const extractedText = fullText.match(/ID: (Activity_\w+)/);
-    return extractedText[1];
   }
 }
