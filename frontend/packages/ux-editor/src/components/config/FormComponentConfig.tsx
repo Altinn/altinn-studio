@@ -16,8 +16,8 @@ import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
-import { StudioProperty } from '@studio/components';
+import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
 import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
 import type { TranslationKey } from 'language/type';
 
@@ -43,6 +43,7 @@ export const FormComponentConfig = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
   if (!schema?.properties) return null;
 
@@ -151,17 +152,40 @@ export const FormComponentConfig = ({
           property={rendertext}
         />
       )}
-
       {grid && (
         <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.grid')}
-          </Heading>
-          <EditGrid
-            key={component.id}
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-          />
+          {showGrid ? (
+            <StudioCard>
+              <StudioCard.Header className={classes.gridHeader}>
+                <div className={classes.flexContainer}>
+                  <Heading size='xs' className={classes.heading}>
+                    {t('ux_editor.component_properties.grid')}
+                  </Heading>
+                  <StudioButton
+                    icon={<XMarkIcon />}
+                    onClick={() => setShowGrid(false)}
+                    title={t('general.close')}
+                    variant='secondary'
+                    className={classes.button}
+                  />
+                </div>
+              </StudioCard.Header>
+              <StudioCard.Content>
+                <EditGrid
+                  key={component.id}
+                  component={component}
+                  handleComponentChange={handleComponentUpdate}
+                />
+              </StudioCard.Content>
+            </StudioCard>
+          ) : (
+            <StudioProperty.Button
+              className={classes.gridButton}
+              icon={<PlusCircleIcon />}
+              onClick={() => setShowGrid(true)}
+              property={t('ux_editor.component_properties.grid')}
+            />
+          )}
         </>
       )}
       {/** String properties */}

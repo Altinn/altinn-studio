@@ -16,3 +16,21 @@
 .gridButton {
   padding: 0;
 }
+
+.gridHeader {
+  padding: 0; /* Optional: Adjust padding as needed */
+}
+
+.flexContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heading {
+  margin-left: var(--fds-spacing-5);
+}
+
+.button {
+  margin: var(--fds-spacing-2);
+}
