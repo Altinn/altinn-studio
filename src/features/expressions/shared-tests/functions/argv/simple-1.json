@@ -1,0 +1,6 @@
+{
+  "name": "Simple: Read arg 1",
+  "expression": ["argv", 1],
+  "expects": 1234,
+  "positionalArguments": ["foo", 1234]
+}

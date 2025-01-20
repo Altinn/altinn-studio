@@ -1,0 +1,6 @@
+{
+  "name": "Errors when trying to read argument that does not exist",
+  "expression": ["argv", 2],
+  "expectsFailure": "Index 2 out of range",
+  "positionalArguments": ["foo", 1234]
+}

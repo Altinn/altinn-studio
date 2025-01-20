@@ -63,7 +63,7 @@ export const ExprFunctions = {
       }
 
       if (typeof idx !== 'number' || idx < 0 || idx >= this.positionalArguments.length) {
-        throw new ExprRuntimeError(this.expr, this.path, 'Invalid argv index');
+        throw new ExprRuntimeError(this.expr, this.path, `Index ${idx} out of range`);
       }
 
       return this.positionalArguments[idx];
@@ -626,7 +626,7 @@ export const ExprFunctions = {
 function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams) {
   const isValidDataType = params.dataSources.dataModelNames.includes(path.dataType);
   if (!isValidDataType) {
-    throw new ExprRuntimeError(params.expr, params.path, `Unknown data model '${path.dataType}'`);
+    throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
 
   const value = params.dataSources.formDataSelector(path);

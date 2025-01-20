@@ -102,7 +102,7 @@ describe('Expressions shared function tests', () => {
         expects,
         expectsFailure,
         context,
-        layouts,
+        layouts: _layouts,
         dataModel,
         dataModels,
         instanceDataElements,
@@ -181,6 +181,32 @@ describe('Expressions shared function tests', () => {
           id: 'default',
           appLogic: { classRef: 'some-class', taskId: 'Task_1' },
         } as unknown as IDataType);
+      }
+
+      let layouts: ILayoutCollection | undefined;
+      if (_layouts) {
+        // Frontend will look inside the layout for data model bindings and expressions in order to figure out which
+        // data models to load. Since the expression we're testing is not part of the layout, we need to add it here
+        // so that everything is loaded correctly.
+        layouts = structuredClone(_layouts);
+        const firstPage = Object.values(layouts)[0];
+        firstPage?.data.layout.push({
+          id: 'theCurrentExpression',
+          type: 'NavigationButtons',
+          ...({
+            // This makes sure that the expression is never evaluated, as it is not a valid property. All properties
+            // that can handle expressions (like 'hidden') will be evaluated during hierarchy generation, but errors
+            // from there (such as unknown extra properties like this one) will not cause test failures here (so doing
+            // this is safe). DataModelsProvider however, will recursively look inside the layout and find anything
+            // that resembles an expression and load the data model it refers to. In other words, this makes sure we
+            // load any data models that are only references in the expression we're testing - not elsewhere in the
+            // layout. For an example of a test that would fail without this, see 'dataModel-non-default-model.json'.
+            // It has only a Paragraph component with no expressions in it, so without injecting the tested
+            // expression into that layout, DataModelsProvider would not load the data model that the expression refers
+            // to, and the test would fail.
+            notAnActualExpression: expression,
+          } as object),
+        });
       }
 
       const profile = getProfileMock();

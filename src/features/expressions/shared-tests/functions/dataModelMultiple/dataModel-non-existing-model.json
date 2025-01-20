@@ -5,11 +5,11 @@
     "a.value",
     "non-existing"
   ],
-  "expectsFailure": "Unknown data model 'non-existing'",
+  "expectsFailure": "Data model with type non-existing not found",
   "dataModels": [
     {
       "dataElement": {
-        "id": "345",
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
         "dataType": "default"
       },
       "data": {
@@ -20,7 +20,7 @@
     },
     {
       "dataElement": {
-        "id": "123",
+        "id": "10dd7417-5b4e-402a-bb73-007537071f13",
         "dataType": "non-default"
       },
       "data": {
