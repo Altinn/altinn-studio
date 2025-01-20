@@ -141,7 +141,7 @@ export const validateSelectedDataField = (
 
 export const getDataModel = (
   isDataModelValid: boolean,
-  defaultDataModelName: string,
+  defaultDataModelName: string | undefined,
   currentDataModel?: string,
 ): string => {
   if (defaultDataModelName) {
