@@ -120,6 +120,10 @@ function ValueCell({ error, label, value, onChange, autoComplete }: ValueCellPro
     ref.current?.setCustomValidity(error || '');
   }, [error]);
 
+  const handleFocus = useCallback((event: FocusEvent<HTMLInputElement>): void => {
+    event.target.reportValidity();
+  }, []);
+
   const handleTextChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
       onChange(event.target.value);
@@ -134,11 +138,15 @@ function ValueCell({ error, label, value, onChange, autoComplete }: ValueCellPro
     [onChange],
   );
 
-  const handleFocus = useCallback((event: FocusEvent<HTMLInputElement>): void => {
-    event.target.reportValidity();
-  }, []);
+  const handleBooleanChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      onChange(event.target.checked);
+    },
+    [onChange],
+  );
 
   const shouldRenderNumberfield = typeof value === 'number' || value === undefined; // Undefined values come from empty number field
+  const shouldRenderCheckbox = typeof value === 'boolean';
 
   if (shouldRenderNumberfield) {
     return (
@@ -151,6 +159,18 @@ function ValueCell({ error, label, value, onChange, autoComplete }: ValueCellPro
         ref={ref}
         value={(value as number) ?? 0}
       />
+    );
+  } else if (shouldRenderCheckbox) {
+    return (
+      <StudioInputTable.Cell.Checkbox
+        aria-label={label}
+        onChange={handleBooleanChange}
+        onFocus={handleFocus}
+        checked={value as boolean}
+        value={value as boolean}
+      >
+        {String(value)}
+      </StudioInputTable.Cell.Checkbox>
     );
   } else {
     return (
@@ -183,47 +203,6 @@ function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
     return <TextResourceSelectorCell {...props} textResources={textResources} />;
   } else {
     return <ValueCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
-  }
-}
-
-function TextResourceSelectorCell({
-  currentId,
-  number,
-  onChangeCurrentId,
-  onChangeTextResource,
-  property,
-  textResources,
-}: Required<TextResourceIdCellProps>) {
-  const {
-    texts: { textResourceTexts },
-  } = useStudioCodeListEditorContext();
-  return (
-    <StudioInputTable.Cell.TextResource
-      currentId={currentId}
-      onChangeCurrentId={onChangeCurrentId}
-      onChangeTextResource={onChangeTextResource}
-      textResources={textResources}
-      texts={textResourceTexts(number, property)}
-    />
-  );
-}
-
-type TextResourceIdCellProps = {
-  currentId: string;
-  label: string;
-  number: number;
-  onChangeCurrentId: (newId: string) => void;
-  onChangeTextResource: (newTextResource: TextResource) => void;
-  property: CodeListItemTextProperty;
-  textResources?: TextResource[];
-};
-
-function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
-  const { currentId, onChangeCurrentId, textResources, label } = props;
-  if (textResources) {
-    return <TextResourceSelectorCell {...props} textResources={textResources} />;
-  } else {
-    return <TextfieldCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
   }
 }
 

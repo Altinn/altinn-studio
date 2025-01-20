@@ -14,7 +14,7 @@ export const emptyNumberItem: CodeListItem = {
 };
 
 export const emptyBooleanItem: CodeListItem = {
-  value: true,
+  value: false,
   label: '',
 };
 
