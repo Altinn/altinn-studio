@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -32,7 +32,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
-        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
         private readonly IMediator _mediator;
 
@@ -43,15 +42,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         /// <param name="mediator"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
-            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationInsightsSettings = applicationInsightsSettings;
             _mediator = mediator;
         }
@@ -123,8 +120,17 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
                 {
-                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange)
+                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange.Where((componentIdChange) => componentIdChange.OldComponentId != componentIdChange.NewComponentId))
                     {
+                        if (componentIdChange.NewComponentId == null)
+                        {
+                            await _mediator.Publish(new ComponentDeletedEvent
+                            {
+                                ComponentId = componentIdChange.OldComponentId,
+                                LayoutSetName = layoutSetName,
+                                EditingContext = editingContext
+                            }, cancellationToken);
+                        }
                         await _mediator.Publish(new ComponentIdChangedEvent
                         {
                             OldComponentId = componentIdChange.OldComponentId,
@@ -159,16 +165,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">The name of the layout set the specific layout belongs to</param>
         /// <param name="layoutName">The form layout to be deleted</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName)
+        public async Task<ActionResult> DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                await _mediator.Publish(new LayoutPageDeletedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetName,
+                    LayoutName = layoutName,
+                }, cancellationToken);
+
                 _appDevelopmentService.DeleteFormLayout(editingContext, layoutSetName, layoutName);
+
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -402,13 +418,15 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
 
             await _mediator.Publish(new LayoutSetDeletedEvent
             {
                 EditingContext = editingContext,
-                LayoutSetId = layoutSetIdToUpdate
+                LayoutSetName = layoutSetIdToUpdate
             }, cancellationToken);
+
+            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+
             return Ok(layoutSets);
         }
 
@@ -541,20 +559,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string widgetSettings = _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
             return Ok(widgetSettings);
-        }
-
-        [HttpGet]
-        [Route("option-list-ids")]
-        public ActionResult GetOptionListIds(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
-            if (optionListIds.Length == 0)
-            {
-                return NoContent();
-            }
-            return Ok(optionListIds);
         }
 
         [HttpGet("app-version")]

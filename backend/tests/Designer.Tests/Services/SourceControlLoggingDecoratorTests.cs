@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -38,7 +37,7 @@ namespace Designer.Tests.Services
 
             var service = serviceProvider.GetService<ISourceControl>();
 
-            service.Should().BeOfType<SourceControlLoggingDecorator>();
+            Assert.IsType<SourceControlLoggingDecorator>(service);
         }
 
         [Fact]
@@ -122,38 +121,6 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_AbortMerge_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.AbortMerge("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_CheckoutLatestCommitForSpecificFile_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.CheckoutLatestCommitForSpecificFile("org_should_not_exists", "repo_should_not_exists", "file_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
         public void DecoratedISourceControlService_Commit_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
@@ -225,22 +192,6 @@ namespace Designer.Tests.Services
             try
             {
                 await service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_GetInitialCommit_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.GetInitialCommit("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -346,22 +297,6 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_ResetCommit_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.ResetCommit("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
         public async Task DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
@@ -443,16 +378,6 @@ namespace Designer.Tests.Services
 
     public class SourceControlStub : ISourceControl
     {
-        public void AbortMerge(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
-        {
-            throw new NotImplementedException();
-        }
-
         public int? CheckRemoteUpdates(string org, string repository)
         {
             throw new NotImplementedException();
@@ -513,11 +438,6 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public Commit GetInitialCommit(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
         public Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             throw new NotImplementedException();
@@ -554,11 +474,6 @@ namespace Designer.Tests.Services
         }
 
         public RepoStatus RepositoryStatus(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ResetCommit(string org, string repository)
         {
             throw new NotImplementedException();
         }

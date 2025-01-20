@@ -1,6 +1,5 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
@@ -13,7 +12,7 @@ public class XsdTextKeywordTests : ValueKeywordTestsBase<XsdTextKeywordTests, Xs
     public void DefaultValue_ShouldBe_False()
     {
         Keyword = new XsdTextKeyword();
-        Keyword.Value.Should().Be(false);
+        Assert.False(Keyword.Value);
     }
 
     [Theory]

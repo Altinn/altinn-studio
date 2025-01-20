@@ -15,14 +15,12 @@ export interface EditDataModelBindingProps<T extends ComponentType>
     returnValue?: any;
     key?: string;
   };
-  helpText?: string;
 }
 
 export const EditDataModelBinding = <T extends ComponentType>({
   component,
   handleComponentChange,
   renderOptions,
-  helpText,
 }: EditDataModelBindingProps<T>) => {
   const { key, label } = renderOptions || {};
   const bindingKey = key || 'simpleBinding';
@@ -46,7 +44,6 @@ export const EditDataModelBinding = <T extends ComponentType>({
         <EditBinding
           bindingKey={bindingKey}
           component={component}
-          helpText={helpText}
           label={labelSpecificText}
           handleComponentChange={handleComponentChange}
           onSetDataModelSelectVisible={setDataModelSelectVisible}

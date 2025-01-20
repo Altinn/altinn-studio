@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
@@ -31,13 +30,13 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
             CopyRepoName = TestDataHelper.GenerateTestRepoName("-gitea-copy");
 
-            // Copy app
+            // Copy app1
             using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={TargetCopyOrg}", null);
-            commitResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            Assert.Equal(HttpStatusCode.Created, commitResponse.StatusCode);
 
             // Check if repo exists in git
             using HttpResponseMessage response = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{TargetCopyOrg}/{CopyRepoName}");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         protected override void Dispose(bool disposing)

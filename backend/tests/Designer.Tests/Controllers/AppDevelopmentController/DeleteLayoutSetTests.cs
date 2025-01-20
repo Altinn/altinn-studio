@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -37,12 +36,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
+            Assert.Equal(layoutSetsBefore.Sets.Count - 1, layoutSetsAfter.Sets.Count);
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         }
 
@@ -63,16 +62,15 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
             Application appMetadataAfter = await GetApplicationMetadataFile(org, targetRepository, developer);
 
-            appMetadataBefore.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should()
-                .Be(connectedTaskId);
+            Assert.Equal(connectedTaskId, appMetadataBefore.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId);
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
-            appMetadataAfter.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should().BeNull();
+            Assert.Equal(layoutSetsBefore.Sets.Count - 1, layoutSetsAfter.Sets.Count);
+            Assert.Null(appMetadataAfter.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId);
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         }
 
@@ -91,7 +89,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             Assert.False(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
         }
@@ -111,7 +109,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
@@ -131,7 +129,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Theory]
@@ -147,17 +145,51 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             JsonNode formLayout = (await GetFormLayouts(org, targetRepository, developer, layoutSetWithRef))[layoutSetFile];
             JsonArray layout = formLayout["data"]?["layout"] as JsonArray;
 
-            layout.Should().NotBeNull();
-            layout
+            bool componentsReferencingDeletedLayoutSet = layout
                 .Where(jsonNode => jsonNode["layoutSet"] != null)
-                .Should()
-                .NotContain(jsonNode => jsonNode["layoutSet"].GetValue<string>() == deletedComponentId,
-                        $"No components should reference the deleted layout set {deletedComponentId}");
+                .Any(jsonNode => jsonNode["layoutSet"].GetValue<string>() == deletedComponentId);
+
+            Assert.False(componentsReferencingDeletedLayoutSet, $"No components should reference the deleted layout set {deletedComponentId}");
+
+            Assert.NotNull(layout);
+
+
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "layoutSet")]
+        public async Task DeleteLayoutSet_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName)
+        {
+            string actualApp = "app-with-summary2-components";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string url = $"{VersionPrefix(org, app)}/layout-set/{layoutSetName}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string expectedApp = "app-with-summary2-components-after-deleting-references";
+
+            string[] layoutPaths = [
+                "layoutSet/layouts/Side1.json",
+                "layoutSet/layouts/Side2.json",
+                "layoutSet2/layouts/Side1.json",
+                "layoutSet2/layouts/Side2.json"
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                Assert.True(JsonUtils.DeepEquals(actual, expected));
+            });
         }
 
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)

@@ -4,5 +4,8 @@
     <Company>Altinn</Company>
     <Product>Altinn Studio</Product>
   </PropertyGroup>
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
 </Project>
 
