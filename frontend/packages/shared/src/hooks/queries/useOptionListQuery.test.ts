@@ -4,7 +4,7 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 import { useOptionListQuery } from 'app-shared/hooks/queries/useOptionListQuery';
 import { waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { OptionsList } from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const optionsListId = 'optionsListId';
@@ -16,7 +16,7 @@ describe('useOptionListQuery', () => {
   });
 
   it('getOptionList returns optionList as is', async () => {
-    const optionsList: OptionsList = [{ value: 'value', label: 'label' }];
+    const optionsList: OptionList = [{ value: 'value', label: 'label' }];
     const getOptionList = jest.fn().mockImplementation(() => Promise.resolve(optionsList));
     const { current: currentResult } = await render({ getOptionList });
     expect(currentResult.data).toBe(optionsList);

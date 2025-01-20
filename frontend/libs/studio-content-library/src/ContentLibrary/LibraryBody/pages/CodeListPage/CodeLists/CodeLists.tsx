@@ -6,7 +6,7 @@ import { EditCodeList } from './EditCodeList/EditCodeList';
 import { useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
-import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
+import { getCodeListSourcesById, getCodeListUsageCount } from '../utils/codeListPageUtils';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
@@ -111,6 +111,7 @@ type CodeListAccordionContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
 
 function CodeListAccordionContent({
   codeListData,
+  codeListSources,
   ...rest
 }: CodeListAccordionContentProps): React.ReactElement {
   const { t } = useTranslation();
@@ -122,7 +123,12 @@ function CodeListAccordionContent({
           {t('app_content_library.code_lists.fetch_error')}
         </StudioAlert>
       ) : (
-        <EditCodeList codeList={codeListData.data} codeListTitle={codeListData.title} {...rest} />
+        <EditCodeList
+          codeList={codeListData.data}
+          codeListTitle={codeListData.title}
+          codeListSources={codeListSources}
+          {...rest}
+        />
       )}
     </Accordion.Content>
   );

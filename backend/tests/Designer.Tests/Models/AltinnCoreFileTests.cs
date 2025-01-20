@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests
@@ -27,7 +26,7 @@ namespace Designer.Tests
             Assert.Equal(@"/App/models/0678.xsd", altinnCoreFile.RepositoryRelativeUrl);
             Assert.Equal(directory, altinnCoreFile.Directory);
             Assert.Equal(filePath, altinnCoreFile.FilePath);
-            altinnCoreFile.LastChanged.Should().BeOnOrBefore(DateTime.Now);
+            Assert.True(altinnCoreFile.LastChanged < DateTime.Now);
         }
 
         [Theory]

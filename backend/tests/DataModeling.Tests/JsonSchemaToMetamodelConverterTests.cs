@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Metamodel;
 using DataModeling.Tests.BaseClasses;
 using Designer.Tests.Assertions;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 
@@ -32,8 +31,9 @@ namespace DataModeling.Tests
                 .And.ExpectedMetamodelLoaded(expectedMetamodelPath)
                 .Then.MetamodelShouldBeEquivalentToExpected()
                 .And.When.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then.CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
         }
 
         // Helper methods
@@ -53,7 +53,7 @@ namespace DataModeling.Tests
 
         private JsonSchemaToMetamodelConverterTests MetamodelShouldHaveOneRootElement()
         {
-            ModelMetadata.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
+            Assert.Single(ModelMetadata.Elements.Values.Where(e => e.ParentElement == null).ToList());
             return this;
         }
     }

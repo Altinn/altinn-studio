@@ -708,6 +708,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                             hasLayoutChanges = true;
                                         }
                                     }
+
                                     break;
                                 case "Summary2":
                                     if (component["target"] is JsonObject target)

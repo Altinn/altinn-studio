@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -53,7 +52,7 @@ namespace Designer.Tests.Controllers.TextController
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, _jsonOptions), actualContent).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, _jsonOptions), actualContent));
         }
 
         [Theory]
@@ -74,7 +73,7 @@ namespace Designer.Tests.Controllers.TextController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
             TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, _jsonOptions);
-            actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables.Should().NotBeNull();
+            Assert.NotNull(actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables);
         }
 
         private static void PrepareExpectedResourceWithoutVariables(TextResource resource, Dictionary<string, string> updateDictionary)

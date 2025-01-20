@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Microsoft.AspNetCore.Mvc;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Altinn.AccessManagement.Tests.Utils
@@ -194,6 +196,28 @@ namespace Altinn.AccessManagement.Tests.Utils
             {
                 Assert.Equal(expected.Errors[expectedKey], actual.Errors[expectedKey]);
             }
+        }
+
+        public static void AssertEqualTo<TType>(TType expected, TType actual)
+        {
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expected, options),
+                JsonSerializer.Serialize(actual, options)));
+        }
+
+        public static void AssertCloseTo(DateTimeOffset expected, DateTimeOffset actual, TimeSpan tolerance)
+        {
+            TimeSpan difference = (expected - actual).Duration();
+            Assert.True(difference <= tolerance);
+        }
+
+        public static void AssertCloseTo(DateTime expected, DateTime actual, TimeSpan tolerance)
+        {
+            TimeSpan difference = (expected - actual).Duration();
+            Assert.True(difference <= tolerance);
         }
 
         private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
