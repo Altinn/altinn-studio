@@ -11,9 +11,8 @@ export type StudioPropertyButtonProps = {
   value?: ReactNode;
   compact?: boolean;
   readOnly?: boolean;
-  icon?: ReactNode;
   withoutNegativeMargin?: boolean;
-} & Omit<StudioButtonProps, 'children' | 'value' | 'icon'>;
+} & Omit<StudioButtonProps, 'children' | 'value'>;
 
 const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonProps>(
   (
