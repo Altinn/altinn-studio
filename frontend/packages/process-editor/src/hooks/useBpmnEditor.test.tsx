@@ -81,14 +81,10 @@ jest.mock('bpmn-js/lib/Modeler', () => jest.fn().mockImplementation(bpmnModelerI
 function bpmnModelerImplementation(): BpmnModeler {
   return {
     get: getModeler,
-    importXML: () => Promise.resolve({ warnings: [] }),
-    on: <K extends keyof EventMap>(eventName: K, callback: EventMap[K]) => {
-      return eventListeners.add(eventName, callback);
-    },
-    off: <K extends keyof EventMap>(eventName: K, callback: EventMap[K]) => {
-      return eventListeners.remove(eventName, callback);
-    },
-    saveXML: () => Promise.resolve({ xml }),
+    importXML,
+    on,
+    off,
+    saveXML,
     attachTo: jest.fn(),
     clear: jest.fn(),
     createDiagram: jest.fn(),
@@ -106,6 +102,18 @@ function bpmnModelerImplementation(): BpmnModeler {
 const getModeler = jest.fn().mockImplementation(() => ({
   zoom: () => {},
 }));
+const importXML = jest.fn().mockImplementation(() => Promise.resolve({ warnings: [] }));
+const on = jest
+  .fn()
+  .mockImplementation(<K extends keyof EventMap>(eventName: K, callback: EventMap[K]): void => {
+    eventListeners.add(eventName, callback);
+  });
+const off = jest
+  .fn()
+  .mockImplementation(<K extends keyof EventMap>(eventName: K, callback: EventMap[K]): void => {
+    eventListeners.remove(eventName, callback);
+  });
+const saveXML = jest.fn().mockImplementation(() => Promise.resolve({ xml }));
 
 const eventListeners = new EventListeners<EventMap>();
 
