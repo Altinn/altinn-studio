@@ -56,6 +56,7 @@ export class ExportUtils {
 
   private generateLayoutExportFormat = (layoutName: string, index: number): ExportFormPage => {
     const layout = this.formLayouts[layoutName];
+    if (!layout) return null;
     const exportFormPage: ExportFormPage = {
       pageId: layoutName,
       sortOrder: index,
