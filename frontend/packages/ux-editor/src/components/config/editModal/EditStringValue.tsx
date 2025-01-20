@@ -14,6 +14,7 @@ export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
   enumValues?: string[];
   multiple?: boolean;
+  helpText?: string;
 }
 
 export const EditStringValue = ({
@@ -22,6 +23,7 @@ export const EditStringValue = ({
   propertyKey,
   enumValues,
   multiple,
+  helpText,
 }: EditStringValueProps): ReactElement => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -42,7 +44,7 @@ export const EditStringValue = ({
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
-      helpText={componentPropertyHelpText(propertyKey)}
+      helpText={componentPropertyHelpText(propertyKey) || helpText}
       customValidationMessages={(errorCode: string) => {
         if (errorCode === 'pattern') {
           return t('validation_errors.pattern');

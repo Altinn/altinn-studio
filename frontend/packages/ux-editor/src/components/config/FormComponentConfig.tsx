@@ -273,7 +273,6 @@ export const FormComponentConfig = ({
             propertyKey='hasCustomFileEndings'
             component={component}
             defaultValue={hasCustomFileEndings.default}
-            multiple={true}
             handleComponentChange={(updatedComponent: FormComponent) => {
               if (!updatedComponent.hasCustomFileEndings) {
                 handleComponentUpdate({
@@ -290,7 +289,6 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey='validFileEndings'
-              helpText={validFileEndings?.description}
             />
           )}
         </>
