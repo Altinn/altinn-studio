@@ -132,6 +132,7 @@ function EditCodeListTitle({
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
+      className={classes.displayTitle}
     />
   );
 }
