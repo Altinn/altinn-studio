@@ -39,9 +39,10 @@ jobs:
           version=$(git describe --abbrev=0 --tags 2>/dev/null)
           version=$(echo $version | cut -d '-' -f 1)
           version="$version-pr.${{ github.run_number }}.$branch.$sha"
+          versionWithoutPrefix=$(echo $version | sed 's/^v//')
           git tag -a $version -m "PR release $version"
           echo "PR_RELEASE_VERSION=$version" >> $GITHUB_ENV
-          echo "PR_RELEASE_VERSION=$version" >> $GITHUB_OUTPUT
+          echo "PR_RELEASE_VERSION=$versionWithoutPrefix" >> $GITHUB_OUTPUT
           echo $version
 
       - name: Create PR comment
