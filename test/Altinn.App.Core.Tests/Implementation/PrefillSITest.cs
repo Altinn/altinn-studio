@@ -10,18 +10,18 @@ namespace Altinn.App.Core.Tests;
 
 public class PrefillTestDataModel
 {
-    public TestPrefillFields Prefill { get; set; }
+    public TestPrefillFields? Prefill { get; set; }
 }
 
 public class TestPrefillFields
 {
-    public string EraSourceEnvironment { get; set; }
-    public string KanOppretteAarligMelding { get; set; }
-    public string ArkivSaksId { get; set; }
-    public string InnsendingSvarfrist { get; set; }
-    public string YrkesskadeforsikringPolisenummer { get; set; }
-    public string YrkesskadeforsikringNavn { get; set; }
-    public string YrkesskadeforsikringGyldigTilDato { get; set; }
+    public string? EraSourceEnvironment { get; set; }
+    public string? KanOppretteAarligMelding { get; set; }
+    public string? ArkivSaksId { get; set; }
+    public string? InnsendingSvarfrist { get; set; }
+    public string? YrkesskadeforsikringPolisenummer { get; set; }
+    public string? YrkesskadeforsikringNavn { get; set; }
+    public string? YrkesskadeforsikringGyldigTilDato { get; set; }
 }
 
 public class PrefillSITests
