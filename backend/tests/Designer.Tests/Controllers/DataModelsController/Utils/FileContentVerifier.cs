@@ -1,6 +1,6 @@
 ﻿using System.IO;
-using FluentAssertions;
 using SharedResources.Tests;
+using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController.Utils
 {
@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.DataModelsController.Utils
         public static void VerifyJsonFileContent(string path, string json)
         {
             string fileContent = File.ReadAllText(path);
-            JsonUtils.DeepEquals(fileContent, json).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(fileContent, json));
         }
     }
 }

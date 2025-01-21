@@ -3,9 +3,9 @@ using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
-using FluentAssertions;
 using Json.Schema;
 using SharedResources.Tests;
+using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
@@ -51,7 +51,14 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected TTestType SerializedKeywordShouldBe(string json)
     {
-        KeywordNodeJson.Should().Be(json);
+        Assert.Equal(KeywordNodeJson, json);
         return this as TTestType;
     }
+
+    protected TTestType KeywordShouldNotBeNull()
+    {
+        Assert.NotNull(Keyword);
+        return this as TTestType;
+    }
+
 }

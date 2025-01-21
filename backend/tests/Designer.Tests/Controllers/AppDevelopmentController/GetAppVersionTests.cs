@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -42,12 +41,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = VersionPrefix(org, targetRepository);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var responseVersion = await response.Content.ReadAsAsync<VersionResponse>();
 
-            responseVersion.BackendVersion.ToString().Should().Be(backendVersion);
-            responseVersion.FrontendVersion.Should().Be(frontendVersion);
+            Assert.Equal(backendVersion, responseVersion.BackendVersion.ToString());
+            Assert.Equal(frontendVersion, responseVersion.FrontendVersion);
         }
 
         [Theory]
@@ -61,7 +60,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = VersionPrefix(org, targetRepository);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Theory]
@@ -71,7 +70,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = VersionPrefix(org, app);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Theory]
@@ -85,9 +84,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = VersionPrefix(org, targetRepository);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseVersion = await response.Content.ReadAsAsync<VersionResponse>();
-            responseVersion.FrontendVersion.Should().BeNull();
+            Assert.Null(responseVersion.FrontendVersion);
         }
 
         [Theory]
@@ -102,9 +101,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = VersionPrefix(org, targetRepository);
 
             using var response = await HttpClient.GetAsync(url);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseVersion = await response.Content.ReadAsAsync<VersionResponse>();
-            responseVersion.FrontendVersion.Should().BeNull();
+            Assert.Null(responseVersion.FrontendVersion);
 
         }
 

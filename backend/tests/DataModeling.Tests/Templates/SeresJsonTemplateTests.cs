@@ -5,7 +5,6 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.DataModeling.Utils;
-using FluentAssertions;
 using Json.Pointer;
 using Json.Schema;
 using Xunit;
@@ -28,14 +27,15 @@ namespace DataModeling.Tests.Templates
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
             var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
-            idKeyword.Id.Should().Be(expectedId);
+            Assert.Equal(expectedId, idKeyword.Id.ToString());
 
             var infoKeyword = jsonSchema.GetKeywordOrNull<InfoKeyword>();
             var value = infoKeyword.Value;
-            value.GetProperty("meldingsnavn").GetString().Should().Be("melding");
-            value.GetProperty("modellnavn").GetString().Should().Be("melding-modell");
 
-            var messageType = jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/melding-modell")).Should().NotBeNull();
+            Assert.Equal("melding", value.GetProperty("meldingsnavn").GetString());
+            Assert.Equal("melding-modell", value.GetProperty("modellnavn").GetString());
+
+            Assert.NotNull(jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/melding-modell")));
         }
 
         [Fact]
@@ -49,17 +49,17 @@ namespace DataModeling.Tests.Templates
 
             XmlSchema xsd = ConvertJsonSchema(jsonSchema);
 
-            xsd.Items.Count.Should().Be(3);
-            xsd.Items[2].GetName().Should().Be("melding-modell");
+            Assert.Equal(3, xsd.Items.Count);
+            Assert.Equal("melding-modell", xsd.Items[2].GetName());
 
-            XmlSchemaComplexType complexType = xsd.Items[2].As<XmlSchemaComplexType>();
-            var attributes = complexType.Attributes.Count.Should().Be(3);
+            XmlSchemaComplexType complexType = xsd.Items[2] as XmlSchemaComplexType;
+            Assert.Equal(3, complexType.Attributes.Count);
 
             foreach (XmlSchemaAttribute attribute in complexType.Attributes)
             {
                 if (attribute.Name == "dataFormatProvider")
                 {
-                    attribute.FixedValue.Should().Be("SERES");
+                    Assert.Equal("SERES", attribute.FixedValue);
                 }
             }
         }
