@@ -81,10 +81,10 @@ describe('EditSubformTableColumns', () => {
     });
     await user.click(editButton);
 
-    await user.click(getComponentSelector());
-    await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
+    const columnTitleElement = screen.getByText(
+      textMock('ux_editor.properties_panel.subform_table_columns.column_title_unedit'),
     );
+    await user.type(columnTitleElement, 'New Title');
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
