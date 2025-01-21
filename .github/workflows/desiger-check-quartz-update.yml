@@ -31,7 +31,7 @@ jobs:
             echo "is-updated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Notify if quartz library is updated
+      - name: Get the new quartz version
         id: get-quartz-version
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
