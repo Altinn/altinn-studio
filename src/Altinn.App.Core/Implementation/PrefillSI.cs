@@ -268,6 +268,9 @@ public class PrefillSI : IPrefill
         }
     }
 
+    /// <summary>
+    /// Loops through the key-value dictionary and assigns each value to the datamodel target field
+    /// </summary>
     private void LoopThroughDictionaryAndAssignValuesToDataModel(
         Dictionary<string, string> dictionary,
         JObject? sourceObject,
@@ -275,10 +278,10 @@ public class PrefillSI : IPrefill
         bool continueOnError = false
     )
     {
-        foreach (KeyValuePair<string, string> kvp in dictionary)
+        foreach (KeyValuePair<string, string> keyValuePair in dictionary)
         {
-            var source = kvp.Value;
-            var target = kvp.Key.Replace("-", string.Empty);
+            var source = keyValuePair.Value;
+            var target = keyValuePair.Key.Replace("-", string.Empty);
 
             if (string.IsNullOrEmpty(source))
             {
@@ -304,10 +307,10 @@ public class PrefillSI : IPrefill
                 sourceValue = JValue.CreateString(source);
             }
 
-            _logger.LogInformation("Source: {Source}, target: {Target}", source, target);
-            _logger.LogInformation("Value read from source object: {Value}", sourceValue?.ToString());
+            _logger.LogInformation($"Source: {source}, target: {target}");
+            _logger.LogInformation($"Value read from source object: {sourceValue}");
+            string[] keys = target.Split(".");
 
-            string[] keys = target.Split('.');
             AssignValueToDataModel(keys, sourceValue, serviceModel, 0, continueOnError);
         }
     }
