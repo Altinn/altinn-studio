@@ -84,27 +84,20 @@ export const EditComponentIdRow = ({
   return (
     <div className={duplicatedId ? classes.duplicatedIdField : classes.container}>
       <StudioToggleableTextfieldSchema
-        onError={handleValidationError}
-        label={t('ux_editor.modal_properties_component_change_id')}
-        layoutSchema={layoutSchema}
-        relatedSchemas={[expressionSchema, numberFormatSchema]}
-        propertyPath='definitions/component/properties/id'
-        key={component.id}
-        viewProps={{
-          value: component.id,
-          title: component.id,
-        }}
-        inputProps={{
-          label: t('ux_editor.modal_properties_component_change_id'),
-          value: idInputValue,
-          onBlur: (event) => saveComponentUpdate(event.target.value),
-          size: 'small',
-          error: errorMessage,
-        }}
         customValidation={(value) => {
           return validateId(value);
         }}
+        error={errorMessage}
+        key={component.id}
+        label={t('ux_editor.modal_properties_component_change_id')}
+        layoutSchema={layoutSchema}
+        onBlur={(event) => saveComponentUpdate(event.target.value)}
+        onError={handleValidationError}
         onIsViewMode={setIsViewMode}
+        propertyPath='definitions/component/properties/id'
+        relatedSchemas={[expressionSchema, numberFormatSchema]}
+        title={component.id}
+        value={component.id}
       />
       {!isViewMode && (
         <div className={classes.alert}>
