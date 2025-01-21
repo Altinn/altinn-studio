@@ -35,6 +35,8 @@ export const DataModelBindingsCombobox = ({
     })
     .filter(Boolean);
 
+  const handleValueChange = (value: string[]) => onSelectComponent?.(value);
+
   return (
     <StudioCombobox
       label={t(
@@ -44,7 +46,7 @@ export const DataModelBindingsCombobox = ({
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
       )}
       size='sm'
-      onValueChange={onSelectComponent}
+      onValueChange={handleValueChange}
     >
       {options.map(({ key, keyLabel, value, index }) => (
         <StudioCombobox.Option key={index} value={key} description={value?.field}>

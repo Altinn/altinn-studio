@@ -65,12 +65,10 @@ export const EditColumnElement = ({
     { [key: string]: string }[]
   >([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
+  const [selectedBindingKey, setSelectedBindingKey] = useState<string>();
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
-    if (!selectedComponent?.dataModelBindings) {
-      return;
-    }
-
+    if (!selectedComponent?.dataModelBindings) return;
     const bindings = Object.entries(selectedComponent?.dataModelBindings ?? {})
       .filter(([, value]) => Boolean(value))
       .map(([key, value]) => ({ [key]: value }));
@@ -81,7 +79,16 @@ export const EditColumnElement = ({
 
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
-    onEdit({ ...tableColumn, headerContent: uniqueTitleId });
+    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    const binding =
+      selectedComponent && selectedBindingKey
+        ? convertDataBindingToInternalFormat(selectedComponent, selectedBindingKey)
+        : null;
+    onEdit({
+      ...tableColumn,
+      headerContent: uniqueTitleId,
+      cellContent: { query: binding?.field || '' },
+    });
   };
 
   const handleDelete = () => {
@@ -97,7 +104,14 @@ export const EditColumnElement = ({
     if (!selectedComponent) return;
 
     selectComponentBinding(selectedComponent);
-    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
+
+    const bindingKey =
+      selectedComponentBindings.length > 1
+        ? Object.keys(selectedComponent.dataModelBindings)[0]
+        : 'simpleBinding';
+    setSelectedBindingKey(bindingKey);
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
     const updatedTableColumn = {
       ...sourceColumn,
       headerContent: selectedComponent.textResourceBindings?.title,
@@ -107,6 +121,8 @@ export const EditColumnElement = ({
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
     setTableColumn(updatedTableColumn);
   };
+
+  const handleBindingChange = (value: string[]) => setSelectedBindingKey(value[0]);
 
   const availableComponents = getComponentsForSubformTable(formLayouts);
   const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
@@ -121,6 +137,7 @@ export const EditColumnElement = ({
           onSelectComponent={selectComponent}
           selectedComponentBindings={selectedComponentBindings}
           filteredDatamodelBindings={filteredDatamodelBindings}
+          handleBindingChange={handleBindingChange}
         />
         {tableColumn.headerContent && (
           <EditColumnElementContent
@@ -167,6 +184,7 @@ export type EditColumnElementComponentSelectProps = {
   selectedComponentBindings?: Record<string, string>[];
   filteredDatamodelBindings?: Record<string, string>[];
   component?: FormItem;
+  handleBindingChange?: (value: string[]) => void;
 };
 export const EditColumnElementComponentSelect = ({
   components,
@@ -174,6 +192,7 @@ export const EditColumnElementComponentSelect = ({
   selectedComponentBindings,
   filteredDatamodelBindings,
   component,
+  handleBindingChange,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
@@ -201,7 +220,7 @@ export const EditColumnElementComponentSelect = ({
       {selectedComponentBindings?.length > 1 && (
         <DataModelBindingsCombobox
           filteredDatamodelBindings={filteredDatamodelBindings}
-          onSelectComponent={onSelectComponent}
+          onSelectComponent={handleBindingChange}
           component={component}
         />
       )}
