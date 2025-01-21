@@ -81,19 +81,6 @@ describe('EditColumnElementComponentSelect', () => {
     jest.clearAllMocks();
   });
 
-  const selectComponentSelector = async () => {
-    const user = userEvent.setup();
-    const componentSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-    expect(componentSelector).toBeInTheDocument();
-    await user.click(componentSelector);
-  };
-
-  const noComponentsMessage = textMock(
-    'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
-  );
-
   it('should render combobox with no components message when no components are available', async () => {
     renderEditColumnElementComponentSelect({
       components: [],
@@ -123,6 +110,19 @@ describe('EditColumnElementComponentSelect', () => {
     ).toBeInTheDocument();
   });
 });
+
+const selectComponentSelector = async () => {
+  const user = userEvent.setup();
+  const componentSelector = screen.getByRole('combobox', {
+    name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+  });
+  expect(componentSelector).toBeInTheDocument();
+  await user.click(componentSelector);
+};
+
+const noComponentsMessage = textMock(
+  'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
+);
 
 const renderEditColumnElementComponentSelect = (
   props: Partial<EditColumnElementComponentSelectProps> = {},

@@ -84,8 +84,7 @@ export const EditColumnElement = ({
 
   const availableComponents = getComponentsForSubformTable(formLayouts);
   const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
-  const isComponentCopySaved = sourceColumn.headerContent.length > 0;
-
+  const isComponentCopySaved = Boolean(sourceColumn.headerContent);
   return (
     <StudioCard className={classes.wrapper}>
       <EditColumnElementHeader columnNumber={columnNumber} />
