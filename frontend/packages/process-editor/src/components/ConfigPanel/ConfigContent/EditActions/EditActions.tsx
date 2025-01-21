@@ -7,7 +7,6 @@ import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -49,19 +48,17 @@ export const EditActions = (): React.ReactElement => {
   return (
     <>
       {actions.map((actionElement: ModdleElement, index: number) => (
-        <div key={getUniqueKey(index)} className={classes.container}>
-          <ActionsEditor
-            actionElement={actionElement}
-            actionIndex={index}
-            mode={!actionElement.action ? 'edit' : 'view'}
-            onDeleteClick={() => onDeleteActionItemSideEffect(index)}
-          />
-        </div>
+        <ActionsEditor
+          key={getUniqueKey(index)}
+          actionElement={actionElement}
+          actionIndex={index}
+          mode={!actionElement.action ? 'edit' : 'view'}
+          onDeleteClick={() => onDeleteActionItemSideEffect(index)}
+        />
       ))}
       <StudioProperty.Button
         onClick={onNewActionAddClicked}
         property={t('process_editor.configuration_panel_actions_add_new')}
-        size='small'
       />
     </>
   );

@@ -11,7 +11,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -37,15 +36,16 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             using var payloadContent = new StringContent(JsonSerializer.Serialize(payload, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
             using var response = await HttpClient.PostAsync(url, payloadContent);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
             var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFile, JsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payload.Id);
-            attachmentDataType.MaxCount.Should().Be(payload.MaxCount);
-            attachmentDataType.MaxSize.Should().Be(payload.MaxSize);
-            attachmentDataType.MinCount.Should().Be(payload.MinCount);
+
+            Assert.Equal(payload.MaxCount, attachmentDataType.MaxCount);
+            Assert.Equal(payload.MaxSize, attachmentDataType.MaxSize);
+            Assert.Equal(payload.MinCount, attachmentDataType.MinCount);
         }
 
         /// <summary>

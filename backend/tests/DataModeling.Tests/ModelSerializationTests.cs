@@ -3,7 +3,6 @@ using System.Xml.Linq;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
 using DataModeling.Tests.Utils;
-using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -31,9 +30,9 @@ namespace DataModeling.Tests
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then
-                .CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.When.TypeReadFromCompiledAssembly(typeName)
                 .And.JsonDataLoaded(jsonPath)
@@ -50,9 +49,9 @@ namespace DataModeling.Tests
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then
-                .CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.When.TypeReadFromCompiledAssembly(typeName)
                 .And.XmlDataLoaded(jsonPath)
@@ -69,9 +68,9 @@ namespace DataModeling.Tests
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
-                .And.CSharpClassesCompiledToAssembly()
-                .Then
-                .CompiledAssembly.Should().NotBeNull();
+                .And.CSharpClassesCompiledToAssembly();
+
+            Assert.NotNull(CompiledAssembly);
 
             And.When.TypeReadFromCompiledAssembly(typeName)
                 .And.XmlDataLoaded(xmlPath)
@@ -109,7 +108,7 @@ namespace DataModeling.Tests
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            JsonUtils.DeepEquals(SerializedModelJson, JsonData).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(SerializedModelJson, JsonData));
         }
 
         // Xml helper methods
@@ -143,7 +142,7 @@ namespace DataModeling.Tests
 
         private void ModelObjects_ShouldBeEquivalent()
         {
-            DeserializedJsonModelObject.Should().BeEquivalentTo(DeserializedXmlModelObject);
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(DeserializedJsonModelObject), JsonSerializer.Serialize(DeserializedXmlModelObject)));
         }
     }
 }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -51,13 +50,13 @@ public class PolicyFileSyncTaskIdTests : DesignerEndpointsTestsBase<PolicyFileSy
         form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
 
         using var response = await HttpClient.PutAsync(url, form);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string policyFileFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/authorization/policy.xml");
 
-        policyFileFromRepo.Should().NotContain(metadata.TaskIdChange.OldId);
-        policyFileFromRepo.Should().Contain(metadata.TaskIdChange.NewId);
+        Assert.DoesNotContain(metadata.TaskIdChange.OldId, policyFileFromRepo);
+        Assert.Contains(metadata.TaskIdChange.NewId, policyFileFromRepo);
 
     }
 

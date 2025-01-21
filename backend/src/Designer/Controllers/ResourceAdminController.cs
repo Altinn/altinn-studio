@@ -487,7 +487,7 @@ namespace Altinn.Studio.Designer.Controllers
                 foreach (ServiceResource resource in allResources)
                 {
                     if (resource?.HasCompetentAuthority.Orgcode != null
-                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode))
+                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ResourceReferenceType.ServiceCode))
                         && resource.ResourceType == ResourceType.Altinn2Service)
                     {
                         AvailableService service = new AvailableService();
@@ -496,8 +496,8 @@ namespace Altinn.Studio.Designer.Controllers
                             service.ServiceName = resource.Title["nb"];
                         }
 
-                        service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceCode)).Reference;
-                        service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
+                        service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ResourceReferenceType.ServiceCode)).Reference;
+                        service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ResourceReferenceType.ServiceEditionCode)).Reference);
                         service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
                         unfiltered.Add(service);
                     }
@@ -551,7 +551,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (resource.ResourceType == ResourceType.MaskinportenSchema)
             {
-                if (resource.ResourceReferences == null || !resource.ResourceReferences.Any((x) => x.ReferenceType == ReferenceType.MaskinportenScope))
+                if (resource.ResourceReferences == null || !resource.ResourceReferences.Any((x) => x.ReferenceType == ResourceReferenceType.MaskinportenScope))
                 {
                     ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
                 }
