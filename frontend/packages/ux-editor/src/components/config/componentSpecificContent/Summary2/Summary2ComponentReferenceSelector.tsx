@@ -30,6 +30,9 @@ export const Summary2ComponentReferenceSelector = ({
       error={errorMessage}
       multiple={false}
     >
+      <StudioCombobox.Empty>
+        {t('ux_editor.component_properties.target_empty')}
+      </StudioCombobox.Empty>
       {options.map((option) => (
         <StudioCombobox.Option value={option.id} key={option.id} description={option.description}>
           {option.id}

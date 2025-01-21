@@ -1,8 +1,10 @@
-import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IFormLayouts, IInternalLayout } from '@altinn/ux-editor/types/global';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { LayoutSet, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
 
 const excludedComponents = [
   ComponentType.ActionButton,
@@ -27,14 +29,31 @@ const excludedComponents = [
   ComponentType.Summary2,
 ];
 
-type GetComponentOptionsProps = {
-  formLayoutsData: IFormLayouts;
-  getComponentTitle: (formComponent: FormComponent) => string;
-};
-
-type TargetProps = {
+export type TargetProps = {
   id: string;
   description: string;
+};
+
+type getTargetLayoutSetNameProps = {
+  target: Summary2TargetConfig;
+  layoutSets: LayoutSetsModel;
+  selectedFormLayoutSetName: string;
+};
+
+export const getTargetLayoutSetName = ({
+  target,
+  layoutSets,
+  selectedFormLayoutSetName,
+}: getTargetLayoutSetNameProps): string => {
+  const layoutSetName = target?.taskId
+    ? layoutSets.sets.find((layoutSet) => layoutSet.task?.id === target.taskId).id
+    : selectedFormLayoutSetName;
+  return layoutSetName;
+};
+
+type GetComponentOptionsProps = {
+  formLayoutsData: IFormLayouts | IInternalLayout[];
+  getComponentTitle: (formComponent: FormComponent) => string;
 };
 
 export const getComponentOptions = ({
