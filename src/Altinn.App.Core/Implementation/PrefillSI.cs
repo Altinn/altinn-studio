@@ -268,9 +268,6 @@ public class PrefillSI : IPrefill
         }
     }
 
-    /// <summary>
-    /// Loops through the key-value dictionary and assigns each value to the datamodel target field
-    /// </summary>
     private void LoopThroughDictionaryAndAssignValuesToDataModel(
         Dictionary<string, string> dictionary,
         JObject? sourceObject,
@@ -278,18 +275,19 @@ public class PrefillSI : IPrefill
         bool continueOnError = false
     )
     {
-        foreach (KeyValuePair<string, string> keyValuePair in dictionary)
+        foreach (KeyValuePair<string, string> kvp in dictionary)
         {
-            string source = keyValuePair.Value;
-            string target = keyValuePair.Key.Replace("-", string.Empty);
-            if (source == null || source == string.Empty)
+            var source = kvp.Value;
+            var target = kvp.Key.Replace("-", string.Empty);
+
+            if (string.IsNullOrEmpty(source))
             {
                 string errorMessage = $"Could not prefill, a source value was not set for target: {target}";
                 _logger.LogError(errorMessage);
                 throw new Exception(errorMessage);
             }
 
-            if (target == null || target == string.Empty)
+            if (string.IsNullOrEmpty(target))
             {
                 string errorMessage = $"Could not prefill, a target value was not set for source: {source}";
                 _logger.LogError(errorMessage);
@@ -303,12 +301,13 @@ public class PrefillSI : IPrefill
             }
             else
             {
-                sourceValue = JToken.Parse($"'{source}'");
+                sourceValue = JValue.CreateString(source);
             }
 
-            _logger.LogInformation($"Source: {source}, target: {target}");
-            _logger.LogInformation($"Value read from source object: {sourceValue?.ToString()}");
-            string[] keys = target.Split(".");
+            _logger.LogInformation("Source: {Source}, target: {Target}", source, target);
+            _logger.LogInformation("Value read from source object: {Value}", sourceValue?.ToString());
+
+            string[] keys = target.Split('.');
             AssignValueToDataModel(keys, sourceValue, serviceModel, 0, continueOnError);
         }
     }
