@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
@@ -31,9 +30,9 @@ public class FormatMinimumKeywordJsonConverterConverterTests : ValueKeywordConve
 
         Given.That.JsonSchemaLoaded(jsonSchema)
             .When.KeywordReadFromSchema()
-            .Then.Keyword.Should().NotBeNull();
+            .Then.KeywordShouldNotBeNull();
 
-        And.Keyword.Value.Should().Be(value);
+        Assert.Equal(Keyword.Value, value);
     }
 
     [Theory]
@@ -47,6 +46,7 @@ public class FormatMinimumKeywordJsonConverterConverterTests : ValueKeywordConve
 
         var ex = Assert.Throws<JsonException>(() =>
             Given.That.JsonSchemaLoaded(jsonSchema));
-        ex.Message.Should().Be("Expected string");
+
+        Assert.Equal("Expected string", ex.Message);
     }
 }

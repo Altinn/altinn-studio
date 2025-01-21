@@ -1,6 +1,5 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
@@ -29,6 +28,7 @@ public class XsdRootElementKeywordTests : ValueKeywordTestsBase<XsdRootElementKe
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }

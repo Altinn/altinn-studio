@@ -2,7 +2,6 @@
 using System.Linq;
 using Altinn.Studio.Designer.Helpers;
 using DotNet.Testcontainers.Builders;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.Helpers
@@ -22,11 +21,11 @@ namespace Designer.Tests.Helpers
             {
                 bool result = PackageVersionHelper.TryGetPackageVersionFromCsprojFile(testTemplateCsProjPath, input, out var version);
 
-                result.Should().Be(expectedResult);
+                Assert.Equal(expectedResult, result);
 
                 if (result)
                 {
-                    version.ToString().Should().Be(expectedVersion);
+                    Assert.Equal(expectedVersion, version.ToString());
                 }
             }
         }
