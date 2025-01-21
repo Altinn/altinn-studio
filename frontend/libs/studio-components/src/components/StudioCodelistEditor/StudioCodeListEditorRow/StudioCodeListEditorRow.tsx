@@ -2,13 +2,8 @@ import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
-import type {
-  FocusEvent,
-  HTMLInputAutoCompleteAttribute,
-  MutableRefObject,
-  ReactElement,
-} from 'react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import type { FocusEvent, HTMLInputAutoCompleteAttribute, ReactElement } from 'react';
+import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
@@ -117,7 +112,6 @@ type InputCellProps = {
   onFocus?: (event: FocusEvent) => void;
   autoComplete?: HTMLInputAutoCompleteAttribute;
   error?: string;
-  ref?: MutableRefObject<HTMLInputElement>;
 };
 
 function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCellProps) {
@@ -169,69 +163,81 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCe
   }
 }
 
-function NumberfieldCell({ label, value, onChange, onFocus, autoComplete, ref }: InputCellProps) {
-  const handleNumberChange = useCallback(
-    (number: number): void => {
-      onChange(number);
-    },
-    [onChange],
-  );
+const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
+  ({ label, value, onChange, onFocus, autoComplete }, ref) => {
+    const handleNumberChange = useCallback(
+      (number: number): void => {
+        onChange(number);
+      },
+      [onChange],
+    );
 
-  return (
-    <StudioInputTable.Cell.Numberfield
-      ref={ref}
-      aria-label={label}
-      autoComplete={autoComplete}
-      className={classes.textfieldCell}
-      onChange={handleNumberChange}
-      onFocus={onFocus}
-      value={(value as number) ?? 0}
-    />
-  );
-}
+    return (
+      <StudioInputTable.Cell.Numberfield
+        ref={ref}
+        aria-label={label}
+        autoComplete={autoComplete}
+        className={classes.textfieldCell}
+        onChange={handleNumberChange}
+        onFocus={onFocus}
+        value={(value as number) ?? 0}
+      />
+    );
+  },
+);
 
-function CheckboxCell({ label, value, onChange, onFocus, ref }: InputCellProps) {
-  const handleBooleanChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>): void => {
-      onChange(event.target.checked);
-    },
-    [onChange],
-  );
+NumberfieldCell.displayName = 'NumberfieldCell';
 
-  return (
-    <StudioInputTable.Cell.Checkbox
-      ref={ref}
-      aria-label={label}
-      onChange={handleBooleanChange}
-      onFocus={onFocus}
-      checked={value as boolean}
-      value={String(value)} // Required by designsystemet, but not by Studio
-    >
-      {String(value)}
-    </StudioInputTable.Cell.Checkbox>
-  );
-}
+const CheckboxCell = forwardRef<HTMLInputElement, InputCellProps>(
+  ({ label, value, onChange, onFocus }, ref) => {
+    const handleBooleanChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>): void => {
+        onChange(event.target.checked);
+      },
+      [onChange],
+    );
 
-function TextfieldCell({ label, value, onChange, onFocus, autoComplete, ref }: InputCellProps) {
-  const handleTextChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>): void => {
-      onChange(event.target.value);
-    },
-    [onChange],
-  );
+    return (
+      <StudioInputTable.Cell.Checkbox
+        ref={ref}
+        aria-label={label}
+        onChange={handleBooleanChange}
+        onFocus={onFocus}
+        checked={value as boolean}
+        value={String(value)} // Required by designsystemet, but not by Studio
+      >
+        {String(value)}
+      </StudioInputTable.Cell.Checkbox>
+    );
+  },
+);
 
-  return (
-    <StudioInputTable.Cell.Textfield
-      ref={ref}
-      aria-label={label}
-      autoComplete={autoComplete}
-      className={classes.textfieldCell}
-      onChange={handleTextChange}
-      onFocus={onFocus}
-      value={(value as string) ?? ''}
-    />
-  );
-}
+CheckboxCell.displayName = 'CheckboxCell';
+
+const TextfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
+  ({ label, value, onChange, onFocus, autoComplete }, ref) => {
+    const handleTextChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>): void => {
+        onChange(event.target.value);
+      },
+      [onChange],
+    );
+
+    return (
+      <StudioInputTable.Cell.Textfield
+        ref={ref}
+        aria-label={label}
+        autoComplete={autoComplete}
+        className={classes.textfieldCell}
+        onChange={handleTextChange}
+        onFocus={onFocus}
+        value={(value as string) ?? ''}
+      />
+    );
+  },
+);
+
+TextfieldCell.displayName = 'TextfieldCell';
 
 type TextResourceIdCellProps = {
   currentId: string;
