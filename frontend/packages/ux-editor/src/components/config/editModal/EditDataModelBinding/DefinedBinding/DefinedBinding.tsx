@@ -43,23 +43,17 @@ export const DefinedBinding = ({
 
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
-
   const isBindingError = !isFieldValid || !isDataModelValid;
-
-  const value = (
-    <span className={classes.selectedOption}>
-      <LinkIcon /> <span className={classes.currentLinkedDataModel}>{currentDataModelField}</span>
-    </span>
-  );
 
   return (
     <StudioProperty.Button
-      className={`${isBindingError ? classes.error : ''}`}
+      className={isBindingError ? classes.error : ''}
       aria-label={title}
       onClick={onClick}
       property={label}
       title={title}
-      value={value}
+      icon={<LinkIcon />}
+      value={currentDataModelField}
     />
   );
 };
