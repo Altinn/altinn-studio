@@ -48,7 +48,7 @@ jobs:
           mkdir qdwn
           curl -L -o qdwn/quartz.zip $download_url && unzip qdwn/quartz.zip -d qdwn && rm qdwn/quartz.zip
 
-          diff_output=$(diff -b backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql qdwn/database/tables/tables_postgres.sql)
+          diff_output=$(diff -b backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql qdwn/database/tables/tables_postgres.sql || true)
 
           if [ -n "$diff_output" ]; then
             echo "Tabled file is not up to date"
