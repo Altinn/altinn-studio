@@ -4,6 +4,7 @@ import { StudioIconTextfield } from '../StudioIconTextfield';
 import { StudioProperty } from '../StudioProperty';
 import { KeyVerticalIcon } from '@studio/icons';
 import type { Override } from '../../types/Override';
+import classes from './StudioToggleableTextfield.module.css';
 
 export type StudioToggleableTextfieldProps = Override<
   {
@@ -78,6 +79,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
           onClick={toggleViewMode}
           title={title}
           value={value}
+          className={classes.propertyButton}
         />
       );
 
