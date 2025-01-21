@@ -149,6 +149,21 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             Assert.Contains(deserializedRepositoryModel, x => x.Name == targetRepo);
         }
 
+        // Get branch endpoint test
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetBranch_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            // Call branch endpoint
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master"));
+            var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch>();
+            Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
+            Assert.Equal("master", deserializedBranchModel.Name);
+        }
+
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task PushWithConflictingChangesRemotely_ShouldReturnConflict(string org)

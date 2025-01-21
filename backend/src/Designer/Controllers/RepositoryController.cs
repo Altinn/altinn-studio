@@ -357,6 +357,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
+        public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
+            => await _giteaApi.GetBranch(org, repository, branch);
+
+        /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
