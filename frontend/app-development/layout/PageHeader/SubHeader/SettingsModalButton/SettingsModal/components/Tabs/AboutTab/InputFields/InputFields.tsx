@@ -1,66 +1,124 @@
-import type { FormEvent, ReactNode } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 import React, { useState } from 'react';
 import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
-import type { AppConfig } from 'app-shared/types/AppConfig';
-import { Textfield } from '@digdir/designsystemet-react';
+import {
+  StudioTextfield,
+  StudioLabelAsParagraph,
+  StudioParagraph,
+  StudioIconTextfield,
+} from '@studio/components';
 
-type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
-
-export type InputFieldsProps = {
-  appConfig: AppConfig;
-  onSave: (appConfig: AppConfig) => void;
+export type ServiceNames<T extends string> = {
+  [key in T]: string | undefined;
 };
 
-export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode => {
+export enum RecommendedLanguageFlags {
+  nb = '🇳🇴',
+  nn = '🇳🇴',
+  en = '🇬🇧',
+}
+
+export type InputFieldsProps<T extends string> = {
+  appLangCodes: string[];
+  onSave: (serviceName: string, language: string) => void;
+  repositoryName: string;
+  serviceNames: ServiceNames<T>;
+};
+
+export function InputFields<T extends string>({
+  repositoryName,
+  ...rest
+}: InputFieldsProps<T>): ReactNode {
   const { t } = useTranslation();
 
-  const [appConfigFormErrors, setAppConfigFormErrors] = useState<
-    Pick<AppConfigForm, 'serviceName'>
-  >({ serviceName: '' });
-
-  const handleAppConfigFormBlur = (event: FormEvent<HTMLFormElement>) => {
-    const formData = new FormData(event.currentTarget);
-    const form = Object.fromEntries(formData) as AppConfigForm;
-    const isFormValid = validateForm(form);
-    if (isFormValid) {
-      onSave({ ...appConfig, ...form });
-    }
-  };
-
-  const validateForm = (form: AppConfigForm): Boolean => {
-    if (form.serviceName.length <= 0) {
-      setAppConfigFormErrors({ serviceName: t('settings_modal.about_tab_name_error') });
-      return false;
-    }
-    setAppConfigFormErrors({ serviceName: '' });
-    return true;
-  };
-
   return (
-    <form className={classes.wrapper} onBlur={handleAppConfigFormBlur}>
-      <Textfield
+    <div className={classes.wrapper}>
+      <StudioTextfield
         label={t('settings_modal.about_tab_repo_label')}
         description={t('settings_modal.about_tab_repo_description')}
         size='small'
-        defaultValue={appConfig.repositoryName}
+        value={repositoryName}
         readOnly
       />
-      <Textfield
-        label={t('settings_modal.about_tab_name_label')}
-        description={t('settings_modal.about_tab_name_description')}
-        size='small'
-        name='serviceName'
-        error={appConfigFormErrors.serviceName}
-        defaultValue={appConfig.serviceName}
-      />
-      <Textfield
-        label={t('settings_modal.about_tab_alt_id_label')}
-        description={t('settings_modal.about_tab_alt_id_description')}
-        size='small'
-        name='serviceId'
-        defaultValue={appConfig.serviceId}
-      />
-    </form>
+      <EditServiceNames {...rest} />
+    </div>
   );
+}
+
+type EditServiceNamesNameProps<T extends string> = Omit<InputFieldsProps<T>, 'repositoryName'>;
+
+function EditServiceNames<T extends string>({
+  serviceNames,
+  ...rest
+}: EditServiceNamesNameProps<T>): React.ReactElement {
+  const { t } = useTranslation();
+
+  const appTitleLanguages = Object.keys(serviceNames);
+
+  return (
+    <div>
+      <StudioLabelAsParagraph>{t('settings_modal.about_tab_name_label')}</StudioLabelAsParagraph>
+      <StudioParagraph size={'small'}>
+        {t('settings_modal.about_tab_name_description')}
+      </StudioParagraph>
+      {appTitleLanguages.map((lang: string) => (
+        <EditServiceNameForLanguage
+          key={lang}
+          language={lang}
+          serviceName={serviceNames[lang]}
+          {...rest}
+        />
+      ))}
+    </div>
+  );
+}
+
+type EditServiceNameForLanguageProps = {
+  appLangCodes: string[];
+  language: string;
+  onSave: (serviceName: string, language: string) => void;
+  serviceName: string;
 };
+
+function EditServiceNameForLanguage({
+  appLangCodes,
+  language,
+  onSave,
+  serviceName,
+}: EditServiceNameForLanguageProps): React.ReactElement {
+  const { t } = useTranslation();
+  const [serviceNameError, setServiceNameError] = useState<string>('');
+
+  const appHasLanguageTranslation = appLangCodes.includes(language);
+
+  const handleOnBlur = (event: ChangeEvent<HTMLInputElement>) => {
+    const isValid = validateServiceName(event.target.value);
+    if (isValid) onSave(event.target.value, language);
+  };
+
+  const validateServiceName = (newServiceName: string): Boolean => {
+    if (newServiceName.length <= 0) {
+      setServiceNameError(t('settings_modal.about_tab_name_error'));
+      return false;
+    }
+    setServiceNameError('');
+    return true;
+  };
+
+  const description: string =
+    !appHasLanguageTranslation && t('settings_modal.about_tab_app_title_no_translation_file');
+
+  return (
+    <StudioIconTextfield
+      icon={RecommendedLanguageFlags[language]}
+      size='small'
+      label={t(`language.${language}`)}
+      description={description}
+      error={serviceNameError}
+      value={serviceName}
+      onBlur={handleOnBlur}
+      readOnly={!appHasLanguageTranslation}
+    />
+  );
+}

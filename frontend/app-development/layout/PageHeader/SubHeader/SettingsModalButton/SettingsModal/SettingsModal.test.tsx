@@ -5,26 +5,14 @@ import userEvent from '@testing-library/user-event';
 import { SettingsModal } from './SettingsModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import type { AppConfig } from 'app-shared/types/AppConfig';
-import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
 import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
 import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 import type { SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
 import { typedLocalStorage } from '@studio/pure-functions';
-
-jest.mock('app-development/hooks/mutations/useAppConfigMutation');
-
-const updateAppConfigMutation = jest.fn();
-const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
-  typeof useAppConfigMutation
->;
-mockUpdateAppConfigMutation.mockReturnValue({
-  mutate: updateAppConfigMutation,
-} as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
