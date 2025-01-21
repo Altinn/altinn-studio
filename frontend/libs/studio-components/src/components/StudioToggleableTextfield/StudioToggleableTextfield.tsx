@@ -1,9 +1,9 @@
 import React, { forwardRef, useEffect, useState } from 'react';
-
 import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
 import type { StudioPropertyButtonProps } from '../StudioProperty';
 import { StudioProperty } from '../StudioProperty';
 import { KeyVerticalIcon } from '@studio/icons';
+import classes from './StudioToggleableTextfield.module.css';
 
 export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
@@ -78,6 +78,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
           onClick={toggleViewMode}
           title={viewProps.title}
           value={viewProps.value}
+          className={classes.propertyButton}
         />
       );
 
