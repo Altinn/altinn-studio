@@ -155,13 +155,13 @@ describe('InputPopover', () => {
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
 
-    const errorMessage = screen.queryByText(textMock('ux_editor.pages_error_length'));
+    const errorMessage = screen.queryByText(textMock('validation_errors.name_invalid'));
     expect(errorMessage).not.toBeInTheDocument();
 
     const longWord = '123456789012345678901234567890';
     await user.type(input, longWord);
 
-    const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_length'));
+    const errorMessageAfter = screen.getByText(textMock('validation_errors.name_invalid'));
     expect(errorMessageAfter).toBeInTheDocument();
   });
 
@@ -173,13 +173,13 @@ describe('InputPopover', () => {
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
 
-    const errorMessage = screen.queryByText(textMock('ux_editor.pages_error_format'));
+    const errorMessage = screen.queryByText(textMock('validation_errors.name_invalid'));
     expect(errorMessage).not.toBeInTheDocument();
 
     const illegalWord = ',,,';
     await user.type(input, illegalWord);
 
-    const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_format'));
+    const errorMessageAfter = screen.getByText(textMock('validation_errors.name_invalid'));
     expect(errorMessageAfter).toBeInTheDocument();
   });
 
