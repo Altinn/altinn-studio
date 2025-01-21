@@ -17,3 +17,7 @@
   flex-direction: row;
   gap: var(--fds-spacing-3);
 }
+
+.displayTitle {
+  padding-inline: var(--fds-spacing-5);
+}
