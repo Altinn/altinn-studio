@@ -62,6 +62,7 @@ export const ComponentMainConfig = ({
               <Accordion.Content>
                 <Summary2Override
                   overrides={component.overrides}
+                  target={component.target}
                   onChange={handleOverridesChange}
                 />
               </Accordion.Content>
