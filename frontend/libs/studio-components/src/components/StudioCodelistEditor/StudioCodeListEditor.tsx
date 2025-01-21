@@ -1,5 +1,5 @@
 import type { CodeList } from './types/CodeList';
-import type { ReactElement } from 'react';
+import { ReactElement, useId, useState } from 'react';
 import React, { useMemo, useRef, useCallback } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
@@ -27,6 +27,8 @@ import type { TextResource } from '../../types/TextResource';
 import { usePropState } from '@studio/hooks';
 import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
+import { StudioNativeSelect } from '../StudioNativeSelect';
+import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -147,6 +149,7 @@ function CodeListTable(props: CodeListTableProps): ReactElement {
 
 function EmptyCodeListTable(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  return null;
   return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
@@ -247,7 +250,7 @@ function AddButton({ onClick, codeList }: AddButtonProps): ReactElement {
 
 function AddButtonGroup({ onClick }: AddButtonProps): ReactElement {
   return (
-    <div className={classes.codeListEditor}>
+    <div className={classes.addButtonGroup}>
       <StudioButton onClick={() => onClick('string')} variant='primary' icon={<PlusIcon />}>
         Lag kodeliste med tekst-verdier (anbefalt)
       </StudioButton>
@@ -258,6 +261,30 @@ function AddButtonGroup({ onClick }: AddButtonProps): ReactElement {
         Lag kodeliste med boolske verdier
       </StudioButton>
     </div>
+  );
+}
+
+function AddButtonWithDropDown({ onClick }): ReactElement {
+  const { texts } = useStudioCodeListEditorContext();
+  const id = useId();
+  const [valueType, setValueType] = useState('string');
+
+  return (
+    <>
+      <div className={classes.selectContainer}>
+        <StudioLabelAsParagraph size='sm' htmlFor={id}>
+          Velg hvilken type verdiene i kodelisten skal ha:
+        </StudioLabelAsParagraph>
+        <StudioNativeSelect name={id} onChange={(event) => setValueType(event.target.value)}>
+          <option value='string'>Tekst (anbefalt)</option>
+          <option value='number'>Tall</option>
+          <option value='boolean'>Boolsk</option>
+        </StudioNativeSelect>
+      </div>
+      <StudioButton onClick={() => onClick(valueType)} variant='secondary' icon={<PlusIcon />}>
+        {texts.add}
+      </StudioButton>
+    </>
   );
 }
 

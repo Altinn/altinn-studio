@@ -19,7 +19,6 @@ export const emptyBooleanItem: CodeListItem = {
 };
 
 export function addEmptyCodeListItem(codeList: CodeList, valueType?): CodeList {
-  console.log(valueType);
   const emptyItem: CodeListItem = valueType
     ? getEmptyItemForEmptyCodeList(valueType)
     : getEmptyItemForExistingCodeList(codeList);
