@@ -476,7 +476,7 @@ public class AppMetadataTest
         var appMetadataObj = await appMetadata.GetApplicationMetadata();
         string serialized = JsonSerializer.Serialize(appMetadataObj, _jsonSerializerOptions);
         serialized = serialized.Replace(
-            typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString(),
+            ApplicationMetadata.LibVersion ?? throw new Exception("Couldn't get library version"),
             "--AltinnNugetVersion--"
         );
 
