@@ -15,6 +15,8 @@ jobs:
   check-quartz-update:
     name: Check Quartz update
     runs-on: ubuntu-latest
+    env:
+      tables-file: backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -48,10 +50,11 @@ jobs:
           mkdir qdwn
           curl -L -o qdwn/quartz.zip $download_url && unzip qdwn/quartz.zip -d qdwn && rm qdwn/quartz.zip
 
-          diff_output=$(diff -b backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql qdwn/database/tables/tables_postgres.sql || true)
+          diff_output=$(diff -b ${{ env.tables-file }} qdwn/database/tables/tables_postgres.sql || true)
 
           if [ -n "$diff_output" ]; then
-            echo "Tabled file is not up to date"
+            echo "Quartz version that you are trying to update to requires new database migration scripts."
+            echo "Please add a new migration and edit the tables-file environment variable in the workflow file."
             echo $diff_output
             exit 1;
           else
