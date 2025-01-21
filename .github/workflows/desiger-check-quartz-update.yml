@@ -24,7 +24,7 @@ jobs:
       - name: Check if quartz library is updated
         id: check-quartz-update
         run: |
-          diff=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version)
+          diff=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version || true)
           if [ -n "$diff" ]; then
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
