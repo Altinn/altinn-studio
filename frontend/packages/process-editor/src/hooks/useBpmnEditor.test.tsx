@@ -250,7 +250,7 @@ function renderWithBpmnProviders(
 }
 
 async function setupWithBpmnContext(): Promise<
-  RenderHookResult<UseBpmnEditorAndDetailsResult, void>
+  RenderHookResult<UseBpmnEditorAndContextResult, void>
 > {
   const wrapper = ({ children }) => renderWithBpmnProviders(children);
   const utils = renderHook(() => useBpmnEditorAndContext(), { wrapper });
@@ -261,12 +261,12 @@ async function setupWithBpmnContext(): Promise<
   return utils;
 }
 
-type UseBpmnEditorAndDetailsResult = {
+type UseBpmnEditorAndContextResult = {
   bpmnEditor: UseBpmnEditorResult;
   bpmnContext: Partial<BpmnContextProps>;
 };
 
-const useBpmnEditorAndContext = (): UseBpmnEditorAndDetailsResult => {
+const useBpmnEditorAndContext = (): UseBpmnEditorAndContextResult => {
   const bpmnEditor = useBpmnEditor();
   const bpmnContext = useBpmnContext();
   return { bpmnEditor, bpmnContext };
