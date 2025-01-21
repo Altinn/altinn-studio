@@ -43,7 +43,7 @@ export const ComponentMainConfig = ({
         <>
           <div className={classes.componentMainConfig}>
             <StudioHeading size='2xs'>
-              Hovedinnstillinger
+              {t('ux_editor.component_properties.main_configuration')}
               <RequiredIndicator />
             </StudioHeading>
             <Summary2Target target={component.target} onChange={handleTargetChange} />
