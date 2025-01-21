@@ -8,19 +8,23 @@ type EditColumnElementContentProps = {
   title: string;
   setTitle: (title: string) => void;
   cellContent: string;
-  disableCellContent?: boolean;
 };
 
 export const EditColumnElementContent = ({
   title,
   setTitle,
   cellContent,
-  disableCellContent,
 }: EditColumnElementContentProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const { t } = useTranslation();
 
   const errorMessage = t('ux_editor.properties_panel.subform_table_columns.column_title_error');
+
+  const displayCellContent = cellContent
+    ? typeof cellContent === 'object'
+      ? (cellContent as { field: string }).field
+      : cellContent
+    : '';
 
   return (
     <div>
@@ -42,15 +46,12 @@ export const EditColumnElementContent = ({
         />
       )}
 
-      {/* This is disable for now, and maybe will show it with new design for multiple data model binding  in a separate issue */}
-      {!disableCellContent && (
-        <StudioDisplayTile
-          className={classes.componentCellContent}
-          label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
-          value={cellContent}
-          showPadlock={false}
-        />
-      )}
+      <StudioDisplayTile
+        className={classes.componentCellContent}
+        label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
+        value={displayCellContent}
+        showPadlock={false}
+      />
     </div>
   );
 };

@@ -66,6 +66,7 @@ export const EditColumnElement = ({
   >([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
   const [selectedBindingKey, setSelectedBindingKey] = useState<string>();
+  const [selectedBindingField, setSelectedBindingField] = useState<string | undefined>(undefined);
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (!selectedComponent?.dataModelBindings) return;
@@ -120,9 +121,18 @@ export const EditColumnElement = ({
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
     setTableColumn(updatedTableColumn);
+    setSelectedBindingField(binding.field);
   };
 
-  const handleBindingChange = (value: string[]) => setSelectedBindingKey(value[0]);
+  const handleBindingChange = (value: string[]) => {
+    setSelectedBindingKey(value[0]);
+
+    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    if (!selectedComponent) return;
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
+    setSelectedBindingField(binding?.field); // Update the binding field when it changes
+  };
 
   const availableComponents = getComponentsForSubformTable(formLayouts);
   const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
@@ -141,10 +151,9 @@ export const EditColumnElement = ({
         />
         {tableColumn.headerContent && (
           <EditColumnElementContent
-            cellContent={tableColumn.cellContent.query}
+            cellContent={selectedBindingField}
             title={title}
             setTitle={setTitle}
-            disableCellContent={selectedComponentBindings.length > 1}
           />
         )}
         <div className={classes.buttons}>
