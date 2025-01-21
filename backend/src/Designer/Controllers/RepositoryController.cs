@@ -63,7 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("search")]
         public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)
         {
-            SearchOptions searchOptions = new SearchOptions {Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit};
+            SearchOptions searchOptions = new SearchOptions { Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit };
             SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
             return repositories;
         }
