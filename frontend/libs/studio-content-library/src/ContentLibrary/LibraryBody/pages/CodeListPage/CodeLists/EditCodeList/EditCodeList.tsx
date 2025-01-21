@@ -111,24 +111,11 @@ function EditCodeListTitle({
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
-      inputProps={{
-<<<<<<< HEAD
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-=======
->>>>>>> 00f468961 (add import)
-        title: t('app_content_library.code_lists.code_list_edit_id_title', {
-          codeListName: codeListTitle,
-        }),
-        value: codeListTitle,
-        onBlur: (event) => handleUpdateCodeListId(event.target.value),
-        size: 'small',
-      }}
-      viewProps={{
-        value: codeListTitle,
-        title: t('app_content_library.code_lists.code_list_view_id_title', {
-          codeListName: codeListTitle,
-        }),
-      }}
+      onBlur={(event) => handleUpdateCodeListId(event.target.value)}
+      title={t('app_content_library.code_lists.code_list_view_id_title', {
+        codeListName: codeListTitle,
+      })}
+      value={codeListTitle}
     />
   ) : (
     <StudioDisplayTile

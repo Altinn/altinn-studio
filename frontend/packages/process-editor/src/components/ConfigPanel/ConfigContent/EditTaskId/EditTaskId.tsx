@@ -45,15 +45,8 @@ export const EditTaskId = (): React.ReactElement => {
     <StudioToggleableTextfield
       customValidation={validateBpmnTaskId}
       label={t('process_editor.configuration_panel_change_task_id')}
-      inputProps={{
-        label: t('process_editor.configuration_panel_change_task_id'),
-        value: bpmnDetails.id,
-        onBlur: (event) => handleOnTaskIdBlur(event),
-        size: 'small',
-      }}
-      viewProps={{
-        value: bpmnDetails.id,
-      }}
+      onBlur={handleOnTaskIdBlur}
+      value={bpmnDetails.id}
     />
   );
 };
