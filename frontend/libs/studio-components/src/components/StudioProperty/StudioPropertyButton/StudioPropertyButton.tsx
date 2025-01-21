@@ -51,14 +51,16 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
         aria-readonly={readOnly ? true : null}
         className={className}
         fullWidth
-        icon={icon}
         ref={ref}
         title={property}
         variant='tertiary'
         {...rest}
       >
         <span className={classes.content}>
-          <span className={classes.property}>{property}</span>
+          <span className={classes.property}>
+            {icon}
+            {property}
+          </span>
           <span className={classes.value}>{value}</span>
         </span>
         {readOnly ? (

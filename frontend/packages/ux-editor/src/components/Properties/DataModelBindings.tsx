@@ -68,7 +68,7 @@ export const DataModelBindings = (): React.JSX.Element => {
 
   return (
     dataModelBindingsProperties && (
-      <div className={classes.container}>
+      <>
         {(formItem.type === ComponentType.FileUploadWithTag ||
           formItem.type === ComponentType.FileUpload) &&
           isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
@@ -86,32 +86,26 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        <div className={classes.wrapper}>
-          <StudioProperty.Group>
-            {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
-              return (
-                <div
-                  className={classes.dataModelBindings}
-                  key={`${formItem.id}-data-model-${propertyKey}`}
-                >
-                  <EditDataModelBinding
-                    component={formItem}
-                    handleComponentChange={async (updatedComponent, mutateOptions) => {
-                      handleUpdate(updatedComponent);
-                      debounceSave(formItemId, updatedComponent, mutateOptions);
-                    }}
-                    editFormId={formItemId}
-                    renderOptions={{
-                      key: propertyKey,
-                      label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </StudioProperty.Group>
-        </div>
-      </div>
+        <StudioProperty.Group>
+          {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
+            return (
+              <EditDataModelBinding
+                key={`${formItem.id}-data-model-${propertyKey}`}
+                component={formItem}
+                handleComponentChange={async (updatedComponent, mutateOptions) => {
+                  handleUpdate(updatedComponent);
+                  debounceSave(formItemId, updatedComponent, mutateOptions);
+                }}
+                editFormId={formItemId}
+                renderOptions={{
+                  key: propertyKey,
+                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+                }}
+              />
+            );
+          })}
+        </StudioProperty.Group>
+      </>
     )
   );
 };
