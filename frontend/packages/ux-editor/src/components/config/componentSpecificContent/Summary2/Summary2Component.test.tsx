@@ -43,7 +43,8 @@ describe('Summary2ComponentTargetSelector', () => {
     render();
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[0].tasks[0]);
+    expect(select).toHaveValue('');
+    expect(select).toHaveTextContent(layoutSetsMock.sets[0].id);
   });
 
   it('should select the task id from the target when the task id of the target is defined', async () => {
