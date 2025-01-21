@@ -11,6 +11,7 @@ import { app, org } from '@studio/testing/testids';
 import {
   layoutSet1NameMock,
   layoutSet2NameMock,
+  layoutSetsExtendedMock,
   layoutSetsMock,
 } from '../../../testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
@@ -83,6 +84,7 @@ const render = (component: FormItem) => {
     [layout1NameMock]: layoutMock,
   });
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   renderWithProviders(
     <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />,
     {
