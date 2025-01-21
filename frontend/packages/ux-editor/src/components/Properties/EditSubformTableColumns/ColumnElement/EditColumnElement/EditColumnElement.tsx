@@ -80,14 +80,14 @@ export const EditColumnElement = ({
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
     const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
-    const binding =
-      selectedComponent && selectedBindingKey
-        ? convertDataBindingToInternalFormat(selectedComponent, selectedBindingKey)
-        : null;
+    if (!selectedComponent || !selectedBindingKey) return;
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, selectedBindingKey);
+
     onEdit({
       ...tableColumn,
       headerContent: uniqueTitleId,
-      cellContent: { query: binding?.field || '' },
+      cellContent: { query: binding?.field },
     });
   };
 
