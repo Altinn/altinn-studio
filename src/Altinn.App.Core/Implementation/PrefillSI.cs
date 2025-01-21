@@ -280,8 +280,8 @@ public class PrefillSI : IPrefill
     {
         foreach (KeyValuePair<string, string> keyValuePair in dictionary)
         {
-            var source = keyValuePair.Value;
-            var target = keyValuePair.Key.Replace("-", string.Empty);
+            string source = keyValuePair.Value;
+            string target = keyValuePair.Key.Replace("-", string.Empty);
 
             if (string.IsNullOrEmpty(source))
             {
