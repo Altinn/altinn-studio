@@ -9,6 +9,7 @@ export type StudioPageHeaderHeaderLinkProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
   renderLink: (props: HTMLAttributes<HTMLAnchorElement>) => ReactElement;
+  isBeta?: boolean;
 } & HTMLAttributes<HTMLAnchorElement>;
 
 export function StudioPageHeaderHeaderLink({
@@ -16,11 +17,13 @@ export function StudioPageHeaderHeaderLink({
   variant,
   className: givenClass,
   renderLink,
+  isBeta,
 }: StudioPageHeaderHeaderLinkProps): ReactElement {
   const className = cn(
     commonClasses.linkOrButton,
     commonClasses[variant],
     commonClasses[color],
+    isBeta && commonClasses['betaContainer'],
     givenClass,
     linkClasses.link,
   );

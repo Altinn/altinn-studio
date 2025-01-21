@@ -7,18 +7,8 @@ type Story = StoryFn<typeof StudioBetaTag>;
 const meta: Meta = {
   title: 'Components/StudioBetaTag',
   component: StudioBetaTag,
-  argTypes: {
-    size: {
-      control: 'radio',
-      options: ['sm', 'md', 'lg'],
-    },
-  },
 };
 
-export const Preview: Story = (args): React.ReactElement => <StudioBetaTag {...args} />;
-
-Preview.args = {
-  size: 'sm',
-};
+export const Preview: Story = (): React.ReactElement => <StudioBetaTag />;
 
 export default meta;

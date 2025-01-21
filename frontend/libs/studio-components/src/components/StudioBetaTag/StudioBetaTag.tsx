@@ -1,12 +1,12 @@
 import React from 'react';
-import { StudioTag, type StudioTagProps } from '../StudioTag';
+import commonClasses from '../StudioPageHeader/common.module.css';
+import cn from 'classnames';
 
-export type StudioBetaTagProps = Omit<StudioTagProps, 'color' | 'children'>;
+export type StudioBetaTag = {
+  className?: string;
+};
 
-export const StudioBetaTag = ({ size = 'sm', ...rest }: StudioBetaTagProps) => {
-  return (
-    <StudioTag color='info' size={size} {...rest}>
-      Beta
-    </StudioTag>
-  );
+export const StudioBetaTag = ({ className: givenClass }: StudioBetaTag): React.ReactElement => {
+  const className = cn(commonClasses['isBeta'], givenClass);
+  return <div className={className}>Beta</div>;
 };

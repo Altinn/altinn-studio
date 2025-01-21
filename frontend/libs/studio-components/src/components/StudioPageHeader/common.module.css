@@ -38,3 +38,16 @@
 .linkOrButton.preview.light:hover {
   background-color: var(--studio-button-preview-light);
 }
+
+.betaContainer {
+  display: flex;
+  align-items: center;
+}
+
+.isBeta {
+  background-color: var(--fds-semantic-surface-info-subtle);
+  color: var(--fds-semantic-text-neutral-default);
+  border-radius: var(--fds-border_radius-large);
+  padding: var(--fds-spacing-1);
+  font-size: var(--fds-sizing-3);
+}

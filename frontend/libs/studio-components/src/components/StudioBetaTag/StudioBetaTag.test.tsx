@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { StudioBetaTag, type StudioBetaTagProps } from './StudioBetaTag';
+import { render, RenderResult, screen } from '@testing-library/react';
+import { StudioBetaTag } from './StudioBetaTag';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 describe('StudioBetaTag', () => {
@@ -14,6 +14,6 @@ describe('StudioBetaTag', () => {
   });
 });
 
-const renderStudioBetaTag = (props: Partial<StudioBetaTagProps> = {}) => {
+const renderStudioBetaTag = (props: Partial<StudioBetaTag> = {}): RenderResult => {
   return render(<StudioBetaTag {...props} />);
 };
