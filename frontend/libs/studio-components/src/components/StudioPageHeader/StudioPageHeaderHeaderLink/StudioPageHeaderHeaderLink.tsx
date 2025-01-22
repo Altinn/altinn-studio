@@ -10,7 +10,10 @@ export type StudioPageHeaderHeaderLinkProps = {
   variant: StudioPageHeaderVariant;
   renderLink: (props: HTMLAttributes<HTMLAnchorElement>) => ReactElement;
   isBeta?: boolean;
+  'aria-description'?: string;
 } & HTMLAttributes<HTMLAnchorElement>;
+
+export const defaultAriaDescription = 'This feature is in beta';
 
 export function StudioPageHeaderHeaderLink({
   color,
@@ -18,6 +21,7 @@ export function StudioPageHeaderHeaderLink({
   className: givenClass,
   renderLink,
   isBeta,
+  'aria-description': ariaDescription = defaultAriaDescription,
 }: StudioPageHeaderHeaderLinkProps): ReactElement {
   const className = cn(
     commonClasses.linkOrButton,
@@ -27,7 +31,10 @@ export function StudioPageHeaderHeaderLink({
     givenClass,
     linkClasses.link,
   );
-  const props: HTMLAttributes<HTMLAnchorElement> = { className };
+  const props: HTMLAttributes<HTMLAnchorElement> = {
+    className,
+    'aria-description': isBeta ? ariaDescription : undefined,
+  };
   return renderLink(props);
 }
 

@@ -42,6 +42,7 @@
 .betaContainer {
   display: flex;
   align-items: center;
+  gap: var(--fds-spacing-1);
 }
 
 .isBeta {

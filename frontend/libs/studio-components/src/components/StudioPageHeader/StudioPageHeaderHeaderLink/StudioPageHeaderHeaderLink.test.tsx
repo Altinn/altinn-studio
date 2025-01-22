@@ -3,7 +3,7 @@ import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { StudioPageHeaderHeaderLinkProps } from './StudioPageHeaderHeaderLink';
-import { StudioPageHeaderHeaderLink } from './StudioPageHeaderHeaderLink';
+import { defaultAriaDescription, StudioPageHeaderHeaderLink } from './StudioPageHeaderHeaderLink';
 
 // Test data:
 const linkText: string = 'Text';
@@ -22,6 +22,28 @@ describe('StudioPageHeaderHeaderLink', () => {
   it('Renders the link', () => {
     renderStudioPageHeaderHeaderLink();
     expect(screen.getByRole('link', { name: linkText })).toBeInTheDocument();
+  });
+
+  it('Renders the link with betaContainer when isBeta is true', () => {
+    renderStudioPageHeaderHeaderLink({ isBeta: true });
+    expect(screen.getByRole('link', { name: linkText })).toHaveClass('betaContainer');
+  });
+
+  it('Renders with default aria-description by default when isBeta is true', () => {
+    renderStudioPageHeaderHeaderLink({ isBeta: true });
+    expect(screen.getByRole('link', { name: linkText })).toHaveAttribute(
+      'aria-description',
+      defaultAriaDescription,
+    );
+  });
+
+  it('Renders with custom aria-description when provided', () => {
+    const customAriaDescription = 'customAriaDescription';
+    renderStudioPageHeaderHeaderLink({ isBeta: true, 'aria-description': customAriaDescription });
+    expect(screen.getByRole('link', { name: linkText })).toHaveAttribute(
+      'aria-description',
+      customAriaDescription,
+    );
   });
 
   it('Passes the colour and variant classes to the link', () => {

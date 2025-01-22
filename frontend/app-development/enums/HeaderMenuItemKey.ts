@@ -5,6 +5,5 @@ export enum HeaderMenuItemKey {
   Text = 'top_menu.texts',
   Deploy = 'top_menu.deploy',
   ProcessEditor = 'top_menu.process_editor',
-  ContentLibrary = 'top_menu.content_library',
   None = '',
 }

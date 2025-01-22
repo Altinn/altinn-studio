@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
-import { StudioPageHeader } from '@studio/components';
+import { StudioBetaTag, StudioPageHeader } from '@studio/components';
 import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
@@ -46,7 +46,7 @@ const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactEle
             >
               {menuItem.name}
             </span>
-            {menuItem.isBeta && <span className={classes.betaTag}>Beta</span>}
+            {menuItem.isBeta && <StudioBetaTag />}
           </NavLink>
         )}
       />
