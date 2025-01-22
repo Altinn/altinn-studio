@@ -51,7 +51,7 @@ describe('Navigation', () => {
     });
   });
 
-  it('renders "beta" tag for menu items that are tagges as beta', () => {
+  it('renders isBeta className for menu items that are tagged as beta', () => {
     const betaItems = topBarMenuItem.filter((item) => !!item.isBeta);
 
     // ensure any feature flags are toggled on
@@ -62,7 +62,7 @@ describe('Navigation', () => {
     });
 
     betaItems.forEach((link) => {
-      expect(screen.getByRole('link', { name: `${textMock(link.key)} Beta` })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: textMock(link.key) })).toHaveClass('isBeta');
     });
   });
 });
