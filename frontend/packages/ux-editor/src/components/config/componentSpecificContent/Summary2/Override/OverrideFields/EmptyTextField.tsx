@@ -24,7 +24,7 @@ export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
   if (!open) {
     return (
       <StudioProperty.Button
-        className={classes.button}
+        className={classes.propertyButton}
         value={override.emptyFieldText}
         property={t('ux_editor.component_properties.summary.override.empty_field_text')}
         onClick={() => setOpen(true)}
