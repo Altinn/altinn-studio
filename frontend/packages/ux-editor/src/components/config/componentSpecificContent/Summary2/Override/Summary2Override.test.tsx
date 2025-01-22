@@ -12,7 +12,7 @@ import {
   layoutMock,
 } from '../../../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
+import { layoutSet1NameMock, layoutSetsExtendedMock } from '../../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../../testing/mocks';
 
 describe('Summary2Override', () => {
@@ -75,7 +75,7 @@ describe('Summary2Override', () => {
 
   it('should be able to change override componentId', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1' }] });
+    render({ overrides: [{ componentId: '2' }], target: { type: 'layoutSet' } });
     const componentId = component1IdMock;
     await userEvent.click(overrideCollapsedButton(1));
     await user.click(overrideComponentSelect());
@@ -395,8 +395,9 @@ const overrideComponentSelect = () =>
     name: textMock('ux_editor.component_properties.summary.override.choose_component'),
   });
 
-const defaultProps = {
+const defaultProps: Summary2OverrideProps = {
   overrides: [],
+  target: {},
   onChange: jest.fn(),
 };
 const render = (props?: Partial<Summary2OverrideProps>) => {
@@ -404,6 +405,7 @@ const render = (props?: Partial<Summary2OverrideProps>) => {
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
   });
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   renderWithProviders(<Summary2Override {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {
