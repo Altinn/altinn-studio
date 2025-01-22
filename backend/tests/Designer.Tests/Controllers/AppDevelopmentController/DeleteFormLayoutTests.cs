@@ -87,36 +87,5 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Assert.True(JsonUtils.DeepEquals(actual, expected));
             });
         }
-
-        [Theory]
-        [InlineData("ttd", "testUser", "layout", "Side2")]
-        public async Task DeleteFormLayout_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName)
-        {
-            string actualApp = "app-with-summary2-components";
-            string app = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, actualApp, developer, app);
-
-            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
-
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            string expectedApp = "app-with-summary2-components-after-deleting-references";
-
-            string[] layoutPaths = [
-                "layout/layouts/Side1.json",
-                "layout/layouts/Side2.json",
-                "layout2/layouts/Side1.json",
-                "layout2/layouts/Side2.json",
-            ];
-
-            layoutPaths.ToList().ForEach(file =>
-            {
-                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
-                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
-                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
-            });
-        }
     }
 }

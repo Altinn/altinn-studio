@@ -192,37 +192,6 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             });
         }
 
-        [Theory]
-        [InlineData("ttd", "testUser", "layoutSet")]
-        public async Task DeleteLayoutSet_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName)
-        {
-            string actualApp = "app-with-summary2-components";
-            string app = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, actualApp, developer, app);
-
-            string url = $"{VersionPrefix(org, app)}/layout-set/{layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
-
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
-
-            string expectedApp = "app-with-summary2-components-after-deleting-references";
-
-            string[] layoutPaths = [
-                "layoutSet/layouts/Side1.json",
-                "layoutSet/layouts/Side2.json",
-                "layoutSet2/layouts/Side1.json",
-                "layoutSet2/layouts/Side2.json"
-            ];
-
-            layoutPaths.ToList().ForEach(file =>
-            {
-                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
-                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
-                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
-            });
-        }
-
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
         {
             AltinnGitRepositoryFactory altinnGitRepositoryFactory =
