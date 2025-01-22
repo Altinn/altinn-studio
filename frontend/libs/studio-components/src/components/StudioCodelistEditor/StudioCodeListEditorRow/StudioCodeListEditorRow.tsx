@@ -125,7 +125,7 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCe
     event.target.reportValidity();
   }, []);
 
-  const shouldRenderNumberfield = typeof value === 'number' || value === undefined; // Empty numberfield produces undefined
+  const shouldRenderNumberfield = typeof value === 'number';
   const shouldRenderCheckbox = typeof value === 'boolean';
 
   if (shouldRenderNumberfield) {
@@ -167,6 +167,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number): void => {
+        if (isNaN(numberValue)) return;
         onChange(numberValue);
       },
       [onChange],

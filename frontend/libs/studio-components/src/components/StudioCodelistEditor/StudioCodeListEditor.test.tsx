@@ -543,6 +543,28 @@ describe('StudioCodeListEditor', () => {
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValues[0], value: false }]);
     });
+
+    it('Numberfield does not change codelist when given string value', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, 'not-a-number');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
+
+    it('Numberfield does not change codelist when given empty input', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.clear(valueInput);
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
   });
 });
 
