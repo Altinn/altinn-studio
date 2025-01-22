@@ -1,5 +1,5 @@
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { ArrayUtils } from '@studio/pure-functions';
@@ -21,7 +21,7 @@ export const useUpdateOptionListIdMutation = (org: string, app: string) => {
       }));
     },
     onSuccess: ({ optionListId, newOptionListId }) => {
-      const oldData: OptionsListsResponse = queryClient.getQueryData([
+      const oldData: OptionListsResponse = queryClient.getQueryData([
         QueryKey.OptionLists,
         org,
         app,
@@ -38,10 +38,10 @@ export const useUpdateOptionListIdMutation = (org: string, app: string) => {
 const changeIdAndSortCacheData = (
   oldId: string,
   newId: string,
-  oldData: OptionsListsResponse,
-): OptionsListsResponse => {
+  oldData: OptionListsResponse,
+): OptionListsResponse => {
   const oldOptionList = oldData.find((optionList) => optionList.title === oldId);
-  const newOptionLists: OptionsListsResponse = ArrayUtils.replaceByPredicate(
+  const newOptionLists: OptionListsResponse = ArrayUtils.replaceByPredicate(
     oldData,
     (optionList) => optionList.title === oldId,
     { ...oldOptionList, title: newId },

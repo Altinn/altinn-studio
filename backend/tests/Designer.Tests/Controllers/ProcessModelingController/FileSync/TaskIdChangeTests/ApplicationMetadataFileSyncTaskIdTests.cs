@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -49,14 +48,14 @@ public class ApplicationMetadataFileSyncTaskIdTests : DesignerEndpointsTestsBase
         form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
 
         using var response = await HttpClient.PutAsync(url, form);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
 
         ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.TaskId == metadata.TaskIdChange.OldId);
-        applicationMetadata.DataTypes.Should().Contain(dataType => dataType.TaskId == metadata.TaskIdChange.NewId);
+        Assert.DoesNotContain(applicationMetadata.DataTypes, dataType => dataType.TaskId == metadata.TaskIdChange.OldId);
+        Assert.Contains(applicationMetadata.DataTypes, dataType => dataType.TaskId == metadata.TaskIdChange.NewId);
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()

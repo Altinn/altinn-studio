@@ -31,14 +31,4 @@ describe('StudioDisplayTile', () => {
     render(<StudioDisplayTile {...defaultProps} showPadlock={false} />);
     expect(screen.queryByTestId(padlockIconTestId)).not.toBeInTheDocument();
   });
-
-  it('should not assign prefix icon className by default', () => {
-    render(<StudioDisplayTile {...defaultProps} />);
-    expect(screen.getByLabelText(label)).not.toHaveClass('prefixIcon');
-  });
-
-  it('should assign prefix icon className when prefix icon is set', () => {
-    render(<StudioDisplayTile {...defaultProps} icon={<svg />} />);
-    expect(screen.getByLabelText(label)).toHaveClass('prefixIcon');
-  });
 });

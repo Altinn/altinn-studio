@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Events;
 
 public class LayoutSetDeletedEvent : INotification
 {
-    public string LayoutSetId { get; set; }
     public AltinnRepoEditingContext EditingContext { get; set; }
+    public string LayoutSetName { get; set; }
 }
