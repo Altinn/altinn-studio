@@ -1,0 +1,12 @@
+githubRepoOwner: Altinn
+githubRepoName: altinn-studio
+githubHost: github.com
+githubRemote: origin
+githubBranch: vite-poc
+requireChecks: true
+requireApproval: true
+mergeMethod: rebase
+mergeQueue: false
+forceFetchTags: false
+showPrTitlesInStack: false
+branchPushIndividually: false
