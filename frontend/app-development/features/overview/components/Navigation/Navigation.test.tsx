@@ -21,7 +21,7 @@ describe('Navigation', () => {
     });
 
     getFilteredMenuListForOverviewPage().forEach((link) => {
-      expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
     });
   });
 
@@ -32,9 +32,9 @@ describe('Navigation', () => {
 
     getFilteredMenuListForOverviewPage().forEach((link) => {
       if (link.featureFlagName) {
-        expect(screen.queryByRole('link', { name: getLinkName(link) })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: textMock(link.key) })).not.toBeInTheDocument();
       } else {
-        expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
       }
     });
   });
@@ -47,7 +47,7 @@ describe('Navigation', () => {
     });
 
     getFilteredMenuListForOverviewPage().forEach((link) => {
-      expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
     });
   });
 
@@ -81,14 +81,6 @@ describe('Navigation', () => {
     });
   });
 });
-
-const getLinkName = (linkItem: HeaderMenuItem): string => {
-  let name = textMock(linkItem.key);
-  if (linkItem.isBeta) {
-    name = `${name} Beta`;
-  }
-  return name;
-};
 
 const getFeatureFlags = (menuItems: HeaderMenuItem[]) => {
   return menuItems.filter((item) => !!item.featureFlagName).map((item) => item.featureFlagName);
