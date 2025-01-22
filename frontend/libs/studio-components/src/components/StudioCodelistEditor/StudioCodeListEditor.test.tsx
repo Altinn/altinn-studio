@@ -499,7 +499,7 @@ describe('StudioCodeListEditor', () => {
       expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
     });
 
-    it('Saves codelist with string value when the value field is a string', async () => {
+    it('Saves changed item value as string when initial value was string', async () => {
       const user = userEvent.setup();
       renderCodeListEditor();
 
@@ -516,7 +516,7 @@ describe('StudioCodeListEditor', () => {
       ]);
     });
 
-    it('Saves codelist with number value when the value field is a number', async () => {
+    it('Saves changed item value as number when initial value was number', async () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: codeListWithNumberValues });
 
@@ -532,7 +532,7 @@ describe('StudioCodeListEditor', () => {
       ]);
     });
 
-    it('Saves codelist with boolean value when the value field is a boolean', async () => {
+    it('Saves changed item value as boolean when initial value was boolean', async () => {
       const user = userEvent.setup();
       const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleanValues[0]];
       renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });

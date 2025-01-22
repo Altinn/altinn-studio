@@ -125,7 +125,7 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCe
     event.target.reportValidity();
   }, []);
 
-  const shouldRenderNumberfield = typeof value === 'number' || value === undefined; // Undefined values only come from empty number field
+  const shouldRenderNumberfield = typeof value === 'number' || value === undefined; // Empty numberfield produces undefined
   const shouldRenderCheckbox = typeof value === 'boolean';
 
   if (shouldRenderNumberfield) {

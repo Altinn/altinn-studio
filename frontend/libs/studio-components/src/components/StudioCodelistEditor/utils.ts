@@ -1,6 +1,5 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
-import type { CodeListItemValue } from './types/CodeListItemValue';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export const emptyStringItem: CodeListItem = {
@@ -26,8 +25,7 @@ export function addEmptyCodeListItem(codeList: CodeList): CodeList {
 function getEmptyItem(codeList: CodeList): CodeListItem {
   if (codeList.length === 0) return emptyStringItem;
 
-  const typeOfLastValue: CodeListItemValue = getTypeOfLastValue(codeList);
-  switch (typeOfLastValue) {
+  switch (getTypeOfLastValue(codeList)) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
@@ -37,16 +35,9 @@ function getEmptyItem(codeList: CodeList): CodeListItem {
   }
 }
 
-function getTypeOfLastValue(codeList: CodeList): CodeListItemValue {
+function getTypeOfLastValue(codeList: CodeList): 'string' | 'number' | 'boolean' {
   const lastCodeListItem = codeList[codeList.length - 1];
-  switch (typeof lastCodeListItem.value) {
-    case 'number':
-      return 'number';
-    case 'boolean':
-      return 'boolean';
-    default:
-      return 'string';
-  }
+  return typeof lastCodeListItem.value;
 }
 
 function addCodeListItem(codeList: CodeList, item: CodeListItem): CodeList {
