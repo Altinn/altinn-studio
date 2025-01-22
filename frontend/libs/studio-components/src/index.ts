@@ -1,4 +1,4 @@
-import classes from './style/StudioBetaTag.module.css';
+import classes from './style/studioBetaTag.module.css';
 
 export * from './components';
 export * from './hooks';

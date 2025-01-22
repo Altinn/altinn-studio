@@ -21,6 +21,7 @@ export const topBarMenuItem: HeaderMenuItem[] = [
     icon: PencilIcon,
     repositoryTypes: [RepositoryType.App],
     group: HeaderMenuGroupKey.Tools,
+    isBeta: true,
   },
   {
     key: HeaderMenuItemKey.DataModel,
