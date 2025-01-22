@@ -25,5 +25,5 @@
 
 .buttongroup {
   display: flex;
-  gap: var(--fds-spacing-4);
+  gap: var(--fds-spacing-3);
 }
