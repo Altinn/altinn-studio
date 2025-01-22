@@ -6,6 +6,8 @@ import { type ITextResources } from 'app-shared/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
 import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
 import { getRandNumber } from '@altinn/text-editor/utils';
+import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 export const updateComponentWithSubform = (
   component: FormItem<ComponentType.Subform>,
@@ -24,22 +26,34 @@ export const filterOutTableColumn = (
   return tableColumns.filter((tableColumn: TableColumn) => tableColumn !== tableColumnToRemove);
 };
 
-export const getComponentsForSubformTable = (formLayouts: IFormLayouts): FormItem[] => {
+export const getComponentsForSubformTable = (
+  formLayouts: IFormLayouts,
+  defaultDataModel: string,
+): FormItem[] => {
   const components = Object.values(formLayouts ?? {}).flatMap((layout: IInternalLayout) =>
     getAllLayoutComponents(layout),
   );
-  return componentsWithLabelAndDataModel(components);
+
+  return componentsWithTitleAndDefaultDataModel(components, defaultDataModel);
 };
 
-const componentsWithLabelAndDataModel = (components: FormItem[]): FormItem[] => {
-  return components.filter((comp) => {
-    const hasTitle = comp.textResourceBindings?.title;
-    const hasMultipleDataModelBinding =
-      comp.dataModelBindings &&
-      Object.keys(comp.dataModelBindings).length > 0 &&
-      Object.values(comp.dataModelBindings).some((binding) => !!binding);
-    return hasTitle && hasMultipleDataModelBinding;
-  });
+const componentsWithTitleAndDefaultDataModel = (
+  components: FormItem[],
+  defaultDataModel: string,
+): FormItem[] => {
+  const hasValidDataBinding = (comp: FormItem) =>
+    Object.keys(comp.dataModelBindings ?? {}).some((binding) => {
+      const { dataType, field } = convertDataBindingToInternalFormat(comp, binding);
+      return dataType === defaultDataModel || (dataType === '' && field !== '');
+    });
+
+  return components.filter((comp) => comp.textResourceBindings?.title && hasValidDataBinding(comp));
+};
+
+export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: string): string => {
+  const layoutSet = layoutSets?.sets.find((layoutSet) => layoutSet.id === subformLayout);
+
+  return layoutSet?.dataType ?? '';
 };
 
 export const getValueOfTitleId = (titleId: string, textResources: ITextResources): string => {

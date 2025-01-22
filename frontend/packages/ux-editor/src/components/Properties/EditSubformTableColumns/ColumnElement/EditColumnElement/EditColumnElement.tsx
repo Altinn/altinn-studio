@@ -19,11 +19,13 @@ import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import {
   getComponentsForSubformTable,
+  getDefaultDataModel,
   getTitleIdForColumn,
   getValueOfTitleId,
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -57,6 +59,7 @@ export const EditColumnElement = ({
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
   const { mutate: textIdMutation } = useTextIdMutation(org, app);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const [selectedComponentBindings, setSelectedComponentBindings] = useState<
     { [key: string]: string }[]
@@ -134,7 +137,8 @@ export const EditColumnElement = ({
     setSelectedBindingField(binding?.field);
   };
 
-  const availableComponents = getComponentsForSubformTable(formLayouts);
+  const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
+  const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
   const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
 
   return (
