@@ -22,8 +22,8 @@ describe('ImagesPage', () => {
 
   it('renders an alert when no images are passed', () => {
     renderImages({ images: [], onUpdateImage: onUpdateImageMock });
-    const noImagesExistAlert = screen.getByText(textMock('app_content_library.images.no_content'));
-    expect(noImagesExistAlert).toBeInTheDocument();
+    const alert = screen.getByText(textMock('app_content_library.images.coming_soon'));
+    expect(alert).toBeInTheDocument();
   });
 
   it('calls onUpdateImagesMock when clicking the button to update', async () => {

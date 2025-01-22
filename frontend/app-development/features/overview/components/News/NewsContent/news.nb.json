@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-01-27",
+      "title": "Biblioteket er nå tilgjengelig fra menylinjen",
+      "content": "Vi har lagd et nytt bibliotek! Her finner du nå kodelistene dine. Vi jobber med å utvide biblioteket til at du kan finne eller lagre andre ting der, som bilder og tekster."
+    },
+    {
       "date": "2025-01-17",
       "title": "Nå kan du ha flere datamodeller i et prosess-steg!",
       "content": "Du kan nå koble komponenter i et prosess-steg til andre datamodeller, ikke bare til den overordnede datamodellen for steget. Dette gir deg nye muligheter til å håndtere data i appene dine."
