@@ -1,7 +1,6 @@
-import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
-import type BpmnModeler from 'bpmn-js/lib/Modeler';
+import { useEffect, useCallback } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
-import { useBpmnModeler } from './useBpmnModeler';
+import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
@@ -11,16 +10,11 @@ import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 // Wrapper around bpmn-js to Reactify it
 
-type UseBpmnViewerResult = {
-  canvasRef: MutableRefObject<HTMLDivElement>;
-  modelerRef: MutableRefObject<BpmnModeler>;
-};
+export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
-export const useBpmnEditor = (): UseBpmnViewerResult => {
+export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
-  const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
-  const { getModeler, destroyModeler } = useBpmnModeler();
   const { addAction } = useStudioRecommendedNextActionContext();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
@@ -98,14 +92,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     });
   };
 
-  useEffect(() => {
-    if (!canvasRef.current) {
-      console.log('Canvas reference is not yet available in the DOM.');
-    }
-    // GetModeler can only be fetched from this hook once since the modeler creates a
-    // new instance and will attach the same canvasRef container to all instances it fetches.
-    // Set modelerRef.current to the Context so that it can be used in other components
-    modelerRef.current = getModeler(canvasRef.current);
+  const canvasRef = useCallback((div: HTMLDivElement) => {
+    if (modelerRef.current) return;
+
+    modelerRef.current = BpmnModelerInstance.getInstance(div);
 
     initializeEditor().then(() => {
       // Wait for the initializeEditor to be initialized before attaching event listeners, to avoid trigger add.shape events on first draw
@@ -118,10 +108,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   useEffect(() => {
     // Destroy the modeler instance when the component is unmounted
     return () => {
-      destroyModeler();
+      BpmnModelerInstance.destroyInstance();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { canvasRef, modelerRef };
+  return canvasRef;
 };

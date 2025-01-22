@@ -1,4 +1,6 @@
-﻿using System.Net;
+using System;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -9,7 +11,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -53,13 +54,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(layout, savedLayout));
         }
 
         [Theory]
@@ -84,13 +85,57 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
-            JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(layout, savedLayout));
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "component", "Side2", "Input-Om7N3y")]
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId)
+        {
+            string actualApp = "app-with-summary2-components";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
+            JsonNode layoutWithDeletedComponent = JsonNode.Parse(layout);
+            JsonArray layoutArray = layoutWithDeletedComponent["data"]["layout"] as JsonArray;
+            layoutArray?.RemoveAt(0);
+
+            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            var payload = new JsonObject
+            {
+                ["componentIdsChange"] = new JsonArray() {
+                    new JsonObject
+                    {
+                        ["oldComponentId"] = componentId,
+                    }
+                },
+                ["layout"] = layoutWithDeletedComponent
+            };
+            HttpResponseMessage response = await SendHttpRequest(url, payload);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string expectedApp = "app-with-summary2-components-after-deleting-references";
+
+            string[] layoutPaths = [
+                "component/layouts/Side1.json",
+                "component/layouts/Side2.json",
+                "component2/layouts/Side1.json",
+                "component2/layouts/Side2.json"
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                Assert.True(JsonUtils.DeepEquals(actual, expected));
+            });
         }
 
         [Theory]
@@ -102,11 +147,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
             string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json").Should().BeTrue();
+            Assert.True(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json"));
             string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/texts/resource.nb.json");
             TextResource textResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
-            textResource.Resources.Should().NotContain(x => x.Id == "next");
-            textResource.Resources.Should().NotContain(x => x.Id == "back");
+            Assert.DoesNotContain(textResource.Resources, x => x.Id == "next");
+            Assert.DoesNotContain(textResource.Resources, x => x.Id == "back");
 
             var payload = new JsonObject
             {
@@ -114,12 +159,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["layout"] = JsonNode.Parse(layout)
             };
             HttpResponseMessage response = await SendHttpRequest(url, payload);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string newTextFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.nb.json");
             TextResource newTextResource = JsonSerializer.Deserialize<TextResource>(newTextFile, s_jsonOptions);
-            newTextResource.Resources.Should().ContainSingle(x => x.Id == "next");
-            newTextResource.Resources.Should().ContainSingle(x => x.Id == "back");
+            Assert.Single(newTextResource.Resources, x => x.Id == "next");
+            Assert.Single(newTextResource.Resources, x => x.Id == "back");
         }
 
         private async Task<HttpResponseMessage> SendHttpRequest(string url, JsonObject payload)

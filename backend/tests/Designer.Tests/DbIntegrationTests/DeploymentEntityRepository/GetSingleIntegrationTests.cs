@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
@@ -24,9 +23,6 @@ public class GetSingleIntegrationTests : DeploymentEntityIntegrationTestsBase
         var repository = new DeploymentRepository(DbFixture.DbContext);
         var result = await repository.Get(deploymentEntity.Org, deploymentEntity.Build.Id);
 
-        result.Should().BeEquivalentTo(deploymentEntity, options =>
-            options.Using<DateTime>(ctx =>
-                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
-            ).WhenTypeIs<DateTime>());
+        EntityAssertions.AssertEqual(deploymentEntity, result, TimeSpan.FromMilliseconds(200));
     }
 }

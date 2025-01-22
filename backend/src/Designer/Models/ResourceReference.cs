@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Models
         /// The source the reference identifier points to
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ReferenceSource? ReferenceSource { get; set; }
+        public ResourceReferenceSource? ReferenceSource { get; set; }
 
         /// <summary>
         /// The reference identifier
@@ -24,6 +24,6 @@ namespace Altinn.Studio.Designer.Models
         /// The reference type
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ReferenceType? ReferenceType { get; set; }
+        public ResourceReferenceType? ReferenceType { get; set; }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
@@ -29,7 +28,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedFormLayouts, responseBody).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedFormLayouts, responseBody));
         }
     }
 }

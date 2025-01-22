@@ -4,7 +4,6 @@
 
 .button {
   margin: var(--fds-spacing-1);
-  align-items: center;
   padding-left: 0;
 }
 
