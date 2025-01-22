@@ -332,7 +332,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Adds a new <see cref="DataType"/> to the <see cref="Application"/> metadata.
+        /// Adds a new <see cref="Altinn.Platform.Storage.Interface.Models.DataType"/> to the <see cref="Application"/> metadata.
         /// This does not persist the object.
         /// </summary>
         /// <param name="application">The <see cref="Application"/> object to be updated.</param>
