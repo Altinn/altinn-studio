@@ -482,19 +482,19 @@ describe('StudioCodeListEditor', () => {
   });
 
   describe('Type handling', () => {
-    it('Renders textfield when the value field is a string', () => {
+    it('Renders textfield when item value is a string', () => {
       renderCodeListEditor();
       const textfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
       expect(textfield).not.toHaveProperty('inputMode', 'decimal');
     });
 
-    it('Renders numberfield when the value field is a number', () => {
+    it('Renders numberfield when item value is a number', () => {
       renderCodeListEditor({ codeList: codeListWithNumberValues });
       const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
       expect(numberfield).toHaveProperty('inputMode', 'decimal');
     });
 
-    it('Renders checkbox when the value field is a boolean', () => {
+    it('Renders checkbox when item value is a boolean', () => {
       renderCodeListEditor({ codeList: codeListWithBooleanValues });
       expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
     });

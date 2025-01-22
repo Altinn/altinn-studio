@@ -166,8 +166,8 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCe
 const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
-      (number: number): void => {
-        onChange(number);
+      (numberValue: number): void => {
+        onChange(numberValue);
       },
       [onChange],
     );
@@ -180,7 +180,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
         className={classes.textfieldCell}
         onChange={handleNumberChange}
         onFocus={onFocus}
-        value={(value as number) ?? 0}
+        value={value as number}
       />
     );
   },
@@ -204,7 +204,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, InputCellProps>(
         onChange={handleBooleanChange}
         onFocus={onFocus}
         checked={value as boolean}
-        value={String(value)} // Required by designsystemet, but not by Studio
+        value={String(value)}
       >
         {String(value)}
       </StudioInputTable.Cell.Checkbox>
@@ -231,7 +231,7 @@ const TextfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
         className={classes.textfieldCell}
         onChange={handleTextChange}
         onFocus={onFocus}
-        value={(value as string) ?? ''}
+        value={value as string}
       />
     );
   },
