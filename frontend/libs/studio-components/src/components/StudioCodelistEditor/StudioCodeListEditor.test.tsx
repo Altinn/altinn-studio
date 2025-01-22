@@ -20,6 +20,8 @@ import {
   textResources,
 } from './test-data/textResources';
 import type { TextResource } from '../../types/TextResource';
+import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
+import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -487,23 +489,21 @@ describe('StudioCodeListEditor', () => {
     });
 
     it('Renders numberfield when the value field is a number', () => {
-      const codeListWithNumberValue: CodeList = [{ value: 1, label: 'Yes' }];
-      renderCodeListEditor({ codeList: codeListWithNumberValue });
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
       const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
       expect(numberfield).toHaveProperty('inputMode', 'decimal');
     });
 
     it('Renders checkbox when the value field is a boolean', () => {
-      const codeListWithBooleanValue: CodeList = [{ value: true, label: 'Yes' }];
-      renderCodeListEditor({ codeList: codeListWithBooleanValue });
+      renderCodeListEditor({ codeList: codeListWithBooleanValues });
       expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
     });
 
     it('Saves codelist with string value when the value field is a string', async () => {
       const user = userEvent.setup();
       renderCodeListEditor();
-      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
 
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
       const changedValue = 'new text';
       await user.type(valueInput, changedValue);
       await user.tab();
@@ -518,28 +518,30 @@ describe('StudioCodeListEditor', () => {
 
     it('Saves codelist with number value when the value field is a number', async () => {
       const user = userEvent.setup();
-      const codeListWithNumberValue: CodeList = [{ value: 1, label: 'Yes' }];
-      renderCodeListEditor({ codeList: codeListWithNumberValue });
-      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
 
-      const changedValue = '2';
-      await user.type(valueInput, changedValue);
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, '10');
       await user.tab();
 
       expect(onBlurAny).toHaveBeenCalledTimes(1);
-      expect(onBlurAny).toHaveBeenCalledWith([{ ...codeListWithNumberValue[0], value: 2 }]);
+      expect(onBlurAny).toHaveBeenCalledWith([
+        { ...codeListWithNumberValues[0], value: 10 },
+        codeListWithNumberValues[1],
+        codeListWithNumberValues[2],
+      ]);
     });
 
     it('Saves codelist with boolean value when the value field is a boolean', async () => {
       const user = userEvent.setup();
-      const codeListWithBooleanValue: CodeList = [{ value: true, label: 'Yes' }];
-      renderCodeListEditor({ codeList: codeListWithBooleanValue });
-      const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });
+      const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleanValues[0]];
+      renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
 
+      const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });
       await user.click(valueInput);
 
       expect(onChange).toHaveBeenCalledTimes(1);
-      expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValue[0], value: false }]);
+      expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValues[0], value: false }]);
     });
   });
 });

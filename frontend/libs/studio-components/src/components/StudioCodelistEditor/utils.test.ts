@@ -33,20 +33,29 @@ describe('StudioCodelistEditor utils', () => {
       expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
     });
 
-    it("Adds an empty string item when the first item's value is a string", () => {
-      const codeList = createTestCodeList();
+    it("Adds an empty string item when the last item's value is a string", () => {
+      const codeList: CodeList = [
+        { value: 1, label: 'numberItem' },
+        { value: 'two', label: 'stringItem' },
+      ];
       const updatedCodeList = addEmptyCodeListItem(codeList);
       expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
     });
 
-    it("Adds an empty number item when the first item's value is a number", () => {
-      const codeList: CodeList = [{ value: 1, label: 'test' }];
+    it("Adds an empty number item when the last item's value is a number", () => {
+      const codeList: CodeList = [
+        { value: 'one', label: 'stringItem' },
+        { value: 2, label: 'numberItem' },
+      ];
       const updatedCodeList = addEmptyCodeListItem(codeList);
       expect(updatedCodeList).toEqual([...codeList, emptyNumberItem]);
     });
 
-    it("Adds an empty boolean item when the first item's value is a boolean", () => {
-      const codeList: CodeList = [{ value: false, label: 'test' }];
+    it("Adds an empty boolean item when the last item's value is a boolean", () => {
+      const codeList: CodeList = [
+        { value: 0, label: 'numberItem' },
+        { value: true, label: 'booleanItem' },
+      ];
       const updatedCodeList = addEmptyCodeListItem(codeList);
       expect(updatedCodeList).toEqual([...codeList, emptyBooleanItem]);
     });
