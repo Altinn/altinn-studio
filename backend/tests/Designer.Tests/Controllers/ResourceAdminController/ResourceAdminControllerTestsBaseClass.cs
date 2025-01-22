@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -38,7 +36,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
             {
-                new ResourceReference { Reference = string.Empty, ReferenceSource = ReferenceSource.Default, ReferenceType = ReferenceType.Default }
+                new ResourceReference { Reference = string.Empty, ReferenceSource = ResourceReferenceSource.Default, ReferenceType = ResourceReferenceType.Default }
             };
 
             return resourceReferences;

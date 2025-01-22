@@ -23,14 +23,13 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
     }: StudioDisplayTileProps,
     ref,
   ): React.ReactElement => {
-    const hasPrefixIcon = !!icon;
-    const className = cn(givenClassName, classes.container, hasPrefixIcon && classes.prefixIcon);
+    const className = cn(givenClassName, classes.container);
 
     return (
       <div {...rest} aria-label={label} className={className} ref={ref}>
-        {icon}
         <div className={classes.ellipsis}>
           <Label size='small' className={classes.label}>
+            {icon}
             {label}
           </Label>
           <Paragraph size='small' className={classes.ellipsis}>
