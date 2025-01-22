@@ -61,13 +61,7 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
           ))}
         </div>
       )}
-      <StudioButton
-        icon={<PlusIcon />}
-        size='sm'
-        variant='secondary'
-        onClick={addOverride}
-        disabled={overrides?.some((override) => !override.componentId)}
-      >
+      <StudioButton icon={<PlusIcon />} size='sm' variant='secondary' onClick={addOverride}>
         {t('ux_editor.component_properties.summary.add_override')}
       </StudioButton>
     </>

@@ -101,6 +101,7 @@ export const Summary2OverrideEntry = ({
             variant='secondary'
             color='success'
             onClick={() => setOpen(false)}
+            disabled={!override.componentId}
           />
           <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
         </div>
