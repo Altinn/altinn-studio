@@ -131,7 +131,7 @@ export const EditColumnElement = ({
     if (!selectedComponent) return;
 
     const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
-    setSelectedBindingField(binding?.field); // Update the binding field when it changes
+    setSelectedBindingField(binding?.field);
   };
 
   const availableComponents = getComponentsForSubformTable(formLayouts);
