@@ -322,13 +322,13 @@ describe('Summary2Override', () => {
     await userEvent.click(overrideCollapsedButton(1));
     const emptyFieldText = 'asdf;ljr%';
     const textFieldButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.summary.override.empty_field_text'),
+      name: /ux_editor.component_properties.summary.override.empty_field_text/i,
     });
     await user.click(textFieldButton);
     await user.type(
-      screen.getByLabelText(
-        textMock('ux_editor.component_properties.summary.override.empty_field_text'),
-      ),
+      screen.getByRole('textbox', {
+        name: /ux_editor.component_properties.summary.override.empty_field_text/i,
+      }),
       emptyFieldText,
     );
     await waitFor(() =>

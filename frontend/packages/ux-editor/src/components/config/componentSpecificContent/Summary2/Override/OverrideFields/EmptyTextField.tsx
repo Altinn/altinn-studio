@@ -1,12 +1,7 @@
 import React, { type ChangeEvent } from 'react';
 import classes from './EmptyTextField.module.css';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import {
-  StudioAlert,
-  StudioLabelAsParagraph,
-  StudioProperty,
-  StudioTextfield,
-} from '@studio/components';
+import { StudioAlert, StudioProperty, StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type EmptyTextFieldProps = {
@@ -38,19 +33,15 @@ export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
   }
 
   return (
-    <>
-      <StudioLabelAsParagraph>
-        {t('ux_editor.component_properties.summary.override.empty_field_text')}
-      </StudioLabelAsParagraph>
-      <StudioTextfield
-        autoFocus={true}
-        onBlur={() => setOpen(false)}
-        onKeyDown={({ key }) => key === 'Enter' && setOpen(false)}
-        value={override.emptyFieldText}
-        onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          onChange({ ...override, emptyFieldText: event.target.value })
-        }
-      />
-    </>
+    <StudioTextfield
+      label={t('ux_editor.component_properties.summary.override.empty_field_text')}
+      autoFocus={true}
+      onBlur={() => setOpen(false)}
+      onKeyDown={({ key }) => key === 'Enter' && setOpen(false)}
+      value={override.emptyFieldText}
+      onChange={(event: ChangeEvent<HTMLInputElement>) =>
+        onChange({ ...override, emptyFieldText: event.target.value })
+      }
+    />
   );
 };
