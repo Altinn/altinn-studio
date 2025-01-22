@@ -8,7 +8,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
-namespace Altinn.Studio.Designer.EventHandlers.LayoutPageDeleted;
+namespace Altinn.Studio.Designer.EventHandlers.LayoutPageIdChanged;
 
 public class LayoutPageIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutPageIdChangedEvent>
 {
