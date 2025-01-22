@@ -60,6 +60,15 @@ describe('SmallHeaderMenuItem', () => {
     expect(linkElement).toHaveClass('isBeta');
   });
 
+  it('should not add "isBeta" class by default', () => {
+    renderSmallHeaderMenuItem();
+
+    const linkElement = screen.getByRole('menuitem', {
+      name: textMock(menuItemName),
+    });
+    expect(linkElement).not.toHaveClass('isBeta');
+  });
+
   it('should call onClick when the NavLink is clicked', async () => {
     const user = userEvent.setup();
     renderSmallHeaderMenuItem();

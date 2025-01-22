@@ -51,7 +51,7 @@ describe('Navigation', () => {
     });
   });
 
-  it('renders isBeta className for menu items that are tagged as beta', () => {
+  it('renders menu items that are tagged as beta, with isBeta class', () => {
     const betaItems = topBarMenuItem.filter((item) => !!item.isBeta);
 
     // ensure any feature flags are toggled on
@@ -63,6 +63,21 @@ describe('Navigation', () => {
 
     betaItems.forEach((link) => {
       expect(screen.getByRole('link', { name: textMock(link.key) })).toHaveClass('isBeta');
+    });
+  });
+
+  it('renders menu items that are not tagged as beta, without isBeta class', () => {
+    const menuItemsNotBeta = getFilteredMenuListForOverviewPage().filter((item) => !item.isBeta);
+
+    // ensure any feature flags are toggled on
+    typedLocalStorage.setItem('featureFlags', getFeatureFlags(menuItemsNotBeta));
+
+    renderWithProviders(<Navigation />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    });
+
+    menuItemsNotBeta.forEach((link) => {
+      expect(screen.getByRole('link', { name: textMock(link.key) })).not.toHaveClass('isBeta');
     });
   });
 });

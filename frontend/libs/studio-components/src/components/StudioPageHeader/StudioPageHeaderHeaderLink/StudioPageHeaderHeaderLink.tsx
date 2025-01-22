@@ -4,7 +4,7 @@ import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 import linkClasses from './StudioPageHeaderHeaderLink.module.css';
-import { StudioBetaTagStyles } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components';
 
 export type StudioPageHeaderHeaderLinkProps = {
   color: StudioPageHeaderColor;
@@ -24,7 +24,7 @@ export function StudioPageHeaderHeaderLink({
     commonClasses.linkOrButton,
     commonClasses[variant],
     commonClasses[color],
-    isBeta && StudioBetaTagStyles.isBeta,
+    isBeta && studioBetaTagClasses.isBeta,
     givenClass,
     linkClasses.link,
   );

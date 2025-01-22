@@ -5,7 +5,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
-import { StudioBetaTagStyles } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components';
 
 export const Navigation = () => {
   const { t } = useTranslation();
@@ -23,7 +23,7 @@ export const Navigation = () => {
             <Link
               key={menuItem.key}
               to={`../${menuItem.link}`}
-              className={cn(classes.link, menuItem.isBeta && StudioBetaTagStyles.isBeta)}
+              className={cn(classes.link, menuItem.isBeta && studioBetaTagClasses.isBeta)}
             >
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
