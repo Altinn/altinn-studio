@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
@@ -28,7 +29,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
             "layouts",
             async () =>
             {
-                List<Reference> referencesToUpdate = [new Reference("task", null, notification.OldId, notification.NewId)];
+                List<Reference> referencesToUpdate = [new Reference(ReferenceType.Task, null, notification.OldId, notification.NewId)];
                 return await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
             });
     }

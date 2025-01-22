@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
@@ -18,7 +19,8 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
     private readonly IAppDevelopmentService _appDevelopmentService;
 
     public ComponentIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IAppDevelopmentService appDevelopmentService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -50,7 +52,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                         }
                     }
 
-                    List<Reference> referencesToUpdate = [new Reference("component", notification.LayoutSetName, notification.OldComponentId, notification.NewComponentId)];
+                    List<Reference> referencesToUpdate = [new Reference(ReferenceType.Component, notification.LayoutSetName, notification.OldComponentId, notification.NewComponentId)];
                     hasChanges |= await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
 
                     return hasChanges;

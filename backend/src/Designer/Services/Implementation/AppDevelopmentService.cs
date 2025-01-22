@@ -619,10 +619,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var deletedLayouts = deletedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
             var deletedComponents = deletedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
-            var updatedTasks = updatedReferences.Where(item => item.Type == "task").ToList();
-            var updatedLayoutsSets = updatedReferences.Where(item => item.Type == "layoutSet").ToList();
-            var updatedLayouts = updatedReferences.Where(item => item.Type == "page").ToList();
-            var updatedComponents = updatedReferences.Where(item => item.Type == "component").ToList();
+            var updatedTasks = updatedReferences.Where(item => item.Type == ReferenceType.Task).ToList();
+            var updatedLayoutsSets = updatedReferences.Where(item => item.Type == ReferenceType.LayoutSet).ToList();
+            var updatedLayouts = updatedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
+            var updatedComponents = updatedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
             foreach (LayoutSetConfig layoutSet in layoutSets ?? [new() { Id = null }])
             {
