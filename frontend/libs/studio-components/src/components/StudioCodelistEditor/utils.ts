@@ -35,9 +35,9 @@ function getEmptyItem(codeList: CodeList): CodeListItem {
   }
 }
 
-function getTypeOfLastValue(codeList: CodeList): 'string' | 'number' | 'boolean' {
+function getTypeOfLastValue(codeList: CodeList) {
   const lastCodeListItem = codeList[codeList.length - 1];
-  return typeof lastCodeListItem.value;
+  return typeof lastCodeListItem.value as 'string' | 'number' | 'boolean';
 }
 
 function addCodeListItem(codeList: CodeList, item: CodeListItem): CodeList {
