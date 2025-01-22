@@ -98,6 +98,12 @@ describe('LayoutSetsContainer', () => {
     });
     expect(deleteSubformButton).not.toBeInTheDocument();
   });
+
+  it('should render an error message if selectedFormLayoutSetName is not in layoutSets', async () => {
+    render({ layoutSets: { sets: [] }, selectedLayoutSet: 'non-existing-layout-set' });
+    const errorMessage = screen.getByText(textMock('general.fetch_error_message'));
+    expect(errorMessage).toBeInTheDocument();
+  });
 });
 
 type renderProps = {
