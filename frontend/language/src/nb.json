@@ -1847,7 +1847,7 @@
   "ux_editor.properties_panel.subform_table_columns.cell_content_query_label": "Query",
   "ux_editor.properties_panel.subform_table_columns.choose_component": "Velg komponenten fra underskjemaet som skal vises her",
   "ux_editor.properties_panel.subform_table_columns.choose_component_description": "Listen viser bare de komponentene som har minst én datamodellbinding og en ledetekst",
-  "ux_editor.properties_panel.subform_table_columns.column_cell_content": "Celleinnhold (query):",
+  "ux_editor.properties_panel.subform_table_columns.column_cell_content": "Celleinnhold (query): <0>{{cellContent}}</0>",
   "ux_editor.properties_panel.subform_table_columns.column_header": "Kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.column_title_edit": "Kolonnetittel",
   "ux_editor.properties_panel.subform_table_columns.column_title_error": "Kolonnetittel er påkrevd",
