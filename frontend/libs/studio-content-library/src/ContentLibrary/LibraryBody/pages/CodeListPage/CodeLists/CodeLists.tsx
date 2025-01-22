@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioAlert } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
@@ -133,12 +133,12 @@ function CodeListAccordionContent({
 function InvalidCodeListAlert(): React.ReactElement {
   return (
     <StudioAlert size='small' severity='danger'>
-      <StudioParagraph size='small'>
+      <span>
         <Trans
           i18nKey='app_content_library.code_lists.format_error'
           components={{ bold: <strong /> }}
         />
-      </StudioParagraph>
+      </span>
     </StudioAlert>
   );
 }
