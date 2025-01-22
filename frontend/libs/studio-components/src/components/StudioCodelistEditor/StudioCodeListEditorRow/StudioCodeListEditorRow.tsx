@@ -167,7 +167,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number): void => {
-        if (isNaN(numberValue)) return;
+        if (numberValue === undefined) return;
         onChange(numberValue);
       },
       [onChange],
