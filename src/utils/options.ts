@@ -1,3 +1,5 @@
+import type { Option } from '@digdir/designsystemet-react/dist/types/components/form/Combobox/useCombobox';
+
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
 const emptyArray: IOptionInternal[] = [];
@@ -109,4 +111,12 @@ function logIncludesComma(option: IOptionInternal) {
     'Option has a value containing a "," since selected values are stored as a comma-separated list this will not work as expected!\n',
     JSON.stringify(o, null, 2),
   );
+}
+
+export function optionSearchFilter(inputValue: string, option: Option): boolean {
+  const search = inputValue.toLowerCase();
+  const label = option.label.toLowerCase();
+  const desc = option.description?.toLowerCase();
+
+  return label.includes(search) || (!!desc && desc.includes(search));
 }

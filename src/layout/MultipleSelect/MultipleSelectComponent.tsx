@@ -17,6 +17,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { optionSearchFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
@@ -86,6 +87,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
             multiple
             hideLabel
             id={id}
+            filter={optionSearchFilter}
             size='sm'
             value={selectedValues}
             readOnly={readOnly}

@@ -20,6 +20,7 @@ import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTable
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { optionSearchFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -169,6 +170,7 @@ export function EditWindowComponent({
             >
               <Combobox
                 id={`attachment-tag-dropdown-${uniqueId}`}
+                filter={optionSearchFilter}
                 size='sm'
                 hideLabel={true}
                 label={langAsString('general.choose')}

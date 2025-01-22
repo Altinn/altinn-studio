@@ -16,6 +16,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { optionSearchFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
@@ -84,6 +85,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
         <ComponentStructureWrapper node={node}>
           <Combobox
             id={id}
+            filter={optionSearchFilter}
             size='sm'
             hideLabel={true}
             value={selectedValues}
