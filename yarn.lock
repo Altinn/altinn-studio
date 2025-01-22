@@ -341,7 +341,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/generator@npm:^7.26.5, @babel/generator@npm:^7.26.3":
+"@babel/generator@npm:^7.26.0, @babel/generator@npm:^7.26.5":
   version: 7.26.5
   resolution: "@babel/generator@npm:7.26.5"
   dependencies:
@@ -847,7 +847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.26.5, @babel/parser@npm:^7.26.3":
+"@babel/parser@npm:^7.26.0, @babel/parser@npm:^7.26.5":
   version: 7.26.5
   resolution: "@babel/parser@npm:7.26.5"
   dependencies:
