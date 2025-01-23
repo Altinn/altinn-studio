@@ -251,7 +251,6 @@ const renderEditColumnElementComponentSelect = (
       components={defaultComponents}
       onSelectComponent={jest.fn()}
       selectedComponentBindings={[]}
-      filteredDatamodelBindings={[]}
       component={defaultComponents[0]}
       {...props}
     />,

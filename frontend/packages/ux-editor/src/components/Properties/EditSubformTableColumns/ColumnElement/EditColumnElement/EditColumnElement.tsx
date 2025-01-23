@@ -64,9 +64,7 @@ export const EditColumnElement = ({
   const [selectedComponentBindings, setSelectedComponentBindings] = useState<
     { [key: string]: string }[]
   >([]);
-  const [filteredDatamodelBindings, setFilteredDatamodelBindings] = useState<
-    { [key: string]: string }[]
-  >([]);
+
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
   const [selectedBindingKey, setSelectedBindingKey] = useState<string>();
   const [selectedBindingField, setSelectedBindingField] = useState<string | undefined>(undefined);
@@ -78,7 +76,6 @@ export const EditColumnElement = ({
       .map(([key, value]) => ({ [key]: value }));
 
     setSelectedComponentBindings(bindings);
-    setFilteredDatamodelBindings(bindings);
   };
 
   const handleSave = () => {
@@ -150,7 +147,6 @@ export const EditColumnElement = ({
           components={availableComponents}
           onSelectComponent={selectComponent}
           selectedComponentBindings={selectedComponentBindings}
-          filteredDatamodelBindings={filteredDatamodelBindings}
           handleBindingChange={handleBindingChange}
         />
         {tableColumn.headerContent && (
@@ -195,7 +191,6 @@ export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
   selectedComponentBindings?: Record<string, string>[];
-  filteredDatamodelBindings?: Record<string, string>[];
   component?: FormItem;
   handleBindingChange?: (value: string[]) => void;
 };
@@ -203,7 +198,6 @@ export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
   selectedComponentBindings,
-  filteredDatamodelBindings,
   component,
   handleBindingChange,
 }: EditColumnElementComponentSelectProps) => {
@@ -232,7 +226,7 @@ export const EditColumnElementComponentSelect = ({
 
       {selectedComponentBindings?.length > 1 && (
         <DataModelBindingsCombobox
-          filteredDatamodelBindings={filteredDatamodelBindings}
+          selectedComponentBindings={selectedComponentBindings}
           onSelectComponent={handleBindingChange}
           component={component}
         />

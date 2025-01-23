@@ -9,19 +9,19 @@ interface DataModelBinding {
 }
 
 type DataModelBindingsComboboxProps = {
-  filteredDatamodelBindings: DataModelBinding[];
+  selectedComponentBindings: DataModelBinding[];
   onSelectComponent?: (values: string[]) => void;
   component?: FormItem;
 };
 
 export const DataModelBindingsCombobox = ({
-  filteredDatamodelBindings,
+  selectedComponentBindings,
   onSelectComponent,
   component,
 }: DataModelBindingsComboboxProps) => {
   const { t } = useTranslation();
 
-  const options = filteredDatamodelBindings
+  const options = selectedComponentBindings
     ?.map((binding, index) => {
       if (!binding || Object.entries(binding).length === 0) return null;
       const [key] = Object.entries(binding)[0];
