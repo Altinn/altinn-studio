@@ -44,7 +44,7 @@ export const ConfirmUndeployDialog = ({
       </StudioButton>
       <StudioModal.Dialog
         closeButtonTitle={t('sync_header.close_local_changes_button')}
-        heading='Avpubliser appen'
+        heading={t('app_deployment.undeploy_confirmation_dialog_title')}
         ref={dialogRef}
       >
         <StudioParagraph spacing>
