@@ -5,7 +5,7 @@ import { ListItemWithLink } from './ListItemWithLink';
 import { useTranslation } from 'react-i18next';
 import { isItemWithLink } from '../utils/isItemWithLink';
 import { StudioList } from '@studio/components';
-import { ConfirmUndeployDialog } from '../../Deploy/ConfirmUndeployDialog/ConfirmUndeployDialog';
+import { ConfirmUndeployDialog } from '../../Deploy/ConfirmUndeployDialog';
 
 export const DialogContent = () => {
   const { t } = useTranslation();

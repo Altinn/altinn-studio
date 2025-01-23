@@ -83,6 +83,7 @@
   "app_deployment.last_published": "Sist publisert {{lastPublishedDate}}.",
   "app_deployment.loading": "Laster inn statusen og aktiviteten for denne appen...",
   "app_deployment.missing_rights": "Du har ikke rettigheter til å publisere til {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
+  "app_deployment.more_options_menu": "Gå til miljøet",
   "app_deployment.no_env_1": "For å opprette miljøer som du kan teste og produksjonssette i, må du ta kontakt med <0>Altinn servicedesk</0>. Det er viktig at du oppgir organisasjonsnavnet og hvilke miljøer du vil ha tilgang til.",
   "app_deployment.no_env_2": "Fram til et miljø er på plass, husk at du kan gjøre mye <0>testing lokalt</0> eller i forhåndsvisningen i Altinn Studio.",
   "app_deployment.no_env_title": "Din organisasjon har ikke noe test- og produksjonsmiljø",

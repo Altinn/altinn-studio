@@ -1,22 +1,21 @@
-import React, { ReactElement } from 'react';
-import { StudioPageHeader, StudioPopover, StudioButton } from '@studio/components';
+import React, { type ReactElement } from 'react';
+import { StudioPopover, StudioButton } from '@studio/components';
 import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
+import { useTranslation } from 'react-i18next';
 
 type DeployMoreOptionsMenuProps = {
   linkToEnv: string;
 };
 
 export const DeployMoreOptionsMenu = ({ linkToEnv }: DeployMoreOptionsMenuProps): ReactElement => {
+  const { t } = useTranslation();
   return (
     <StudioPopover>
-      <StudioPageHeader.PopoverTrigger
-        icon={<MenuElipsisVerticalIcon />}
-        title={'test'}
-        color='light'
-        variant='regular'
-      />
+      <StudioPopover.Trigger size='sm' variant='secondary' className={classes.trigger}>
+        <MenuElipsisVerticalIcon />
+      </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.content}>
         <ul className={classes.listContainer}>
           <li>
@@ -33,7 +32,7 @@ export const DeployMoreOptionsMenu = ({ linkToEnv }: DeployMoreOptionsMenuProps)
               size='sm'
               variant='tertiary'
             >
-              link ti env
+              {t('app_deployment.more_options_menu')}
             </StudioButton>
           </li>
         </ul>

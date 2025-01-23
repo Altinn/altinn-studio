@@ -4,18 +4,9 @@ import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
-import { ExternalLinkIcon, GiteaIcon, MenuElipsisVerticalIcon } from '@studio/icons';
-import {
-  StudioButton,
-  StudioDropdownMenu,
-  StudioPageHeader,
-  StudioPopover,
-} from '@studio/components';
-import { UndeployConsequenceDialog } from './UndeployConsequenceDialog/UndeployConsequenceDialog';
-import { ClonePopoverContent } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/ClonePopoverContent';
-import { repositoryPath } from 'app-shared/api/paths';
-import { LocalChangesModal } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal';
+import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -59,7 +50,9 @@ export const DeploymentEnvironmentStatus = ({
           <Heading spacing level={2} size='xsmall'>
             {envTitle}
           </Heading>
-          <DeployMoreOptionsMenu />
+          {kubernetesDeployment?.version && shouldDisplayFeature('undeploy') && (
+            <DeployMoreOptionsMenu linkToEnv={urlToApp} />
+          )}
         </div>
         <Paragraph size='small' spacing={!!footer}>
           {content}

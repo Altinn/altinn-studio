@@ -10,3 +10,9 @@
 .itemButton {
   justify-content: flex-start;
 }
+
+.trigger {
+  position: absolute;
+  top: var(--fds-spacing-3);
+  right: var(--fds-spacing-3);
+}

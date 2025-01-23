@@ -1,17 +1,18 @@
 import React, { type ReactElement } from 'react';
 import { StudioHeading, StudioList } from '@studio/components';
+import classes from './Section.module.css';
 
 type SectionProps = {
-  title: stirng;
+  title: string;
   children: React.ReactNode;
 };
 export const Section = ({ title, children }: SectionProps): ReactElement => (
-  <>
-    <StudioHeading level={3} size='2xs' spacing>
+  <div className={classes.section}>
+    <StudioHeading level={3} size='2xs' spacing className={classes.heading}>
       {title}
     </StudioHeading>
     <StudioList.Root size='sm'>
       <StudioList.Unordered>{children}</StudioList.Unordered>
     </StudioList.Root>
-  </>
+  </div>
 );
