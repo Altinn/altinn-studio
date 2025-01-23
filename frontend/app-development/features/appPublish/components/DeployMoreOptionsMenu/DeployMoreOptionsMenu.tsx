@@ -13,7 +13,12 @@ export const DeployMoreOptionsMenu = ({ linkToEnv }: DeployMoreOptionsMenuProps)
   const { t } = useTranslation();
   return (
     <StudioPopover>
-      <StudioPopover.Trigger size='sm' variant='secondary' className={classes.trigger}>
+      <StudioPopover.Trigger
+        size='sm'
+        variant='secondary'
+        className={classes.trigger}
+        aria-label={t('app_deployment.deploy_more_options_menu_label')}
+      >
         <MenuElipsisVerticalIcon />
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.content}>

@@ -79,6 +79,7 @@
   "app_deployment.deploy_confirmation": "Er du sikker på at du vil publisere versjon {{selectedImageTag}} til miljøet? Da overskriver du den eksisterende versjonen {{appDeployedVersion}}.",
   "app_deployment.deploy_confirmation_short": "Er du sikker på at du vil publisere versjon {{selectedImageTag}} til miljøet?",
   "app_deployment.deploy_loading": "Laster...",
+  "app_deployment.deploy_more_options_menu_label": "Åpne meny med tilgang til miljø og mulighet for avpublisering",
   "app_deployment.error": "Kunne ikke laste inn statusen og aktiviteten for denne appen. Prøv igjen senere.",
   "app_deployment.last_published": "Sist publisert {{lastPublishedDate}}.",
   "app_deployment.loading": "Laster inn statusen og aktiviteten for denne appen...",
