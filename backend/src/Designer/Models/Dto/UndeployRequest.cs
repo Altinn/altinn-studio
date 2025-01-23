@@ -5,5 +5,5 @@ public class UndeployRequest
     /// <summary>
     /// Environment name in which the deployment should be undeployed
     /// </summary>
-    public string EnvironmentName { get; set; }
+    public string Environment { get; set; }
 }

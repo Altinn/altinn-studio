@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
@@ -36,6 +38,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IEnvironmentsService _environmentsService;
         private readonly ILogger<DeploymentService> _logger;
         private readonly IPublisher _mediatr;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Constructor
@@ -48,7 +51,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
             IApplicationInformationService applicationInformationService,
-            ILogger<DeploymentService> logger, IPublisher mediatr)
+            ILogger<DeploymentService> logger,
+            IPublisher mediatr,
+            GeneralSettings generalSettings)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -59,6 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _httpContext = httpContextAccessor.HttpContext;
             _logger = logger;
             _mediatr = mediatr;
+            _generalSettings = generalSettings;
         }
 
         /// <inheritdoc/>
@@ -153,6 +159,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
+            CancellationToken cancellationToken = default)
+        {
+            DecommissionBuildParameters decommissionBuildParameters = new()
+            {
+                AppOwner = editingContext.Org,
+                AppRepo = editingContext.Repo,
+                AppEnvironment = env
+            };
+
+            await Task.CompletedTask;
+        }
+
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
@@ -165,7 +184,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = deploymentEntity.App,
                 AppEnvironment = deploymentEntity.EnvName,
                 Hostname = await _environmentsService.GetHostNameByEnvName(envName),
-                TagName = deploymentEntity.TagName
+                TagName = deploymentEntity.TagName,
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AltinnStudioHostname = _generalSettings.HostName
             };
 
             return await _azureDevOpsBuildClient.QueueAsync(

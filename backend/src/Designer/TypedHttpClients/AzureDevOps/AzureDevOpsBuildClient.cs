@@ -1,5 +1,7 @@
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -8,7 +10,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
 {
@@ -44,16 +45,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <inheritdoc/>
-        public async Task<Build> QueueAsync(
-            QueueBuildParameters queueBuildParameters,
-            int buildDefinitionId)
+        public async Task<Build> QueueAsync<T>(T buildParameters, int buildDefinitionId) where T : class
         {
-            queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
-            queueBuildParameters.AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
-            queueBuildParameters.AltinnStudioHostname = _generalSettings.HostName;
-
-            QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
+            QueueBuildRequest queueBuildRequest = CreateBuildRequest(buildParameters, buildDefinitionId);
             return await SendRequest(queueBuildRequest);
         }
 
@@ -68,11 +62,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             return ToBuildEntity(build);
         }
 
-        private static QueueBuildRequest CreateBuildRequest(QueueBuildParameters queueBuildParameters, int buildDefinitionId)
+        private static QueueBuildRequest CreateBuildRequest<T>(T buildParameters, int buildDefinitionId) where T : class
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+           JsonSerializerOptions serializerOptions = new()
             {
-                NullValueHandling = NullValueHandling.Ignore
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
 
             return new QueueBuildRequest
@@ -81,14 +75,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
                 {
                     Id = buildDefinitionId
                 },
-                Parameters = JsonConvert.SerializeObject(queueBuildParameters, jsonSerializerSettings)
+                Parameters =  JsonSerializer.Serialize(buildParameters, serializerOptions)
             };
         }
 
         private async Task<Build> SendRequest(QueueBuildRequest queueBuildRequest)
         {
-            string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
-            using StringContent httpContent = new(requestBody, Encoding.UTF8, "application/json");
+            string requestBody = JsonSerializer.Serialize(queueBuildRequest);
+            using StringContent httpContent = new(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
             string requestUri = "?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
 
