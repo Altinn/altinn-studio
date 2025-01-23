@@ -4,7 +4,7 @@ const mockNewNameCandidateCorrect: string = 'newPage';
 const mockNewNameCandidateExists: string = 'page2';
 const mockNewNameCandidateEmpty: string = '';
 const mockNewNameCandidateTooLong: string = 'ThisStringIsTooooooooooooooLong';
-const mockNewNameCandidateIllegal: string = 'Page????';
+const mockNewNameCandidateInvalid: string = 'Page????';
 
 const mockOldName: string = 'oldName';
 const mockLayoutOrder: string[] = [mockOldName, mockNewNameCandidateExists, 'page3'];
@@ -41,22 +41,22 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('ux_editor.pages_error_empty');
     });
 
-    it('returns length error key when name is too long', () => {
+    it('returns name invalid error key when name is too long', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateTooLong,
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_length');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns format error key when name contains illegal characters', () => {
+    it('returns name invalid error key when name contains invalid characters', () => {
       const nameErrorkey = getPageNameErrorKey(
-        mockNewNameCandidateIllegal,
+        mockNewNameCandidateInvalid,
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
+      expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
     it('returns null when oldname and new name is the same', () => {
