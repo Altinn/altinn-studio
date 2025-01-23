@@ -39,6 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger<DeploymentService> _logger;
         private readonly IPublisher _mediatr;
         private readonly GeneralSettings _generalSettings;
+        private readonly TimeProvider _timeProvider;
 
         /// <summary>
         /// Constructor
@@ -53,7 +54,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger,
             IPublisher mediatr,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings, TimeProvider timeProvider)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -65,6 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger = logger;
             _mediatr = mediatr;
             _generalSettings = generalSettings;
+            _timeProvider = timeProvider;
         }
 
         /// <inheritdoc/>
@@ -162,6 +164,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
             CancellationToken cancellationToken = default)
         {
+            Guard.AssertValidEnvironmentName(env);
             DecommissionBuildParameters decommissionBuildParameters = new()
             {
                 AppOwner = editingContext.Org,
@@ -169,7 +172,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppEnvironment = env
             };
 
-            await Task.CompletedTask;
+            var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, _azureDevOpsSettings.DecommissionDefinitionId);
+
+            DeploymentEntity deploymentEntity = new()
+            {
+                EnvName = env,
+                DeploymentType = DeploymentType.Decommission,
+                Build = new BuildEntity
+                {
+                    Id = build.Id.ToString(),
+                    Status = build.Status,
+                    Started = build.StartTime
+                }
+            };
+            deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
+
+            await _deploymentRepository.Create(deploymentEntity);
+
+            await _mediatr.Publish(new AppDecommissionedEvent
+            {
+                EditingContext = editingContext,
+                Environment = env,
+                BuildId = build.Id
+            }, cancellationToken);
         }
 
         private async Task<Build> QueueDeploymentBuild(

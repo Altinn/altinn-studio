@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -118,8 +118,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)
         {
-            await Task.CompletedTask;
-            throw new NotImplementedException();
+            Guard.AssertValidEnvironmentName(undeployRequest.Environment);
+
+            await _deploymentService.UndeployAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, AuthenticationHelper.GetDeveloperUserName(HttpContext)), undeployRequest.Environment, cancellationToken);
+
+            return Accepted();
         }
 
     }

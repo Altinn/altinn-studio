@@ -21,6 +21,7 @@ using Designer.Tests.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -39,6 +40,7 @@ namespace Designer.Tests.Services
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<IPublisher> _mediatrMock;
         private readonly GeneralSettings _generalSettings;
+        private readonly FakeTimeProvider _fakeTimeProvider;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
@@ -53,6 +55,7 @@ namespace Designer.Tests.Services
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _mediatrMock = new Mock<IPublisher>();
             _generalSettings = new GeneralSettings();
+            _fakeTimeProvider = new FakeTimeProvider();
         }
 
         [Theory]
@@ -97,7 +100,8 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
-                _generalSettings);
+                _generalSettings,
+                _fakeTimeProvider);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -155,7 +159,8 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
-                _generalSettings);
+                _generalSettings,
+                _fakeTimeProvider);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -187,7 +192,8 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
-                _generalSettings);
+                _generalSettings,
+                _fakeTimeProvider);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);

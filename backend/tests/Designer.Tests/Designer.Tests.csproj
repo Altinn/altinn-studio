@@ -16,6 +16,7 @@
     <PackageReference Include="DistributedLock.FileSystem" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Fare" />
     <PackageReference Include="Moq" />
@@ -36,7 +37,7 @@
 
   <ItemGroup>
     <!-- Temporarly supress warning for this package sice there is no fix -->
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.3.12" >
+    <PackageReference Include="System.Linq.Dynamic.Core" >
       <NoWarn>NU1903</NoWarn>
     </PackageReference>
   </ItemGroup>
