@@ -76,7 +76,7 @@ export const ConfirmUndeployDialog = ({
               <Trans
                 i18nKey={undeployError}
                 components={{
-                  a: <StudioLink href='/contact' style={{ display: 'inline ' }} />,
+                  a: <StudioLink href='/contact' />,
                 }}
               />
             </StudioParagraph>

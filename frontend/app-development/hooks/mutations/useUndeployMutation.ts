@@ -12,7 +12,7 @@ export const useUndeployMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: ({ environment }: UseUndeployMutation) => undeployAppFromEnv(org, app, environment),
-    onSuccess: async (): void => {
+    onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.AppDeployments, org, app] });
     },
   });
