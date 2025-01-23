@@ -1,8 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DialogContent } from './DialogContent';
 import { consequencesDialogData } from '../consequences.data';
+import { renderWithProviders } from '../../../../../test/testUtils';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
 
 describe('DialogContent', () => {
   it('renders sections and items correctly', () => {
@@ -29,6 +32,8 @@ describe('DialogContent', () => {
   });
 });
 
-function renderDialogContent(environment: string) {
-  return render(<DialogContent environment={environment} />);
+function renderDialogContent(environment: string): void {
+  renderWithProviders(<DialogContent environment={environment} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
+  });
 }
