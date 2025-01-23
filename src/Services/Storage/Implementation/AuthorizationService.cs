@@ -137,12 +137,12 @@ namespace Altinn.Platform.Storage.Authorization
             ClaimsPrincipal user = _claimsPrincipalProvider.GetUser();
             if (instance.Id == null)
             {
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, null, null, null);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, null);
             }
             else
             {
                 Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid, null, task);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid, task);
             }
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);

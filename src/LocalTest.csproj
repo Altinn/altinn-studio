@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.8" />
-    <PackageReference Include="Altinn.Common.PEP" Version="3.0.0" />
+    <PackageReference Include="Altinn.Common.PEP" Version="4.1.2" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.6.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.4" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
