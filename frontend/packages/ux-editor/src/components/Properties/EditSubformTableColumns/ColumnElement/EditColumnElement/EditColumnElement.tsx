@@ -67,7 +67,9 @@ export const EditColumnElement = ({
 
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
   const [selectedBindingKey, setSelectedBindingKey] = useState<string>();
-  const [selectedBindingField, setSelectedBindingField] = useState<string | undefined>(undefined);
+  const [selectedBindingField, setSelectedBindingField] = useState<string | undefined>(
+    sourceColumn.cellContent?.query,
+  );
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (!selectedComponent?.dataModelBindings) return;
@@ -121,7 +123,7 @@ export const EditColumnElement = ({
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
     setTableColumn(updatedTableColumn);
-    setSelectedBindingField(binding.field);
+    setSelectedBindingField(binding?.field);
   };
 
   const handleBindingChange = (value: string[]) => {

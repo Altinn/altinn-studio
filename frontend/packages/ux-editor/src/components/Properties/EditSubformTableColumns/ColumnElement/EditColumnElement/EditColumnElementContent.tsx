@@ -20,12 +20,6 @@ export const EditColumnElementContent = ({
 
   const errorMessage = t('ux_editor.properties_panel.subform_table_columns.column_title_error');
 
-  const displayCellContent = cellContent
-    ? typeof cellContent === 'object'
-      ? (cellContent as { field: string }).field
-      : cellContent
-    : '';
-
   return (
     <div>
       {isEditingTitle ? (
@@ -49,7 +43,7 @@ export const EditColumnElementContent = ({
       <StudioDisplayTile
         className={classes.componentCellContent}
         label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
-        value={displayCellContent}
+        value={cellContent}
         showPadlock={false}
       />
     </div>
