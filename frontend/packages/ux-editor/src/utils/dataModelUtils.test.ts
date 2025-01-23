@@ -249,45 +249,40 @@ describe('getDataModel', () => {
   it('should return default data model when it is defined but invalid', () => {
     const isDataModelValid = false;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, defaultModel, currentDataModel);
     expect(dataModel).toEqual(defaultModel);
   });
 
   it('should return default data model when it is undefined and invalid', () => {
     const isDataModelValid = false;
     const currentDataModel = undefined;
-    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, defaultModel, currentDataModel);
     expect(dataModel).toEqual(defaultModel);
   });
 
   it('should return current data model when it is defined and valid', () => {
     const isDataModelValid = true;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, defaultModel, currentDataModel);
     expect(dataModel).toEqual(currentDataModel);
   });
 
   it('should return current data model if metadata is undefined', () => {
     const isDataModelValid = true;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetadata = undefined;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, defaultModel, currentDataModel);
     expect(dataModel).toEqual(currentDataModel);
   });
 
   it('should return default data model if current data model is empty string', () => {
     const isDataModelValid = true;
     const currentDataModel = '';
-    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, defaultModel, currentDataModel);
     expect(dataModel).toEqual(defaultModel);
   });
 });

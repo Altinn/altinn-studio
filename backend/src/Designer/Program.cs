@@ -197,25 +197,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
-    services.RegisterServiceImplementations(configuration);
-
-    services.AddHttpContextAccessor();
-    services.AddMemoryCache();
-    services.AddResponseCompression();
-    services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
-
-    CreateDirectory(configuration);
-
-    services.ConfigureDataProtection(configuration, logger);
-    services.ConfigureMvc();
-    services.ConfigureNonMarkedSettings(configuration);
-
-    services.RegisterTypedHttpClients(configuration);
-    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
-    services.ConfigureAuthentication(configuration, env);
-
-    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-
     // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
@@ -234,6 +215,25 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
+
+    services.RegisterServiceImplementations(configuration);
+
+    services.AddHttpContextAccessor();
+    services.AddMemoryCache();
+    services.AddResponseCompression();
+    services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
+
+    CreateDirectory(configuration);
+
+    services.ConfigureDataProtection(configuration, logger);
+    services.ConfigureMvc();
+    services.ConfigureNonMarkedSettings(configuration);
+
+    services.RegisterTypedHttpClients(configuration);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
+    services.ConfigureAuthentication(configuration, env);
+
+    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
     services.AddLocalization(options => options.ResourcesPath = "Resources");
 

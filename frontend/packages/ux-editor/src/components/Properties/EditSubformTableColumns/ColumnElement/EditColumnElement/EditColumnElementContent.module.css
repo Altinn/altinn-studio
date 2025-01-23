@@ -11,3 +11,7 @@
 .componentTitleButton {
   margin-bottom: var(--fds-spacing-1);
 }
+
+.componentCellContent {
+  font: var(--fds-typography-label-small);
+}

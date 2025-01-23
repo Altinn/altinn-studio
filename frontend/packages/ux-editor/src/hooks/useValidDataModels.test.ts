@@ -54,18 +54,4 @@ describe('useValidDataModels', () => {
     expect(isDataModelValid).toBe(true);
     expect(selectedDataModel).toEqual(defaultDataModel);
   });
-
-  it('should return the default data model from metadata when the current selected data model no longer exists', async () => {
-    const { result } = setupUseValidDataModelsHook('invalidModel');
-
-    expect(result.current.isLoadingDataModels).toBe(true);
-
-    await waitFor(() => {
-      expect(result.current.isLoadingDataModels).toBe(false);
-    });
-
-    const { selectedDataModel, isDataModelValid } = result.current;
-    expect(isDataModelValid).toBe(false);
-    expect(selectedDataModel).toEqual(defaultDataModel);
-  });
 });

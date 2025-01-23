@@ -35,7 +35,7 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   return {
     dataModels,
-    selectedDataModel: getDataModel(isDataModelValid, dataModelMetadata, currentDataModel),
+    selectedDataModel: getDataModel(isDataModelValid, dataModel, currentDataModel),
     dataModelMetadata,
     isLoadingDataModels: isPendingDataModels || isPendingDataModelMetadata,
     isDataModelValid,

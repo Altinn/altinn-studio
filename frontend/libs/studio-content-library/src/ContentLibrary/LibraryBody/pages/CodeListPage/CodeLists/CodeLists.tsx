@@ -3,7 +3,7 @@ import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
 import { StudioAlert } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils/codeListPageUtils';
@@ -114,14 +114,10 @@ function CodeListAccordionContent({
   codeListSources,
   ...rest
 }: CodeListAccordionContentProps): React.ReactElement {
-  const { t } = useTranslation();
-
   return (
     <Accordion.Content>
       {codeListData.hasError ? (
-        <StudioAlert size='small' severity='danger'>
-          {t('app_content_library.code_lists.fetch_error')}
-        </StudioAlert>
+        <InvalidCodeListAlert />
       ) : (
         <EditCodeList
           codeList={codeListData.data}
@@ -131,5 +127,18 @@ function CodeListAccordionContent({
         />
       )}
     </Accordion.Content>
+  );
+}
+
+function InvalidCodeListAlert(): React.ReactElement {
+  return (
+    <StudioAlert size='small' severity='danger'>
+      <span>
+        <Trans
+          i18nKey='app_content_library.code_lists.format_error'
+          components={{ bold: <strong /> }}
+        />
+      </span>
+    </StudioAlert>
   );
 }

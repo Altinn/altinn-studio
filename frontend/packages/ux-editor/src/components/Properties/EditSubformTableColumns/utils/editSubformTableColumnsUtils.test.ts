@@ -44,9 +44,16 @@ const formLayouts: IFormLayouts = {
         ...componentMocks[ComponentType.Input],
         dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
       },
+      ['componentId4']: {
+        ...componentMocks[ComponentType.Input],
+        textResourceBindings: { title: 'mockDescriptionId' },
+        dataModelBindings: {
+          simpleBinding: { dataType: 'mockDataModel', field: 'mockDataModelBinding4' } as any, // TODO: remove as any when https://github.com/Altinn/altinn-studio/issues/14441 is solved
+        },
+      },
     },
     order: {
-      ['container1']: ['componentId1', 'componentId2', 'componentId3'],
+      ['container1']: ['componentId1', 'componentId2', 'componentId3', 'componentId4'],
     },
   },
 };
@@ -121,9 +128,11 @@ describe('editSubformTableColumnsUtils', () => {
   });
 
   describe('getComponentsForSubformTable', () => {
-    it('should return components with title and data model bindings', () => {
-      const availableComponents = getComponentsForSubformTable(formLayouts);
-      expect(availableComponents.length).toEqual(1);
+    const defaultDataModel = 'mockDataModel';
+
+    it('Should return components with a title and either a matching default data model or no data model', () => {
+      const availableComponents = getComponentsForSubformTable(formLayouts, defaultDataModel);
+      expect(availableComponents.length).toEqual(2);
     });
 
     it('should return an empty array if no components have title and data model bindings', () => {
@@ -141,7 +150,10 @@ describe('editSubformTableColumnsUtils', () => {
         },
       };
 
-      const availableComponents = getComponentsForSubformTable(noAvailableComponentsInFormLayouts);
+      const availableComponents = getComponentsForSubformTable(
+        noAvailableComponentsInFormLayouts,
+        defaultDataModel,
+      );
       expect(availableComponents.length).toEqual(0);
     });
   });

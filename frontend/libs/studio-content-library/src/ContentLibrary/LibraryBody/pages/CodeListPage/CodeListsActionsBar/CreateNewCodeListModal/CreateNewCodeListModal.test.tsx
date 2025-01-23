@@ -83,7 +83,7 @@ describe('CreateNewCodeListModal', () => {
     renderCreateNewCodeListModal();
     await openDialog(user);
     await inputCodeListTitle(user, 'æ');
-    const codeListTitleError = screen.getByText(textMock('validation_errors.file_name_invalid'));
+    const codeListTitleError = screen.getByText(textMock('validation_errors.name_invalid'));
     expect(codeListTitleError).toBeInTheDocument();
   });
 
