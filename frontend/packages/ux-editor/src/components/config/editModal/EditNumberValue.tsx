@@ -20,7 +20,6 @@ export interface EditNumberValueProps<T extends ComponentType, K extends NumberK
   extends IGenericEditComponent<T> {
   propertyKey: K;
   enumValues?: number[];
-  helpText?: string;
 }
 
 export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<FormItem<T>>>({
@@ -28,7 +27,6 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   handleComponentChange,
   propertyKey,
   enumValues,
-  helpText,
 }: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -50,7 +48,7 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
-      helpText={componentPropertyHelpText(String(propertyKey)) || helpText}
+      helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (
           <StudioNativeSelect

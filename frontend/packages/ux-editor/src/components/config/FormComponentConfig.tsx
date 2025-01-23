@@ -190,9 +190,6 @@ export const FormComponentConfig = ({
       )}
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
-        const isSortOrder = propertyKey === 'sortOrder';
-        const isLayout = propertyKey === 'layout';
-
         return (
           <CollapsiblePropertyEditor
             key={propertyKey}
@@ -202,7 +199,6 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey={propertyKey}
-              helpText={isLayout || isSortOrder ? '' : properties[propertyKey]?.description}
               enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
             />
           </CollapsiblePropertyEditor>
@@ -216,7 +212,6 @@ export const FormComponentConfig = ({
           handleComponentChange: handleComponentUpdate,
           propertyKey,
           key: propertyKey,
-          helpText: isShowValidations ? '' : properties[propertyKey]?.description,
           enumValues: properties[propertyKey]?.items?.enum,
           multiple: true,
         };
@@ -240,9 +235,6 @@ export const FormComponentConfig = ({
           propertyKey,
           key: propertyKey,
           enumValues: properties[propertyKey]?.enum,
-          helpText: isPreselectedOptionIndex
-            ? t('ux_editor.component_properties.preselected_help_text')
-            : undefined,
         };
         return isPreselectedOptionIndex ? (
           <CollapsiblePropertyEditor
