@@ -6,10 +6,14 @@ import classes from './DeployMoreOptionsMenu.module.css';
 import { useTranslation } from 'react-i18next';
 
 type DeployMoreOptionsMenuProps = {
+  environment: string;
   linkToEnv: string;
 };
 
-export const DeployMoreOptionsMenu = ({ linkToEnv }: DeployMoreOptionsMenuProps): ReactElement => {
+export const DeployMoreOptionsMenu = ({
+  linkToEnv,
+  environment,
+}: DeployMoreOptionsMenuProps): ReactElement => {
   const { t } = useTranslation();
   return (
     <StudioPopover>
@@ -24,7 +28,7 @@ export const DeployMoreOptionsMenu = ({ linkToEnv }: DeployMoreOptionsMenuProps)
       <StudioPopover.Content className={classes.content}>
         <ul className={classes.listContainer}>
           <li>
-            <UndeployConsequenceDialog />
+            <UndeployConsequenceDialog environment={environment} />
           </li>
           <li>
             <StudioButton

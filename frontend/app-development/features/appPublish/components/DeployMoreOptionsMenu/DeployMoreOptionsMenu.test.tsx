@@ -47,7 +47,7 @@ describe('DeployMoreOptionsMenu', () => {
 });
 
 function renderMenu(linkToEnv: string): void {
-  render(<DeployMoreOptionsMenu linkToEnv={linkToEnv} />);
+  render(<DeployMoreOptionsMenu linkToEnv={linkToEnv} environment='unit-test-env' />);
 }
 
 async function openMenu(): Promise<void> {

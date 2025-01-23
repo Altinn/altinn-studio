@@ -3,7 +3,12 @@ import { StudioButton, StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
 
-export const UndeployConsequenceDialog = (): React.ReactElement => {
+type UndeployConsequenceDialog = {
+  environment: string;
+};
+export const UndeployConsequenceDialog = ({
+  environment,
+}: UndeployConsequenceDialog): React.ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>();
   const openDialog = () => dialogRef.current.showModal();
@@ -18,7 +23,7 @@ export const UndeployConsequenceDialog = (): React.ReactElement => {
         heading={t('app_deployment.unpublish_consequence_dialog_title')}
         ref={dialogRef}
       >
-        <DialogContent />
+        <DialogContent environment={environment} />
       </StudioModal.Dialog>
     </>
   );

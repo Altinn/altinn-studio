@@ -7,7 +7,11 @@ import { isItemWithLink } from '../utils/isItemWithLink';
 import { StudioList } from '@studio/components';
 import { ConfirmUndeployDialog } from '../../ConfirmUndeployDialog';
 
-export const DialogContent = () => {
+type DialogContentProps = {
+  environment: string;
+};
+
+export const DialogContent = ({ environment }: DialogContentProps) => {
   const { t } = useTranslation();
   return (
     <>
@@ -22,7 +26,7 @@ export const DialogContent = () => {
           )}
         </Section>
       ))}
-      <ConfirmUndeployDialog />
+      <ConfirmUndeployDialog environment={environment} />
     </>
   );
 };

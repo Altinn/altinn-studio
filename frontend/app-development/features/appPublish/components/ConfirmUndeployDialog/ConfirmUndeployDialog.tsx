@@ -4,16 +4,37 @@ import { StudioButton, StudioModal, StudioTextfield, StudioParagraph } from '@st
 import { useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useUndeployMutation } from '../../../../hooks/mutations/useUndeployMutation';
 
-export const ConfirmUndeployDialog = (): ReactElement => {
+type ConfirmUndeployDialogProps = {
+  environment: string;
+};
+export const ConfirmUndeployDialog = ({
+  environment,
+}: ConfirmUndeployDialogProps): ReactElement => {
   const { t } = useTranslation();
-  const { app: appName } = useStudioEnvironmentParams();
+  const { org, app: appName } = useStudioEnvironmentParams();
   const dialogRef = useRef<HTMLDialogElement>();
-  const openDialog = () => dialogRef.current.showModal();
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
-
+  const mutation = useUndeployMutation(org, appName);
   const onAppNameInputChange = (event: React.FormEvent<HTMLInputElement>): void => {
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
+  };
+
+  const openDialog = () => dialogRef.current.showModal();
+  const closeDialog = () => dialogRef.current.close();
+
+  const onUndeployClicked = (): void => {
+    mutation.mutate(
+      {
+        environment,
+      },
+      {
+        onSuccess: (): void => {
+          closeDialog();
+        },
+      },
+    );
   };
 
   return (
@@ -42,6 +63,7 @@ export const ConfirmUndeployDialog = (): ReactElement => {
           color='danger'
           size='sm'
           className={classes.confirmUndeployButton}
+          onClick={onUndeployClicked}
         >
           {t('app_deployment.undeploy_confirmation_button')}
         </StudioButton>

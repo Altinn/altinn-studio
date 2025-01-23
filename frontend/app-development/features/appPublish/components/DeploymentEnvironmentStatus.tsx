@@ -50,7 +50,7 @@ export const DeploymentEnvironmentStatus = ({
           {envTitle}
         </Heading>
         {kubernetesDeployment?.version && shouldDisplayFeature(FeatureFlag.Undeploy) && (
-          <DeployMoreOptionsMenu linkToEnv={urlToApp} />
+          <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
         <Paragraph size='small' spacing={!!footer}>
