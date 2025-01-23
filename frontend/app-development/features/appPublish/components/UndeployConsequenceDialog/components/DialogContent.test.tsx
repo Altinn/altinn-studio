@@ -6,7 +6,7 @@ import { consequencesDialogData } from '../consequences.data';
 
 describe('DialogContent', () => {
   it('renders sections and items correctly', () => {
-    renderDialogContent();
+    renderDialogContent('unit-test-env');
 
     consequencesDialogData.forEach(({ titleKey, items }) => {
       expect(
@@ -20,7 +20,7 @@ describe('DialogContent', () => {
   });
 
   it('should render the "Undeploy" button', (): void => {
-    renderDialogContent();
+    renderDialogContent('unit-test-env');
 
     const undeployButton = screen.getByRole('button', {
       name: textMock('app_deployment.undeploy_button'),
@@ -29,6 +29,6 @@ describe('DialogContent', () => {
   });
 });
 
-function renderDialogContent() {
-  return render(<DialogContent />);
+function renderDialogContent(environment: string) {
+  return render(<DialogContent environment={environment} />);
 }
