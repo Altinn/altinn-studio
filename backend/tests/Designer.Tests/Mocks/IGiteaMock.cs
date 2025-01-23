@@ -50,11 +50,6 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<List<Branch>> GetBranches(string org, string repo)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<User> GetCurrentUser()
         {
             return Task.FromResult(new User());

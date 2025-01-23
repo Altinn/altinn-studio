@@ -20,16 +20,6 @@ namespace Designer.Tests.Mocks
             _developer = developer;
         }
 
-        public void AbortMerge(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
-        {
-            throw new NotImplementedException();
-        }
-
         public int? CheckRemoteUpdates(string org, string repository)
         {
             throw new NotImplementedException();
@@ -101,11 +91,6 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Commit GetInitialCommit(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
         public Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             throw new NotImplementedException();
@@ -145,11 +130,6 @@ namespace Designer.Tests.Mocks
         }
 
         public RepoStatus RepositoryStatus(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ResetCommit(string org, string repository)
         {
             throw new NotImplementedException();
         }

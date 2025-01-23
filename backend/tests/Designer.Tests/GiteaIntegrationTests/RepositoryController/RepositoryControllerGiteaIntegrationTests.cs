@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -107,20 +106,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Initial_Commit_ShouldBeAsExpected(string org)
-        {
-            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            await CreateAppUsingDesigner(org, targetRepo);
-
-            // Check initial-commit endpoint
-            using HttpResponseMessage initialCommitResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/initial-commit");
-            Assert.Equal(HttpStatusCode.OK, initialCommitResponse.StatusCode);
-            var commit = await initialCommitResponse.Content.ReadAsAsync<Commit>();
-            Assert.Contains("App created", commit.Message);
-        }
-
-        [Theory]
-        [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
@@ -167,23 +152,17 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         // Get branch endpoint test
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task GetBranches_And_Branch_ShouldBehaveAsExpected(string org)
+        public async Task GetBranch_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
 
-            // Call branches endpoint
-            using HttpResponseMessage branchesResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches"));
-            Assert.Equal(HttpStatusCode.OK, branchesResponse.StatusCode);
-            var deserializedBranchesModel = await branchesResponse.Content.ReadAsAsync<List<Branch>>();
-            Assert.Single(deserializedBranchesModel);
-            Assert.Equal("master", deserializedBranchesModel.First().Name);
-
             // Call branch endpoint
             using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master"));
+            var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch>();
             Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
+            Assert.Equal("master", deserializedBranchModel.Name);
         }
-
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
