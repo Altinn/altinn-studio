@@ -45,7 +45,15 @@ export const EditColumnElement = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const [tableColumn, setTableColumn] = useState(sourceColumn);
+
+  const intialTableColumn: TableColumn = {
+    ...sourceColumn,
+    selectedBindingKey: undefined,
+    selectedBindingField: sourceColumn.cellContent?.query,
+  };
+
+  const [tableColumn, setTableColumn] = useState<TableColumn>(intialTableColumn);
+
   const [title, setTitle] = useState<string>(
     getValueOfTitleId(sourceColumn.headerContent, textResources),
   );
@@ -66,10 +74,6 @@ export const EditColumnElement = ({
   >([]);
 
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
-  const [selectedBindingKey, setSelectedBindingKey] = useState<string>();
-  const [selectedBindingField, setSelectedBindingField] = useState<string | undefined>(
-    sourceColumn.cellContent?.query,
-  );
 
   const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
     if (!selectedComponent?.dataModelBindings) return;
@@ -83,9 +87,12 @@ export const EditColumnElement = ({
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
     const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
-    if (!selectedComponent || !selectedBindingKey) return;
+    if (!selectedComponent) return;
 
-    const binding = convertDataBindingToInternalFormat(selectedComponent, selectedBindingKey);
+    const binding = convertDataBindingToInternalFormat(
+      selectedComponent,
+      tableColumn.selectedBindingKey,
+    );
 
     onEdit({
       ...tableColumn,
@@ -105,35 +112,35 @@ export const EditColumnElement = ({
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
     if (!selectedComponent) return;
-
     selectComponentBinding(selectedComponent);
 
     const bindingKey =
       selectedComponentBindings.length > 1
         ? Object.keys(selectedComponent.dataModelBindings)[0]
         : 'simpleBinding';
-    setSelectedBindingKey(bindingKey);
 
     const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
-    const updatedTableColumn = {
-      ...sourceColumn,
+
+    setTableColumn((prev) => ({
+      ...prev,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
-    };
+      selectedBindingKey: bindingKey,
+      selectedBindingField: binding?.field,
+    }));
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
-    setTableColumn(updatedTableColumn);
-    setSelectedBindingField(binding?.field);
   };
 
   const handleBindingChange = (value: string[]) => {
-    setSelectedBindingKey(value[0]);
-
     const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
     if (!selectedComponent) return;
-
     const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
-    setSelectedBindingField(binding?.field);
+    setTableColumn((prev) => ({
+      ...prev,
+      selectedBindingKey: value[0],
+      selectedBindingField: binding?.field,
+    }));
   };
 
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
@@ -153,7 +160,7 @@ export const EditColumnElement = ({
         />
         {tableColumn.headerContent && (
           <EditColumnElementContent
-            cellContent={selectedBindingField}
+            cellContent={tableColumn.selectedBindingField}
             title={title}
             setTitle={setTitle}
           />
