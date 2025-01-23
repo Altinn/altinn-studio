@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -105,7 +104,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 gatewayAction: null,
                 language
             );
-            await LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.DeleteRow);
+            await LayoutEvaluator.RemoveHiddenDataAsync(evaluationState, RowRemovalOption.DeleteRow);
         }
 
         // Remove shadow fields

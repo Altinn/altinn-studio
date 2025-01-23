@@ -1,4 +1,5 @@
-namespace Altinn.App.Core.Helpers.DataModel;
+// ReSharper disable once CheckNamespace // Namespace is kept after refactoring
+namespace Altinn.App.Core.Helpers;
 
 /// <summary>
 /// Option for how to handle row removal

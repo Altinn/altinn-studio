@@ -1,4 +1,4 @@
-using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -122,7 +122,16 @@ public static class LayoutEvaluator
     /// <summary>
     /// Remove fields that are only referenced from hidden fields from the data object in the state.
     /// </summary>
-    public static async Task RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
+    [Obsolete("Use the async version of this method RemoveHiddenDataAsync")]
+    public static void RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
+    {
+        RemoveHiddenDataAsync(state, rowRemovalOption).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Remove fields that are only referenced from hidden fields from the data object in the state.
+    /// </summary>
+    public static async Task RemoveHiddenDataAsync(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
     {
         var fields = await GetHiddenFieldsForRemoval(state);
         foreach (var dataReference in fields)

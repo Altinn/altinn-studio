@@ -91,7 +91,8 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     /// <summary>
     /// Initialize LayoutEvaluatorState with given Instance, data object and layoutSetId
     /// </summary>
-    [Obsolete("Use the overload with ILayoutEvaluatorStateInitializer instead")]
+    //[Obsolete("Use the overload with ILayoutEvaluatorStateInitializer instead")]
+    // We don't yet have a good alternative for this method
     public async Task<LayoutEvaluatorState> Init(
         Instance instance,
         object data,
@@ -99,7 +100,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         string? gatewayAction = null
     )
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         var layouts = _appResources.GetLayoutModel(layoutSetId);
+#pragma warning restore CS0618 // Type or member is obsolete
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
