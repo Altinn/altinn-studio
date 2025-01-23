@@ -2,13 +2,10 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
@@ -19,30 +16,19 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
     public class AzureDevOpsBuildClient : IAzureDevOpsBuildClient
     {
         private readonly HttpClient _httpClient;
-        private readonly GeneralSettings _generalSettings;
-        private readonly ISourceControl _sourceControl;
         private readonly ILogger<AzureDevOpsBuildClient> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
-        /// <param name="generalSettingsOptions">GeneralSettings</param>
-        /// <param name="sourceControl">ISourceControl</param>
         /// <param name="logger">ILogger</param>
-        /// <param name="httpContextAccessor">The http context accessor.</param>
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
-            GeneralSettings generalSettingsOptions,
-            ISourceControl sourceControl,
-            ILogger<AzureDevOpsBuildClient> logger, IHttpContextAccessor httpContextAccessor)
+            ILogger<AzureDevOpsBuildClient> logger)
         {
-            _generalSettings = generalSettingsOptions;
             _httpClient = httpClient;
-            _sourceControl = sourceControl;
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Build> QueueAsync<T>(T buildParameters, int buildDefinitionId) where T : class
@@ -66,7 +52,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         {
            JsonSerializerOptions serializerOptions = new()
             {
-                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
             return new QueueBuildRequest
