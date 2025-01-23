@@ -10,7 +10,7 @@ export const UndeployConsequenceDialog = ({
   environment,
 }: UndeployConsequenceDialog): React.ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>();
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
   const openDialog = () => dialogRef.current.showModal();
 
   return (

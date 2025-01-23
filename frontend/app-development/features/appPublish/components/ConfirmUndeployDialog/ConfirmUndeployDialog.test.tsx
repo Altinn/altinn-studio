@@ -70,6 +70,34 @@ describe('ConfirmUndeployDialog', () => {
       expect.anything(),
     );
   });
+
+  it('should display an error alert when the undeploy mutation fails', async () => {
+    const user = userEvent.setup();
+    renderConfirmUndeployDialog();
+    await openDialog();
+
+    const errorMessageKey = 'app_deployment.error_unknown.message';
+    const mutateFunctionMock = jest.fn((_, { onError }) => onError());
+
+    (useUndeployMutation as jest.Mock).mockReturnValue({
+      mutate: mutateFunctionMock,
+    });
+
+    const confirmTextField = getConfirmTextField();
+    await user.type(confirmTextField, app);
+
+    const undeployButton = getUndeployButton();
+    await user.click(undeployButton);
+
+    expect(mutateFunctionMock).toBeCalledTimes(1);
+    expect(mutateFunctionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ environment: 'unit-test-env' }),
+      expect.anything(),
+    );
+
+    const alertMessage = screen.getByText(textMock(errorMessageKey));
+    expect(alertMessage).toBeInTheDocument();
+  });
 });
 
 async function openDialog(): Promise<void> {

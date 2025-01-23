@@ -1,7 +1,14 @@
 import type { ReactElement } from 'react';
 import React, { useRef, useState } from 'react';
-import { StudioButton, StudioModal, StudioTextfield, StudioParagraph } from '@studio/components';
-import { useTranslation } from 'react-i18next';
+import {
+  StudioButton,
+  StudioModal,
+  StudioTextfield,
+  StudioParagraph,
+  StudioAlert,
+  StudioLink,
+} from '@studio/components';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUndeployMutation } from '../../../../hooks/mutations/useUndeployMutation';
@@ -16,6 +23,7 @@ export const ConfirmUndeployDialog = ({
   const { org, app: appName } = useStudioEnvironmentParams();
   const dialogRef = useRef<HTMLDialogElement>();
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
+  const [undeployError, setUndeployError] = useState<string | null>(null);
   const mutation = useUndeployMutation(org, appName);
   const onAppNameInputChange = (event: React.FormEvent<HTMLInputElement>): void => {
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
@@ -31,7 +39,11 @@ export const ConfirmUndeployDialog = ({
       },
       {
         onSuccess: (): void => {
+          setUndeployError(null);
           closeDialog();
+        },
+        onError: (): void => {
+          setUndeployError('app_deployment.error_unknown.message');
         },
       },
     );
@@ -58,6 +70,18 @@ export const ConfirmUndeployDialog = ({
           })}
           onChange={onAppNameInputChange}
         />
+        {undeployError && (
+          <StudioAlert severity='danger' className={classes.errorContainer}>
+            <StudioParagraph size='sm'>
+              <Trans
+                i18nKey={undeployError}
+                components={{
+                  a: <StudioLink href='/contact' style={{ display: 'inline ' }} />,
+                }}
+              />
+            </StudioParagraph>
+          </StudioAlert>
+        )}
         <StudioButton
           disabled={!isAppNameConfirmed}
           color='danger'
