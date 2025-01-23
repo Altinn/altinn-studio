@@ -1,0 +1,29 @@
+.card {
+  margin-top: var(--fds-spacing-4);
+  margin-bottom: var(--fds-spacing-4);
+  gap: var(--fds-spacing-4);
+}
+
+.card span {
+  overflow: hidden;
+}
+
+.property {
+  padding-left: var(--fds-spacing-0);
+}
+
+.content {
+  gap: var(--fds-spacing-4);
+  padding: var(--fds-spacing-4);
+}
+
+.divider {
+  border-top: 1px solid;
+  border-color: var(--fds-semantic-border-divider-subtle);
+  width: 100%;
+}
+
+.buttongroup {
+  display: flex;
+  gap: var(--fds-spacing-3);
+}
