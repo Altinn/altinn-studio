@@ -19,7 +19,7 @@ export const DialogContent = ({ environment }: DialogContentProps) => {
         <Section key={section.titleKey} title={t(section.titleKey)}>
           {section.items.map((item) =>
             isItemWithLink(item) ? (
-              <ListItemWithLink key={item.textKey} textKey={item.textKey} link={item.link} />
+              <ListItemWithLink key={item.textKey} textKey={item.textKey} link={t(item.link)} />
             ) : (
               <StudioList.Item key={item.textKey}>{t(item.textKey)}</StudioList.Item>
             ),
