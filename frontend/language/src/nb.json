@@ -132,7 +132,7 @@
   "app_deployment.unpublish_alternatives_previous_version": "Bytte til en tidligere versjon, for eksempel hvis den nyeste inneholder feil.",
   "app_deployment.unpublish_alternatives_title": "Hva kan du gjøre i stedet for å avpublisere?",
   "app_deployment.unpublish_consequence_dialog_title": "Hva skjer når du avpubliserer en app?",
-  "app_deployment.unpublish_considerations_active_instances": "Du må vurdere hva skal skje med eventuelle aktive eksemplarer. Vil du fjerne dem fra brukerens innboks?",
+  "app_deployment.unpublish_considerations_active_instances": "Du må vurdere hva skal skje med eventuelle aktive eksemplarer. Vil du f.eks. slette dem fra brukerens innboks via appens APIer må dette gjøres før avpublisering.",
   "app_deployment.unpublish_considerations_storage_api": "Du må hente ut data fra appens eksemplarer rett fra Storage API.",
   "app_deployment.unpublish_considerations_title": "Dette må du vurdere før du avpubliserer",
   "app_deployment.unpublish_impact_endpoints": "API-endepunktene til appen fungerer ikke lenger.",
