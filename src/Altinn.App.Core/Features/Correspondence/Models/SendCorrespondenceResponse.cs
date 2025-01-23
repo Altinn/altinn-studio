@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Altinn.App.Core.Features.Correspondence.Models;
@@ -5,6 +6,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 /// <summary>
 /// Response after a successful <see cref="CorrespondenceClient.Send"/> request.
 /// </summary>
+[Experimental(diagnosticId: "ALTINNAPP0200")]
 public sealed record SendCorrespondenceResponse
 {
     /// <summary>
