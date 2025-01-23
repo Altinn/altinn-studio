@@ -123,7 +123,7 @@
   "app_deployment.technical_error_1": "Vi har en teknisk feil og får ikke publisert appen din. Publiser på nytt nå, eller prøv igjen senere. Hvis problemet fortsetter, <a>ta kontakt med oss</a>.",
   "app_deployment.undeploy_button": "Avpubliser appen",
   "app_deployment.undeploy_confirmation_button": "Avpubliser",
-  "app_deployment.undeploy_confirmation_dialog_description": "Når du avpubliserer appen kan brukerne ikke lenger åpne eksemplarer av den. Alle data i aktive og ikke aktive eksemplarer og API-endepunktene slutter å fungere.",
+  "app_deployment.undeploy_confirmation_dialog_description": "Når du avpubliserer appen kan brukerne ikke lenger åpne eksemplarer av den. API-endepunktene slutter å fungere.",
   "app_deployment.undeploy_confirmation_input_description": "Appen heter: {{appName}}",
   "app_deployment.undeploy_confirmation_input_label": "Skriv navnet på appen for å bekrefte at du vil avpublisere den",
   "app_deployment.unpublish_alternatives_add_validation": "Legge inn en validering som bestemmer når brukerne skal ha tilgang til appen. Det kan være nyttig å gjøre en stund før du avpubliserer appen.",
