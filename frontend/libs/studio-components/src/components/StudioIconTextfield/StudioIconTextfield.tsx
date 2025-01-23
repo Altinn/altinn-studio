@@ -28,7 +28,7 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
         <StudioTextfield
           disabled={readOnly}
           id={textFieldId}
-          size='small'
+          size='sm'
           className={classes.textfield}
           {...rest}
         />
@@ -48,7 +48,7 @@ const IconLabel = ({ htmlFor, icon, label, readonly }: IconLabelProps): React.Re
   return (
     <div className={classes.iconLabel}>
       {icon}
-      <Label size='small' htmlFor={htmlFor}>
+      <Label size='sm' htmlFor={htmlFor}>
         {label}
       </Label>
       {readonly && <PadlockLockedFillIcon className={classes.padLockIcon} />}
