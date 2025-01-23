@@ -8,9 +8,11 @@ type Story = StoryFn<typeof StudioIconTextfield>;
 const meta: Meta = {
   title: 'Components/StudioIconTextfield',
   component: StudioIconTextfield,
-  argTypes: {
-    value: {
-      control: 'text',
+  parameters: {
+    docs: {
+      canvas: {
+        height: '100%',
+      },
     },
   },
 };
@@ -34,4 +36,19 @@ WithErrorMessage.args = {
   label: 'A label',
   value: 'A faulty value',
   error: 'Your custom error message!',
+};
+
+export const AsReadOnly: Story = (args) => <StudioIconTextfield {...args} />;
+AsReadOnly.args = {
+  label: 'A label',
+  value: 'A readonly value',
+  readOnly: true,
+};
+
+export const AsReadOnlyWithIcon: Story = (args) => <StudioIconTextfield {...args} />;
+AsReadOnlyWithIcon.args = {
+  icon: <KeyVerticalIcon />,
+  label: 'A label',
+  value: 'A readonly value',
+  readOnly: true,
 };

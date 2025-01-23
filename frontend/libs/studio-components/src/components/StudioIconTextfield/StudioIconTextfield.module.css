@@ -5,10 +5,15 @@
 }
 
 .iconLabel {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   gap: var(--fds-spacing-1);
   font-weight: 500;
   align-items: center;
+}
+
+.iconLabel:has(:nth-child(3)) {
+  grid-template-columns: auto 1fr auto;
 }
 
 .textfield {
