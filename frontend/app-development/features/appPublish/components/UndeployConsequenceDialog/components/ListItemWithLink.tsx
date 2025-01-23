@@ -11,7 +11,11 @@ export const ListItemWithLink = ({ textKey, link }: ListItemWithLinkProps): Reac
     <Trans
       i18nKey={textKey}
       components={{
-        a: <StudioLink target='_blank' rel='noopener noreferrer' href={link}></StudioLink>,
+        a: (
+          <StudioLink target='_blank' rel='noopener noreferrer' href={link}>
+            {' '}
+          </StudioLink>
+        ),
       }}
     />
   </StudioList.Item>
