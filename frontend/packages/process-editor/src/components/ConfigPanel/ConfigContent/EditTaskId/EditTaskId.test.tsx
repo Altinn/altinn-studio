@@ -43,26 +43,25 @@ describe('EditTaskId', () => {
   });
   it('should render task id as view mode by default', () => {
     render(<EditTaskId />);
-
-    expect(
-      screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_change_task_id'),
-      }),
-    ).toBeInTheDocument();
+    const editTaskIdButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
+    expect(editTaskIdButton).toBeInTheDocument();
+    expect(editTaskIdButton).toHaveTextContent(mockBpmnDetails.id);
   });
 
   it('should render task id in edit mode when clicking on the edit button', async () => {
     const user = userEvent.setup();
     render(<EditTaskId />);
-
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
     });
     await user.click(editButton);
-
-    expect(
-      screen.getByLabelText(textMock('process_editor.configuration_panel_change_task_id')),
-    ).toBeInTheDocument();
+    const editTaskIdInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
+    expect(editTaskIdInput).toBeInTheDocument();
+    expect(editTaskIdInput).toHaveValue(mockBpmnDetails.id);
   });
 
   it('should update metadataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
@@ -76,13 +75,13 @@ describe('EditTaskId', () => {
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
     });
     await user.click(editButton);
 
-    const input = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_change_task_id'),
-    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
 
     await user.clear(input);
     await user.type(input, newId);
@@ -144,20 +143,16 @@ describe('EditTaskId', () => {
       it(`should display validation error when task id ${description}`, async () => {
         const user = userEvent.setup();
         render(<EditTaskId />);
-
         const editButton = screen.getByRole('button', {
-          name: textMock('process_editor.configuration_panel_change_task_id'),
+          name: textMock('process_editor.configuration_panel_change_task_id_label'),
         });
         await user.click(editButton);
-
-        const input = screen.getByLabelText(
-          textMock('process_editor.configuration_panel_change_task_id'),
-        );
-
+        const input = screen.getByRole('textbox', {
+          name: textMock('process_editor.configuration_panel_change_task_id_label'),
+        });
         await user.clear(input);
         if (inputValue !== '') await user.type(input, inputValue);
         await user.tab();
-
         const errorMessage = await screen.findByText(textMock(expectedError, textArgs));
         expect(errorMessage).toBeInTheDocument();
       });
@@ -170,22 +165,18 @@ describe('EditTaskId', () => {
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
       metadataFormRef: metadataFormRefMock,
     });
-
     render(<EditTaskId />);
-
     const editButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
     });
+    expect(editButton).toHaveTextContent(mockBpmnDetails.id);
     await user.click(editButton);
-
-    const input = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_change_task_id'),
-    );
-
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
+    });
     await user.clear(input);
     await user.type(input, mockBpmnDetails.id);
     await user.tab();
-
     expect(metadataFormRefMock.current).toBeUndefined();
     expect(setBpmnDetailsMock).not.toHaveBeenCalled();
   });

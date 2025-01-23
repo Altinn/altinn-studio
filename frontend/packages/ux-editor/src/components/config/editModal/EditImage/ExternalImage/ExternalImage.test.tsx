@@ -2,13 +2,14 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';
-import { ExternalImage } from './ExternalImage';
+import { calculateViewValue, ExternalImage } from './ExternalImage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
@@ -37,8 +38,9 @@ describe('ExternalImage', () => {
   it('shows existing url in view mode if exist', () => {
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
-    const existingUrlButton = getExistingUrlButton(existingUrl);
+    const existingUrlButton = getExistingUrlButton();
     expect(existingUrlButton).toBeInTheDocument();
+    expect(existingUrlButton).toHaveTextContent(existingUrl);
   });
 
   it('shows "invalid url" error message by default if existing url is validated as invalid url', () => {
@@ -140,7 +142,7 @@ describe('ExternalImage', () => {
     // Entering invalid url
     await inputUrlInField(user, invalidUrl);
     // Entering valid url
-    const viewModeUrlButton = getExistingUrlButton(invalidUrl);
+    const viewModeUrlButton = getExistingUrlButton();
     await user.click(viewModeUrlButton);
     await inputUrlInField(user, validImageUrl);
     expect(onUrlChangeMock).toHaveBeenCalled();
@@ -151,15 +153,16 @@ describe('ExternalImage', () => {
     const validUrl = 'someValidUrl';
     renderExternalImage();
     await inputUrlInField(user, validUrl);
-    const existingUrlButton = getExistingUrlButton(validUrl);
+    const existingUrlButton = getExistingUrlButton();
     expect(existingUrlButton).toBeInTheDocument();
+    expect(existingUrlButton).toHaveTextContent(validUrl);
   });
 
   it('calls onUrlDelete when entering an empty url if there was an original url', async () => {
     const user = userEvent.setup();
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
-    const viewModeUrlButton = getExistingUrlButton(existingUrl);
+    const viewModeUrlButton = getExistingUrlButton();
     await user.click(viewModeUrlButton);
     await inputUrlInField(user, undefined);
     expect(onUrlDeleteMock).toHaveBeenCalledTimes(1);
@@ -177,7 +180,7 @@ describe('ExternalImage', () => {
     const user = userEvent.setup();
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
-    const viewModeUrlButton = getExistingUrlButton(existingUrl);
+    const viewModeUrlButton = getExistingUrlButton();
     await user.click(viewModeUrlButton);
     await inputUrlInField(user, existingUrl);
     expect(onUrlDeleteMock).not.toHaveBeenCalled();
@@ -187,12 +190,10 @@ describe('ExternalImage', () => {
     const user = userEvent.setup();
     renderExternalImage();
     await inputUrlInField(user, undefined);
-    const enterUrlButton = getEnterUrlWithPlaceholderButton();
-    expect(enterUrlButton).toBeInTheDocument();
-    const emptyUrlPlaceholder = screen.getByText(
+    const enterUrlButton = getExistingUrlButton();
+    expect(enterUrlButton).toHaveTextContent(
       textMock('ux_editor.properties_panel.images.external_url_not_added'),
     );
-    expect(emptyUrlPlaceholder).toBeInTheDocument();
   });
 
   it('should show error if validation failed', async () => {
@@ -223,23 +224,15 @@ const getInvalidUrlErrorMessage = () =>
 const getNotAnImageErrorMessage = () =>
   screen.getByText(textMock('ux_editor.properties_panel.images.invalid_external_url_not_an_image'));
 
-const getExistingUrlButton = (url: string) =>
+const getExistingUrlButton = () =>
   screen.getByRole('button', {
-    name: textMock('ux_editor.properties_panel.images.enter_external_url') + ' ' + url,
+    name: textMock('ux_editor.properties_panel.images.enter_external_url'),
   });
 
-const getEnterUrlWithPlaceholderButton = () =>
-  screen.getByRole('button', {
-    name:
-      textMock('ux_editor.properties_panel.images.enter_external_url') +
-      ' ' +
-      textMock('ux_editor.properties_panel.images.external_url_not_added'),
-  });
-
-const inputUrlInField = async (user, url: string) => {
+const inputUrlInField = async (user: UserEvent, url: string) => {
   const inputUrlField = getInputUrlField();
+  await user.clear(inputUrlField);
   if (url) await user.type(inputUrlField, url);
-  else await user.clear(inputUrlField);
   await waitFor(() => inputUrlField.blur());
 };
 
@@ -257,3 +250,49 @@ const renderExternalImage = (
 ) => {
   renderWithProviders(<ExternalImage {...defaultProps} {...props} />, { queries, queryClient });
 };
+
+describe('calculateViewValue', () => {
+  const noUrlText = 'No URL Provided';
+
+  it('should return the URL when URL is provided and view mode is false', () => {
+    const url = 'http://example.com';
+    const result = calculateViewValue(url, noUrlText, false);
+    expect(result).toBe(url);
+  });
+
+  it('should return the URL when URL is provided and view mode is true', () => {
+    const url = 'http://example.com';
+    const result = calculateViewValue(url, noUrlText, true);
+    expect(result).toBe(url);
+  });
+
+  it('should return undefined when URL is empty and view mode is false', () => {
+    const result = calculateViewValue('', noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is empty and view mode is true', () => {
+    const result = calculateViewValue('', noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+
+  it('should return undefined when URL is undefined and view mode is false', () => {
+    const result = calculateViewValue(undefined, noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is undefined and view mode is true', () => {
+    const result = calculateViewValue(undefined, noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+
+  it('should return undefined when URL is equal to noUrlText and view mode is false', () => {
+    const result = calculateViewValue(noUrlText, noUrlText, false);
+    expect(result).toBe(undefined);
+  });
+
+  it('should return noUrlText when URL is equal to noUrlText and view mode is true', () => {
+    const result = calculateViewValue(noUrlText, noUrlText, true);
+    expect(result).toBe(noUrlText);
+  });
+});

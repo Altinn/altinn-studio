@@ -43,7 +43,7 @@ describe('ConfigPanel', () => {
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
     });
     const editTaskIdButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
+      name: textMock('process_editor.configuration_panel_change_task_id_label'),
     });
     expect(editTaskIdButton).toBeInTheDocument();
   });

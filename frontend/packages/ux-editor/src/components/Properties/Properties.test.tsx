@@ -51,9 +51,7 @@ jest.mock('../config/Expressions', () => ({
 }));
 
 describe('Properties', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(jest.clearAllMocks);
 
   describe('Page config', () => {
     it('shows page config when formItem is undefined', () => {
@@ -83,9 +81,10 @@ describe('Properties', () => {
       });
       expect(heading).toBeInTheDocument();
       const editComponentIdButton = screen.getByRole('button', {
-        name: textMock('ux_editor.id_identifier'),
+        name: textMock('ux_editor.modal_properties_component_change_id'),
       });
       expect(editComponentIdButton).toBeInTheDocument();
+      expect(editComponentIdButton).toHaveTextContent(componentMocks[ComponentType.Input].id);
       await user.click(editComponentIdButton);
       const textbox = screen.getByRole('textbox', {
         name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -100,11 +99,17 @@ describe('Properties', () => {
     it('should not invoke handleUpdate when the id is invalid', async () => {
       const user = userEvent.setup();
       renderProperties();
-      await user.click(screen.getByRole('button', { name: textMock('ux_editor.id_identifier') }));
+      await user.click(
+        screen.getByRole('button', {
+          name: textMock('ux_editor.modal_properties_component_change_id'),
+        }),
+      );
 
       const invalidId = 'invalidId-01';
       await user.type(
-        screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id')),
+        screen.getByRole('textbox', {
+          name: textMock('ux_editor.modal_properties_component_change_id'),
+        }),
         invalidId,
       );
 

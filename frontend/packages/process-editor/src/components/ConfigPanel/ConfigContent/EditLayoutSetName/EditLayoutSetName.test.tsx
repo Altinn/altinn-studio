@@ -15,16 +15,7 @@ describe('EditLayoutSetName', () => {
       name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
     expect(editLayoutSetName).toBeInTheDocument();
-  });
-
-  it('should render the name of the layoutSetName textfield using the connected taskId', () => {
-    renderEditLayoutSetName();
-    const layoutSetNameViewMode = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_layout_set_name_label'),
-    );
-    expect(layoutSetNameViewMode).toHaveTextContent(
-      textMock('process_editor.configuration_panel_layout_set_name') + existingLayoutSetNameMock,
-    );
+    expect(editLayoutSetName).toHaveTextContent(existingLayoutSetNameMock);
   });
 
   it('should call mutateLayoutSet when changing name', async () => {

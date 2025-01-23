@@ -20,6 +20,7 @@ export const Preview: Story = (args) => <StudioIconTextfield {...args}></StudioI
 
 Preview.args = {
   icon: <PencilIcon />,
+  label: 'Write a text',
   value: 2.3,
   error: 'Your custom error message!',
 };

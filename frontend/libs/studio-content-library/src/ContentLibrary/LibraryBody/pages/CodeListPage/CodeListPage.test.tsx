@@ -12,7 +12,7 @@ const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
-const codeListName = codeListsDataMock[0].title;
+const codeListTitle = codeListsDataMock[0].title;
 const codeListMock: StudioComponentCodeList = [{ value: 'value', label: 'label' }];
 const uploadedCodeListName = 'uploadedCodeListName';
 
@@ -52,15 +52,9 @@ describe('CodeListPage', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
-  it('renders the code list as a clickable element', () => {
-    renderCodeListPage();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
-    expect(codeListAccordion).toBeInTheDocument();
-  });
-
   it('renders the code list accordion', () => {
     renderCodeListPage();
-    const codeListAccordion = getCodeListAccordion(codeListName);
+    const codeListAccordion = getCodeListAccordion(codeListTitle);
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -73,8 +67,8 @@ describe('CodeListPage', () => {
     });
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
-    [codeListName, codeList2].forEach((codeListTitle) => {
-      expect(getCodeListAccordion(codeListTitle)).toBeInTheDocument();
+    [codeListTitle, codeList2].forEach((title) => {
+      expect(getCodeListAccordion(title)).toBeInTheDocument();
     });
   });
 
@@ -91,7 +85,7 @@ describe('CodeListPage', () => {
     expect(
       screen.queryByTitle(
         textMock('app_content_library.code_lists.code_list_accordion_title', {
-          codeListTitle: codeListName,
+          codeListTitle,
         }),
       ),
     ).not.toBeInTheDocument();
@@ -101,7 +95,7 @@ describe('CodeListPage', () => {
     const user = userEvent.setup();
     const { rerender } = renderCodeListPage();
     const codeListAccordionClosed = screen.getByRole('button', {
-      name: codeListName,
+      name: codeListTitle,
       expanded: false,
     });
     expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
@@ -123,9 +117,9 @@ describe('CodeListPage', () => {
   it('calls onUpdateCodeListId when Id is changed', async () => {
     const user = userEvent.setup();
     renderCodeListPage();
-    await changeCodeListId(user, codeListName);
+    await changeCodeListId(user, codeListTitle);
     expect(onUpdateCodeListIdMock).toHaveBeenCalledTimes(1);
-    expect(onUpdateCodeListIdMock).toHaveBeenCalledWith(codeListName, codeListName + '2');
+    expect(onUpdateCodeListIdMock).toHaveBeenCalledWith(codeListTitle, codeListTitle + '2');
   });
 
   it('calls onUpdateCodeList when code list is changed', async () => {
@@ -136,7 +130,7 @@ describe('CodeListPage', () => {
     expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
       codeList: [{ ...codeListsDataMock[0].data[0], value: newValueText }],
-      title: codeListName,
+      title: codeListTitle,
     });
   });
 
@@ -151,16 +145,14 @@ describe('CodeListPage', () => {
 
 const changeCodeListId = async (user: UserEvent, codeListNameToChange: string) => {
   const codeListIdToggleTextfield = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_view_id_title', {
-      codeListName: codeListNameToChange,
-    }),
-  );
-  await user.click(codeListIdToggleTextfield);
-  const codeListIdInput = screen.getByTitle(
     textMock('app_content_library.code_lists.code_list_edit_id_title', {
       codeListName: codeListNameToChange,
     }),
   );
+  await user.click(codeListIdToggleTextfield);
+  const codeListIdInput = screen.getByRole('textbox', {
+    name: textMock('app_content_library.code_lists.code_list_edit_id_label'),
+  });
   await user.type(codeListIdInput, '2');
   await user.tab();
 };
@@ -181,10 +173,10 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   await user.upload(fileUploaderButton, file);
 };
 
-const getCodeListAccordion = (codeListTitle: string) => {
+const getCodeListAccordion = (title: string) => {
   return screen.getByTitle(
     textMock('app_content_library.code_lists.code_list_accordion_title', {
-      codeListTitle,
+      codeListTitle: title,
     }),
   );
 };

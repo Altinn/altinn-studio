@@ -93,8 +93,9 @@ describe('CustomReceiptContent', () => {
   });
 
   it('shows the custom receipt when there is an existing custom receipt layout set id', () => {
+    const existingCustomReceiptLayoutSetId = 'existingCustomReceiptLayoutSetId';
     renderCustomReceiptContent({
-      existingCustomReceiptLayoutSetId: 'testId',
+      existingCustomReceiptLayoutSetId,
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
