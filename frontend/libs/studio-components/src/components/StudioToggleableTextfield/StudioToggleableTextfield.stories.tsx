@@ -16,14 +16,8 @@ export const Preview: Story = (args) => (
 Preview.args = {
   onIsViewMode: () => {},
   label: 'My awesome label',
-  viewProps: {
-    value: 'My awesome value',
-  },
-  inputProps: {
-    size: 'small',
-    placeholder: 'Placeholder',
-    error: '',
-  },
+  value: 'value',
+  error: 'error',
 };
 
 export default meta;

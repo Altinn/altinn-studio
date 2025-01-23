@@ -10,6 +10,7 @@ describe('StudioIconTextfield', () => {
   it('render the icon', async () => {
     renderStudioIconTextfield({
       icon: <KeyVerticalIcon title='my key icon title' />,
+      label: 'id',
     });
     expect(screen.getByTitle('my key icon title')).toBeInTheDocument();
   });

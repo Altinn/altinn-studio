@@ -5,7 +5,8 @@ import cn from 'classnames';
 import classes from './StudioIconTextfield.module.css';
 
 export type StudioIconTextfieldProps = {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  label: string;
 } & StudioTextfieldProps;
 
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
