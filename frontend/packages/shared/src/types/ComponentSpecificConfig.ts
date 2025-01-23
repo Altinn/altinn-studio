@@ -7,6 +7,7 @@ import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import type { BooleanExpression, StringExpression } from '@studio/components';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 type DataModelBindingsForAddress = {
   address: string;
@@ -38,12 +39,12 @@ type DataModelBindingsList = {
 };
 
 type DataModelBindingsOptionsSimple = {
-  simpleBinding: string;
+  simpleBinding: string | InternalBindingFormat;
   metadata?: string;
 };
 
 export type DataModelBindingsSimple = {
-  simpleBinding: string;
+  simpleBinding: string | InternalBindingFormat;
 };
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;

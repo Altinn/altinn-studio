@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -59,7 +58,7 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         using var response = await HttpClient.PutAsync(url, form);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutFilePath = "App/ui/layoutSet2/layouts/layoutFile2InSet2.json";
         string layoutContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutFilePath);
@@ -67,8 +66,8 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         JsonNode layout = JsonSerializer.Deserialize<JsonNode>(layoutContent);
         string newTaskId = layout["data"]?["layout"]?[0]?["target"]?["taskId"]?.ToString();
 
-        newTaskId.Should().Be(metadata.TaskIdChange.NewId);
-        newTaskId.Should().NotBe(metadata.TaskIdChange.OldId);
+        Assert.Equal(newTaskId, metadata.TaskIdChange.NewId);
+        Assert.NotEqual(newTaskId, metadata.TaskIdChange.OldId);
     }
 
     [Theory]
@@ -105,10 +104,10 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         using var response = await HttpClient.PutAsync(url, form);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutAfterUpdate = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutPath);
-        layoutAfterUpdate.Should().Be(layoutBeforeUpdate);
+        Assert.Equal(layoutBeforeUpdate, layoutAfterUpdate);
     }
 
     public static IEnumerable<object[]> GetReferencedTaskIdTestData()

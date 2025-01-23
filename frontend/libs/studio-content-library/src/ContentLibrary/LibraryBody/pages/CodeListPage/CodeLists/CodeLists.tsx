@@ -3,13 +3,14 @@ import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
 import { StudioAlert } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
-import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
+import { getCodeListSourcesById, getCodeListUsageCount } from '../utils/codeListPageUtils';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
+  onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
@@ -19,11 +20,8 @@ export type CodeListsProps = {
 
 export function CodeLists({
   codeListsData,
-  onUpdateCodeListId,
-  onUpdateCodeList,
-  codeListInEditMode,
-  codeListNames,
   codeListsUsages,
+  ...rest
 }: CodeListsProps): React.ReactElement[] {
   return codeListsData.map((codeListData) => {
     const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
@@ -31,10 +29,7 @@ export function CodeLists({
       <CodeList
         key={codeListData.title}
         codeListData={codeListData}
-        onUpdateCodeListId={onUpdateCodeListId}
-        onUpdateCodeList={onUpdateCodeList}
-        codeListInEditMode={codeListInEditMode}
-        codeListNames={codeListNames}
+        {...rest}
         codeListSources={codeListSources}
       />
     );
@@ -48,11 +43,9 @@ type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> &
 
 function CodeList({
   codeListData,
-  onUpdateCodeListId,
-  onUpdateCodeList,
   codeListInEditMode,
-  codeListNames,
   codeListSources,
+  ...rest
 }: CodeListProps): React.ReactElement {
   return (
     <Accordion border>
@@ -63,10 +56,8 @@ function CodeList({
         />
         <CodeListAccordionContent
           codeListData={codeListData}
-          onUpdateCodeListId={onUpdateCodeListId}
-          onUpdateCodeList={onUpdateCodeList}
-          codeListNames={codeListNames}
           codeListSources={codeListSources}
+          {...rest}
         />
       </Accordion.Item>
     </Accordion>
@@ -120,29 +111,34 @@ type CodeListAccordionContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
 
 function CodeListAccordionContent({
   codeListData,
-  onUpdateCodeListId,
-  onUpdateCodeList,
-  codeListNames,
   codeListSources,
+  ...rest
 }: CodeListAccordionContentProps): React.ReactElement {
-  const { t } = useTranslation();
-
   return (
     <Accordion.Content>
       {codeListData.hasError ? (
-        <StudioAlert size='small' severity='danger'>
-          {t('app_content_library.code_lists.fetch_error')}
-        </StudioAlert>
+        <InvalidCodeListAlert />
       ) : (
         <EditCodeList
           codeList={codeListData.data}
           codeListTitle={codeListData.title}
-          onUpdateCodeListId={onUpdateCodeListId}
-          onUpdateCodeList={onUpdateCodeList}
-          codeListNames={codeListNames}
           codeListSources={codeListSources}
+          {...rest}
         />
       )}
     </Accordion.Content>
+  );
+}
+
+function InvalidCodeListAlert(): React.ReactElement {
+  return (
+    <StudioAlert size='small' severity='danger'>
+      <span>
+        <Trans
+          i18nKey='app_content_library.code_lists.format_error'
+          components={{ bold: <strong /> }}
+        />
+      </span>
+    </StudioAlert>
   );
 }

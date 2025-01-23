@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -34,10 +33,10 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string url = VersionPrefix(org, targetRepository);
             var response = await HttpClient.GetAsync(url);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<ApplicationMetadata>(metadataFile, JsonSerializerOptions), JsonSerializerOptions);
-            JsonUtils.DeepEquals(expectedJson, responseContent).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedJson, responseContent));
         }
     }
 }

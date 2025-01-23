@@ -13,7 +13,6 @@ import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { ObjectUtils } from '@studio/pure-functions';
 import { PolicyAccessPackages } from './PolicyAccessPackages';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
@@ -85,7 +84,7 @@ export const PolicyRule = ({
           <SubResources />
           <PolicyActions />
           <PolicySubjects />
-          {shouldDisplayFeature(FeatureFlag.AccessPackages) && <PolicyAccessPackages />}
+          <PolicyAccessPackages />
           <PolicyDescription />
         </ExpandablePolicyElement>
         {showErrors && <PolicyRuleErrorMessage />}

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -28,7 +27,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
             using var response = await HttpClient.PutAsync(url, null);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Theory]
@@ -42,7 +41,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             string url = VersionPrefix(org, targetRepository, version, templateName);
 
             using var response = await HttpClient.PutAsync(url, null);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
@@ -50,7 +49,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             XDocument responseXml = XDocument.Parse(responseContent);
             XDocument savedXml = XDocument.Parse(savedFile);
-            XNode.DeepEquals(savedXml, responseXml).Should().BeTrue();
+            Assert.True(XNode.DeepEquals(savedXml, responseXml));
         }
     }
 }

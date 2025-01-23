@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using SharedResources.Tests;
@@ -45,12 +44,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? "App/ui/RuleHandler.js"
                 : $"App/ui/{layoutSetName}/RuleHandler.js";
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath).Should().BeEquivalentTo(content);
+            Assert.Equal(TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath), content);
         }
 
     }

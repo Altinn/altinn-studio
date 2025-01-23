@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Altinn.Studio.DataModeling.Json.Formats;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Formats;
@@ -34,6 +33,7 @@ public class CustomFormatsTests
         objects.Add(node[property]);
 
         var result = checkDateMethod.Invoke(null, objects.ToArray());
-        expected.Should().Be((bool)result);
+
+        Assert.Equal(expected, (bool)result);
     }
 }

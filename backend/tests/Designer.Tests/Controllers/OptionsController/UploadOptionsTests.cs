@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -105,7 +104,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
 
         string optionsFileName = "missing-fields-options.json";
         string jsonOptions = @"[
-        {""value"": """" }, 
+        {""value"": """" },
         {""label"": """" },
     ]";
 
@@ -189,8 +188,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
 
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
-        problemDetails.Should().NotBeNull();
+        Assert.NotNull(problemDetails);
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        errorCode.ToString().Should().Be("InvalidOptionsFormat");
+        Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 }

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -43,21 +42,23 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
             using var response = await HttpClient.PutAsync(url, payloadContent);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
             var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFile, _jsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payloadNode!["id"]!.ToString());
-            attachmentDataType.MaxCount.Should().Be(payloadNode!["maxCount"]!.GetValue<int>());
-            attachmentDataType.MaxSize.Should().Be(payloadNode!["maxSize"]!.GetValue<int>());
-            attachmentDataType.MinCount.Should().Be(payloadNode!["minCount"]!.GetValue<int>());
 
-            attachmentDataType.AllowedContentTypes.Count.Should().Be(expectedContentTypes.Length);
+            Assert.Equal(attachmentDataType.MaxCount, payloadNode!["maxCount"]!.GetValue<int>());
+            Assert.Equal(attachmentDataType.MaxSize, payloadNode!["maxSize"]!.GetValue<int>());
+            Assert.Equal(attachmentDataType.MinCount, payloadNode!["minCount"]!.GetValue<int>());
+
+
+            Assert.Equal(attachmentDataType.AllowedContentTypes.Count, expectedContentTypes.Length);
 
             foreach (string contentType in expectedContentTypes)
             {
-                attachmentDataType.AllowedContentTypes.Should().Contain(contentType);
+                Assert.Contains(contentType, attachmentDataType.AllowedContentTypes);
             }
         }
 
