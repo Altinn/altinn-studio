@@ -102,7 +102,7 @@ export const PolicyEditorPage = ({
 
   return (
     <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
-      <StudioHeading size='large' spacing level={1}>
+      <StudioHeading size='lg' spacing level={1}>
         {t('resourceadm.policy_editor_title')}
       </StudioHeading>
       {displayContent()}

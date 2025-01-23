@@ -78,7 +78,7 @@ export const ResourceContactPointFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_contact_description')}
-        size='small'
+        size='sm'
       >
         <StudioTextfield
           id={`contactPoints-${index}`}
@@ -86,7 +86,7 @@ export const ResourceContactPointFieldset = ({
             <div className={classes.categoryHeader}>
               {t('resourceadm.about_resource_contact_label_category')}
               <HelpText
-                size='small'
+                size='sm'
                 title={`${t('resourceadm.about_resource_contact_label_category_help_prefix')} ${t('resourceadm.about_resource_contact_label_category_help_text')}`}
               >
                 {t('resourceadm.about_resource_contact_label_category_help_text')}

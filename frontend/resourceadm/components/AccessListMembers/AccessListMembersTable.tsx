@@ -35,9 +35,7 @@ export const AccessListMembersTable = ({
     let buttonText: string;
     if (invalidItems?.indexOf(item.orgNr) > -1) {
       return (
-        <StudioErrorMessage size='small'>
-          {t('resourceadm.listadmin_invalid_org')}
-        </StudioErrorMessage>
+        <StudioErrorMessage size='sm'>{t('resourceadm.listadmin_invalid_org')}</StudioErrorMessage>
       );
     }
     const orgAriaString = `${item.orgName} ${stringNumberToAriaLabel(item.orgNr)}`;

@@ -150,10 +150,10 @@ export const ResourceReferenceFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_references_description')}
-        size='small'
+        size='sm'
       >
         <StudioNativeSelect
-          size='small'
+          size='sm'
           onChange={(event) =>
             handleChangeReferenceSource(event.target.value as ResourceReferenceSource)
           }
@@ -172,7 +172,7 @@ export const ResourceReferenceFieldset = ({
         </StudioNativeSelect>
         <StudioNativeSelect
           id={index === 0 ? 'resourceReferences' : undefined}
-          size='small'
+          size='sm'
           onChange={(event) =>
             handleChangeReferenceType(event.target.value as ResourceReferenceType)
           }
@@ -192,7 +192,7 @@ export const ResourceReferenceFieldset = ({
         <StudioTextfield
           id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
-          size='small'
+          size='sm'
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           error={hasError}

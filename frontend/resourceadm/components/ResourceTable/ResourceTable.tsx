@@ -67,7 +67,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
-          size='medium'
+          size='md'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
@@ -85,7 +85,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          size='medium'
+          size='md'
         />
       );
     } else {
@@ -118,7 +118,7 @@ export const ResourceTable = ({
               tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
-              <StudioTag key={env} color='info' size='small'>
+              <StudioTag key={env} color='info' size='sm'>
                 {tagText}
               </StudioTag>
             );

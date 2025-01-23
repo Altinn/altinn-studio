@@ -79,7 +79,7 @@ export const ResourceCheckboxGroup = ({
 
   const displayAvailableForCheckboxes = () => {
     return options.map((option) => (
-      <StudioCheckbox value={option.value} key={option.value} size='small'>
+      <StudioCheckbox value={option.value} key={option.value} size='sm'>
         {t(option.label)}
       </StudioCheckbox>
     ));
@@ -95,7 +95,7 @@ export const ResourceCheckboxGroup = ({
         id={id}
         legend={<ResourceFieldHeader label={legend} required={required} />}
         description={description}
-        size='small'
+        size='sm'
         error={fieldErrors.length > 0 ? fieldErrors : undefined}
         onChange={onChange}
         onFocus={onFocus}

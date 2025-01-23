@@ -99,7 +99,7 @@ export const AboutResourcePage = ({
   const displayContent = () => {
     return (
       <div className={classes.resourceFields}>
-        <StudioHeading size='large' level={1}>
+        <StudioHeading size='lg' level={1}>
           {t('resourceadm.about_resource_title')}
         </StudioHeading>
         {validationErrors.length > 0 && (

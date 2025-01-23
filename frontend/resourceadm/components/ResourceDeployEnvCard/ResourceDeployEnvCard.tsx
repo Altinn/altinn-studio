@@ -68,14 +68,12 @@ export const ResourceDeployEnvCard = ({
         <StudioSpinner spinnerTitle={t('resourceadm.deploy_deploying')}></StudioSpinner>
       ) : (
         <>
-          <StudioParagraph size='small'>
+          <StudioParagraph size='sm'>
             <strong>{t(env.label)}</strong>
           </StudioParagraph>
-          <StudioParagraph size='small'>
-            {t('resourceadm.deploy_version_number_text')}
-          </StudioParagraph>
+          <StudioParagraph size='sm'>{t('resourceadm.deploy_version_number_text')}</StudioParagraph>
           <div className={classes.envWrapper}>
-            <StudioTag color='neutral' size='small'>
+            <StudioTag color='neutral' size='sm'>
               {currentEnvVersion}
             </StudioTag>
             {newEnvVersion && (
@@ -84,7 +82,7 @@ export const ResourceDeployEnvCard = ({
                   title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
                   fontSize='1.5rem'
                 />
-                <StudioTag color='success' size='small'>
+                <StudioTag color='success' size='sm'>
                   {newEnvVersion}
                 </StudioTag>
               </>
@@ -95,7 +93,7 @@ export const ResourceDeployEnvCard = ({
           </StudioButton>
           {hasNoPublishAccess && (
             <StudioAlert severity='danger'>
-              <StudioParagraph size='small'>
+              <StudioParagraph size='sm'>
                 {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
               </StudioParagraph>
             </StudioAlert>

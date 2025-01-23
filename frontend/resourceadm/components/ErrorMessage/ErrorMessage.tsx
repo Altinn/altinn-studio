@@ -18,13 +18,11 @@ export const ErrorMessage = ({
   const { t } = useTranslation();
   return (
     <div className={classes.errorMessage}>
-      <StudioHeading size='medium' level={1}>
+      <StudioHeading size='md' level={1}>
         {title}
       </StudioHeading>
-      <StudioParagraph size='small'>{message}</StudioParagraph>
-      <StudioParagraph size='small'>
-        {t('resourceadm.dashboard_error_message_info')}
-      </StudioParagraph>
+      <StudioParagraph size='sm'>{message}</StudioParagraph>
+      <StudioParagraph size='sm'>{t('resourceadm.dashboard_error_message_info')}</StudioParagraph>
       {children}
     </div>
   );

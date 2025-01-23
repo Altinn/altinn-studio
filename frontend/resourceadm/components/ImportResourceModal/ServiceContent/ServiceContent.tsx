@@ -76,12 +76,10 @@ export const ServiceContent = ({
       return (
         <StudioCenter className={classes.contentWrapper}>
           <StudioAlert severity='danger'>
-            <StudioParagraph size='small'>{t('general.fetch_error_message')}</StudioParagraph>
-            <StudioParagraph size='small'>{t('general.error_message_with_colon')}</StudioParagraph>
+            <StudioParagraph size='sm'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph size='sm'>{t('general.error_message_with_colon')}</StudioParagraph>
             {altinn2LinkServicesError && (
-              <StudioErrorMessage size='small'>
-                {altinn2LinkServicesError.message}
-              </StudioErrorMessage>
+              <StudioErrorMessage size='sm'>{altinn2LinkServicesError.message}</StudioErrorMessage>
             )}
           </StudioAlert>
         </StudioCenter>
@@ -90,7 +88,7 @@ export const ServiceContent = ({
     case 'success': {
       if (altinn2LinkServices.length === 0) {
         return (
-          <StudioErrorMessage className={classes.contentWrapper} size='small'>
+          <StudioErrorMessage className={classes.contentWrapper} size='sm'>
             {t('resourceadm.import_resource_empty_list', { env: env })}
           </StudioErrorMessage>
         );

@@ -67,11 +67,11 @@ export const MigrationPage = ({
     }
     return (
       <>
-        <StudioHeading size='large' spacing level={1}>
+        <StudioHeading size='lg' spacing level={1}>
           {t('resourceadm.migration_header')}
         </StudioHeading>
         <div className={classes.contentWrapper}>
-          <StudioParagraph size='small' spacing>
+          <StudioParagraph size='sm' spacing>
             {t('resourceadm.migration_ingress')}{' '}
             <strong>{t('resourceadm.migration_ingress_warning')} </strong>
             <StudioLink
@@ -87,10 +87,10 @@ export const MigrationPage = ({
             </StudioLink>
           </StudioParagraph>
           <div className={classes.contentDivider} />
-          <StudioLabelAsParagraph size='medium' spacing htmlFor='selectEnvDropdown'>
+          <StudioLabelAsParagraph size='md' spacing htmlFor='selectEnvDropdown'>
             {t('resourceadm.migration_select_environment_header')}
           </StudioLabelAsParagraph>
-          <StudioParagraph size='small'>
+          <StudioParagraph size='sm'>
             {t('resourceadm.migration_select_environment_body')}
           </StudioParagraph>
           <div className={classes.environmentWrapper}>

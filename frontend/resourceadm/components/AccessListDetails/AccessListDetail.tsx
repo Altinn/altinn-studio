@@ -117,7 +117,7 @@ export const AccessListDetail = ({
           {t('general.back')}
         </StudioLink>
       </div>
-      <StudioHeading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_list_detail_header')}
       </StudioHeading>
       <StudioTextfield
@@ -158,7 +158,7 @@ export const AccessListDetail = ({
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
           disabled={isDeletingAccessList}
-          size='medium'
+          size='md'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

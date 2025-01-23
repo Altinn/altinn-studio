@@ -87,11 +87,11 @@ export const MigrationPanel = ({
             <StudioButton
               disabled={!isMigrateCheckboxChecked}
               onClick={() => postMigrateDelegations()}
-              size='medium'
+              size='md'
             >
               {t('resourceadm.migration_disable_service_confirm')}
             </StudioButton>
-            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='medium'>
+            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='md'>
               {t('general.cancel')}
             </StudioButton>
           </>

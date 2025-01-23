@@ -53,14 +53,14 @@ export const ResourceDeployStatus = ({
 }: ResourceDeployStatusProps): React.JSX.Element => {
   return (
     <StudioAlert severity={isSuccess ? 'success' : 'danger'}>
-      <StudioLabelAsParagraph size='small' className={classes.title}>
+      <StudioLabelAsParagraph size='sm' className={classes.title}>
         {title}
       </StudioLabelAsParagraph>
       {error.map((errorItem, index) => {
         return (
           <div className={classes.cardElement} key={index + resourceId}>
             <ArrowRightIcon fontSize='1.5rem' />
-            <StudioParagraph size='small' className={classes.text}>
+            <StudioParagraph size='sm' className={classes.text}>
               <Trans i18nKey={errorItem.message} values={{ num: errorItem.numberOfErrors }}>
                 <LinkButton onClick={onNavigateToPageWithError} page={errorItem.pageWithError} />
               </Trans>

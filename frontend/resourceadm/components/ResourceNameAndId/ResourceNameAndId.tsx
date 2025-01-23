@@ -102,7 +102,7 @@ export const ResourceNameAndId = ({
             <div className={classes.textfieldWrapper}>
               <StudioTextfield
                 value={id}
-                size='small'
+                size='sm'
                 onChange={(e) => handleEditId(e.target.value)}
                 label={idLabel}
                 error={conflictErrorMessage}
@@ -133,7 +133,7 @@ export const ResourceNameAndId = ({
             <div>
               <p className={classes.idText}>id</p>
             </div>
-            <StudioParagraph size='small'>
+            <StudioParagraph size='sm'>
               <strong>{formatIdString(id)}</strong>
             </StudioParagraph>
             <div className={classes.editButtonWrapper}>

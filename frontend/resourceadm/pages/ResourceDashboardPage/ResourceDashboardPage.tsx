@@ -105,7 +105,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div>
-            <StudioHeading size='xsmall' level={2}>
+            <StudioHeading size='xs' level={2}>
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </StudioHeading>
           </div>
@@ -123,7 +123,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
-        <StudioHeading size='large' level={1}>
+        <StudioHeading size='lg' level={1}>
           {getReposLabel({
             selectedContext: org,
             orgs: organizations ? organizations : [],
@@ -135,7 +135,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <ButtonRouterLink
             variant='tertiary'
             color='second'
-            size='medium'
+            size='md'
             to={`${getResourceDashboardURL(org, app)}/accesslists`}
           >
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
@@ -146,7 +146,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-            size='medium'
+            size='md'
             icon={<MigrationIcon />}
             iconPlacement='right'
           >
@@ -157,7 +157,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
-            size='medium'
+            size='md'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
           >

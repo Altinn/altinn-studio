@@ -49,12 +49,12 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
 
   return (
     <div className={classes.mergeConflictWrapper}>
-      <StudioHeading size='large'>{t('resourceadm.merge_conflict_header')}</StudioHeading>
-      <StudioParagraph size='small' spacing>
+      <StudioHeading size='lg'>{t('resourceadm.merge_conflict_header')}</StudioHeading>
+      <StudioParagraph size='sm' spacing>
         {t('resourceadm.merge_conflict_body')}
       </StudioParagraph>
       <div className={classes.downloadWrapper}>
-        <StudioLabelAsParagraph size='medium' weight='medium'>
+        <StudioLabelAsParagraph size='md' weight='medium'>
           {t('merge_conflict.download')}
         </StudioLabelAsParagraph>
         <StudioLink href={repoDownloadPath(org, repo)}>
@@ -63,7 +63,7 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
         <StudioLink href={repoDownloadPath(org, repo, true)}>
           {t('merge_conflict.download_entire_repo')}
         </StudioLink>
-        <StudioParagraph size='small' spacing>
+        <StudioParagraph size='sm' spacing>
           {t('resourceadm.merge_conflict_footer')}
         </StudioParagraph>
       </div>

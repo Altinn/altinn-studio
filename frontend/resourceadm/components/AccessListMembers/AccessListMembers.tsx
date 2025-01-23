@@ -168,11 +168,10 @@ export const AccessListMembers = ({
 
   return (
     <div>
-      <StudioLabelAsParagraph size='small' spacing>
+      <StudioLabelAsParagraph size='sm' spacing>
         {t('resourceadm.listadmin_list_organizations')}
       </StudioLabelAsParagraph>
-
-      <StudioParagraph variant='short' size='small'>
+      <StudioParagraph variant='short' size='sm'>
         {t('resourceadm.listadmin_list_organizations_description')}
       </StudioParagraph>
       <AccessListMembersTable
@@ -249,7 +248,7 @@ export const AccessListMembers = ({
             icon={<PlusIcon />}
             iconPlacement='left'
             onClick={() => setIsAddMode(true)}
-            size='medium'
+            size='md'
           >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>

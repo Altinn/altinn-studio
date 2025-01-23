@@ -80,7 +80,7 @@ export const ResourceRadioGroup = ({
     <div className={classes.inputWrapper}>
       <StudioRadio.Group
         id={id}
-        size='small'
+        size='sm'
         onChange={(val: string) => {
           setSelected(val);
           onChange(val);

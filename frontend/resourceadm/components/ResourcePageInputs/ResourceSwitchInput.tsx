@@ -66,11 +66,11 @@ export const ResourceSwitchInput = ({
 
   return (
     <div className={classes.inputWrapper}>
-      <StudioLabelAsParagraph size='small' spacing>
+      <StudioLabelAsParagraph size='sm' spacing>
         {label}
       </StudioLabelAsParagraph>
       {description && (
-        <StudioParagraph variant='short' size='small' className={classes.description}>
+        <StudioParagraph variant='short' size='sm' className={classes.description}>
           {description}
         </StudioParagraph>
       )}
@@ -86,10 +86,10 @@ export const ResourceSwitchInput = ({
           onFocus={onFocus}
           aria-description={description}
           aria-label={label}
-          size='small'
+          size='sm'
         >
           <StudioParagraph
-            size='small'
+            size='sm'
             className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
           >
             {t(toggleTextTranslationKey, {

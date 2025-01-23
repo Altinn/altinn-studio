@@ -81,7 +81,7 @@ export const RightTranslationBar = ({
           label={<ResourceFieldHeader label={label} required={required} />}
           error={errorMessagesToDisplay}
           onBlur={onBlur}
-          size='small'
+          size='sm'
           required={required}
         />
       );
@@ -93,7 +93,7 @@ export const RightTranslationBar = ({
         label={<ResourceFieldHeader label={label} required={required} />}
         error={errorMessagesToDisplay}
         onBlur={onBlur}
-        size='small'
+        size='sm'
         required={required}
       />
     );
@@ -107,12 +107,12 @@ export const RightTranslationBar = ({
             title={t('resourceadm.right_translation_bar_translation')}
             className={classes.icon}
           />
-          <StudioHeading size='xsmall' level={2}>
+          <StudioHeading size='xs' level={2}>
             {t('resourceadm.right_translation_bar_title')}
           </StudioHeading>
         </div>
         <StudioAlert severity='info'>
-          <StudioParagraph size='small'>
+          <StudioParagraph size='sm'>
             {t('resourceadm.right_translation_bar_alert')}
           </StudioParagraph>
         </StudioAlert>

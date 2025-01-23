@@ -233,12 +233,12 @@ export const DeployResourcePage = ({
 
         return (
           <>
-            <StudioHeading size='large' spacing level={1}>
+            <StudioHeading size='lg' spacing level={1}>
               {t('resourceadm.deploy_title')}
             </StudioHeading>
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
-              <StudioParagraph size='small' className={classes.informationText}>
+              <StudioParagraph size='sm' className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
                   <StudioLink
                     href='https://www.altinn.no/'
@@ -253,13 +253,13 @@ export const DeployResourcePage = ({
                 <StudioTextfield
                   label={t('resourceadm.deploy_version_label')}
                   description={t('resourceadm.deploy_version_text')}
-                  size='small'
+                  size='sm'
                   value={newVersionText}
                   onChange={(e) => onVersionFieldChanged(e.target.value)}
                   error={resourceVersionText === ''}
                 />
               </div>
-              <StudioLabelAsParagraph size='medium' spacing>
+              <StudioLabelAsParagraph size='md' spacing>
                 {t('resourceadm.deploy_select_env_label')}
               </StudioLabelAsParagraph>
               <div className={classes.environmentWrapper}>

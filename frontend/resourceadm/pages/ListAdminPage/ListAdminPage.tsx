@@ -55,11 +55,11 @@ export const ListAdminPage = (): React.JSX.Element => {
       <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
         {t('resourceadm.listadmin_back')}
       </StudioLink>
-      <StudioHeading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_header')}
       </StudioHeading>
       <div className={classes.environmentSelectorWrapper}>
-        <ToggleGroup size='small' onChange={navigateToListEnv} value={selectedEnv}>
+        <ToggleGroup size='sm' onChange={navigateToListEnv} value={selectedEnv}>
           {getAvailableEnvironments(org).map((environment) => {
             return (
               <ToggleGroup.Item key={environment.id} value={environment.id}>
@@ -91,7 +91,7 @@ export const ListAdminPage = (): React.JSX.Element => {
             )}
             {envListData && (
               <div>
-                <StudioHeading level={2} size='xsmall'>
+                <StudioHeading level={2} size='xs'>
                   {t('resourceadm.listadmin_lists_in', {
                     environment: t(getEnvLabel(selectedEnv as EnvId)),
                   })}

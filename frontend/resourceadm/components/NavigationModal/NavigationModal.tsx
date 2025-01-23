@@ -41,7 +41,7 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
             </>
           }
         >
-          <StudioParagraph size='small'>
+          <StudioParagraph size='sm'>
             {t('resourceadm.resource_navigation_modal_text')}
           </StudioParagraph>
         </StudioModal.Dialog>

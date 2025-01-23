@@ -109,13 +109,13 @@ export const ResourceAccessLists = ({
       <StudioLink href={backUrl} onClick={handleBackClick}>
         {t('general.back')}
       </StudioLink>
-      <StudioHeading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_resource_header', {
           resourceTitle: resourceData.title.nb,
           env: env.toUpperCase(),
         })}
       </StudioHeading>
-      <StudioHeading level={2} size='xsmall'>
+      <StudioHeading level={2} size='xs'>
         {t('resourceadm.listadmin_resource_list_checkbox_header')}
       </StudioHeading>
       <div className={classes.listCheckboxWrapper}>

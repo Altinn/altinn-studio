@@ -91,7 +91,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
             </>
           }
         >
-          <StudioParagraph size='small'>
+          <StudioParagraph size='sm'>
             {t('resourceadm.listadmin_create_list_description')}
           </StudioParagraph>
           <ResourceNameAndId

@@ -13,7 +13,7 @@ export const ErrorPage = (): React.JSX.Element => {
   const { t } = useTranslation();
   return (
     <div className={classes.pageWrapper}>
-      <StudioHeading size='medium' level={1} spacing>
+      <StudioHeading size='md' level={1} spacing>
         {t('resourceadm.error_page_text')}
       </StudioHeading>
       <StudioLink href='/'>{t('resourceadm.error_back_to_dashboard')}</StudioLink>

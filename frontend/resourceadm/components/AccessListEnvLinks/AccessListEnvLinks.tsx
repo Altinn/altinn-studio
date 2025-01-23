@@ -35,10 +35,10 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
         <>
           {envPublishStatus.some((env) => !env.isResourcePublished) && (
             <StudioAlert severity='warning'>
-              <StudioParagraph size='small' spacing>
+              <StudioParagraph size='sm' spacing>
                 {t('resourceadm.about_resource_rrr_publish_warning')}
               </StudioParagraph>
-              <StudioList.Root size='small'>
+              <StudioList.Root size='sm'>
                 <StudioList.Unordered>
                   {envPublishStatus
                     .filter((env) => !env.isResourcePublished)
