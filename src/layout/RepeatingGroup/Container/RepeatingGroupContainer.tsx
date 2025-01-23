@@ -78,6 +78,7 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
 
   return (
     <Fieldset
+      size='sm'
       grid={grid?.labelGrid}
       legend={labelText}
       description={getDescriptionComponent()}
@@ -107,6 +108,7 @@ function ModeShowAll() {
 
   return (
     <Fieldset
+      size='sm'
       grid={grid?.labelGrid}
       legend={labelText}
       description={getDescriptionComponent()}
