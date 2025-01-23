@@ -16,7 +16,13 @@
       CS0618: This is a test project, so we usually continue testing [Obsolete] apis
     -->
   </PropertyGroup>
-
+  <ItemGroup>
+    <!--
+    Temporary ignore a security advisory from a WireMock.Net dependency without any fix
+     (it does not matter in a test project anyway, because we don't process unsafe data)
+      -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4cv2-4hjh-77rx" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="Implementation\AppBaseTests.cs" />
     <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
