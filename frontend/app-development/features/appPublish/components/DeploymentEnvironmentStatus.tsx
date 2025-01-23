@@ -46,14 +46,13 @@ export const DeploymentEnvironmentStatus = ({
     const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
     return (
       <Alert severity={severity} className={classes.alert}>
-        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
-          <Heading spacing level={2} size='xsmall'>
-            {envTitle}
-          </Heading>
-          {kubernetesDeployment?.version && shouldDisplayFeature(FeatureFlag.Undeploy) && (
-            <DeployMoreOptionsMenu linkToEnv={urlToApp} />
-          )}
-        </div>
+        <Heading spacing level={2} size='xsmall'>
+          {envTitle}
+        </Heading>
+        {kubernetesDeployment?.version && shouldDisplayFeature(FeatureFlag.Undeploy) && (
+          <DeployMoreOptionsMenu linkToEnv={urlToApp} />
+        )}
+
         <Paragraph size='small' spacing={!!footer}>
           {content}
         </Paragraph>
