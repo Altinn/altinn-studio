@@ -197,6 +197,22 @@ describe('CodeLists', () => {
     expect(onUpdateCodeListIdMock).toHaveBeenLastCalledWith(codeListName, codeListName + '2');
   });
 
+  it('renders display tile instead of edit button when the code list is in use', async () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListsDataMock[0].title,
+          codeListIdSources: [{ layoutSetId: '', layoutName: '', componentIds: [''] }],
+        },
+      ],
+    });
+    const codeListId = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_edit_id_disabled_title'),
+    );
+    expect(codeListId).toBeInTheDocument();
+    expect(codeListId).not.toHaveAttribute('role', 'button');
+  });
+
   it('shows error message when assigning an invalid id to the code list', async () => {
     const user = userEvent.setup();
     const invalidCodeListName = 'invalidCodeListName';
@@ -222,9 +238,9 @@ describe('CodeLists', () => {
     expect(onUpdateCodeListIdMock).not.toHaveBeenCalled();
   });
 
-  it('renders error message if option list has error', () => {
+  it('renders error message if option list has format error', () => {
     renderCodeLists({ codeListsData: [{ ...codeListsDataMock[0], hasError: true, data: null }] });
-    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
+    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.format_error'));
     expect(errorMessage).toBeInTheDocument();
   });
 

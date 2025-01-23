@@ -1,5 +1,5 @@
 import { SelectedOptionsType } from '../../../../../../components/config/editModal/EditOptions/EditOptions';
-import type { OptionsList } from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
@@ -26,7 +26,7 @@ describe('optionsUtils', () => {
   describe('getSelectedOptionsType', () => {
     it('should return SelectedOptionsType.Unknown if both options and optionsId are set', () => {
       const codeListId = 'codeListId';
-      const options: OptionsList = [{ label: 'label1', value: 'value1' }];
+      const options: OptionList = [{ label: 'label1', value: 'value1' }];
       const optionListIds = ['codeListId'];
       const result = getSelectedOptionsType(codeListId, options, optionListIds);
       expect(result).toEqual(SelectedOptionsType.Unknown);
@@ -67,7 +67,7 @@ describe('optionsUtils', () => {
   describe('getSelectedOptionsTypeWithManualSupport', () => {
     it('should return SelectedOptionsType.Unknown if both options and optionsId are set', () => {
       const codeListId = 'codeListId';
-      const options: OptionsList = [{ label: 'label1', value: 'value1' }];
+      const options: OptionList = [{ label: 'label1', value: 'value1' }];
       const optionListIds = ['codeListId'];
       const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
       expect(result).toEqual(SelectedOptionsType.Unknown);
@@ -135,14 +135,14 @@ describe('optionsUtils', () => {
 
   describe('hasOptionListChanged', () => {
     it('should return false if the optionList has not changed', () => {
-      const oldOptions: OptionsList = [{ label: 'label1', value: 'value1' }];
-      const newOptions: OptionsList = [{ label: 'label1', value: 'value1' }];
+      const oldOptions: OptionList = [{ label: 'label1', value: 'value1' }];
+      const newOptions: OptionList = [{ label: 'label1', value: 'value1' }];
       expect(hasOptionListChanged(oldOptions, newOptions)).toEqual(false);
     });
 
     it('should return true if the optionList has changed', () => {
-      const oldOptions: OptionsList = [{ label: 'label1', value: 'value1' }];
-      const newOptions: OptionsList = [{ label: 'new label', value: 'new value' }];
+      const oldOptions: OptionList = [{ label: 'label1', value: 'value1' }];
+      const newOptions: OptionList = [{ label: 'new label', value: 'new value' }];
       expect(hasOptionListChanged(oldOptions, newOptions)).toEqual(true);
     });
   });
@@ -179,7 +179,7 @@ describe('optionsUtils', () => {
 
   describe('updateComponentOptions', () => {
     it('should update options on the returned object', () => {
-      const options: OptionsList = [{ label: 'new-label', value: 'new-value' }];
+      const options: OptionList = [{ label: 'new-label', value: 'new-value' }];
       expect(updateComponentOptions(mockedComponent, options)).toStrictEqual({
         ...mockedComponent,
         optionsId: undefined,
@@ -212,28 +212,28 @@ describe('optionsUtils', () => {
     it('should return true if options ID is a string and options ID is from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
-      const options: OptionsList = [{ value: 'value', label: 'label' }];
+      const options: OptionList = [{ value: 'value', label: 'label' }];
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(true);
     });
 
     it('should return true if options is set on the component', () => {
       const optionListIds: string[] = [];
       const optionsId = '';
-      const options: OptionsList = [];
+      const options: OptionList = [];
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
-      const options: OptionsList = undefined;
+      const options: OptionList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(false);
     });
 
     it('should return false if options ID is not from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
-      const options: OptionsList = undefined;
+      const options: OptionList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(false);
     });
   });
@@ -241,13 +241,13 @@ describe('optionsUtils', () => {
   describe('isInitialOptionsSet', () => {
     it('should return true if previousOptions is false and currentOptions is truthy', () => {
       const previousOptions = undefined;
-      const currentOptions: OptionsList = [];
+      const currentOptions: OptionList = [];
       expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(true);
     });
 
     it('should return false if previousOptions is truthy', () => {
       const previousOptions = [];
-      const currentOptions: OptionsList = [{ value: 'value', label: 'label' }];
+      const currentOptions: OptionList = [{ value: 'value', label: 'label' }];
       expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(false);
     });
 
