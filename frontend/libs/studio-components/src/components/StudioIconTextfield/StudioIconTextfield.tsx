@@ -51,7 +51,7 @@ const IconLabel = ({ htmlFor, icon, label, readonly }: IconLabelProps): React.Re
       <Label size='small' htmlFor={htmlFor}>
         {label}
       </Label>
-      {readonly && <PadlockLockedFillIcon />}
+      {readonly && <PadlockLockedFillIcon className={classes.padLockIcon} />}
     </div>
   );
 };

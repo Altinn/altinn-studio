@@ -52,3 +52,12 @@ AsReadOnlyWithIcon.args = {
   value: 'A readonly value',
   readOnly: true,
 };
+
+export const AsReadOnlyWithIconAndDescription: Story = (args) => <StudioIconTextfield {...args} />;
+AsReadOnlyWithIconAndDescription.args = {
+  icon: <KeyVerticalIcon />,
+  description: 'A description',
+  label: 'A label',
+  value: 'A readonly value',
+  readOnly: true,
+};

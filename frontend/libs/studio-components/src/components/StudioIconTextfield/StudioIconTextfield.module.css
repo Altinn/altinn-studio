@@ -16,6 +16,10 @@
   grid-template-columns: auto 1fr auto;
 }
 
+.padLockIcon {
+  justify-self: flex-end;
+}
+
 .textfield {
   width: 100%;
 }

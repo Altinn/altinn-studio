@@ -29,11 +29,32 @@ describe('StudioIconTextfield', () => {
     expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
   });
 
-  it('render the icon if provided', async () => {
+  it('should render the icon if provided', async () => {
     renderStudioIconTextfield({
       icon: <KeyVerticalIcon />,
     });
     expect(screen.getByRole('img')).toBeInTheDocument();
+  });
+
+  it('should render as readonly if readOnly prop is set', async () => {
+    renderStudioIconTextfield({ readOnly: true });
+    expect(screen.getByRole('textbox', { name: label })).toBeDisabled();
+  });
+
+  it('should render icon if readOnly prop is set', async () => {
+    renderStudioIconTextfield({ readOnly: true });
+    expect(screen.getByRole('img')).toBeInTheDocument();
+  });
+
+  it('icon should have padLockIcon class if readOnly prop is set', async () => {
+    renderStudioIconTextfield({ readOnly: true });
+    expect(screen.getByRole('img')).toHaveClass('padLockIcon');
+  });
+
+  it('should render with two icons if custom icon is provided and readOnly prop is set', async () => {
+    renderStudioIconTextfield({ icon: <KeyVerticalIcon />, readOnly: true });
+    const icons = screen.getAllByRole('img');
+    expect(icons).toHaveLength(2);
   });
 
   it('should execute onChange callback when input value changes', async () => {
