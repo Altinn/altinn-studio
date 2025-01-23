@@ -1,0 +1,12 @@
+.listContainer {
+  padding: 0;
+  list-style: none;
+}
+
+.content {
+  padding: 0;
+}
+
+.itemButton {
+  justify-content: flex-start;
+}
