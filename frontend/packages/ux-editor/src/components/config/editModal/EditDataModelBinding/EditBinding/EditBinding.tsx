@@ -21,7 +21,6 @@ import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 export type EditBindingProps = {
   bindingKey: string;
   component: FormItem;
-  helpText: string;
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
@@ -31,7 +30,6 @@ export type EditBindingProps = {
 export const EditBinding = ({
   bindingKey,
   component,
-  helpText,
   label,
   handleComponentChange,
   onSetDataModelSelectVisible,
@@ -99,7 +97,6 @@ export const EditBinding = ({
             internalBindingFormat={internalBindingFormat}
             handleBindingChange={handleBindingChange}
             bindingKey={bindingKey}
-            helpText={helpText}
             componentType={component.type}
           />
           <EditBindingButtons

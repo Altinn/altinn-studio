@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import type { OptionsList } from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
 import type { Option } from 'app-shared/types/Option';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { OptionListEditorProps } from './OptionListEditor';
@@ -17,14 +17,14 @@ import { componentMocks } from '../../../../../../../testing/componentMocks';
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const handleComponentChange = jest.fn();
-const apiResult: OptionsList = [
+const apiResult: OptionList = [
   { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
   { value: 2, label: 'label number', description: null, helpText: null },
   { value: true, label: 'label boolean', description: null, helpText: null },
 ];
 const getOptionListMock = jest
   .fn()
-  .mockImplementation(() => Promise.resolve<OptionsList>(apiResult));
+  .mockImplementation(() => Promise.resolve<OptionList>(apiResult));
 const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId: 'some-id' };
 
 describe('OptionListEditor', () => {
@@ -123,7 +123,7 @@ describe('OptionListEditor', () => {
     it('should render a spinner when there is no data', () => {
       renderOptionListEditor({
         queries: {
-          getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
+          getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
         },
         props: { component: componentWithOptionsId },
       });
@@ -208,14 +208,14 @@ describe('OptionListEditor', () => {
     });
 
     it('should show placeholder for option label when option list label is empty', async () => {
-      const apiResultWithEmptyLabel: OptionsList = [
+      const apiResultWithEmptyLabel: OptionList = [
         { value: true, label: '', description: null, helpText: null },
       ];
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         queries: {
           getOptionList: jest
             .fn()
-            .mockImplementation(() => Promise.resolve<OptionsList>(apiResultWithEmptyLabel)),
+            .mockImplementation(() => Promise.resolve<OptionList>(apiResultWithEmptyLabel)),
         },
       });
 
