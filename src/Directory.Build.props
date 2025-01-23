@@ -4,7 +4,7 @@
 
   <ItemGroup>
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
-    <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6169">
+    <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6495">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
