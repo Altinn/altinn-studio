@@ -1,8 +1,9 @@
-import { StudioButton, StudioCard, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
+import { PlusIcon } from '@studio/icons';
 
 export type Summary2OverrideProps = {
   overrides: Summary2OverrideConfig[];
@@ -11,9 +12,11 @@ export type Summary2OverrideProps = {
 
 export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps) => {
   const { t } = useTranslation();
+  const [openOverrides, setOpenOverrides] = React.useState([]);
 
   const addOverride = (): void => {
     const updatedOverrides = [...(overrides || [])];
+    setOpenOverrides([...openOverrides, updatedOverrides.length]);
     updatedOverrides.push({ componentId: '' });
     onChange(updatedOverrides);
   };
@@ -31,31 +34,36 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
     () => {
       const updatedOverrides = [...overrides];
       updatedOverrides.splice(index, 1);
+      setOpenOverrides((prev) => {
+        return prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i));
+      });
       onChange(updatedOverrides);
     };
 
   return (
-    <StudioCard>
-      <StudioCard.Header>
-        <StudioHeading size='2xs'>{t('ux_editor.component_properties.overrides')}</StudioHeading>
-      </StudioCard.Header>
-      <StudioParagraph size='sm'>
-        {t('ux_editor.component_properties.summary.override.description')}
-      </StudioParagraph>
-      <StudioCard.Content>
-        {overrides &&
-          overrides.map((override, index) => (
+    <>
+      {overrides?.length > 0 && (
+        <div style={{ marginBottom: 'var(--fds-spacing-4)' }}>
+          {overrides.map((override, index) => (
             <Summary2OverrideEntry
+              index={index + 1}
+              open={openOverrides.includes(index)}
+              setOpen={(open) =>
+                open
+                  ? setOpenOverrides([...openOverrides, index])
+                  : setOpenOverrides(openOverrides.filter((i) => i !== index))
+              }
               key={`${index}${override.componentId}`}
               override={override}
               onChange={onChangeOverride(index)}
               onDelete={onDeleteOverride(index)}
             ></Summary2OverrideEntry>
           ))}
-        <StudioButton size='sm' variant='primary' onClick={addOverride}>
-          {t('ux_editor.component_properties.summary.add_override')}
-        </StudioButton>
-      </StudioCard.Content>
-    </StudioCard>
+        </div>
+      )}
+      <StudioButton icon={<PlusIcon />} size='sm' variant='secondary' onClick={addOverride}>
+        {t('ux_editor.component_properties.summary.add_override')}
+      </StudioButton>
+    </>
   );
 };
