@@ -130,7 +130,6 @@
   "app_deployment.undeploy_confirmation_input_label": "Skriv navnet på appen for å bekrefte at du vil avpublisere den",
   "app_deployment.unpublish_alternatives_add_validation": "Legge inn en validering som bestemmer når brukerne skal ha tilgang til appen. Det kan være nyttig å gjøre en stund før du avpubliserer appen.",
   "app_deployment.unpublish_alternatives_change_access": "<a>Endre innstillingen for tilgang eller oppstart</a> slik at brukerne ikke kan starte et nytt eksemplar.",
-  "app_deployment.unpublish_alternatives_change_access_link": "https://docs.altinn.studio//nb/altinn-studio/reference/logic/instantiation/",
   "app_deployment.unpublish_alternatives_make_unavailable": "Du kan gjøre den utilgjengelig i kode.",
   "app_deployment.unpublish_alternatives_previous_version": "Bytte til en tidligere versjon, for eksempel hvis den nyeste inneholder feil.",
   "app_deployment.unpublish_alternatives_title": "Hva kan du gjøre i stedet for å avpublisere?",

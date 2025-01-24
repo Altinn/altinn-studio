@@ -1,4 +1,5 @@
 import type { TranslationKey } from '@altinn-studio/language/type';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export type Item = {
   textKey: string;
@@ -35,7 +36,7 @@ export const consequencesDialogData: ConsequencesDialogData = [
       { textKey: 'app_deployment.unpublish_alternatives_make_unavailable' },
       {
         textKey: 'app_deployment.unpublish_alternatives_change_access',
-        link: 'app_deployment.unpublish_alternatives_change_access_link',
+        link: altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation/' }),
       },
       { textKey: 'app_deployment.unpublish_alternatives_add_validation' },
     ],
