@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -39,6 +39,9 @@ export const Summary2OverrideEntry = ({
   onChange,
   onDelete,
 }: Summary2OverrideEntryProps) => {
+  const [currentComponentId, setCurrentComponentId] = useState<string | undefined>(
+    override.componentId,
+  );
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
@@ -69,6 +72,13 @@ export const Summary2OverrideEntry = ({
     );
   }
 
+  const handleChangeComponent = (value: string) => {
+    setCurrentComponentId(value);
+
+    if (Boolean(value) || componentOptions.some((comp) => comp.id === value))
+      onChange({ ...override, componentId: value });
+  };
+
   return (
     <StudioCard className={classes.card}>
       <StudioCard.Content className={classes.content}>
@@ -76,7 +86,7 @@ export const Summary2OverrideEntry = ({
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
-          onValueChange={(value) => onChange({ ...override, componentId: value })}
+          onValueChange={(value) => handleChangeComponent(value)}
         ></Summary2ComponentReferenceSelector>
 
         <OverrideShowComponentSwitch onChange={onChange} override={override} />
@@ -101,7 +111,7 @@ export const Summary2OverrideEntry = ({
             variant='secondary'
             color='success'
             onClick={() => setOpen(false)}
-            disabled={!override.componentId}
+            disabled={!currentComponentId}
           />
           <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
         </div>
