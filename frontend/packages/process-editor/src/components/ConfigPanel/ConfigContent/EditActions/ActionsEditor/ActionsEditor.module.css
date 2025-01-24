@@ -26,10 +26,6 @@
   padding: var(--fds-spacing-2) 0 !important;
 }
 
-.actionView {
-  margin-bottom: var(--fds-spacing-3);
-}
-
 .container {
   margin: 0 var(--fds-spacing-3);
   width: inherit;
