@@ -139,7 +139,7 @@
   "app_deployment.unpublish_considerations_title": "Dette må du vurdere før du avpubliserer",
   "app_deployment.unpublish_impact_endpoints": "API-endepunktene til appen fungerer ikke lenger.",
   "app_deployment.unpublish_impact_error_page": "Hvis du ikke har fjernet aktive eksemplarer fra innboksen, får de som bruker appen en feilside, med melding om at appen ikke finnes lenger.",
-  "app_deployment.unpublish_impact_title": "Dette skjer når du avpubliserer",
+  "app_deployment.unpublish_impact_title": "Dette skjer når du har avpublisert",
   "app_deployment.version_label": "Versjon {{tagName}} ({{createdDateTime}})",
   "app_release.earlier_releases": "Tidligere bygg av appen",
   "app_release.release_build_log": "Bygglogg",
