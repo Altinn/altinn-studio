@@ -16,8 +16,10 @@ import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
-import { StudioProperty } from '@studio/components';
+import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
+import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
+import type { TranslationKey } from 'language/type';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -41,6 +43,7 @@ export const FormComponentConfig = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
   if (!schema?.properties) return null;
 
@@ -115,24 +118,12 @@ export const FormComponentConfig = ({
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
-      {grid && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.grid')}
-          </Heading>
-          <EditGrid
-            key={component.id}
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-          />
-        </>
-      )}
+
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
-
       {/** Boolean fields, incl. expression type */}
       {defaultDisplayedBooleanKeys.map((propertyKey) => (
         <EditBooleanValue
@@ -161,6 +152,101 @@ export const FormComponentConfig = ({
           property={rendertext}
         />
       )}
+      {grid && (
+        <>
+          {showGrid ? (
+            <StudioCard>
+              <StudioCard.Header className={classes.gridHeader}>
+                <div className={classes.flexContainer}>
+                  <Heading size='xs' className={classes.heading}>
+                    {t('ux_editor.component_properties.grid')}
+                  </Heading>
+                  <StudioButton
+                    icon={<XMarkIcon />}
+                    onClick={() => setShowGrid(false)}
+                    title={t('general.close')}
+                    variant='secondary'
+                    className={classes.button}
+                  />
+                </div>
+              </StudioCard.Header>
+              <StudioCard.Content>
+                <EditGrid
+                  key={component.id}
+                  component={component}
+                  handleComponentChange={handleComponentUpdate}
+                />
+              </StudioCard.Content>
+            </StudioCard>
+          ) : (
+            <StudioProperty.Button
+              className={classes.gridButton}
+              icon={<PlusCircleIcon />}
+              onClick={() => setShowGrid(true)}
+              property={t('ux_editor.component_properties.grid')}
+            />
+          )}
+        </>
+      )}
+      {/** String properties */}
+      {stringPropertyKeys.map((propertyKey) => {
+        return (
+          <CollapsiblePropertyEditor
+            key={propertyKey}
+            label={t(`ux_editor.component_properties.${propertyKey}` as TranslationKey)}
+          >
+            <EditStringValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+            />
+          </CollapsiblePropertyEditor>
+        );
+      })}
+      {/** Array properties with enum values) */}
+      {arrayPropertyKeys.map((propertyKey) => {
+        const isShowValidations = propertyKey === 'showValidations';
+        const commonProps = {
+          component,
+          handleComponentChange: handleComponentUpdate,
+          propertyKey,
+          key: propertyKey,
+          enumValues: properties[propertyKey]?.items?.enum,
+          multiple: true,
+        };
+        return isShowValidations ? (
+          <CollapsiblePropertyEditor
+            key={propertyKey}
+            label={t('ux_editor.component_properties.showValidations')}
+          >
+            <EditStringValue {...commonProps} />
+          </CollapsiblePropertyEditor>
+        ) : (
+          <EditStringValue {...commonProps} />
+        );
+      })}
+      {/** Number properties (number and integer types) */}
+      {numberPropertyKeys.map((propertyKey) => {
+        const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
+        const commonProps = {
+          component,
+          handleComponentChange: handleComponentUpdate,
+          propertyKey,
+          key: propertyKey,
+          enumValues: properties[propertyKey]?.enum,
+        };
+        return isPreselectedOptionIndex ? (
+          <CollapsiblePropertyEditor
+            key={propertyKey}
+            label={t('ux_editor.component_properties.preselectedOptionIndex_button')}
+          >
+            <EditNumberValue {...commonProps} />
+          </CollapsiblePropertyEditor>
+        ) : (
+          <EditNumberValue {...commonProps} />
+        );
+      })}
 
       {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
@@ -189,46 +275,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
-      {/** String properties */}
-      {stringPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
-          />
-        );
-      })}
-
-      {/** Number properties (number and integer types) */}
-      {numberPropertyKeys.map((propertyKey) => {
-        return (
-          <EditNumberValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            enumValues={properties[propertyKey]?.enum}
-          />
-        );
-      })}
-
-      {/** Array properties with enum values) */}
-      {arrayPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            enumValues={properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
-        );
-      })}
 
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {
