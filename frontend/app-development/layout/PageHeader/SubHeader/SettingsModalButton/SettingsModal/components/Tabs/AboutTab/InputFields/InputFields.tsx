@@ -111,7 +111,7 @@ function EditServiceNameForLanguage({
 
   return (
     <StudioIconTextfield
-      icon={RecommendedLanguageFlags[language]}
+      icon={<FlagIcon language={language} />}
       size='small'
       label={t(`language.${language}`)}
       description={description}
@@ -119,6 +119,16 @@ function EditServiceNameForLanguage({
       value={serviceName}
       onBlur={handleOnBlur}
       readOnly={!appHasLanguageTranslation}
+      className={classes.serviceName}
     />
   );
 }
+
+type FlagIconProps = {
+  language: string;
+};
+
+const FlagIcon = ({ language }: FlagIconProps): React.ReactNode => {
+  const languageHasFlag = !!RecommendedLanguageFlags[language];
+  return languageHasFlag ? <span>{RecommendedLanguageFlags[language]}</span> : null;
+};
