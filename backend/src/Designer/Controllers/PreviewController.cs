@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -674,6 +675,36 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult ValidationConfig(string org, string app, string modelname)
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// Action for mocking the GET method for organisation lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="organisationNumber">The organisation number to lookup</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("api/v1/lookup/organisation/{organisationNumber}")]
+        public IActionResult OrganisationLookup(string org, string app, string organisationNumber)
+        {
+            string lookupResponse = $"{{\"success\":true,\"organisationDetails\":{{\"orgNr\":\"{organisationNumber}\",\"name\":\"Test AS (preview)\"}}}}";
+            return Ok(lookupResponse);
+        }
+
+        /// <summary>
+        /// Action for mocking the GET method for person lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("api/v1/lookup/person")]
+        public IActionResult PersonLookup(string org, string app)
+        {
+            string mockSsn = "12345678912";
+            string lookupResponse = $"{{\"success\":true,\"personDetails\":{{\"ssn\":\"{mockSsn}\",\"name\":\"Test T. Testesen (preview)\", \"lastName\":\"Testesen (preview)\"}}}}";
+            return Ok(lookupResponse);
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
