@@ -18,10 +18,10 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 const textResources: TextResource[] = textResourcesMock;
 const texts: TextResourceInputTexts = {
   editValue: 'Rediger verdi',
-  emptyResourceList: 'Fant ingen tekstressurser',
   idLabel: 'ID:',
   search: 'Søk',
   textResourcePickerLabel: 'Velg tekstressurs',
+  unsetOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
