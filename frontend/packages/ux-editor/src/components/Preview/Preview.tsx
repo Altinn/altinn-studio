@@ -3,11 +3,17 @@ import classes from './Preview.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCenter, StudioErrorMessage, StudioSpinner } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioCenter,
+  StudioErrorMessage,
+  StudioSpinner,
+} from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -98,6 +104,9 @@ const PreviewFrame = () => {
     isPending: createInstancePending,
   } = useCreatePreviewInstanceMutation(org, app);
 
+  const currentLayoutSet = useGetLayoutSetByName({ name: selectedFormLayoutSetName, org, app });
+  const isSubform = currentLayoutSet?.type === 'subform';
+
   useEffect(() => {
     if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
   }, [createInstance, user, taskId]);
@@ -131,6 +140,11 @@ const PreviewFrame = () => {
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
+      {isSubform && (
+        <StudioAlert severity='warning'>
+          {t('ux_editor.preview.subform_unsupported_warning')}
+        </StudioAlert>
+      )}
       <div className={classes.previewArea}>
         <div className={classes.iframeContainer}>
           <iframe

@@ -8,7 +8,12 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components';
+import {
+  StudioAlert,
+  StudioPageHeader,
+  StudioPageSpinner,
+  useMediaQuery,
+} from '@studio/components';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -41,6 +46,9 @@ export const LandingPage = () => {
     data: instance,
     isPending: instanceIsPending,
   } = useCreatePreviewInstanceMutation(org, app);
+
+  const currentLayoutSet = layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName);
+  const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
     if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
@@ -90,6 +98,11 @@ export const LandingPage = () => {
         </StudioPageHeader.Main>
         <StudioPageHeader.Sub>
           <AppPreviewSubMenu />
+          {isSubform && (
+            <StudioAlert severity='warning'>
+              {t('ux_editor.preview.subform_unsupported_warning')}
+            </StudioAlert>
+          )}
         </StudioPageHeader.Sub>
       </StudioPageHeader>
       <div className={classes.previewArea}>
