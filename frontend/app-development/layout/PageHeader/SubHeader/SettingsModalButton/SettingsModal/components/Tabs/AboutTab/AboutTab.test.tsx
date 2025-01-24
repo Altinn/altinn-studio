@@ -114,7 +114,7 @@ describe('AboutTab', () => {
 
     [nb, nn, en].forEach((lang) => {
       const appName = screen.getByRole('textbox', { name: textMock(`language.${lang}`) });
-      expect(appName).toHaveAttribute('readonly');
+      expect(appName).toBeDisabled();
     });
   });
 
