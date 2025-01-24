@@ -16,7 +16,8 @@ export const DisplayDate = ({ value, format, iconUrl, iconAltText, labelId }: Da
   const parsedValue = parseISO(value);
   let displayData = parsedValue.toDateString();
   if (!isValid(parsedValue)) {
-    displayData = 'Ugyldig format';
+    window.logErrorOnce(`Ugyldig datoformat gitt til Date-komponent: "${value}"`);
+    displayData = '';
   } else if (format) {
     displayData = formatDate(parsedValue, format);
   }
@@ -30,7 +31,8 @@ export const DisplayDate = ({ value, format, iconUrl, iconAltText, labelId }: Da
           alt={iconAltText}
         />
       )}
-      <span aria-labelledby={labelId}>{displayData}</span>
+      {labelId && <span aria-labelledby={labelId}>{displayData}</span>}
+      {!labelId && <span>{displayData}</span>}
     </>
   );
 };

@@ -30,9 +30,8 @@ function SummaryBody({ target }: SummaryBodyProps) {
     return <LayoutSetSummary pageKey={target.id} />;
   }
 
-  if (target.type === 'component') {
-    return <ComponentSummaryById componentId={target.id} />;
-  }
+  // Component is the default
+  return <ComponentSummaryById componentId={target.id} />;
 }
 
 export function SummaryComponent2({ summaryNode }: ISummaryComponent2) {

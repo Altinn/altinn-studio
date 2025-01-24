@@ -12,6 +12,7 @@ interface Config<SupportsPreselection extends boolean> {
   componentType: CompTypes;
   expectedFromExternal: SupportsPreselection extends true ? ISelectionComponentFull : ISelectionComponent;
   settings: {
+    allowsEffects?: boolean;
     supportsPreselection: SupportsPreselection;
     type: OptionsValueType;
   };
@@ -22,6 +23,7 @@ interface Config<SupportsPreselection extends boolean> {
 }
 
 interface ExternalConfig {
+  allowsEffects?: boolean;
   supportsPreselection: boolean;
   type: OptionsValueType;
 }
@@ -49,10 +51,6 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
   }
 
   addToComponent(component: ComponentConfig): void {
-    if (!component.isFormLike()) {
-      throw new Error('OptionsPlugin can only be used with container or form components');
-    }
-
     component.inner.extends(
       this.settings!.supportsPreselection ? CG.common('ISelectionComponentFull') : CG.common('ISelectionComponent'),
     );
@@ -65,6 +63,12 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
       from: 'src/features/options/StoreOptionsInNode',
     });
 
-    return `<${StoreOptionsInNode} valueType={'${this.settings!.type}'} />`;
+    const allowsEffects = this.settings!.allowsEffects ?? true;
+
+    return `
+      <${StoreOptionsInNode}
+        valueType={'${this.settings!.type}'}
+        allowEffects={${allowsEffects ? 'true' : 'false'}}
+      />`.trim();
   }
 }

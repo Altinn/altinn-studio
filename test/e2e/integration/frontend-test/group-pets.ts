@@ -10,12 +10,12 @@ interface PetProps {
 }
 
 function addPet({ species, name, age }: PetProps) {
-  cy.get(appFrontend.pets.group.editContainer._).should('not.exist');
-  cy.get(appFrontend.pets.group.addButton).click();
-  cy.dsSelect(appFrontend.pets.group.editContainer.species, species);
-  cy.get(appFrontend.pets.group.editContainer.name).type(name);
-  cy.get(appFrontend.pets.group.editContainer.age).type(age.toString());
-  cy.get(appFrontend.pets.group.editContainer.saveAndClose).clickAndGone();
+  cy.get(appFrontend.pets.group().editContainer._).should('not.exist');
+  cy.get(appFrontend.pets.group().addButton).click();
+  cy.dsSelect(appFrontend.pets.group().editContainer.species, species);
+  cy.get(appFrontend.pets.group().editContainer.name).type(name);
+  cy.get(appFrontend.pets.group().editContainer.age).type(age.toString());
+  cy.get(appFrontend.pets.group().editContainer.saveAndClose).clickAndGone();
 }
 
 function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number) {
@@ -27,7 +27,7 @@ function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number
   cy.waitUntilNodesReady();
 
   const visibleLength = pets.filter((pet) => pet.visible === true || pet.visible === undefined).length;
-  cy.get(appFrontend.pets.group.tableRows).should(
+  cy.get(appFrontend.pets.group().tableRows).should(
     'have.length',
     editingIndex === undefined ? visibleLength : visibleLength + 1,
   );
@@ -44,11 +44,11 @@ function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number
       return;
     }
     const { species, name } = pet;
-    cy.get(appFrontend.pets.group.tableRow(index).species).should('have.value', species);
+    cy.get(appFrontend.pets.group().tableRow(index).species).should('have.value', species);
     if (index === editingIndex) {
-      cy.get(appFrontend.pets.group.editContainer.name).should('have.value', name);
+      cy.get(appFrontend.pets.group().editContainer.name).should('have.value', name);
     } else {
-      cy.get(appFrontend.pets.group.tableRow(index).name).should('have.text', name);
+      cy.get(appFrontend.pets.group().tableRow(index).name).should('have.text', name);
     }
   });
 }
@@ -107,13 +107,13 @@ describe('Group (Pets)', () => {
     assertPetOrder(pets3, 3);
 
     // Sort when having opened one row for editing
-    cy.get(appFrontend.pets.group.tableRow(3).editButton).click();
+    cy.get(appFrontend.pets.group().tableRow(3).editButton).click();
     assertPetOrder(pets3, 4, 3);
-    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', 'Fisk');
-    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Siri Spinat');
-    cy.get(appFrontend.pets.group.editContainer.sortOrder).should('have.value', 'Alder (9-1)');
-    cy.dsSelect(appFrontend.pets.group.editContainer.sortOrder, 'Art (Å-A)');
-    cy.get(appFrontend.pets.group.editContainer.sortButton).click();
+    cy.get(appFrontend.pets.group().editContainer.species).should('have.value', 'Fisk');
+    cy.get(appFrontend.pets.group().editContainer.name).should('have.value', 'Siri Spinat');
+    cy.get(appFrontend.pets.group().editContainer.sortOrder).should('have.value', 'Alder (9-1)');
+    cy.dsSelect(appFrontend.pets.group().editContainer.sortOrder, 'Art (Å-A)');
+    cy.get(appFrontend.pets.group().editContainer.sortButton).click();
 
     const pets4 = structuredClone(pets3)
       .sort((a, b) => {
@@ -125,9 +125,9 @@ describe('Group (Pets)', () => {
     assertPetOrder(pets4, 5, 5);
 
     // We should still be editing the same row
-    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', 'Fisk');
-    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Siri Spinat');
-    cy.get(appFrontend.pets.group.editContainer.saveAndClose).clickAndGone();
+    cy.get(appFrontend.pets.group().editContainer.species).should('have.value', 'Fisk');
+    cy.get(appFrontend.pets.group().editContainer.name).should('have.value', 'Siri Spinat');
+    cy.get(appFrontend.pets.group().editContainer.saveAndClose).clickAndGone();
 
     // Hiding one row via checkboxes
     cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Fisk med navn Siri Spinat (3 år)' }).check();
@@ -147,7 +147,7 @@ describe('Group (Pets)', () => {
 
     cy.snapshot('pets');
 
-    cy.get(appFrontend.pets.group.tableRow(1).deleteButton).click();
+    cy.get(appFrontend.pets.group().tableRow(1).deleteButton).click();
     const pets7 = structuredClone(pets6);
     const deletedIndex = pets7.findIndex((pet) => pet.name === 'Birte Blomkål' && pet.age === 2);
     pets7.splice(deletedIndex, 1);
@@ -155,6 +155,30 @@ describe('Group (Pets)', () => {
 
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('not.exist');
+  });
+
+  it('should handle switching to using the Option-component in a table', () => {
+    cy.goto('group');
+    cy.gotoNavPage('Kjæledyr');
+    cy.get(appFrontend.pets.decisionPanel.autoPetsButton).click();
+    cy.get(appFrontend.pets.useOptions).findByRole('radio', { name: /Ja/i }).check();
+    cy.get(appFrontend.pets.group(true).tableRow(0).species).should('not.exist');
+    cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should('contain.text', 'Hund'); // Label
+    cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should(
+      'contain.text',
+      'Hunder er menneskets beste venn, sier mange. Andre liker katter bedre.', // Help text
+    );
+    cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should(
+      'contain.text',
+      'Pelskledd og lojal mot mennesker', // Description
+    );
+    cy.get(appFrontend.pets.group(true).tableRow(0).editButton).click();
+    cy.dsSelect(appFrontend.pets.group().editContainer.species, 'Katt');
+    cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should('contain.text', 'Katt');
+    cy.testWcag();
+    cy.gotoNavPage('option-comp');
+    cy.get('#header-collection1').should('be.visible');
+    cy.testWcag();
   });
 
   it('innerGrid should be ignored when editing in table', () => {

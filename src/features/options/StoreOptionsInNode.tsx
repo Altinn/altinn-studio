@@ -19,6 +19,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface GeneratorOptionProps {
   valueType: OptionsValueType;
+  allowEffects: boolean;
 }
 
 export function StoreOptionsInNode(props: GeneratorOptionProps) {
@@ -32,7 +33,7 @@ export function StoreOptionsInNode(props: GeneratorOptionProps) {
   );
 }
 
-function StoreOptionsInNodeWorker({ valueType }: GeneratorOptionProps) {
+function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionProps) {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
@@ -55,7 +56,7 @@ function StoreOptionsInNodeWorker({ valueType }: GeneratorOptionProps) {
   NodesStateQueue.useSetNodeProp({ node, prop: 'options', value: options }, !hasBeenSet && !isFetching);
   NodesStateQueue.useSetNodeProp({ node, prop: 'isFetchingOptions', value: isFetching }, !hasBeenSet);
 
-  if (isFetching || !hasBeenSet) {
+  if (isFetching || !hasBeenSet || !allowEffects) {
     // No need to run effects while fetching or if the data has not been set yet
     return false;
   }

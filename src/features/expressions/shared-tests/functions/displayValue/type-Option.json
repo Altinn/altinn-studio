@@ -1,0 +1,42 @@
+{
+  "name": "Display value of Option component",
+  "expression": ["displayValue", "valg"],
+  "context": {
+    "component": "valg",
+    "currentLayout": "Page"
+  },
+  "expects": "Pål",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "valg",
+            "type": "Option",
+            "value": ["dataModel", "Skjema.Valg"],
+            "options": [
+              {
+                "value": "1",
+                "label": "Per",
+                "description": "Hello world",
+                "helpText": "This is a help text"
+              },
+              {
+                "value": "2",
+                "label": "Pål",
+                "description": "Hello world",
+                "helpText": "This is a help text"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Valg": "2"
+    }
+  }
+}

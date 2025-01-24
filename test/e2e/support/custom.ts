@@ -168,6 +168,12 @@ const knownWcagViolations: KnownViolation[] = [
     nodeLength: 1,
   },
   {
+    spec: 'frontend-test/group-pets.ts',
+    test: 'should handle switching to using the Option-component in a table',
+    id: 'color-contrast', // Delete button in the RepeatingGroup on rows with errors
+    nodeLength: 2,
+  },
+  {
     spec: 'frontend-test/hide-row-in-group.ts',
     test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
     id: 'heading-order',

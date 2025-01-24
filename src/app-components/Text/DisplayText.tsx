@@ -18,6 +18,7 @@ export const DisplayText = ({ value, iconUrl, iconAltText, labelId }: TextProps)
         alt={iconAltText}
       />
     )}
-    <span aria-labelledby={labelId}>{value}</span>
+    {labelId && <span aria-labelledby={labelId}>{value}</span>}
+    {!labelId && <span>{value}</span>}
   </>
 );

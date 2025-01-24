@@ -261,30 +261,35 @@ export class AppFrontend {
       autoPetsButton: '#custom-button-generatePets',
       autoFarmAnimalsButton: '#custom-button-generateWholeFarm',
     },
-    group: {
-      table: '#group-pets-table-body',
-      tableRows: '#group-pets-table-body tr',
-      tableRow: (idx: number) => ({
-        species: `#pet-species-${idx}`,
-        name: `#group-pets-table-body tr[data-row-num=${idx}] td:nth-child(2)`,
-        editButton: `#group-pets-table-body tr[data-row-num=${idx}] button:contains("Rediger")`,
-        deleteButton: `#group-pets-table-body tr[data-row-num=${idx}] button:contains("Slett")`,
-      }),
-      addButton: '#add-button-pets',
-      editContainer: {
-        _: '[data-testid=group-edit-container]',
-        species: '[data-testid=group-edit-container] [id^="pet-species"]',
-        name: '[data-testid=group-edit-container] [id^="pet-name"]',
-        age: '[data-testid=group-edit-container] [id^="pet-age"]',
-        sortOrder: '[data-testid=group-edit-container] [id^="futureSortOrder-inside"]',
-        sortButton: '[data-testid=group-edit-container] [id^="custom-button-sortOrderButton-inside"]',
-        saveAndClose: '[data-testid=group-edit-container] #save-button-pets',
-      },
+    group: (withOptionComponent = false) => {
+      const id = withOptionComponent ? 'pets-with-option' : 'pets';
+      return {
+        table: `#group-${id}-table-body`,
+        tableRows: `#group-${id}-table-body tr`,
+        tableRow: (idx: number) => ({
+          species: `#pet-species-${idx}`, // Only in non-option mode
+          speciesOption: `#form-content-pet-species-option-${idx}`, // Only in option mode
+          name: `#group-${id}-table-body tr[data-row-num=${idx}] td:nth-child(2)`,
+          editButton: `#group-${id}-table-body tr[data-row-num=${idx}] button:contains("Rediger")`,
+          deleteButton: `#group-${id}-table-body tr[data-row-num=${idx}] button:contains("Slett")`,
+        }),
+        addButton: `#add-button-${id}`,
+        editContainer: {
+          _: '[data-testid=group-edit-container]',
+          species: '[data-testid=group-edit-container] [id^="pet-species"]',
+          name: '[data-testid=group-edit-container] [id^="pet-name"]',
+          age: '[data-testid=group-edit-container] [id^="pet-age"]',
+          sortOrder: '[data-testid=group-edit-container] [id^="futureSortOrder-inside"]',
+          sortButton: '[data-testid=group-edit-container] [id^="custom-button-sortOrderButton-inside"]',
+          saveAndClose: '[data-testid=group-edit-container] #save-button-pets',
+        },
+      };
     },
     hide: {
       _: '#form-content-hiddenPets',
       all: '#form-content-hiddenPets input[type=checkbox]',
     },
+    useOptions: '#form-content-useOptionComponent',
     sortOutside: {
       sortOrder: '#futureSortOrder-outside',
       sortButton: '#custom-button-sortOrderButton-outside',

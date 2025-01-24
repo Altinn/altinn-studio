@@ -1,0 +1,29 @@
+.icon {
+  width: 24px;
+  margin-right: 12px;
+}
+
+.optionComponent {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+.vertical {
+  flex-direction: column;
+}
+
+.optionLabelContainer {
+  display: flex;
+  column-gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.optionDescription {
+  flex: 0 0 100%;
+}
