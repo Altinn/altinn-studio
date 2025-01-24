@@ -35,6 +35,20 @@
         ]
       },
       {
+        "id": "btn-group",
+        "type": "ButtonGroup",
+        "children": ["toList", "sendInButton"]
+      },
+      {
+        "id": "toList",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        }
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
@@ -44,4 +58,3 @@
     ]
   }
 }
-
