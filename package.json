@@ -94,6 +94,7 @@
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "tsc --noEmit -p frontend",
+    "strict-null-checks": "tsc --noEmit -p frontend/tsconfig-strict.json",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
     "resourceadm:playwright:test:ui": "yarn workspace playwright-resourceadm resourceadm:test:ui",
