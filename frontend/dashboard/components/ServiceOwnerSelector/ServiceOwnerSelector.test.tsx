@@ -6,7 +6,7 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import { user as mockUser } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
 
-const defaultProps = {
+const defaultProps: ServiceOwnerSelectorProps = {
   selectedOrgOrUser: 'userLogin',
   user: {
     ...mockUser,
@@ -21,6 +21,7 @@ const defaultProps = {
   ],
   errorMessage: '',
   name: '',
+  onChange: () => {},
 };
 
 const renderServiceOwnerSelector = (props: Partial<ServiceOwnerSelectorProps> = {}) => {
@@ -76,5 +77,17 @@ describe('ServiceOwnerSelector', () => {
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     expect(select).toHaveValue(defaultProps.user.login);
+  });
+
+  it('should execute the onChange callback when service owner is changed', async () => {
+    const user = userEvent.setup();
+    const selectedOrgOrUser = 'all';
+    const onChangeMock = jest.fn();
+    renderServiceOwnerSelector({ selectedOrgOrUser, onChange: onChangeMock });
+
+    const select = screen.getByLabelText(textMock('general.service_owner'));
+    await user.selectOptions(select, 'organizationUsername');
+    expect(onChangeMock).toHaveBeenCalledWith('organizationUsername');
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
   });
 });
