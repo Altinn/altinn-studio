@@ -4,7 +4,7 @@ using Altinn.App.Core.Models.Expressions;
 namespace Altinn.App.Core.Models.Layout.Components;
 
 /// <summary>
-/// Inteface to be able to handle all most components same way.
+/// Interface to be able to handle all most components same way.
 /// </summary>
 /// <remarks>
 /// See <see cref="GroupComponent" /> for any components that handle children.
@@ -36,7 +36,7 @@ public record BaseComponent
     }
 
     /// <summary>
-    /// ID of the component (or pagename for pages)
+    /// ID of the component (or pageName for pages)
     /// </summary>
     public string Id { get; }
 

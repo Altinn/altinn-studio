@@ -112,6 +112,24 @@ public class RunTest3
                         Binding2 = 3,
                         Binding3 = "text",
                     },
+                    new()
+                    {
+                        Binding = "binding",
+                        Binding2 = 4,
+                        Binding3 = default,
+                    },
+                    new()
+                    {
+                        Binding = "hideRow",
+                        Binding2 = 5,
+                        Binding3 = default,
+                    },
+                    new()
+                    {
+                        Binding = "binding",
+                        Binding2 = 6,
+                        Binding3 = default,
+                    },
                 },
             },
         };
@@ -128,11 +146,16 @@ public class RunTest3
                         Field = "some.data[2]",
                         DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
+                    new DataReference()
+                    {
+                        Field = "some.data[4]",
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
 
         // Verify before removing data
-        data.Some.Data.Should().HaveCount(3);
+        data.Some.Data.Should().HaveCount(6);
         data.Some.Data[0].Binding.Should().BeNull();
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
@@ -140,14 +163,27 @@ public class RunTest3
         data.Some.Data[2].Binding.Should().Be("hideRow");
         data.Some.Data[2].Binding2.Should().Be(3);
         data.Some.Data[2].Binding3.Should().Be("text");
+        data.Some.Data[3].Binding.Should().Be("binding");
+        data.Some.Data[3].Binding2.Should().Be(4);
+        data.Some.Data[3].Binding3.Should().Be(null);
+        data.Some.Data[4].Binding.Should().Be("hideRow");
+        data.Some.Data[4].Binding2.Should().Be(5);
+        data.Some.Data[4].Binding3.Should().Be(null);
+        data.Some.Data[5].Binding.Should().Be("binding");
+        data.Some.Data[5].Binding2.Should().Be(6);
+        data.Some.Data[5].Binding3.Should().Be(null);
 
         // Verify rows deleted
         await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow);
-        data.Some.Data.Should().HaveCount(2);
+        data.Some.Data.Should().HaveCount(4);
         data.Some.Data[0].Binding.Should().BeNull();
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
         data.Some.Data[1].Binding2.Should().Be(2);
+        data.Some.Data[2].Binding.Should().Be("binding");
+        data.Some.Data[2].Binding2.Should().Be(4);
+        data.Some.Data[3].Binding.Should().Be("binding");
+        data.Some.Data[3].Binding2.Should().Be(6);
     }
 }
 

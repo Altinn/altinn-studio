@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Diagnostics;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -8,25 +8,23 @@ namespace Altinn.App.Core.Models.Expressions;
 /// <summary>
 /// Simple class for holding the context for <see cref="ExpressionEvaluator"/>
 /// </summary>
+[DebuggerDisplay("{_debuggerDisplay}", Name = "{_debuggerName}")]
+[DebuggerTypeProxy(typeof(DebuggerProxy))]
 public sealed class ComponentContext
 {
-    private readonly int? _rowLength;
-
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
     public ComponentContext(
         BaseComponent? component,
         int[]? rowIndices,
-        int? rowLength,
         DataElementIdentifier dataElementIdentifier,
-        IEnumerable<ComponentContext>? childContexts = null
+        List<ComponentContext>? childContexts = null
     )
     {
         DataElementIdentifier = dataElementIdentifier;
         Component = component;
         RowIndices = rowIndices;
-        _rowLength = rowLength;
         ChildContexts = childContexts ?? [];
         foreach (var child in ChildContexts)
         {
@@ -65,53 +63,10 @@ public sealed class ComponentContext
         return _isHidden.Value;
     }
 
-    private BitArray? _hiddenRows;
-
-    /// <summary>
-    /// Hidden rows for repeating group
-    /// </summary>
-    public async Task<BitArray> GetHiddenRows(LayoutEvaluatorState state)
-    {
-        if (_hiddenRows is not null)
-        {
-            return _hiddenRows;
-        }
-        if (Component is not RepeatingGroupComponent)
-        {
-            throw new InvalidOperationException("HiddenRows can only be called on a repeating group");
-        }
-        if (_rowLength is null)
-        {
-            throw new InvalidOperationException("RowLength must be set to call HiddenRows on repeating group");
-        }
-
-        var hiddenRows = new BitArray(_rowLength.Value);
-        foreach (var index in Enumerable.Range(0, hiddenRows.Length))
-        {
-            var rowIndices = RowIndices?.Append(index).ToArray() ?? [index];
-            var childContexts = ChildContexts.Where(c => c.RowIndices?[RowIndices?.Length ?? 0] == index);
-            // Row contexts are not in the tree, so we need to create them here
-            var rowContext = new ComponentContext(
-                Component,
-                rowIndices,
-                rowLength: hiddenRows.Length,
-                dataElementIdentifier: DataElementIdentifier,
-                childContexts: childContexts
-            );
-            var rowHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, rowContext, "hiddenRow", false);
-
-            hiddenRows[index] = rowHidden;
-        }
-
-        // Set the hidden rows so that it does not need to be recomputed
-        _hiddenRows = hiddenRows;
-        return _hiddenRows;
-    }
-
     /// <summary>
     /// Contexts that logically belongs under this context (eg cell => row => group=> page)
     /// </summary>
-    public IEnumerable<ComponentContext> ChildContexts { get; }
+    public List<ComponentContext> ChildContexts { get; }
 
     /// <summary>
     /// Parent context or null, if this is a root context, or a context created without setting parent
@@ -138,6 +93,28 @@ public sealed class ComponentContext
                 foreach (var child in node.ChildContexts)
                     stack.Push(child);
             }
+        }
+    }
+
+    private string _debuggerName =>
+        $"{Component?.Type}" + (RowIndices is not null ? $"[{string.Join(',', RowIndices)}]" : "");
+    private string _debuggerDisplay =>
+        $"id:\"{Component?.Id}\"" + (ChildContexts.Count > 0 ? $" ({ChildContexts.Count} children)" : "");
+
+    private class DebuggerProxy
+    {
+        private readonly ComponentContext _context;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public List<ComponentContext> ChildContexts => _context.ChildContexts;
+        public BaseComponent? Component => _context.Component;
+        public ComponentContext? Parent => _context.Parent;
+        public bool? IsHidden => _context._isHidden;
+        public Guid DataElementId => _context.DataElementIdentifier.Guid;
+
+        public DebuggerProxy(ComponentContext context)
+        {
+            _context = context;
         }
     }
 }

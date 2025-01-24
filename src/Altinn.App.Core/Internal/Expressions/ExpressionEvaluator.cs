@@ -29,8 +29,6 @@ public static class ExpressionEvaluator
             var expr = property switch
             {
                 "hidden" => context.Component.Hidden,
-                "hiddenRow" when context.Component is RepeatingGroupComponent repeatingGroup =>
-                    repeatingGroup.HiddenRow,
                 "required" => context.Component.Required,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
             };

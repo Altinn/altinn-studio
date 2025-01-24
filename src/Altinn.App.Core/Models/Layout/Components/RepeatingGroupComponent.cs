@@ -30,7 +30,7 @@ public record RepeatingGroupComponent : GroupComponent
     }
 
     /// <summary>
-    /// Maximum number of repeatitions of this repating group
+    /// Maximum number of repetitions of this repeating group
     /// </summary>
     public int MaxCount { get; }
 
@@ -38,4 +38,32 @@ public record RepeatingGroupComponent : GroupComponent
     /// Layout Expression that can be evaluated to see if row should be hidden
     /// </summary>
     public Expression HiddenRow { get; }
+}
+
+/// <summary>
+/// Component (currently only used for contexts to have something to point to) for a row in a repeating group
+/// </summary>
+public record RepeatingGroupRowComponent : BaseComponent
+{
+    /// <summary>
+    /// Constructor for RepeatingGroupRowComponent
+    /// </summary>
+    public RepeatingGroupRowComponent(
+        string id,
+        IReadOnlyDictionary<string, ModelBinding> dataModelBindings,
+        Expression hiddenRow,
+        BaseComponent parent
+    )
+        : base(
+            id,
+            "groupRow",
+            dataModelBindings,
+            hiddenRow,
+            required: Expression.False,
+            readOnly: Expression.False,
+            null
+        )
+    {
+        Parent = parent;
+    }
 }

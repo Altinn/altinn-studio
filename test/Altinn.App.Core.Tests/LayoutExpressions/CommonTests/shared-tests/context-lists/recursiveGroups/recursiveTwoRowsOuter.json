@@ -76,36 +76,64 @@
           "currentLayout": "Page1",
           "children": [
             {
-              "component": "group1",
+              "component": "group0",
               "currentLayout": "Page1",
               "rowIndices": [0],
               "children": [
                 {
-                  "component": "comp3",
+                  "component": "group1",
+                  "rowIndices": [0],
                   "currentLayout": "Page1",
-                  "rowIndices": [0, 0]
-                },
-                {
-                  "component": "comp4",
-                  "currentLayout": "Page1",
-                  "rowIndices": [0, 0]
+                  "children": [
+                    {
+                      "component": "group1",
+                      "rowIndices": [0, 0],
+                      "currentLayout": "Page1",
+                      "children": [
+                        {
+                          "component": "comp3",
+                          "rowIndices": [0, 0],
+                          "currentLayout": "Page1"
+                        },
+                        {
+                          "component": "comp4",
+                          "rowIndices": [0, 0],
+                          "currentLayout": "Page1"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             },
             {
-              "component": "group1",
-              "currentLayout": "Page1",
+              "component": "group0",
               "rowIndices": [1],
+              "currentLayout": "Page1",
               "children": [
                 {
-                  "component": "comp3",
+                  "component": "group1",
+                  "rowIndices": [1],
                   "currentLayout": "Page1",
-                  "rowIndices": [1, 0]
-                },
-                {
-                  "component": "comp4",
-                  "currentLayout": "Page1",
-                  "rowIndices": [1, 0]
+                  "children": [
+                    {
+                      "component": "group1",
+                      "rowIndices": [1, 0],
+                      "currentLayout": "Page1",
+                      "children": [
+                        {
+                          "component": "comp3",
+                          "rowIndices": [1, 0],
+                          "currentLayout": "Page1"
+                        },
+                        {
+                          "component": "comp4",
+                          "rowIndices": [1, 0],
+                          "currentLayout": "Page1"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }

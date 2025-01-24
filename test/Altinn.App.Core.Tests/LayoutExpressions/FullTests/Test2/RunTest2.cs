@@ -43,7 +43,7 @@ public class RunTest2
             },
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test2");
-        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state, includeHiddenRowChildren: true);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
         hidden
@@ -83,6 +83,13 @@ public class RunTest2
                 ]
             );
 
+        var hidden2 = await LayoutEvaluator.GetHiddenFieldsForRemoval(state, includeHiddenRowChildren: false);
+        hidden2
+            .Should()
+            .BeEquivalentTo(
+                [new DataReference() { Field = "some.data", DataElementIdentifier = state.GetDefaultDataElementId() }]
+            );
+
         // Verify before removing data
         data.Some.Data[0].Binding.Should().BeNull();
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
@@ -91,10 +98,7 @@ public class RunTest2
         await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow);
 
         // Verify data was removed
-        data.Some.Data[0].Binding.Should().BeNull();
-        data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
-        data.Some.Data[1].Binding.Should().BeNull();
-        data.Some.Data[1].Binding2.Should().Be(0);
+        data.Some.Data.Should().BeNull();
     }
 
     [Fact]

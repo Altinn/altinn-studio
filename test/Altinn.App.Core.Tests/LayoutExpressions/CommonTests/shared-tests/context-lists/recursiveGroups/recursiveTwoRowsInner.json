@@ -76,29 +76,50 @@
           "currentLayout": "Page1",
           "children": [
             {
-              "component": "group1",
+              "component": "group0",
               "currentLayout": "Page1",
               "rowIndices": [0],
               "children": [
                 {
-                  "component": "comp3",
+                  "component": "group1",
+                  "rowIndices": [0],
                   "currentLayout": "Page1",
-                  "rowIndices": [0, 0]
-                },
-                {
-                  "component": "comp4",
-                  "currentLayout": "Page1",
-                  "rowIndices": [0, 0]
-                },
-                {
-                  "component": "comp3",
-                  "currentLayout": "Page1",
-                  "rowIndices": [0, 1]
-                },
-                {
-                  "component": "comp4",
-                  "currentLayout": "Page1",
-                  "rowIndices": [0, 1]
+                  "children": [
+                    {
+                      "component": "group1",
+                      "currentLayout": "Page1",
+                      "rowIndices": [0, 0],
+                      "children": [
+                        {
+                          "component": "comp3",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 0]
+                        },
+                        {
+                          "component": "comp4",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 0]
+                        }
+                      ]
+                    },
+                    {
+                      "component": "group1",
+                      "currentLayout": "Page1",
+                      "rowIndices": [0, 1],
+                      "children": [
+                        {
+                          "component": "comp3",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 1]
+                        },
+                        {
+                          "component": "comp4",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 1]
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
