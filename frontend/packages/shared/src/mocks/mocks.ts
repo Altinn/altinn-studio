@@ -168,6 +168,9 @@ export const policy: Policy = {
 export const applicationMetadata: ApplicationMetadata = {
   id: '',
   org: '',
+  title: {
+    nb: '',
+  },
 };
 
 export const resourceVersionStatus: ResourceVersionStatus = {
