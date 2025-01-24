@@ -1,4 +1,4 @@
-.isBeta:after {
+.isBeta::after {
   content: 'Beta';
   background-color: var(--fds-semantic-surface-info-subtle);
   color: var(--fds-semantic-text-neutral-default);
