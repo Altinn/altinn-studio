@@ -42,7 +42,9 @@ export const renderWithProviders =
           clientConfig={queryClientConfigMock}
         >
           <PreviewConnectionContextProvider>
-            <BrowserRouter>{rerenderedComponent}</BrowserRouter>
+            <PreviewContextProvider {...defaultPreviewContextProps} {...previewContextProps}>
+              <BrowserRouter>{rerenderedComponent}</BrowserRouter>
+            </PreviewContextProvider>
           </PreviewConnectionContextProvider>
         </ServicesContextProvider>,
       );
