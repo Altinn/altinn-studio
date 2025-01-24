@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Checkbox } from '@digdir/designsystemet-react';
+import { StudioCheckbox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
@@ -79,9 +79,9 @@ export const ResourceCheckboxGroup = ({
 
   const displayAvailableForCheckboxes = () => {
     return options.map((option) => (
-      <Checkbox value={option.value} key={option.value} size='small'>
+      <StudioCheckbox value={option.value} key={option.value} size='sm'>
         {t(option.label)}
-      </Checkbox>
+      </StudioCheckbox>
     ));
   };
 
@@ -91,18 +91,18 @@ export const ResourceCheckboxGroup = ({
 
   return (
     <div className={classes.inputWrapper}>
-      <Checkbox.Group
+      <StudioCheckbox.Group
         id={id}
         legend={<ResourceFieldHeader label={legend} required={required} />}
         description={description}
-        size='small'
+        size='sm'
         error={fieldErrors.length > 0 ? fieldErrors : undefined}
         onChange={onChange}
         onFocus={onFocus}
         value={value}
       >
         {displayAvailableForCheckboxes()}
-      </Checkbox.Group>
+      </StudioCheckbox.Group>
     </div>
   );
 };

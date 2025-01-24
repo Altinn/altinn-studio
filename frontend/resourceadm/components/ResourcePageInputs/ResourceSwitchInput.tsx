@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, Paragraph, Switch } from '@digdir/designsystemet-react';
+import { StudioLabelAsParagraph, StudioParagraph, StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
@@ -66,16 +66,16 @@ export const ResourceSwitchInput = ({
 
   return (
     <div className={classes.inputWrapper}>
-      <Label size='small' spacing>
+      <StudioLabelAsParagraph size='sm' spacing>
         {label}
-      </Label>
+      </StudioLabelAsParagraph>
       {description && (
-        <Paragraph variant='short' size='small' className={classes.description}>
+        <StudioParagraph variant='short' size='sm' className={classes.description}>
           {description}
-        </Paragraph>
+        </StudioParagraph>
       )}
       <div className={classes.toggleWrapper}>
-        <Switch
+        <StudioSwitch
           checked={isChecked}
           onChange={(event) => {
             const newValue = event.target.checked;
@@ -86,17 +86,17 @@ export const ResourceSwitchInput = ({
           onFocus={onFocus}
           aria-description={description}
           aria-label={label}
-          size='small'
+          size='sm'
         >
-          <Paragraph
-            size='small'
+          <StudioParagraph
+            size='sm'
             className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
           >
             {t(toggleTextTranslationKey, {
               shouldText: !isChecked ? t('resourceadm.switch_should_not') : '',
             })}
-          </Paragraph>
-        </Switch>
+          </StudioParagraph>
+        </StudioSwitch>
       </div>
     </div>
   );

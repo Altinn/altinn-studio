@@ -1,11 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, List, Paragraph } from '@digdir/designsystemet-react';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioAlert, StudioList, StudioParagraph } from '@studio/components';
 import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
@@ -35,20 +34,20 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
       {publishStatusData && (
         <>
           {envPublishStatus.some((env) => !env.isResourcePublished) && (
-            <Alert severity='warning'>
-              <Paragraph size='small' spacing>
+            <StudioAlert severity='warning'>
+              <StudioParagraph size='sm' spacing>
                 {t('resourceadm.about_resource_rrr_publish_warning')}
-              </Paragraph>
-              <List.Root size='small'>
-                <List.Unordered>
+              </StudioParagraph>
+              <StudioList.Root size='sm'>
+                <StudioList.Unordered>
                   {envPublishStatus
                     .filter((env) => !env.isResourcePublished)
                     .map((env) => (
-                      <List.Item key={env.id}>{t(env.label)}</List.Item>
+                      <StudioList.Item key={env.id}>{t(env.label)}</StudioList.Item>
                     ))}
-                </List.Unordered>
-              </List.Root>
-            </Alert>
+                </StudioList.Unordered>
+              </StudioList.Root>
+            </StudioAlert>
           )}
           {envPublishStatus
             .filter((env) => env.isResourcePublished)
