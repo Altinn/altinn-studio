@@ -1,0 +1,64 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "target": {
+          "type": "layoutSet",
+          "id": "",
+          "taskId": "component"
+        },
+        "id": "Summary2-2FSqcf",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "page",
+          "id": "Side1",
+          "taskId": "component"
+        },
+        "id": "Summary2-eGrDpP",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "page",
+          "id": "Side2",
+          "taskId": "component"
+        },
+        "id": "Summary2-uJDgMu",
+        "type": "Summary2",
+        "overrides": [
+          {
+            "componentId": "Input-Om7N3y-new",
+            "displayType": "string"
+          }
+        ]
+      },
+      {
+        "target": {
+          "type": "component",
+          "id": "Input-qWr0oa",
+          "taskId": "component"
+        },
+        "id": "Summary2-2JiT3P",
+        "type": "Summary2"
+      },
+      {
+        "target": {
+          "type": "component",
+          "id": "Input-Om7N3y-new",
+          "taskId": "component"
+        },
+        "id": "Summary2-vIXkWO",
+        "type": "Summary2"
+      },
+      {
+        "id": "NavigationButtons-BYcvaT",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
