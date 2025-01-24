@@ -26,7 +26,7 @@ import {
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
-export type ColumnElementProps = {
+export type EditColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
@@ -40,7 +40,7 @@ export const EditColumnElement = ({
   onDeleteColumn,
   onEdit,
   subformLayout,
-}: ColumnElementProps): ReactElement => {
+}: EditColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
@@ -88,15 +88,17 @@ export const EditColumnElement = ({
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
   const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
   const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
-
+  const isComponentCopySaved = Boolean(sourceColumn.headerContent);
   return (
     <StudioCard className={classes.wrapper}>
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
-        <EditColumnElementComponentSelect
-          components={availableComponents}
-          onSelectComponent={selectComponent}
-        />
+        {!isComponentCopySaved && (
+          <EditColumnElementComponentSelect
+            components={availableComponents}
+            onSelectComponent={selectComponent}
+          />
+        )}
         {tableColumn.headerContent && (
           <EditColumnElementContent
             cellContent={tableColumn.cellContent.query}

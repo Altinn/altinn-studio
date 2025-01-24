@@ -12,16 +12,13 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
 
-const headerContentMock: string = 'Header';
-const cellContentQueryMock: string = 'Query';
-const cellContentDefaultMock: string = 'Default';
 const columnNumberMock: number = 1;
 
 const mockTableColumn: TableColumn = {
-  headerContent: headerContentMock,
+  headerContent: '',
   cellContent: {
-    query: cellContentQueryMock,
-    default: cellContentDefaultMock,
+    query: '',
+    default: '',
   },
 };
 
