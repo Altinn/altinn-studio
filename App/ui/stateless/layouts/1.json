@@ -83,6 +83,18 @@
         "labelSettings": {"optionalIndicator": false}
       },
       {
+        "id": "queryParam1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "queryParam1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "queryParam1"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
         "id": "instantiation-button",
         "type": "InstantiationButton",
         "textResourceBindings": {

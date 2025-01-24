@@ -1,0 +1,9 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+  "allowOverwrite": false,
+  "QueryParams": {
+    // Mapping fra queryParam til stateless datamodell
+    "designer": "queryParams5",
+    "scrumMaster": "queryParams6"
+  }
+}

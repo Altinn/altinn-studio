@@ -24,7 +24,10 @@
 								},
 							"Sender" : {
 									"type" : "string"
-								}
+								},
+							"ProductOwner" : {
+								"type" : "string"
+							}
 						},
 					"required" : [
 							"ProcessTask",

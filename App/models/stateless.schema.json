@@ -437,6 +437,15 @@
 									"type" : "string",
 									"@xsdType" : "XmlAttribute"
 								},
+						"queryParam1": {
+							"type" : "string"
+						},
+						"queryParam2": {
+							"type" : "string"
+						},
+						"queryParam3": {
+							"type" : "string"
+						},
 							"gruppeid" : {
 									"const" : "8818",
 									"type" : "integer",

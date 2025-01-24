@@ -5,5 +5,10 @@
   "DSF": {
     "FirstName": "opplysningerOmArbeidstakerengrp8819.opplysningerOmArbeidstakerengrp8855.ansattNavndatadef1223.value"
   },
-  "UserProfile": {}
+  "UserProfile": {},
+  "QueryParams": {
+    // Mapping fra queryParam til stateless datamodell
+    "productOwner": "queryParam1",
+    "programmer": "queryParam2"
+  }
 }

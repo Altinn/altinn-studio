@@ -35,6 +35,18 @@
         "readOnly": false
       },
       {
+        "id": "productOwner",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "ProductOwner"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ProductOwner"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {

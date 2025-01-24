@@ -28,9 +28,7 @@ ConfigureWebHostBuilder(builder.WebHost);
 
 WebApplication app = builder.Build();
 
-Configure();
-
-app.Run();
+Configure();app.Run();
 
 void ConfigureServices(IServiceCollection services, IConfiguration config)
 {

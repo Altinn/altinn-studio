@@ -28,6 +28,7 @@ namespace Altinn.App.AppLogic.DataProcessing
       {
         string name = "";
         string num = "";
+        string productOwner = "";
         if (prefill.ContainsKey("name"))
         {
           name = prefill["name"];
@@ -36,9 +37,16 @@ namespace Altinn.App.AppLogic.DataProcessing
         {
           num = prefill["num"];
         }
+        
+        if (prefill.ContainsKey("productOwner"))
+        {
+          productOwner = prefill["productOwner"];
+        }
+        
         MessageV1 skjema = (MessageV1)data;
         skjema.Sender = name;
         skjema.Reference = num;
+        skjema.ProductOwner = productOwner;
       }
       await Task.CompletedTask;
     }
