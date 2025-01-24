@@ -9,9 +9,14 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
+import type { PreviewContextProps } from '../contexts/PreviewContext';
 
 export const renderWithProviders =
-  (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
+  (
+    queries: Partial<ServicesContextProps> = {},
+    queryClient?: QueryClient,
+    previewContextProps: Partial<PreviewContextProps> = {},
+  ) =>
   (component: ReactNode) => {
     const renderResult = render(
       <ServicesContextProvider
@@ -20,12 +25,12 @@ export const renderWithProviders =
         client={queryClient}
         clientConfig={queryClientConfigMock}
       >
-        <PreviewConnectionContextProvider>
+        <PreviewConnectionContextProvider {...defaultPreviewContextProps} {...previewContextProps}>
           <BrowserRouter>{component}</BrowserRouter>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>,
     );
-    const rerender = (rerenderedComponent) =>
+    const rerender = (rerenderedComponent: ReactNode) =>
       renderResult.rerender(
         <ServicesContextProvider
           {...queriesMock}
@@ -58,3 +63,9 @@ export const renderHookWithProviders =
     });
     return { renderHookResult };
   };
+
+const defaultPreviewContextProps: PreviewContextProps = {
+  shouldReloadPreview: false,
+  doReloadPreview: jest.fn(),
+  previewHasLoaded: jest.fn(),
+};

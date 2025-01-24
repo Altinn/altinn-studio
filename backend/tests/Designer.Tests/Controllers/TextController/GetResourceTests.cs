@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -30,7 +29,7 @@ namespace Designer.Tests.Controllers.TextController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedContent, content).Should().BeTrue();
+            Assert.True(JsonUtils.DeepEquals(expectedContent, content));
         }
 
         [Theory]

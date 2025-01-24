@@ -1,6 +1,5 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
-using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
@@ -16,7 +15,7 @@ public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywor
     public void CreatedKeyword_ShouldHaveValue(int value)
     {
         Keyword = new XsdMinOccursKeyword(value);
-        Keyword.Value.Should().Be(value);
+        Assert.Equal(value, Keyword.Value);
     }
 
     [Theory]
@@ -42,6 +41,6 @@ public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywor
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
     }
 }

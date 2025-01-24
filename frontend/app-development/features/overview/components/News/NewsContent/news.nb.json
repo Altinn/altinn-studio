@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-01-17",
+      "title": "Nå kan du ha flere datamodeller i et prosess-steg!",
+      "content": "Du kan nå koble komponenter i et prosess-steg til andre datamodeller, ikke bare til den overordnede datamodellen for steget. Dette gir deg nye muligheter til å håndtere data i appene dine."
+    },
+    {
       "date": "2024-11-29",
       "title": "Prøv nytt design på Utforming!",
       "content": "Vi tester en ny måte å legge til komponenter på Utforming-siden. Du kan velge det nye designet  øverst til høyre på Utforming-siden og teste så mye du vil! Etterpå kan du gi tilbakemelding på hva du synes, ved å velge Gi tilbakemelding nederst til høyre."

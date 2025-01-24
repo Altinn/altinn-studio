@@ -64,7 +64,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       actions: r.actions,
       description: r.description,
       subject: subjectIds,
-      accessPackages: r.accessPackages,
+      accessPackages: r.accessPackages || [],
       resources: mappedResources,
     };
   });

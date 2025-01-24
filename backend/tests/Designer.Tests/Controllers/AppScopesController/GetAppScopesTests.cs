@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.AppScopesController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -28,10 +27,10 @@ public class GetAppScopesTests : AppScopesControllerTestsBase<GetAppScopesTests>
             , VersionPrefix(org, app));
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         AppScopesResponse repsponseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
-        repsponseContent.Scopes.Should().BeEmpty();
+        Assert.Empty(repsponseContent.Scopes);
     }
 
     [Theory]
@@ -45,14 +44,14 @@ public class GetAppScopesTests : AppScopesControllerTestsBase<GetAppScopesTests>
             , VersionPrefix(org, app));
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         AppScopesResponse responseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
-        responseContent.Scopes.Should().HaveCount(4);
+        Assert.Equal(4, responseContent.Scopes.Count);
 
         foreach (MaskinPortenScopeDto scope in responseContent.Scopes)
         {
-            entity.Scopes.Should().Contain(x => scope.Scope == x.Scope && scope.Description == x.Description);
+            Assert.Contains(entity.Scopes, x => x.Scope == scope.Scope && x.Description == scope.Description);
         }
     }
 }

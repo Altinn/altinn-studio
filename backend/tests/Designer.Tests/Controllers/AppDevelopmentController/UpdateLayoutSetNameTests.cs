@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -41,14 +40,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Schema.Should().NotBeNull();
+            Assert.NotNull(layoutSetsBefore.Schema);
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetName));
-            layoutSetsBefore.Sets.Should().HaveCount(layoutSetsAfter.Sets.Count);
-            layoutSetsAfter.Schema.Should().NotBeNull();
+            Assert.Equal(layoutSetsAfter.Sets.Count, layoutSetsBefore.Sets.Count);
+            Assert.NotNull(layoutSetsAfter.Schema);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetName));
         }
 
@@ -68,7 +67,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
             Assert.Equal($"Layout set name, {existingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
@@ -91,7 +90,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Theory]
@@ -111,7 +110,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Theory]
@@ -131,7 +130,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)

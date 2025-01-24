@@ -36,7 +36,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: area1Name,
     urn: 'urn:area1',
     description: '',
-    icon: 'BankNote',
+    icon: 'skatt_avgift_regnskap_og_toll',
     areaGroup: '',
     packages: [package1, package2],
   },
@@ -79,6 +79,12 @@ describe('AllAccessPackages', () => {
 
     expect(screen.getByText(area1Name)).toBeInTheDocument();
     expect(screen.getByText(area2Name)).toBeInTheDocument();
+  });
+
+  it('should render default icon if icon is not set', () => {
+    renderAllAccessPackages();
+
+    expect(screen.getByTestId('default-icon')).toBeInTheDocument();
   });
 });
 
