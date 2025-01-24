@@ -25,6 +25,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing actions that concerns app-development
     /// </summary>
     [Authorize]
+    [ApiController]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
     public class AppDevelopmentController : Controller
@@ -57,6 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the designer.
         /// </summary>
         /// <returns>default view for the app builder.</returns>
+        [HttpGet]
         [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
         public async Task<IActionResult> Index(string org, string app)
         {

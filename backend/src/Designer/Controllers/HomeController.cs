@@ -16,6 +16,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
+    [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("[action]/{id?}")]
     [Route("[controller]/[action]/{id?}")]
     public class HomeController : Controller
