@@ -6,7 +6,7 @@ import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
 import {
   removeCodeListItem,
-  addEmptyCodeListItem,
+  addNewCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
 } from './utils';
@@ -110,7 +110,7 @@ function ControlledCodeListEditor({
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddButtonClick = useCallback(() => {
-    const updatedCodeList = addEmptyCodeListItem(codeList);
+    const updatedCodeList = addNewCodeListItem(codeList);
     onChange(updatedCodeList);
     onAddOrDeleteItem?.(updatedCodeList);
   }, [codeList, onChange, onAddOrDeleteItem]);

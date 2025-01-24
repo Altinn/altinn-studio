@@ -105,7 +105,7 @@ export function StudioCodeListEditorRow({
   );
 }
 
-type InputCellProps = {
+type TypedInputCellProps = {
   value: CodeListItemValue;
   label: string;
   onChange: (newValue: CodeListItemValue) => void;
@@ -114,7 +114,7 @@ type InputCellProps = {
   error?: string;
 };
 
-function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCellProps) {
+function TypedInputCell({ error, label, value, onChange, autoComplete }: TypedInputCellProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
@@ -125,45 +125,43 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: InputCe
     event.target.reportValidity();
   }, []);
 
-  const shouldRenderNumberfield = typeof value === 'number';
-  const shouldRenderCheckbox = typeof value === 'boolean';
-
-  if (shouldRenderNumberfield) {
-    return (
-      <NumberfieldCell
-        label={label}
-        value={value}
-        autoComplete={autoComplete}
-        onChange={onChange}
-        onFocus={handleFocus}
-        ref={ref}
-      />
-    );
-  } else if (shouldRenderCheckbox) {
-    return (
-      <CheckboxCell
-        label={label}
-        value={value}
-        onChange={onChange}
-        onFocus={handleFocus}
-        ref={ref}
-      />
-    );
-  } else {
-    return (
-      <TextfieldCell
-        label={label}
-        value={value}
-        autoComplete={autoComplete}
-        onChange={onChange}
-        onFocus={handleFocus}
-        ref={ref}
-      />
-    );
+  switch (typeof value) {
+    case 'number':
+      return (
+        <NumberfieldCell
+          label={label}
+          value={value}
+          autoComplete={autoComplete}
+          onChange={onChange}
+          onFocus={handleFocus}
+          ref={ref}
+        />
+      );
+    case 'boolean':
+      return (
+        <CheckboxCell
+          label={label}
+          value={value}
+          onChange={onChange}
+          onFocus={handleFocus}
+          ref={ref}
+        />
+      );
+    default:
+      return (
+        <TextfieldCell
+          label={label}
+          value={value}
+          autoComplete={autoComplete}
+          onChange={onChange}
+          onFocus={handleFocus}
+          ref={ref}
+        />
+      );
   }
 }
 
-const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
+const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number): void => {
@@ -189,7 +187,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
 
 NumberfieldCell.displayName = 'NumberfieldCell';
 
-const CheckboxCell = forwardRef<HTMLInputElement, InputCellProps>(
+const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps>(
   ({ label, value, onChange, onFocus }, ref) => {
     const handleBooleanChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -215,7 +213,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, InputCellProps>(
 
 CheckboxCell.displayName = 'CheckboxCell';
 
-const TextfieldCell = forwardRef<HTMLInputElement, InputCellProps>(
+const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleTextChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
