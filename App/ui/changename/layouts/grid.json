@@ -493,10 +493,17 @@
         }
       },
       {
+        "id": "btn-group",
+        "type": "ButtonGroup",
+        "children": ["page3-navbtns", "sendInButton"]
+      },
+      {
         "id": "page3-navbtns",
         "type": "NavigationButtons",
+        "showBackButton": true,
         "textResourceBindings": {
-          "next": "Neste"
+          "next": "Neste",
+          "back": "Forrige"
         }
       },
       {
