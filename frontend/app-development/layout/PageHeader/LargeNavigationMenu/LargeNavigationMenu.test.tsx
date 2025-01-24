@@ -21,7 +21,7 @@ describe('LargeNavigationMenu', () => {
     renderLargeNavigationMenu();
 
     menuItems.forEach((item) => {
-      expect(screen.getByText(item.name)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: item.name })).toBeInTheDocument();
     });
   });
 
@@ -30,26 +30,20 @@ describe('LargeNavigationMenu', () => {
       routerInitialEntries: [menuItems[0].link],
     });
 
-    const activeItem = screen.getByText(menuItems[0].name);
+    const activeItem = screen.getByRole('link', { name: menuItems[0].name });
     expect(activeItem).toHaveClass('active');
   });
 
-  it('should display the beta tag for items marked as beta', () => {
+  it('should set "isBeta" className for menu item that is beta', () => {
     renderLargeNavigationMenu();
-
-    const betaTags = screen.getAllByText('Beta');
-
-    expect(betaTags.length).toEqual(menuItems.filter((item) => item.isBeta).length);
+    const menuItem = screen.getByRole('link', { name: menuItems[0].name });
+    expect(menuItem).toHaveClass('isBeta');
   });
 
-  it('should not display the beta tag for items not marked as beta', () => {
+  it('should not set "isBeta" className for menu item that is not beta', () => {
     renderLargeNavigationMenu();
-
-    const betaTags = screen.getAllByText('Beta');
-
-    expect(menuItems.length - betaTags.length).toEqual(
-      menuItems.filter((item) => !item.isBeta).length,
-    );
+    const menuItem = screen.getByRole('link', { name: menuItems[1].name });
+    expect(menuItem).not.toHaveClass('isBeta');
   });
 });
 

@@ -18,8 +18,3 @@
 .active {
   border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
 }
-
-.betaTag {
-  min-height: min-content;
-  padding: 0 var(--fds-spacing-1);
-}
