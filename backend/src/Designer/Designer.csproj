@@ -55,6 +55,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
+    <PackageReference Include="Quartz" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
 
