@@ -20,6 +20,8 @@ import {
   textResources,
 } from './test-data/textResources';
 import type { TextResource } from '../../types/TextResource';
+import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
+import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -477,6 +479,92 @@ describe('StudioCodeListEditor', () => {
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
     expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  describe('Type handling', () => {
+    it('Renders textfield when item value is a string', () => {
+      renderCodeListEditor();
+      const textfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      expect(textfield).not.toHaveProperty('inputMode', 'decimal');
+    });
+
+    it('Renders numberfield when item value is a number', () => {
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+      const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      expect(numberfield).toHaveProperty('inputMode', 'decimal');
+    });
+
+    it('Renders checkbox when item value is a boolean', () => {
+      renderCodeListEditor({ codeList: codeListWithBooleanValues });
+      expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
+    });
+
+    it('Saves changed item value as string when initial value was string', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      const changedValue = 'new text';
+      await user.type(valueInput, changedValue);
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledTimes(1);
+      expect(onBlurAny).toHaveBeenCalledWith([
+        { ...codeListWithoutTextResources[0], value: changedValue },
+        codeListWithoutTextResources[1],
+        codeListWithoutTextResources[2],
+      ]);
+    });
+
+    it('Saves changed item value as number when initial value was number', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, '10');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledTimes(1);
+      expect(onBlurAny).toHaveBeenCalledWith([
+        { ...codeListWithNumberValues[0], value: 10 },
+        codeListWithNumberValues[1],
+        codeListWithNumberValues[2],
+      ]);
+    });
+
+    it('Saves changed item value as boolean when initial value was boolean', async () => {
+      const user = userEvent.setup();
+      const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleanValues[0]];
+      renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
+
+      const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });
+      await user.click(valueInput);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValues[0], value: false }]);
+    });
+
+    it('Numberfield does not change codelist when given string value', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, 'not-a-number');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
+
+    it('Numberfield does not change codelist when given empty input', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.clear(valueInput);
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
   });
 });
 
