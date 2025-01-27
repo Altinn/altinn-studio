@@ -10,14 +10,14 @@ export type StudioTextResourcePickerProps = Override<
   {
     onValueChange: (id: string | null) => void;
     textResources: TextResource[];
-    unsetOptionLabel: string;
+    noTextResourceOptionLabel: string;
     value?: string;
   },
   StudioComboboxProps
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  ({ textResources, onSelect, onValueChange, unsetOptionLabel, value, ...rest }, ref) => {
+  ({ textResources, onSelect, onValueChange, noTextResourceOptionLabel, value, ...rest }, ref) => {
     const handleValueChange = useCallback(
       ([id]: string[]) => onValueChange(id || null),
       [onValueChange],
@@ -31,17 +31,17 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
         {...rest}
         ref={ref}
       >
-        {renderUnsetOption(unsetOptionLabel)}
+        {renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
       </StudioCombobox>
     );
   },
 );
 
-function renderUnsetOption(label: string): ReactElement {
+function renderNoTextResourceOption(label: string): ReactElement {
   // This cannot be a component function since the option component must be a direct child of the combobox component.
   return (
-    <StudioCombobox.Option className={classes.unsetOption} value=''>
+    <StudioCombobox.Option className={classes.noTextResourceOption} value=''>
       {label}
     </StudioCombobox.Option>
   );

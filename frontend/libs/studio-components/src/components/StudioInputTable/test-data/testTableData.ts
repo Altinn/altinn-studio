@@ -38,6 +38,6 @@ export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => 
   idLabel: 'ID:',
   search: textResourceSearchLabel(rowNumber),
   textResourcePickerLabel: textResourcePickerLabel(rowNumber),
-  unsetOptionLabel: 'Ikke oppgitt',
+  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: textResourceValueLabel(rowNumber),
 });

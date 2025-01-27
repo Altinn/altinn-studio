@@ -40,7 +40,7 @@ export const Preview: Story = {
       idLabel: 'ID:',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
-      unsetOptionLabel: 'Ikke oppgitt',
+      noTextResourceOptionLabel: 'Ikke oppgitt',
       valueLabel: 'Tekstverdi',
     },
   },

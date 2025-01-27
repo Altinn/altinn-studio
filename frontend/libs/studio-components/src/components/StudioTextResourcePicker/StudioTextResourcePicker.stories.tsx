@@ -15,7 +15,7 @@ export const Preview: Story = {
     label: 'Velg tekst',
     textResources: textResourcesMock,
     onValueChange: (id: string) => console.log(id),
-    unsetOptionLabel: 'Ikke oppgitt',
+    noTextResourceOptionLabel: 'Ikke oppgitt',
     value: 'land.NO',
   },
 };

@@ -34,7 +34,7 @@ function textResourceTexts(
     idLabel: 'ID:',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
-    unsetOptionLabel: 'None',
+    noTextResourceOptionLabel: 'None',
     valueLabel: createTextResourceValueLabel(rowNumber, property),
   };
 }

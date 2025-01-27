@@ -21,7 +21,7 @@ const texts: TextResourceInputTexts = {
   idLabel: 'ID:',
   search: 'Søk',
   textResourcePickerLabel: 'Velg tekstressurs',
-  unsetOptionLabel: 'Ikke oppgitt',
+  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
