@@ -136,6 +136,7 @@ export class ProcessEditorPage extends BasePage {
     const button = this.page.getByText(
       `${this.textMock('process_editor.configuration_panel_change_task_id')}${id}`,
     );
+    await expect(button).toBeVisible();
   }
 
   public async pressEscapeOnKeyboard(): Promise<void> {
