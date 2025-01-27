@@ -141,7 +141,7 @@ const PreviewFrame = () => {
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
       {isSubform ? (
-        <StudioAlert severity='warning'>
+        <StudioAlert className={classes.alert} severity='warning'>
           {t('ux_editor.preview.subform_unsupported_warning')}
         </StudioAlert>
       ) : (
