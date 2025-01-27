@@ -28,7 +28,7 @@ describe('RightTranslationBar', () => {
 
     expect(mockOnLanguageChange).toHaveBeenLastCalledWith({
       nb: '',
-      nn: nnText[nnText.length - 1],
+      nn: nnText,
       en: '',
     });
   });
@@ -44,7 +44,7 @@ describe('RightTranslationBar', () => {
 
     expect(mockOnLanguageChange).toHaveBeenLastCalledWith({
       nb: '',
-      nn: nnText[nnText.length - 1],
+      nn: nnText,
       en: '',
     });
   });

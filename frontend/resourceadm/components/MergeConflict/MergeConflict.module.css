@@ -1,0 +1,15 @@
+.downloadWrapper {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  flex-direction: column;
+}
+
+.mergeConflictWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+  margin: auto auto;
+  padding: var(--fds-spacing-18);
+  width: 660px;
+  border: 1px solid #c9c9c9;
+}

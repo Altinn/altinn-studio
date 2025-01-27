@@ -224,6 +224,7 @@
   "resourceadm.loading_lists": "Laster inn lister",
   "resourceadm.loading_publish_status": "Laster publiseringsstatus",
   "resourceadm.migration_header": "Migrering av Altinn 2 tjeneste",
+  "resourceadm.loading_migration_status": "Laster inn migreringsstatus",
   "resourceadm.migration_help_link": "Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.",
   "resourceadm.migration_ingress": "Denne ressursen er basert på en Altinn 2 lenketjeneste. For at brukere som har tilgang til denne tjenesten gjennom enkeldelegering i Altinn 2 skal få videreført sine tilganger i Altinn 3, må delegeringene migreres. Du kan se hvor mange delegeringer av enkeltrettighet som er gjort ved å hente antall delegeringer i ønsket miljø under.",
   "resourceadm.migration_ingress_warning": "Dersom antall delegeringer i Altinn 2 er 0, eller brukere av denne tjenesten kun har tilgang gjennom rolle trenger du ikke å migrere.",
@@ -258,5 +259,6 @@
   "resourceadm.right_translation_bar_title": "Oversettelse",
   "resourceadm.switch_should_not": "ikke",
   "resourceadm.merge_conflict_header": "Konflikt i endrede lokale filer",
-  "resourceadm.merge_conflict_body": "Det er en konflikt i repositorium for ressurser. Noen andre har endret filer på samme sted som deg, og du må fjerne dine endringer. Før du gjør dette kan du laste ned en zip-fil med endringene dine."
+  "resourceadm.merge_conflict_body": "Det er en konflikt i repositorium for ressurser. Noen andre har endret filer på samme sted som deg, og du må fjerne dine endringer. Før du gjør dette kan du laste ned en zip-fil med endringene dine.",
+  "resourceadm.merge_conflict_footer": "Velg \"Fjern mine endringer\" for å løse konflikten."
 }
