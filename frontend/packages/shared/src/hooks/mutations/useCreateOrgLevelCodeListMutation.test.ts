@@ -4,14 +4,16 @@ import { useCreateOrgLevelCodeListMutation } from './useCreateOrgLevelCodeListMu
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { CodeList } from '@studio/components';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 
-const newCodeList: CodeList = [
+const newCodeList: OptionListsResponse = [
   {
-    description: 'description1',
-    helpText: 'helpText1',
-    label: 'label1',
-    value: 'value1',
+    title: 'title',
+    data: [
+      { label: 'label1', value: 'value1' },
+      { label: 'label2', value: 'value2' },
+    ],
+    hasError: false,
   },
 ];
 
@@ -27,7 +29,7 @@ describe('useCreateOrgLevelCodeListMutation', () => {
     expect(queriesMock.createOrgLevelCodeList).toHaveBeenCalledWith(newCodeList);
   });
 
-  it('Invalidates imageFileNames when deleting an image', async () => {
+  it('Invalidates query key', async () => {
     const client = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useCreateOrgLevelCodeListMutation())
