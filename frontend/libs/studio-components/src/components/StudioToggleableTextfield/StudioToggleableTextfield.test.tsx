@@ -123,6 +123,7 @@ describe('StudioToggleableTextfield', () => {
 const renderStudioTextField = (props: Partial<StudioToggleableTextfieldProps>) => {
   const defaultProps: StudioToggleableTextfieldProps = {
     inputProps: {
+      label: 'label',
       value: 'value',
       icon: <div />,
     },

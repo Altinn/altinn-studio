@@ -50,7 +50,6 @@ export const CustomReceipt = (): React.ReactElement => {
             validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
           }
           inputProps={{
-            className: classes.textfield,
             icon: <KeyVerticalIcon />,
             label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
             value: existingCustomReceiptLayoutSetId,

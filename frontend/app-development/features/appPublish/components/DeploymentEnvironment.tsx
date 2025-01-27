@@ -2,12 +2,10 @@ import React from 'react';
 import classes from './DeploymentEnvironment.module.css';
 import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';
-import { UnDeploy } from './UnDeploy';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
@@ -52,7 +50,6 @@ export const DeploymentEnvironment = ({
           isProduction={isProduction}
           orgName={orgName}
         />
-        {shouldDisplayFeature(FeatureFlag.Undeploy) && <UnDeploy />}
         <DeploymentEnvironmentLogList
           envName={envName}
           isProduction={isProduction}

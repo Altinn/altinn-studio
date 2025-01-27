@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-import { StudioDisplayTile, StudioProperty, StudioTextfield } from '@studio/components';
-import { useTranslation } from 'react-i18next';
+import { StudioCodeFragment, StudioProperty, StudioTextfield } from '@studio/components';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './EditColumnElementContent.module.css';
 
 type EditColumnElementContentProps = {
@@ -40,12 +40,13 @@ export const EditColumnElementContent = ({
         />
       )}
 
-      <StudioDisplayTile
-        className={classes.componentCellContent}
-        label={t('ux_editor.properties_panel.subform_table_columns.column_cell_content')}
-        value={cellContent}
-        showPadlock={false}
-      />
+      <div className={classes.componentCellContent}>
+        <Trans
+          i18nKey='ux_editor.properties_panel.subform_table_columns.column_cell_content'
+          values={{ cellContent }}
+          components={[<StudioCodeFragment key='0' />]}
+        />
+      </div>
     </div>
   );
 };
