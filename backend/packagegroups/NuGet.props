@@ -59,7 +59,7 @@
     <PackageReference Update="Moq" Version="4.18.4" />
     <PackageReference Update="xunit" Version="2.9.3" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageReference Update="coverlet.collector" Version="6.0.3" />
+    <PackageReference Update="coverlet.collector" Version="6.0.4" />
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.8" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
@@ -69,7 +69,7 @@
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.1" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="9.0.1" />
-    <PackageReference Update="WireMock.Net" Version="1.6.11" />
+    <PackageReference Update="WireMock.Net" Version="1.7.0" />
     <PackageReference Update="DistributedLock.FileSystem" Version="1.0.3" />
   </ItemGroup>
 </Project>
