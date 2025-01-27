@@ -1382,6 +1382,7 @@
   "ux_editor.component_properties.hiddenRow": "Angi hvilke rader som skal skjules",
   "ux_editor.component_properties.hideBottomBorder": "Skjul skillelinjen under komponenten",
   "ux_editor.component_properties.hideChangeButton": "Skjul Endre-knapp",
+  "ux_editor.component_properties.hideEmptyFields": "Skjul tomme felt",
   "ux_editor.component_properties.hideValidationMessages": "Skjul valideringsmeldinger",
   "ux_editor.component_properties.icon": "Ikon",
   "ux_editor.component_properties.id": "ID",
