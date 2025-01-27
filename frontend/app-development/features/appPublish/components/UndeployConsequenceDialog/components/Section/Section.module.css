@@ -1,0 +1,7 @@
+.section {
+  margin-bottom: var(--fds-spacing-8);
+}
+
+.heading {
+  font-weight: 700;
+}
