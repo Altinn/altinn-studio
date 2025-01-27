@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import { useOrgLevelCodeListsQuery } from './useOrgLevelCodeListsQuery';
 
 describe('useOrgLevelCodeListsQuery', () => {
-  it('calls getOptionListsReferences with the correct parameters', () => {
+  it('calls getOrgLevelCodeLists with the correct parameters', () => {
     render();
     expect(queriesMock.getOrgLevelCodeLists).toHaveBeenCalledWith();
     expect(queriesMock.getOrgLevelCodeLists).toHaveBeenCalledTimes(1);

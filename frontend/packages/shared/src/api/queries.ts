@@ -98,7 +98,6 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
-import type { CodeList } from '@studio/components';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -177,37 +176,34 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Org level code lists
-
-const orgLevelCodeListsMock: CodeList[] = [
+const orgLevelCodeListsMock: OptionListsResponse[] = [
   [
     {
-      description: 'description1',
-      helpText: 'helpText1',
-      label: 'label1',
-      value: 'value1',
+      title: 'title1',
+      data: [
+        { label: 'label1', value: 'value1' },
+        { label: 'label2', value: 'value2' },
+      ],
+      hasError: false,
     },
     {
-      description: 'description2',
-      helpText: 'helpText2',
-      label: 'label2',
-      value: true,
+      title: 'title2',
+      data: [],
+      hasError: false,
     },
   ],
   [
     {
-      description: 'description3',
-      helpText: 'helpText3',
-      label: 'label3',
-      value: 3,
+      title: 'title3',
+      data: [],
+      hasError: false,
     },
   ],
 ];
-export const getOrgLevelCodeLists = async (): Promise<CodeList[]> =>
-  // TODO: Replace with endpoint when it is ready in backend.
+export const getOrgLevelCodeLists = async (org: string): Promise<OptionListsResponse[]> =>
+  // TODO: Replace with endpoint when it is ready in backend. https://github.com/Altinn/altinn-studio/issues/14482
   new Promise((resolve) => {
     setTimeout(() => {
-      // Replace the two resolves to test with empty list
-      // resolve([]);
       resolve(orgLevelCodeListsMock);
-    }, 1000);
+    }, 200);
   });
