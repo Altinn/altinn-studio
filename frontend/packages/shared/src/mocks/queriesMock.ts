@@ -203,6 +203,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
   // Mutations
+  editOrgLevelCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addImage: jest.fn().mockImplementation(() => Promise.resolve()),
