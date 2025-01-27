@@ -75,6 +75,7 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
+import type { CodeList } from '@studio/components';
 
 const headers = {
   Accept: 'application/json',
@@ -167,3 +168,12 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+
+// Org level code lists - TODO: Replace mocks with correct paths.
+export const createOrgLevelCodeList = async (codeListItem: CodeList): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(() => {
+      console.log('Code list created:', codeListItem);
+      resolve();
+    }, 1000);
+  });
