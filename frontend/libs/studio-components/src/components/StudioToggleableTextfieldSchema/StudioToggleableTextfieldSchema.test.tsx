@@ -32,7 +32,6 @@ const defaultLayoutSchemaMock: JsonSchema = {
 const value: string = 'value';
 const label: string = 'label';
 const defaultProps: StudioToggleableTextfieldSchemaProps = {
-  icon: <div />,
   label,
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
