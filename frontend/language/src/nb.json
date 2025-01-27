@@ -177,7 +177,7 @@
   "code_list_editor.text_resource.label.search_mode": "Søkemodus for ledetekst til element nummer {{number}}",
   "code_list_editor.text_resource.label.select": "Finn ledetekst for verdi nummer {{number}}",
   "code_list_editor.text_resource.label.value": "Oppgi ledetekst for verdi nummer {{number}}",
-  "code_list_editor.text_resource.unset_option_label": "Ikke oppgitt",
+  "code_list_editor.text_resource.no_text_resource_option_label": "Ikke oppgitt",
   "code_list_editor.value_item": "Verdi for alternativ {{number}}",
   "contact.altinn_servicedesk.content": "Er du tjenesteeier og har du behov for hjelp? Ta kontakt med oss!",
   "contact.altinn_servicedesk.heading": "Altinn Servicedesk",
