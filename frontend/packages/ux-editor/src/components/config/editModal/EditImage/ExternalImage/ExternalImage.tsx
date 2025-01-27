@@ -60,6 +60,7 @@ export const ExternalImage = ({
           title: url,
         }}
         inputProps={{
+          label: t('ux_editor.properties_panel.images.enter_external_url'),
           value: existingImageUrl,
           onBlur: ({ target }: ChangeEvent<HTMLInputElement>) => handleBlur(target.value),
           size: 'small',
