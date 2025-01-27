@@ -287,6 +287,10 @@ describe('TextTab', () => {
         name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
       });
       await user.click(pasteUrlTab);
+      const enterUrlButton = screen.getByRole('button', {
+        name: textMock('ux_editor.properties_panel.images.enter_external_url'),
+      });
+      await user.click(enterUrlButton);
       const enterUrlField = screen.getByRole('textbox', {
         name: textMock('ux_editor.properties_panel.images.enter_external_url'),
       });
@@ -297,7 +301,7 @@ describe('TextTab', () => {
       });
     });
 
-    it('should render subform tabel section if component is subform', () => {
+    it('should render subform table section if component is subform', () => {
       render({
         props: {
           ...props,
@@ -306,11 +310,11 @@ describe('TextTab', () => {
           },
         },
       });
-      const tabelHeading = screen.getByRole('heading', {
+      const tableHeading = screen.getByRole('heading', {
         name: textMock('ux_editor.properties_panel.subform_table_columns.heading'),
         level: 2,
       });
-      expect(tabelHeading).toBeInTheDocument();
+      expect(tableHeading).toBeInTheDocument();
     });
   });
 });

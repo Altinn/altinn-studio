@@ -45,21 +45,14 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   return (
     <div className={classes.changePageId}>
       <StudioToggleableTextfield
-        label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        viewProps={{
-          value: layoutName,
-          title: t('ux_editor.modal_properties_textResourceBindings_page_id'),
-        }}
-        inputProps={{
-          label: t('ux_editor.modal_properties_textResourceBindings_page_id'),
-          value: layoutName,
-          onBlur: (event) => handleSaveNewName(event.target.value),
-          size: 'small',
-        }}
         customValidation={(value: string) => {
           const validationResult = getPageNameErrorKey(value, layoutName, layoutOrder);
           return validationResult ? t(validationResult) : undefined;
         }}
+        label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
+        onBlur={(event) => handleSaveNewName(event.target.value)}
+        title={t('ux_editor.modal_properties_textResourceBindings_page_id')}
+        value={layoutName}
       />
     </div>
   );
