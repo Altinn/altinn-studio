@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 
-import { HelpText } from '@digdir/designsystemet-react';
-
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { Label } from 'src/app-components/Label/Label';
+import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -230,12 +229,11 @@ export function AddressComponent({ node }: IAddressProps) {
               />
             }
             help={
-              <HelpText
-                id={`address_house_number_${id}-helptext`}
-                title={`${langAsString('helptext.button_title_prefix')} ${langAsString(textResourceBindings?.houseNumberTitle ?? 'address_component.house_number')}`}
-              >
-                <Lang id='address_component.house_number_help_text_title' />
-              </HelpText>
+              <HelpTextContainer
+                id={id}
+                title={langAsString(textResourceBindings?.houseNumberTitle ?? 'address_component.house_number')}
+                helpText={<Lang id='address_component.house_number_help_text_title' />}
+              />
             }
           >
             <Flex

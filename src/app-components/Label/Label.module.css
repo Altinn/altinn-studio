@@ -3,9 +3,6 @@
   gap: var(--fds-spacing-2);
   align-items: center;
 }
-.labelAndHelpWrapper > button {
-  min-width: var(--fds-spacing-7);
-}
 
 .labelAndDescWrapper {
   display: flex;

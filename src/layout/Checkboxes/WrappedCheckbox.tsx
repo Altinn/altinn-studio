@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Checkbox, HelpText } from '@digdir/designsystemet-react';
+import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -59,7 +60,10 @@ export function WrappedCheckbox({ id, option, hideLabel, alertOnChange, checked,
         <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
           {langAsString(option.label)}
           {option.helpText && (
-            <HelpText title={elementAsString(option.helpText)}>
+            <HelpText
+              id={id}
+              title={elementAsString(option.helpText)}
+            >
               <Lang id={option.helpText} />
             </HelpText>
           )}

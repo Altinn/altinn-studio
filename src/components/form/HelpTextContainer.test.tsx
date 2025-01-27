@@ -11,6 +11,7 @@ describe('HelpTextContainer', () => {
     await renderWithoutInstanceAndLayout({
       renderer: () => (
         <HelpTextContainer
+          id='test-id'
           helpText='Help text content'
           {...props}
         />

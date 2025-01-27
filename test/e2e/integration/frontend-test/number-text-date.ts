@@ -13,7 +13,7 @@ describe('Number and Text components', () => {
       .findByLabelText(/Kredittkort prosent/i)
       .should('contain.text', '0 %');
     cy.get(numberCard)
-      .findByLabelText(/statisk verdi med desimal/i)
+      .findAllByLabelText(/statisk verdi med desimal/i)
       .should('contain.text', '20 000,2 kr');
   });
   it('should render Date correctly', () => {

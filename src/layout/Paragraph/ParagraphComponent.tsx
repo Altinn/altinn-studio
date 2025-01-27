@@ -46,6 +46,7 @@ export function ParagraphComponent({ node }: IParagraphProps) {
         </div>
         {textResourceBindings?.help && (
           <HelpTextContainer
+            id={id}
             helpText={
               <Lang
                 id={textResourceBindings?.help}

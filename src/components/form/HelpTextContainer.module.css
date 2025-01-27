@@ -1,5 +1,5 @@
 .helpTextContainer {
-  padding: 2px 4px;
+  padding: 2px 4px !important;
 }
 
 @media print {

@@ -1,0 +1,73 @@
+.helpTextButton {
+  background-color: transparent;
+  border-radius: 50px;
+  padding: 0 !important;
+  cursor: pointer;
+  display: flex;
+  border: none;
+  min-height: 0;
+}
+
+@media print {
+  .helpTextButton {
+    display: none;
+  }
+}
+
+.helpText-iconFilled {
+  display: none;
+}
+
+.helpText-icon {
+  color: var(--fds-semantic-text-action-default);
+  width: var(--fds-sizing-7);
+  height: var(--fds-sizing-7);
+  min-width: var(--fds-sizing-7);
+  min-height: var(--fds-sizing-7);
+}
+
+.helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpText-icon {
+  display: none;
+}
+
+.helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpText-iconFilled {
+  display: inline-block;
+}
+
+.helpTextContent {
+  font: var(--fds-typography-paragraph-medium);
+  font-family: inherit;
+  width: fit-content;
+  max-width: 700px;
+}
+
+.helpText-sm .helpText-icon {
+  width: var(--fds-sizing-6);
+  height: var(--fds-sizing-6);
+}
+
+.helpText-md .helpText-icon {
+  width: var(--fds-sizing-7);
+  height: var(--fds-sizing-7);
+}
+
+.helpText-lg .helpText-icon {
+  width: var(--fds-sizing-8);
+  height: var(--fds-sizing-8);
+}
+.helpText-focus:focus-visible {
+  --fds-focus-border-width: 3px;
+  outline: var(--fds-focus-border-width) solid var(--fds-semantic-border-focus-outline);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-focus-boxshadow);
+}
+.screenReaderOnly {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
