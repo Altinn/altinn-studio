@@ -140,24 +140,25 @@ const PreviewFrame = () => {
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
-      {isSubform && (
+      {isSubform ? (
         <StudioAlert severity='warning'>
           {t('ux_editor.preview.subform_unsupported_warning')}
         </StudioAlert>
-      )}
-      <div className={classes.previewArea}>
-        <div className={classes.iframeContainer}>
-          <iframe
-            key={checksum}
-            ref={previewIframeRef}
-            className={cn(classes.iframe, classes[viewportToSimulate])}
-            title={t('ux_editor.preview')}
-            src={previewURL}
-            onLoad={previewHasLoaded}
-          />
+      ) : (
+        <div className={classes.previewArea}>
+          <div className={classes.iframeContainer}>
+            <iframe
+              key={checksum}
+              ref={previewIframeRef}
+              className={cn(classes.iframe, classes[viewportToSimulate])}
+              title={t('ux_editor.preview')}
+              src={previewURL}
+              onLoad={previewHasLoaded}
+            />
+          </div>
+          <PreviewLimitationsInfo />
         </div>
-        <PreviewLimitationsInfo />
-      </div>
+      )}
     </div>
   );
 };

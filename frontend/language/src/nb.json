@@ -1844,7 +1844,7 @@
   "ux_editor.pages_error_empty": "Navnet kan ikke være tomt.",
   "ux_editor.pages_error_unique": "Det finnes allerede en side med dette navnet. Bruk et annet navn.",
   "ux_editor.preview": "Forhåndsvisning",
-  "ux_editor.preview.subform_unsupported_warning": "Underskjema er ikke støttet i forhåndsvisningen ennå.",
+  "ux_editor.preview.subform_unsupported_warning": "Foreløpig støtter vi ikke å forhåndsvise underskjemaer. Vi jobber med å få dette på plass!",
   "ux_editor.properties_panel.images.add_image_tab_title": "Legg til bilde",
   "ux_editor.properties_panel.images.cancel_image_upload": "Avbryt opplastning",
   "ux_editor.properties_panel.images.choose_from_library": "Velg fra biblioteket",
