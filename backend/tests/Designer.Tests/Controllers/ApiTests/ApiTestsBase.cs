@@ -63,6 +63,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     protected ApiTestsBase(WebApplicationFactory<Program> factory)
     {
         Factory = factory;
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
         SetupDirtyHackIfLinux();
         InitializeJsonConfigOverrides();
     }
