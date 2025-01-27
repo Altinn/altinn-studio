@@ -203,16 +203,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of the layout set the specific layout belongs to</param>
         /// <param name="layoutName">The current name of the form layout</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public ActionResult UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName)
+        public async Task<ActionResult> UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 _appDevelopmentService.UpdateFormLayoutName(editingContext, layoutSetName, layoutName, newName);
+                await _mediator.Publish(new LayoutPageIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetName,
+                    LayoutName = layoutName,
+                    NewLayoutName = newName,
+                }, cancellationToken);
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -403,6 +411,12 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(editingContext, layoutSetIdToUpdate, newLayoutSetName, cancellationToken);
+            await _mediator.Publish(new LayoutSetIdChangedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetName = layoutSetIdToUpdate,
+                NewLayoutSetName = newLayoutSetName,
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 

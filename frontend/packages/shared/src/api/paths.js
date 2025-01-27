@@ -17,6 +17,9 @@ export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app
 // App version
 export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
 
+// UserOrgPermissions
+export const userOrgPermissionsPath = (org) => `${basePath}/user/org-permissions/${org}`;
+
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
@@ -100,6 +103,7 @@ export const releasesPath = (org, app, sortDirection) => `${basePath}/${org}/${a
 export const deploymentsPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/deployments?${s({ sortDirection })}`;
 export const deployPermissionsPath = (org, app) => `${basePath}/${org}/${app}/deployments/permissions`;
 export const envConfigPath = () => `${basePath}/environments`;
+export const undeployAppFromEnvPath = (org, app) => `${basePath}/${org}/${app}/deployments/undeploy`;
 
 // Repositories
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;

@@ -1,4 +1,4 @@
-import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
+import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import {
   StudioCard,
   StudioHeading,
@@ -95,7 +95,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
           ))}
         </StudioNativeSelect>
         {target.type === 'page' && (
-          <Summmary2ComponentReferenceSelector
+          <Summary2ComponentReferenceSelector
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             label={t('ux_editor.component_properties.target_unit_page')}
             value={target.id}
@@ -104,13 +104,13 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
           />
         )}
         {target.type === 'component' && (
-          <Summmary2ComponentReferenceSelector
+          <Summary2ComponentReferenceSelector
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             label={t('ux_editor.component_properties.target_unit_component')}
             value={target.id}
             options={componentOptions}
             onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentReferenceSelector>
+          />
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield

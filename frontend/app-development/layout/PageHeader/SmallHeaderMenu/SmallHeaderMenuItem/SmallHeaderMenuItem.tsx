@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
-import { StudioBetaTag } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;
@@ -35,13 +35,13 @@ export const SmallHeaderMenuItem = ({
   return (
     <DropdownMenu.Item key={menuItem.name} asChild className={linkItemClassName}>
       <NavLink
+        className={menuItem.isBeta && studioBetaTagClasses.isBeta}
         to={menuItem.action.href}
         onClick={onClick}
         target={menuItem.action.openInNewTab ? '_blank' : ''}
         rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
       >
         {t(menuItem.name)}
-        {menuItem.isBeta && <StudioBetaTag />}
       </NavLink>
     </DropdownMenu.Item>
   );
