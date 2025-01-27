@@ -12,6 +12,7 @@ namespace Altinn.Studio.Designer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("QuartzTables/tables_postgres.sql"));
+            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("QuartzTables/setup-grants.sql"));
         }
 
         /// <inheritdoc />
