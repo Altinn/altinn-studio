@@ -77,6 +77,7 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 
 export const queriesMock: ServicesContextProps = {
   // Queries
+  getOrgLevelCodeLists: jest.fn().mockImplementation(() => Promise.resolve([])),
   getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()

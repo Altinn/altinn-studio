@@ -49,6 +49,7 @@ export enum QueryKey {
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
   DataType = 'DataType',
+  OrgLevelCodeLists = 'OrgLevelCodeLists',
 
   // Resourceadm
   ResourceList = 'ResourceList',
