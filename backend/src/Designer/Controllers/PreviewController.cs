@@ -692,7 +692,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for mocking the GET method for person lookup for v4 apps
+        /// Action for mocking the POST method for person lookup for v4 apps
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="app">The app</param>
