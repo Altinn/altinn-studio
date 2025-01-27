@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -117,7 +117,7 @@
       "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
       "type": "object",
       "properties": {},
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": { "$ref": "expression.schema.v1.json#/definitions/string" }
     },
     "options": {
       "title": "Static options",
@@ -160,6 +160,11 @@
       "description": "Allows for fetching options from the data model, pointing to a repeating group structure",
       "type": "object",
       "properties": {
+        "dataType": {
+          "title": "Data type",
+          "description": "The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.",
+          "type": "string"
+        },
         "group": {
           "title": "Group",
           "description": "The repeating group to base options on.",
@@ -193,6 +198,11 @@
       },
       "required": ["group", "label", "value"],
       "additionalProperties": false
+    },
+    "optionFilter": {
+      "title": "Filter options (using an expression)",
+      "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "type": { "const": "FileUploadWithTag" },
     "textResourceBindings": {
@@ -247,18 +257,16 @@
     "dataModelBindings": {
       "anyOf": [
         {
-          "title": "Data model binding",
-          "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+          "title": "IDataModelBindingsSimple",
           "type": "object",
-          "properties": { "simpleBinding": { "type": "string" } },
+          "properties": { "simpleBinding": { "$ref": "#/definitions/IRawDataModelBinding" } },
           "required": ["simpleBinding"],
           "additionalProperties": false
         },
         {
-          "title": "Data model binding",
-          "description": "Describes the location in the data model where the component should store its value(s). A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).",
+          "title": "IDataModelBindingsList",
           "type": "object",
-          "properties": { "list": { "type": "string" } },
+          "properties": { "list": { "$ref": "#/definitions/IRawDataModelBinding" } },
           "required": ["list"],
           "additionalProperties": false
         }

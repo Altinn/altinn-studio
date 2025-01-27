@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -105,7 +105,7 @@
       "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
       "type": "object",
       "properties": {},
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": { "$ref": "expression.schema.v1.json#/definitions/string" }
     },
     "options": {
       "title": "Static options",
@@ -148,6 +148,11 @@
       "description": "Allows for fetching options from the data model, pointing to a repeating group structure",
       "type": "object",
       "properties": {
+        "dataType": {
+          "title": "Data type",
+          "description": "The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.",
+          "type": "string"
+        },
         "group": {
           "title": "Group",
           "description": "The repeating group to base options on.",
@@ -181,6 +186,11 @@
       },
       "required": ["group", "label", "value"],
       "additionalProperties": false
+    },
+    "optionFilter": {
+      "title": "Filter options (using an expression)",
+      "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "preselectedOptionIndex": {
       "title": "Preselected option index",
@@ -250,17 +260,73 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
+    "autocomplete": {
+      "title": "Autocomplete",
+      "description": "The HTML autocomplete attribute helps browsers suggest or autofill input values based on the expected type of data.",
+      "enum": [
+        "on",
+        "off",
+        "name",
+        "honorific-prefix",
+        "given-name",
+        "additional-name",
+        "family-name",
+        "honorific-suffix",
+        "nickname",
+        "email",
+        "username",
+        "new-password",
+        "current-password",
+        "one-time-code",
+        "organization-title",
+        "organization",
+        "street-address",
+        "address-line1",
+        "address-line2",
+        "address-line3",
+        "address-level4",
+        "address-level3",
+        "address-level2",
+        "address-level1",
+        "country",
+        "country-name",
+        "postal-code",
+        "cc-name",
+        "cc-given-name",
+        "cc-additional-name",
+        "cc-family-name",
+        "cc-number",
+        "cc-exp",
+        "cc-exp-month",
+        "cc-exp-year",
+        "cc-csc",
+        "cc-type",
+        "transaction-currency",
+        "transaction-amount",
+        "language",
+        "bday",
+        "bday-day",
+        "bday-month",
+        "bday-year",
+        "sex",
+        "tel",
+        "tel-country-code",
+        "tel-national",
+        "tel-area-code",
+        "tel-local",
+        "tel-extension",
+        "url",
+        "photo"
+      ],
+      "type": "string"
+    },
     "dataModelBindings": {
-      "title": "Data model binding",
-      "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+      "title": "IDataModelBindingsOptionsSimple",
       "type": "object",
       "properties": {
-        "simpleBinding": { "type": "string" },
-        "label": { "type": "string" },
-        "metadata": {
-          "description": "Describes the location where metadata for the option based component should be stored in the datamodel.",
-          "type": "string"
-        }
+        "simpleBinding": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "label": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "metadata": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
       "required": ["simpleBinding"],
       "additionalProperties": false

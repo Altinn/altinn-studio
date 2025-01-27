@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -47,18 +47,6 @@
       },
       "additionalProperties": false
     },
-    "variant": {
-      "title": "Panel variant",
-      "description": "Change the look of the panel",
-      "enum": ["info", "warning", "error", "success"],
-      "type": "string"
-    },
-    "showIcon": {
-      "title": "Show icon",
-      "description": "Show icon in the panel header",
-      "default": true,
-      "type": "boolean"
-    },
     "type": { "const": "Panel" },
     "textResourceBindings": {
       "type": "object",
@@ -75,6 +63,18 @@
         }
       },
       "additionalProperties": false
+    },
+    "variant": {
+      "title": "Panel variant",
+      "description": "Change the look of the panel",
+      "enum": ["info", "warning", "error", "success"],
+      "type": "string"
+    },
+    "showIcon": {
+      "title": "Show icon",
+      "description": "Show icon in the panel header",
+      "default": true,
+      "type": "boolean"
     }
   },
   "required": ["id", "type"],

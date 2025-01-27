@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/AccordionGroup.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/AddToList.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,6 +47,35 @@
       },
       "additionalProperties": false
     },
+    "readOnly": {
+      "title": "Read only/disabled?",
+      "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "required": {
+      "title": "Required?",
+      "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "showValidations": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ],
+        "type": "string"
+      }
+    },
     "renderAsSummary": {
       "title": "Render as summary",
       "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
@@ -59,12 +88,22 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "AccordionGroup" },
+    "type": { "const": "AddToList" },
     "textResourceBindings": {
       "properties": {
-        "title": {
-          "title": "Title",
-          "description": "The title of the accordion group",
+        "tableTitle": {
+          "title": "Table title",
+          "description": "Title used in the table view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "shortName": {
+          "title": "Short name (for validation)",
+          "description": "Alternative name used for required validation messages (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "requiredValidation": {
+          "title": "Required validation message",
+          "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "summaryTitle": {
@@ -79,13 +118,14 @@
         }
       }
     },
-    "children": {
-      "title": "Children",
-      "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
-      "type": "array",
-      "items": { "type": "string" }
+    "title": { "type": "string" },
+    "dataModelBindings": {
+      "type": "object",
+      "properties": { "data": { "$ref": "#/definitions/IRawDataModelBinding" } },
+      "required": ["data"],
+      "additionalProperties": false
     }
   },
-  "required": ["id", "type", "children"],
-  "title": "AccordionGroup component schema"
+  "required": ["id", "type", "title", "dataModelBindings"],
+  "title": "AddToList component schema"
 }

@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -149,7 +149,7 @@
       "title": "IDataModelBindingsForList",
       "type": "object",
       "properties": {},
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": { "$ref": "#/definitions/IRawDataModelBinding" }
     },
     "tableHeaders": {
       "title": "Table Headers",
@@ -203,9 +203,22 @@
       "properties": {},
       "additionalProperties": { "type": "string" }
     },
+    "queryParameters": {
+      "title": "Query parameters",
+      "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "$ref": "expression.schema.v1.json#/definitions/string" }
+    },
+    "summaryBinding": {
+      "title": "Data model binding to show in summary",
+      "description": "Specify one of the keys in the `dataModelBindings` object to show in the summary component for the list.",
+      "type": "string"
+    },
     "bindingToShowInSummary": {
       "title": "Binding to show in summary",
-      "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings.",
+      "description": "**Deprecated**: This property will be removed in the next major version, use `summaryBinding` instead.\nThe value of this binding will be shown in the summary component for the list. It expects a path in the datamodel. The binding must be one of the specified bindings under dataModelBindings.",
+      "deprecated": true,
       "type": "string"
     },
     "tableHeadersMobile": {

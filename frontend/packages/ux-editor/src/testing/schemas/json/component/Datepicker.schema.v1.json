@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -146,10 +146,9 @@
       }
     },
     "dataModelBindings": {
-      "title": "Data model binding",
-      "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+      "title": "IDataModelBindingsSimple",
       "type": "object",
-      "properties": { "simpleBinding": { "type": "string" } },
+      "properties": { "simpleBinding": { "$ref": "#/definitions/IRawDataModelBinding" } },
       "required": ["simpleBinding"],
       "additionalProperties": false
     },
@@ -167,15 +166,15 @@
     },
     "timeStamp": {
       "title": "Include time",
-      "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true. If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
+      "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true. If true: 'yyyy-MM-ddThh:mm:ss.sssZ', if false 'yyyy-MM-dd';",
       "default": true,
       "type": "boolean"
     },
     "format": {
       "title": "Date format",
       "description": "Date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
-      "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
-      "default": "DD.MM.YYYY",
+      "examples": ["dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd"],
+      "default": "dd.MM.yyyy",
       "type": "string"
     }
   },

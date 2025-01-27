@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Likert.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/LikertItem.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -214,17 +214,27 @@
       "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "Likert" },
+    "preselectedOptionIndex": {
+      "title": "Preselected option index",
+      "description": "Index of the option to preselect (if no option has been selected yet)",
+      "type": "integer"
+    },
+    "type": { "const": "LikertItem" },
     "textResourceBindings": {
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The title of the group",
+          "description": "Title of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "description": {
           "title": "Description",
-          "description": "The description text for the Likert table.",
+          "description": "Description of the Likert component/row",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help",
+          "description": "Help text of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "tableTitle": {
@@ -251,54 +261,33 @@
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "leftColumnHeader": {
-          "title": "Left column header",
-          "description": "The header text for the left column in the Likert table",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questions": {
-          "title": "Questions",
-          "description": "The questions to be displayed in each row (use a dynamic text resource)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questionDescriptions": {
-          "title": "Question descriptions",
-          "description": "The descriptions to be displayed in each row (use a dynamic text resource)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questionHelpTexts": {
-          "title": "Question help texts",
-          "description": "The help texts to be displayed in each row (use a dynamic text resource)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
     "dataModelBindings": {
-      "title": "IDataModelBindingsLikert",
+      "title": "IDataModelBindingsOptionsSimple",
       "type": "object",
       "properties": {
-        "answer": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "questions": { "$ref": "#/definitions/IRawDataModelBinding" }
+        "simpleBinding": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "label": { "$ref": "#/definitions/IRawDataModelBinding" },
+        "metadata": { "$ref": "#/definitions/IRawDataModelBinding" }
       },
-      "required": ["answer", "questions"],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
-    "filter": {
-      "title": "Filter",
-      "description": "Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "key": { "enum": ["start", "stop"] },
-          "value": { "anyOf": [{ "type": "string", "pattern": "^\\d+$" }, { "type": "number" }] }
-        },
-        "required": ["key", "value"],
-        "additionalProperties": false
-      }
+    "showLabelsInTable": {
+      "title": "Show label when single option in table",
+      "description": "Boolean value indicating if the label should be visible when only one option exists in table",
+      "default": false,
+      "type": "boolean"
+    },
+    "layout": {
+      "title": "Layout",
+      "description": "Define the layout style for the options",
+      "enum": ["column", "row", "table"],
+      "type": "string"
     }
   },
   "required": ["id", "type", "dataModelBindings"],
-  "title": "Likert component schema"
+  "title": "LikertItem component schema"
 }
