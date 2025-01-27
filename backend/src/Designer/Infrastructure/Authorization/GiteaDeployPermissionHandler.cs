@@ -7,12 +7,9 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {

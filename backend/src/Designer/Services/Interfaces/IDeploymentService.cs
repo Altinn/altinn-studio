@@ -54,5 +54,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// This method handles the undeploy of an application from the specified environment.
         /// </remarks>
         Task UndeployAsync(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken = default);
-     }
+    }
 }

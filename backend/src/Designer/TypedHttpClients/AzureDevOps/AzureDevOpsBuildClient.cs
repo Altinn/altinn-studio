@@ -50,7 +50,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
 
         private static QueueBuildRequest CreateBuildRequest<T>(T buildParameters, int buildDefinitionId) where T : class
         {
-           JsonSerializerOptions serializerOptions = new()
+            JsonSerializerOptions serializerOptions = new()
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
@@ -61,7 +61,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
                 {
                     Id = buildDefinitionId
                 },
-                Parameters =  JsonSerializer.Serialize(buildParameters, serializerOptions)
+                Parameters = JsonSerializer.Serialize(buildParameters, serializerOptions)
             };
         }
 
