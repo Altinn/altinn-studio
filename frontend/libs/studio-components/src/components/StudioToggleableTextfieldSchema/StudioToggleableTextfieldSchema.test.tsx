@@ -76,7 +76,7 @@ describe('StudioToggleableTextfieldSchema', () => {
   it('should not toggle to view mode on blur if input is invalid', async () => {
     const user = userEvent.setup();
     const error: string = 'error message';
-    renderStudioToggleableTextfieldSchema({ inputProps: { error } });
+    renderStudioToggleableTextfieldSchema({ inputProps: { label, error } });
     await user.click(screen.getByRole('button', { name: label }));
     await user.tab();
     expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();

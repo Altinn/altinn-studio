@@ -27,6 +27,7 @@ export const EditLayoutSetName = ({
       }
       label={t('process_editor.configuration_panel_layout_set_name_label')}
       inputProps={{
+        label: t('process_editor.configuration_panel_layout_set_name_label'),
         value: existingLayoutSetName,
         onBlur: (event) => handleOnLayoutSetNameBlur(event),
         size: 'small',
