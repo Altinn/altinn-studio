@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Repository.Models
         {
             entity.Org = editingContext.Org;
             entity.App = editingContext.Repo;
-            entity.Created = timeProvider.GetUtcNow().DateTime;
+            entity.Created = DateTime.UtcNow;
             entity.CreatedBy = editingContext.Developer;
 
             return entity;

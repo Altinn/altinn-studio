@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -44,6 +45,16 @@ public class DeploymentRepository : IDeploymentRepository
     public async Task<DeploymentEntity> Get(string org, string buildId)
     {
         var dbObject = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking().SingleAsync(d => d.Org == org && d.Buildid == buildId);
+        return DeploymentMapper.MapToModel(dbObject);
+    }
+
+    public async Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment)
+    {
+        var dbObject = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking()
+            .Where(d => d.Org == org && d.App == app && d.EnvName == environment)
+            .OrderByDescending(d => d.Created)
+            .FirstAsync();
+
         return DeploymentMapper.MapToModel(dbObject);
     }
 

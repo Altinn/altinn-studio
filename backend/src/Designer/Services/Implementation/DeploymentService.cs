@@ -172,12 +172,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppEnvironment = env
             };
 
+            // find the deployed tag
+            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
+
             var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, _azureDevOpsSettings.DecommissionDefinitionId);
 
             DeploymentEntity deploymentEntity = new()
             {
                 EnvName = env,
                 DeploymentType = DeploymentType.Decommission,
+                TagName = lastDeployed.TagName,
                 Build = new BuildEntity
                 {
                     Id = build.Id.ToString(),
