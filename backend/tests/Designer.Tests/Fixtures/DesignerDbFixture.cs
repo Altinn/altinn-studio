@@ -19,6 +19,7 @@ public class DesignerDbFixture : IAsyncLifetime
         _postgreSqlContainer = TestDbProvider.Instance.CreatePostgresContainer();
         await _postgreSqlContainer.StartAsync();
         await TestDbProvider.Instance.MigrateAsync();
+        DbContext = TestDbProvider.Instance.DbContext;
     }
 
     private DbContextOptions<DesignerdbContext> CreatePostgresDbContextOptions()

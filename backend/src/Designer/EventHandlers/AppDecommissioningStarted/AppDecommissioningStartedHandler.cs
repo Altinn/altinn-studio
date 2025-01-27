@@ -25,7 +25,7 @@ public class AppDecommissioningStartedHandler : INotificationHandler<Events.AppD
         };
 
         var job = JobBuilder.Create<Scheduling.DecommissionPipelineJob>()
-            .WithIdentity($"{nameof(Scheduling.DecommissionPipelineJob)}-{notification.EditingContext.Org}-{notification.EditingContext.Repo}-{notification}{notification.BuildId}", "DecommissionPipelineGroup")
+            .WithIdentity($"{nameof(Scheduling.DecommissionPipelineJob)}-{notification.EditingContext.Org}-{notification.EditingContext.Repo}-{notification.BuildId}", "DecommissionPipelineGroup")
             .UsingJobData(jobData)
             .Build();
 

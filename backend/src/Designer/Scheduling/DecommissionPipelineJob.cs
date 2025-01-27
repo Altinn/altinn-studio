@@ -41,6 +41,8 @@ public class DecommissionPipelineJob : IJob
         if (build.Status == BuildStatus.Completed)
         {
             CancelJob(context);
+
+            // Notify frontend
         }
 
     }
