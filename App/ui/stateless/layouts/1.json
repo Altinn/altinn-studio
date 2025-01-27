@@ -92,10 +92,11 @@
           "simpleBinding": "JobTitle"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "hidden": ["equals", ["dataModel", "JobTitle"], null]
       },
       {
-        "id": "instantiation-button",
+        "id": "instantiation-button-query-param",
         "type": "InstantiationButton",
         "textResourceBindings": {
           "title": "Start instans"
@@ -104,7 +105,20 @@
           "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value": "name",
           "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value": "num",
           "JobTitle": "PrefilledJobTitle"
-        }
+        },
+        "hidden": ["notEquals", ["dataModel", "JobTitle"], ""]
+      },
+      {
+        "id": "instantiation-button-not-query-param",
+        "type": "InstantiationButton",
+        "textResourceBindings": {
+          "title": "Start instans"
+        },
+        "mapping": {
+          "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value": "name",
+          "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value": "num"
+        },
+        "hidden": ["equals", ["dataModel", "JobTitle"], ""]
       }
     ]
   }

@@ -39,9 +39,6 @@ namespace Altinn.App.AppLogic.DataProcessing
           num = prefill["num"];
         }
         
-        
-        
-        
         skjema.Sender = name;
         skjema.Reference = num;
         
