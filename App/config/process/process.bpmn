@@ -38,6 +38,7 @@
             <altinn:signatureDataType>signatures-founders</altinn:signatureDataType>
             <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>
             <altinn:signeeProviderId>founders</altinn:signeeProviderId>
+            <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

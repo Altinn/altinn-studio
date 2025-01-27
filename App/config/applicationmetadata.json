@@ -7,7 +7,9 @@
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": ["application/pdf"],
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
       "maxCount": 0,
       "minCount": 0,
       "enablePdfCreation": true,
@@ -17,8 +19,23 @@
       "enabledFileValidators": []
     },
     {
+      "id": "signatures-founders-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
       "id": "Skjemadata",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjemadata.Skjemadata",
@@ -67,8 +84,12 @@
     },
     {
       "id": "signatures-founders",
-      "allowedContentTypes": ["application/json"],
-      "allowedContributers": ["app:owned"],
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
       "taskId": "SigningTask_Founders",
       "maxCount": 10,
       "minCount": 0,
@@ -80,8 +101,12 @@
     },
     {
       "id": "signeeStates-founders",
-      "allowedContentTypes": ["application/json"],
-      "allowedContributers": ["app:owned"],
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
       "taskId": "SigningTask_Founders",
       "maxCount": 1,
       "minCount": 0,
@@ -93,8 +118,12 @@
     },
     {
       "id": "signatures-auditor",
-      "allowedContentTypes": ["application/json"],
-      "allowedContributers": ["app:owned"],
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
       "minCount": 0,
@@ -106,8 +135,12 @@
     },
     {
       "id": "signeeStates-auditor",
-      "allowedContentTypes": ["application/json"],
-      "allowedContributers": ["app:owned"],
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
       "minCount": 0,
