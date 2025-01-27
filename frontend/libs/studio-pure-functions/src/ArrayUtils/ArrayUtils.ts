@@ -190,4 +190,14 @@ export class ArrayUtils {
   /** Removes empty strings from a string array */
   static removeEmptyStrings = (array: string[]): string[] =>
     ArrayUtils.removeItemByValue(array, '');
+
+  /** Counts number of different types in array **/
+  static countUniqueTypes = <unknown>(array: unknown[]): number => {
+    const typesInArray: string[] = [];
+    array.forEach((element) => {
+      typesInArray.push(typeof element);
+    });
+    ArrayUtils.removeDuplicates(typesInArray);
+    return typesInArray.length;
+  };
 }
