@@ -47,6 +47,14 @@
     <PackageId>$(MSBuildProjectName).Experimental</PackageId>
   </PropertyGroup>
 
+  <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">
+    <PropertyGroup>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</FileVersion>
+      <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</Version>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
   <ItemGroup Condition="'$(Deterministic)'=='true'">
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
   </ItemGroup>
