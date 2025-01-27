@@ -52,6 +52,7 @@
     <PackageReference Update="Quartz" Version="3.13.1" />
     <PackageReference Update="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
     <PackageReference Update="Quartz.Extensions.Hosting" Version="3.13.1" />
+    <PackageReference Update="Quartz.Serialization.SystemTextJson" Version="3.13.1" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">

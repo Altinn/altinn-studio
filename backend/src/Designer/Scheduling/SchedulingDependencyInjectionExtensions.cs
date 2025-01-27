@@ -15,6 +15,7 @@ public static class SchedulingDependencyInjectionExtensions
                 configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
             configure.UsePersistentStore(s =>
             {
+                s.UseSystemTextJsonSerializer();
                 s.UsePostgres(postgresSettings.FormattedConnectionString());
                 s.UseClustering();
             });
