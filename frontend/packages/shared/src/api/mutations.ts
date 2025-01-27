@@ -169,11 +169,12 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
-// Org level code lists - TODO: Replace mocks with correct paths.
+// Org level code lists
 export const editOrgLevelCodeList = async (codeListItem: OptionListsResponse): Promise<void> =>
+  // TODO: Replace with endpoint when it is ready in backend. https://github.com/Altinn/altinn-studio/issues/14482
   new Promise((resolve) => {
     setTimeout(() => {
       console.log('Code list edited:', codeListItem);
       resolve();
-    }, 1000);
+    }, 200);
   });
