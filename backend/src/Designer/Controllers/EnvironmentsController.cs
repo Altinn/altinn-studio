@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
@@ -14,7 +13,6 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-
     public class EnvironmentsController : ControllerBase
     {
         private readonly IEnvironmentsService _environmentsService;
