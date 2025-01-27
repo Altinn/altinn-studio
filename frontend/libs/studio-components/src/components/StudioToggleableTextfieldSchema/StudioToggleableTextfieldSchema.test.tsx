@@ -36,6 +36,7 @@ const defaultProps: StudioToggleableTextfieldSchemaProps = {
     onChange: () => {},
   },
   inputProps: {
+    label: '',
     value: '',
     onChange: () => {},
     icon: <div />,
