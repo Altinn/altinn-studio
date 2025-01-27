@@ -35,10 +35,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("Sender")]
     public string Sender { get; set; }
 
-    [XmlElement("ProductOwner")]
-    [JsonProperty("ProductOwner")]
-    [JsonPropertyName("ProductOwner")]
-    public string ProductOwner { get; set; }
+    [XmlElement("PrefilledJobTitle")]
+    [JsonProperty("PrefilledJobTitle")]
+    [JsonPropertyName("PrefilledJobTitle")]
+    public string PrefilledJobTitle { get; set; }
     
     
     

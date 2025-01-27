@@ -56,20 +56,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("Foretak-grp-8820")]
     public Foretakgrp8820 Foretakgrp8820 { get; set; }
     
-    [XmlElement("queryParam1")]
-    [JsonProperty("queryParam1")]
-    [JsonPropertyName("queryParam1")]
-    public string queryParam1 { get; set; }
+    [XmlElement("JobTitle")]
+    [JsonProperty("JobTitle")]
+    [JsonPropertyName("JobTitle")]
+    public string JobTitle { get; set; }
 
-    [XmlElement("queryParam2")]
-    [JsonProperty("queryParam2")]
-    [JsonPropertyName("queryParam2")]
-    public string queryParam2 { get; set; }
-
-    [XmlElement("queryParam3")]
-    [JsonProperty("queryParam3")]
-    [JsonPropertyName("queryParam3")]
-    public string queryParam3 { get; set; }
+    // [XmlElement("queryParam2")]
+    // [JsonProperty("queryParam2")]
+    // [JsonPropertyName("queryParam2")]
+    // public string queryParam2 { get; set; }
+    //
+    // [XmlElement("queryParam3")]
+    // [JsonProperty("queryParam3")]
+    // [JsonPropertyName("queryParam3")]
+    // public string queryParam3 { get; set; }
 
   }
   public class OpplysningerOmArbeidstakerengrp8819{
@@ -164,6 +164,7 @@ namespace Altinn.App.Models
     [JsonProperty("AnsattSoknadAFPDato-datadef-33282")]
     [JsonPropertyName("AnsattSoknadAFPDato-datadef-33282")]
     public AnsattSoknadAFPDatodatadef33282 AnsattSoknadAFPDatodatadef33282 { get; set; }
+      
 
   }
   public class AnsattNavndatadef1223{

@@ -8,7 +8,7 @@
   "UserProfile": {},
   "QueryParams": {
     // Mapping fra queryParam til stateless datamodell
-    "productOwner": "queryParam1",
+    "jobTitle": "JobTitle",
     "programmer": "queryParam2"
   }
 }

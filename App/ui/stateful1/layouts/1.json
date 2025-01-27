@@ -35,13 +35,13 @@
         "readOnly": false
       },
       {
-        "id": "productOwner",
+        "id": "prefilledJobTitle",
         "type": "Input",
         "textResourceBindings": {
-          "title": "ProductOwner"
+          "title": "Prefilled Job Title"
         },
         "dataModelBindings": {
-          "simpleBinding": "ProductOwner"
+          "simpleBinding": "PrefilledJobTitle"
         },
         "required": false,
         "readOnly": false

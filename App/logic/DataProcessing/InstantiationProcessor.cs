@@ -24,11 +24,12 @@ namespace Altinn.App.AppLogic.DataProcessing
     /// <param name="prefill">External prefill available under instansiation if supplied</param>
     public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
     {
+      MessageV1 skjema = (MessageV1)data;
       if (data.GetType() == typeof(MessageV1))
       {
         string name = "";
         string num = "";
-        string productOwner = "";
+        
         if (prefill.ContainsKey("name"))
         {
           name = prefill["name"];
@@ -38,15 +39,20 @@ namespace Altinn.App.AppLogic.DataProcessing
           num = prefill["num"];
         }
         
-        if (prefill.ContainsKey("productOwner"))
-        {
-          productOwner = prefill["productOwner"];
-        }
         
-        MessageV1 skjema = (MessageV1)data;
+        
+        
         skjema.Sender = name;
         skjema.Reference = num;
-        skjema.ProductOwner = productOwner;
+        
+      }
+
+      if (data.GetType() == typeof(Skjema))
+      {
+        if (prefill.ContainsKey("JobTitle"))
+        {
+          skjema.PrefilledJobTitle = prefill["JobTitle"];
+        }
       }
       await Task.CompletedTask;
     }

@@ -437,7 +437,7 @@
 									"type" : "string",
 									"@xsdType" : "XmlAttribute"
 								},
-						"queryParam1": {
+						"JobTitle": {
 							"type" : "string"
 						},
 						"queryParam2": {

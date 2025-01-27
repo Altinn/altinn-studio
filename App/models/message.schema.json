@@ -25,7 +25,7 @@
 							"Sender" : {
 									"type" : "string"
 								},
-							"ProductOwner" : {
+							"PrefilledJobTitle" : {
 								"type" : "string"
 							}
 						},
