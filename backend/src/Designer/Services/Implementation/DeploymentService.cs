@@ -193,7 +193,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _deploymentRepository.Create(deploymentEntity);
 
-            await _mediatr.Publish(new AppDecommissionedEvent
+            await _mediatr.Publish(new AppDecommissioningStarted
             {
                 EditingContext = editingContext,
                 Environment = env,

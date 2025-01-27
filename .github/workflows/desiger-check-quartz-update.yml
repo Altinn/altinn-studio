@@ -37,7 +37,7 @@ jobs:
         id: get-quartz-version
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep Quartz | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
+          version=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
           echo "quartz-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify tables sql is not updated

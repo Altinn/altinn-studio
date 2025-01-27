@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -274,6 +275,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.KnownProxies.Clear();
         });
     }
+
+    services.AddQuartzJobScheduling(configuration);
 
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }

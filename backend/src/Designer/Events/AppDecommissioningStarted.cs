@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.Events;
 
-public class AppDecommissionedEvent : INotification
+public class AppDecommissioningStarted : INotification
 {
     public required AltinnRepoEditingContext EditingContext { get; set; }
     public required string Environment { get; set; }

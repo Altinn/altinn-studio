@@ -56,6 +56,8 @@
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Quartz" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
 
