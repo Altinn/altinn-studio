@@ -81,7 +81,7 @@ export class ProcessEditorPage extends BasePage {
     const textbox = this.page.getByRole('textbox', {
       name: this.textMock('process_editor.configuration_panel_change_task_id'),
     });
-    const taskId = textbox.inputValue();
+    const taskId = await textbox.inputValue();
     await textbox.blur();
     return taskId;
   }
