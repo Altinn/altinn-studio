@@ -1,7 +1,6 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
-import type { StudioPropertyButtonProps } from '../StudioProperty';
-import { StudioProperty } from '../StudioProperty';
+import { StudioProperty, type StudioPropertyButtonProps } from '../StudioProperty';
 import { KeyVerticalIcon } from '@studio/icons';
 import classes from './StudioToggleableTextfield.module.css';
 

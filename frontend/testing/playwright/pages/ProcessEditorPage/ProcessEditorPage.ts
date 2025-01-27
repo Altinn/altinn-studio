@@ -133,12 +133,10 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async waitForNewTaskIdButtonToBeVisible(id: string): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_change_task_id'),
-    });
-    await expect(button).toHaveText(
+    const button = this.page.getByText(
       `${this.textMock('process_editor.configuration_panel_change_task_id')}${id}`,
     );
+    await expect(button).toBeVisible();
   }
 
   public async pressEscapeOnKeyboard(): Promise<void> {
