@@ -74,7 +74,7 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
-import { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries

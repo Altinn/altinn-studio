@@ -2,15 +2,15 @@ import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import type { CodeListData } from '@studio/content-library';
 
 const codeList1: CodeListData = {
-  title: 'optionList1',
+  title: 'codeList1',
   data: [
-    { label: 'Option 1', value: 'option1' },
-    { label: 'Option 2', value: 'option2' },
+    { label: 'Item 1', value: 'item1' },
+    { label: 'Item 2', value: 'item2' },
   ],
 };
 
 const codeList2: CodeListData = {
-  title: 'optionList2',
+  title: 'codeList2',
   data: [
     { label: 'A', value: 'a' },
     { label: 'B', value: 'b' },
@@ -19,7 +19,7 @@ const codeList2: CodeListData = {
 };
 
 const codeListWithError: CodeListData = {
-  title: 'optionListWithError',
+  title: 'codeListWithError',
   hasError: true,
 };
 
