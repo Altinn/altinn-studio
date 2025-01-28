@@ -75,6 +75,7 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
+import type { OptionListData } from 'app-shared/types/OptionList';
 
 const headers = {
   Accept: 'application/json',
@@ -167,3 +168,9 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+
+// Organisation library:
+// Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14505
+export const createOptionListForOrg = async (org: string, payload: OptionListData): Promise<void> => Promise.resolve();
+export const updateOptionListForOrg = async (org: string, optionListId: string, payload: Option[]): Promise<void> => Promise.resolve();
+export const deleteOptionListForOrg = async (org: string, optionListId: string): Promise<void> => Promise.resolve();

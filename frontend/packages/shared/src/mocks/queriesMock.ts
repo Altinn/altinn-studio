@@ -113,6 +113,9 @@ export const queriesMock: ServicesContextProps = {
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
+  getOptionListsForOrg: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
   getOptionListsReferences: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
@@ -217,6 +220,7 @@ export const queriesMock: ServicesContextProps = {
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
+  createOptionListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
   createRepoCommit: jest
     .fn()
@@ -229,6 +233,7 @@ export const queriesMock: ServicesContextProps = {
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteOptionListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -249,6 +254,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
