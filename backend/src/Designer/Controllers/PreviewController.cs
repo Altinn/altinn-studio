@@ -41,7 +41,6 @@ namespace Altinn.Studio.Designer.Controllers
     /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
     [Authorize]
     [ApiController]
-    [ApiExplorerSettings(IgnoreApi = true)]
     [AutoValidateAntiforgeryToken]
     // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
     // `designer/html/preview.html`, will match on Image-endpoint which is a fetch-all route
