@@ -14,10 +14,10 @@ const payload: CodeList = [
 
 describe('useUploadOrgCodeListMutation', () => {
   it('Calls useUploadOrgCodeListMutation with correct parameters', async () => {
-    const renderUpdateOrgCodeListMutationResult = renderHookWithProviders(() =>
+    const renderUploadOrgCodeListMutationResult = renderHookWithProviders(() =>
       useUploadOrgCodeListMutation(org),
     ).result;
-    await renderUpdateOrgCodeListMutationResult.current.mutateAsync({
+    await renderUploadOrgCodeListMutationResult.current.mutateAsync({
       payload,
     });
     expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
