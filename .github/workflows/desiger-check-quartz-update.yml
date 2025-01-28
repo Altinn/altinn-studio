@@ -25,8 +25,11 @@ jobs:
 
       - name: Check if quartz library is updated
         id: check-quartz-update
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          diff=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version || true)
+          diff=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version || true)
           if [ -n "$diff" ]; then
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
@@ -35,9 +38,12 @@ jobs:
 
       - name: Get the new quartz version
         id: get-quartz-version
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 origin/${{ github.base_ref }}...origin/${{ github.head_ref }} -- backend/packagegroups/NuGet.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
+          version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- backend/packagegroups/NuGet.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
           echo "quartz-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify tables sql is not updated

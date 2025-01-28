@@ -114,6 +114,14 @@ namespace Altinn.Studio.Designer.Controllers
             return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
 
+        /// <summary>
+        /// Initiates the undeployment of an application from a specific environment
+        /// </summary>
+        /// <param name="org">Organisation name</param>
+        /// <param name="app">Application name</param>
+        /// <param name="undeployRequest">Undeployment request containing the target environment</param>
+        /// <param name="cancellationToken">Cancellation token to abort the operation</param>
+        /// <returns>Accepted response with tracking information</returns>
         [HttpPost("undeploy")]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)

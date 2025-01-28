@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Utils;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
@@ -30,6 +31,7 @@ public class DecommissionPipelineJob : IJob
         string developer = context.JobDetail.JobDataMap.GetString("developer");
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string buildId = context.JobDetail.JobDataMap.GetString("buildId");
+        Guard.ArgumentNotNull(buildId, nameof(buildId));
 
         var build = await _azureDevOpsBuildClient.Get(buildId);
 
