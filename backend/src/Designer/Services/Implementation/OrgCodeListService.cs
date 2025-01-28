@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class OrgCodeListService: IOrgCodeListService
+public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private const string OptionsFolderPath = "Codelists/";

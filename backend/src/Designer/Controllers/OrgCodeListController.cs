@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [Route("designer/api/{org}/code-lists")]
-public class OrgCodeListController: ControllerBase
+public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
     private const string Repo = "content";
@@ -29,7 +29,8 @@ public class OrgCodeListController: ControllerBase
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The options service for organisation level</param>
-    public OrgCodeListController(IOrgCodeListService orgCodeListService){
+    public OrgCodeListController(IOrgCodeListService orgCodeListService)
+    {
         _orgCodeListService = orgCodeListService;
     }
 
