@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -67,6 +67,7 @@
       "additionalProperties": false
     },
     "showPageInAccordion": { "type": "boolean" },
+    "isCompact": { "type": "boolean" },
     "hideEmptyFields": {
       "description": "Set this to true if you don't want to show fields that have not been filled out.",
       "type": "boolean"
@@ -85,7 +86,17 @@
           { "$ref": "#/definitions/TextAreaSummaryOverrideProps" },
           { "$ref": "#/definitions/RepeatingGroupSummaryOverrideProps" },
           { "$ref": "#/definitions/DatepickerSummaryOverrideProps" },
-          { "$ref": "#/definitions/ListSummaryOverrideProps" }
+          { "$ref": "#/definitions/ListSummaryOverrideProps" },
+          { "$ref": "#/definitions/TabsSummaryOverrideProps" },
+          { "$ref": "#/definitions/MapSummaryOverrideProps" },
+          { "$ref": "#/definitions/SubformSummaryOverrideProps" },
+          { "$ref": "#/definitions/LikertSummaryOverrideProps" },
+          { "$ref": "#/definitions/PaymentSummaryOverrideProps" },
+          { "$ref": "#/definitions/HeaderSummaryOverrideProps" },
+          { "$ref": "#/definitions/ParagraphSummaryOverrideProps" },
+          { "$ref": "#/definitions/TextSummaryOverrideProps" },
+          { "$ref": "#/definitions/NumberSummaryOverrideProps" },
+          { "$ref": "#/definitions/DateSummaryOverrideProps" }
         ]
       }
     }
