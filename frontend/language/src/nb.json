@@ -1400,7 +1400,6 @@
   "ux_editor.component_properties.position": "Plassering av valuta",
   "ux_editor.component_properties.preselectedOptionIndex": "Angi det valget som skal være forhåndsvalgt.",
   "ux_editor.component_properties.preselectedOptionIndex_button": "Plassering av forhåndsvalgt verdi (indeks)",
-  "ux_editor.component_properties.preselected_help_text": "Eksempel: Hvis du har 5 valg, kan du bruke tall fra 0-4.",
   "ux_editor.component_properties.queryParameters": "Parametere i spørringen",
   "ux_editor.component_properties.readOnly": "Feltet kan kun leses",
   "ux_editor.component_properties.receiver": "Den som mottar skjemaet",

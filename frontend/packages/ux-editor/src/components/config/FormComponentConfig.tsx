@@ -134,6 +134,35 @@ export const FormComponentConfig = ({
           key={propertyKey}
         />
       ))}
+
+      {/** Custom logic for custom file endings */}
+      {hasCustomFileEndings && (
+        <>
+          <EditBooleanValue
+            propertyKey='hasCustomFileEndings'
+            component={component}
+            defaultValue={hasCustomFileEndings.default}
+            handleComponentChange={(updatedComponent: FormComponent) => {
+              if (!updatedComponent.hasCustomFileEndings) {
+                handleComponentUpdate({
+                  ...updatedComponent,
+                  validFileEndings: undefined,
+                });
+                return;
+              }
+              handleComponentUpdate(updatedComponent);
+            }}
+          />
+          {component['hasCustomFileEndings'] && (
+            <EditStringValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey='validFileEndings'
+            />
+          )}
+        </>
+      )}
+
       {showOtherComponents &&
         restOfBooleanKeys.map((propertyKey) => (
           <EditBooleanValue
@@ -144,6 +173,7 @@ export const FormComponentConfig = ({
             key={propertyKey}
           />
         ))}
+
       {restOfBooleanKeys.length > 0 && (
         <StudioProperty.Button
           className={classes.button}
@@ -152,6 +182,7 @@ export const FormComponentConfig = ({
           property={rendertext}
         />
       )}
+
       {grid && (
         <>
           {showGrid ? (
@@ -188,13 +219,11 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
+
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
         return (
-          <CollapsiblePropertyEditor
-            key={propertyKey}
-            label={t(`ux_editor.component_properties.${propertyKey}` as TranslationKey)}
-          >
+          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
             <EditStringValue
               component={component}
               handleComponentChange={handleComponentUpdate}
@@ -204,77 +233,42 @@ export const FormComponentConfig = ({
           </CollapsiblePropertyEditor>
         );
       })}
-      {/** Array properties with enum values) */}
-      {arrayPropertyKeys.map((propertyKey) => {
-        const isShowValidations = propertyKey === 'showValidations';
-        const commonProps = {
-          component,
-          handleComponentChange: handleComponentUpdate,
-          propertyKey,
-          key: propertyKey,
-          enumValues: properties[propertyKey]?.items?.enum,
-          multiple: true,
-        };
-        return isShowValidations ? (
-          <CollapsiblePropertyEditor
-            key={propertyKey}
-            label={t('ux_editor.component_properties.showValidations')}
-          >
-            <EditStringValue {...commonProps} />
-          </CollapsiblePropertyEditor>
-        ) : (
-          <EditStringValue {...commonProps} />
-        );
-      })}
+
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
-        const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
-        const commonProps = {
-          component,
-          handleComponentChange: handleComponentUpdate,
-          propertyKey,
-          key: propertyKey,
-          enumValues: properties[propertyKey]?.enum,
-        };
-        return isPreselectedOptionIndex ? (
+        return (
           <CollapsiblePropertyEditor
             key={propertyKey}
-            label={t('ux_editor.component_properties.preselectedOptionIndex_button')}
+            label={componentPropertyLabel(
+              `${propertyKey}${propertyKey === 'preselectedOptionIndex' ? '_button' : ''}`,
+            )}
           >
-            <EditNumberValue {...commonProps} />
+            <EditNumberValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              key={propertyKey}
+              enumValues={properties[propertyKey]?.enum}
+            />
           </CollapsiblePropertyEditor>
-        ) : (
-          <EditNumberValue {...commonProps} />
         );
       })}
 
-      {/** Custom logic for custom file endings */}
-      {hasCustomFileEndings && (
-        <>
-          <EditBooleanValue
-            propertyKey='hasCustomFileEndings'
-            component={component}
-            defaultValue={hasCustomFileEndings.default}
-            handleComponentChange={(updatedComponent: FormComponent) => {
-              if (!updatedComponent.hasCustomFileEndings) {
-                handleComponentUpdate({
-                  ...updatedComponent,
-                  validFileEndings: undefined,
-                });
-                return;
-              }
-              handleComponentUpdate(updatedComponent);
-            }}
-          />
-          {component['hasCustomFileEndings'] && (
+      {/** Array properties with enum values) */}
+      {arrayPropertyKeys.map((propertyKey) => {
+        return (
+          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
             <EditStringValue
               component={component}
               handleComponentChange={handleComponentUpdate}
-              propertyKey='validFileEndings'
+              propertyKey={propertyKey}
+              key={propertyKey}
+              enumValues={properties[propertyKey]?.items?.enum}
+              multiple={true}
             />
-          )}
-        </>
-      )}
+          </CollapsiblePropertyEditor>
+        );
+      })}
 
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {
