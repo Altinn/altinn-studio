@@ -11,14 +11,18 @@ public static class SchedulingDependencyInjectionExtensions
     {
         services.AddQuartz(configure =>
         {
-            PostgreSQLSettings postgresSettings =
-                configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-            configure.UsePersistentStore(s =>
+            SchedulingSettings schedulingSettings = configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>();
+            if (schedulingSettings.UsePersistentStore)
             {
-                s.UseSystemTextJsonSerializer();
-                s.UsePostgres(postgresSettings.FormattedConnectionString());
-                s.UseClustering();
-            });
+                PostgreSQLSettings postgresSettings =
+                    configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                configure.UsePersistentStore(s =>
+                {
+                    s.UseSystemTextJsonSerializer();
+                    s.UsePostgres(postgresSettings.FormattedConnectionString());
+                    s.UseClustering();
+                });
+            }
         });
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
         return services;

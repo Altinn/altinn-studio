@@ -147,6 +147,9 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ],
                         ""RequireHttpsMetadata"": false,
                         ""CookieExpiryTimeInMinutes"" : 59
+                    }},
+                    ""SchedulingSettings"": {{
+                        ""UsePersistentStore"": false
                     }}
               }}
             "
