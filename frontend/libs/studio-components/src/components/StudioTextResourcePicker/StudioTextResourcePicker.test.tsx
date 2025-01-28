@@ -14,14 +14,16 @@ import type { TextResource } from '../../types/TextResource';
 // Test data:
 const textResources = textResourcesMock;
 const onValueChange = jest.fn();
-const emptyListText = 'No text resources';
+const noTextResourceOptionLabel = 'Unset';
 const defaultProps: StudioTextResourcePickerProps = {
-  emptyListText,
   onValueChange,
   textResources,
+  noTextResourceOptionLabel,
 };
 
 describe('StudioTextResourcePicker', () => {
+  beforeEach(jest.clearAllMocks);
+
   it('Renders a combobox', () => {
     renderTextResourcePicker();
     expect(getCombobox()).toBeInTheDocument();
@@ -58,17 +60,33 @@ describe('StudioTextResourcePicker', () => {
     expect(onValueChange).toHaveBeenCalledWith(textResourceToPick.id);
   });
 
-  it('Displays the empty list text when the user clicks and there are no text resources', async () => {
-    const user = userEvent.setup();
-    renderTextResourcePicker({ textResources: [] });
-    await user.click(getCombobox());
-    expect(screen.getByText(emptyListText)).toBeInTheDocument();
-  });
-
   it("Renders with the text of the text resource of which the ID is given by the component's value prop", () => {
     const pickedTextResource = textResources[129];
     renderTextResourcePicker({ value: pickedTextResource.id });
     expect(getCombobox()).toHaveValue(pickedTextResource.value);
+  });
+
+  it('Displays the no text resource option when the user clicks', async () => {
+    const user = userEvent.setup();
+    renderTextResourcePicker();
+    await user.click(getCombobox());
+    expect(screen.getByRole('option', { name: noTextResourceOptionLabel })).toBeInTheDocument();
+  });
+
+  it('Renders with the no text resource option selected by default', () => {
+    renderTextResourcePicker();
+    expect(getCombobox()).toHaveValue(noTextResourceOptionLabel);
+  });
+
+  it('Calls the onValueChange callback with null when the user selects the unset option', async () => {
+    const user = userEvent.setup();
+    const value = textResources[129].id;
+    renderTextResourcePicker({ value });
+    await user.click(getCombobox());
+    await user.click(screen.getByRole('option', { name: noTextResourceOptionLabel }));
+    await waitFor(expect(onValueChange).toHaveBeenCalled);
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenCalledWith(null);
   });
 
   it('Forwards the ref', () => {
