@@ -15,6 +15,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// API controller for User functionality
     /// </summary>
     [Authorize]
+    [ApiController]
     [Route("designer/api/user")]
     public class UserController : ControllerBase
     {

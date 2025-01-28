@@ -10,6 +10,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// This is the API controller for functionality related to repositories.
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/orgs")]

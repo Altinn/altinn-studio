@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Altinn.Studio.Designer.Controllers.Preview
 {
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
