@@ -10,6 +10,7 @@ import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testi
 import {
   layoutSet1NameMock,
   layoutSet2NameMock,
+  layoutSetsExtendedMock,
   layoutSetsMock,
 } from '../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -191,6 +192,7 @@ const defaultProps = {
 const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
   });

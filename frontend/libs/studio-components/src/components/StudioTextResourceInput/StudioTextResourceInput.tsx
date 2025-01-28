@@ -128,12 +128,12 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
         return (
           <StudioTextResourcePicker
             className={className}
-            emptyListText={texts.emptyResourceList}
             label={texts.textResourcePickerLabel}
             onValueChange={onChangeCurrentId}
             onKeyDown={onKeyDown}
-            textResources={textResources}
             ref={ref}
+            textResources={textResources}
+            noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             value={currentId}
             {...rest}
           />

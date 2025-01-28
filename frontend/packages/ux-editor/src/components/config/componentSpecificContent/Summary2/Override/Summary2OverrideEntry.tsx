@@ -10,10 +10,6 @@ import {
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import classes from './Summary2OverrideEntry.module.css';
 import { useTranslation } from 'react-i18next';
-import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
-import { useAppContext, useComponentTitle } from '@altinn/ux-editor/hooks';
-import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
@@ -21,11 +17,13 @@ import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
+import { type TargetProps } from '../Summary2Target/targetUtils';
 
 type Summary2OverrideEntryProps = {
   index: number;
   open: boolean;
   setOpen: (open: boolean) => void;
+  componentOptions: TargetProps[];
   override: Summary2OverrideConfig;
   onChange: (override: Summary2OverrideConfig) => void;
   onDelete: () => void;
@@ -35,24 +33,14 @@ export const Summary2OverrideEntry = ({
   index,
   open,
   setOpen,
+  componentOptions,
   override,
   onChange,
   onDelete,
 }: Summary2OverrideEntryProps) => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
-  const getComponentTitle = useComponentTitle();
 
-  const components = Object.values(formLayoutsData).flatMap((layout) =>
-    getAllLayoutComponents(layout),
-  );
-
-  const componentOptions = components.map((e) => ({
-    id: e.id,
-    description: getComponentTitle(e),
-  }));
+  if (!componentOptions) return null;
 
   if (!open) {
     const componentNameType = componentOptions.find(

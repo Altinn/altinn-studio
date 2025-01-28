@@ -43,6 +43,7 @@ function useTextResourceTexts(): (
     idLabel: t(`${prefix}.id_label`),
     search: t(`${prefix}.${property}.search_mode`, { number }),
     textResourcePickerLabel: t(`${prefix}.${property}.select`, { number }),
+    noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });
 }
