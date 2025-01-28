@@ -57,7 +57,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResource, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -180,4 +180,4 @@ export const uploadCodeListForOrg = async (org: string, app: string, payload: Fo
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
 export const createTextResourcesForOrg = async (org: string, language: string): Promise<void> => Promise.resolve();
-export const updateTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<void> => Promise.resolve();
+export const updateTextResourcesForOrg = async (org: string, language: string, payload: ITextResource[]): Promise<void> => Promise.resolve();
