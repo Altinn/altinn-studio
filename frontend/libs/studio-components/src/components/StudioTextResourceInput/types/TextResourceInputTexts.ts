@@ -4,5 +4,5 @@ export type TextResourceInputTexts = {
   idLabel: string;
   valueLabel: string;
   textResourcePickerLabel: string;
-  unsetOptionLabel: string;
+  noTextResourceOptionLabel: string;
 };

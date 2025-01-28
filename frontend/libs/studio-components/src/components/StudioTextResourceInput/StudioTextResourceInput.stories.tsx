@@ -40,7 +40,7 @@ export const WithId: Story = {
       idLabel: 'ID:',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
-      unsetOptionLabel: 'Ingen',
+      noTextResourceOptionLabel: 'Ikke oppgitt',
       valueLabel: 'Tekstverdi',
     },
   },

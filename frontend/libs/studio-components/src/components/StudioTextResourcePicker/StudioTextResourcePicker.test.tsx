@@ -14,11 +14,11 @@ import type { TextResource } from '../../types/TextResource';
 // Test data:
 const textResources = textResourcesMock;
 const onValueChange = jest.fn();
-const unsetOptionLabel = 'None';
+const noTextResourceOptionLabel = 'Unset';
 const defaultProps: StudioTextResourcePickerProps = {
   onValueChange,
   textResources,
-  unsetOptionLabel,
+  noTextResourceOptionLabel,
 };
 
 describe('StudioTextResourcePicker', () => {
@@ -66,16 +66,16 @@ describe('StudioTextResourcePicker', () => {
     expect(getCombobox()).toHaveValue(pickedTextResource.value);
   });
 
-  it('Displays the unset option when the user clicks', async () => {
+  it('Displays the no text resource option when the user clicks', async () => {
     const user = userEvent.setup();
     renderTextResourcePicker();
     await user.click(getCombobox());
-    expect(screen.getByRole('option', { name: unsetOptionLabel })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: noTextResourceOptionLabel })).toBeInTheDocument();
   });
 
-  it('Renders with the unset option selected by default', () => {
+  it('Renders with the no text resource option selected by default', () => {
     renderTextResourcePicker();
-    expect(getCombobox()).toHaveValue(unsetOptionLabel);
+    expect(getCombobox()).toHaveValue(noTextResourceOptionLabel);
   });
 
   it('Calls the onValueChange callback with null when the user selects the unset option', async () => {
@@ -83,7 +83,7 @@ describe('StudioTextResourcePicker', () => {
     const value = textResources[129].id;
     renderTextResourcePicker({ value });
     await user.click(getCombobox());
-    await user.click(screen.getByRole('option', { name: unsetOptionLabel }));
+    await user.click(screen.getByRole('option', { name: noTextResourceOptionLabel }));
     await waitFor(expect(onValueChange).toHaveBeenCalled);
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(null);
