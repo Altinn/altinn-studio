@@ -141,7 +141,6 @@ export type Summary2OverrideConfig = {
   hidden?: boolean;
   forceShow?: boolean;
   emptyFieldText?: string;
-  hideEmptyFields?: boolean;
   isCompact?: boolean;
   displayType?: SummaryCustomTargetType;
 };

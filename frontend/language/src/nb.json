@@ -1491,7 +1491,7 @@
   "ux_editor.component_properties.summary.override.display_type.not_set": "Ikke satt",
   "ux_editor.component_properties.summary.override.display_type.string": "Tekst",
   "ux_editor.component_properties.summary.override.empty_field_text": "Tekst du vil vise i tomme felt",
-  "ux_editor.component_properties.summary.override.force_show": "Vis komponenten",
+  "ux_editor.component_properties.summary.override.force_show": "Alltid vis komponenten",
   "ux_editor.component_properties.summary.override.hidden": "Skjul feltet",
   "ux_editor.component_properties.summary.override.hide_empty_fields": "Vis tomme felt",
   "ux_editor.component_properties.summary.override.hide_empty_fields.info_message": "Du kan bare skjule komponenten fra oppsummeringen hvis feltet er valgfritt.",

@@ -12,7 +12,7 @@ import classes from './Summary2OverrideEntry.module.css';
 import { useTranslation } from 'react-i18next';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
-import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
+import { ForceShowSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
 import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
@@ -77,7 +77,7 @@ export const Summary2OverrideEntry = ({
             <StudioDivider className={classes.divider} />
             <CompactViewSwitch onChange={onChange} override={override} />
             <Summary2OverrideDisplayType onChange={onChange} override={override} />
-            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
+            <ForceShowSwitch onChange={onChange} override={override} />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}
