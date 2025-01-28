@@ -175,3 +175,4 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 export const createCodeListForOrg = async (org: string, payload: CodeListData): Promise<void> => Promise.resolve();
 export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<void> => Promise.resolve();
 export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<void> => Promise.resolve();
+export const uploadCodeListForOrg = async (org: string, app: string, payload: FormData): Promise<void> => Promise.resolve();
