@@ -166,7 +166,8 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                         ""DesignerDbPwd"": """"
                     }},
                     ""SchedulingSettings"": {{
-                        ""UsePersistentScheduling"": true
+                        ""UsePersistentScheduling"": true,
+                        ""AddHostedService"": true
                     }}
               }}
             ";

@@ -62,6 +62,8 @@ environmentVariables:
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
       value: "true"
+    - name: SchedulingSettings__AddHostedService
+      value: "true"
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -103,6 +105,8 @@ environmentVariables:
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
       value: "true"
+    - name: SchedulingSettings__AddHostedService
+      value: "true"
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -141,6 +145,8 @@ environmentVariables:
     - name: RedisCacheSettings__InstanceName
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
+      value: "true"
+    - name: SchedulingSettings__AddHostedService
       value: "true"
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret

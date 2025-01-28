@@ -9,9 +9,9 @@ public static class SchedulingDependencyInjectionExtensions
 {
     public static IServiceCollection AddQuartzJobScheduling(this IServiceCollection services, IConfiguration configuration)
     {
+        SchedulingSettings schedulingSettings = configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>();
         services.AddQuartz(configure =>
         {
-            SchedulingSettings schedulingSettings = configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>();
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings =
@@ -24,7 +24,10 @@ public static class SchedulingDependencyInjectionExtensions
                 });
             }
         });
-        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+        if (schedulingSettings.AddHostedService)
+        {
+            services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+        }
         return services;
     }
 }

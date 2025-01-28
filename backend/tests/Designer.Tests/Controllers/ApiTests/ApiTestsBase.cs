@@ -149,7 +149,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ""CookieExpiryTimeInMinutes"" : 59
                     }},
                     ""SchedulingSettings"": {{
-                        ""UsePersistentStore"": false
+                        ""UsePersistentStore"": false,
+                        ""AddHostedService"": false
                     }}
               }}
             "
