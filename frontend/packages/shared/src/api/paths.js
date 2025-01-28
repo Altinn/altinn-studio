@@ -46,12 +46,18 @@ export const submitFeedbackPath = (org, app) => `${basePath}/${org}/${app}/feedb
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get, Delete
+export const orgOptionListPath = (org, optionsListId) => `${basePath}/${org}/options/${optionsListId}`; // Get, Delete
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
+export const orgOptionListsPath = (org) => `${basePath}/${org}/options/option-lists`; // Get
 export const optionListReferencesPath = (org, app) => `${basePath}/${org}/${app}/options/usage`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/options`; // Get
+export const orgOptionListIdsPath = (org) => `${basePath}/${org}/options`; // Get
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
+export const orgOptionListUpdatePath = (org, optionsListId) => `${basePath}/${org}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
+export const orgOptionListIdUpdatePath = (org, optionsListId) => `${basePath}/${org}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
+export const orgOptionListUploadPath = (org) => `${basePath}/${org}/options/upload`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
