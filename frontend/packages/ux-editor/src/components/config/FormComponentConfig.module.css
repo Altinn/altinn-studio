@@ -11,3 +11,25 @@
 .downIcon {
   font-size: var(--fds-sizing-6);
 }
+
+.gridButton {
+  padding: 0;
+}
+
+.gridHeader {
+  padding: 0;
+}
+
+.flexContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heading {
+  margin-left: var(--fds-spacing-5);
+}
+
+.button {
+  margin: var(--fds-spacing-2);
+}
