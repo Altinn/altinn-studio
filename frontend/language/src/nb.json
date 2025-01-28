@@ -1389,6 +1389,7 @@
   "ux_editor.component_properties.id": "ID",
   "ux_editor.component_properties.image": "Bildeinnstillinger (image)",
   "ux_editor.component_properties.includePDF": "Inkluder PDF",
+  "ux_editor.component_properties.isCompact": "Bruk kompakt visning",
   "ux_editor.component_properties.labelSettings": "Innstillinger for ledetekst (labelSettings)",
   "ux_editor.component_properties.largeGroup": "Stor gruppevisning/gruppe i gruppe",
   "ux_editor.component_properties.layers": "Kartlag",
