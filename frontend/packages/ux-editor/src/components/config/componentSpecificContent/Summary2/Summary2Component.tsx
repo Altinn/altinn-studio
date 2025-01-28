@@ -30,7 +30,7 @@ export const Summary2Component = ({
   return (
     <>
       <Summary2Target target={target} onChange={handleTargetChange} />
-      <Summary2Override overrides={overrides} onChange={handleOverridesChange} />
+      <Summary2Override overrides={overrides} target={target} onChange={handleOverridesChange} />
     </>
   );
 };

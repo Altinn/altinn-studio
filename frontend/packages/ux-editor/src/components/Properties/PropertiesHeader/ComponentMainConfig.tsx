@@ -34,6 +34,7 @@ export const ComponentMainConfig = ({
   const handleTargetChange = (updatedTarget: Summary2TargetConfig): void => {
     const updatedComponent = { ...component } as FormItem<ComponentType.Summary2>;
     updatedComponent.target = updatedTarget;
+    updatedComponent.overrides = [];
     handleComponentChange(updatedComponent);
   };
 
@@ -61,6 +62,7 @@ export const ComponentMainConfig = ({
               </Accordion.Header>
               <Accordion.Content>
                 <Summary2Override
+                  target={component.target}
                   overrides={component.overrides}
                   onChange={handleOverridesChange}
                 />
