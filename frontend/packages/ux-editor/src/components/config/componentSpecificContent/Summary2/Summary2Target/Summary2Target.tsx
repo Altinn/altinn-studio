@@ -1,12 +1,12 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import {
-  StudioCard,
   StudioHeading,
   StudioParagraph,
   StudioNativeSelect,
   StudioTextfield,
 } from '@studio/components';
 import React from 'react';
+import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type {
   Summary2TargetConfig,
@@ -62,66 +62,62 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   };
 
   return (
-    <StudioCard>
-      <StudioCard.Header>
-        <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      </StudioCard.Header>
+    <div className={classes.targetConfig}>
+      <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
-      <StudioCard.Content>
-        <StudioNativeSelect
+      <StudioNativeSelect
+        size='sm'
+        label={t('ux_editor.component_properties.target_layoutSet_id')}
+        value={target.taskId}
+        onChange={(e) => handleLayoutSetChange(e.target.value)}
+      >
+        {layoutSetOptions.map((layoutSet) => (
+          <option key={layoutSet.id} value={layoutSet.tasks[0]}>
+            {layoutSet.id}
+          </option>
+        ))}
+      </StudioNativeSelect>
+      <StudioNativeSelect
+        size='sm'
+        label={t('ux_editor.component_properties.target_type')}
+        value={target.type}
+        onChange={handleTypeChange}
+      >
+        {targetTypes.map((type) => (
+          <option key={type.value} value={type.value}>
+            {type.label}
+          </option>
+        ))}
+      </StudioNativeSelect>
+      {target.type === 'page' && (
+        <Summary2ComponentReferenceSelector
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+          label={t('ux_editor.component_properties.target_unit_page')}
+          value={target.id}
+          options={pageOptions}
+          onValueChange={handleTargetIdChange}
+        />
+      )}
+      {target.type === 'component' && (
+        <Summary2ComponentReferenceSelector
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+          label={t('ux_editor.component_properties.target_unit_component')}
+          value={target.id}
+          options={componentOptions}
+          onValueChange={handleTargetIdChange}
+        />
+      )}
+      {target.type === 'layoutSet' && (
+        <StudioTextfield
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
           size='sm'
-          label={t('ux_editor.component_properties.target_layoutSet_id')}
-          value={target.taskId}
-          onChange={(e) => handleLayoutSetChange(e.target.value)}
-        >
-          {layoutSetOptions.map((layoutSet) => (
-            <option key={layoutSet.id} value={layoutSet.tasks[0]}>
-              {layoutSet.id}
-            </option>
-          ))}
-        </StudioNativeSelect>
-        <StudioNativeSelect
-          size='sm'
-          label={t('ux_editor.component_properties.target_type')}
-          value={target.type}
-          onChange={handleTypeChange}
-        >
-          {targetTypes.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </StudioNativeSelect>
-        {target.type === 'page' && (
-          <Summary2ComponentReferenceSelector
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('ux_editor.component_properties.target_unit_page')}
-            value={target.id}
-            options={pageOptions}
-            onValueChange={handleTargetIdChange}
-          />
-        )}
-        {target.type === 'component' && (
-          <Summary2ComponentReferenceSelector
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('ux_editor.component_properties.target_unit_component')}
-            value={target.id}
-            options={componentOptions}
-            onValueChange={handleTargetIdChange}
-          />
-        )}
-        {target.type === 'layoutSet' && (
-          <StudioTextfield
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            size='sm'
-            label={t('ux_editor.component_properties.target_unit_layout_set')}
-            value={selectedLayoutSetTargetName}
-            disabled={true}
-          />
-        )}
-      </StudioCard.Content>
-    </StudioCard>
+          label={t('ux_editor.component_properties.target_unit_layout_set')}
+          value={selectedLayoutSetTargetName}
+          disabled={true}
+        />
+      )}
+    </div>
   );
 };
