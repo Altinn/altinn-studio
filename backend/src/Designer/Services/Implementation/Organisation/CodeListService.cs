@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Services.Implementation;
+namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgCodeListService : IOrgCodeListService
+public class CodeListService : ICodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private const string OptionsFolderPath = "Codelists/";
@@ -21,7 +22,7 @@ public class OrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public CodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Services.Interfaces;
+namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
-public interface IOrgCodeListService
+public interface ICodeListService
 {
     /// <summary>
     /// Gets a list of file names from the Options folder representing the available options lists.
