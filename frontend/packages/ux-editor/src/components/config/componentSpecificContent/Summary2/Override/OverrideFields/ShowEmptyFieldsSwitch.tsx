@@ -3,12 +3,12 @@ import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificC
 import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-type ShowEmptyFieldSwitchProps = {
+type ForceShowSwitchProps = {
   onChange: (override: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
-export const ShowEmptyFieldSwitch = ({ onChange, override }: ShowEmptyFieldSwitchProps) => {
+export const ForceShowSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
   const { t } = useTranslation();
   return (
     <StudioSwitch
@@ -17,14 +17,13 @@ export const ShowEmptyFieldSwitch = ({ onChange, override }: ShowEmptyFieldSwitc
       onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
         const updatedOverride = {
           ...override,
-          hideEmptyFields: !event.target.checked,
           forceShow: event.target.checked,
         };
         onChange(updatedOverride);
       }}
       checked={override.forceShow}
     >
-      {t('ux_editor.component_properties.summary.override.hide_empty_fields')}
+      {t('ux_editor.component_properties.summary.override.force_show')}
     </StudioSwitch>
   );
 };
