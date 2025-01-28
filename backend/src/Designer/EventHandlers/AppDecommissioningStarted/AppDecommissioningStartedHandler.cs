@@ -21,6 +21,7 @@ public class AppDecommissioningStartedHandler : INotificationHandler<Events.AppD
         {
             { "org", notification.EditingContext.Org },
             { "app", notification.EditingContext.Repo },
+            { "developer", notification.EditingContext.Developer },
             { "buildId", notification.BuildId.ToString() }
         };
 

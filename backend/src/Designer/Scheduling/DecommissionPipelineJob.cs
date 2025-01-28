@@ -1,7 +1,10 @@
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Hubs.EntityUpdate;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Microsoft.AspNetCore.SignalR;
 using Quartz;
 
 namespace Altinn.Studio.Designer.Scheduling;
@@ -10,11 +13,13 @@ public class DecommissionPipelineJob : IJob
 {
     private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
     private readonly IDeploymentRepository _deploymentRepository;
+    private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
 
-    public DecommissionPipelineJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository)
+    public DecommissionPipelineJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext)
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
         _deploymentRepository = deploymentRepository;
+        _entityUpdatedHubContext = entityUpdatedHubContext;
     }
 
 
@@ -22,11 +27,13 @@ public class DecommissionPipelineJob : IJob
     {
         string org = context.JobDetail.JobDataMap.GetString("org");
         string app = context.JobDetail.JobDataMap.GetString("app");
+        string developer = context.JobDetail.JobDataMap.GetString("developer");
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string buildId = context.JobDetail.JobDataMap.GetString("buildId");
 
         var build = await _azureDevOpsBuildClient.Get(buildId);
 
-        var deploymentEntity = await _deploymentRepository.Get(org, buildId);
+        var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
         if (deploymentEntity.Build.Status == BuildStatus.Completed)
         {
@@ -40,14 +47,14 @@ public class DecommissionPipelineJob : IJob
 
         if (build.Status == BuildStatus.Completed)
         {
+            await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
+                            .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
             CancelJob(context);
-
-            // Notify frontend
         }
 
     }
 
-    private void CancelJob(IJobExecutionContext context)
+    private static void CancelJob(IJobExecutionContext context)
     {
         context.Scheduler.DeleteJob(context.JobDetail.Key);
     }
