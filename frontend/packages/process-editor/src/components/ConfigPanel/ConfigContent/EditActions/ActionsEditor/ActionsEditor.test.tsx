@@ -16,6 +16,14 @@ const actionElementMock: Action = {
   action: 'reject',
 };
 
+const onDeleteClick = jest.fn();
+const defaultActionsEditorProps: ActionsEditorProps = {
+  actionElement: actionElementMock,
+  mode: 'view',
+  actionIndex: 0,
+  onDeleteClick,
+};
+
 describe('ActionsEditor', () => {
   afterEach(jest.clearAllMocks);
 
@@ -134,6 +142,25 @@ describe('ActionsEditor', () => {
     expect(onDeleteClick).toHaveBeenCalledTimes(1);
   });
 
+  it('should invoke onDelete callback when closing edit mode without adding an action', async () => {
+    const user = userEvent.setup();
+    const deleteActionFromTaskMock = jest.fn();
+
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      deleteActionFromTask: deleteActionFromTaskMock,
+    }));
+    renderActionsEditor({
+      actionElement: { ...actionElementMock, action: undefined },
+      mode: 'edit',
+    });
+
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.close_item', { item: undefined }),
+    });
+    await user.click(cancelButton);
+    expect(onDeleteClick).toHaveBeenCalledTimes(1);
+  });
+
   it('should be possible to toggle between predefined and custom actions', async () => {
     const user = userEvent.setup();
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
@@ -178,13 +205,6 @@ describe('ActionsEditor', () => {
   });
 });
 
-const onDeleteClick = jest.fn();
-const defaultActionsEditorProps: ActionsEditorProps = {
-  actionElement: actionElementMock,
-  mode: 'view',
-  actionIndex: 0,
-  onDeleteClick,
-};
 const renderActionsEditor = (props: Partial<ActionsEditorProps> = {}): RenderResult => {
   return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
