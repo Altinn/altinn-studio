@@ -76,6 +76,7 @@ import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
 import type { OptionListData } from 'app-shared/types/OptionList';
+import type { CodeList } from 'app-shared/types/CodeList';
 
 const headers = {
   Accept: 'application/json',
@@ -171,6 +172,6 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 
 // Organisation library:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14505
-export const createOptionListForOrg = async (org: string, payload: OptionListData): Promise<void> => Promise.resolve();
-export const updateOptionListForOrg = async (org: string, optionListId: string, payload: Option[]): Promise<void> => Promise.resolve();
-export const deleteOptionListForOrg = async (org: string, optionListId: string): Promise<void> => Promise.resolve();
+export const createCodeListForOrg = async (org: string, payload: OptionListData): Promise<void> => Promise.resolve();
+export const updateCodeListForOrg = async (org: string, optionListId: string, payload: CodeList): Promise<void> => Promise.resolve();
+export const deleteCodeListForOrg = async (org: string, optionListId: string): Promise<void> => Promise.resolve();
