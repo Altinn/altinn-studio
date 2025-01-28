@@ -40,14 +40,18 @@ describe('EditComponentIdRow', () => {
 
   it('should render button ', async () => {
     await studioRender();
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     expect(testIdButton).toBeInTheDocument();
   });
 
   it('should render textField when the button is clicked', async () => {
     const user = userEvent.setup();
     await studioRender();
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -58,7 +62,9 @@ describe('EditComponentIdRow', () => {
   it('should not render the textfield when changing from edit mode to view mode ', async () => {
     const user = userEvent.setup();
     await studioRender();
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -71,7 +77,9 @@ describe('EditComponentIdRow', () => {
     const user = userEvent.setup();
     const handleComponentUpdate = jest.fn();
     await studioRender({ handleComponentUpdate });
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -84,7 +92,9 @@ describe('EditComponentIdRow', () => {
   it('should show error required error message when id is empty', async () => {
     const user = userEvent.setup();
     await studioRender();
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -96,7 +106,9 @@ describe('EditComponentIdRow', () => {
   it('should show error message when id is not unique', async () => {
     const user = userEvent.setup();
     await studioRender();
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -126,7 +138,9 @@ describe('EditComponentIdRow', () => {
         minNumberOfAttachments: 1,
       },
     });
-    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
