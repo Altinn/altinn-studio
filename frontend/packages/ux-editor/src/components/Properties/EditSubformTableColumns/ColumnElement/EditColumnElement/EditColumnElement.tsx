@@ -24,6 +24,7 @@ import {
   getValueOfTitleId,
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
+import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 export type ColumnElementProps = {
@@ -44,7 +45,15 @@ export const EditColumnElement = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const [tableColumn, setTableColumn] = useState(sourceColumn);
+
+  const intialTableColumn: TableColumn = {
+    ...sourceColumn,
+    selectedBindingKey: undefined,
+    selectedBindingField: sourceColumn.cellContent?.query,
+  };
+
+  const [tableColumn, setTableColumn] = useState<TableColumn>(intialTableColumn);
+
   const [title, setTitle] = useState<string>(
     getValueOfTitleId(sourceColumn.headerContent, textResources),
   );
@@ -60,9 +69,36 @@ export const EditColumnElement = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
+  const [selectedComponentBindings, setSelectedComponentBindings] = useState<
+    { [key: string]: string }[]
+  >([]);
+
+  const [selectedComponentId, setSelectedComponentId] = useState<string>();
+
+  const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
+    if (!selectedComponent?.dataModelBindings) return;
+    const bindings = Object.entries(selectedComponent?.dataModelBindings ?? {})
+      .filter(([, value]) => Boolean(value))
+      .map(([key, value]) => ({ [key]: value }));
+
+    setSelectedComponentBindings(bindings);
+  };
+
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
-    onEdit({ ...tableColumn, headerContent: uniqueTitleId });
+    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    if (!selectedComponent) return;
+
+    const binding = convertDataBindingToInternalFormat(
+      selectedComponent,
+      tableColumn.selectedBindingKey,
+    );
+
+    onEdit({
+      ...tableColumn,
+      headerContent: uniqueTitleId,
+      cellContent: { query: binding?.field },
+    });
   };
 
   const handleDelete = () => {
@@ -71,18 +107,40 @@ export const EditColumnElement = ({
   };
 
   const selectComponent = (values: string[]) => {
-    const selectedComponentId = values[0];
-    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    const componentId = values[0];
+    setSelectedComponentId(componentId);
 
-    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
-    const updatedTableColumn = {
-      ...sourceColumn,
+    const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
+    if (!selectedComponent) return;
+    selectComponentBinding(selectedComponent);
+
+    const bindingKey =
+      selectedComponentBindings.length > 1
+        ? Object.keys(selectedComponent.dataModelBindings)[0]
+        : 'simpleBinding';
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
+
+    setTableColumn((prev) => ({
+      ...prev,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
-    };
+      selectedBindingKey: bindingKey,
+      selectedBindingField: binding?.field,
+    }));
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
-    setTableColumn(updatedTableColumn);
+  };
+
+  const handleBindingChange = (value: string[]) => {
+    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    if (!selectedComponent) return;
+    const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
+    setTableColumn((prev) => ({
+      ...prev,
+      selectedBindingKey: value[0],
+      selectedBindingField: binding?.field,
+    }));
   };
 
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
@@ -94,12 +152,15 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
+          component={availableComponents.find((comp) => comp.id === selectedComponentId)}
           components={availableComponents}
           onSelectComponent={selectComponent}
+          selectedComponentBindings={selectedComponentBindings}
+          handleBindingChange={handleBindingChange}
         />
         {tableColumn.headerContent && (
           <EditColumnElementContent
-            cellContent={tableColumn.cellContent.query}
+            cellContent={tableColumn.selectedBindingField}
             title={title}
             setTitle={setTitle}
           />
@@ -138,31 +199,47 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
+  selectedComponentBindings?: Record<string, string>[];
+  component?: FormItem;
+  handleBindingChange?: (value: string[]) => void;
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
+  selectedComponentBindings,
+  component,
+  handleBindingChange,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
   return (
-    <StudioCombobox
-      label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
-      description={t(
-        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+    <>
+      <StudioCombobox
+        label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+        description={t(
+          'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+        )}
+        size='sm'
+        onValueChange={onSelectComponent}
+        id='columncomponentselect'
+      >
+        {components.map((comp: FormItem) => (
+          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+            {comp.id}
+          </StudioCombobox.Option>
+        ))}
+        <StudioCombobox.Empty key={'noComponentsWithLabel'}>
+          {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
+        </StudioCombobox.Empty>
+      </StudioCombobox>
+
+      {selectedComponentBindings?.length > 1 && (
+        <DataModelBindingsCombobox
+          selectedComponentBindings={selectedComponentBindings}
+          onSelectComponent={handleBindingChange}
+          component={component}
+        />
       )}
-      size='sm'
-      onValueChange={onSelectComponent}
-      id='columncomponentselect'
-    >
-      {components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
-        </StudioCombobox.Option>
-      ))}
-      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
-        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-      </StudioCombobox.Empty>
-    </StudioCombobox>
+    </>
   );
 };
