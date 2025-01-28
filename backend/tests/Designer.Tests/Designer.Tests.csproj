@@ -33,13 +33,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Temporarly supress warning for this package sice there is no fix -->
-    <PackageReference Include="System.Linq.Dynamic.Core" >
-      <NoWarn>NU1903</NoWarn>
-    </PackageReference>
+    <PackageReference Include="System.Linq.Dynamic.Core" />
   </ItemGroup>
 
   <ItemGroup>
