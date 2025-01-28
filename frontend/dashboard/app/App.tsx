@@ -10,13 +10,17 @@ import { useOrganizationsQuery } from '../hooks/queries';
 import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
 import { Trans, useTranslation } from 'react-i18next';
-import { DASHBOARD_ROOT_ROUTE, ORG_LIBRARY_BASENAME } from 'app-shared/constants';
+import {
+  APP_DASHBOARD_BASENAME,
+  DASHBOARD_ROOT_ROUTE,
+  ORG_LIBRARY_BASENAME,
+} from 'app-shared/constants';
 import { Link } from '@digdir/designsystemet-react';
 import { OrgContentLibrary } from '../pages/OrgContentLibrary';
+import { useSubRoute } from '../hooks/useSubRoute';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
-
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
@@ -64,17 +68,10 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route path={DASHBOARD_ROOT_ROUTE} element={<PageLayout />}>
+            <Route path='/:subRoute/:selectedContext?' element={<SubRouteGuard />} />
             <Route
-              path='/:selectedContext?'
-              element={<Dashboard user={user} organizations={organizations} />}
-            />
-            <Route
-              path='/:selectedContext/new'
+              path='/:subRoute/:selectedContext/new'
               element={<CreateService organizations={organizations} user={user} />}
-            />
-            <Route
-              path={`/${ORG_LIBRARY_BASENAME}/:selectedContext`}
-              element={<OrgContentLibrary />}
             />
           </Route>
         </Routes>
@@ -88,3 +85,17 @@ export const App = (): JSX.Element => {
     </div>
   );
 };
+
+function SubRouteGuard(): React.ReactElement {
+  const subRoute = useSubRoute();
+  const { data: user } = useUserQuery();
+  const { data: organizations } = useOrganizationsQuery();
+
+  switch (subRoute) {
+    case APP_DASHBOARD_BASENAME.replace('/', ''):
+      return <Dashboard user={user} organizations={organizations} />;
+
+    case ORG_LIBRARY_BASENAME.replace('/', ''):
+      return <OrgContentLibrary />;
+  }
+}

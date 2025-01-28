@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { typedSessionStorage } from '@studio/pure-functions';
 import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
+import { useSubRoute } from '../useSubRoute';
 
 export type UseRedirectionGuardResult = {
   isRedirectionComplete: boolean;
@@ -15,6 +16,7 @@ export const useContextRedirectionGuard = (
   organizations: Organization[],
 ): UseRedirectionGuardResult => {
   const selectedContext = useSelectedContext();
+  const subRoute = useSubRoute();
   const navigate = useNavigate();
   const [isContextRedirectionComplete, setIsContextRedirectionComplete] = useState<boolean>(false);
 
@@ -23,9 +25,9 @@ export const useContextRedirectionGuard = (
   }
 
   useEffect(() => {
-    handleContextRedirection(selectedContext, organizations, navigate);
+    handleContextRedirection(subRoute, selectedContext, organizations, navigate);
     setIsContextRedirectionComplete(true);
-  }, [selectedContext, organizations, navigate]);
+  }, [selectedContext, organizations, navigate, subRoute]);
 
   return {
     isRedirectionComplete: isContextRedirectionComplete,
@@ -33,6 +35,7 @@ export const useContextRedirectionGuard = (
 };
 
 const handleContextRedirection = (
+  subRoute: string,
   currentContext: SelectedContextType | string,
   organizations: Organization[],
   navigate: NavigateFunction,
@@ -40,12 +43,12 @@ const handleContextRedirection = (
   const targetContext = getTargetContext(currentContext);
 
   if (!hasAccessToContext(targetContext, organizations)) {
-    navigateToContext(SelectedContextType.Self, navigate);
+    navigateToContext(subRoute, SelectedContextType.Self, navigate);
     return;
   }
 
   if (targetContext === currentContext) return;
-  navigateToContext(targetContext, navigate);
+  navigateToContext(subRoute, targetContext, navigate);
 };
 
 const getTargetContext = (
@@ -68,8 +71,9 @@ const hasAccessToContext = (
 };
 
 const navigateToContext = (
+  subRoute: string,
   targetContext: SelectedContextType | string,
   navigate: NavigateFunction,
 ): void => {
-  navigate(targetContext + location.search, { replace: true });
+  navigate(subRoute + '/' + targetContext + location.search, { replace: true });
 };
