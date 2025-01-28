@@ -24,6 +24,16 @@ describe('StudioPageHeaderHeaderLink', () => {
     expect(screen.getByRole('link', { name: linkText })).toBeInTheDocument();
   });
 
+  it('Renders the link without isBeta className by default', () => {
+    renderStudioPageHeaderHeaderLink();
+    expect(screen.getByRole('link', { name: linkText })).not.toHaveClass('isBeta');
+  });
+
+  it('Renders the link with isBeta className when isBeta is true', () => {
+    renderStudioPageHeaderHeaderLink({ isBeta: true });
+    expect(screen.getByRole('link', { name: linkText })).toHaveClass('isBeta');
+  });
+
   it('Passes the colour and variant classes to the link', () => {
     renderStudioPageHeaderHeaderLink();
     const link = screen.getByRole('link');
