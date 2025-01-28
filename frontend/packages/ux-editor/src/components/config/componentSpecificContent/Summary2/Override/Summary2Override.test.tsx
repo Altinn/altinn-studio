@@ -104,20 +104,18 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('should be able to change override hideEmptyFields', async () => {
+  it('should be able to change override forceShow', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: '1', hidden: false }] });
     await user.click(overrideCollapsedButton(1));
     await user.click(
       screen.getByRole('checkbox', {
-        name: textMock('ux_editor.component_properties.summary.override.hide_empty_fields'),
+        name: textMock('ux_editor.component_properties.summary.override.force_show'),
       }),
     );
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          { componentId: '1', forceShow: true, hidden: false, hideEmptyFields: false },
-        ]),
+        expect.arrayContaining([{ componentId: '1', forceShow: true, hidden: false }]),
       ),
     );
   });
@@ -183,48 +181,6 @@ describe('Summary2Override', () => {
     expect(defaultProps.onChange).toHaveBeenCalledWith(
       expect.arrayContaining([{ componentId: checkBoxId, displayType: 'string' }]),
     );
-  });
-
-  it('should be able to change override emptyFieldText', async () => {
-    const user = userEvent.setup();
-    render({
-      overrides: [{ componentId: '1', hidden: false, hideEmptyFields: false, forceShow: true }],
-    });
-    await user.click(overrideCollapsedButton(1));
-    const emptyFieldText = 'asdf;ljr%';
-    const textFieldButton = screen.getByRole('button', {
-      name: /ux_editor.component_properties.summary.override.empty_field_text/i,
-    });
-    await user.click(textFieldButton);
-    await user.type(
-      screen.getByRole('textbox', {
-        name: /ux_editor.component_properties.summary.override.empty_field_text/i,
-      }),
-      emptyFieldText,
-    );
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          {
-            componentId: '1',
-            emptyFieldText,
-            forceShow: true,
-            hidden: false,
-            hideEmptyFields: false,
-          },
-        ]),
-      ),
-    );
-  });
-
-  it('should show info message when hideEmptyFields is true', async () => {
-    render({ overrides: [{ componentId: '1', hideEmptyFields: true }] });
-    await userEvent.click(overrideCollapsedButton(1));
-    expect(
-      screen.getByText(
-        textMock('ux_editor.component_properties.summary.override.hide_empty_fields.info_message'),
-      ),
-    ).toBeInTheDocument();
   });
 
   it('should collapse and uncollapse override', async () => {
