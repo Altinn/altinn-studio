@@ -4,5 +4,5 @@ export type LayoutSetModel = {
   id: string;
   dataType: string;
   type: string;
-  task: TaskModel;
+  task?: TaskModel;
 };
