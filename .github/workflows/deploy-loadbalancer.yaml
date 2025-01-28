@@ -45,9 +45,10 @@ jobs:
           else
             sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+          fi
 
   helm-push:
-    needs: get-short-sha
+    needs: get-short-sha, determine-tag
     uses: ./.github/workflows/template-helm-push.yaml
     with:
       tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
