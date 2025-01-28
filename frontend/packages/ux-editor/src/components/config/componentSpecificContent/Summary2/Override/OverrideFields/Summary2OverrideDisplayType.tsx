@@ -27,8 +27,8 @@ export const Summary2OverrideDisplayType = ({
   };
 
   const checkboxOrMultipleselect =
-    override.componentId.includes(ComponentType.MultipleSelect) ||
-    override.componentId.includes(ComponentType.Checkboxes);
+    override.componentId?.includes(ComponentType.MultipleSelect) ||
+    override.componentId?.includes(ComponentType.Checkboxes);
 
   if (!checkboxOrMultipleselect) {
     return null;
