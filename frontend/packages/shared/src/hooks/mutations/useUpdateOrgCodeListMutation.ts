@@ -3,17 +3,17 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import type { CodeList } from '@studio/components';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-type CreateOrgCodeListMutationArgs = {
+type UpdateOrgCodeListMutationArgs = {
   codeListId: string;
   payload: CodeList;
 };
 
-export const useCreateOrgCodeListMutation = (org: string) => {
+export const useUpdateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
-  const { createCodeListForOrg } = useServicesContext();
+  const { updateCodeListForOrg } = useServicesContext();
   return useMutation({
-    mutationFn: ({ codeListId, payload }: CreateOrgCodeListMutationArgs) =>
-      createCodeListForOrg(org, codeListId, payload),
+    mutationFn: ({ codeListId, payload }: UpdateOrgCodeListMutationArgs) =>
+      updateCodeListForOrg(org, codeListId, payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.OrgCodeLists, org] }),
   });
 };

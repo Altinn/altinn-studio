@@ -75,7 +75,6 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
-import type { CodeListData } from 'app-shared/types/CodeListData';
 import type { CodeList } from 'app-shared/types/CodeList';
 
 const headers = {

@@ -1,9 +1,7 @@
-import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
+import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useCreateOrgCodeListMutation } from 'app-shared/hooks/mutations/useCreateOrgCodeListMutation';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from '../../mocks/queriesMock';
+import { useCreateOrgCodeListMutation } from './useCreateOrgCodeListMutation';
 import type { CodeList } from '@studio/components';
 
 // Test data:
