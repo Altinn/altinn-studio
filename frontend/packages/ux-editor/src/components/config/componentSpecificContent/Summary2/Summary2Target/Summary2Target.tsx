@@ -16,8 +16,13 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useTargetTypes } from './useTargetTypes';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { getComponentOptions, getLayoutSetOptions, getPageOptions } from './targetUtils';
+import {
+  getComponentOptions,
+  getLayoutSetOptions,
+  getPageOptions,
+  getTargetLayoutSetName,
+} from './targetUtils';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
@@ -28,10 +33,12 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const selectedLayoutSetTargetName = target.taskId
-    ? layoutSets?.sets?.find((set) => set.tasks?.[0] === target.taskId).id
-    : selectedFormLayoutSetName;
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const selectedLayoutSetTargetName = getTargetLayoutSetName({
+    target,
+    layoutSets,
+    selectedFormLayoutSetName,
+  });
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetTargetName);
   const getComponentTitle = useComponentTitle();
   const targetTypes = useTargetTypes();
@@ -74,7 +81,10 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         onChange={(e) => handleLayoutSetChange(e.target.value)}
       >
         {layoutSetOptions.map((layoutSet) => (
-          <option key={layoutSet.id} value={layoutSet.tasks[0]}>
+          <option
+            key={layoutSet.id}
+            value={layoutSet.id === selectedFormLayoutSetName ? '' : layoutSet.task.id}
+          >
             {layoutSet.id}
           </option>
         ))}

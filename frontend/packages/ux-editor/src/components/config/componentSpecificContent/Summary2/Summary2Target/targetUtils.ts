@@ -2,9 +2,9 @@ import type { IFormLayouts, IInternalLayout } from '@altinn/ux-editor/types/glob
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { LayoutSet, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
+import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 
 const excludedComponents = [
   ComponentType.ActionButton,
@@ -81,6 +81,6 @@ export const getPageOptions = (formLayoutsData: IFormLayouts): TargetProps[] => 
     : [];
 };
 
-export const getLayoutSetOptions = (layoutSets: LayoutSets): LayoutSet[] => {
-  return layoutSets?.sets.filter((set: LayoutSet) => set.tasks?.length > 0);
+export const getLayoutSetOptions = (layoutSets: LayoutSetsModel): LayoutSetModel[] => {
+  return layoutSets?.sets.filter((set) => set.task);
 };
