@@ -10,13 +10,13 @@ using Quartz;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
-public class DecommissionPipelineJob : IJob
+public class DeploymentPipelinePollingJob : IJob
 {
     private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
     private readonly IDeploymentRepository _deploymentRepository;
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
 
-    public DecommissionPipelineJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext)
+    public DeploymentPipelinePollingJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext)
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
         _deploymentRepository = deploymentRepository;

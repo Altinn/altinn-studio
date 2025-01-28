@@ -193,10 +193,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _deploymentRepository.Create(deploymentEntity);
 
-            await _mediatr.Publish(new AppDecommissioningStarted
+            await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
-                Environment = env,
                 BuildId = build.Id
             }, cancellationToken);
         }
