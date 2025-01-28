@@ -35,7 +35,7 @@ const defaultProps: StudioTextResourceInputProps = {
   currentId,
 };
 const currentTextResource = getTextResourceById(textResources, currentId);
-const unsetIdCases: Array<[string, StudioTextResourceInputProps['currentId']]> = [
+const noCurrentIdCases: Array<[string, StudioTextResourceInputProps['currentId']]> = [
   ['an empty string', ''],
   ['null', null],
   ['undefined', undefined],
@@ -49,7 +49,7 @@ describe('StudioTextResourceInput', () => {
     expect(getValueField()).toBeInTheDocument();
   });
 
-  it.each(unsetIdCases)(
+  it.each(noCurrentIdCases)(
     'Renders the search field by default when the current ID is %s',
     (_, id) => {
       renderTextResourceInput({ currentId: id });
@@ -90,6 +90,19 @@ describe('StudioTextResourceInput', () => {
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);
   });
 
+  it('Calls the onChangeCurrentId callback with null when a the user selects to not connect a text resource', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput();
+
+    await switchToSearchMode(user);
+    await user.click(getTextResourcePicker());
+    await user.click(screen.getByRole('option', { name: texts.noTextResourceOptionLabel }));
+    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+
+    expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
+    expect(onChangeCurrentId).toHaveBeenCalledWith(null);
+  });
+
   it('Renders the "edit value" input field when the user switches back from search mode', async () => {
     const user = userEvent.setup();
     renderTextResourceInput();
@@ -110,7 +123,7 @@ describe('StudioTextResourceInput', () => {
     expect(screen.getByText(currentId)).toBeInTheDocument();
   });
 
-  it.each(unsetIdCases)('Disables the value field when the ID is %s', async (_, id) => {
+  it.each(noCurrentIdCases)('Disables the value field when the ID is %s', async (_, id) => {
     const user = userEvent.setup();
     renderTextResourceInput({ currentId: id });
     await switchToEditMode(user);

@@ -26,7 +26,7 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
-  onChangeCurrentId: (id: string) => void;
+  onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -50,7 +50,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     },
     ref,
   ): ReactElement => {
-    const [currentId, setCurrentId] = usePropState<string | undefined>(givenCurrentId);
+    const [currentId, setCurrentId] = usePropState<string | null | undefined>(givenCurrentId);
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
     const [mode, setMode] = useState<Mode>(determineDefaultMode(currentId));
 

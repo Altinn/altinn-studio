@@ -27,6 +27,6 @@ export function changeTextResourceInList(
   );
 }
 
-export function determineDefaultMode(currentId?: string): Mode {
+export function determineDefaultMode(currentId?: string | null): Mode {
   return currentId ? Mode.EditValue : Mode.Search;
 }
