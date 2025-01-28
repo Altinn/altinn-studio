@@ -2,5 +2,5 @@ namespace Altinn.Studio.Designer.Configuration;
 
 public class SchedulingSettings
 {
-    public bool UsePersistentStore { get; set; } = true;
+    public bool UsePersistentScheduling { get; set; } = true;
 }

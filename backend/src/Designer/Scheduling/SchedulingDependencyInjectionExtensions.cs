@@ -12,7 +12,7 @@ public static class SchedulingDependencyInjectionExtensions
         services.AddQuartz(configure =>
         {
             SchedulingSettings schedulingSettings = configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>();
-            if (schedulingSettings.UsePersistentStore)
+            if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings =
                     configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
