@@ -3,15 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
@@ -72,8 +70,16 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     try
                     {
                         string body = await reader.ReadToEndAsync();
-                        CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
-                        environment = model.EnvName;
+                        JsonNode bodyJson = JsonNode.Parse(body);
+
+                        if (bodyJson["envName"] is not null)
+                        {
+                            environment = bodyJson["envName"].ToString();
+                        }
+                        if (bodyJson["environment"] is not null)
+                        {
+                            environment = bodyJson["environment"].ToString();
+                        }
                     }
                     catch
                     {

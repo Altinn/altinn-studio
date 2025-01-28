@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -16,9 +17,11 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -36,11 +39,12 @@ namespace Designer.Tests.Services
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<IPublisher> _mediatrMock;
+        private readonly GeneralSettings _generalSettings;
+        private readonly FakeTimeProvider _fakeTimeProvider;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
-            _httpContextAccessor = new Mock<IHttpContextAccessor>();
-            _httpContextAccessor.Setup(req => req.HttpContext).Returns(new DefaultHttpContext());
+            _httpContextAccessor = AuthenticationUtil.GetAuthenticatedHttpContextAccessor();
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
             _deploymentRepository = new Mock<IDeploymentRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
@@ -50,6 +54,8 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _mediatrMock = new Mock<IPublisher>();
+            _generalSettings = new GeneralSettings();
+            _fakeTimeProvider = new FakeTimeProvider();
         }
 
         [Theory]
@@ -93,7 +99,9 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object);
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -150,7 +158,9 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object);
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -181,7 +191,9 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object);
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);

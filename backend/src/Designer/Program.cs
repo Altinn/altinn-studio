@@ -10,11 +10,11 @@ using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
-using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -275,6 +275,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         });
     }
 
+    services.AddQuartzJobScheduling(configuration);
+
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
@@ -322,8 +324,7 @@ void Configure(IConfiguration configuration)
     app.MapControllers();
 
     app.MapHealthChecks("/health");
-    app.MapHub<PreviewHub>("/previewHub");
-    app.MapHub<SyncHub>("/sync-hub");
+    app.MapHubs();
 
     app.UseMiddleware<RequestSynchronizationMiddleware>();
 

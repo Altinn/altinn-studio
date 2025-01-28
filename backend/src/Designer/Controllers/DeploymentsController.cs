@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -112,5 +113,25 @@ namespace Altinn.Studio.Designer.Controllers
             }
             return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
+
+        /// <summary>
+        /// Initiates the undeployment of an application from a specific environment
+        /// </summary>
+        /// <param name="org">Organisation name</param>
+        /// <param name="app">Application name</param>
+        /// <param name="undeployRequest">Undeployment request containing the target environment</param>
+        /// <param name="cancellationToken">Cancellation token to abort the operation</param>
+        /// <returns>Accepted response with tracking information</returns>
+        [HttpPost("undeploy")]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
+        public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest, CancellationToken cancellationToken)
+        {
+            Guard.AssertValidEnvironmentName(undeployRequest.Environment);
+
+            await _deploymentService.UndeployAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, AuthenticationHelper.GetDeveloperUserName(HttpContext)), undeployRequest.Environment, cancellationToken);
+
+            return Accepted();
+        }
+
     }
 }

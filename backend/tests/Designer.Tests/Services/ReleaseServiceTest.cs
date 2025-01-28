@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
@@ -13,6 +15,8 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
@@ -27,17 +31,16 @@ namespace Designer.Tests.Services
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
-        private readonly Mock<ILogger<ReleaseService>> _releaseLogger;
+        private readonly GeneralSettings _generalSettings;
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
         public ReleaseServiceTest()
         {
-            _httpContextAccessor = new Mock<IHttpContextAccessor>();
-            _httpContextAccessor.Setup(req => req.HttpContext).Returns(new DefaultHttpContext());
-            _releaseLogger = new Mock<ILogger<ReleaseService>>();
+            _httpContextAccessor = AuthenticationUtil.GetAuthenticatedHttpContextAccessor();
             _releaseRepository = new Mock<IReleaseRepository>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
+            _generalSettings = new GeneralSettings();
         }
 
         [Fact]
@@ -70,7 +73,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _releaseLogger.Object);
+                _generalSettings);
 
             // Act
             ReleaseEntity result = await releaseService.CreateAsync(releaseEntity);
@@ -121,7 +124,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _releaseLogger.Object);
+                _generalSettings);
 
             // Act
             HttpRequestWithStatusException resultException = null;
@@ -150,7 +153,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _releaseLogger.Object);
+                _generalSettings);
 
             // Act
             SearchResults<ReleaseEntity> results = await releaseService.GetAsync(_org, _app, new DocumentQueryModel());
@@ -172,7 +175,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _releaseLogger.Object);
+                _generalSettings);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 

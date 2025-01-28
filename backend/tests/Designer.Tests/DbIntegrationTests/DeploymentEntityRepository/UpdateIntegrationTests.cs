@@ -2,14 +2,13 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
-using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
-public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
+public class UpdateIntegrationTests : DbIntegrationTestsBase
 {
     public UpdateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
@@ -27,7 +26,7 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
             buildStatus: BuildStatus.InProgress,
             buildResult: BuildResult.None);
 
-        await PrepareEntityInDatabase(deploymentEntity);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         deploymentEntity.Build.Status = BuildStatus.Completed;
         deploymentEntity.Build.Result = BuildResult.Failed;

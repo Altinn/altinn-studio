@@ -12,6 +12,11 @@ on:
       - 'charts/altinn-loadbalancer-config/**'
 
   workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev'
 
 permissions:
       id-token: write
@@ -21,11 +26,32 @@ jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
 
-  helm-push:
+  construct-environments-array:
+    uses: ./.github/workflows/template-construct-environments.yaml
+    with:
+      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+
+  determine-tag:
     needs: get-short-sha
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.determine-tag.outputs.tag }}
+    steps:
+      - name: Determine tag
+        id: determine-tag
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+          else
+            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
+            echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+          fi
+
+  helm-push:
+    needs: [get-short-sha, determine-tag]
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
       chart-name: altinn-loadbalancer
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: dev # dev environment has push access and doesn't require review
@@ -35,18 +61,18 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [get-short-sha, helm-push]
+    needs: [get-short-sha, helm-push, determine-tag, construct-environments-array]
     strategy:
       matrix:
-        environment: [dev, staging, prod]
+        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
-      tag: ${{ needs.get-short-sha.outputs.short-sha }}
+      tag: ${{ needs.determine-tag.outputs.tag }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: ${{ matrix.environment }}
       config-chart-name: altinn-loadbalancer-config
       artifact-name: altinn-loadbalancer
-      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }}
       trace-workflow: true
       trace-team-name: 'team-studio'
     secrets:

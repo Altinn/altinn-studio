@@ -12,12 +12,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <summary>
         /// Queues a build with a certain build definition id
         /// </summary>
-        /// <param name="queueBuildParameters">QueueBuildParameters</param>
-        /// <param name="buildDefinitionId">int</param>
-        /// <returns>The queued Build</returns>
-        Task<Build> QueueAsync(
-            QueueBuildParameters queueBuildParameters,
-            int buildDefinitionId);
+        /// <param name="buildParameters">Parameters of the build.</param>
+        /// <param name="buildDefinitionId">Build identifier</param>
+        /// <typeparam name="T">Class holding parameters of the build.</typeparam>
+        /// <returns>The queued Build.</returns>
+        Task<Build> QueueAsync<T>(T buildParameters, int buildDefinitionId) where T : class;
 
         /// <summary>
         /// Gets a build entity by buildId

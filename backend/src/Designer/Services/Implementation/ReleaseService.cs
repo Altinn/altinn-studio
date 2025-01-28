@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
@@ -12,7 +14,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -26,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly IReleaseRepository _releaseRepository;
         private readonly HttpContext _httpContext;
-        private readonly ILogger _logger;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Constructor
@@ -35,19 +36,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="releaseRepository">IReleaseRepository</param>
         /// <param name="azureDevOpsOptions">AzureDevOpsSettings</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="generalSettings"></param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
             AzureDevOpsSettings azureDevOpsOptions,
-            ILogger<ReleaseService> logger)
+            GeneralSettings generalSettings)
         {
             _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
-            _logger = logger;
+            _generalSettings = generalSettings;
         }
 
         /// <inheritdoc/>
@@ -62,7 +63,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppCommitId = release.TargetCommitish,
                 AppOwner = release.Org,
                 AppRepo = release.App,
-                TagName = release.TagName
+                TagName = release.TagName,
+                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AltinnStudioHostname = _generalSettings.HostName
             };
 
             Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(

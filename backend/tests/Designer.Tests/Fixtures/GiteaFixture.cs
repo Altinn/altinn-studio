@@ -63,16 +63,9 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartPostgreSqlContainerAsync()
         {
-            _postgreSqlContainer = new PostgreSqlBuilder()
-                .WithNetwork(_giteaNetwork)
-                .WithImagePullPolicy(PullPolicy.Missing)
-                .WithNetworkAliases("db")
-                .WithUsername("gitea")
-                .WithPassword("gitea")
-                .WithDatabase("gitea")
-                .WithExposedPort(TestUrlsProvider.GetRandomAvailablePort())
-                .Build();
+            _postgreSqlContainer = TestDbProvider.Instance.CreatePostgresContainer(_giteaNetwork);
             await _postgreSqlContainer.StartAsync();
+            await TestDbProvider.Instance.MigrateAsync();
         }
 
         public async Task InitializeAsync()
@@ -116,9 +109,9 @@ namespace Designer.Tests.Fixtures
                     {"GITEA____RUN_MODE", "prod"},
                     {"GITEA__database__DB_TYPE", "postgres"},
                     {"GITEA__database__HOST", "db:5432"},
-                    {"GITEA__database__NAME", "gitea"},
-                    {"GITEA__database__USER", "gitea"},
-                    {"GITEA__database__PASSWD", "gitea"},
+                    {"GITEA__database__NAME", TestDbConstants.Database},
+                    {"GITEA__database__USER", TestDbConstants.AdminUser},
+                    {"GITEA__database__PASSWD", TestDbConstants.AdminPassword},
                     {"GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.GiteaUrl}"},
                     {"USER_GID", "1000"},
                     {"USER_UID", "1000"}

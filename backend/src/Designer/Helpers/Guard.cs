@@ -99,6 +99,14 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
+        public static void AssertValidEnvironmentName(string environmentName)
+        {
+            if (string.IsNullOrWhiteSpace(environmentName) || environmentName.Length > 100 || !AltinnRegexes.AltinnEnvironmentNameRegex().IsMatch(environmentName))
+            {
+                throw new ArgumentException("The environment name is invalid.");
+            }
+        }
+
         /// <summary>
         /// Assert that a file has a specific extension.
         /// </summary>

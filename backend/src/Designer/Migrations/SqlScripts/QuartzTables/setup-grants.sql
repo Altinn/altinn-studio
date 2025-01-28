@@ -1,0 +1,11 @@
+GRANT ALL ON TABLE qrtz_fired_triggers TO designer;
+GRANT ALL ON TABLE qrtz_paused_trigger_grps TO designer;
+GRANT ALL ON TABLE qrtz_scheduler_state TO designer;
+GRANT ALL ON TABLE qrtz_locks TO designer;
+GRANT ALL ON TABLE qrtz_simprop_triggers TO designer;
+GRANT ALL ON TABLE qrtz_simple_triggers TO designer;
+GRANT ALL ON TABLE qrtz_cron_triggers TO designer;
+GRANT ALL ON TABLE qrtz_blob_triggers TO designer;
+GRANT ALL ON TABLE qrtz_triggers TO designer;
+GRANT ALL ON TABLE qrtz_job_details TO designer;
+GRANT ALL ON TABLE qrtz_calendars TO designer;

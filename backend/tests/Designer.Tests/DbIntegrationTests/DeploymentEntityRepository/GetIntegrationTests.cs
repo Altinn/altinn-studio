@@ -2,17 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
-using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
-public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
+public class GetIntegrationTests : DbIntegrationTestsBase
 {
     public GetIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
@@ -24,7 +22,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
     {
         int allEntitiesCount = 10;
         var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
-        await PrepareEntitiesInDatabase(deploymentEntities);
+        await DbFixture.PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new DeploymentRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel { Top = top, SortDirection = sortDirection };
@@ -57,7 +55,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
     {
         int allEntitiesCount = 10;
         var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
-        await PrepareEntitiesInDatabase(deploymentEntities);
+        await DbFixture.PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new DeploymentRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel

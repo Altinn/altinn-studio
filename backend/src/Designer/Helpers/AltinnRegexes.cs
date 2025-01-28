@@ -9,4 +9,7 @@ public partial class AltinnRegexes
 
     [GeneratedRegex("^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$")]
     public static partial Regex AltinnAppNameRegex();
+
+    [GeneratedRegex("^[a-zA-Z0-9-_\\.]*$")]
+    public static partial Regex AltinnEnvironmentNameRegex();
 }

@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
@@ -10,13 +10,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// <summary>
         /// The definition associated with the build.
         /// </summary>
-        [JsonProperty("definition")]
+        [JsonPropertyName("definition")]
         public DefinitionReference DefinitionReference { get; set; }
 
         /// <summary>
         /// The parameters for the build
         /// </summary>
-        [JsonProperty("parameters")]
+        [JsonPropertyName("parameters")]
         public string Parameters { get; set; }
     }
 }
