@@ -10,9 +10,9 @@ import { useOrganizationsQuery } from '../hooks/queries';
 import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
 import { Trans, useTranslation } from 'react-i18next';
-import { DASHBOARD_ROOT_ROUTE, STUDIO_LIBRARY_BASENAME } from 'app-shared/constants';
+import { DASHBOARD_ROOT_ROUTE, ORG_LIBRARY_BASENAME } from 'app-shared/constants';
 import { Link } from '@digdir/designsystemet-react';
-import { OrgContentLibraryWithoutContext } from '../pages/OrgContentLibrary';
+import { OrgContentLibrary } from '../pages/OrgContentLibrary';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -73,8 +73,8 @@ export const App = (): JSX.Element => {
               element={<CreateService organizations={organizations} user={user} />}
             />
             <Route
-              path={`/${STUDIO_LIBRARY_BASENAME}/:selectedContext`}
-              element={<OrgContentLibraryWithoutContext />}
+              path={`/${ORG_LIBRARY_BASENAME}/:selectedContext`}
+              element={<OrgContentLibrary />}
             />
           </Route>
         </Routes>
