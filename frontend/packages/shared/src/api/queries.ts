@@ -101,6 +101,7 @@ import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-sh
 import type { DataType } from '../types/DataType';
 import { codeListsResponse } from '../mocks/codeListsResponse';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
+import { textResourcesMock } from '../mocks/textResourcesMock';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -181,3 +182,4 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getCodeListsForOrg = async (org: string): Promise<CodeListsResponse> => Promise.resolve(codeListsResponse); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14505
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503

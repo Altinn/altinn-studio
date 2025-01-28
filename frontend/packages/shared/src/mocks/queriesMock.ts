@@ -197,6 +197,11 @@ export const queriesMock: ServicesContextProps = {
   getSelectedMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getTextResourcesForOrg: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
+    ),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Queries - Contact
@@ -224,6 +229,7 @@ export const queriesMock: ServicesContextProps = {
   createRepoCommit: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
+  createTextResourcesForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -255,6 +261,7 @@ export const queriesMock: ServicesContextProps = {
   updateCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTextResourcesForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),

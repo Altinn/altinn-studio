@@ -515,7 +515,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A list of <see cref="RefToOptionListSpecifier"/>.</returns>
         public List<RefToOptionListSpecifier> FindOptionListReferencesInLayout(JsonNode layout, List<RefToOptionListSpecifier> refToOptionListSpecifiers, string layoutSetName, string layoutName)
         {
-            var optionListIds = GetOptionsListIds();
+            var optionListIds = GetOptionsListIds(OptionsFolderPath);
             var layoutArray = layout["data"]?["layout"] as JsonArray;
             if (layoutArray == null)
             {
@@ -793,9 +793,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets a list of file names from the Options folder representing the available options lists.
         /// </summary>
         /// <returns>A list of option list names.</returns>
-        public string[] GetOptionsListIds()
+        public string[] GetOptionsListIds(string optionsFolderPath)
         {
-            string optionsFolder = Path.Combine(OptionsFolderPath);
+            string optionsFolder = Path.Combine(optionsFolderPath);
             if (!DirectoryExistsByRelativePath(optionsFolder))
             {
                 return [];
@@ -810,13 +810,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets a specific options list with the provided id.
         /// </summary>
         /// <param name="optionsListId">The name of the options list to fetch.</param>
+        /// <param name="optionsFolderPath"></param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
-        public async Task<string> GetOptionsList(string optionsListId, CancellationToken cancellationToken = default)
+        public async Task<string> GetOptionsList(string optionsListId, string optionsFolderPath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
+            string optionsFilePath = Path.Combine(optionsFolderPath, $"{optionsListId}.json");
             if (!FileExistsByRelativePath(optionsFilePath))
             {
                 throw new NotFoundException($"Options file {optionsListId}.json was not found.");
