@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import type { CodeList } from '@studio/components';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { ArrayUtils } from '@studio/pure-functions';
 
 type CreateOrgCodeListMutationArgs = {
   codeListId: string;
@@ -14,6 +15,6 @@ export const useCreateOrgCodeListMutation = (org: string) => {
   return useMutation({
     mutationFn: ({ codeListId, payload }: CreateOrgCodeListMutationArgs) =>
       createCodeListForOrg(org, codeListId, payload),
-    onSuccess: (data) => queryClient.setQueryData([QueryKey.OrgCodeLists, org], data),
+    onSuccess: () => queryClient.invalidateQueries([QueryKey.OrgCodeLists, org]),
   });
 };
