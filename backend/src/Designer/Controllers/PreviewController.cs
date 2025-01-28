@@ -59,10 +59,10 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAppDevelopmentService _appDevelopmentService = appDevelopmentService;
 
         // This value will be overridden to act as the task number for apps that use layout sets
-        private const string OptionsFolderPath = "App/options/";
         private const int PartyId = 51001;
         private const string MINIMUM_NUGET_VERSION = "8.0.0.0";
         private const int MINIMUM_PREVIEW_NUGET_VERSION = 15;
+        private const string OptionsFolderPath = "App/options/";
 
         /// <summary>
         /// Default action for the preview.

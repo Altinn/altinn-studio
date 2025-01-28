@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -27,6 +28,16 @@ public interface ICodeListService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list</returns>
     public Task<List<Option>> GetCodeList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets an options list from the app repository with the specified optionListId.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="repo">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The options list</returns>
+    public Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new options list in the app repository.

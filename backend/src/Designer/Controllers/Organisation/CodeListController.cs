@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -46,32 +45,9 @@ public class CodeListController : ControllerBase
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string[] optionListIds = _codeListService.GetCodeListIds(org, Repo, developer);
-            List<OptionListData> optionLists = [];
-            foreach (string optionListId in optionListIds)
-            {
-                try
-                {
-                    List<Option> optionList = await _codeListService.GetCodeList(org, Repo, developer, optionListId);
-                    OptionListData optionListData = new()
-                    {
-                        Title = optionListId,
-                        Data = optionList,
-                        HasError = false
-                    };
-                    optionLists.Add(optionListData);
-                }
-                catch (InvalidOptionsFormatException)
-                {
-                    OptionListData optionListData = new()
-                    {
-                        Title = optionListId,
-                        Data = null,
-                        HasError = true
-                    };
-                    optionLists.Add(optionListData);
-                }
-            }
+
+            List<OptionListData> optionLists = await _codeListService.GetCodeLists(org, Repo, developer);
+
             return Ok(optionLists);
         }
         catch (NotFoundException)

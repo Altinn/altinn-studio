@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
@@ -63,6 +64,41 @@ public class CodeListService : ICodeListService
         }
 
         return optionsList;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string[] optionListIds = GetCodeListIds(org, repo, developer);
+        List<OptionListData> optionLists = [];
+        foreach (string optionListId in optionListIds)
+        {
+            try
+            {
+                List<Option> optionList = await GetCodeList(org, repo, developer, optionListId, cancellationToken);
+                OptionListData optionListData = new()
+                {
+                    Title = optionListId,
+                    Data = optionList,
+                    HasError = false
+                };
+                optionLists.Add(optionListData);
+            }
+            catch (InvalidOptionsFormatException)
+            {
+                OptionListData optionListData = new()
+                {
+                    Title = optionListId,
+                    Data = null,
+                    HasError = true
+                };
+                optionLists.Add(optionListData);
+            }
+        }
+
+        return optionLists;
     }
 
     private void ValidateOption(Option option)
