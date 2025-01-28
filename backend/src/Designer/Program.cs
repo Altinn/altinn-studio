@@ -10,8 +10,6 @@ using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
-using Altinn.Studio.Designer.Hubs.EntityUpdate;
-using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
