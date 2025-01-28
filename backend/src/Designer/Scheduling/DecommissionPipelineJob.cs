@@ -41,6 +41,7 @@ public class DecommissionPipelineJob : IJob
             return;
         }
         deploymentEntity.Build.Status = build.Status;
+        deploymentEntity.Build.Started = build.Started;
         deploymentEntity.Build.Finished = build.Finished;
         deploymentEntity.Build.Result = build.Result;
         await _deploymentRepository.Update(deploymentEntity);

@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <inheritdoc/>
         public async Task<BuildEntity> Get(string buildId)
         {
-            string requestUri = $"/{buildId}?api-version=5.1";
+            string requestUri = $"build/builds/{buildId}?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
             response.EnsureSuccessStatusCode();
@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         {
             string requestBody = JsonSerializer.Serialize(queueBuildRequest);
             using StringContent httpContent = new(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
-            string requestUri = "?api-version=5.1";
+            string requestUri = "build/builds/?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
 
             HttpResponseMessage response = await _httpClient.PostAsync(requestUri, httpContent);
