@@ -174,7 +174,7 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<void> => Promise.resolve();
 export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<void> => Promise.resolve();
 export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<void> => Promise.resolve();
-export const uploadCodeListForOrg = async (org: string, app: string, payload: FormData): Promise<void> => Promise.resolve();
+export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<void> => Promise.resolve();
 
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
