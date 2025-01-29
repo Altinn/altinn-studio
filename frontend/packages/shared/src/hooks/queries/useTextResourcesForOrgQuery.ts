@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { type ITextResourcesWithLanguage } from 'app-shared/types/global';
 
 export const useTextResourcesForOrgQuery = (
   org: string,
