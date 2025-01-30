@@ -16,7 +16,6 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
-    [ApiController]
     [Route("[action]/{id?}")]
     [Route("[controller]/[action]/{id?}")]
     public class HomeController : Controller
@@ -57,7 +56,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// the default page for altinn studio when the user is not logged in
         /// </summary>
         /// <returns>The start page</returns>
-        [HttpGet]
         [Route("/")]
         [Route("/[controller]")]
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
@@ -77,7 +75,6 @@ namespace Altinn.Studio.Designer.Controllers
 
         }
 
-        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
         public IActionResult Index()
         {
@@ -90,7 +87,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
         /// <returns>The front page</returns>
-        [HttpGet]
         [Route("/[controller]/[action]")]
         [Authorize]
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
@@ -106,7 +102,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The login page</returns>
         [Authorize]
-        [HttpGet]
         public async Task<IActionResult> Login()
         {
             await Task.CompletedTask;
@@ -117,7 +112,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Logout
         /// </summary>
         /// <returns>The logout page</returns>
-        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Response.Cookies.Append(
