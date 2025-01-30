@@ -4,7 +4,7 @@ export const isStringValidDecimalNumber = (value: string): boolean => {
   return numberRegex.test(value);
 };
 
-export const convertStringToNumber = (value: string): number =>
+export const convertStringToNumber = (value: string): number | null =>
   value ? Number(value.replace(',', '.')) : null;
 
 export const convertNumberToString = (value?: number): string =>
