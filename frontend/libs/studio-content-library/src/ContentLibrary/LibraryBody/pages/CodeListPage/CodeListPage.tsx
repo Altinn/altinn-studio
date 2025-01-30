@@ -27,7 +27,7 @@ export type CodeListPageProps = {
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
-  codeListsUsages: CodeListReference[];
+  codeListsUsages?: CodeListReference[];
 };
 
 export function CodeListPage({
