@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         }
 
-        [HttpGet]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
         public IActionResult Index()
         {
