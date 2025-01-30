@@ -95,7 +95,7 @@ export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/$
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Preview - SignalR Hub
-export const previewSignalRHubSubPath = () => `/previewHub`;
+export const previewSignalRHubSubPath = () => `/hubs/preview`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -188,7 +188,7 @@ export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${a
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;
 
 // Event Hubs
-export const SyncEventsWebSocketHub = () => '/sync-hub';
+export const SyncEventsWebSocketHub = () => '/hubs/sync';
 
 // Contact
 export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;

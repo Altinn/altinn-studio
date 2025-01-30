@@ -1,7 +1,6 @@
 using System;
+using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
@@ -13,33 +12,33 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// <summary>
         /// Build id
         /// </summary>
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
 
         /// <summary>
         /// The time that the build was started.
         /// </summary>
-        [JsonProperty("startTime")]
+        [JsonPropertyName("startTime")]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// The time that the build was completed.
         /// </summary>
-        [JsonProperty("finishTime")]
+        [JsonPropertyName("finishTime")]
         public DateTime? FinishTime { get; set; }
 
         /// <summary>
         /// The status of the build.
         /// </summary>
-        [JsonProperty("status")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonPropertyName("status")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public BuildStatus Status { get; set; }
 
         /// <summary>
         /// The result of the build.
         /// </summary>
-        [JsonProperty("result")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonPropertyName("result")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public BuildResult Result { get; set; }
     }
 }

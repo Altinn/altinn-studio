@@ -47,6 +47,16 @@ public class DeploymentRepository : IDeploymentRepository
         return DeploymentMapper.MapToModel(dbObject);
     }
 
+    public async Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment)
+    {
+        var dbObject = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking()
+            .Where(d => d.Org == org && d.App == app && d.EnvName == environment)
+            .OrderByDescending(d => d.Created)
+            .FirstAsync();
+
+        return DeploymentMapper.MapToModel(dbObject);
+    }
+
     public async Task Update(DeploymentEntity deploymentEntity)
     {
         var dbIds = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking()
