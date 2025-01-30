@@ -191,13 +191,17 @@ export class ArrayUtils {
   static removeEmptyStrings = (array: string[]): string[] =>
     ArrayUtils.removeItemByValue(array, '');
 
-  /** Counts number of different types in array **/
-  static countUniqueTypes = <unknown>(array: unknown[]): number => {
+  /** Returns array with one occurence of every type from the input array **/
+  static extractUniqueTypes = <unknown>(array: unknown[]): string[] => {
     const typesInArray: string[] = [];
     array.forEach((element) => {
       typesInArray.push(typeof element);
     });
-    ArrayUtils.removeDuplicates(typesInArray);
-    return typesInArray.length;
+    return ArrayUtils.removeDuplicates(typesInArray);
+  };
+
+  /** Checks if all elements are of the same type **/
+  static hasSingularType = (array: unknown[]): boolean => {
+    return ArrayUtils.extractUniqueTypes(array).length === 1;
   };
 }

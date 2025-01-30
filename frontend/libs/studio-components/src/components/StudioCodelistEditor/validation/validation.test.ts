@@ -22,7 +22,7 @@ const codeListWithDuplicateValues: CodeList = [
     label: 'Label 2',
   },
 ];
-const codeListWithMultipleValues: CodeList = [
+const codeListWithMultipleTypes: CodeList = [
   {
     value: 'value1',
     label: 'Label 1',
@@ -55,9 +55,12 @@ describe('validation', () => {
       expect(errors).toEqual(['duplicateValue', 'duplicateValue'] satisfies ValueErrorMap);
     });
 
-    it('Returns an array with code word "multipleTypes" corresponding to duplicate values', () => {});
+    it('Returns an array with code word "multipleTypes" corresponding to duplicate values', () => {
+      const errors = findCodeListErrors(codeListWithMultipleTypes);
+      expect(errors).toEqual(['multipleTypes', 'multipleTypes'] satisfies ValueErrorMap);
+    });
 
-    it('Returns an array with code word "undefinedValue" corresponding to duplicate values', () => {});
+    it.skip('Returns an array with code word "undefinedValue" corresponding to duplicate values', () => {});
   });
 
   describe('areThereCodeListErrors', () => {

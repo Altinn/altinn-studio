@@ -3,6 +3,7 @@ import type { CodeListItemValue } from '../types/CodeListItemValue';
 import type { ValueError } from '../types/ValueError';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
+import { all } from 'axios';
 
 export function isCodeListValid(codeList: CodeList): boolean {
   const errors = findCodeListErrors(codeList);
@@ -23,7 +24,7 @@ function findValueError(
   allValues: CodeListItemValue[],
 ): ValueError | null {
   if (ArrayUtils.isDuplicate(value, allValues)) return 'duplicateValue';
-  if (ArrayUtils.countUniqueTypes(allValues) > 1) return 'multipleValueTypes';
+  if (!ArrayUtils.hasSingularType(allValues)) return 'multipleTypes';
   if (value === undefined) return 'undefinedValue';
   else return null;
 }
