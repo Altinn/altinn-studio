@@ -44,7 +44,8 @@
           "simpleBinding": "PrefilledJobTitle"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "hidden":  ["lessThan",  ["stringLength", ["dataModel", "PrefilledJobTitle"]], 1]
       },
       {
         "id": "sendInButton",
