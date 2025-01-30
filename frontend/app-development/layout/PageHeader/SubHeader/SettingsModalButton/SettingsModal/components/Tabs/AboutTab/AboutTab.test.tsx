@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { AboutTab, getAppTitlesToDisplay } from './AboutTab';
+import { AboutTab } from './AboutTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,13 +13,10 @@ import { APP_NAME, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { PreviewContextProps } from '../../../../../../../../contexts/PreviewContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { RecommendedLanguageFlags, ServiceNames } from './InputFields/InputFields';
 
 const nb: string = 'nb';
 const nn: string = 'nn';
 const en: string = 'en';
-const se: string = 'se';
 const da: string = 'da';
 const mockNewText: string = 'test';
 const mockAppTitle = 'mockAppTitle';
@@ -222,91 +219,3 @@ const renderAboutTab = (
   const queryClient = createQueryClientMock();
   return renderWithProviders({ ...queries }, queryClient, { ...previewContextProps })(<AboutTab />);
 };
-
-describe('getAppTitlesToDisplay', () => {
-  it('returns empty recommended app titles if appMetadataTitles and appLangCodes are empty', () => {
-    const appMetadataTitles: KeyValuePairs<string> = {};
-    const appLangCodesData: string[] = [];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({ nb: undefined, nn: undefined, en: undefined });
-  });
-
-  it('returns empty recommended app titles if appMetadataTitles is empty and appLangCodes contains them', () => {
-    const appMetadataTitles: KeyValuePairs<string> = {};
-    const appLangCodesData: string[] = [nb, nn, en];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({ nb: undefined, nn: undefined, en: undefined });
-  });
-
-  it('returns the recommended app titles with values if present in appMetadataTitles', () => {
-    const appNameNb: string = 'appNameNb';
-    const appMetadataTitles: KeyValuePairs<string> = { nb: appNameNb };
-    const appLangCodesData: string[] = [];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({ nb: appNameNb, nn: undefined, en: undefined });
-  });
-
-  it('returns the recommended app titles with values if present in appMetadataTitles and if languages are present in appLangCodesData', () => {
-    const appNameNb: string = 'appNameNb';
-    const appMetadataTitles: KeyValuePairs<string> = { nb: appNameNb };
-    const appLangCodesData: string[] = [nb, nn, en];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({ nb: appNameNb, nn: undefined, en: undefined });
-  });
-
-  it('returns additional empty app titles if languages are present in appLangCodesData', () => {
-    const appMetadataTitles: KeyValuePairs<string> = {};
-    const appLangCodesData: string[] = [se, da];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({
-      nb: undefined,
-      nn: undefined,
-      en: undefined,
-      se: undefined,
-      da: undefined,
-    });
-  });
-
-  it('returns additional app titles with values if languages are present in appLangCodesData and appMetadataTitles', () => {
-    const appNameSe: string = 'appNameSe';
-    const appMetadataTitles: KeyValuePairs<string> = { se: appNameSe };
-    const appLangCodesData: string[] = [se, da];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({
-      nb: undefined,
-      nn: undefined,
-      en: undefined,
-      se: appNameSe,
-      da: undefined,
-    });
-  });
-
-  it('return additional app title for language if language is not recommended and not in appLangCodes, but in appMetadataTitles', () => {
-    const appNameSe: string = 'appNameSe';
-    const appMetadataTitles: KeyValuePairs<string> = { se: appNameSe };
-    const appLangCodesData: string[] = [];
-    const appTitles: ServiceNames<RecommendedLanguageFlags> = getAppTitlesToDisplay(
-      appMetadataTitles,
-      appLangCodesData,
-    );
-    expect(appTitles).toEqual({ nb: undefined, nn: undefined, en: undefined, se: appNameSe });
-  });
-});

@@ -13,10 +13,9 @@ import { TabContent } from '../../TabContent';
 import { usePreviewContext } from '../../../../../../../../contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { ServiceNames } from './InputFields/InputFields';
-import { RecommendedLanguageFlags } from './InputFields/InputFields';
 import { useUpdateAppTitle } from '../../../hooks/useUpdateAppTitle';
 import { useLanguagesQuery } from '../../../../../../../../hooks/queries';
-import { ArrayUtils } from '@studio/pure-functions';
+import { getAppTitlesToDisplay } from './utils/getAppTitlesToDisplay';
 
 export const AboutTab = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -47,7 +46,7 @@ export const AboutTab = (): React.ReactElement => {
     if (applicationMetadataData.title[language] !== serviceName) {
       doReloadPreview();
     }
-    updateAppTitle(language, serviceName);
+    updateAppTitle({ language, appTitle: serviceName });
   };
 
   const displayContent = () => {
@@ -94,18 +93,5 @@ export const AboutTab = (): React.ReactElement => {
       <TabHeader text={t('settings_modal.about_tab_heading')} />
       {displayContent()}
     </TabContent>
-  );
-};
-
-export const getAppTitlesToDisplay = (
-  appMetadataTitles: ServiceNames<(typeof appLangCodesData)[number]>,
-  appLangCodesData: string[],
-): ServiceNames<(typeof appLangCodesData)[number]> => {
-  const recommendedLanguages: string[] = Object.keys(RecommendedLanguageFlags);
-  const appLangCodesIncludingRecommended: string[] = ArrayUtils.removeDuplicates(
-    recommendedLanguages.concat(Object.keys(appMetadataTitles)).concat(appLangCodesData),
-  );
-  return Object.fromEntries(
-    appLangCodesIncludingRecommended.map((lang) => [lang, appMetadataTitles[lang]]),
   );
 };
