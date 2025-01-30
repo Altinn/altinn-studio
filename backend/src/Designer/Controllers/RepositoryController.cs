@@ -26,8 +26,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// <remarks>
     /// Initializes a new instance of the <see cref="RepositoryController"/> class.
     /// </remarks>
-    [Authorize]
     [ApiController]
+    [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
     public class RepositoryController : ControllerBase
@@ -56,9 +56,12 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Returns a list over repositories
+        /// Returns a list over repositories specified by search parameters
         /// </summary>
-        /// <returns>List of repositories that user has access to.</returns>
+        /// <remarks>
+        /// All parameters create the search parameters
+        /// </remarks>
+        /// <returns>List of filtered repositories that user has access to.</returns>
         [HttpGet]
         [Route("search")]
         public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)

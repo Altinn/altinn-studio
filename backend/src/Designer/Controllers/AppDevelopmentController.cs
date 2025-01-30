@@ -24,8 +24,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions that concerns app-development
     /// </summary>
-    [Authorize]
     [ApiController]
+    [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
     public class AppDevelopmentController : Controller
