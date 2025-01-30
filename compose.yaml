@@ -92,7 +92,8 @@ services:
       - RedisCacheSettings:UseRedisCache=true
       - RedisCacheSettings:ConnectionString=redis:6379
       - RedisCacheSettings:InstanceName=designer
-
+      - SchedulingSettings:UsePersistentScheduling=true
+      - SchedulingSettings:AddHostedService=true
     ports:
       - '6000:6000'
     depends_on:

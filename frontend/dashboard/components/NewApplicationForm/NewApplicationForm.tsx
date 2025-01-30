@@ -1,4 +1,4 @@
-import React, { type FormEvent, type ChangeEvent } from 'react';
+import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import classes from './NewApplicationForm.module.css';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
+import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
 
 type CancelButton = {
   onClick: () => void;
@@ -47,11 +48,14 @@ export const NewApplicationForm = ({
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
-
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
       ? user.login
       : selectedContext;
+  const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
+  const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
+    enabled: Boolean(currentSelectedOrg),
+  });
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
     const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
@@ -96,14 +100,22 @@ export const NewApplicationForm = ({
     return isOrgValid && isRepoNameValid;
   };
 
+  const createRepoAccessError: string =
+    !userOrgPermission?.canCreateOrgRepo && !isFetching
+      ? t('dashboard.missing_service_owner_rights_error_message')
+      : '';
+
+  const hasCreateRepoAccessError: boolean = Boolean(createRepoAccessError);
+
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
       <ServiceOwnerSelector
         name='org'
         user={user}
         organizations={organizations}
-        errorMessage={formError.org}
+        errorMessage={formError.org || createRepoAccessError}
         selectedOrgOrUser={defaultSelectedOrgOrUser}
+        onChange={setCurrentSelectedOrg}
       />
       <RepoNameInput
         name='repoName'
@@ -115,7 +127,7 @@ export const NewApplicationForm = ({
           <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
         ) : (
           <>
-            <StudioButton type='submit' variant='primary'>
+            <StudioButton type='submit' variant='primary' disabled={hasCreateRepoAccessError}>
               {submitButtonText}
             </StudioButton>
             <CancelComponent actionableElement={actionableElement} />
