@@ -5,13 +5,15 @@ import type { FormItem } from '../../../../../types/FormItem';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 
 type DataModelBindingsComboboxProps = {
-  onSelectComponent: (values: string[]) => void;
+  onSelectComponent: (field: string) => void;
   component?: FormItem;
+  selectedField: string;
 };
 
 export const DataModelBindingsCombobox = ({
   onSelectComponent,
   component,
+  selectedField,
 }: DataModelBindingsComboboxProps) => {
   const { t } = useTranslation();
 
@@ -24,12 +26,13 @@ export const DataModelBindingsCombobox = ({
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
       )}
       size='sm'
-      onValueChange={onSelectComponent}
+      value={selectedField ? [selectedField] : []}
+      onValueChange={(values) => onSelectComponent(values[0])}
     >
       {Object.keys(component?.dataModelBindings ?? {}).map((key) => {
-        const value = convertDataBindingToInternalFormat(component, key);
+        const { field } = convertDataBindingToInternalFormat(component, key);
         return (
-          <StudioCombobox.Option key={key} value={key} description={value?.field}>
+          <StudioCombobox.Option key={field} value={field} description={field}>
             {key === 'simpleBinding'
               ? t(`ux_editor.component_title.${component?.type}`)
               : t(`ux_editor.modal_properties_data_model_label.${key}`)}

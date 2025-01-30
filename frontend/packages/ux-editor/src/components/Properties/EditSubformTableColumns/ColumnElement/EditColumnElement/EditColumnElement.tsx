@@ -98,13 +98,10 @@ export const EditColumnElement = ({
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
   };
 
-  const handleBindingChange = (value: string[]) => {
-    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
-    if (!selectedComponent) return;
-    const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
+  const handleBindingChange = (field: string) => {
     setTableColumn((prev) => ({
       ...prev,
-      cellContent: { query: binding?.field },
+      cellContent: { query: field },
     }));
   };
 
@@ -114,6 +111,7 @@ export const EditColumnElement = ({
     !tableColumn.headerContent || !title?.trim() || !tableColumn.cellContent?.query;
 
   const component = availableComponents.find((comp) => comp.id === selectedComponentId);
+  const hasMultipleDataModelBindings = Object.keys(component?.dataModelBindings ?? {}).length > 1;
 
   return (
     <StudioCard className={classes.wrapper}>
@@ -123,10 +121,11 @@ export const EditColumnElement = ({
           components={availableComponents}
           onSelectComponent={selectComponent}
         />
-        {Object.keys(component?.dataModelBindings ?? {}).length > 1 && (
+        {hasMultipleDataModelBindings && (
           <DataModelBindingsCombobox
             onSelectComponent={handleBindingChange}
             component={component}
+            selectedField={tableColumn.cellContent.query}
           />
         )}
         {tableColumn.headerContent && (
