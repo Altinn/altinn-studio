@@ -94,6 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
             await PublishAppDeployedEvent(deploymentEntity, cancellationToken);
+            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, cancellationToken);
             return createdEntity;
         }
 
@@ -192,12 +193,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
-            await PublishDeploymentPipelineQueued(editingContext, cancellationToken, build);
-            await PublishDeploymentPipelineQueued(editingContext, cancellationToken, build);
+            await PublishDeploymentPipelineQueued(editingContext, build, cancellationToken);
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext,
-            CancellationToken cancellationToken, Build build) =>
+        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build,
+            CancellationToken cancellationToken) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
