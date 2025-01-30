@@ -50,8 +50,6 @@ describe('Summary2Override', () => {
       render({ overrides: [{ componentId }] });
 
       await user.click(overrideCollapsedButton(1));
-      await user.click(addNewOverrideButton());
-
       expect(renderedTypeOptions()).toBeTruthy();
     },
   );
@@ -59,7 +57,6 @@ describe('Summary2Override', () => {
   it('should not render type selector when component is not multiple select nor checkbox', async () => {
     render({ overrides: [{ componentId: component1IdMock }] });
     await userEvent.click(overrideCollapsedButton(1));
-    await userEvent.click(addNewOverrideButton());
 
     expect(
       screen.queryByRole('combobox', {
