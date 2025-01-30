@@ -6,6 +6,4 @@ type TableColumnCellContent = {
 export type TableColumn = {
   headerContent: string;
   cellContent: TableColumnCellContent;
-  selectedBindingKey?: string;
-  selectedBindingField?: string;
 };

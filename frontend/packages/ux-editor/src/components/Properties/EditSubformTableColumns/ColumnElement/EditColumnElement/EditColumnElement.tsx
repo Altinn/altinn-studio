@@ -46,13 +46,7 @@ export const EditColumnElement = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const intialTableColumn: TableColumn = {
-    ...sourceColumn,
-    selectedBindingKey: undefined,
-    selectedBindingField: sourceColumn.cellContent?.query,
-  };
-
-  const [tableColumn, setTableColumn] = useState<TableColumn>(intialTableColumn);
+  const [tableColumn, setTableColumn] = useState<TableColumn>(sourceColumn);
 
   const [title, setTitle] = useState<string>(
     getValueOfTitleId(sourceColumn.headerContent, textResources),
@@ -86,18 +80,9 @@ export const EditColumnElement = ({
 
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
-    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
-    if (!selectedComponent) return;
-
-    const binding = convertDataBindingToInternalFormat(
-      selectedComponent,
-      tableColumn.selectedBindingKey,
-    );
-
     onEdit({
       ...tableColumn,
       headerContent: uniqueTitleId,
-      cellContent: { query: binding?.field },
     });
   };
 
@@ -114,10 +99,7 @@ export const EditColumnElement = ({
     if (!selectedComponent) return;
     selectComponentBinding(selectedComponent);
 
-    const bindingKey =
-      selectedComponentBindings.length > 1
-        ? Object.keys(selectedComponent.dataModelBindings)[0]
-        : 'simpleBinding';
+    const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
     const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
 
@@ -125,8 +107,6 @@ export const EditColumnElement = ({
       ...prev,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
-      selectedBindingKey: bindingKey,
-      selectedBindingField: binding?.field,
     }));
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
@@ -138,14 +118,14 @@ export const EditColumnElement = ({
     const binding = convertDataBindingToInternalFormat(selectedComponent, value[0]);
     setTableColumn((prev) => ({
       ...prev,
-      selectedBindingKey: value[0],
-      selectedBindingField: binding?.field,
+      cellContent: { query: binding?.field },
     }));
   };
 
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
   const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
-  const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
+  const isSaveButtonDisabled =
+    !tableColumn.headerContent || !title?.trim() || !tableColumn.cellContent?.query;
 
   return (
     <StudioCard className={classes.wrapper}>
@@ -160,7 +140,7 @@ export const EditColumnElement = ({
         />
         {tableColumn.headerContent && (
           <EditColumnElementContent
-            cellContent={tableColumn.selectedBindingField}
+            cellContent={tableColumn.cellContent.query}
             title={title}
             setTitle={setTitle}
           />
