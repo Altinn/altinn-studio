@@ -63,20 +63,7 @@ export const EditColumnElement = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const [selectedComponentBindings, setSelectedComponentBindings] = useState<
-    { [key: string]: string }[]
-  >([]);
-
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
-
-  const selectComponentBinding = (selectedComponent: FormItem | undefined) => {
-    if (!selectedComponent?.dataModelBindings) return;
-    const bindings = Object.entries(selectedComponent?.dataModelBindings ?? {})
-      .filter(([, value]) => Boolean(value))
-      .map(([key, value]) => ({ [key]: value }));
-
-    setSelectedComponentBindings(bindings);
-  };
 
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
@@ -97,7 +84,6 @@ export const EditColumnElement = ({
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
     if (!selectedComponent) return;
-    selectComponentBinding(selectedComponent);
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
@@ -127,17 +113,22 @@ export const EditColumnElement = ({
   const isSaveButtonDisabled =
     !tableColumn.headerContent || !title?.trim() || !tableColumn.cellContent?.query;
 
+  const component = availableComponents.find((comp) => comp.id === selectedComponentId);
+
   return (
     <StudioCard className={classes.wrapper}>
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          component={availableComponents.find((comp) => comp.id === selectedComponentId)}
           components={availableComponents}
           onSelectComponent={selectComponent}
-          selectedComponentBindings={selectedComponentBindings}
-          handleBindingChange={handleBindingChange}
         />
+        {Object.keys(component?.dataModelBindings ?? {}).length > 1 && (
+          <DataModelBindingsCombobox
+            onSelectComponent={handleBindingChange}
+            component={component}
+          />
+        )}
         {tableColumn.headerContent && (
           <EditColumnElementContent
             cellContent={tableColumn.cellContent.query}
@@ -179,47 +170,31 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
-  selectedComponentBindings?: Record<string, string>[];
-  component?: FormItem;
-  handleBindingChange?: (value: string[]) => void;
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
-  selectedComponentBindings,
-  component,
-  handleBindingChange,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
   return (
-    <>
-      <StudioCombobox
-        label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
-        description={t(
-          'ux_editor.properties_panel.subform_table_columns.choose_component_description',
-        )}
-        size='sm'
-        onValueChange={onSelectComponent}
-        id='columncomponentselect'
-      >
-        {components.map((comp: FormItem) => (
-          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-            {comp.id}
-          </StudioCombobox.Option>
-        ))}
-        <StudioCombobox.Empty key={'noComponentsWithLabel'}>
-          {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-        </StudioCombobox.Empty>
-      </StudioCombobox>
-
-      {selectedComponentBindings?.length > 1 && (
-        <DataModelBindingsCombobox
-          selectedComponentBindings={selectedComponentBindings}
-          onSelectComponent={handleBindingChange}
-          component={component}
-        />
+    <StudioCombobox
+      label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      description={t(
+        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
       )}
-    </>
+      size='sm'
+      onValueChange={onSelectComponent}
+      id='columncomponentselect'
+    >
+      {components.map((comp: FormItem) => (
+        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+          {comp.id}
+        </StudioCombobox.Option>
+      ))}
+      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
+        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
+      </StudioCombobox.Empty>
+    </StudioCombobox>
   );
 };
