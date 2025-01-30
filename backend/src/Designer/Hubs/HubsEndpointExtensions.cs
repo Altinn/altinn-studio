@@ -9,7 +9,7 @@ public static class HubsEndpointExtensions
 {
     public static void MapHubs(this IEndpointRouteBuilder endpoints)
     {
-        // all hubs should be changed to have endpoint /hubs/hub-name
+        // all hubs should have /hubs prefix
         endpoints.MapHub<PreviewHub>("/hubs/preview");
         endpoints.MapHub<SyncHub.SyncHub>("/hubs/sync");
         endpoints.MapHub<EntityUpdatedHub>("/hubs/entity-updated");
