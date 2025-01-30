@@ -1,5 +1,6 @@
 using System;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Repository.Models
@@ -23,6 +24,16 @@ namespace Altinn.Studio.Designer.Repository.Models
             entity.App = app;
             entity.Created = DateTime.UtcNow;
             entity.CreatedBy = AuthenticationHelper.GetDeveloperUserName(httpContext);
+
+            return entity;
+        }
+
+        public static BaseEntity PopulateBaseProperties(this BaseEntity entity, AltinnRepoEditingContext editingContext, TimeProvider timeProvider)
+        {
+            entity.Org = editingContext.Org;
+            entity.App = editingContext.Repo;
+            entity.Created = timeProvider.GetUtcNow().DateTime;
+            entity.CreatedBy = editingContext.Developer;
 
             return entity;
         }
