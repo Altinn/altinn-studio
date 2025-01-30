@@ -144,6 +144,15 @@ describe('StudioDecimalInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(1.2);
   });
 
+  it('Calls onChange function with null when the input field is cleared', async () => {
+    const user = userEvent.setup();
+    render();
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, '1');
+    await user.clear(inputElement);
+    expect(onChange).toHaveBeenLastCalledWith(null);
+  });
+
   it('Does not call onChange when value is invalid', async () => {
     const user = userEvent.setup();
     render();

@@ -5,7 +5,7 @@ export const isStringValidDecimalNumber = (value: string): boolean => {
 };
 
 export const convertStringToNumber = (value: string): number =>
-  value ? Number(value.replace(',', '.')) : undefined;
+  value ? Number(value.replace(',', '.')) : null;
 
 export const convertNumberToString = (value?: number): string =>
   value?.toString().replace('.', ',') || '';
