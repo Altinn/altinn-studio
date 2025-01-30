@@ -21,6 +21,7 @@ export const Summary2ComponentReferenceSelector = ({
   const invalidMessage = invalidOption && t('ux_editor.component_properties.target_invalid');
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
+
   return (
     <StudioCombobox
       size='small'
@@ -28,7 +29,6 @@ export const Summary2ComponentReferenceSelector = ({
       value={value ? [value] : []}
       onValueChange={(v) => onValueChange(v[0])}
       error={errorMessage}
-      multiple={false}
     >
       <StudioCombobox.Empty>
         {t('ux_editor.component_properties.target_empty')}

@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Altinn.Studio.Designer.Hubs.SyncHub;
+namespace Altinn.Studio.Designer.Hubs.EntityUpdate;
 
 [Authorize]
-public class SyncHub : Hub<ISyncClient>
+public class EntityUpdatedHub : Hub<IEntityUpdateClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public SyncHub(IHttpContextAccessor httpContextAccessor)
+    public EntityUpdatedHub(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }

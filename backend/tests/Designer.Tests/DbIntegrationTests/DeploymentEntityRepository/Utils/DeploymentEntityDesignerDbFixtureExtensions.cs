@@ -1,44 +1,48 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 
-namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
+namespace Designer.Tests.DbIntegrationTests;
 
-public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
+public static class DeploymentEntityDesignerDbFixtureExtensions
 {
-    public DeploymentEntityIntegrationTestsBase(DesignerDbFixture dbFixture) : base(dbFixture)
+    private readonly static JsonSerializerOptions JsonOptions = new()
     {
-    }
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
-    protected async Task PrepareEntityInDatabase(DeploymentEntity deploymentEntity)
+    public static async Task PrepareEntityInDatabase(this DesignerDbFixture dbFixture, DeploymentEntity deploymentEntity)
     {
         var dbObject = MapToDbObject(deploymentEntity);
 
-        await DbFixture.DbContext.Deployments.AddAsync(dbObject);
-        await DbFixture.DbContext.SaveChangesAsync();
-        DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
-        DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
+        await dbFixture.DbContext.Deployments.AddAsync(dbObject);
+        await dbFixture.DbContext.SaveChangesAsync();
+        dbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+        dbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
     }
 
-    protected async Task PrepareEntitiesInDatabase(IEnumerable<DeploymentEntity> deploymentEntities)
+    public static async Task PrepareEntitiesInDatabase(this DesignerDbFixture dbFixture, IEnumerable<DeploymentEntity> deploymentEntities)
     {
         var dbObjects = deploymentEntities.Select(MapToDbObject).ToList();
 
-        await DbFixture.DbContext.Deployments.AddRangeAsync(dbObjects);
-        await DbFixture.DbContext.SaveChangesAsync();
+        await dbFixture.DbContext.Deployments.AddRangeAsync(dbObjects);
+        await dbFixture.DbContext.SaveChangesAsync();
         foreach (var dbObject in dbObjects)
         {
-            DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
-            DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
+            dbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+            dbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
         }
     }
 
-    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(DeploymentEntity entity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(DeploymentEntity entity) =>
         new()
         {
             Buildid = entity.Build.Id,
