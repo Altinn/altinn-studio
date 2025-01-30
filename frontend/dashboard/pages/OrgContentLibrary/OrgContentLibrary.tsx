@@ -1,8 +1,39 @@
 import type { ReactElement } from 'react';
 import React from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { StudioAlert, StudioCenter } from '@studio/components';
+import { SelectedContextType } from '../../context/HeaderContext';
+import classes from './OrgContentLibrary.module.css';
+import { useTranslation } from 'react-i18next';
 
 export function OrgContentLibrary(): ReactElement {
+  const selectedContext = useSelectedContext();
+  const contextWithNoLibraryAccess: string[] = [
+    SelectedContextType.Self,
+    SelectedContextType.All,
+    SelectedContextType.None,
+  ];
+
+  return contextWithNoLibraryAccess.includes(selectedContext) ? (
+    <ContextWithoutLibraryAccess />
+  ) : (
+    <OrgContentLibraryWithContext />
+  );
+}
+
+function ContextWithoutLibraryAccess(): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <StudioCenter className={classes.noLibraryAccess}>
+      <StudioAlert className={classes.alert}>
+        {t('dashboard.org_library.no_org_selected')}
+      </StudioAlert>
+    </StudioCenter>
+  );
+}
+
+function OrgContentLibraryWithContext(): ReactElement {
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
