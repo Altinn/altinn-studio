@@ -11,7 +11,7 @@ public static class HubsEndpointExtensions
     {
         // all hubs should have /hubs prefix
         endpoints.MapHub<PreviewHub>("/hubs/preview");
-        endpoints.MapHub<SyncHub.SyncHub>("/hubs/sync");
+        endpoints.MapHub<Sync.SyncHub>("/hubs/sync");
         endpoints.MapHub<EntityUpdatedHub>("/hubs/entity-updated");
     }
 }

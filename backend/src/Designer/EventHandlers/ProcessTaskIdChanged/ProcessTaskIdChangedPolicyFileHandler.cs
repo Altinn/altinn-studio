@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
-using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;

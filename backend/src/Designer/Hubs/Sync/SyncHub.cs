@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Altinn.Studio.Designer.Hubs.SyncHub;
+namespace Altinn.Studio.Designer.Hubs.Sync;
 
 [Authorize]
 public class SyncHub : Hub<ISyncClient>
