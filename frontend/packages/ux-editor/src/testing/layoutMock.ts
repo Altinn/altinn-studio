@@ -81,7 +81,6 @@ export const layoutMock: IInternalLayout = {
     [componentMocks[ComponentType.FileUploadWithTag].id]:
       componentMocks[ComponentType.FileUploadWithTag],
     ComponentWithOptionsMock: componentWithOptionsMock,
-    ComponentWithMultipleSelectMock: componentWithMultipleSelectMock,
   },
   containers: {
     [baseContainerIdMock]: {

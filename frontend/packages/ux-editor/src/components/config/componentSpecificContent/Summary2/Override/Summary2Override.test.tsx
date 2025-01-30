@@ -19,6 +19,13 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;
+const layoutMockWithMultipleSelect = {
+  ...layoutMock,
+  components: {
+    ...layoutMock.components,
+    [multipleSelectId]: componentWithMultipleSelectMock,
+  },
+};
 
 describe('Summary2Override', () => {
   beforeEach(() => {
@@ -281,7 +288,7 @@ const defaultProps: Summary2OverrideProps = {
 const render = (props?: Partial<Summary2OverrideProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
-    [layout1NameMock]: layoutMock,
+    [layout1NameMock]: layoutMockWithMultipleSelect,
   });
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   renderWithProviders(<Summary2Override {...defaultProps} {...props} />, {
