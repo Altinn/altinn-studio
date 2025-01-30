@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Xunit;
 
-namespace Designer.Tests.Hubs.Sync;
+namespace Designer.Tests.Hubs.EntityUpdated;
 
 public class EntityUpdatedHubConnectionTests : DesignerEndpointsTestsBase<EntityUpdatedHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
 {
