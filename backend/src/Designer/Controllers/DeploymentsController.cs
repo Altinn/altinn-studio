@@ -59,12 +59,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query, cancellationToken);
 
-            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.HasValue && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
-            foreach (DeploymentEntity laggingDeployment in laggingDeployments)
-            {
-                await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org, cancellationToken);
-            }
-
             List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
 
             return new DeploymentsResponse

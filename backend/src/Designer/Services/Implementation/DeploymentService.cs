@@ -192,13 +192,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
+            await PublishDeploymentPipelineQueued(editingContext, cancellationToken, build);
+            await PublishDeploymentPipelineQueued(editingContext, cancellationToken, build);
+        }
 
+        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext,
+            CancellationToken cancellationToken, Build build) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
                 BuildId = build.Id
             }, cancellationToken);
-        }
 
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
