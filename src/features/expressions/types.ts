@@ -13,18 +13,21 @@ export enum ExprVal {
   Boolean = '__boolean__',
   String = '__string__',
   Number = '__number__',
+  Date = '__date__', // Actually just a string, but must be parsable as a date (ane lets us work with Date internally)
   Any = '__any__',
 }
 
-export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.String
-  ? string
-  : T extends ExprVal.Number
-    ? number
-    : T extends ExprVal.Boolean
-      ? boolean
-      : T extends ExprVal.Any
-        ? string | number | boolean | null
-        : unknown;
+export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Date
+  ? Date
+  : T extends ExprVal.String
+    ? string
+    : T extends ExprVal.Number
+      ? number
+      : T extends ExprVal.Boolean
+        ? boolean
+        : T extends ExprVal.Any
+          ? string | number | boolean | null
+          : unknown;
 
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.

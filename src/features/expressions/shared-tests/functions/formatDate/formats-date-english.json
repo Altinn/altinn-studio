@@ -1,0 +1,8 @@
+{
+  "name": "Should format date when only given a year",
+  "expression": ["formatDate", "2023"],
+  "expects": "1/1/23",
+  "profileSettings": {
+    "language": "en"
+  }
+}

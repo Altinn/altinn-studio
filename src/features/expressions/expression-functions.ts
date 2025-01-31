@@ -1,6 +1,5 @@
 import dot from 'dot-object';
 
-import { isDate } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
@@ -153,7 +152,7 @@ export const ExprFunctionDefinitions = {
     returns: ExprVal.String,
   },
   formatDate: {
-    args: args(required(ExprVal.String), optional(ExprVal.String)),
+    args: args(required(ExprVal.Date), optional(ExprVal.String)),
     returns: ExprVal.String,
   },
   round: {
@@ -468,10 +467,10 @@ export const ExprFunctionImplementations: { [K in Names]: Implementation<K> } = 
     });
   },
   formatDate(date, format) {
-    if (date === null || !isDate(date)) {
+    if (date === null) {
       return null;
     }
-    const result = formatDateLocale(this.dataSources.currentLanguage, new Date(date), format ?? undefined);
+    const result = formatDateLocale(this.dataSources.currentLanguage, date, format ?? undefined);
     if (result.includes('Unsupported: ')) {
       throw new ExprRuntimeError(this.expr, this.path, `Unsupported date format token in '${format}'`);
     }

@@ -1,0 +1,12 @@
+{
+  "name": "Should format date with format 'a' as 'f.m.'",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "a"
+  ],
+  "expects": "f.m.",
+  "profileSettings": {
+    "language": "nn"
+  }
+}

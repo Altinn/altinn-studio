@@ -1,0 +1,5 @@
+{
+  "name": "Should format date-time from backend",
+  "expression": ["formatDate", "2025-01-23T10:25:33.9729397+01:00"],
+  "expects": "23.01.2025"
+}

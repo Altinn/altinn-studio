@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: an invalid date-time past leap second, UTC",
+  "expression": [
+    "formatDate",
+    "1998-12-31T23:59:61Z",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"1998-12-31T23:59:61Z\": Format was recognized, but the date/time is invalid"
+}

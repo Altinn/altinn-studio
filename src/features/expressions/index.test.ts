@@ -45,6 +45,14 @@ describe('Expressions', () => {
         }
       }
 
+      if (def.returns === ExprVal.Date) {
+        throw new Error(
+          'Date is not a valid return type for an expression function. It is only possible to receive a Date as ' +
+            'an argument, and if you need to return a Date, you should return it as a string (formatted in a way ' +
+            'that lets the date parser parse it).',
+        );
+      }
+
       expect(def.returns).toBeDefined();
       expect(def.args).toBeDefined();
     });

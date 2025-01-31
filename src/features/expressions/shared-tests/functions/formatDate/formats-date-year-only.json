@@ -1,0 +1,5 @@
+{
+  "name": "Should format date when only given a year",
+  "expression": ["formatDate", "2023"],
+  "expects": "01.01.2023"
+}
