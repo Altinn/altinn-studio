@@ -6,7 +6,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 const pipelineDeployment: PipelineDeployment = {
   id: '1',
