@@ -26,11 +26,6 @@ const pipelineDeployment: PipelineDeployment = {
   },
 };
 
-const decommissionDeployment: PipelineDeployment = {
-  ...pipelineDeployment,
-  deploymentType: 'Decommission',
-};
-
 const defaultProps: DeploymentEnvironmentLogListProps = {
   envName: 'test',
   isProduction: false,
