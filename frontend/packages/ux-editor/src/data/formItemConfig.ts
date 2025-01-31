@@ -530,7 +530,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
-  formItemConfigs[ComponentType.Summary],
   shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
@@ -590,7 +589,6 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Image,
     ComponentType.Link,
     ComponentType.IFrame,
-    ComponentType.Summary,
   ],
   button: [
     ComponentType.Button,
