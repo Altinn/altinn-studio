@@ -47,7 +47,8 @@
           "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
         "children": [
-          "organisationLookup"
+          "organisationLookup",
+          "Input-virksomhet-epost"
         ]
       },
       {
@@ -61,7 +62,8 @@
         "type": "Group",
         "children": [
           "personLookup",
-          "Address-ORk7vt"
+          "Address-ORk7vt",
+          "Input-person-epost"
         ]
       },
       {
@@ -105,6 +107,22 @@
         }
       },
       {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "StifterVirksomhet.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-virksomhet-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-HB2jK2.title"
+        },
+        "grid": {
+          "lg": 6
+        }
+      },
+      {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
@@ -134,6 +152,22 @@
         "required": true,
         "grid": {
           "md": 12
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "StifterPerson.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-person-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-cgGsVM.title"
+        },
+        "grid": {
+          "lg": 6
         }
       },
       {

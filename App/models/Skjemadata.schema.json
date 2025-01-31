@@ -102,6 +102,10 @@
           },
           "Foedselsnummer": {
             "type": "string"
+          },
+          "Epost": {
+            "type": "string",
+            "format": "email"
           }
         },
         "required": [
@@ -124,6 +128,10 @@
           },
           "Organisasjonsnummer": {
             "type": "string"
+          },
+          "Epost": {
+            "type": "string",
+            "format": "email"
           }
         }
       }
@@ -218,6 +226,10 @@
         },
         "Organisasjonsnummer": {
           "type": "string"
+        },
+        "Epost": {
+          "type": "string",
+          "format": "email"
         }
       },
       "required": [
