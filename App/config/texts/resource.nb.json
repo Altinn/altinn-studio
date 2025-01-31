@@ -2,6 +2,18 @@
   "language": "nb",
   "resources": [
     {
+      "id": "styre-og-revisjon.Input-LXbBzK.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-HB2jK2.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-cgGsVM.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
       "id": "signering-av-stiftelsesdok.FileUpload-fU4NBP.description",
       "value": "Last opp filer som må signeres av stifterne."
     },

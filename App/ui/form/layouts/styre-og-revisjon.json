@@ -77,6 +77,23 @@
         ]
       },
       {
+        "id": "Group-ZQZ86T",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Group-ZQZ86T.title"
+        },
+        "children": [
+          "revisor-radio",
+          "Group-hMnQkh"
+        ]
+      },
+      {
+        "id": "NavigationButtons-uebNGK",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
         "dataModelBindings": {
           "group": "Styre.Styremedlem"
         },
@@ -94,23 +111,6 @@
           "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
           "person_lookup_name": "Styre.Styremedlem.Etternavn"
         }
-      },
-      {
-        "id": "Group-ZQZ86T",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Group-ZQZ86T.title"
-        },
-        "children": [
-          "revisor-radio",
-          "Group-hMnQkh"
-        ]
-      },
-      {
-        "id": "NavigationButtons-uebNGK",
-        "showBackButton": true,
-        "textResourceBindings": {},
-        "type": "NavigationButtons"
       },
       {
         "dataModelBindings": {
@@ -150,7 +150,8 @@
         ],
         "children": [
           "org-nr-revisor",
-          "Address-zMK6HS"
+          "Address-zMK6HS",
+          "Input-revisor-epost"
         ]
       },
       {
@@ -197,6 +198,23 @@
           null
         ],
         "readOnly": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "Revisor.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-revisor-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Input-LXbBzK.title"
+        },
+        "grid": {
+          "xs": 12,
+          "lg": 6
+        }
       }
     ]
   }

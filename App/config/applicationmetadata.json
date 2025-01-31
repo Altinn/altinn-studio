@@ -56,7 +56,6 @@
     },
     {
       "id": "Stiftelsesdokumenter",
-      "taskId": "Task_1",
       "allowedContentTypes": [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "image/jpeg",
@@ -75,12 +74,15 @@
         "application/rtf",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ],
+      "taskId": "Task_1",
       "maxSize": 25,
       "maxCount": 5,
       "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     },
     {
       "id": "signatures-founders",
