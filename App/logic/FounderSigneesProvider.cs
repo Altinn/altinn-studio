@@ -27,13 +27,15 @@ public class FounderSigneesProvider : ISigneeProvider
     {
         Skjemadata formData = await GetFormData(instance);
 
-        List<PersonSignee> personSignees = [];
+        List<SigneeParty> personSignees = [];
         foreach (StifterPerson stifterPerson in formData.StifterPerson)
         {
-            var personSignee = new PersonSignee
+            var personSignee = new SigneeParty
             {
-                DisplayName = stifterPerson.Fornavn + "" + stifterPerson.Mellomnavn + " " + stifterPerson.Etternavn,
-                FullName = stifterPerson.Etternavn,
+                FullName = string.Join(
+                    " ",
+                    [stifterPerson.Fornavn, stifterPerson.Mellomnavn, stifterPerson.Etternavn]
+                ),
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
                 Notifications = new Notifications
                 {
@@ -42,7 +44,10 @@ public class FounderSigneesProvider : ISigneeProvider
                         Email = new Email
                         {
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
-                            Body = "Hei " + stifterPerson.Fornavn + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            Body =
+                                "Hei "
+                                + stifterPerson.Fornavn
+                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         }
                     }
                 }
@@ -51,13 +56,17 @@ public class FounderSigneesProvider : ISigneeProvider
             personSignees.Add(personSignee);
         }
 
-        List<OrganisationSignee> organisationSignees = [];
+        List<SigneeParty> organisationSignees = [];
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
         {
-            var organisationSignee = new OrganisationSignee
+            var organisationSignee = new SigneeParty
             {
-                DisplayName = stifterVirksomhet.Navn,
-                OrganisationNumber = stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
+                OnBehalfOfOrganisation = new SigneePartyOrganisation
+                {
+                    Name = stifterVirksomhet.Navn,
+                    OrganisationNumber =
+                        stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty
+                },
                 Notifications = new Notifications
                 {
                     OnSignatureAccessRightsDelegated = new Notification
@@ -65,7 +74,10 @@ public class FounderSigneesProvider : ISigneeProvider
                         Email = new Email
                         {
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
-                            Body = "Hei " + stifterVirksomhet.Navn + ",\n\nNye stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            Body =
+                                "Hei "
+                                + stifterVirksomhet.Navn
+                                + ",\n\nNye stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         },
                     }
                 }
@@ -74,11 +86,7 @@ public class FounderSigneesProvider : ISigneeProvider
             organisationSignees.Add(organisationSignee);
         }
 
-        return new SigneesResult
-        {
-            PersonSignees = personSignees,
-            OrganisationSignees = organisationSignees
-        };
+        return new SigneesResult { Signees = [.. personSignees, .. organisationSignees], };
     }
 
     private async Task<Skjemadata> GetFormData(Instance instance)
@@ -86,8 +94,14 @@ public class FounderSigneesProvider : ISigneeProvider
         DataElement modelData = instance.Data.Single(x => x.DataType == "Skjemadata");
         InstanceIdentifier instanceIdentifier = new(instance);
 
-        return (Skjemadata)await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, typeof(Skjemadata), instance.Org,
-            instance.AppId,
-            instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
+        return (Skjemadata)
+            await _dataClient.GetFormData(
+                instanceIdentifier.InstanceGuid,
+                typeof(Skjemadata),
+                instance.Org,
+                instance.AppId,
+                instanceIdentifier.InstanceOwnerPartyId,
+                new Guid(modelData.Id)
+            );
     }
 }

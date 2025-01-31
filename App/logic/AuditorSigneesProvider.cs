@@ -25,12 +25,15 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
 
         if (formData.Revisor.HarRevisor == "nei")
         {
-            return new SigneesResult { PersonSignees = [], OrganisationSignees = [] };
+            return new SigneesResult { Signees = [] };
         }
-        var organisationSignee = new OrganisationSignee
+        var organisationSignee = new SigneeParty
         {
-            DisplayName = revisor.Navn,
-            OrganisationNumber = revisor.Organisasjonsnummer?.ToString() ?? string.Empty,
+            OnBehalfOfOrganisation = new SigneePartyOrganisation
+            {
+                Name = revisor.Navn,
+                OrganisationNumber = revisor?.Organisasjonsnummer
+            },
             Notifications = new Notifications
             {
                 OnSignatureAccessRightsDelegated = new Notification
@@ -47,7 +50,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
             }
         };
 
-        return new SigneesResult { PersonSignees = [], OrganisationSignees = [organisationSignee] };
+        return new SigneesResult { Signees = [organisationSignee] };
     }
 
     private async Task<Skjemadata> GetFormData(Instance instance)
