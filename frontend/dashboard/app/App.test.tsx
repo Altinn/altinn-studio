@@ -5,13 +5,13 @@ import { MockServicesContextWrapper } from '../dashboardTestUtils';
 import { App } from './App';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { SelectedContextType, SubRoute } from '../context/HeaderContext';
+import { SelectedContextType, Subroute } from '../context/HeaderContext';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     selectedContext: SelectedContextType.All,
-    SubRoute: SubRoute.AppDashboard,
+    Subroute: Subroute.AppDashboard,
   }),
 }));
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType, SubRoute } from 'dashboard/context/HeaderContext';
+import { HeaderContext, SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
 import { useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type User } from 'app-shared/types/Repository';
@@ -14,7 +14,7 @@ const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn().mockReturnValue({ subRoute: 'app-dashboard', selectedContext: 'self' }),
+  useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
 }));
 
 const userMock: User = {
@@ -115,7 +115,7 @@ describe('DashboardHeader', () => {
     const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
     expect(libraryMenuItem).toHaveAttribute(
       'href',
-      `${SubRoute.OrgLibrary}/${SelectedContextType.Self}`,
+      `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
     );
   });
 
@@ -124,7 +124,7 @@ describe('DashboardHeader', () => {
     const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
     expect(appsMenuItem).toHaveAttribute(
       'href',
-      `${SubRoute.AppDashboard}/${SelectedContextType.Self}`,
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
   });
 
@@ -132,7 +132,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
-      subRoute: SubRoute.AppDashboard,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -143,7 +143,7 @@ describe('DashboardHeader', () => {
     const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`${SubRoute.AppDashboard}/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledWith(`${Subroute.AppDashboard}/${mockOrg1.username}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -151,7 +151,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
-      subRoute: SubRoute.AppDashboard,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -163,7 +163,7 @@ describe('DashboardHeader', () => {
     await user.click(allItem);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      `${SubRoute.AppDashboard}/${SelectedContextType.All}`,
+      `${Subroute.AppDashboard}/${SelectedContextType.All}`,
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
@@ -172,7 +172,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.All,
-      subRoute: SubRoute.AppDashboard,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -184,7 +184,7 @@ describe('DashboardHeader', () => {
     await user.click(selfItem);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      `${SubRoute.AppDashboard}/${SelectedContextType.Self}`,
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

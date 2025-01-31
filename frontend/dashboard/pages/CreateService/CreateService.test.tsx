@@ -9,7 +9,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { useParams } from 'react-router-dom';
-import { SelectedContextType, SubRoute } from 'dashboard/context/HeaderContext';
+import { SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -72,8 +72,8 @@ describe('CreateService', () => {
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     const selectedContext = SelectedContextType.None;
-    const subRoute = SubRoute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subRoute });
+    const subroute = Subroute.AppDashboard;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
     renderWithMockServices({ user: { ...mockUser, login: '' } });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
@@ -301,40 +301,40 @@ describe('CreateService', () => {
 
   it('should set cancel link to /self when selected context is self', async () => {
     const selectedContext = SelectedContextType.Self;
-    const subRoute = SubRoute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subRoute });
+    const subroute = Subroute.AppDashboard;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
     renderWithMockServices();
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
 
-    expect(cancelLink.getAttribute('href')).toBe(`/${subRoute}/${selectedContext}`);
+    expect(cancelLink.getAttribute('href')).toBe(`/${subroute}/${selectedContext}`);
   });
 
   it('should set cancel link to /all when selected context is all', async () => {
     const selectedContext = SelectedContextType.All;
-    const subRoute = SubRoute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subRoute });
+    const subroute = Subroute.AppDashboard;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
     renderWithMockServices();
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
 
-    expect(cancelLink.getAttribute('href')).toBe(`/${subRoute}/${selectedContext}`);
+    expect(cancelLink.getAttribute('href')).toBe(`/${subroute}/${selectedContext}`);
   });
 
   it('should set cancel link to /org when selected context is org', async () => {
     const selectedContext = 'ttd';
-    const subRoute = SubRoute.AppDashboard;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext, subRoute });
+    const subroute = Subroute.AppDashboard;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext, subroute });
 
     renderWithMockServices();
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
 
-    expect(cancelLink.getAttribute('href')).toBe(`/${subRoute}/${selectedContext}`);
+    expect(cancelLink.getAttribute('href')).toBe(`/${subroute}/${selectedContext}`);
   });
 });
