@@ -16,20 +16,10 @@ public class DesignerDbFixture : IAsyncLifetime
     public DesignerdbContext DbContext;
     public async Task InitializeAsync()
     {
-        _postgreSqlContainer = new PostgreSqlBuilder()
-            .WithImagePullPolicy(PullPolicy.Missing)
-            .WithUsername("designer_admin")
-            .WithPassword("Test1234$")
-            .WithDatabase("designer")
-            .WithPortBinding(5432, true)
-            .Build();
+        _postgreSqlContainer = TestDbProvider.Instance.CreatePostgresContainer();
         await _postgreSqlContainer.StartAsync();
-
-        var options = CreatePostgresDbContextOptions();
-        DbContext = new DesignerdbContext(options);
-        // Migration scripts expect deisgner role to exist.
-        await DbContext.Database.ExecuteSqlAsync($"CREATE ROLE designer WITH LOGIN PASSWORD 'Test1234$'");
-        await DbContext.Database.MigrateAsync();
+        await TestDbProvider.Instance.MigrateAsync();
+        DbContext = TestDbProvider.Instance.DbContext;
     }
 
     private DbContextOptions<DesignerdbContext> CreatePostgresDbContextOptions()

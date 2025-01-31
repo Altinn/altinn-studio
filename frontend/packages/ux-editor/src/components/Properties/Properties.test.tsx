@@ -83,7 +83,7 @@ describe('Properties', () => {
       });
       expect(heading).toBeInTheDocument();
       const editComponentIdButton = screen.getByRole('button', {
-        name: textMock('ux_editor.id_identifier'),
+        name: textMock('ux_editor.modal_properties_component_change_id'),
       });
       expect(editComponentIdButton).toBeInTheDocument();
       await user.click(editComponentIdButton);
@@ -100,7 +100,11 @@ describe('Properties', () => {
     it('should not invoke handleUpdate when the id is invalid', async () => {
       const user = userEvent.setup();
       renderProperties();
-      await user.click(screen.getByRole('button', { name: textMock('ux_editor.id_identifier') }));
+      await user.click(
+        screen.getByRole('button', {
+          name: textMock('ux_editor.modal_properties_component_change_id'),
+        }),
+      );
 
       const invalidId = 'invalidId-01';
       await user.type(

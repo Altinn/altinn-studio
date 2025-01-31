@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Xunit;
 
-namespace Designer.Tests.Hubs.SyncHub;
+namespace Designer.Tests.Hubs.Sync;
 
 public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
 {
@@ -31,7 +31,7 @@ public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnecti
     private async Task ConnectionStarted()
     {
         HubConnection = new HubConnectionBuilder()
-            .WithUrl("ws://localhost/sync-hub", o =>
+            .WithUrl("ws://localhost/hubs/sync", o =>
             {
                 o.HttpMessageHandlerFactory = h => GetHandler(HttpClient);
             }).Build();
