@@ -6,9 +6,11 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
-const pipelineDeployment = {
+const pipelineDeployment: PipelineDeployment = {
   id: '1',
+  deploymentType: 'Deploy',
   tagName: '1',
   app: 'test',
   org: 'test',
@@ -22,6 +24,11 @@ const pipelineDeployment = {
     started: '',
     finished: '',
   },
+};
+
+const decommissionDeployment: PipelineDeployment = {
+  ...pipelineDeployment,
+  deploymentType: 'Decommission',
 };
 
 const defaultProps: DeploymentEnvironmentLogListProps = {
@@ -220,6 +227,27 @@ describe('DeploymentEnvironmentLogList', () => {
     expect(
       screen.getByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    [BuildResult.succeeded, 'app_deployment.pipeline_undeploy.build_result.succeeded'],
+    [BuildResult.failed, 'app_deployment.pipeline_undeploy.build_result.failed'],
+    [BuildResult.none, 'app_deployment.pipeline_undeploy.build_result.none'],
+  ])('should display correct text when undeploy result is %s', (buildResult, expectedTextKey) => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          deploymentType: 'Decommission',
+          build: {
+            ...pipelineDeployment.build,
+            result: buildResult,
+          },
+        },
+      ],
+    });
+
+    expect(screen.getByText(`${textMock(expectedTextKey)}`)).toBeInTheDocument();
   });
 
   it('renders build log link when started date is valid (< 30 days)', () => {

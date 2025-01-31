@@ -7,9 +7,11 @@ import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { ExternalLinkIcon } from '@studio/icons';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
+  deploymentType: PipelineDeployment['deploymentType'];
   isDeploymentInProgress?: boolean;
   lastPublishedDate?: string;
   envName: string;
@@ -19,6 +21,7 @@ export type DeploymentStatusProps = {
 
 export const DeploymentStatus = ({
   kubernetesDeployment,
+  deploymentType,
   isDeploymentInProgress,
   lastPublishedDate,
   envName,
@@ -77,7 +80,7 @@ export const DeploymentStatus = ({
     );
   }
 
-  if (!kubernetesDeployment) {
+  if (!kubernetesDeployment || deploymentType === 'Decommission') {
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -91,7 +94,7 @@ export const DeploymentStatus = ({
     );
   }
 
-  if (!kubernetesDeployment?.version) {
+  if (!kubernetesDeployment?.version && deploymentType === 'Deploy') {
     return (
       <DeploymentStatusAlert
         severity='warning'
