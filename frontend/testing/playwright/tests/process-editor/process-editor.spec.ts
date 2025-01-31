@@ -261,6 +261,7 @@ const navigateToDataModelAndCreateNewDataModel = async (
   header: Header,
   newDataModelName: string,
 ): Promise<void> => {
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
   await dataModelPage.clickOnCreateNewDataModelButton();
@@ -271,6 +272,7 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
   await dataModelPage.waitForSuccessAlertToDisappear();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 };
