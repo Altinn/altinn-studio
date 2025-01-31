@@ -7,15 +7,16 @@ import { useTextResourcesForOrgQuery } from './useTextResourcesForOrgQuery';
 const languageMock: string = 'nb';
 
 describe('useTextResourcesForOrgQuery', () => {
+  beforeEach(jest.clearAllMocks);
+
   it('calls getTextResourcesForOrg with the correct parameters', () => {
-    render();
+    renderAndWaitForResult();
     expect(queriesMock.getTextResourcesForOrg).toHaveBeenCalledWith(org, languageMock);
     expect(queriesMock.getTextResourcesForOrg).toHaveBeenCalledTimes(1);
   });
 });
 
-const render = async () => {
+const renderAndWaitForResult = async (): Promise<void> => {
   const { result } = renderHookWithProviders(() => useTextResourcesForOrgQuery(org, languageMock));
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  return result;
 };
