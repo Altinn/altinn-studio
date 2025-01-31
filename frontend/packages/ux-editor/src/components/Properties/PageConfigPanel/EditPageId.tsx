@@ -58,7 +58,6 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
           onBlur: (event) => handleSaveNewName(event.target.value),
           label: t('ux_editor.modal_properties_textResourceBindings_page_id'),
           size: 'small',
-          className: classes.idInput,
         }}
         customValidation={(value: string) => {
           const validationResult = getPageNameErrorKey(value, layoutName, layoutOrder);

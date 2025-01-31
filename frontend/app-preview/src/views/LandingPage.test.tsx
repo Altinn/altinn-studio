@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
-import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
@@ -60,7 +60,6 @@ describe('LandingPage', () => {
 
   it('should display the user profile menu', async () => {
     const user = userEvent.setup();
-
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     renderLandingPage({
       getUser: jest.fn().mockImplementation(() => Promise.resolve(userMock)),
@@ -89,6 +88,20 @@ describe('LandingPage', () => {
 
     const iframe = screen.getByTitle(textMock('preview.title'));
     expect(iframe).toHaveAttribute('src', `/app-specific-preview/${org}/${app}?`);
+  });
+
+  it('should display a warning message when previewing a subform', async () => {
+    renderLandingPage({
+      getLayoutSets: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve({ sets: [{ id: '', type: 'subform' }] })),
+    });
+
+    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+
+    expect(
+      screen.getByText(textMock('ux_editor.preview.subform_unsupported_warning')),
+    ).toBeInTheDocument();
   });
 });
 
