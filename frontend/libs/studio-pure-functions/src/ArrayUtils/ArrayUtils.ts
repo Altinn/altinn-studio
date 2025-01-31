@@ -72,6 +72,11 @@ export class ArrayUtils {
     return [item, ...array];
   }
 
+  /** Appends an item to the end of an array if the array exists, otherwise creates a new array with the item. */
+  public static appendOrCreate<T>(array: T[], item: T): T[] {
+    return array ? [...array, item] : [item];
+  }
+
   public static isDuplicate<T>(value: T, valueList: T[]): boolean {
     return valueList.filter((item) => item === value).length > 1;
   }

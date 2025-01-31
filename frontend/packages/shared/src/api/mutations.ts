@@ -50,6 +50,7 @@ import {
   optionListPath,
   undeployAppFromEnvPath,
   orgCodeListPath,
+  orgCodeListUploadPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -174,9 +175,9 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 // Organisation library code lists:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14505
 export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListData> => post(orgCodeListPath(org, codeListId), payload);
-export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<void> => Promise.resolve();
-export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<void> => Promise.resolve();
-export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<void> => Promise.resolve();
+export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListData> => put(orgCodeListPath(org, codeListId), payload);
+export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<string> => del(orgCodeListPath(org, codeListId));
+export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListData> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
