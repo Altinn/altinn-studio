@@ -13,12 +13,6 @@ export type ServiceNames<T extends string> = {
   [key in T]: string | undefined;
 };
 
-export enum RecommendedLanguageFlags {
-  nb = '🇳🇴',
-  nn = '🇳🇴',
-  en = '🇬🇧',
-}
-
 export type InputFieldsProps<T extends string> = {
   appLangCodes: string[];
   onSave: (serviceName: string, language: string) => void;
@@ -78,7 +72,7 @@ type EditServiceNameForLanguageProps = {
   appLangCodes: string[];
   language: string;
   onSave: (serviceName: string, language: string) => void;
-  serviceName: string;
+  serviceName: string | undefined;
 };
 
 function EditServiceNameForLanguage({
@@ -97,7 +91,7 @@ function EditServiceNameForLanguage({
     if (isValid) onSave(event.target.value, language);
   };
 
-  const validateServiceName = (newServiceName: string): Boolean => {
+  const validateServiceName = (newServiceName: string): boolean => {
     if (newServiceName.length <= 0) {
       setServiceNameError(t('settings_modal.about_tab_name_error'));
       return false;
@@ -111,7 +105,6 @@ function EditServiceNameForLanguage({
 
   return (
     <StudioIconTextfield
-      icon={<FlagIcon language={language} />}
       size='small'
       label={t(`language.${language}`)}
       description={description}
@@ -123,12 +116,3 @@ function EditServiceNameForLanguage({
     />
   );
 }
-
-type FlagIconProps = {
-  language: string;
-};
-
-const FlagIcon = ({ language }: FlagIconProps): React.ReactNode => {
-  const languageHasFlag = !!RecommendedLanguageFlags[language];
-  return languageHasFlag ? <span>{RecommendedLanguageFlags[language]}</span> : null;
-};
