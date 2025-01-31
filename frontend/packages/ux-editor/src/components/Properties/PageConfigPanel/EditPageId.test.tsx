@@ -23,7 +23,9 @@ const layoutSetName = layoutSet1NameMock;
 describe('EditPageId', () => {
   it('renders given page ID', () => {
     renderEditPageId();
-    screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+    });
   });
 
   it('calls updateFormLayoutName and textIdMutation with new page ID when changed', async () => {
@@ -36,7 +38,9 @@ describe('EditPageId', () => {
       updateFormLayoutName,
     };
     renderEditPageId(mockQueries);
-    const pageIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const pageIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+    });
     await user.click(pageIdButton);
     const editPageId = screen.getByLabelText(
       textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
@@ -66,7 +70,9 @@ describe('EditPageId', () => {
       updateFormLayoutName,
     };
     renderEditPageId(mockQueries);
-    const pageIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const pageIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+    });
     await user.click(pageIdButton);
     const editPageId = screen.getByLabelText(
       textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
@@ -83,7 +89,9 @@ describe('EditPageId', () => {
     renderEditPageId();
     const notUniqueErrorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(notUniqueErrorMessage).not.toBeInTheDocument();
-    const pageIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    const pageIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+    });
     await user.click(pageIdButton);
     const editPageId = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
