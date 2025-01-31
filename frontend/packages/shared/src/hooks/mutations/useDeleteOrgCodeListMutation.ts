@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { QueryKey } from '../../types/QueryKey';
 
 type DeleteOrgCodeListMutationArgs = {
   codeListId: string;

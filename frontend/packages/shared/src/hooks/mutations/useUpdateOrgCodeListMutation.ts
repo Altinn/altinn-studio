@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
-import type { CodeList } from '@studio/components';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import type { CodeList } from '../../types/CodeList';
+import { QueryKey } from '../../types/QueryKey';
 
 type UpdateOrgCodeListMutationArgs = {
   codeListId: string;
