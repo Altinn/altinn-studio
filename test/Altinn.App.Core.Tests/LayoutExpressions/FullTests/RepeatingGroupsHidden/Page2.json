@@ -1,0 +1,117 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["equals", ["dataModel", "some.hidePage2"], true],
+    "layout": [
+      {
+        "dataModelBindings": {
+          "group": "some.data"
+        },
+        "id": "RepeatingGroup-LRetJ5",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Page2.RepeatingGroup-LRetJ5.title",
+          "description": "Page2.RepeatingGroup-LRetJ5.description",
+          "add_button_full": "Page2.RepeatingGroup-LRetJ5.add_button_full"
+        },
+        "maxCount": 10,
+        "minCount": 1,
+        "tableHeaders": [
+          "TextArea-ZN2NZv",
+          "Input-KnKNy4"
+        ],
+        "stickyHeader": true,
+        "validateOnSaveRow": ["Required"],
+        "edit": {
+          "addButton": true,
+          "deleteButton": true,
+          "saveAndNextButton": false,
+          "openByDefault": "first",
+          "alwaysShowAddButton": true
+        },
+        "children": [
+          "TextArea-ZN2NZv",
+          "Dropdown-Yx0sME",
+          "Input-KnKNy4"
+        ],
+        "hiddenRow": [
+          "notEquals",
+          ["dataModel", "some.data.prodVareNr"],
+          null
+        ],
+        "tableColumns": {
+          "TextArea-ZN2NZv": {
+            "width": "60%",
+            "textOverflow": {
+              "lineWrap": true,
+              "maxHeight": 5
+            }
+          },
+          "Input-KnKNy4": {
+            "width": "40%"
+          }
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodBeskrivelse"
+        },
+        "id": "TextArea-ZN2NZv",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Page2.TextArea-ZN2NZv.title",
+          "description": "Page2.TextArea-ZN2NZv.description",
+          "tableTitle": "Page2.TextArea-ZN2NZv.tableTitle"
+        },
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodMengdeEnhet",
+          "label": "some.data.prodMengdeEnhetNavn"
+        },
+        "optionsId": "mengdeEnheter",
+        "secure": false,
+        "id": "Dropdown-Yx0sME",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Page2.Dropdown-Yx0sME.title"
+        },
+        "required": true,
+        "grid": {
+          "md": 4
+        },
+        "alertOnChange": false
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodMengde"
+        },
+        "id": "Input-KnKNy4",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Page2.Input-KnKNy4.title",
+          "tableTitle": "Page2.Input-KnKNy4.tableTitle"
+        },
+        "autocomplete": "off",
+        "required": true,
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "allowNegative": false,
+            "decimalScale": 0,
+            "suffix": ["text", "Page2.Input-KnKNy4.suffiks"]
+          }
+        },
+        "grid": {
+          "md": 12,
+          "innerGrid": {
+            "md": 3
+          }
+        },
+        "hidden": ["equals",["dataModel", "some.data.prodMengdeEnhetNavn"],null]
+      }
+    ]
+  }
+}

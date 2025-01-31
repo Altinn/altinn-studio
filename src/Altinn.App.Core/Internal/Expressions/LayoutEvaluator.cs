@@ -14,10 +14,7 @@ public static class LayoutEvaluator
     /// <summary>
     /// Get a list of fields that are only referenced in hidden components in <see cref="LayoutEvaluatorState" />
     /// </summary>
-    public static async Task<List<DataReference>> GetHiddenFieldsForRemoval(
-        LayoutEvaluatorState state,
-        bool includeHiddenRowChildren = false
-    )
+    public static async Task<List<DataReference>> GetHiddenFieldsForRemoval(LayoutEvaluatorState state)
     {
         var hiddenModelBindings = new HashSet<DataReference>();
         var nonHiddenModelBindings = new HashSet<DataReference>();
@@ -25,13 +22,7 @@ public static class LayoutEvaluator
         var pageContexts = await state.GetComponentContexts();
         foreach (var pageContext in pageContexts)
         {
-            await HiddenFieldsForRemovalRecurs(
-                state,
-                includeHiddenRowChildren,
-                hiddenModelBindings,
-                nonHiddenModelBindings,
-                pageContext
-            );
+            await HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, pageContext);
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
@@ -40,7 +31,6 @@ public static class LayoutEvaluator
 
     private static async Task HiddenFieldsForRemovalRecurs(
         LayoutEvaluatorState state,
-        bool includeHiddenRowChildren,
         HashSet<DataReference> hiddenModelBindings,
         HashSet<DataReference> nonHiddenModelBindings,
         ComponentContext context
@@ -55,29 +45,22 @@ public static class LayoutEvaluator
         }
 
         var isHidden = await context.IsHidden(state);
-        // Ignore children of hidden rows if includeHiddenRowChildren is false
-        if (!includeHiddenRowChildren && isHidden)
+        if (context.Component is RepeatingGroupRowComponent or RepeatingGroupComponent)
         {
-            if (context.Component is RepeatingGroupRowComponent or RepeatingGroupComponent)
+            if (context.Component.DataModelBindings.TryGetValue("group", out var groupBinding))
             {
-                if (context.Component.DataModelBindings.TryGetValue("group", out var groupBinding))
-                {
-                    var indexedBinding = await state.AddInidicies(groupBinding, context);
-                    hiddenModelBindings.Add(indexedBinding);
-                }
-                return;
+                var indexedBinding = await state.AddInidicies(groupBinding, context);
+                (isHidden ? hiddenModelBindings : nonHiddenModelBindings).Add(indexedBinding);
             }
+
+            if (isHidden)
+                return;
         }
+
         // Recurse children
         foreach (var childContext in context.ChildContexts)
         {
-            await HiddenFieldsForRemovalRecurs(
-                state,
-                includeHiddenRowChildren,
-                hiddenModelBindings,
-                nonHiddenModelBindings,
-                childContext
-            );
+            await HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, childContext);
         }
 
         // Remove data if hidden
