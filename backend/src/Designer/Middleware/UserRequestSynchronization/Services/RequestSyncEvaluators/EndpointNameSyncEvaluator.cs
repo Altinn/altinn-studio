@@ -74,7 +74,8 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             TrimmedControllerName(nameof(DeploymentsController)),
             GenerateFrozenSet(
-                nameof(DeploymentsController.Create)
+                nameof(DeploymentsController.Create),
+                nameof(DeploymentsController.Undeploy)
             )
         },
         {

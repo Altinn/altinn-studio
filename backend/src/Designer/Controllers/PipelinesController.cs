@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -61,9 +62,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("checkdeploymentbuildstatus")]
         // Route that is consistent with newer version
         [Route("check-deployment-build-status")]
+        [Obsolete]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
-            await _deploymentService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
+            // Updating of the status is done with the quartz job.
+            // This method is obsolete and should be removed when the pipeline is updated.
+            await Task.CompletedTask;
             return Ok();
         }
     }

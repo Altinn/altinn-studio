@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Hubs;
-using AltinnCore.Authentication.Constants;
+using Altinn.Studio.Designer.Hubs.Preview;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -29,8 +27,8 @@ public class PreviewHubTests
     public async Task SignalR_ServerToClientCommunication_ShouldReturn1MessageToClient()
     {
         // arrange
-        Mock<IHubCallerClients> mockClients = new();
-        Mock<IClientProxy> mockClientProxy = new();
+        Mock<IHubCallerClients<IPreviewClient>> mockClients = new();
+        Mock<IPreviewClient> mockClientProxy = new();
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
@@ -47,8 +45,8 @@ public class PreviewHubTests
     public async Task SignalR_ClientWithDifferentDeveloperName_ShouldNotReceiveMessage()
     {
         // arrange
-        Mock<IHubCallerClients> mockClients = new();
-        Mock<IClientProxy> mockClientProxy = new();
+        Mock<IHubCallerClients<IPreviewClient>> mockClients = new();
+        Mock<IPreviewClient> mockClientProxy = new();
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
