@@ -6,7 +6,12 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ISelectionComponent, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { CompTypes } from 'src/layout/layout';
-import type { DefPluginExtraState, DefPluginStateFactoryProps } from 'src/utils/layout/plugins/NodeDefPlugin';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
+import type {
+  DefPluginExtraState,
+  DefPluginState,
+  DefPluginStateFactoryProps,
+} from 'src/utils/layout/plugins/NodeDefPlugin';
 
 interface Config<SupportsPreselection extends boolean> {
   componentType: CompTypes;
@@ -70,5 +75,13 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
         valueType={'${this.settings!.type}'}
         allowEffects={${allowsEffects ? 'true' : 'false'}}
       />`.trim();
+  }
+
+  stateIsReady(state: DefPluginState<ToInternal<E>>, fullState: NodesContext): boolean {
+    if (!super.stateIsReady(state, fullState)) {
+      return false;
+    }
+
+    return !!state.options;
   }
 }

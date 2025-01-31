@@ -11,6 +11,8 @@ import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
+import { getTargetUrl } from 'test/e2e/support/start-app-instance';
+
 import type { ILayoutFile } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
@@ -597,7 +599,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
        </html>`,
     ),
   );
-  cy.visit('/screenshot');
+  cy.visit(getTargetUrl('screenshot'));
 
   cy.percySnapshot(snapshotName, { widths: [width], minHeight });
 
@@ -608,7 +610,6 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   }
 });
 
-const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
 Cypress.Commands.add('testPdf', ({ snapshotName = false, beforeReload, callback, returnToForm = false }) => {
   cy.log('Testing PDF');
 
@@ -662,14 +663,16 @@ Cypress.Commands.add('testPdf', ({ snapshotName = false, beforeReload, callback,
       cy.viewport(794, 1123);
       cy.get('body').invoke('css', 'margin', '0.75in');
 
-      cy.then(() => Cypress.config('defaultCommandTimeout', 0));
-
-      // Verify that generic elements that should be hidden are not present
-      cy.findAllByRole('button').should('not.exist');
-      // Run tests from callback
-      callback();
-
-      cy.then(() => Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT));
+      cy.then(() => {
+        const timeout = setTimeout(() => {
+          throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
+        }, 0);
+        // Verify that generic elements that should be hidden are not present
+        cy.findAllByRole('button').should('not.exist');
+        // Run tests from callback
+        callback();
+        cy.then(() => clearTimeout(timeout));
+      });
 
       if (snapshotName) {
         // Take snapshot of PDF

@@ -177,6 +177,26 @@ describe('PDF', () => {
     });
   });
 
+  it('options should load before #readyForPrint is shown', () => {
+    cy.goto('changename');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
+
+    cy.intercept(/.*\/options\/(list|references|test).*/, async (r) => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      r.continue();
+    });
+
+    cy.testPdf({
+      callback: () => {
+        cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
+        cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
+        cy.getSummary('Referanse 2').should('contain.text', 'Dole');
+      },
+    });
+  });
+
   it('should generate PDF for group step', () => {
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
