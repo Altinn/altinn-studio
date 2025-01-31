@@ -24,6 +24,11 @@ namespace Altinn.App.AppLogic.DataProcessing
     /// <param name="prefill">External prefill available under instansiation if supplied</param>
     public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
     {
+      if (data.GetType() == typeof(task2))
+      {
+        return;
+      }
+      
       MessageV1 skjema = (MessageV1)data;
       if (data.GetType() == typeof(MessageV1))
       {

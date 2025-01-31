@@ -61,16 +61,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("JobTitle")]
     public string JobTitle { get; set; }
 
-    // [XmlElement("queryParam2")]
-    // [JsonProperty("queryParam2")]
-    // [JsonPropertyName("queryParam2")]
-    // public string queryParam2 { get; set; }
-    //
-    // [XmlElement("queryParam3")]
-    // [JsonProperty("queryParam3")]
-    // [JsonPropertyName("queryParam3")]
-    // public string queryParam3 { get; set; }
-
   }
   public class OpplysningerOmArbeidstakerengrp8819{
     [Range(1,Int32.MaxValue)]
