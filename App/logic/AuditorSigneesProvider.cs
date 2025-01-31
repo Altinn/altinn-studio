@@ -37,6 +37,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
                 {
                     Email = new Email
                     {
+                        EmailAddress = revisor.Epost,
                         Subject = "Revisjonsoppdrag mottatt for signering i Altinn",
                         Body =
                             "Nytt revisjonsoppdrag for "

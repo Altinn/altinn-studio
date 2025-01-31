@@ -41,6 +41,7 @@ public class FounderSigneesProvider : ISigneeProvider
                     {
                         Email = new Email
                         {
+                            EmailAddress = stifterPerson.Epost,
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
                             Body = "Hei " + stifterPerson.Fornavn + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         }
@@ -64,6 +65,7 @@ public class FounderSigneesProvider : ISigneeProvider
                     {
                         Email = new Email
                         {
+                            EmailAddress = stifterVirksomhet.Epost,
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
                             Body = "Hei " + stifterVirksomhet.Navn + ",\n\nNye stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         },
