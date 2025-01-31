@@ -62,7 +62,6 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     super({
       ...defaultConfig,
       ...settings,
-      componentType: 'unknown' as TypesFromCategory<CompCategory.Container>,
     } as Combined<E>);
   }
 
@@ -82,8 +81,7 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
       throw new Error('Component not set, cannot make constructor args for plugin not attached to a component');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.settings.componentType = this.component.type as any;
+    this.settings.componentType = this.component.type as TypesFromCategory<CompCategory.Container>;
     return this.makeConstructorArgsWithoutDefaultSettings(defaultConfig, asGenericArgs);
   }
 
@@ -108,9 +106,24 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ idMutators, item }: DefPluginStateFactoryProps<ToInternal<E>>) {
+  itemFactory({ idMutators, item, layoutMap, getCapabilities }: DefPluginStateFactoryProps<ToInternal<E>>) {
     const raw = (item[this.settings.externalProp] ?? []) as string[];
-    const children = raw.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
+    const children: string[] = [];
+    for (const childId of raw) {
+      if (this.settings.onlyWithCapability) {
+        const rawLayout = layoutMap[childId];
+        if (!rawLayout) {
+          continue;
+        }
+        const capabilities = getCapabilities(rawLayout.type);
+        if (!capabilities[this.settings.onlyWithCapability]) {
+          // No need to log again, we already do that in claimChildren
+          continue;
+        }
+      }
+      const id = idMutators.reduce((id, mutator) => mutator(id), childId);
+      children.push(id);
+    }
 
     return {
       [this.settings.externalProp]: undefined,

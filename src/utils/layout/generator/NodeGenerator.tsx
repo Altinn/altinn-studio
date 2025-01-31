@@ -7,7 +7,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { getComponentDef, getNodeConstructor } from 'src/layout';
+import { getComponentCapabilities, getComponentDef, getNodeConstructor } from 'src/layout';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
@@ -113,12 +113,16 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonPr
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage()?.pageKey ?? '';
   const idMutators = GeneratorInternal.useIdMutators() ?? [];
+  const layoutMap = GeneratorInternal.useLayoutMap();
+  const getCapabilities = (type: CompTypes) => getComponentCapabilities(type);
   const stateFactoryProps = {
     item: intermediateItem,
     parent,
     rowIndex,
     pageKey,
     idMutators,
+    layoutMap,
+    getCapabilities,
   } satisfies StateFactoryProps<T>;
   const isAdded = NodesInternal.useIsAdded(node);
 

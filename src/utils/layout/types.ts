@@ -1,5 +1,13 @@
+import type { CompCapabilities } from 'src/codegen/Config';
 import type { CompDef } from 'src/layout';
-import type { CompIntermediate, CompIntermediateExact, CompInternal, CompTypes, TypeFromNode } from 'src/layout/layout';
+import type {
+  CompExternal,
+  CompIntermediate,
+  CompIntermediateExact,
+  CompInternal,
+  CompTypes,
+  TypeFromNode,
+} from 'src/layout/layout';
 import type { ChildIdMutator } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -21,6 +29,8 @@ export interface StateFactoryProps<Type extends CompTypes> {
   parent: LayoutNode | LayoutPage;
   rowIndex: number | undefined;
   idMutators: ChildIdMutator[];
+  layoutMap: Record<string, CompExternal>;
+  getCapabilities: (type: CompTypes) => CompCapabilities;
 }
 
 export interface GeneratorErrors {
