@@ -43,6 +43,7 @@ public class FounderSigneesProvider : ISigneeProvider
                     {
                         Email = new Email
                         {
+                            EmailAddress = stifterPerson.Epost,
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
                             Body =
                                 "Hei "
@@ -73,6 +74,7 @@ public class FounderSigneesProvider : ISigneeProvider
                     {
                         Email = new Email
                         {
+                            EmailAddress = stifterVirksomhet.Epost,
                             Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
                             Body =
                                 "Hei "
