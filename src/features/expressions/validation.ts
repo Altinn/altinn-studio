@@ -1,8 +1,12 @@
 import { argTypeAt, ExprTypes } from 'src/features/expressions';
-import { ExprFunctions, type FuncDef } from 'src/features/expressions/expression-functions';
+import {
+  ExprFunctionDefinitions,
+  ExprFunctionValidationExtensions,
+} from 'src/features/expressions/expression-functions';
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ExprVal } from 'src/features/expressions/types';
-import type { Expression, ExprFunction, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { AnyFuncDef, FuncValidationDef } from 'src/features/expressions/expression-functions';
+import type { AnyExprArg, Expression, ExprFunction, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',
@@ -76,7 +80,7 @@ function validateFunctionArgs(
   ctx: ValidationContext,
   path: string[],
 ) {
-  const expected = ExprFunctions[func].args;
+  const expected = ExprFunctionDefinitions[func].args;
   const maxIdx = Math.max(expected.length, actual.length);
   for (let idx = 0; idx < maxIdx; idx++) {
     validateFunctionArg(func, idx, actual, ctx, path);
@@ -89,19 +93,24 @@ function validateFunctionArgLength(
   ctx: ValidationContext,
   path: string[],
 ) {
-  const expected = ExprFunctions[func].args;
-
-  let minExpected = ExprFunctions[func]?.minArguments;
-  if (minExpected === undefined) {
-    minExpected = expected.length;
+  const expected = ExprFunctionDefinitions[func].args as AnyExprArg[];
+  if (expected.length === 0) {
+    if (actual.length !== 0) {
+      addError(ctx, path, ValidationErrorMessage.ArgsWrongNum, '0', `${actual.length}`);
+    }
+    return;
   }
 
-  const canSpread = ExprFunctions[func].lastArgSpreads;
+  const firstOptionalIdx = expected.findIndex((arg) => arg.variant === 'optional' || arg.variant === 'rest');
+  const minExpected = firstOptionalIdx === -1 ? expected.length : firstOptionalIdx;
+
+  const lastArg = expected[expected.length - 1];
+  const canSpread = lastArg?.variant === 'rest';
   if (canSpread && actual.length >= minExpected) {
     return;
   }
 
-  const maxExpected = ExprFunctions[func]?.args.length;
+  const maxExpected = expected.length;
   if (actual.length < minExpected || actual.length > maxExpected) {
     let expected = `${minExpected}`;
     if (canSpread) {
@@ -115,10 +124,8 @@ function validateFunctionArgLength(
 }
 
 function validateFunction(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  funcName: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rawArgs: any[],
+  funcName: unknown,
+  rawArgs: unknown[],
   argTypes: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
@@ -130,15 +137,18 @@ function validateFunction(
 
   const pathArgs = [...path.slice(0, path.length - 1)];
 
-  if (funcName in ExprFunctions) {
+  if (funcName in ExprFunctionDefinitions) {
     validateFunctionArgs(funcName as ExprFunction, argTypes, ctx, pathArgs);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const def = ExprFunctions[funcName] as FuncDef<any, any>;
-    if (def.validator) {
-      def.validator({ rawArgs, argTypes, ctx, path: pathArgs });
-    } else {
+    const def = ExprFunctionDefinitions[funcName as ExprFunction] as AnyFuncDef;
+    const validatorExt = ExprFunctionValidationExtensions[funcName] as FuncValidationDef | undefined;
+    const numErrorsBefore = Object.keys(ctx.errors).length;
+    if (validatorExt?.runNumArgsValidator !== false) {
       validateFunctionArgLength(funcName as ExprFunction, argTypes, ctx, pathArgs);
+    }
+    if (validatorExt?.validator && Object.keys(ctx.errors).length === numErrorsBefore) {
+      // Skip the custom validator if the argument length is wrong
+      validatorExt.validator({ rawArgs, argTypes, ctx, path: pathArgs });
     }
 
     return def.returns;
@@ -195,7 +205,7 @@ function validateRecursively(expr: any, ctx: ValidationContext, path: string[]):
 export function canBeExpression(expr: any, checkIfValidFunction = false): expr is [] {
   const firstPass = Array.isArray(expr) && expr.length >= 1 && typeof expr[0] === 'string';
   if (checkIfValidFunction && firstPass) {
-    return expr[0] in ExprFunctions;
+    return expr[0] in ExprFunctionDefinitions;
   }
 
   return firstPass;

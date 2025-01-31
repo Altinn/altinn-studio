@@ -1,4 +1,4 @@
-import { ExprFunctions } from 'src/features/expressions/expression-functions';
+import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { implementsDisplayData } from 'src/layout';
 import { getComponentConfigs } from 'src/layout/components.generated';
@@ -34,7 +34,7 @@ describe('Shared function tests should exist', () => {
   });
 
   describe('Function tests', () => {
-    for (const exprFunc of Object.keys(ExprFunctions)) {
+    for (const exprFunc of Object.keys(ExprFunctionDefinitions)) {
       it(`Expression function ${exprFunc} should have a test folder`, () => {
         expect(sharedTests?.content.find(({ folderName }) => folderName === exprFunc)).toBeTruthy();
       });

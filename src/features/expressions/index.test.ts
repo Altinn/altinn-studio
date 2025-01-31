@@ -1,6 +1,8 @@
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
+import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { evalExpr } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
+import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
 import type { ExprConfig } from 'src/features/expressions/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -23,49 +25,28 @@ describe('Expressions', () => {
     ).toEqual('hello world');
   });
 
-  describe('formatDate', () => {
-    it('should be able to format a date when the selected language is norwegian', () => {
-      const dataSources = {
-        formDataSelector: () => null,
-        applicationSettings: {},
-        hiddenFields: new Set<string>(),
-        instanceDataSources: {},
-        langToolsRef: { current: {} },
-        currentLanguage: 'nb',
-      } as unknown as ExpressionDataSources;
-      const node = new NodeNotFoundWithoutContext('test');
+  describe('all function definitions should be valid', () => {
+    it.each(Object.keys(ExprFunctionDefinitions))('%s should have a valid function definition', (name) => {
+      const def = ExprFunctionDefinitions[name] as AnyFuncDef;
 
-      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
-      expect(result).toEqual('26.10.2023');
-    });
+      let optionalFound = false;
+      let restFound = false;
+      for (const arg of def.args) {
+        if (!optionalFound && !restFound && arg.variant === 'optional') {
+          optionalFound = true;
+        } else if (!restFound && arg.variant === 'rest') {
+          restFound = true;
+        } else if (arg.variant === 'required' && (optionalFound || restFound)) {
+          throw new Error('Required argument found after optional or rest argument');
+        } else if (arg.variant === 'optional' && restFound) {
+          throw new Error('Optional argument found after rest argument');
+        } else if (arg.variant === 'rest' && restFound) {
+          throw new Error('Multiple rest arguments found');
+        }
+      }
 
-    it('should be able to format a date when the selected language is english', () => {
-      const dataSources = {
-        formDataSelector: () => null,
-        applicationSettings: {},
-        hiddenFields: new Set<string>(),
-        instanceDataSources: {},
-        langToolsRef: { current: {} },
-        currentLanguage: 'en',
-      } as unknown as ExpressionDataSources;
-      const node = new NodeNotFoundWithoutContext('test');
-
-      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
-      expect(result).toEqual('10/26/23');
-    });
-
-    it('should be able to specify a custom format in which the date should be formatted', () => {
-      const dataSources = {
-        formDataSelector: () => null,
-        applicationSettings: {},
-        hiddenFields: new Set<string>(),
-        instanceDataSources: {},
-        langToolsRef: { current: {} },
-      } as unknown as ExpressionDataSources;
-      const node = new NodeNotFoundWithoutContext('test');
-
-      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z', 'dd.MM'], node, dataSources);
-      expect(result).toEqual('26.10');
+      expect(def.returns).toBeDefined();
+      expect(def.args).toBeDefined();
     });
   });
 });

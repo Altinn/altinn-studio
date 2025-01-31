@@ -8,7 +8,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getSharedTests } from 'src/features/expressions/shared';
+import { getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
@@ -17,7 +17,6 @@ import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
@@ -267,7 +266,7 @@ describe('Expressions shared function tests', () => {
             valueArguments={valueArguments}
           />
         ),
-        inInstance: !!instance,
+        inInstance: !!instance || !!dataModels,
         queries: {
           fetchLayoutSets: async () => ({
             sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
