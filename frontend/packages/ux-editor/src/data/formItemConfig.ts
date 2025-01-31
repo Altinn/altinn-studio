@@ -589,6 +589,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Image,
     ComponentType.Link,
     ComponentType.IFrame,
+    shouldDisplayFeature(FeatureFlag.Summary2) && ComponentType.Summary2,
   ],
   button: [
     ComponentType.Button,
