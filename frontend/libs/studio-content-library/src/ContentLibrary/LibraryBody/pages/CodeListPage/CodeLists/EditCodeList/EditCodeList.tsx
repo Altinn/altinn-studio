@@ -110,9 +110,9 @@ function EditCodeListTitle({
   return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
       inputProps={{
         label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        icon: <KeyVerticalIcon />,
         title: t('app_content_library.code_lists.code_list_edit_id_title', {
           codeListName: codeListTitle,
         }),
@@ -121,9 +121,7 @@ function EditCodeListTitle({
         size: 'small',
       }}
       viewProps={{
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        children: codeListTitle,
-        variant: 'tertiary',
+        value: codeListTitle,
         title: t('app_content_library.code_lists.code_list_view_id_title', {
           codeListName: codeListTitle,
         }),
@@ -135,6 +133,7 @@ function EditCodeListTitle({
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
+      className={classes.displayTitle}
     />
   );
 }

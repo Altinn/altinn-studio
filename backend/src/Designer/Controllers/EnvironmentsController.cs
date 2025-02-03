@@ -5,15 +5,14 @@ using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// This is the API controller for functionality related to environments.
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-
     public class EnvironmentsController : ControllerBase
     {
         private readonly IEnvironmentsService _environmentsService;
