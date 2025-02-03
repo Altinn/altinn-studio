@@ -39,7 +39,9 @@ describe('WebSocketEntityUpdateWrapper', () => {
 
     const mockOnWSMessageReceived = jest
       .fn()
-      .mockImplementation((callback: Function) => callback(entityUpdatedMock));
+      .mockImplementation((callback: (message: EntityUpdated) => void) =>
+        callback(entityUpdatedMock),
+      );
 
     (useWebSocket as jest.Mock).mockReturnValue({
       ...jest.requireActual('app-development/hooks/useWebSocket'),
@@ -65,7 +67,9 @@ describe('WebSocketEntityUpdateWrapper', () => {
     invalidator.invalidateQueriesByResourceName = jest.fn();
     const mockOnWSMessageReceived = jest
       .fn()
-      .mockImplementation((callback: Function) => callback(entityUpdatedMock));
+      .mockImplementation((callback: (message: EntityUpdated) => void) =>
+        callback(entityUpdatedMock),
+      );
 
     (useWebSocket as jest.Mock).mockReturnValue({
       ...jest.requireActual('app-development/hooks/useWebSocket'),
