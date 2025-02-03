@@ -27,7 +27,7 @@ describe('WebSocketSyncWrapper', () => {
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['FileSyncSuccess', 'FileSyncError'],
+      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdate'],
       webSocketUrl: syncEventsWebSocketHub(),
       webSocketConnector: WSConnector,
     });
