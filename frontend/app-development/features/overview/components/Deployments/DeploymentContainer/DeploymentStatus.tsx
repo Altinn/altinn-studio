@@ -80,7 +80,8 @@ export const DeploymentStatus = ({
     );
   }
 
-  if (!kubernetesDeployment || deploymentType === 'Decommission') {
+  const isUndeploy = deploymentType === 'Decommission';
+  if (!kubernetesDeployment || isUndeploy) {
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -93,8 +94,8 @@ export const DeploymentStatus = ({
       />
     );
   }
-
-  if (!kubernetesDeployment?.version && deploymentType === 'Deploy') {
+  const isDeploy = deploymentType === 'Deploy';
+  if (!kubernetesDeployment?.version && isDeploy) {
     return (
       <DeploymentStatusAlert
         severity='warning'
