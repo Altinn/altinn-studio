@@ -3,7 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWebSocket } from 'app-development/hooks/useWebSocket';
-import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -28,7 +28,7 @@ describe('WebSocketSyncWrapper', () => {
 
     expect(useWebSocket).toHaveBeenCalledWith({
       clientsName: ['FileSyncSuccess', 'FileSyncError'],
-      webSocketUrl: SyncEventsWebSocketHub(),
+      webSocketUrl: syncEventsWebSocketHub(),
       webSocketConnector: WSConnector,
     });
   });

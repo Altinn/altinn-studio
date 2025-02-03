@@ -9,7 +9,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { useWebSocket } from 'app-development/hooks/useWebSocket';
-import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
 jest.mock('app-development/hooks/useWebSocket', () => ({
@@ -79,7 +79,7 @@ describe('PageLayout', () => {
 
     expect(useWebSocket).toHaveBeenCalledWith({
       clientsName: ['FileSyncSuccess', 'FileSyncError'],
-      webSocketUrl: SyncEventsWebSocketHub(),
+      webSocketUrl: syncEventsWebSocketHub(),
       webSocketConnector: WSConnector,
     });
   });

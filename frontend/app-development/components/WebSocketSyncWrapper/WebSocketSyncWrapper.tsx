@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { SyncUtils } from 'app-shared/utils/SyncUtils.ts';
-import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { useLayoutContext } from '../../contexts/LayoutContext';
 
 enum SyncClientsName {
@@ -33,13 +33,13 @@ export const WebSocketSyncWrapper = ({
     invalidator.layoutSetName = selectedLayoutSetName;
   }, [invalidator, selectedLayoutSetName]);
 
-  const { onWSMessageReceived } = useWebSocket({
-    webSocketUrl: SyncEventsWebSocketHub(),
+  const { onWSMessageReceived: onFileSyncMessageReceived } = useWebSocket({
+    webSocketUrl: syncEventsWebSocketHub(),
     clientsName: [SyncClientsName.FileSyncSuccess, SyncClientsName.FileSyncError],
     webSocketConnector: WSConnector,
   });
 
-  onWSMessageReceived<SyncError | SyncSuccess>((message): ReactElement => {
+  onFileSyncMessageReceived<SyncError | SyncSuccess>((message): ReactElement => {
     const isErrorMessage = 'errorCode' in message;
     if (isErrorMessage) {
       toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
@@ -52,6 +52,5 @@ export const WebSocketSyncWrapper = ({
       invalidator.invalidateQueriesByFileLocation(message.source.name);
     }
   });
-
   return <>{children}</>;
 };

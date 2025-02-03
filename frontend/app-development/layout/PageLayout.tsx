@@ -13,6 +13,7 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { useOpenSettingsModalBasedQueryParam } from '../hooks/useOpenSettingsModalBasedQueryParam';
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
+import { WebSocketEntityUpdateWrapper } from '../components/WebSocketEntityUpdateWrapper/WebSocketEntityUpdateWrapper';
 
 /**
  * Displays the layout for the app development pages
@@ -72,7 +73,9 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   }
   return (
     <WebSocketSyncWrapper>
-      <Outlet />
+      <WebSocketEntityUpdateWrapper>
+        <Outlet />
+      </WebSocketEntityUpdateWrapper>
     </WebSocketSyncWrapper>
   );
 };
