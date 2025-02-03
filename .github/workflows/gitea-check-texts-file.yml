@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'gitea/Dockerfile'
+      - 'gitea/files/locale/**'
       - '.github/workflows/gitea-check-texts-file.yml'
   workflow_dispatch:
 
