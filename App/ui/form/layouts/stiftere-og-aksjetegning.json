@@ -28,7 +28,9 @@
           "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
           "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
         },
+
         "children": [
+          "personLookup-hidden",
           "Group-vvXQVJ",
           "Group-0GS4J3",
           "Group-xCsfYx"
@@ -46,10 +48,7 @@
           "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.summaryTitle",
           "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
-        "children": [
-          "organisationLookup",
-          "Input-virksomhet-epost"
-        ]
+        "children": ["organisationLookup", "Input-virksomhet-epost"]
       },
       {
         "id": "NavigationButtons-A564Nt",
@@ -60,11 +59,7 @@
       {
         "id": "Group-vvXQVJ",
         "type": "Group",
-        "children": [
-          "personLookup",
-          "Address-ORk7vt",
-          "Input-person-epost"
-        ]
+        "children": ["personLookup", "Address-ORk7vt", "Input-person-epost"]
       },
       {
         "id": "Group-0GS4J3",
@@ -72,10 +67,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-0GS4J3.title"
         },
-        "children": [
-          "Input-Vq1fOU",
-          "Input-f5s6V5"
-        ]
+        "children": ["Input-Vq1fOU", "Input-f5s6V5"]
       },
       {
         "id": "Group-xCsfYx",
@@ -83,11 +75,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"
         },
-        "children": [
-          "fullmektig-checkbox",
-          "Input-WmFYXj",
-          "Input-G9nlUc"
-        ]
+        "children": ["fullmektig-checkbox", "Input-WmFYXj", "Input-G9nlUc"]
       },
       {
         "id": "organisationLookup",
@@ -121,6 +109,16 @@
         "grid": {
           "lg": 6
         }
+      },
+      {
+        "id": "personLookup-hidden",
+        "type": "PersonLookup",
+        "hidden": true,
+        "dataModelBindings": {
+          "person_lookup_ssn": "StifterPerson.Foedselsnummer",
+          "person_lookup_name": "StifterPerson.Etternavn"
+        },
+        "required": false
       },
       {
         "id": "personLookup",
@@ -221,14 +219,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Input-WmFYXj.title"
         },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "fullmektig-checkbox"
-          ],
-          null
-        ],
+        "hidden": ["equals", ["component", "fullmektig-checkbox"], null],
         "grid": {
           "xl": 6,
           "xs": 12,
@@ -244,14 +235,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Input-G9nlUc.title"
         },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "fullmektig-checkbox"
-          ],
-          null
-        ],
+        "hidden": ["equals", ["component", "fullmektig-checkbox"], null],
         "grid": {
           "xl": 6,
           "md": 6
