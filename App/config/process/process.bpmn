@@ -67,9 +67,14 @@
             <altinn:action>reject</altinn:action>
           </altinn:actions>
           <altinn:signatureConfig>
+          <altinn:dataTypesToSign>
+            <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+          </altinn:dataTypesToSign>
             <altinn:signeeStatesDataTypeId>signatures-auditor</altinn:signeeStatesDataTypeId>
             <altinn:signatureDataType>signeeStates-auditor</altinn:signatureDataType>
             <altinn:signeeProviderId>auditor</altinn:signeeProviderId>
+            <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
+            <altinn:correspondenceResource>apps-correspondence-integrasjon2</altinn:correspondenceResource>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
