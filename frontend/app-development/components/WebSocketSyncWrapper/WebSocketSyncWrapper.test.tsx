@@ -12,6 +12,8 @@ import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncS
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
+import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
 jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
@@ -27,7 +29,7 @@ describe('WebSocketSyncWrapper', () => {
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdate'],
+      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
     });
@@ -82,6 +84,37 @@ describe('WebSocketSyncWrapper', () => {
     await waitFor(() => {
       expect(invalidator.invalidateQueriesByFileLocation).toHaveBeenCalledWith(
         syncSuccessMock.source.name,
+      );
+    });
+  });
+
+  it('should invalidate entity queries by resourceName when a message with resourceName is received', async () => {
+    const entityUpdateMock: EntityUpdated = {
+      resourceName: 'entityResourceName',
+    };
+
+    const entityUpdateInvalidatorMock = {
+      invalidateQueriesByResourceName: jest.fn(),
+    };
+
+    jest
+      .spyOn(EntityUpdatedQueriesInvalidator, 'getInstance')
+      .mockReturnValue(entityUpdateInvalidatorMock);
+
+    const mockOnWSMessageReceived = jest
+      .fn()
+      .mockImplementation((callback: Function) => callback(entityUpdateMock));
+
+    (useWebSocket as jest.Mock).mockReturnValue({
+      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      onWSMessageReceived: mockOnWSMessageReceived,
+    });
+
+    renderWebSocketSyncWrapper();
+
+    await waitFor(() => {
+      expect(entityUpdateInvalidatorMock.invalidateQueriesByResourceName).toHaveBeenCalledWith(
+        entityUpdateMock.resourceName,
       );
     });
   });

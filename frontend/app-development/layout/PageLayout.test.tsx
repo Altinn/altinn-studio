@@ -78,7 +78,7 @@ describe('PageLayout', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdate'],
+      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
     });

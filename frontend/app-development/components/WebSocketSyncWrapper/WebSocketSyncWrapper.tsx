@@ -59,6 +59,10 @@ export const WebSocketSyncWrapper = ({
       entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName);
       return;
     }
+    if ('resourceName' in message) {
+      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName);
+      return;
+    }
 
     const isErrorMessage = 'errorCode' in message;
     if (isErrorMessage) {
