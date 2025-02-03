@@ -44,7 +44,7 @@ jobs:
       - name: Verify texts file content
         id: check-texts-file
         env:
-          temp-dir: tempdiff
+          temp-dir: temp
           texts-file-no: gitea/files/locale/base/locale_nb-NO.ini
           custom-texts-file-no: gitea/files/locale/custom/locale_nb-NO.ini
           custom-texts-file-us: gitea/files/locale/custom/locale_en-US.ini
@@ -57,7 +57,7 @@ jobs:
           mkdir ${{ env.temp-dir }}
           curl -L $download_url | tar -xz -C ${{ env.temp-dir }}
 
-          texts_file_us_release=${{ env.temp-dir }}/options/locale/locale_en-US.ini
+          texts_file_us_release=${{ env.temp-dir }}/gitea-src-${{ steps.get-gitea-version.outputs.gitea-version }}/options/locale/locale_en-US.ini
 
           repo_section_keys_file="${{ env.temp-dir }}/repo"
           release_section_keys_file="${{ env.temp-dir }}/release"
