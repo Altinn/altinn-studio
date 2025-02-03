@@ -29,6 +29,7 @@ jobs:
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
             echo "is-updated=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Get the new gitea version
         id: get-gitea-version
