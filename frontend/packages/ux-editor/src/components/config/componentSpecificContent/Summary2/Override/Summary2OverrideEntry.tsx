@@ -12,12 +12,12 @@ import classes from './Summary2OverrideEntry.module.css';
 import { useTranslation } from 'react-i18next';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
-import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
-import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
 import { type TargetComponentProps } from '../Summary2Target/targetUtils';
+import { ForceShowSwitch } from './OverrideFields/ForceShowSwitch';
+import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowComponentSwitch';
 
 type Summary2OverrideEntryProps = {
   index: number;
@@ -81,7 +81,7 @@ export const Summary2OverrideEntry = ({
               override={override}
               componentOptions={componentOptions}
             />
-            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
+            <ForceShowSwitch onChange={onChange} override={override} />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}
