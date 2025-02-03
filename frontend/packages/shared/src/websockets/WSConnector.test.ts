@@ -1,4 +1,5 @@
 import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
 jest.mock('@microsoft/signalr', () => ({
   ...jest.requireActual('@microsoft/signalr'),
@@ -39,9 +40,13 @@ describe('WSConnector', () => {
     expect(result).toBeInstanceOf(WSConnector);
   });
 
-  it('should throw error when no URLs are provided', () => {
+  it('should throw WSConnectorMissingWebSocketUrlsException when no URLs are provided', () => {
     expect(() => {
-      WSConnector.getInstance([], ['MessageClientOne']);
-    }).toThrow('No WebSocket URLs provided. WebSocket urls needed to connect to the WS Server');
+      new WSConnector([], ['MessageClientOne']);
+    }).toThrow(
+      new WSConnectorMissingWebSocketUrlsException(
+        'No WebSocket URLs provided. WebSocket urls needed to connect to the WS Server',
+      ),
+    );
   });
 });
