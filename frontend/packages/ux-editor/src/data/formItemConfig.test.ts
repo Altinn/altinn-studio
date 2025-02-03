@@ -18,6 +18,7 @@ describe('formItemConfig', () => {
     ComponentType.Custom,
     ComponentType.Payment,
     ComponentType.Subform,
+    ComponentType.Summary,
     ComponentType.Summary2,
   ];
 
