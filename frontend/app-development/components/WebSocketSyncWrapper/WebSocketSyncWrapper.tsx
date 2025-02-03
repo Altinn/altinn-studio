@@ -60,7 +60,7 @@ export const WebSocketSyncWrapper = ({
       return;
     }
     if ('resourceName' in message) {
-      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName);
+      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
       return;
     }
 

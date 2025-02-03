@@ -92,14 +92,9 @@ describe('WebSocketSyncWrapper', () => {
     const entityUpdateMock: EntityUpdated = {
       resourceName: 'entityResourceName',
     };
-
-    const entityUpdateInvalidatorMock = {
-      invalidateQueriesByResourceName: jest.fn(),
-    };
-
-    jest
-      .spyOn(EntityUpdatedQueriesInvalidator, 'getInstance')
-      .mockReturnValue(entityUpdateInvalidatorMock);
+    const queryClientMock = createQueryClientMock();
+    const invalidator = EntityUpdatedQueriesInvalidator.getInstance(queryClientMock, org, app);
+    invalidator.invalidateQueriesByResourceName = jest.fn();
 
     const mockOnWSMessageReceived = jest
       .fn()
@@ -113,7 +108,7 @@ describe('WebSocketSyncWrapper', () => {
     renderWebSocketSyncWrapper();
 
     await waitFor(() => {
-      expect(entityUpdateInvalidatorMock.invalidateQueriesByResourceName).toHaveBeenCalledWith(
+      expect(invalidator.invalidateQueriesByResourceName).toHaveBeenCalledWith(
         entityUpdateMock.resourceName,
       );
     });
