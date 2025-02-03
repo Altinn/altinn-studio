@@ -19,27 +19,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check if gitea version is updated
-        id: check-gitea-version-update
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          diff=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- gitea/Dockerfile | grep 'ARG GITEA_VERSION=' || true)
-          if [ -n "$diff" ]; then
-            echo "is-updated=true" >> $GITHUB_OUTPUT
-          else
-            echo "is-updated=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Get the new gitea version
         id: get-gitea-version
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-          BASE_REF: ${{ github.base_ref }}
-        if: steps.check-gitea-version-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- gitea/Dockerfile | grep -E '^\+ARG GITEA_VERSION=' | sed -n 's/.*GITEA_VERSION=\(.*\)/\1/p' )
+          version=$(cat gitea/Dockerfile | grep 'ARG GITEA_VERSION=' | sed -n 's/.*GITEA_VERSION=\(.*\)/\1/p' )
           echo "gitea-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify texts file content
@@ -49,7 +32,6 @@ jobs:
           texts-file-no: gitea/files/locale/base/locale_nb-NO.ini
           custom-texts-file-no: gitea/files/locale/custom/locale_nb-NO.ini
           custom-texts-file-us: gitea/files/locale/custom/locale_en-US.ini
-        if: steps.check-gitea-version-update.outputs.is-updated == 'true'
         run: |
           # download the localse file from the gitea release
           download_url=$(curl https://api.github.com/repos/go-gitea/gitea/releases/tags/v${{ steps.get-gitea-version.outputs.gitea-version }} | \
