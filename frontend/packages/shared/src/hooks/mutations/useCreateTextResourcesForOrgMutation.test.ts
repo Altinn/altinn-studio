@@ -1,21 +1,23 @@
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithProviders } from 'app-development/test/mocks';
+import { queriesMock } from '../../mocks/queriesMock';
+import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useCreateTextResourcesForOrgMutation } from './useCreateTextResourcesForOrgMutation';
 import { waitFor } from '@testing-library/react';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { QueryKey } from '../../types/QueryKey';
 import { org } from '@studio/testing/testids';
 
 const languageMock: string = 'nb';
 
 describe('useCreateTextResourcesForOrgMutation', () => {
-  it('Calls createTextResourcesForOrg with correct arguments and payload', async () => {
-    const result = renderHookWithProviders()(() =>
-      useCreateTextResourcesForOrgMutation(org, languageMock),
-    ).renderHookResult.result;
+  beforeEach(jest.clearAllMocks);
 
-    result.current.mutate();
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  it('Calls createTextResourcesForOrg with correct arguments and payload', async () => {
+    const renderResult = renderHookWithProviders(() =>
+      useCreateTextResourcesForOrgMutation(org, languageMock),
+    ).result;
+
+    renderResult.current.mutate();
+    await waitFor(() => expect(renderResult.current.isSuccess).toBe(true));
 
     expect(queriesMock.createTextResourcesForOrg).toHaveBeenCalledTimes(1);
     expect(queriesMock.createTextResourcesForOrg).toHaveBeenCalledWith(org, languageMock);
@@ -24,13 +26,13 @@ describe('useCreateTextResourcesForOrgMutation', () => {
   it('Invalidates query key', async () => {
     const client = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
-    const result = renderHookWithProviders(
-      {},
-      client,
-    )(() => useCreateTextResourcesForOrgMutation(org, languageMock)).renderHookResult.result;
+    const renderResult = renderHookWithProviders(
+      () => useCreateTextResourcesForOrgMutation(org, languageMock),
+      { queryClient: client },
+    ).result;
 
-    result.current.mutate();
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    renderResult.current.mutate();
+    await waitFor(() => expect(renderResult.current.isSuccess).toBe(true));
 
     expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({

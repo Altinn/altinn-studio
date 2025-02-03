@@ -1,13 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { useServicesContext } from '../../contexts/ServicesContext';
+import { QueryKey } from '../../types/QueryKey';
 
 export const useCreateTextResourcesForOrgMutation = (org: string, language: string) => {
   const q = useQueryClient();
   const { createTextResourcesForOrg } = useServicesContext();
   return useMutation({
     mutationFn: () => createTextResourcesForOrg(org, language),
-    onSuccess: () =>
-      Promise.all([q.invalidateQueries({ queryKey: [QueryKey.TextResourcesForOrg] })]),
+    onSuccess: () => q.invalidateQueries({ queryKey: [QueryKey.TextResourcesForOrg] }),
   });
 };
