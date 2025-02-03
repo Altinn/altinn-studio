@@ -13,6 +13,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller exposing endpoints that handle metadata in config.json
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/config")]
