@@ -31,6 +31,7 @@
 
         "children": [
           "personLookup-hidden",
+          "Input-person-epost-hidden",
           "Group-vvXQVJ",
           "Group-0GS4J3",
           "Group-xCsfYx"
@@ -107,7 +108,8 @@
           "title": "stiftere-og-aksjetegning.Input-HB2jK2.title"
         },
         "grid": {
-          "lg": 6
+          "lg": 12,
+          "innerGrid": { "lg": 6 }
         }
       },
       {
@@ -118,7 +120,24 @@
           "person_lookup_ssn": "StifterPerson.Foedselsnummer",
           "person_lookup_name": "StifterPerson.Etternavn"
         },
-        "required": false
+        "required": false,
+        "textResourceBindings": {
+          "title": "Personnummer og navn"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "StifterPerson.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-person-epost-hidden",
+        "type": "Input",
+        "hidden": true,
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-cgGsVM.title"
+        }
       },
       {
         "id": "personLookup",
