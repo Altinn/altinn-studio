@@ -8,6 +8,7 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
@@ -90,9 +91,11 @@ namespace Designer.Tests.Fixtures
         private async Task BuildAndStartAltinnGiteaAsync()
         {
             string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
+            string giteaVersion = GetDefaultValueForArgument("GITEA_VERSION", Path.Combine(giteaDockerFilePath, "Dockerfile"));
             var altinnGiteaImage = new ImageFromDockerfileBuilder()
                 .WithDockerfileDirectory(giteaDockerFilePath)
                 .WithDockerfile("Dockerfile")
+                .WithBuildArgument("GITEA_VERSION", giteaVersion)
                 .WithName("repositories:latest")
                 .Build();
 
@@ -205,6 +208,18 @@ namespace Designer.Tests.Fixtures
             JsonNode addApplicationResponseJson = JsonNode.Parse(addApplicationResponseContent);
             OAuthApplicationClientId = addApplicationResponseJson["client_id"].GetValue<string>();
             OAuthApplicationClientSecret = addApplicationResponseJson["client_secret"].GetValue<string>();
+        }
+
+        private static string GetDefaultValueForArgument(string arg, string dockerFilePath)
+        {
+            string[] fileLines = File.ReadAllLines(dockerFilePath);
+
+            return fileLines
+                .First(l => l.StartsWith($"ARG {arg}"))
+                .Split("=")
+                .Last()
+                .Trim();
+
         }
     }
 
