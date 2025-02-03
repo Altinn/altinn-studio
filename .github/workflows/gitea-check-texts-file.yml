@@ -97,7 +97,7 @@ jobs:
           fi
 
           # Check if custom US locale keys exist in the release locale keys
-          missing_keys_us=$(grep -Fxvf "$release_section_keys_file" "$custom_us_section_keys_file")
+          missing_keys_us=$(grep -Fxvf "$release_section_keys_file" "$custom_us_section_keys_file" || true)
 
           if [ -n "$missing_keys_us" ]; then
             echo "::error::The following keys in the custom US locale do not exist in Gitea v${{ steps.get-gitea-version.outputs.gitea-version }}:"
