@@ -3,18 +3,10 @@
   "data": {
     "layout": [
       {
-        "size": "L",
-        "id": "Header-NfIrgi",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "signering-av-stiftelsesdok.Header-NfIrgi.title"
-        }
-      },
-      {
         "id": "Stiftelsesdokumenter",
         "type": "FileUpload",
         "textResourceBindings": {
-          "title": "Stiftelsesdokumenter",
+          "title": "signering-av-stiftelsesdok.Header-NfIrgi.title",
           "description": "Legg til dokumenter som skal signeres av stifterne"
         },
         "maxFileSizeInMB": 20,
