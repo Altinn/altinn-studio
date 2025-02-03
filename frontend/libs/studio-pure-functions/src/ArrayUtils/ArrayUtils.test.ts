@@ -289,31 +289,4 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.removeEmptyStrings(array)).toEqual(['0', '1', '2']);
     });
   });
-
-  describe('appendOrCreate', () => {
-    it('Should create a new array with the new item if the old array is undefined', () => {
-      const result = ArrayUtils.appendOrCreate(undefined, 'test');
-      expect(result).toEqual(['test']);
-    });
-
-    it('Should append the new item to the existing array if one is provided', () => {
-      const oldArray = ['existing'];
-      const result = ArrayUtils.appendOrCreate(oldArray, 'new');
-      expect(result).toEqual(['existing', 'new']);
-    });
-
-    it('Should work with an empty array by returning a new array with the new item', () => {
-      const oldArray: string[] = [];
-      const result = ArrayUtils.appendOrCreate(oldArray, 'test');
-      expect(result).toEqual(['test']);
-    });
-
-    it('Should not mutate the original array', () => {
-      const oldArray = ['original'];
-      const result = ArrayUtils.appendOrCreate(oldArray, 'added');
-
-      expect(result).toEqual(['original', 'added']);
-      expect(oldArray).toEqual(['original']);
-    });
-  });
 });
