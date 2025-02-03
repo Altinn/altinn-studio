@@ -18,10 +18,10 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 const textResources: TextResource[] = textResourcesMock;
 const texts: TextResourceInputTexts = {
   editValue: 'Rediger verdi',
-  emptyResourceList: 'Fant ingen tekstressurser',
   idLabel: 'ID:',
   search: 'Søk',
   textResourcePickerLabel: 'Velg tekstressurs',
+  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
@@ -35,6 +35,11 @@ const defaultProps: StudioTextResourceInputProps = {
   currentId,
 };
 const currentTextResource = getTextResourceById(textResources, currentId);
+const noCurrentIdCases: Array<[string, StudioTextResourceInputProps['currentId']]> = [
+  ['an empty string', ''],
+  ['null', null],
+  ['undefined', undefined],
+];
 
 describe('StudioTextResourceInput', () => {
   afterEach(jest.clearAllMocks);
@@ -43,6 +48,14 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
     expect(getValueField()).toBeInTheDocument();
   });
+
+  it.each(noCurrentIdCases)(
+    'Renders the search field by default when the current ID is %s',
+    (_, id) => {
+      renderTextResourceInput({ currentId: id });
+      expect(getTextResourcePicker()).toBeInTheDocument();
+    },
+  );
 
   it('Calls the onChangeTextResource callback with the updated text resource when the value is changed', async () => {
     const user = userEvent.setup();
@@ -77,11 +90,24 @@ describe('StudioTextResourceInput', () => {
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);
   });
 
+  it('Calls the onChangeCurrentId callback with null when a the user selects to not connect a text resource', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput();
+
+    await switchToSearchMode(user);
+    await user.click(getTextResourcePicker());
+    await user.click(screen.getByRole('option', { name: texts.noTextResourceOptionLabel }));
+    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+
+    expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
+    expect(onChangeCurrentId).toHaveBeenCalledWith(null);
+  });
+
   it('Renders the "edit value" input field when the user switches back from search mode', async () => {
     const user = userEvent.setup();
     renderTextResourceInput();
     await switchToSearchMode(user);
-    await user.click(screen.getByRole('radio', { name: texts.editValue }));
+    await switchToEditMode(user);
     expect(getValueField()).toBeInTheDocument();
   });
 
@@ -95,6 +121,13 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
     await switchToSearchMode(user);
     expect(screen.getByText(currentId)).toBeInTheDocument();
+  });
+
+  it.each(noCurrentIdCases)('Disables the value field when the ID is %s', async (_, id) => {
+    const user = userEvent.setup();
+    renderTextResourceInput({ currentId: id });
+    await switchToEditMode(user);
+    expect(getValueField()).toBeDisabled();
   });
 
   it('Forwards the ref if given', () => {
@@ -126,6 +159,10 @@ function getValueField(): HTMLInputElement {
 
 function switchToSearchMode(user: UserEvent): Promise<void> {
   return user.click(screen.getByRole('radio', { name: texts.search }));
+}
+
+function switchToEditMode(user: UserEvent): Promise<void> {
+  return user.click(screen.getByRole('radio', { name: texts.editValue }));
 }
 
 function getTextResourcePicker(): HTMLInputElement {

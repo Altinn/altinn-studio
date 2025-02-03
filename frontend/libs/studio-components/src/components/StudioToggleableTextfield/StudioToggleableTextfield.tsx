@@ -1,29 +1,31 @@
 import React, { forwardRef, useEffect, useState } from 'react';
-import {
-  StudioTextfieldToggleView,
-  type StudioTextfieldToggleViewProps,
-} from './StudioTextfieldToggleView';
-
 import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
+import { StudioProperty, type StudioPropertyButtonProps } from '../StudioProperty';
+import { KeyVerticalIcon } from '@studio/icons';
+import classes from './StudioToggleableTextfield.module.css';
 
 export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
-  inputProps: StudioIconTextfieldProps;
-  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
+  icon?: React.ReactNode;
+  inputProps: Omit<StudioIconTextfieldProps, 'icon'>;
+  viewProps: Omit<StudioPropertyButtonProps, 'onClick' | 'property' | 'icon'>;
   onIsViewMode?: (isViewMode: boolean) => void;
   setViewModeByDefault?: boolean;
   autoFocus?: boolean;
+  label: string;
 };
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
   (
     {
+      icon = <KeyVerticalIcon />,
       inputProps,
       viewProps,
       customValidation,
       onIsViewMode,
       setViewModeByDefault = true,
       autoFocus = true,
+      label,
     }: StudioToggleableTextfieldProps,
     ref,
   ) => {
@@ -67,11 +69,23 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
       inputProps.onChange?.(event);
     };
 
-    if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
+    if (isViewMode)
+      return (
+        <StudioProperty.Button
+          icon={icon}
+          property={label}
+          onClick={toggleViewMode}
+          title={viewProps.title}
+          value={viewProps.value}
+          className={classes.propertyButton}
+        />
+      );
 
     return (
       <StudioIconTextfield
         {...inputProps}
+        icon={icon}
+        label={label}
         ref={ref}
         onBlur={handleBlur}
         onChange={handleOnChange}

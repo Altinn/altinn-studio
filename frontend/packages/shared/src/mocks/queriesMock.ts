@@ -140,6 +140,11 @@ export const queriesMock: ServicesContextProps = {
   validateImageFromExternalUrl: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalImageUrlValidationResponse>('Ok')),
+  getUserOrgPermissions: jest.fn().mockImplementation(() =>
+    Promise.resolve({
+      canCreateOrgRepo: true,
+    }),
+  ),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),

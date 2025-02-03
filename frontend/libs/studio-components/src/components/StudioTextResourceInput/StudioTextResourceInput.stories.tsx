@@ -31,17 +31,24 @@ const meta: Meta<typeof StudioTextResourceInput> = {
 };
 export default meta;
 
-export const Preview: Story = {
+export const WithId: Story = {
   args: {
     currentId: 'land.NO',
     textResources: textResourcesMock,
     texts: {
       editValue: 'Rediger verdi',
-      emptyResourceList: 'Fant ingen tekstressurser',
       idLabel: 'ID:',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
+      noTextResourceOptionLabel: 'Ikke oppgitt',
       valueLabel: 'Tekstverdi',
     },
+  },
+};
+
+export const WithoutId: Story = {
+  args: {
+    ...WithId.args,
+    currentId: undefined,
   },
 };
