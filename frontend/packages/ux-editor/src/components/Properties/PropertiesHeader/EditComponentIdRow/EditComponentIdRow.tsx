@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { Alert } from '@digdir/designsystemet-react';
-import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks';
@@ -86,21 +85,19 @@ export const EditComponentIdRow = ({
     <div className={duplicatedId ? classes.duplicatedIdField : classes.container}>
       <StudioToggleableTextfieldSchema
         onError={handleValidationError}
+        label={t('ux_editor.modal_properties_component_change_id')}
         layoutSchema={layoutSchema}
         relatedSchemas={[expressionSchema, numberFormatSchema]}
         propertyPath='definitions/component/properties/id'
         key={component.id}
         viewProps={{
-          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
+          value: component.id,
           title: component.id,
-          variant: 'tertiary',
-          fullWidth: true,
         }}
         inputProps={{
-          icon: <KeyVerticalIcon />,
+          label: t('ux_editor.modal_properties_component_change_id'),
           value: idInputValue,
           onBlur: (event) => saveComponentUpdate(event.target.value),
-          label: t('ux_editor.modal_properties_component_change_id'),
           size: 'small',
           error: errorMessage,
         }}

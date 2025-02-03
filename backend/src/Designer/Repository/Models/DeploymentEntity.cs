@@ -19,10 +19,18 @@ namespace Altinn.Studio.Designer.Repository.Models
         [JsonProperty("envName")]
         public string EnvName { get; set; }
 
+        public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
+
         /// <summary>
         /// Build
         /// </summary>
         [JsonProperty("build")]
         public BuildEntity Build { get; set; }
+    }
+
+    public enum DeploymentType
+    {
+        Deploy = 0,
+        Decommission = 1
     }
 }

@@ -68,7 +68,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             string token = config["AccessTokenDevOps"];
             return services.AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
             {
-                client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}build/builds/");
+                client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>().AddHttpMessageHandler<EnsureSuccessHandler>();

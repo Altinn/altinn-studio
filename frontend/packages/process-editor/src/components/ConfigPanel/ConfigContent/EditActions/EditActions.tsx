@@ -46,7 +46,7 @@ export const EditActions = (): React.ReactElement => {
   };
 
   return (
-    <>
+    <StudioProperty.Group>
       {actions.map((actionElement: ModdleElement, index: number) => (
         <ActionsEditor
           key={getUniqueKey(index)}
@@ -59,8 +59,7 @@ export const EditActions = (): React.ReactElement => {
       <StudioProperty.Button
         onClick={onNewActionAddClicked}
         property={t('process_editor.configuration_panel_actions_add_new')}
-        size='small'
       />
-    </>
+    </StudioProperty.Group>
   );
 };

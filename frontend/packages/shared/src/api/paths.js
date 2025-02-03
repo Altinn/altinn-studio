@@ -17,6 +17,9 @@ export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app
 // App version
 export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
 
+// UserOrgPermissions
+export const userOrgPermissionsPath = (org) => `${basePath}/user/org-permissions/${org}`;
+
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
@@ -45,7 +48,7 @@ export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-d
 export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get, Delete
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
 export const optionListReferencesPath = (org, app) => `${basePath}/${org}/${app}/options/usage`; // Get
-export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
+export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/options`; // Get
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
@@ -88,7 +91,7 @@ export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/$
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Preview - SignalR Hub
-export const previewSignalRHubSubPath = () => `/previewHub`;
+export const previewSignalRHubSubPath = () => `/hubs/preview`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -96,6 +99,7 @@ export const releasesPath = (org, app, sortDirection) => `${basePath}/${org}/${a
 export const deploymentsPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/deployments?${s({ sortDirection })}`; // Get, Post
 export const deployPermissionsPath = (org, app) => `${basePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${basePath}/environments`; // Get
+export const undeployAppFromEnvPath = (org, app) => `${basePath}/${org}/${app}/deployments/undeploy`;
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
@@ -173,7 +177,7 @@ export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${a
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
 
 // Event Hubs
-export const SyncEventsWebSocketHub = () => '/sync-hub';
+export const SyncEventsWebSocketHub = () => '/hubs/sync';
 
 // Contact
 export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;

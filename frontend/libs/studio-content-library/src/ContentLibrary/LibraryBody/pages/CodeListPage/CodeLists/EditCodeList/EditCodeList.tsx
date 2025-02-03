@@ -2,6 +2,7 @@ import type { CodeList, CodeListEditorTexts } from '@studio/components';
 import {
   StudioDeleteButton,
   StudioModal,
+  StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
 } from '@studio/components';
@@ -35,13 +36,7 @@ export function EditCodeList({
   codeListNames,
   codeListSources,
 }: EditCodeListProps): React.ReactElement {
-  const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
-  const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
-
-  const handleUpdateCodeListId = (newCodeListId: string) => {
-    if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
-  };
 
   const handleCodeListChange = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
@@ -51,38 +46,18 @@ export function EditCodeList({
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
 
-  const handleValidateCodeListId = (newCodeListId: string) => {
-    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
-    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
-    return getInvalidInputFileNameErrorMessage(fileNameError);
-  };
-
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
 
   const codeListHasUsages = codeListSources.length > 0;
+  const isCodeListEditable = codeListSources.length === 0;
 
   return (
     <div className={classes.editCodeList}>
-      <StudioToggleableTextfield
-        customValidation={handleValidateCodeListId}
-        inputProps={{
-          label: t('app_content_library.code_lists.code_list_edit_id_label'),
-          icon: <KeyVerticalIcon />,
-          title: t('app_content_library.code_lists.code_list_edit_id_title', {
-            codeListName: codeListTitle,
-          }),
-          value: codeListTitle,
-          onBlur: (event) => handleUpdateCodeListId(event.target.value),
-          size: 'small',
-        }}
-        viewProps={{
-          label: t('app_content_library.code_lists.code_list_edit_id_label'),
-          children: codeListTitle,
-          variant: 'tertiary',
-          title: t('app_content_library.code_lists.code_list_view_id_title', {
-            codeListName: codeListTitle,
-          }),
-        }}
+      <EditCodeListTitle
+        codeListTitle={codeListTitle}
+        isCodeListEditable={isCodeListEditable}
+        codeListNames={codeListNames}
+        onUpdateCodeListId={onUpdateCodeListId}
       />
       <StudioCodeListEditor
         codeList={codeList}
@@ -105,6 +80,63 @@ export const updateCodeListWithMetadata = (
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };
+
+type EditCodeListTitleProps = {
+  codeListTitle: string;
+  isCodeListEditable: boolean;
+  codeListNames: string[];
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
+};
+
+function EditCodeListTitle({
+  codeListTitle,
+  isCodeListEditable,
+  codeListNames,
+  onUpdateCodeListId,
+}: EditCodeListTitleProps): React.ReactElement {
+  const { t } = useTranslation();
+  const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
+
+  const handleUpdateCodeListId = (newCodeListId: string) => {
+    if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
+  };
+
+  const handleValidateCodeListId = (newCodeListId: string) => {
+    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
+    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
+    return getInvalidInputFileNameErrorMessage(fileNameError);
+  };
+
+  return isCodeListEditable ? (
+    <StudioToggleableTextfield
+      customValidation={handleValidateCodeListId}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      inputProps={{
+        label: t('app_content_library.code_lists.code_list_edit_id_label'),
+        title: t('app_content_library.code_lists.code_list_edit_id_title', {
+          codeListName: codeListTitle,
+        }),
+        value: codeListTitle,
+        onBlur: (event) => handleUpdateCodeListId(event.target.value),
+        size: 'small',
+      }}
+      viewProps={{
+        value: codeListTitle,
+        title: t('app_content_library.code_lists.code_list_view_id_title', {
+          codeListName: codeListTitle,
+        }),
+      }}
+    />
+  ) : (
+    <StudioDisplayTile
+      title={t('app_content_library.code_lists.code_list_edit_id_disabled_title')}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      value={codeListTitle}
+      icon={<KeyVerticalIcon />}
+      className={classes.displayTitle}
+    />
+  );
+}
 
 type CodeListButtonsProps = {
   codeListHasUsages: boolean;

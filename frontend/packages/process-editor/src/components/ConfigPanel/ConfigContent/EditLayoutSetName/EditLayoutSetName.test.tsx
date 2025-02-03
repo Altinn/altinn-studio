@@ -23,7 +23,8 @@ describe('EditLayoutSetName', () => {
       textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
     expect(layoutSetNameViewMode).toHaveTextContent(
-      textMock('process_editor.configuration_panel_layout_set_name') + existingLayoutSetNameMock,
+      textMock('process_editor.configuration_panel_layout_set_name_label') +
+        existingLayoutSetNameMock,
     );
   });
 

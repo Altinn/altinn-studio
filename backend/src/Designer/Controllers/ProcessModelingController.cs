@@ -19,6 +19,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions that concerns app-development
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/process-modelling")]

@@ -60,6 +60,7 @@ import {
   resourceAccessPackageServicesPath,
   optionListPath,
   optionListReferencesPath,
+  userOrgPermissionsPath,
   dataTypePath,
 } from './paths';
 
@@ -92,7 +93,9 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
-import type { OptionListsReferences, OptionsList, OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
@@ -121,9 +124,9 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
-export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionsList>(optionListPath(owner, app, optionsListId));
-export const getOptionLists = (owner: string, app: string) => get<OptionsListsResponse>(optionListsPath(owner, app));
-export const getOptionListsReferences = (owner: string, app: string) => get<OptionListsReferences>(optionListReferencesPath(owner, app));
+export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
+export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
+export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
@@ -138,6 +141,7 @@ export const getTextLanguages = (owner: string, app: string): Promise<string[]> 
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
+export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 

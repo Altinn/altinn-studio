@@ -29,8 +29,9 @@ public static class DeploymentMapper
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
             CreatedBy = deploymentEntity.CreatedBy,
+            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)(int)deploymentEntity.DeploymentType,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
-            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, BuildType.Deployment),
+            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy ? BuildType.Deployment : BuildType.Decommission)
         };
     }
     public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
@@ -52,7 +53,8 @@ public static class DeploymentMapper
             TagName = dbObject.Tagname,
             Build = BuildMapper.MapToModel(dbObject.Build),
             Created = dbObject.Created,
-            CreatedBy = dbObject.CreatedBy
+            CreatedBy = dbObject.CreatedBy,
+            DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType
         };
     }
 

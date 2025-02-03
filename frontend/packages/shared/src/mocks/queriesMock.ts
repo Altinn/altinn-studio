@@ -69,13 +69,11 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import type {
-  OptionListsReferences,
-  OptionsList,
-  OptionsListsResponse,
-} from 'app-shared/types/api/OptionsLists';
+import type { OptionList } from 'app-shared/types/OptionList';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -113,11 +111,11 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetsModel>(layoutSetsExtendedMock)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
-  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsListsResponse>([])),
+  getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
   getOptionListsReferences: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<OptionListsReferences>([])),
+    .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -142,6 +140,11 @@ export const queriesMock: ServicesContextProps = {
   validateImageFromExternalUrl: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalImageUrlValidationResponse>('Ok')),
+  getUserOrgPermissions: jest.fn().mockImplementation(() =>
+    Promise.resolve({
+      canCreateOrgRepo: true,
+    }),
+  ),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
@@ -252,6 +255,7 @@ export const queriesMock: ServicesContextProps = {
   upsertTextResources: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
+  undeployAppFromEnv: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
