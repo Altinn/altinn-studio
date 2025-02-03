@@ -4,23 +4,26 @@ import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ForceShowSwitchProps = {
-  onChange: (updatedOverride: Summary2OverrideConfig) => void;
+  onChange: (override: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
-export const OverrideShowComponentSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
+export const ForceShowSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
   const { t } = useTranslation();
   return (
     <StudioSwitch
       position='right'
       size='sm'
-      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-        onChange({ ...override, hidden: !event.target.checked })
-      }
-      checked={!override.hidden}
-      value={'hidden'}
+      onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const updatedOverride = {
+          ...override,
+          forceShow: event.target.checked,
+        };
+        onChange(updatedOverride);
+      }}
+      checked={override.forceShow}
     >
-      {t('ux_editor.component_properties.summary.override.show_component')}
+      {t('ux_editor.component_properties.summary.override.force_show')}
     </StudioSwitch>
   );
 };

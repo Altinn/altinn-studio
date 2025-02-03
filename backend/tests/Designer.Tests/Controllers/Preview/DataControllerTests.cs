@@ -116,7 +116,7 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
         DataElement dataElement = await createDataElement(instance, "datamodel");
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}/tags";
         using HttpRequestMessage httpRequestMessageTag = new(HttpMethod.Post, dataPath);
-        httpRequestMessageTag.Content = new StringContent("{\"tag\":\"test\"}", System.Text.Encoding.UTF8, "application/json");
+        httpRequestMessageTag.Content = new StringContent("\"test\"", System.Text.Encoding.UTF8, "application/json");
         using HttpResponseMessage responseTag = await HttpClient.SendAsync(httpRequestMessageTag);
         Assert.Equal(HttpStatusCode.Created, responseTag.StatusCode);
     }
