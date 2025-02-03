@@ -16,8 +16,11 @@ jest.mock('@microsoft/signalr', () => ({
 
 describe('WSConnector', () => {
   it('should create an instance of WSConnector using singleton pattern', () => {
-    const webSocketUrl: string = 'ws://jest-test-mocked-url.com';
-    const result: WSConnector = WSConnector.getInstance(webSocketUrl, [
+    const webSocketUrls: Array<string> = [
+      'ws://jest-test-mocked-url.com',
+      'ws://jest-test-mocked-url-2.com',
+    ];
+    const result: WSConnector = WSConnector.getInstance(webSocketUrls, [
       'MessageClientOne',
       'MessageClientTwo',
     ]);
@@ -25,8 +28,11 @@ describe('WSConnector', () => {
   });
 
   it('should be able to create an instance using new keyword', () => {
-    const webSocketUrl: string = 'ws://jest-test-mocked-url.com';
-    const result: WSConnector = new WSConnector(webSocketUrl, [
+    const webSocketUrls: Array<string> = [
+      'ws://jest-test-mocked-url.com',
+      'ws://jest-test-mocked-url-2.com',
+    ];
+    const result: WSConnector = new WSConnector(webSocketUrls, [
       'MessageClientOne',
       'MessageClientTwo',
     ]);
