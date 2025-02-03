@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Altinn.Studio.Designer.Helpers;
 
 namespace Designer.Tests.Utils;
 
@@ -8,6 +9,8 @@ public static class CommandExecutor
 {
     public static bool TryExecute(string command, out string output, out string error)
     {
+        Guard.AssertArgumentNotNullOrWhiteSpace(command, nameof(command));
+
         string shell = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? "cmd.exe"
             : "/bin/sh";
