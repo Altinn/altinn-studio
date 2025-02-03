@@ -7,7 +7,7 @@
         "type": "Header",
         "size": "L",
         "textResourceBindings": {
-          "title": "Signering Auditor"
+          "title": "Her kan man ha en annen overskrift"
         }
       },
       {
