@@ -78,7 +78,7 @@ import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
 import type { CodeList } from 'app-shared/types/CodeList';
-import type { CodeListData } from 'app-shared/types/CodeListData';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 
 const headers = {
   Accept: 'application/json',
@@ -173,11 +173,10 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
 // Organisation library code lists:
-// Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14505
-export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListData> => post(orgCodeListPath(org, codeListId), payload);
-export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListData> => put(orgCodeListPath(org, codeListId), payload);
-export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<string> => del(orgCodeListPath(org, codeListId));
-export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListData> => post(orgCodeListUploadPath(org), payload);
+export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
+export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
