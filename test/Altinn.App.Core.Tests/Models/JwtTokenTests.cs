@@ -168,9 +168,22 @@ public class AccessTokenTests
         var accessToken = JwtToken.Parse(encodedToken.AccessToken);
 
         // Act, Assert
-        accessToken.ToString().Should().NotBe(encodedToken.AccessToken);
-        accessToken.ToStringUnmasked().Should().Be(encodedToken.AccessToken);
+        accessToken
+            .ToString()
+            .Should()
+            .Be($"{encodedToken.Components.Header}.{encodedToken.Components.Payload}.<masked>");
         accessToken.ToString().Should().NotContain(encodedToken.Components.Signature);
         $"{accessToken}".Should().NotContain(encodedToken.Components.Signature);
+    }
+
+    [Fact]
+    public void ToStringUnmasked_ShouldNotMask_AccessToken()
+    {
+        // Arrange
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+        var accessToken = JwtToken.Parse(encodedToken.AccessToken);
+
+        // Act, Assert
+        accessToken.ToStringUnmasked().Should().Be(encodedToken.AccessToken);
     }
 }

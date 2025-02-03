@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text.RegularExpressions;
 
 namespace Altinn.App.Core.Models;
 
@@ -9,7 +8,7 @@ namespace Altinn.App.Core.Models;
 /// Needs to be unencrypted.
 /// </summary>
 [ImmutableObject(true)] // `ImmutableObject` prevents serialization with HybridCache
-public readonly partial struct JwtToken : IEquatable<JwtToken>
+public readonly struct JwtToken : IEquatable<JwtToken>
 {
     /// <summary>
     /// The access token value (JWT format).
@@ -81,16 +80,6 @@ public readonly partial struct JwtToken : IEquatable<JwtToken>
         return true;
     }
 
-    // Matches a string with pattern eyXXX.eyXXX.XXX, allowing underscores and hyphens
-    [GeneratedRegex(@"^((?:ey[\w-]+\.){2})([\w-]+)$")]
-    private static partial Regex JwtRegex();
-
-    private static string MaskJwtSignature(string accessToken)
-    {
-        var accessTokenMatch = JwtRegex().Match(accessToken);
-        return accessTokenMatch.Success ? $"{accessTokenMatch.Groups[1]}<masked>" : "<masked>";
-    }
-
     /// <inheritdoc/>
     public bool Equals(JwtToken other) => Value == other.Value;
 
@@ -111,7 +100,7 @@ public readonly partial struct JwtToken : IEquatable<JwtToken>
     /// <summary>
     /// Returns a string representation of the access token with a masked signature component.
     /// </summary>
-    public override string ToString() => MaskJwtSignature(Value);
+    public override string ToString() => $"{_jwtSecurityToken.RawHeader}.{_jwtSecurityToken.RawPayload}.<masked>";
 
     /// <summary>
     /// Returns a string representation of the access token with an intact signature component.
