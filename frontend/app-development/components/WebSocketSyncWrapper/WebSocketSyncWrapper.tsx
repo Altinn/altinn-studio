@@ -20,7 +20,7 @@ enum SyncClientsName {
 }
 
 enum SyncEntityClientName {
-  EntityUpdate = 'EntityUpdate',
+  EntityUpdated = 'EntityUpdated',
 }
 
 type WebSocketSyncWrapperProps = {
@@ -49,7 +49,7 @@ export const WebSocketSyncWrapper = ({
     clientsName: [
       SyncClientsName.FileSyncSuccess,
       SyncClientsName.FileSyncError,
-      SyncEntityClientName.EntityUpdate,
+      SyncEntityClientName.EntityUpdated,
     ],
     webSocketConnector: WSConnector,
   });
