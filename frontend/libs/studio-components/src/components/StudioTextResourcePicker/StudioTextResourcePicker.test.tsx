@@ -75,7 +75,7 @@ describe('StudioTextResourcePicker', () => {
 
   it('Renders with the no text resource option selected by default', () => {
     renderTextResourcePicker();
-    expect(getCombobox()).toHaveValue(noTextResourceOptionLabel);
+    expect(getCombobox()).toHaveValue('');
   });
 
   it('Calls the onValueChange callback with null when the user selects the unset option', async () => {
@@ -87,6 +87,16 @@ describe('StudioTextResourcePicker', () => {
     await waitFor(expect(onValueChange).toHaveBeenCalled);
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(null);
+  });
+
+  it('Does not apply other changes to the textfield than the ones triggered by the user when the user changes from a valid to an invalid value', async () => {
+    const user = userEvent.setup();
+    const chosenTextResource = textResources[129];
+    renderTextResourcePicker({ value: chosenTextResource.id });
+    const combobox = getCombobox();
+    await user.type(combobox, '{backspace}');
+    const newExpectedValue = chosenTextResource.value.slice(0, -1);
+    expect(combobox).toHaveValue(newExpectedValue);
   });
 
   it('Forwards the ref', () => {
