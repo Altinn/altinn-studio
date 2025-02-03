@@ -48,14 +48,7 @@
       {
         "id": "Nestleder-lookup",
         "type": "PersonLookup",
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "har-nestleder-checkbox"
-          ],
-          null
-        ],
+        "hidden": ["equals", ["component", "har-nestleder-checkbox"], null],
         "dataModelBindings": {
           "person_lookup_ssn": "Styre.Nestleder.Foedselsnummer",
           "person_lookup_name": "Styre.Nestleder.Etternavn"
@@ -72,9 +65,7 @@
           "title": "styre-og-revisjon.RepeatingGroup-ThvmON.title"
         },
         "headingLevel": 4,
-        "children": [
-          "RepeatingGroup-ThvmON"
-        ]
+        "children": ["RepeatingGroup-ThvmON"]
       },
       {
         "id": "Group-ZQZ86T",
@@ -82,10 +73,7 @@
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-ZQZ86T.title"
         },
-        "children": [
-          "revisor-radio",
-          "Group-hMnQkh"
-        ]
+        "children": ["revisor-radio", "Group-hMnQkh"]
       },
       {
         "id": "NavigationButtons-uebNGK",
@@ -100,9 +88,7 @@
         "id": "RepeatingGroup-ThvmON",
         "type": "RepeatingGroup",
         "maxCount": 99999,
-        "children": [
-          "Styremedlem-lookup"
-        ]
+        "children": ["Styremedlem-lookup"]
       },
       {
         "id": "Styremedlem-lookup",
@@ -110,6 +96,9 @@
         "dataModelBindings": {
           "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
           "person_lookup_name": "Styre.Styremedlem.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "Styremedlem"
         }
       },
       {
@@ -140,31 +129,13 @@
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-hMnQkh.title"
         },
-        "hidden": [
-          "notEquals",
-          [
-            "component",
-            "revisor-radio"
-          ],
-          "ja"
-        ],
-        "children": [
-          "org-nr-revisor",
-          "Address-zMK6HS",
-          "Input-revisor-epost"
-        ]
+        "hidden": ["notEquals", ["component", "revisor-radio"], "ja"],
+        "children": ["org-nr-revisor", "Address-zMK6HS", "Input-revisor-epost"]
       },
       {
         "id": "org-nr-revisor",
         "type": "OrganisationLookup",
-        "hidden": [
-          "equals",
-          [
-            "dataModel",
-            "Revisor.HarRevisor"
-          ],
-          "nei"
-        ],
+        "hidden": ["equals", ["dataModel", "Revisor.HarRevisor"], "nei"],
         "dataModelBindings": {
           "organisation_lookup_orgnr": "Revisor.Organisasjonsnummer",
           "organisation_lookup_name": "Revisor.Navn"
@@ -191,10 +162,7 @@
         },
         "hidden": [
           "equals",
-          [
-            "dataModel",
-            "Revisor.Adresse.Adresselinje"
-          ],
+          ["dataModel", "Revisor.Adresse.Adresselinje"],
           null
         ],
         "readOnly": true
