@@ -27,15 +27,11 @@ jobs:
           dotnet-version: |
             9.0.x
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
       - name: Build
         run: |
            dotnet build backend/Designer.sln -v m
 
-      - name: Build repositories image # .NET tests container have a bug, so we need to build the image in order to have the image locally
-        run: |
-           docker build -t repositories:latest gitea
       - name: Test gitea tests
         run: |
            dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
