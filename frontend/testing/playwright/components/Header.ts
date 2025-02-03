@@ -15,6 +15,11 @@ export class Header extends BasePage {
     super(page, environment);
   }
 
+  public async verifyNoGeneralErrorMessage(): Promise<void> {
+    const errorMessage = this.page.getByText(this.textMock('general.error_message'));
+    await expect(errorMessage).toBeHidden();
+  }
+
   public async clickOnNavigateToPageInTopMenuHeader(menuName: TopMenuName): Promise<void> {
     await this.page
       .getByRole('list')
