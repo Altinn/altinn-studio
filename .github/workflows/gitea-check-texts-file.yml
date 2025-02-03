@@ -44,7 +44,7 @@ jobs:
       - name: Verify texts file content
         id: check-texts-file
         env:
-          temp-dir: temp
+          temp-dir: tempdiff
           texts-file-no: gitea/files/locale/base/locale_nb-NO.ini
           custom-texts-file-no: gitea/files/locale/custom/locale_nb-NO.ini
           custom-texts-file-us: gitea/files/locale/custom/locale_en-US.ini
