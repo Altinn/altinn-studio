@@ -28,7 +28,7 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
     {
         Skjemadata formData = await GetFormData(instance);
 
-        if (formData.Revisor.HarRevisor == "Ja")
+        if (formData.Revisor.HarRevisor == "ja")
         {
             return outgoingFlows.FindAll(flow => flow.TargetRef == "SigningTask_Auditor");
         }
