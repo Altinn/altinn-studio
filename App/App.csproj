@@ -5,7 +5,11 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.355.sign-on-behalf-of-org-and-keyvault-patch.da7da865">
+=======
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.367.signing.bd55f037">
+>>>>>>> master
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
