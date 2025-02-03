@@ -1,7 +1,9 @@
-ARG GITEA_VERSION=1.23.1
+# Due to the bug in the testcontainers library, we can't use the ARG in the FROM statement
+# Temporarly we need to specify the Gitea version both in LOCALE_SOURCE and later in the FROM statement
+# Version should be externalized in the ARG statement when the bug is fixed
 
 # Grab the locale files from the gitea binary in the image
-FROM gitea/gitea:${GITEA_VERSION}-rootless as LOCALE_SOURCE
+FROM gitea/gitea:1.23.1-rootless as LOCALE_SOURCE
 RUN gitea embedded extract --destination /var/lib/gitea/ options/locale/**.*
 
 # Merge the custom locale files with the base locale files
@@ -17,7 +19,7 @@ RUN node ./merge.js ./base/locale_en-US.ini ./custom/locale_en-US.ini ./locale/l
 RUN node ./merge.js ./base/locale_nb-NO.ini ./custom/locale_nb-NO.ini ./locale/locale_nb-NO.ini
 
 # Ensure to update the locales, templates, and configuration when upgrading Gitea
-FROM gitea/gitea:${GITEA_VERSION}-rootless
+FROM gitea/gitea:1.23.1-rootless
 USER 0:0
 RUN apk --no-cache upgrade expat git libxml2 libcurl curl
 USER 1000:1000
