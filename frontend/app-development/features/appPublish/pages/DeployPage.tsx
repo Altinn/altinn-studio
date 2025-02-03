@@ -12,6 +12,7 @@ import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { StudioError, StudioPageSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { toast } from 'react-toastify';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
@@ -23,6 +24,8 @@ export function DeployPage() {
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app);
   useInvalidator();
+
+  toast.error(t('general.error_message'));
 
   if (orgsIsPending || permissionsIsPending) {
     return <StudioPageSpinner spinnerTitle={t('app_deployment.loading')} />;
