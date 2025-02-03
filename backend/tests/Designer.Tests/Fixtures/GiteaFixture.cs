@@ -8,7 +8,6 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;

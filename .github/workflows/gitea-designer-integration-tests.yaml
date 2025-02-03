@@ -32,6 +32,10 @@ jobs:
       - name: Build
         run: |
            dotnet build backend/Designer.sln -v m
+
+      - name: Build repositories image # .NET tests container have a bug, so we need to build the image in order to have the image locally
+        run: |
+           docker build -t repositories:latest gitea
       - name: Test gitea tests
         run: |
            dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
