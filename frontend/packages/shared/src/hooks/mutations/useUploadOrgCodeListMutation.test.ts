@@ -6,7 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { CodeList } from 'app-shared/types/CodeList';
-import { FileUtils } from '@studio/pure-functions/src/FileUtils/FileUtils';
+import { FileUtils } from '@studio/pure-functions';
 
 // Test data:
 const fileName = 'fileName';
