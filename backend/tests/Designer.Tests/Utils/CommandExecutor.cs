@@ -19,30 +19,28 @@ public static class CommandExecutor
         var outputSb = new StringBuilder();
         var errorSb = new StringBuilder();
 
-        using (var process = new Process())
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
         {
-            process.StartInfo = new ProcessStartInfo
-            {
-                FileName = shell,
-                Arguments = args,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            FileName = shell,
+            Arguments = args,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
 
-            process.OutputDataReceived += (_, e) => AppendIfNotNull(outputSb, e.Data);
-            process.ErrorDataReceived += (_, e) => AppendIfNotNull(errorSb, e.Data);
+        process.OutputDataReceived += (_, e) => AppendIfNotNull(outputSb, e.Data);
+        process.ErrorDataReceived += (_, e) => AppendIfNotNull(errorSb, e.Data);
 
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
 
-            output = outputSb.ToString().Trim();
-            error = errorSb.ToString().Trim();
-            return process.ExitCode == 0;
-        }
+        output = outputSb.ToString().Trim();
+        error = errorSb.ToString().Trim();
+        return process.ExitCode == 0;
     }
 
     private static void AppendIfNotNull(StringBuilder sb, string content)

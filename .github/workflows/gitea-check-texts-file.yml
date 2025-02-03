@@ -72,11 +72,11 @@ jobs:
           diff_output=$(diff -b "$repo_section_keys_file" "$release_section_keys_file" || true)
 
           if [ -n "$diff_output" ]; then
-            echo "::error::Keys in locale files differ. Update the locale file to match Gitea v${{ steps.get-gitea-version.outputs.gitea-version }}."
+            echo "::error::Keys in locale file ${{ env.texts-file-no }} differ with keys list from Gitea version v${{ steps.get-gitea-version.outputs.gitea-version }}. Please update the locale file."
             echo "$diff_output"
             exit 1;
           else
-            echo "Locale keys are up to date"
+            echo "All keys in locale file ${{ env.texts-file-no }} are in sync with Gitea v${{ steps.get-gitea-version.outputs.gitea-version }}."
           fi
 
           custom_no_section_keys_file="${{ env.temp-dir }}/custom_no"
