@@ -98,6 +98,7 @@ test('That it is possible to navigate to datamodel page and create a new data mo
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
@@ -112,6 +113,7 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnPageAccordion(pageName);
@@ -157,6 +159,7 @@ test('That it is possible to navigate to data model page and create another data
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await createNewDataModel(dataModelPage, newDataModel);
 });
@@ -168,6 +171,7 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnPageAccordion(pageName);
