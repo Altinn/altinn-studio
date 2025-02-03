@@ -86,7 +86,7 @@ jobs:
           awk '/^\[/{section=$0} /^[^#=;]+=/ {split($0, keyValue, "="); print section keyValue[1]}' "${{ env.custom-texts-file-us }}" | sort > "$custom_us_section_keys_file"
 
           # Check if custom NO locale keys exist in the release locale keys
-          missing_keys=$(grep -Fxvf "$release_section_keys_file" "$custom_no_section_keys_file")
+          missing_keys=$(grep -Fxvf "$release_section_keys_file" "$custom_no_section_keys_file" || true)
 
           if [ -n "$missing_keys" ]; then
             echo "::error::The following keys in the custom NO doesn't exists in Gitea v${{ steps.get-gitea-version.outputs.gitea-version }}:"
