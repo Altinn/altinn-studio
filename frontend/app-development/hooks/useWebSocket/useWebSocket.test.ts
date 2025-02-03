@@ -21,10 +21,10 @@ describe('useWebSocket', () => {
         webSocketConnector: WSConnector,
       }),
     );
-    expect(WSConnector.getInstance).toHaveBeenCalledWith('ws://jest-test-mocked-url.com', [
-      'MessageClientOne',
-      'MessageClientTwo',
-    ]);
+    expect(WSConnector.getInstance).toHaveBeenCalledWith(
+      ['ws://jest-test-mocked-url.com'],
+      ['MessageClientOne', 'MessageClientTwo'],
+    );
   });
 
   it('should provide a function to listen to messages', () => {

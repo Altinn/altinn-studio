@@ -38,4 +38,10 @@ describe('WSConnector', () => {
     ]);
     expect(result).toBeInstanceOf(WSConnector);
   });
+
+  it('should throw error when no URLs are provided', () => {
+    expect(() => {
+      WSConnector.getInstance([], ['MessageClientOne']);
+    }).toThrow('No WebSocket URLs provided. WebSocket urls needed to connect to the WS Server');
+  });
 });

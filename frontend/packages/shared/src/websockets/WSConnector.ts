@@ -1,4 +1,5 @@
 import { HttpTransportType, type HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
 export class WSConnector {
   private connections: Array<HubConnection> = [];
@@ -31,6 +32,9 @@ export class WSConnector {
   }
 
   private createMultipleConnections(webSocketUrls: Array<string>): void {
+    if (!webSocketUrls.length) {
+      throw new WSConnectorMissingWebSocketUrlsException();
+    }
     webSocketUrls.forEach((webSocketUrl: string) => this.createConnection(webSocketUrl));
   }
 
