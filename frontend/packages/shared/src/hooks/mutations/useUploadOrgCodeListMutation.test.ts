@@ -10,14 +10,15 @@ import { FileUtils } from '@studio/pure-functions';
 
 // Test data:
 const fileName = 'fileName';
-const fileData = [
+const fileData: CodeList = [
   {
     value: 'test-value',
     label: 'test-label',
   },
 ];
 
-const file = new File(fileData, `${fileName}.json`, { type: 'text/json' });
+const jsonData = JSON.stringify(fileData);
+const file = new File([jsonData], `${fileName}.json`, { type: 'text/json' });
 const formData = FileUtils.convertToFormData(file);
 
 const codeListResponse: CodeListsResponse = [
@@ -39,7 +40,7 @@ describe('useUploadOrgCodeListMutation', () => {
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
-    const uploadCodeListForOrg = jest.fn(() => Promise.resolve([codeListResponse]));
+    const uploadCodeListForOrg = jest.fn(() => Promise.resolve(codeListResponse));
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org), {
       queryClient,
       queries: { uploadCodeListForOrg },
@@ -47,7 +48,7 @@ describe('useUploadOrgCodeListMutation', () => {
 
     await result.current.mutateAsync(file);
 
-    const expectedUpdatedData: CodeListsResponse = [codeListResponse];
+    const expectedUpdatedData: CodeListsResponse = codeListResponse;
     const updatedData = queryClient.getQueryData([QueryKey.OrgCodeLists, org]);
     expect(updatedData).toEqual(expectedUpdatedData);
   });
