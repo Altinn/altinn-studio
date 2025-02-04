@@ -48,15 +48,8 @@ export const CustomReceipt = (): React.ReactElement => {
             validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
           }
           label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
-          inputProps={{
-            label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
-            value: existingCustomReceiptLayoutSetId,
-            onBlur: handleEditLayoutSetId,
-            size: 'small',
-          }}
-          viewProps={{
-            value: existingCustomReceiptLayoutSetId,
-          }}
+          onBlur={handleEditLayoutSetId}
+          value={existingCustomReceiptLayoutSetId}
         />
         <EditDataTypes
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
