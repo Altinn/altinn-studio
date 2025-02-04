@@ -56,10 +56,6 @@ export const WebSocketSyncWrapper = ({
 
   onFileSyncMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
     if ('resourceName' in message) {
-      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName);
-      return;
-    }
-    if ('resourceName' in message) {
       entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
       return;
     }
