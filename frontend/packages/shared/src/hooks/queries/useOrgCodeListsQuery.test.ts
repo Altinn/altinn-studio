@@ -1,8 +1,8 @@
 import { waitFor } from '@testing-library/react';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
+import { queriesMock } from '../../mocks/queriesMock';
+import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
-import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
+import { useOrgCodeListsQuery } from '../../hooks/queries/useOrgCodeListsQuery';
 
 describe('useOrgCodeListsQuery', () => {
   it('calls getCodeListsForOrg with the correct parameters', () => {

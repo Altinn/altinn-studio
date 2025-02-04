@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListData } from '../../types/CodeListData';
-import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 
 type mutationArgs = Pick<CodeListData, 'title' | 'data'>;
 

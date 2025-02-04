@@ -4,9 +4,9 @@ import { queriesMock } from '../../mocks/queriesMock';
 import { useCreateOrgCodeListMutation } from './useCreateOrgCodeListMutation';
 import type { CodeList } from '../../types/CodeList';
 import type { CodeListData } from '../../types/CodeListData';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { QueryKey } from '../../types/QueryKey';
+import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 
 // Test data:
 const codeList: CodeList = [

@@ -2,10 +2,10 @@ import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { useUploadOrgCodeListMutation } from './useUploadOrgCodeListMutation';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import type { CodeList } from 'app-shared/types/CodeList';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { QueryKey } from '../../types/QueryKey';
+import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
+import type { CodeList } from '../../types/CodeList';
 import { FileUtils } from '@studio/pure-functions';
 
 // Test data:
