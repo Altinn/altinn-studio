@@ -10,12 +10,12 @@ describe('useCreateTextResourcesForOrgMutation', () => {
   beforeEach(jest.clearAllMocks);
 
   it('Calls createTextResourcesForOrg with correct arguments and payload', async () => {
-    const renderResult = renderHookWithProviders(() =>
+    const { result } = renderHookWithProviders(() =>
       useCreateTextResourcesForOrgMutation(org, languageMock),
-    ).result;
+    );
 
-    renderResult.current.mutate();
-    await waitFor(() => expect(renderResult.current.isSuccess).toBe(true));
+    result.current.mutate();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(queriesMock.createTextResourcesForOrg).toHaveBeenCalledTimes(1);
     expect(queriesMock.createTextResourcesForOrg).toHaveBeenCalledWith(org, languageMock);
