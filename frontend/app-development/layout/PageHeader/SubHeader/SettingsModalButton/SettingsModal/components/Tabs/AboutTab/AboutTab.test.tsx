@@ -121,6 +121,11 @@ describe('AboutTab', () => {
       .mockImplementation(() => Promise.resolve([DEFAULT_LANGUAGE, da]));
     await resolveAndWaitForSpinnerToDisappear({ getTextLanguages });
 
+    const user = userEvent.setup();
+    const showMoreLanguagesButton = screen.getByText(
+      textMock('settings_modal.about_tab.show_more_languages'),
+    );
+    await user.click(showMoreLanguagesButton);
     [nb, nb, en, da].forEach((lang) => {
       const appName = screen.getByRole('textbox', { name: textMock(`language.${lang}`) });
       expect(appName).toBeInTheDocument();
