@@ -44,7 +44,7 @@ export const WebSocketSyncWrapper = ({
     invalidator.layoutSetName = selectedLayoutSetName;
   }, [invalidator, selectedLayoutSetName]);
 
-  const { onWSMessageReceived: onFileSyncMessageReceived } = useWebSocket({
+  const { onWSMessageReceived } = useWebSocket({
     webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
     clientsName: [
       SyncClientsName.FileSyncSuccess,
@@ -54,7 +54,7 @@ export const WebSocketSyncWrapper = ({
     webSocketConnector: WSConnector,
   });
 
-  onFileSyncMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
+  onWSMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
     if ('resourceName' in message) {
       entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
       return;
