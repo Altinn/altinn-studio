@@ -86,7 +86,7 @@ describe('ColumnElement', () => {
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
       headerContent: expect.stringContaining('subform_table_column_title_'),
-      cellContent: { query: subformLayoutMock.component3.dataModelBindings.address },
+      cellContent: { query: subformLayoutMock.component3.dataModelBindings.simpleBinding },
     });
   });
 

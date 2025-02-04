@@ -26,10 +26,10 @@ export const DataModelBindingsCombobox = ({
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
       )}
       size='sm'
-      value={selectedField ? [selectedField] : []}
+      value={[selectedField]}
       onValueChange={(values) => onSelectComponent(values[0])}
     >
-      {Object.keys(component?.dataModelBindings ?? {}).map((key) => {
+      {Object.keys(component.dataModelBindings).map((key) => {
         const { field } = convertDataBindingToInternalFormat(component, key);
         return (
           <StudioCombobox.Option key={field} value={field} description={field}>

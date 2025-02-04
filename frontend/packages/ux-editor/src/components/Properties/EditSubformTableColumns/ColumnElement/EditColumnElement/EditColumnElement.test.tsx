@@ -184,7 +184,7 @@ describe('EditColumnElementComponentSelect', () => {
     await user.click(dataModelBindingsSelect);
     await user.click(
       screen.getByRole('option', {
-        name: new RegExp(subformLayoutMock.component3.dataModelBindings.address),
+        name: new RegExp(subformLayoutMock.component3.dataModelBindings.simpleBinding.toString()),
       }),
     );
 
@@ -194,7 +194,7 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       headerContent: expect.stringContaining('subform_table_column_title_'),
-      cellContent: { query: subformLayoutMock.component3.dataModelBindings.address },
+      cellContent: { query: subformLayoutMock.component3.dataModelBindings.simpleBinding },
     });
   });
 });

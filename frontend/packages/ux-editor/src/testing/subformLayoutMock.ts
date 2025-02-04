@@ -21,12 +21,10 @@ const component2: FormComponent = {
 const component3Id = 'SubformComponent3';
 const component3: FormComponent = {
   id: component3Id,
-  type: ComponentType.Address,
+  type: ComponentType.Dropdown,
   dataModelBindings: {
-    address: 'address',
-    zipCode: 'zipCode',
-    postPlace: 'postPlace',
-    postNumber: 'postNumber',
+    simpleBinding: 'Nedtrekksliste',
+    metadata: 'Metadata',
   },
   textResourceBindings: { title: 'some-title' },
   itemType: 'COMPONENT',
