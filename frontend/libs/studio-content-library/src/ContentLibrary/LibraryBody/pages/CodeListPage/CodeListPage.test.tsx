@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { CodeListData, CodeListPageProps } from './CodeListPage';
 import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +7,9 @@ import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
+import { label1ResourceNb, textResources } from '../../../../test-data/textResources';
+import { codeList1Data, codeListDataList } from '../../../../test-data/codeListDataList';
+import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -60,7 +63,7 @@ describe('CodeListPage', () => {
 
   it('renders the code list accordion', () => {
     renderCodeListPage();
-    const codeListAccordion = getCodeListAccordion(codeListName);
+    const codeListAccordion = getCodeListAccordionHeading(codeListName);
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -74,7 +77,7 @@ describe('CodeListPage', () => {
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     [codeListName, codeList2].forEach((codeListTitle) => {
-      expect(getCodeListAccordion(codeListTitle)).toBeInTheDocument();
+      expect(getCodeListAccordionHeading(codeListTitle)).toBeInTheDocument();
     });
   });
 
@@ -87,7 +90,7 @@ describe('CodeListPage', () => {
     });
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
-    expect(getCodeListAccordion(codeList2)).toBeInTheDocument();
+    expect(getCodeListAccordionHeading(codeList2)).toBeInTheDocument();
     expect(
       screen.queryByTitle(
         textMock('app_content_library.code_lists.code_list_accordion_title', {
@@ -147,6 +150,31 @@ describe('CodeListPage', () => {
     expect(onUploadCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUploadCodeListMock).toHaveBeenCalledWith(expect.any(Object));
   });
+
+  it('Renders with text resources in the input fields when given', async () => {
+    const user = userEvent.setup();
+    renderCodeListPage({ textResources, codeListsData: codeListDataList });
+    const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
+    expect(labelField).toHaveValue(label1ResourceNb.value);
+  });
+
+  it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed', async () => {
+    const user = userEvent.setup();
+    const onUpdateTextResource = jest.fn();
+    const newLabel = 'Ny ledetekst';
+
+    renderCodeListPage({ textResources, codeListsData: codeListDataList, onUpdateTextResource });
+    const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
+    await user.type(labelField, newLabel);
+
+    const expectedLanguage = 'nb';
+    const expectedObject: TextResourceWithLanguage = {
+      language: expectedLanguage,
+      textResource: { ...label1ResourceNb, value: newLabel },
+    };
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
+    expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
+  });
 });
 
 const changeCodeListId = async (user: UserEvent, codeListNameToChange: string) => {
@@ -181,13 +209,23 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   await user.upload(fileUploaderButton, file);
 };
 
-const getCodeListAccordion = (codeListTitle: string) => {
-  return screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_accordion_title', {
-      codeListTitle,
-    }),
-  );
+const openAndGetFirstLabelField = async (
+  user: UserEvent,
+  codeListTitle: string,
+): Promise<HTMLElement> => {
+  await user.click(getCodeListAccordionHeading(codeListTitle));
+  const accordion = getCodeListAccordion(codeListTitle);
+  const labelFieldLabel = textMock('code_list_editor.text_resource.label.value', { number: 1 });
+  return within(accordion).getByRole('textbox', { name: labelFieldLabel });
 };
+
+const getCodeListAccordion = (codeListTitle: string): HTMLElement =>
+  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the accordion element.
+  // Todo: When we upgrade The Design System, we should use the new `Details` component with `getByRole('group')` instead. https://github.com/Altinn/altinn-studio/issues/14577
+  getCodeListAccordionHeading(codeListTitle).parentElement; // eslint-disable-line testing-library/no-node-access
+
+const getCodeListAccordionHeading = (codeListTitle: string): HTMLElement =>
+  screen.getByRole('heading', { name: codeListTitle });
 
 const defaultCodeListPageProps: CodeListPageProps = {
   codeListsData: codeListsDataMock,

@@ -6,7 +6,7 @@ import {
   StudioCodeListEditor,
   StudioToggleableTextfield,
 } from '@studio/components';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
@@ -16,6 +16,10 @@ import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNa
 import classes from './EditCodeList.module.css';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';
+import type { TextResources } from '../../../../../../types/TextResources';
+import type { TextResource } from '../../../../../../types/TextResource';
+import type { TextResourceWithLanguage } from '../../../../../../types/TextResourceWithLanguage';
+import { createTextResourceWithLanguage, getTextResourcesForLanguage } from './utils';
 
 export type EditCodeListProps = {
   codeList: CodeList;
@@ -23,9 +27,13 @@ export type EditCodeListProps = {
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
+  textResources?: TextResources;
 };
+
+const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
 
 export function EditCodeList({
   codeList,
@@ -33,10 +41,17 @@ export function EditCodeList({
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  onUpdateTextResource,
   codeListNames,
   codeListSources,
+  textResources,
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
+
+  const textResourcesForLanguage = useMemo(
+    () => getTextResourcesForLanguage(language, textResources),
+    [textResources],
+  );
 
   const handleCodeListChange = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
@@ -47,6 +62,14 @@ export function EditCodeList({
   };
 
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
+
+  const handleChangeTextResource = useCallback(
+    (textResource: TextResource) => {
+      const updatedTextResource = createTextResourceWithLanguage(language, textResource);
+      onUpdateTextResource?.(updatedTextResource);
+    },
+    [onUpdateTextResource],
+  );
 
   const codeListHasUsages = codeListSources.length > 0;
   const isCodeListEditable = codeListSources.length === 0;
@@ -63,7 +86,9 @@ export function EditCodeList({
         codeList={codeList}
         onAddOrDeleteItem={handleCodeListChange}
         onBlurAny={handleCodeListChange}
+        onChangeTextResource={handleChangeTextResource}
         texts={editorTexts}
+        textResources={textResourcesForLanguage}
       />
       <CodeListButtons
         codeListHasUsages={codeListHasUsages}
