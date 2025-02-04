@@ -3,7 +3,12 @@ import type { CodeListItemValue } from '../types/CodeListItemValue';
 import type { ValueError } from '../types/ValueError';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
-import { all } from 'axios';
+import type { TypeofResult } from '../types/TypeofResult';
+
+export function isFieldValid(value: unknown): boolean {
+  const type: TypeofResult = typeof value;
+  return type === 'string' || type === 'number' || type === 'boolean';
+}
 
 export function isCodeListValid(codeList: CodeList): boolean {
   const errors = findCodeListErrors(codeList);

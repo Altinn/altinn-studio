@@ -10,6 +10,7 @@ import type { ValueError } from '../types/ValueError';
 import classes from './StudioCodeListEditorRow.module.css';
 import type { TextResource } from '../../../types/TextResource';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
+import { isFieldValid } from '../validation';
 
 type StudioCodeListEditorRowProps = {
   error: ValueError | null;
@@ -164,8 +165,8 @@ function TypedInputCell({ error, label, value, onChange, autoComplete }: TypedIn
 const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
-      (numberValue: number): void => {
-        onChange(numberValue);
+      (numberValue: number | undefined): void => {
+        isFieldValid(numberValue) && onChange(numberValue);
       },
       [onChange],
     );
