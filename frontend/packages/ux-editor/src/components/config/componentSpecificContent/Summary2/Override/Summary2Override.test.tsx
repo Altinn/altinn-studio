@@ -183,7 +183,7 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('should not send a call to onChange when the input in combobox is invalid', async () => {
+  it('should not be able to override display type when input in combobox is invalid', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: checkBoxId }] });
     await user.click(overrideCollapsedButton(1));
