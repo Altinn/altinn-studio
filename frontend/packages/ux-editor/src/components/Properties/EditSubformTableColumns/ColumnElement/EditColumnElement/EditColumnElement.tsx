@@ -83,7 +83,6 @@ export const EditColumnElement = ({
     setSelectedComponentId(componentId);
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
-    if (!selectedComponent) return;
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
