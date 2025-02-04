@@ -1,5 +1,5 @@
-import React, { type ReactElement } from 'react';
-import { StudioCard, StudioNativeSelect } from '@studio/components';
+import React from 'react';
+import { StudioCard, StudioCombobox } from '@studio/components';
 import type {
   Summary2OverrideConfig,
   SummaryCustomTargetType,
@@ -25,6 +25,7 @@ export const Summary2OverrideDisplayType = ({
   const selectedComponentType = componentOptions?.find(
     (comp) => comp.id === override?.componentId,
   )?.type;
+  const customConfigTypes: CustomConfigType[] = useCustomConfigType();
 
   const checkboxOrMultipleselect =
     selectedComponentType?.includes(ComponentType.MultipleSelect) ||
@@ -34,31 +35,29 @@ export const Summary2OverrideDisplayType = ({
     return null;
   }
 
-  const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const newSelectedType = event.target.value as SummaryCustomTargetType;
-    const summary2OverrideConfig = mapSelectedTypeToConfig(newSelectedType, override.componentId);
+  const handleCustomTypeChange = (newSelectedType: string): void => {
+    if (!['list', 'string', 'notSet'].includes(newSelectedType)) return;
+    const summary2OverrideConfig = mapSelectedTypeToConfig(
+      newSelectedType as SummaryCustomTargetType,
+      override.componentId,
+    );
     onChange(summary2OverrideConfig);
   };
 
   return (
     <StudioCard.Content>
-      <StudioNativeSelect
+      <StudioCombobox
         size='sm'
         label={t('ux_editor.component_properties.summary.override.display_type')}
-        onChange={handleCustomTypeChange}
-        value={override.displayType || 'string'}
+        onValueChange={(e) => handleCustomTypeChange(e[0])}
+        value={override?.displayType ? [override.displayType] : ['notSet']}
       >
-        <CustomConfigTypeOptions />
-      </StudioNativeSelect>
+        {customConfigTypes.map((type: CustomConfigType) => (
+          <StudioCombobox.Option key={type.value} value={type.value}>
+            {type.label}
+          </StudioCombobox.Option>
+        ))}
+      </StudioCombobox>
     </StudioCard.Content>
   );
-};
-
-const CustomConfigTypeOptions = (): ReactElement[] => {
-  const customConfigTypes: CustomConfigType[] = useCustomConfigType();
-  return customConfigTypes.map((type: CustomConfigType) => (
-    <option key={type.value} value={type.value}>
-      {type.label}
-    </option>
-  ));
 };
