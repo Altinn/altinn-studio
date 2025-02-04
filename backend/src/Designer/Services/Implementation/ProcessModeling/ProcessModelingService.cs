@@ -28,23 +28,6 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetProcessDefinitionTemplates(SemanticVersion version)
-        {
-            return EnumerateTemplateResources(version)
-                .Select(
-                templateName => templateName.Split(TemplatesFolderIdentifier(version)).Last().TrimStart('.'))!;
-        }
-
-        /// <inheritdoc/>
-        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, SemanticVersion version, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            await using Stream templateStream = GetTemplateStream(version, templateName);
-            await altinnAppGitRepository.SaveProcessDefinitionFileAsync(templateStream, cancellationToken);
-        }
-
-        /// <inheritdoc/>
         public async Task SaveProcessDefinitionAsync(AltinnRepoEditingContext altinnRepoEditingContext, Stream bpmnStream, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

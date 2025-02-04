@@ -1,6 +1,12 @@
-import { changeTextResourceInList, editTextResourceValue, getTextResourceById } from './utils';
+import {
+  changeTextResourceInList,
+  editTextResourceValue,
+  getTextResourceById,
+  determineDefaultMode,
+} from './utils';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { TextResource } from '../../types/TextResource';
+import { Mode } from './types/Mode';
 
 describe('utils', () => {
   describe('getTextResourceById', () => {
@@ -47,6 +53,22 @@ describe('utils', () => {
       const newTextResource = { id: '0', value: 'Updated value' };
       const result = changeTextResourceInList(textResources, newTextResource);
       expect(result).not.toBe(textResources);
+    });
+  });
+
+  describe('determineDefaultMode', () => {
+    it('Returns "editValue" when a valid ID is given', () => {
+      const result = determineDefaultMode('land.NO');
+      expect(result).toBe(Mode.EditValue);
+    });
+
+    it.each([
+      ['an empty string', ''],
+      ['null', null],
+      ['undefined', undefined],
+    ])('Returns "search" when the ID is %s', (_, id) => {
+      const result = determineDefaultMode(id);
+      expect(result).toBe(Mode.Search);
     });
   });
 });

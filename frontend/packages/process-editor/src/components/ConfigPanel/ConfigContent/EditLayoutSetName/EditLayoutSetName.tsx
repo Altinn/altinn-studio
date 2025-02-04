@@ -26,15 +26,9 @@ export const EditLayoutSetName = ({
         validateLayoutSetName(newLayoutSetName, layoutSets, existingLayoutSetName)
       }
       label={t('process_editor.configuration_panel_layout_set_name_label')}
-      inputProps={{
-        label: t('process_editor.configuration_panel_layout_set_name_label'),
-        value: existingLayoutSetName,
-        onBlur: (event) => handleOnLayoutSetNameBlur(event),
-        size: 'small',
-      }}
-      viewProps={{
-        value: existingLayoutSetName,
-      }}
+      onBlur={handleOnLayoutSetNameBlur}
+      title={t('process_editor.configuration_panel_layout_set_name_label')}
+      value={existingLayoutSetName}
     />
   );
 };
