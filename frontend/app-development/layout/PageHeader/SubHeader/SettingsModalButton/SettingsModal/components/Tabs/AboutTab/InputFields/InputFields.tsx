@@ -7,7 +7,10 @@ import {
   StudioLabelAsParagraph,
   StudioParagraph,
   StudioIconTextfield,
+  StudioProperty,
 } from '@studio/components';
+import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
+import { recommendedLanguages } from '../utils/getAppTitlesToDisplay';
 
 export type ServiceNames<T extends string> = {
   [key in T]: string | undefined;
@@ -47,8 +50,20 @@ function EditServiceNames<T extends string>({
   ...rest
 }: EditServiceNamesNameProps<T>): React.ReactElement {
   const { t } = useTranslation();
+  const [displayAllLanguages, setDisplayAllLanguages] = useState<boolean>(false);
 
-  const appTitleLanguages = Object.keys(serviceNames);
+  const restAppTitleLanguages = Object.keys(serviceNames).filter(
+    (lang) => !recommendedLanguages.includes(lang),
+  );
+  const rendertext = displayAllLanguages
+    ? t('settings_modal.about_tab.hide_languages')
+    : t('settings_modal.about_tab.show_more_languages');
+
+  const renderIcon = displayAllLanguages ? (
+    <ChevronUpIcon className={classes.upIcon} />
+  ) : (
+    <ChevronDownIcon className={classes.downIcon} />
+  );
 
   return (
     <div>
@@ -56,14 +71,28 @@ function EditServiceNames<T extends string>({
       <StudioParagraph size={'small'}>
         {t('settings_modal.about_tab_name_description')}
       </StudioParagraph>
-      {appTitleLanguages.map((lang: string) => (
+      {recommendedLanguages.map((lang: string) => (
         <EditServiceNameForLanguage
-          key={lang}
           language={lang}
+          key={lang}
           serviceName={serviceNames[lang]}
           {...rest}
         />
       ))}
+      {displayAllLanguages &&
+        restAppTitleLanguages.map((lang: string) => (
+          <EditServiceNameForLanguage
+            key={lang}
+            language={lang}
+            serviceName={serviceNames[lang]}
+            {...rest}
+          />
+        ))}
+      <StudioProperty.Button
+        property={rendertext}
+        onClick={() => setDisplayAllLanguages((prev) => !prev)}
+        icon={renderIcon}
+      ></StudioProperty.Button>
     </div>
   );
 }

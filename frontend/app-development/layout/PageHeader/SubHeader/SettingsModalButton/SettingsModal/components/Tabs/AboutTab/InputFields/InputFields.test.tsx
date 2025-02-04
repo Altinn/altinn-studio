@@ -7,11 +7,18 @@ import userEvent from '@testing-library/user-event';
 
 const mockNewText: string = 'test';
 const langNb = 'nb';
-const appLangCodes: string[] = [langNb];
+const langEn = 'en';
+const langNn = 'nn';
+const langDa = 'da';
+const recommendedLanguages = [langNb, langEn, langNn];
+const appLangCodes: string[] = [langNb, langDa];
 const onSave = jest.fn();
 const repositoryName = 'repositoryName';
 const serviceNames: ServiceNames<(typeof appLangCodes)[number]> = {
   [langNb]: 'mockAppTitleNb',
+  [langEn]: undefined,
+  [langNn]: undefined,
+  [langDa]: 'mockAppTitleDa',
 };
 
 const defaultProps: InputFieldsProps<(typeof appLangCodes)[number]> = {
@@ -42,6 +49,33 @@ describe('InputFields', () => {
     await user.type(appName, mockNewText);
 
     expect(appName).toHaveValue(mockNewText);
+  });
+
+  it.each(recommendedLanguages)(
+    'displays reccomended language "name" input field by default',
+    (lang) => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(textMock(`language.${lang}`));
+      expect(appName).toBeInTheDocument();
+    },
+  );
+
+  it('does not display non-recommended language "name" input field by default', () => {
+    render(<InputFields {...defaultProps} />);
+    const appName = screen.queryByLabelText(textMock(`language.${langDa}`));
+    expect(appName).not.toBeInTheDocument();
+  });
+
+  it('displays all language input fields when "show more languages" is clicked', async () => {
+    const user = userEvent.setup();
+    render(<InputFields {...defaultProps} />);
+    const showMoreLanguagesButton = screen.getByText(
+      textMock('settings_modal.about_tab.show_more_languages'),
+    );
+    await user.click(showMoreLanguagesButton);
+
+    const appNameEn = screen.getByLabelText(textMock(`language.${langDa}`));
+    expect(appNameEn).toBeInTheDocument();
   });
 
   describe('InputFields Validation', () => {
