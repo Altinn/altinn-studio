@@ -60,7 +60,6 @@ describe('ConfirmUndeployDialog', () => {
       undeployAppFromEnvMock: undeployMock,
     });
     await openDialog();
-
     const confirmTextField = getConfirmTextField();
     await user.type(confirmTextField, app);
     await user.click(getUndeployButton());
@@ -79,7 +78,6 @@ describe('ConfirmUndeployDialog', () => {
     await openDialog();
 
     const errorMessageKey = 'app_deployment.error_unknown.message';
-
     const confirmTextField = getConfirmTextField();
     await user.type(confirmTextField, app);
 

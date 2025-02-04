@@ -23,11 +23,11 @@ export const ConfirmUndeployDialog = ({
   const { org, app: appName } = useStudioEnvironmentParams();
   const dialogRef = useRef<HTMLDialogElement>();
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
-  const [undeployError, setUndeployError] = useState<string | null>(null);
-  const { mutate: mutateUndeploy, isPending: isPendingUndeploy } = useUndeployMutation(
-    org,
-    appName,
-  );
+  const {
+    mutate: mutateUndeploy,
+    isPending: isPendingUndeploy,
+    error: undeployError,
+  } = useUndeployMutation(org, appName);
   const onAppNameInputChange = (event: React.FormEvent<HTMLInputElement>): void => {
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
   };
@@ -42,11 +42,7 @@ export const ConfirmUndeployDialog = ({
       },
       {
         onSuccess: (): void => {
-          setUndeployError(null);
           closeDialog();
-        },
-        onError: (): void => {
-          setUndeployError('app_deployment.error_unknown.message');
         },
       },
     );
@@ -77,7 +73,7 @@ export const ConfirmUndeployDialog = ({
           <StudioAlert severity='danger' className={classes.errorContainer}>
             <StudioParagraph size='sm'>
               <Trans
-                i18nKey={undeployError}
+                i18nKey={'app_deployment.error_unknown.message'}
                 components={{
                   a: <StudioLink href='/contact'> </StudioLink>,
                 }}
