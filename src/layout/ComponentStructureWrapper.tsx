@@ -8,7 +8,6 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LabelProps } from 'src/components/label/Label';
 import type { CompTypes } from 'src/layout/layout';
-import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ComponentStructureWrapperProps<Type extends CompTypes> = {
@@ -28,7 +27,7 @@ export function ComponentStructureWrapper<Type extends CompTypes = CompTypes>({
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
   const _grid = useNodeItem(node, (i) => i.grid);
   const grid = overrideItemProps?.grid ?? _grid;
-  const layoutComponent = node.def as unknown as LayoutComponent<Type>;
+  const layoutComponent = node.def;
   const showValidationMessages = layoutComponent.renderDefaultValidations();
 
   const componentWithValidations = (
