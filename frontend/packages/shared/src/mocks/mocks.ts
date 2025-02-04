@@ -77,6 +77,7 @@ export const deploymentsResponse: DeploymentsResponse = {
 
 export const pipelineDeployment: PipelineDeployment = {
   id: '',
+  deploymentType: 'Deploy',
   tagName: '',
   app: '',
   org: '',

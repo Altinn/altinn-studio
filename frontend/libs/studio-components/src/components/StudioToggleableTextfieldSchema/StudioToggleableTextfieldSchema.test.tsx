@@ -32,20 +32,15 @@ const defaultLayoutSchemaMock: JsonSchema = {
 const value: string = 'value';
 const label: string = 'label';
 const defaultProps: StudioToggleableTextfieldSchemaProps = {
+  icon: <div />,
   label,
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
-  viewProps: {
-    value,
-    onChange: jest.fn(),
-  },
-  inputProps: {
-    label,
-    value,
-    onChange: jest.fn(),
-  },
-  propertyPath: 'definitions/component/properties/id',
+  onBlur: jest.fn(),
+  onChange: jest.fn(),
   onError: jest.fn(),
+  value,
+  propertyPath: 'definitions/component/properties/id',
 };
 
 describe('StudioToggleableTextfieldSchema', () => {
@@ -75,7 +70,7 @@ describe('StudioToggleableTextfieldSchema', () => {
   it('should not toggle to view mode on blur if input is invalid', async () => {
     const user = userEvent.setup();
     const error: string = 'error message';
-    renderStudioToggleableTextfieldSchema({ inputProps: { label, error } });
+    renderStudioToggleableTextfieldSchema({ error });
     await user.click(screen.getByRole('button', { name: label }));
     await user.tab();
     expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
@@ -114,7 +109,7 @@ describe('StudioToggleableTextfieldSchema', () => {
       errorCode: 'pattern',
       details: 'Result of validate property',
     });
-    expect(defaultProps.inputProps.onChange).toHaveBeenCalledTimes(invalidValue.length);
+    expect(defaultProps.onChange).toHaveBeenCalledTimes(invalidValue.length);
   });
 });
 

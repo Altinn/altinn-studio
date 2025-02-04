@@ -13,7 +13,6 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
-const existingImageUrl = undefined;
 const onUrlChangeMock = jest.fn();
 const onUrlDeleteMock = jest.fn();
 const imageOriginsFromLibrary = false;
@@ -21,10 +20,21 @@ const imageOriginsFromLibrary = false;
 describe('ExternalImage', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('shows input field by default when no url exists', () => {
+  it('shows button to add url, with label as text content, by default when no url exists', () => {
     renderExternalImage();
-    const inputUrlField = getInputUrlField();
-    expect(inputUrlField).toBeInTheDocument();
+    const urlButton = getUrlButton();
+    expect(urlButton).toBeInTheDocument();
+    expect(urlButton).toHaveTextContent(
+      textMock('ux_editor.properties_panel.images.enter_external_url'),
+    );
+  });
+
+  it('shows button to add url by default when no url exists', () => {
+    const existingImageUrl = 'existingImageUrl';
+    renderExternalImage({ existingImageUrl });
+    const urlButton = getUrlButton();
+    expect(urlButton).toBeInTheDocument();
+    expect(urlButton).toHaveTextContent(existingImageUrl);
   });
 
   it('shows conflictingImageSourceAlert when imageOriginsFromLibrary is true', () => {
@@ -33,13 +43,6 @@ describe('ExternalImage', () => {
       textMock('ux_editor.properties_panel.images.conflicting_image_source_when_entering_url'),
     );
     expect(conflictingImageSourceAlert).toBeInTheDocument();
-  });
-
-  it('shows existing url in view mode if exist', () => {
-    const existingUrl = 'someExistingUrl';
-    renderExternalImage({ existingImageUrl: existingUrl });
-    const existingUrlButton = getExistingUrlButton();
-    expect(existingUrlButton).toBeInTheDocument();
   });
 
   it('shows "invalid url" error message by default if existing url is validated as invalid url', () => {
@@ -141,10 +144,8 @@ describe('ExternalImage', () => {
     // Entering invalid url
     await inputUrlInField(user, invalidUrl);
     // Entering valid url
-    const viewModeUrlButton = getExistingUrlButton();
-    await user.click(viewModeUrlButton);
     await inputUrlInField(user, validImageUrl);
-    expect(onUrlChangeMock).toHaveBeenCalled();
+    expect(onUrlChangeMock).toHaveBeenCalledTimes(1);
   });
 
   it('sets url to view mode when entering a valid url', async () => {
@@ -152,16 +153,15 @@ describe('ExternalImage', () => {
     const validUrl = 'someValidUrl';
     renderExternalImage();
     await inputUrlInField(user, validUrl);
-    const existingUrlButton = getExistingUrlButton();
+    const existingUrlButton = getUrlButton();
     expect(existingUrlButton).toBeInTheDocument();
+    expect(existingUrlButton).toHaveTextContent(validUrl);
   });
 
   it('calls onUrlDelete when entering an empty url if there was an original url', async () => {
     const user = userEvent.setup();
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
-    const viewModeUrlButton = getExistingUrlButton();
-    await user.click(viewModeUrlButton);
     await inputUrlInField(user, undefined);
     expect(onUrlDeleteMock).toHaveBeenCalledTimes(1);
     expect(onUrlDeleteMock).toHaveBeenCalledWith();
@@ -178,22 +178,8 @@ describe('ExternalImage', () => {
     const user = userEvent.setup();
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
-    const viewModeUrlButton = getExistingUrlButton();
-    await user.click(viewModeUrlButton);
     await inputUrlInField(user, existingUrl);
     expect(onUrlDeleteMock).not.toHaveBeenCalled();
-  });
-
-  it('sets field to view mode with placeholder text when entering an empty url', async () => {
-    const user = userEvent.setup();
-    renderExternalImage();
-    await inputUrlInField(user, undefined);
-    const enterUrlButton = getExistingUrlButton();
-    expect(enterUrlButton).toBeInTheDocument();
-    const emptyUrlPlaceholder = screen.getByText(
-      textMock('ux_editor.properties_panel.images.external_url_not_added'),
-    );
-    expect(emptyUrlPlaceholder).toBeInTheDocument();
   });
 
   it('should show error if validation failed', async () => {
@@ -224,20 +210,21 @@ const getInvalidUrlErrorMessage = () =>
 const getNotAnImageErrorMessage = () =>
   screen.getByText(textMock('ux_editor.properties_panel.images.invalid_external_url_not_an_image'));
 
-const getExistingUrlButton = () =>
+const getUrlButton = () =>
   screen.getByRole('button', {
     name: textMock('ux_editor.properties_panel.images.enter_external_url'),
   });
 
 const inputUrlInField = async (user: UserEvent, url: string) => {
+  await user.click(getUrlButton());
   const inputUrlField = getInputUrlField();
+  await user.clear(inputUrlField);
   if (url) await user.type(inputUrlField, url);
-  else await user.clear(inputUrlField);
   await waitFor(() => inputUrlField.blur());
 };
 
 const defaultProps: ExternalImageProps = {
-  existingImageUrl,
+  existingImageUrl: undefined,
   onUrlChange: onUrlChangeMock,
   onUrlDelete: onUrlDeleteMock,
   imageOriginsFromLibrary,

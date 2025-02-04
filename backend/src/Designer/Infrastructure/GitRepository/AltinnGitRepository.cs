@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -113,16 +112,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return string.Empty;
-        }
-
-        /// <summary>
-        /// Finds all texts files regardless of location in repository.
-        /// </summary>
-        public IList<string> GetLanguageFiles()
-        {
-            IEnumerable<string> languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
-
-            return languageFiles.ToList();
         }
 
         /// <summary>

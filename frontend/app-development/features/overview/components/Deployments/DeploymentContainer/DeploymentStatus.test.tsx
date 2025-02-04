@@ -10,6 +10,7 @@ import { app, org } from '@studio/testing/testids';
 
 // Test data
 const defaultProps: DeploymentStatusProps = {
+  deploymentType: 'Deploy',
   envName: 'tt02',
   isProduction: false,
 };
@@ -49,6 +50,15 @@ describe('DeploymentStatus', () => {
 
   it('shows alert when no app is deployed', async () => {
     render();
+
+    expect(screen.getByText(textMock('app_deployment.status.none'))).toBeInTheDocument();
+  });
+
+  it('shows alert when no app is deployed when app is decommissioned', async () => {
+    render({
+      ...kubernetesDeployment,
+      deploymentType: 'Decommission',
+    });
 
     expect(screen.getByText(textMock('app_deployment.status.none'))).toBeInTheDocument();
   });
