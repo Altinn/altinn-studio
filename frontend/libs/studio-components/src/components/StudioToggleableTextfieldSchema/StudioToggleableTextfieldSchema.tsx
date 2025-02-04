@@ -5,19 +5,23 @@ import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
 } from '../StudioToggleableTextfield';
+import type { Override } from '../../types/Override';
 
 export type SchemaValidationError = {
   errorCode: string;
   details: string;
 };
 
-export type StudioToggleableTextfieldSchemaProps = {
-  layoutSchema: JsonSchema;
-  relatedSchemas: JsonSchema[];
-  propertyPath: string;
-  onIsViewMode?: (isViewMode: boolean) => void;
-  onError?: (error: SchemaValidationError | null) => void;
-} & StudioToggleableTextfieldProps;
+export type StudioToggleableTextfieldSchemaProps = Override<
+  {
+    layoutSchema: JsonSchema;
+    relatedSchemas: JsonSchema[];
+    propertyPath: string;
+    onIsViewMode?: (isViewMode: boolean) => void;
+    onError?: (error: SchemaValidationError | null) => void;
+  },
+  StudioToggleableTextfieldProps
+>;
 
 export const StudioToggleableTextfieldSchema = forwardRef<
   HTMLDivElement,
@@ -25,12 +29,13 @@ export const StudioToggleableTextfieldSchema = forwardRef<
 >(
   (
     {
+      error,
       layoutSchema,
-      relatedSchemas,
-      inputProps,
-      propertyPath,
+      onChange,
       onError,
       onIsViewMode,
+      propertyPath,
+      relatedSchemas,
       ...rest
     }: StudioToggleableTextfieldSchemaProps,
     ref,
@@ -48,8 +53,8 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       }
 
       if (propertyId) {
-        const error = jsonSchemaValidator.validateProperty(propertyId, newValue);
-        return error ? createSchemaError(error, 'Result of validate property') : null;
+        const schemaError = jsonSchemaValidator.validateProperty(propertyId, newValue);
+        return schemaError ? createSchemaError(schemaError, 'Result of validate property') : null;
       }
 
       return null;
@@ -59,19 +64,16 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       const validationError = validateAgainstSchema(event);
 
       onError?.(validationError || null);
-      inputProps.onChange?.(event);
+      onChange?.(event);
     };
 
     return (
       <StudioToggleableTextfield
-        {...rest}
-        ref={ref}
-        inputProps={{
-          ...inputProps,
-          onChange: (event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event),
-          error: inputProps.error,
-        }}
+        error={error}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event)}
         onIsViewMode={onIsViewMode}
+        ref={ref}
+        {...rest}
       />
     );
   },
