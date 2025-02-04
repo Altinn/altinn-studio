@@ -31,7 +31,7 @@ const meta: Meta<typeof StudioTextResourceInput> = {
 };
 export default meta;
 
-export const Preview: Story = {
+export const WithId: Story = {
   args: {
     currentId: 'land.NO',
     textResources: textResourcesMock,
@@ -43,5 +43,12 @@ export const Preview: Story = {
       noTextResourceOptionLabel: 'Ikke oppgitt',
       valueLabel: 'Tekstverdi',
     },
+  },
+};
+
+export const WithoutId: Story = {
+  args: {
+    ...WithId.args,
+    currentId: undefined,
   },
 };
