@@ -3,16 +3,15 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfirmUndeployDialog } from './ConfirmUndeployDialog';
-import { useUndeployMutation } from '../../../../hooks/mutations/useUndeployMutation';
-
-jest.mock('../../../../hooks/mutations/useUndeployMutation');
 
 describe('ConfirmUndeployDialog', () => {
   it('should provide a input field to confirm the app to undeploy and button is disabled', async () => {
-    renderConfirmUndeployDialog();
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: jest.fn(),
+    });
     await openDialog();
 
     const confirmTextField = getConfirmTextField();
@@ -24,7 +23,9 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should enable undeploy button when confirm text field matches the app name', async () => {
     const user = userEvent.setup();
-    renderConfirmUndeployDialog();
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: jest.fn(),
+    });
     await openDialog();
 
     const confirmTextField = getConfirmTextField();
@@ -37,7 +38,9 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should not be case-sensitive when confirming the app-name', async () => {
     const user = userEvent.setup();
-    renderConfirmUndeployDialog();
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: jest.fn(),
+    });
     await openDialog();
 
     const appNameInUpperCase = app.toUpperCase();
@@ -52,36 +55,30 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should trigger undeploy when undeploy button is clicked', async () => {
     const user = userEvent.setup();
-    renderConfirmUndeployDialog();
-    await openDialog();
-
-    const mutateFunctionMock = jest.fn();
-    (useUndeployMutation as jest.Mock).mockReturnValue({
-      mutate: mutateFunctionMock,
+    const undeployMock = jest.fn();
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: undeployMock,
     });
+    await openDialog();
 
     const confirmTextField = getConfirmTextField();
     await user.type(confirmTextField, app);
     await user.click(getUndeployButton());
 
-    expect(mutateFunctionMock).toBeCalledTimes(1);
-    expect(mutateFunctionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ environment: 'unit-test-env' }),
-      expect.anything(),
-    );
+    expect(undeployMock).toBeCalledTimes(1);
+    expect(undeployMock).toHaveBeenCalledWith('testOrg', 'testApp', 'unit-test-env');
   });
 
   it('should display an error alert when the undeploy mutation fails', async () => {
     const user = userEvent.setup();
-    renderConfirmUndeployDialog();
+    const undeployMock = jest.fn(() => Promise.reject('error'));
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: undeployMock,
+    });
+
     await openDialog();
 
     const errorMessageKey = 'app_deployment.error_unknown.message';
-    const mutateFunctionMock = jest.fn((_, { onError }) => onError());
-
-    (useUndeployMutation as jest.Mock).mockReturnValue({
-      mutate: mutateFunctionMock,
-    });
 
     const confirmTextField = getConfirmTextField();
     await user.type(confirmTextField, app);
@@ -89,14 +86,29 @@ describe('ConfirmUndeployDialog', () => {
     const undeployButton = getUndeployButton();
     await user.click(undeployButton);
 
-    expect(mutateFunctionMock).toBeCalledTimes(1);
-    expect(mutateFunctionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ environment: 'unit-test-env' }),
-      expect.anything(),
-    );
+    expect(undeployMock).toBeCalledTimes(1);
+    expect(undeployMock).toHaveBeenCalledWith('testOrg', 'testApp', 'unit-test-env');
 
     const alertMessage = screen.getByText(textMock(errorMessageKey));
     expect(alertMessage).toBeInTheDocument();
+  });
+
+  it('should disable the undeploy-button while undeploy isPending', async () => {
+    const user = userEvent.setup();
+    const undeployMock = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 300)));
+
+    renderConfirmUndeployDialog({
+      undeployAppFromEnvMock: undeployMock,
+    });
+    await openDialog();
+
+    const confirmTextField = getConfirmTextField();
+    await user.type(confirmTextField, app);
+
+    const undeployButton = getUndeployButton();
+    await user.click(undeployButton);
+
+    await waitFor(() => expect(undeployButton).toBeDisabled());
   });
 });
 
@@ -116,8 +128,19 @@ function getUndeployButton(): HTMLButtonElement | null {
   });
 }
 
-function renderConfirmUndeployDialog(environment: string = 'unit-test-env'): void {
+type RenderConfirmUndeployDialog = {
+  environment?: string;
+  undeployAppFromEnvMock: jest.Mock;
+};
+
+function renderConfirmUndeployDialog({
+  undeployAppFromEnvMock,
+  environment = 'unit-test-env',
+}: RenderConfirmUndeployDialog): void {
   renderWithProviders(<ConfirmUndeployDialog environment={environment} />, {
+    queries: {
+      undeployAppFromEnv: undeployAppFromEnvMock,
+    },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
   });
 }
