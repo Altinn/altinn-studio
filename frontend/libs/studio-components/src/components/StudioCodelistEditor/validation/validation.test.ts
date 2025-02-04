@@ -32,6 +32,16 @@ const codeListWithMultipleTypes: CodeList = [
     label: 'Label 2',
   },
 ];
+const codeListWithUndefinedValue: CodeList = [
+  {
+    value: undefined,
+    label: 'Label 1',
+  },
+  {
+    value: 'value2',
+    label: 'Label 2',
+  },
+];
 
 describe('validation', () => {
   describe('isCodeListValid', () => {
@@ -55,12 +65,15 @@ describe('validation', () => {
       expect(errors).toEqual(['duplicateValue', 'duplicateValue'] satisfies ValueErrorMap);
     });
 
-    it('Returns an array with code word "multipleTypes" corresponding to duplicate values', () => {
+    it('Returns an array with code word "multipleTypes" corresponding to multiple values', () => {
       const errors = findCodeListErrors(codeListWithMultipleTypes);
       expect(errors).toEqual(['multipleTypes', 'multipleTypes'] satisfies ValueErrorMap);
     });
 
-    it.skip('Returns an array with code word "undefinedValue" corresponding to duplicate values', () => {});
+    it('Returns an array with code word "undefinedValue" corresponding to undefined values', () => {
+      const errors = findCodeListErrors(codeListWithUndefinedValue);
+      expect(errors).toEqual(['undefinedValue', 'multipleTypes'] satisfies ValueErrorMap);
+    });
   });
 
   describe('areThereCodeListErrors', () => {
