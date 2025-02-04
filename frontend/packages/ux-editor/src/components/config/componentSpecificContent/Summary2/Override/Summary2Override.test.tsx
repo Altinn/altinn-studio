@@ -183,6 +183,16 @@ describe('Summary2Override', () => {
     );
   });
 
+  it('should not send a call to onChange when the input in combobox is invalid', async () => {
+    const user = userEvent.setup();
+    render({ overrides: [{ componentId: checkBoxId }] });
+    await user.click(overrideCollapsedButton(1));
+
+    const typeSelector = overrideTypeSelector();
+    await user.type(typeSelector, 'invalid');
+    await waitFor(() => expect(defaultProps.onChange).not.toHaveBeenCalled());
+  });
+
   it('should collapse and uncollapse override', async () => {
     render({ overrides: [{ componentId: '1' }] });
     await userEvent.click(overrideCollapsedButton(1));
