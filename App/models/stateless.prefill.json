@@ -6,8 +6,7 @@
     "FirstName": "opplysningerOmArbeidstakerengrp8819.opplysningerOmArbeidstakerengrp8855.ansattNavndatadef1223.value"
   },
   "UserProfile": {},
-  "QueryParams": {
-    // Mapping fra queryParam til stateless datamodell
+  "QueryParameters": {
     "jobTitle": "JobTitle",
     "programmer": "queryParam2"
   }

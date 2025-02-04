@@ -14,6 +14,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     // Register your apps custom service implementations here.
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
+    services.AddTransient<IValidateQueryParamPrefill, ValidateQueryParamPrefill>();
 }
 
 // ###########################################################################
