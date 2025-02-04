@@ -1269,7 +1269,7 @@
   "ux_editor.component_help_text.RadioButtons": "Bruk radioknapper når du vil at brukerne bare skal velge ett av alternativene.",
   "ux_editor.component_help_text.RepeatingGroup": "Gir mulighet til å repetere felter som oppfattes som en gruppe, for eksempel feltene for navn, telefonnummer og adresse.",
   "ux_editor.component_help_text.Subform": "Bruk Tabell for underskjema når du vil legge inn et underskjema i hovedskjemaet ditt.",
-  "ux_editor.component_help_text.Summary": "Med denne komponenten kan du legge til en oppsummering av det brukerne har fylt ut, på slutten av skjemaet.",
+  "ux_editor.component_help_text.Summary2": "Med denne komponenten kan du legge til en oppsummering av det brukerne har fylt ut, på slutten av skjemaet.",
   "ux_editor.component_help_text.TextArea": "Du bruker Stort tekstfelt når du vil at brukerne skal skrive litt lengre tekst.",
   "ux_editor.component_help_text.default": "Ingen informasjon å vise om denne komponenten.",
   "ux_editor.component_help_text_general_title": "Åpne hjelpetekst for komponenten",
