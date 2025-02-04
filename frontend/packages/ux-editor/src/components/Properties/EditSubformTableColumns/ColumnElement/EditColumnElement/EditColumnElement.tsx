@@ -27,7 +27,7 @@ import { convertDataBindingToInternalFormat } from '../../../../../utils/dataMod
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
-export type ColumnElementProps = {
+export type EditColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
@@ -41,7 +41,7 @@ export const EditColumnElement = ({
   onDeleteColumn,
   onEdit,
   subformLayout,
-}: ColumnElementProps): ReactElement => {
+}: EditColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);

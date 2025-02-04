@@ -58,7 +58,13 @@ describe('ColumnElement', () => {
 
     await user.click(componentSelect);
     await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component3Id}`) }),
+    );
+
+    await screen.findByText(
+      textMock(
+        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+      ),
     );
 
     await user.click(
@@ -80,7 +86,7 @@ describe('ColumnElement', () => {
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
       headerContent: expect.stringContaining('subform_table_column_title_'),
-      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
+      cellContent: { query: subformLayoutMock.component3.dataModelBindings.address },
     });
   });
 
