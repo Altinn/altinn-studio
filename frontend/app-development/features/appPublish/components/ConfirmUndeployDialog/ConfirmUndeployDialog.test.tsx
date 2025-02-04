@@ -3,7 +3,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfirmUndeployDialog } from './ConfirmUndeployDialog';
 
@@ -93,7 +93,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should disable the undeploy-button while undeploy isPending', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 300)));
+    const undeployMock = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,
@@ -106,7 +106,7 @@ describe('ConfirmUndeployDialog', () => {
     const undeployButton = getUndeployButton();
     await user.click(undeployButton);
 
-    await waitFor(() => expect(undeployButton).toBeDisabled());
+    expect(undeployButton).toBeDisabled();
   });
 });
 
