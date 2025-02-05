@@ -10,7 +10,6 @@ import { StudioError, StudioSpinner } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
-  lastBuildId: string;
   isDeploymentInProgress: boolean;
   envName: string;
   isProduction: boolean;
@@ -19,7 +18,6 @@ export interface DeployProps {
 
 export const Deploy = ({
   appDeployedVersion,
-  lastBuildId,
   isDeploymentInProgress,
   envName,
   isProduction,
