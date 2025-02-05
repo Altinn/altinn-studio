@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -6,6 +6,7 @@ import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@s
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { isOptionsIdReferenceId } from '../utils/optionsUtils';
 import classes from './ReferenceTab.module.css';
 
 export function ReferenceTab({
@@ -15,8 +16,13 @@ export function ReferenceTab({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
+  const [referenceIdValue, setReferenceIdValue] = useState<string>(
+    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : undefined,
+  );
 
   const handleOptionsIdChange = (optionsId: string) => {
+    setReferenceIdValue(optionsId);
+
     if (component.options) {
       delete component.options;
     }
@@ -35,12 +41,6 @@ export function ReferenceTab({
     );
   }
 
-  const isOptionsIdInLibrary = optionListIds?.some(
-    (optionId: string): boolean => optionId == component.optionsId,
-  );
-  const isOptionsIdInLibraryOrComponent = isOptionsIdInLibrary || !!component.options;
-  const referenceIdValue = isOptionsIdInLibrary ? undefined : component.optionsId;
-
   return (
     <div className={classes.container}>
       <StudioParagraph spacing size='small'>
@@ -56,7 +56,7 @@ export function ReferenceTab({
         value={referenceIdValue}
         size='small'
       />
-      {isOptionsIdInLibraryOrComponent && (
+      {!isOptionsIdReferenceId(optionListIds, component.optionsId) && (
         <StudioAlert className={classes.alert} severity={'info'} size='sm'>
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
