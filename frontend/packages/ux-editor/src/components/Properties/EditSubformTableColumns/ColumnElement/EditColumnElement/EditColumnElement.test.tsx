@@ -131,6 +131,45 @@ describe('EditColumnElementComponentSelect', () => {
     ).toBeInTheDocument();
   });
 
+  it('should only render data model bindings that have a value', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElement();
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+
+    const componentWitMultipleBindings = screen.getByRole('option', {
+      name: new RegExp(`${subformLayoutMock.component4Id}`),
+    });
+    await user.click(componentWitMultipleBindings);
+
+    const dataModelBindingsSelect = await screen.findByText(
+      textMock(
+        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+      ),
+    );
+
+    await user.click(dataModelBindingsSelect);
+
+    expect(
+      screen.getByRole('option', {
+        name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address}`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', {
+        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace}`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', {
+        name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode}`,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should call onEdit with updated query when selecting a simple data model binding and clicking on save button', async () => {
     const user = userEvent.setup();
 

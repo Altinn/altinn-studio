@@ -29,6 +29,18 @@ const component3: FormComponent = {
   textResourceBindings: { title: 'some-title' },
   itemType: 'COMPONENT',
 };
+const component4Id = 'SubformComponent4';
+const component4: FormComponent = {
+  id: component4Id,
+  type: ComponentType.Address,
+  dataModelBindings: {
+    address: 'Address',
+    postPlace: 'PostPlace',
+    zipCode: '',
+  },
+  textResourceBindings: { title: 'address' },
+  itemType: 'COMPONENT',
+};
 
 const container1Id = 'SubformContainer1';
 const container1: FormContainer = {
@@ -43,6 +55,7 @@ const layout: IInternalLayout = {
     [component1Id]: component1,
     [component2Id]: component2,
     [component3Id]: component3,
+    [component4Id]: component4,
   },
   containers: {
     [container1Id]: container1,
@@ -70,6 +83,8 @@ export const subformLayoutMock = {
   component2,
   component3Id,
   component3,
+  component4Id,
+  component4,
   container1Id,
   container1,
 };

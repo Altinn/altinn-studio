@@ -32,11 +32,13 @@ export const DataModelBindingsCombobox = ({
       {Object.keys(component.dataModelBindings).map((key) => {
         const { field } = convertDataBindingToInternalFormat(component, key);
         return (
-          <StudioCombobox.Option key={field} value={field} description={field}>
-            {key === 'simpleBinding'
-              ? t(`ux_editor.component_title.${component?.type}`)
-              : t(`ux_editor.modal_properties_data_model_label.${key}`)}
-          </StudioCombobox.Option>
+          field && (
+            <StudioCombobox.Option key={field} value={field} description={field}>
+              {key === 'simpleBinding'
+                ? t(`ux_editor.component_title.${component?.type}`)
+                : t(`ux_editor.modal_properties_data_model_label.${key}`)}
+            </StudioCombobox.Option>
+          )
         );
       })}
     </StudioCombobox>
