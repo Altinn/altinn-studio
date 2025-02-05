@@ -51,6 +51,7 @@ export enum QueryKey {
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
+  TextResourcesForOrg = 'TextResourcesForOrg',
 
   // Resourceadm
   ResourceList = 'ResourceList',
