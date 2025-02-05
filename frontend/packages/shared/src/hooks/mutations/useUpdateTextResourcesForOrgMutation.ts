@@ -11,9 +11,9 @@ export const useUpdateTextResourcesForOrgMutation = (org: string, language: stri
       const textResourcesWithLanguage: ITextResourcesWithLanguage[] =
         await updateTextResourcesForOrg(org, language, payload);
 
-      return textResourcesWithLanuage;
+      return textResourcesWithLanguage;
     },
-    onSuccess: (textResourcesWithLanuage) =>
-      q.setQueryData([QueryKey.TextResourcesForOrg, org], textResourcesWithLanuage),
+    onSuccess: (textResourcesWithLanguage) =>
+      q.setQueryData([QueryKey.TextResourcesForOrg, org], textResourcesWithLanguage),
   });
 };
