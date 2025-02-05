@@ -8,7 +8,7 @@ export const useUpdateTextResourcesForOrgMutation = (org: string, language: stri
   const { updateTextResourcesForOrg } = useServicesContext();
   return useMutation({
     mutationFn: async (payload: ITextResource[]) => {
-      const textResourcesWithLanuage: ITextResourcesWithLanguage[] =
+      const textResourcesWithLanguage: ITextResourcesWithLanguage[] =
         await updateTextResourcesForOrg(org, language, payload);
 
       return textResourcesWithLanuage;
