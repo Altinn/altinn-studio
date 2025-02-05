@@ -14,6 +14,7 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'message',
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('heading', { level: 1, name: /frontend-test/i }).should('be.visible');
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
@@ -84,8 +85,7 @@ describe('PDF', () => {
       {}, // intercept this every time
     );
 
-    // Add a delay to simulate slow loading map tiles
-    cy.intercept('GET', '/map-tile/**', { delay: 50, fixture: 'map-tile.png' });
+    cy.intercept('GET', '/map-tile/**', { fixture: 'map-tile.png' });
 
     cy.goto('changename');
 
@@ -109,6 +109,7 @@ describe('PDF', () => {
     cy.testPdf({
       snapshotName: 'changeName 1',
       returnToForm: true,
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
         cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
@@ -151,6 +152,7 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'changeName 2',
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
         cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
@@ -173,26 +175,6 @@ describe('PDF', () => {
         cy.getSummary('Velg lokasjon')
           .findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/)
           .should('be.visible');
-      },
-    });
-  });
-
-  it('options should load before #readyForPrint is shown', () => {
-    cy.goto('changename');
-    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
-    cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
-    cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
-
-    cy.intercept(/.*\/options\/(list|references|test).*/, async (r) => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      r.continue();
-    });
-
-    cy.testPdf({
-      callback: () => {
-        cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
-        cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
-        cy.getSummary('Referanse 2').should('contain.text', 'Dole');
       },
     });
   });
@@ -226,6 +208,7 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'group',
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
@@ -256,6 +239,7 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'likert',
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
@@ -281,6 +265,7 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'datalist',
+      enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
         cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');

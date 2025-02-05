@@ -12,6 +12,7 @@ import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
 import { getTargetUrl } from 'test/e2e/support/start-app-instance';
+import type { ResponseFuzzing, Size } from 'test/e2e/support/global';
 
 import type { ILayoutFile } from 'src/layout/common.generated';
 
@@ -543,14 +544,10 @@ Cypress.Commands.add('getSummary', (label) => {
   cy.get(`[data-testid^=summary-]:has(span:contains(${label}))`);
 });
 
+type ImageData = { path: string; dataUrl: string };
 Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, reset = true) => {
   // Store initial viewport size for later
-  const initialViewportSize = { width: 0, height: 0 };
-  cy.window().then((win) => {
-    initialViewportSize.width = win.innerWidth;
-    initialViewportSize.height = win.innerHeight;
-  });
-
+  cy.getCurrentViewportSize().as('viewportSize');
   cy.viewport(width, minHeight);
 
   // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
@@ -565,21 +562,23 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   cy.get('#percy-css').should('exist');
 
   // Take screenshot
-  const imageData = { path: '', dataUrl: '' };
-  cy.screenshot(snapshotName, {
-    overwrite: true,
-    onAfterScreenshot: (_, { path }) => {
-      imageData.path = path;
-    },
-  });
+  cy.wrap<ImageData>({ path: '', dataUrl: '' }).as('imageData');
+  cy.get<ImageData>('@imageData').then((imageData) =>
+    cy.screenshot(snapshotName, {
+      overwrite: true,
+      onAfterScreenshot: (_, { path }) => {
+        imageData.path = path;
+      },
+    }),
+  );
 
-  cy.then(() =>
+  cy.get<ImageData>('@imageData').then((imageData) =>
     cy.readFile(imageData.path, 'base64').then((data) => {
       imageData.dataUrl = `data:image/png;base64,${data}`;
     }),
   );
 
-  cy.then(() =>
+  cy.get<ImageData>('@imageData').then((imageData) =>
     cy.intercept(
       { url: '**/screenshot', times: 1 },
       `<!doctype html>
@@ -606,102 +605,103 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   // Revert to original viewport
   if (reset) {
     cy.go('back');
-    cy.then(() => cy.viewport(initialViewportSize.width, initialViewportSize.height));
+    cy.get<Size>('@viewportSize').then(({ width, height }) => {
+      cy.viewport(width, height);
+    });
   }
 });
 
-Cypress.Commands.add('testPdf', ({ snapshotName = false, beforeReload, callback, returnToForm = false }) => {
-  cy.log('Testing PDF');
+Cypress.Commands.add(
+  'testPdf',
+  ({ snapshotName = false, beforeReload, callback, returnToForm = false, enableResponseFuzzing = false }) => {
+    // Store initial viewport size for later
+    cy.getCurrentViewportSize().as('viewportSize');
 
-  // Store initial viewport size for later
-  const size = { width: 0, height: 0 };
-  cy.window().then((win) => {
-    size.width = win.innerWidth;
-    size.height = win.innerHeight;
-  });
+    // Make sure instantiation is completed before we get the url
+    cy.location('hash', { log: false }).should('contain', '#/instance/');
 
-  // Make sure instantiation is completed before we get the url
-  cy.location('hash').should('contain', '#/instance/');
+    // Make sure we blur any selected component before reload to trigger save
+    cy.get('body').click({ log: false });
 
-  // Make sure we blur any selected component before reload to trigger save
-  cy.get('body').click();
+    // Wait for network to be idle before calling reload
+    cy.waitUntilSaved();
+    cy.waitForNetworkIdle('*', '*', 500);
 
-  // Wait for network to be idle before calling reload
-  cy.waitUntilSaved();
-  cy.waitForNetworkIdle('*', '*', 500);
+    // Build PDF url and visit
+    cy.location('href', { log: false }).then((href) => {
+      const regex = getInstanceIdRegExp();
+      const instanceId = regex.exec(href)?.[1];
+      const before = href.split(regex)[0];
+      const visitUrl = `${before}${instanceId}?pdf=1`;
 
-  // Visit the PDF page and reload
-  cy.location('href').then((href) => {
-    const regex = getInstanceIdRegExp();
-    const instanceId = regex.exec(href)?.[1];
-    const before = href.split(regex)[0];
-    const visitUrl = `${before}${instanceId}?pdf=1`;
+      // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+      // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+      // won't know about the task and page, and will load this URL and assume the app will figure out how to display
+      // the current task as a PDF.
+      cy.visit(visitUrl, { log: false });
+    });
 
-    // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
-    // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
-    // won't know about the task and page, and will load this URL and assume the app will figure out how to display
-    // the current task as a PDF.
-    cy.visit(visitUrl);
-  });
+    beforeReload?.();
 
-  beforeReload?.();
-  cy.reload();
+    // Disable caching, the real PDF generator does not have anything cached as it always runs in a fresh browser context
+    cy.setCacheDisabled(true);
+    cy.enableResponseFuzzing({ enabled: enableResponseFuzzing }).as('responseFuzzing');
 
-  // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
-  cy.get('#readyForPrint')
-    .should('exist')
-    .then(() => {
-      // Enable print media emulation
-      cy.wrap(
-        Cypress.automation('remote:debugger:protocol', {
-          command: 'Emulation.setEmulatedMedia',
-          params: { media: 'print' },
-        }),
-        { log: false },
-      );
-      // Set viewport to A4 paper
-      cy.viewport(794, 1123);
-      cy.get('body').invoke('css', 'margin', '0.75in');
+    cy.log('Testing PDF');
+    cy.reload({ log: false });
 
-      cy.then(() => {
-        const timeout = setTimeout(() => {
-          throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
-        }, 0);
-        // Verify that generic elements that should be hidden are not present
-        cy.findAllByRole('button').should('not.exist');
-        // Run tests from callback
-        callback();
-        cy.then(() => clearTimeout(timeout));
+    // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
+    cy.get('#readyForPrint')
+      .should('exist')
+      .then(() => {
+        // Enable print media emulation
+        cy.setEmulatedMedia('print');
+
+        // Set viewport to A4 paper
+        cy.viewport(794, 1123);
+        cy.get('body').invoke('css', 'margin', '0.75in');
+
+        // Stops timers which helps in 'freezing' the page in its current state, makes it easier to see when data is missing
+        cy.clock();
+
+        cy.then(() => {
+          const timeout = setTimeout(() => {
+            throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
+          }, 0);
+          // Verify that generic elements that should be hidden are not present
+          cy.findAllByRole('button').should('not.exist');
+          // Run tests from callback
+          callback();
+          cy.then(() => clearTimeout(timeout));
+        });
+
+        // Disable response fuzzing and re-enable caching
+        cy.get<ResponseFuzzing>('@responseFuzzing').invoke('disable');
+        cy.setCacheDisabled(false);
+
+        if (snapshotName) {
+          // Take snapshot of PDF
+          cy.directSnapshot(`${snapshotName} (PDF)`, { width: 794, minHeight: 1123 }, returnToForm);
+        }
       });
 
-      if (snapshotName) {
-        // Take snapshot of PDF
-        cy.directSnapshot(`${snapshotName} (PDF)`, { width: 794, minHeight: 1123 }, returnToForm);
-      }
-    });
+    if (returnToForm) {
+      // Disable media emulation and revert to original viewport
+      cy.clock().invoke('restore');
+      cy.setEmulatedMedia();
+      cy.get<Size>('@viewportSize').then(({ width, height }) => {
+        cy.viewport(width, height);
+      });
+      cy.get('body').invoke('css', 'margin', '');
 
-  if (returnToForm) {
-    // Disable media emulation and revert to original viewport
-    cy.then(() => {
-      cy.wrap(
-        Cypress.automation('remote:debugger:protocol', {
-          command: 'Emulation.setEmulatedMedia',
-          params: {},
-        }),
-        { log: false },
-      );
-      cy.viewport(size.width, size.height);
-    });
-
-    cy.get('body').invoke('css', 'margin', '');
-
-    cy.location('href').then((href) => {
-      cy.visit(href.replace('?pdf=1', ''));
-    });
-    cy.get('#readyForPrint').should('not.exist');
-    cy.get('#finishedLoading').should('exist');
-  }
-});
+      cy.location('href').then((href) => {
+        cy.visit(href.replace('?pdf=1', ''));
+      });
+      cy.get('#readyForPrint').should('not.exist');
+      cy.get('#finishedLoading').should('exist');
+    }
+  },
+);
 
 Cypress.Commands.add(
   'iframeCustom',
@@ -795,4 +795,67 @@ Cypress.Commands.add('expectValidationNotToExist', (result, group, predicate) =>
 Cypress.Commands.add('allowFailureOnEnd', function () {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (this.test as any).__allowFailureOnEnd = true;
+});
+
+Cypress.Commands.add('setEmulatedMedia', function (media) {
+  if (Cypress.isBrowser({ family: 'chromium' })) {
+    cy.log(`Setting emulated media to ${media ?? 'disabled'}`);
+    cy.wrap(
+      Cypress.automation('remote:debugger:protocol', {
+        command: 'Emulation.setEmulatedMedia',
+        params: media ? { media } : {},
+      }),
+      { log: false },
+    );
+  } else {
+    cy.log(`${Cypress.browser.name} does not support 'setEmulatedMedia'`);
+  }
+});
+
+Cypress.Commands.add('setCacheDisabled', function (cacheDisabled) {
+  if (Cypress.isBrowser({ family: 'chromium' })) {
+    cy.log(`Setting cache disabled to ${cacheDisabled}`);
+    cy.wrap(
+      Cypress.automation('remote:debugger:protocol', {
+        command: 'Network.setCacheDisabled',
+        params: { cacheDisabled },
+      }),
+      { log: false },
+    );
+  } else {
+    cy.log(`${Cypress.browser.name} does not support 'setCacheDisabled'`);
+  }
+});
+
+Cypress.Commands.add('enableResponseFuzzing', function (options) {
+  const enabled = options?.enabled ?? true;
+  const min = options?.min ?? 10;
+  const max = options?.max ?? 1000;
+  // Default matches pretty much everything except for the document itself and js
+  const matchingRoutes = options?.matchingRoutes ?? { resourceType: /fetch|xhr|stylesheet|image|font/ };
+
+  let responseFuzzingEnabled = true;
+  if (enabled) {
+    const rand = () => Math.floor(Math.random() * (max - min + 1) + min);
+    cy.intercept(matchingRoutes, (req) => {
+      // Unfortunately you cannot remove request interceptors. We therefore need to set a boolean that is checked
+      // inside of the interceptor function that effectively disables it.
+      if (!responseFuzzingEnabled) {
+        return;
+      }
+      req.alias = 'responseFuzzingEnabled';
+      req.on('response', (res) => {
+        res.setDelay(rand());
+      });
+    });
+  }
+
+  return cy.wrap({ disable: () => (responseFuzzingEnabled = false) }, { log: false });
+});
+
+Cypress.Commands.add('getCurrentViewportSize', function () {
+  return cy.window({ log: false }).then((win) => ({
+    width: win.innerWidth,
+    height: win.innerHeight,
+  }));
 });

@@ -24,13 +24,8 @@ before(() => {
 
 // Clear media emulation and reset default command timeout before each test
 beforeEach(() => {
-  cy.wrap(
-    Cypress.automation('remote:debugger:protocol', {
-      command: 'Emulation.setEmulatedMedia',
-      params: {},
-    }),
-    { log: false },
-  );
+  cy.setEmulatedMedia();
+  cy.setCacheDisabled(false);
 });
 
 afterEach(function () {
