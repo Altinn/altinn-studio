@@ -8,12 +8,12 @@ export const useCreateTextResourcesForOrgMutation = (org: string, language: stri
   const { createTextResourcesForOrg } = useServicesContext();
   return useMutation({
     mutationFn: async () => {
-      const textResourcesWithLanuage: ITextResourcesWithLanguage[] =
+      const textResourcesWithLanguage: ITextResourcesWithLanguage[] =
         await createTextResourcesForOrg(org, language);
 
-      return textResourcesWithLanuage;
+      return textResourcesWithLanguage;
     },
-    onSuccess: (textResourcesWithLanuage) =>
-      q.setQueryData([QueryKey.TextResourcesForOrg, org], textResourcesWithLanuage),
+    onSuccess: (textResourcesWithLanguage) =>
+      q.setQueryData([QueryKey.TextResourcesForOrg, org], textResourcesWithLanguage),
   });
 };
