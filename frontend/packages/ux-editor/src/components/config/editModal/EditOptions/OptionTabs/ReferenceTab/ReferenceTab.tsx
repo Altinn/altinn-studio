@@ -56,11 +56,12 @@ export function ReferenceTab({
         value={referenceIdValue}
         size='small'
       />
-      {!isOptionsIdReferenceId(optionListIds, component.optionsId) && (
-        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
-          {t('ux_editor.options.tab_reference_id_alert_title')}
-        </StudioAlert>
-      )}
+      {!isOptionsIdReferenceId(optionListIds, component.optionsId) &&
+        component.optionsId !== '' && (
+          <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+            {t('ux_editor.options.tab_reference_id_alert_title')}
+          </StudioAlert>
+        )}
       <p>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
