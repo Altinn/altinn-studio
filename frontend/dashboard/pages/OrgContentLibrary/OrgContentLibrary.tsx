@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import React from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { StudioAlert, StudioCenter } from '@studio/components';
+import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
 import { SelectedContextType } from '../../context/HeaderContext';
 import classes from './OrgContentLibrary.module.css';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,10 @@ function ContextWithoutLibraryAccess(): ReactElement {
   return (
     <StudioCenter className={classes.noLibraryAccess}>
       <StudioAlert className={classes.alert}>
-        {t('dashboard.org_library.no_org_selected')}
+        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
+        <StudioParagraph>
+          {t('dashboard.org_library.alert_no_org_selected_no_access')}
+        </StudioParagraph>
       </StudioAlert>
     </StudioCenter>
   );

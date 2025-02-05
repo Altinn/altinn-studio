@@ -6,7 +6,6 @@
 }
 
 .alert {
-  margin-bottom: var(--fds-spacing-10);
   position: relative;
-  bottom: 20%;
+  bottom: 10%;
 }

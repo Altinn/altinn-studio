@@ -17,13 +17,24 @@ describe('OrgContentLibrary', () => {
     (useParams as jest.Mock).mockReturnValue({ selectedContext });
   });
 
-  it('renders information to select org when context is none', () => {
-    const selectedContext = SelectedContextType.None;
-    (useParams as jest.Mock).mockReturnValue({ selectedContext });
-    renderWithProviders(<OrgContentLibrary />);
-    const noOrgSelectedAlert = screen.getByText(textMock('dashboard.org_library.no_org_selected'));
-    expect(noOrgSelectedAlert).toBeInTheDocument();
-  });
+  it.each([SelectedContextType.None, SelectedContextType.All, SelectedContextType.Self])(
+    'renders alert and omits library content when context is %s',
+    (selectedContext) => {
+      (useParams as jest.Mock).mockReturnValue({ selectedContext });
+      renderWithProviders(<OrgContentLibrary />);
+
+      const noOrgSelectedParagraph = screen.getByText(
+        textMock('dashboard.org_library.alert_no_org_selected'),
+      );
+      expect(noOrgSelectedParagraph).toBeInTheDocument();
+
+      const libraryTitle = screen.queryByRole('heading', {
+        name: textMock('app_content_library.library_heading'),
+      });
+      expect(libraryTitle).not.toBeInTheDocument();
+    },
+  );
+
   it('renders the library title', () => {
     renderWithProviders(<OrgContentLibrary />);
     const libraryTitle = screen.getByRole('heading', {
