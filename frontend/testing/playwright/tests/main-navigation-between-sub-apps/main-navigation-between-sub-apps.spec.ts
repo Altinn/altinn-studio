@@ -53,9 +53,11 @@ test('That it is possible to navigate from overview to the app builder page and 
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
@@ -68,9 +70,11 @@ test('That it is possible to navigate from overview to the data model page and b
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
@@ -83,9 +87,11 @@ test('That it is possible to navigate from overview to the text editor page and 
   const textEditorPage = new TextEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
   await textEditorPage.verifyTextEditorPage();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
@@ -98,9 +104,11 @@ test('That it is possible to navigate from overview to the process editor page a
   const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
@@ -176,10 +184,11 @@ test('That it is possible to navigate from overview to the deploy page and back 
 
   await overviewPage.verifyOverviewPage();
 
-  // Check Navigation
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('deploy');
   await deployPage.verifyDeployPage();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
