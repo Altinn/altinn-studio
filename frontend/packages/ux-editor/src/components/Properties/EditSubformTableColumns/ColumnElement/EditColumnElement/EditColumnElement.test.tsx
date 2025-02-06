@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../testing/subformLayoutMock';
@@ -14,16 +14,29 @@ import { app, org } from '@studio/testing/testids';
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
 const defaultProps: EditColumnElementProps = {
-  sourceColumn: subformComponentMock.tableColumns[0],
+  tableColumn: subformComponentMock.tableColumns[0],
   columnNumber: 1,
   onDeleteColumn: jest.fn(),
-  onEdit: jest.fn(),
+  onChange: jest.fn(),
+  onClose: jest.fn(),
   subformLayout: subformLayoutMock.layoutSetName,
 };
+const textKeyMock = 'textkeymock1';
+const textValueMock = 'textkeymock1';
 
 describe('EditColumnElementComponentSelect', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  let confirmSpy: jest.SpyInstance;
+  beforeAll(() => {
+    confirmSpy = jest.spyOn(window, 'confirm');
+    confirmSpy.mockImplementation(jest.fn(() => true));
+  });
+
+  afterAll(() => {
+    confirmSpy.mockRestore();
   });
 
   it('should render combobox with no components message when no components are available', async () => {
@@ -112,16 +125,21 @@ describe('EditColumnElementComponentSelect', () => {
 
   it('should render multiple data model bindings label when there are multiple data model bindings', async () => {
     const user = userEvent.setup();
-    renderEditColumnElement();
+    renderEditColumnElement({
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+      },
+    });
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
     });
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
-    const componentWitMultipleBindings = screen.getByRole('option', {
-      name: new RegExp(`${subformLayoutMock.component3Id}`),
+    const componentWithMultipleBindings = screen.getByRole('option', {
+      name: new RegExp(`${subformLayoutMock.component4Id}`),
     });
-    await user.click(componentWitMultipleBindings);
+    await user.click(componentWithMultipleBindings);
     expect(
       await screen.findByText(
         textMock(
@@ -133,7 +151,12 @@ describe('EditColumnElementComponentSelect', () => {
 
   it('should only render data model bindings that have a value', async () => {
     const user = userEvent.setup();
-    renderEditColumnElement();
+    renderEditColumnElement({
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+      },
+    });
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
     });
@@ -170,12 +193,50 @@ describe('EditColumnElementComponentSelect', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should call onEdit with updated query when selecting a simple data model binding and clicking on save button', async () => {
+  it('should call onChange with updated header content on changing text key', async () => {
+    const onChangeMock = jest.fn();
+
+    const user = userEvent.setup();
+    renderEditColumnElement({
+      onChange: onChangeMock,
+    });
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('tab', {
+        name: textMock('ux_editor.text_resource_binding_search'),
+      }),
+    );
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
+      textKeyMock,
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('general.close'),
+      }),
+    );
+
+    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+    await user.click(saveButton);
+
+    expect(onChangeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerContent: textKeyMock,
+      }),
+    );
+  });
+
+  it('should call onChange with updated query when selecting a simple data model binding and clicking on save button', async () => {
     const user = userEvent.setup();
 
-    const onEditMock = jest.fn();
+    const onChangeMock = jest.fn();
     renderEditColumnElement({
-      onEdit: onEditMock,
+      onChange: onChangeMock,
     });
 
     const componentSelect = screen.getByRole('combobox', {
@@ -190,28 +251,68 @@ describe('EditColumnElementComponentSelect', () => {
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
-    expect(onEditMock).toHaveBeenCalledTimes(1);
-    expect(onEditMock).toHaveBeenCalledWith({
-      headerContent: expect.stringContaining('subform_table_column_title_'),
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(onChangeMock).toHaveBeenCalledWith({
+      headerContent: subformLayoutMock.component1.textResourceBindings.title,
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
     });
   });
 
-  it('should call onEdit with updated query when selecting a multiple data model binding and clicking on save button', async () => {
+  it('should call onChange when clicking delete button in TextResource', async () => {
     const user = userEvent.setup();
-
-    const onEditMock = jest.fn();
+    const onChangeMock = jest.fn();
     renderEditColumnElement({
-      onEdit: onEditMock,
+      onChange: onChangeMock,
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+      },
     });
 
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('tab', {
+        name: textMock('ux_editor.text_resource_binding_search'),
+      }),
+    );
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
+      textKeyMock,
+    );
+    await act(async () => {
+      await user.click(
+        screen.getAllByRole('button', {
+          name: textMock('general.delete'),
+        })[0],
+      );
+    });
+
+    expect(onChangeMock).toHaveBeenCalledTimes(2);
+    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ headerContent: '' }));
+  });
+
+  it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {
+    const user = userEvent.setup();
+
+    const onChangeMock = jest.fn();
+    renderEditColumnElement({
+      onChange: onChangeMock,
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+      },
+    });
     const componentSelect = screen.getByRole('combobox', {
       name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
     });
 
     await user.click(componentSelect);
     await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component3Id}`) }),
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
     );
 
     const dataModelBindingsSelect = await screen.findByText(
@@ -220,20 +321,22 @@ describe('EditColumnElementComponentSelect', () => {
       ),
     );
 
-    await user.click(dataModelBindingsSelect);
+    await act(async () => {
+      await user.click(dataModelBindingsSelect);
+    });
     await user.click(
       screen.getByRole('option', {
-        name: new RegExp(subformLayoutMock.component3.dataModelBindings.simpleBinding.toString()),
+        name: new RegExp(subformLayoutMock.component4.dataModelBindings.postPlace),
       }),
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
-    expect(onEditMock).toHaveBeenCalledTimes(1);
-    expect(onEditMock).toHaveBeenCalledWith({
-      headerContent: expect.stringContaining('subform_table_column_title_'),
-      cellContent: { query: subformLayoutMock.component3.dataModelBindings.simpleBinding },
+    expect(onChangeMock).toHaveBeenCalledTimes(2);
+    expect(onChangeMock).toHaveBeenCalledWith({
+      headerContent: subformLayoutMock.component4.textResourceBindings.title,
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace },
     });
   });
 });
@@ -248,7 +351,7 @@ const renderEditColumnElement = (
     layoutSet,
   );
   queryClient.setQueryData([QueryKey.TextResources, org, app], {
-    ['nb']: [{ id: 'some-title', value: 'some-title' }],
+    nb: [{ id: textKeyMock, value: textValueMock }],
   });
   return renderWithProviders(<EditColumnElement {...defaultProps} {...props} />, {
     queryClient,

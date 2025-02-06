@@ -67,7 +67,7 @@ export const EditSubformTableColumns = ({
             columnNumber={index + 1}
             isInitialOpenForEdit={newColumnNumber === index + 1}
             onDeleteColumn={() => deleteColumn(tableColumn, index)}
-            onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
+            onChange={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
           />
         ))}
       <StudioButton
