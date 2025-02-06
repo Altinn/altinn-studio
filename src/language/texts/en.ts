@@ -407,11 +407,10 @@ export function en() {
     },
     list_component: {
       rowsPerPage: 'Rows per page',
-      of: 'of',
-      navigateFirstPage: 'Navigate to the first page in the table',
-      previousPage: 'Previous page in the table',
-      nextPage: 'Next page in the table',
-      navigateLastPage: 'Navigate to the last page in the table',
+      previousPage: 'Previous',
+      previousPageAriaLabel: 'Previous page in the table',
+      nextPage: 'Next',
+      nextPageAriaLabel: 'Next page in the table',
     },
     config_error: {
       layoutset_subform_config_error_customer_support:

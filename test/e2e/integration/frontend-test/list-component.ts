@@ -61,10 +61,12 @@ describe('List component', () => {
 
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', '5');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 5);
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
+    cy.findByRole('option', { name: '10' }).click();
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', 10);
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('5');
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
+    cy.findByRole('option', { name: '5' }).click();
   });
 
   it('Sorting should work as expected', () => {
@@ -90,7 +92,8 @@ describe('List component', () => {
   it('Should expand to 10 rows and take a snapshot', () => {
     cy.goto('datalist');
 
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
+    cy.findByRole('option', { name: '10' }).click();
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
 
     cy.snapshot('list-component');

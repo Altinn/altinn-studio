@@ -37,12 +37,11 @@
 .pagination {
   min-height: 60px;
   display: flex;
-  justify-content: end;
+  justify-content: right;
   align-items: center;
   background-color: var(--fds-colors-grey-100);
   width: 100%;
 }
-
 .paginationMobile {
   justify-content: center;
 }

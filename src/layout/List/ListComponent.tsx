@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import type { AriaAttributes } from 'react';
 
-import { Pagination as AltinnPagination } from '@altinn/altinn-design-system';
 import { Heading, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
-import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
+import { Pagination as CustomPagination } from 'src/app-components/Pagination/Pagination';
 import { Description } from 'src/components/form/Description';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
@@ -77,7 +76,6 @@ export const ListComponent = ({ node }: IListProps) => {
 
   const title = item.textResourceBindings?.title;
   const description = item.textResourceBindings?.description;
-
   if (isMobile) {
     return (
       <ComponentStructureWrapper node={node}>
@@ -245,21 +243,24 @@ function Pagination({
     setPageNumber(0);
     setPageSize(newSize);
   }
+  const textStrings = language?.['list_component'];
 
   return (
     <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'fds-table__header__cell')}>
-      <AltinnPagination
-        numberOfRows={numberOfRows ?? 0}
-        rowsPerPageOptions={rowsPerPageOptions}
-        rowsPerPage={pageSize}
-        onRowsPerPageChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-          handlePageSizeChange(parseInt(event.target.value, 10));
-        }}
+      <CustomPagination
+        nextLabel={textStrings['nextPage']}
+        nextLabelAriaLabel={textStrings['nextPageAriaLabel']}
+        previousLabel={textStrings['previousPage']}
+        previousLabelAriaLabel={textStrings['previousPageAriaLabel']}
+        rowsPerPageText={textStrings['rowsPerPage']}
+        size='sm'
         currentPage={pageNumber}
-        setCurrentPage={(newPage: number) => {
-          setPageNumber(newPage);
-        }}
-        descriptionTexts={(language?.['list_component'] ?? {}) as unknown as DescriptionText}
+        numberOfRows={numberOfRows}
+        pageSize={pageSize}
+        onChange={setPageNumber}
+        showRowsPerPageDropdown
+        onPageSizeChange={(value) => handlePageSizeChange(+value)}
+        rowsPerPageOptions={rowsPerPageOptions}
       />
     </div>
   );

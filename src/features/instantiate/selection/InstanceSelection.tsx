@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import { Pagination } from '@altinn/altinn-design-system';
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
-import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
@@ -82,6 +81,8 @@ function InstanceSelection() {
   const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
 
+  const textStrings = language?.['list_component'];
+
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
     if (instances.length < currentPage * newRowsPerPage) {
@@ -146,15 +147,19 @@ function InstanceSelection() {
               <Table.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
-                    numberOfRows={instances.length}
-                    rowsPerPageOptions={rowsPerPageOptions}
-                    rowsPerPage={rowsPerPage}
+                    nextLabel={textStrings['nextPage']}
+                    nextLabelAriaLabel={textStrings['nextPageAriaLabel']}
+                    previousLabel={textStrings['previousPage']}
+                    previousLabelAriaLabel={textStrings['previousPageAriaLabel']}
+                    rowsPerPageText={textStrings['rowsPerPage']}
+                    size='sm'
                     currentPage={currentPage}
-                    onRowsPerPageChange={(changeEvent) =>
-                      handleRowsPerPageChanged(parseInt(changeEvent.currentTarget.value))
-                    }
-                    setCurrentPage={(page) => setCurrentPage(page)}
-                    descriptionTexts={language && (language['list_component'] as DescriptionText)}
+                    numberOfRows={instances.length}
+                    pageSize={rowsPerPage}
+                    showRowsPerPageDropdown={true}
+                    rowsPerPageOptions={rowsPerPageOptions}
+                    onPageSizeChange={(value) => handleRowsPerPageChanged(+value)}
+                    onChange={setCurrentPage}
                   />
                 </div>
               </Table.Cell>
@@ -214,15 +219,20 @@ function InstanceSelection() {
               <Table.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
-                    numberOfRows={instances.length}
-                    rowsPerPageOptions={rowsPerPageOptions}
-                    rowsPerPage={rowsPerPage}
+                    nextLabel={textStrings['nextPage']}
+                    nextLabelAriaLabel={textStrings['nextPageAriaLabel']}
+                    previousLabel={textStrings['previousPage']}
+                    previousLabelAriaLabel={textStrings['previousPageAriaLabel']}
+                    rowsPerPageText={textStrings['rowsPerPage']}
+                    size='sm'
+                    hideLabels={false}
                     currentPage={currentPage}
-                    onRowsPerPageChange={(changeEvent) =>
-                      handleRowsPerPageChanged(parseInt(changeEvent.currentTarget.value))
-                    }
-                    setCurrentPage={(page) => setCurrentPage(page)}
-                    descriptionTexts={language && (language['list_component'] as DescriptionText)}
+                    numberOfRows={instances.length}
+                    showRowsPerPageDropdown={true}
+                    pageSize={rowsPerPage}
+                    rowsPerPageOptions={rowsPerPageOptions}
+                    onPageSizeChange={(value) => handleRowsPerPageChanged(+value)}
+                    onChange={setCurrentPage}
                   />
                 </div>
               </Table.Cell>

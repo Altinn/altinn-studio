@@ -408,11 +408,10 @@ export function nn(): FixedLanguageList {
     },
     list_component: {
       rowsPerPage: 'Rader per side',
-      of: 'av',
-      navigateFirstPage: 'Naviger til første side i tabell',
-      previousPage: 'Førre side i tabell',
-      nextPage: 'Neste side i tabell',
-      navigateLastPage: 'Naviger til siste side i tabell',
+      previousPage: 'Førre',
+      previousPageAriaLabel: 'Førre side i tabell',
+      nextPage: 'Neste',
+      nextPageAriaLabel: 'Neste side i tabell',
     },
     config_error: {
       layoutset_subform_config_error_customer_support:
