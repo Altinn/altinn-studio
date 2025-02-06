@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.15.1.navigation.526e4373/schemas/json/layout/layout-sets.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.16.0-pr.465.navigation.5b4484fb/schemas/json/layout/layout-sets.schema.v1.json",
   "sets": [
     {
       "id": "form",
