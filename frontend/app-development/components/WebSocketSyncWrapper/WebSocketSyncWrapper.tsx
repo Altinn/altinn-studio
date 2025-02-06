@@ -9,12 +9,18 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { SyncUtils } from 'app-shared/utils/SyncUtils.ts';
-import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { useLayoutContext } from '../../contexts/LayoutContext';
+import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
+import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
   FileSyncError = 'FileSyncError',
+}
+
+enum SyncEntityClientName {
+  EntityUpdated = 'EntityUpdated',
 }
 
 type WebSocketSyncWrapperProps = {
@@ -28,18 +34,32 @@ export const WebSocketSyncWrapper = ({
   const queryClient = useQueryClient();
   const { selectedLayoutSetName } = useLayoutContext();
   const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
+  const entityUpdateInvalidator = EntityUpdatedQueriesInvalidator.getInstance(
+    queryClient,
+    org,
+    app,
+  );
 
   useEffect(() => {
     invalidator.layoutSetName = selectedLayoutSetName;
   }, [invalidator, selectedLayoutSetName]);
 
   const { onWSMessageReceived } = useWebSocket({
-    webSocketUrl: SyncEventsWebSocketHub(),
-    clientsName: [SyncClientsName.FileSyncSuccess, SyncClientsName.FileSyncError],
+    webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
+    clientsName: [
+      SyncClientsName.FileSyncSuccess,
+      SyncClientsName.FileSyncError,
+      SyncEntityClientName.EntityUpdated,
+    ],
     webSocketConnector: WSConnector,
   });
 
-  onWSMessageReceived<SyncError | SyncSuccess>((message): ReactElement => {
+  onWSMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
+    if ('resourceName' in message) {
+      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
+      return;
+    }
+
     const isErrorMessage = 'errorCode' in message;
     if (isErrorMessage) {
       toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
@@ -52,6 +72,5 @@ export const WebSocketSyncWrapper = ({
       invalidator.invalidateQueriesByFileLocation(message.source.name);
     }
   });
-
   return <>{children}</>;
 };
