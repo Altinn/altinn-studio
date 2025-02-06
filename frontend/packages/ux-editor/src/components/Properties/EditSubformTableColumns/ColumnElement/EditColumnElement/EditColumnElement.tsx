@@ -24,9 +24,10 @@ import {
   getValueOfTitleId,
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
+import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
-export type ColumnElementProps = {
+export type EditColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
@@ -40,11 +41,13 @@ export const EditColumnElement = ({
   onDeleteColumn,
   onEdit,
   subformLayout,
-}: ColumnElementProps): ReactElement => {
+}: EditColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const [tableColumn, setTableColumn] = useState(sourceColumn);
+
+  const [tableColumn, setTableColumn] = useState<TableColumn>(sourceColumn);
+
   const [title, setTitle] = useState<string>(
     getValueOfTitleId(sourceColumn.headerContent, textResources),
   );
@@ -60,9 +63,14 @@ export const EditColumnElement = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
+  const [selectedComponentId, setSelectedComponentId] = useState<string>();
+
   const handleSave = () => {
     upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
-    onEdit({ ...tableColumn, headerContent: uniqueTitleId });
+    onEdit({
+      ...tableColumn,
+      headerContent: uniqueTitleId,
+    });
   };
 
   const handleDelete = () => {
@@ -71,23 +79,38 @@ export const EditColumnElement = ({
   };
 
   const selectComponent = (values: string[]) => {
-    const selectedComponentId = values[0];
-    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    const componentId = values[0];
+    setSelectedComponentId(componentId);
 
-    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
-    const updatedTableColumn = {
-      ...sourceColumn,
+    const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
+
+    const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
+
+    setTableColumn((prev) => ({
+      ...prev,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
-    };
+    }));
 
     setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
-    setTableColumn(updatedTableColumn);
+  };
+
+  const handleBindingChange = (field: string) => {
+    setTableColumn((prev) => ({
+      ...prev,
+      cellContent: { query: field },
+    }));
   };
 
   const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
   const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
-  const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
+  const isSaveButtonDisabled =
+    !tableColumn.headerContent || !title?.trim() || !tableColumn.cellContent?.query;
+
+  const component = availableComponents.find((comp) => comp.id === selectedComponentId);
+  const hasMultipleDataModelBindings = Object.keys(component?.dataModelBindings ?? {}).length > 1;
 
   return (
     <StudioCard className={classes.wrapper}>
@@ -97,6 +120,13 @@ export const EditColumnElement = ({
           components={availableComponents}
           onSelectComponent={selectComponent}
         />
+        {hasMultipleDataModelBindings && (
+          <DataModelBindingsCombobox
+            onSelectComponent={handleBindingChange}
+            component={component}
+            selectedField={tableColumn.cellContent.query}
+          />
+        )}
         {tableColumn.headerContent && (
           <EditColumnElementContent
             cellContent={tableColumn.cellContent.query}
