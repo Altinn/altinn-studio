@@ -66,7 +66,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         string fileName = $"resource.{languageCode}.json";
         string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
         string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
-        await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
+        await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true);
     }
 
     private static string GetPathToJsonTextsFile(string fileName)
