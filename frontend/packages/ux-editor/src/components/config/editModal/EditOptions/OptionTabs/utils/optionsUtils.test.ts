@@ -6,7 +6,6 @@ import type { SelectionComponentType } from '../../../../../../types/FormCompone
 import {
   getSelectedOptionsType,
   getSelectedOptionsTypeWithManualSupport,
-  componentUsesDynamicCodeList,
   hasOptionListChanged,
   handleOptionsChange,
   resetComponentOptions,
@@ -110,26 +109,6 @@ describe('optionsUtils', () => {
       const options = undefined;
       const result = getSelectedOptionsTypeWithManualSupport(codeListId, options);
       expect(result).toEqual(SelectedOptionsType.CodeList);
-    });
-  });
-
-  describe('componentUsesDynamicCodeList', () => {
-    it('should return false if codeListId is set to an empty string', () => {
-      const codeListId = '';
-      const optionListIds = ['codeListId'];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(false);
-    });
-
-    it('should return false if codeListId is in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const optionListIds = [codeListId];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(false);
-    });
-
-    it('should return true if codeListId is not in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const optionListIds = ['anotherCodeListId'];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(true);
     });
   });
 

@@ -16,12 +16,12 @@ export function ReferenceTab({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
-  const [referenceIdValue, setReferenceIdValue] = useState<string>(
+  const [referenceId, setReferenceId] = useState<string>(
     isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : undefined,
   );
 
   const handleOptionsIdChange = (optionsId: string) => {
-    setReferenceIdValue(optionsId);
+    setReferenceId(optionsId);
 
     if (component.options) {
       delete component.options;
@@ -41,6 +41,9 @@ export function ReferenceTab({
     );
   }
 
+  const shouldDisplayAlert: boolean =
+    !isOptionsIdReferenceId(optionListIds, component.optionsId) && component.optionsId !== '';
+
   return (
     <div className={classes.container}>
       <StudioParagraph spacing size='small'>
@@ -53,15 +56,14 @@ export function ReferenceTab({
         type='text'
         label={t('ux_editor.modal_properties_custom_code_list_id')}
         onChange={(event) => handleOptionsIdChange(event.target.value)}
-        value={referenceIdValue}
+        value={referenceId}
         size='small'
       />
-      {!isOptionsIdReferenceId(optionListIds, component.optionsId) &&
-        component.optionsId !== '' && (
-          <StudioAlert className={classes.alert} severity={'info'} size='sm'>
-            {t('ux_editor.options.tab_reference_id_alert_title')}
-          </StudioAlert>
-        )}
+      {shouldDisplayAlert && (
+        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+          {t('ux_editor.options.tab_reference_id_alert_title')}
+        </StudioAlert>
+      )}
       <p>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
