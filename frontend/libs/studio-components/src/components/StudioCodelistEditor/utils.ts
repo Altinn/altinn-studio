@@ -19,11 +19,11 @@ export const emptyBooleanItem: CodeListItem = {
 };
 
 export function addNewCodeListItem(codeList: CodeList): CodeList {
-  const newEmptyItem: CodeListItem = getNewEmptyItem(codeList);
+  const newEmptyItem: CodeListItem = createNewEmptyItem(codeList);
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function getNewEmptyItem(codeList: CodeList): CodeListItem {
+function createNewEmptyItem(codeList: CodeList): CodeListItem {
   if (codeList.length === 0) return emptyStringItem;
 
   switch (getTypeOfLastValue(codeList)) {
