@@ -4,13 +4,14 @@ import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListData } from '../../types/CodeListData';
 
-type mutationArgs = Pick<CodeListData, 'title' | 'data'>;
+type CreateOrgCodeListMutationArgs = Pick<CodeListData, 'title' | 'data'>;
 
 export const useCreateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
   const { createCodeListForOrg } = useServicesContext();
 
-  const mutationFn = ({ title, data }: mutationArgs) => createCodeListForOrg(org, title, data);
+  const mutationFn = ({ title, data }: CreateOrgCodeListMutationArgs) =>
+    createCodeListForOrg(org, title, data);
 
   return useMutation({
     mutationFn,

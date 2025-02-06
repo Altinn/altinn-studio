@@ -19,7 +19,7 @@ const codeList: CodeList = [
   },
 ];
 
-const deletedCodeList: CodeListData = {
+const codeListToDelete: CodeListData = {
   title: 'deleted-title',
   data: codeList,
 };
@@ -41,14 +41,14 @@ describe('useDeleteOrgCodeListMutation', () => {
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.OrgCodeLists, org], [deletedCodeList, otherCodeList]);
+    queryClient.setQueryData([QueryKey.OrgCodeLists, org], [codeListToDelete, otherCodeList]);
     const createCodeListForOrg = jest.fn(() => Promise.resolve([otherCodeList]));
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org), {
       queryClient,
       queries: { createCodeListForOrg },
     });
 
-    await result.current.mutateAsync({ title: deletedCodeList.title });
+    await result.current.mutateAsync({ title: codeListToDelete.title });
 
     const expectedUpdatedData: CodeListsResponse = [otherCodeList];
     const updatedData = queryClient.getQueryData([QueryKey.OrgCodeLists, org]);

@@ -4,13 +4,13 @@ import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListData } from '../../types/CodeListData';
 
-type mutationArgs = Pick<CodeListData, 'title'>;
+type DeleteOrgCodeListMutationArgs = Pick<CodeListData, 'title'>;
 
 export const useDeleteOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
   const { deleteCodeListForOrg } = useServicesContext();
 
-  const mutationFn = ({ title }: mutationArgs) => deleteCodeListForOrg(org, title);
+  const mutationFn = ({ title }: DeleteOrgCodeListMutationArgs) => deleteCodeListForOrg(org, title);
 
   return useMutation({
     mutationFn,

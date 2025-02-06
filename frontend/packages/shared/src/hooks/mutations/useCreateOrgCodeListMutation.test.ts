@@ -32,7 +32,7 @@ describe('useCreateOrgCodeListMutation', () => {
   it('Calls createCodeListForOrg with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org));
 
-    await result.current.mutateAsync({ ...newCodeList });
+    await result.current.mutateAsync(newCodeList);
 
     expect(queriesMock.createCodeListForOrg).toHaveBeenCalledTimes(1);
     expect(queriesMock.createCodeListForOrg).toHaveBeenCalledWith(
@@ -51,7 +51,7 @@ describe('useCreateOrgCodeListMutation', () => {
       queries: { createCodeListForOrg },
     });
 
-    await result.current.mutateAsync({ ...newCodeList });
+    await result.current.mutateAsync(newCodeList);
 
     const expectedUpdatedData: CodeListsResponse = [existingCodeList, newCodeList];
     const updatedData = queryClient.getQueryData([QueryKey.OrgCodeLists, org]);
