@@ -17,7 +17,7 @@ import {
 } from 'app-shared/constants';
 import { Link } from '@digdir/designsystemet-react';
 import { OrgContentLibrary } from '../pages/OrgContentLibrary';
-import { useSubRoute } from '../hooks/useSubRoute';
+import { useSubroute } from '../hooks/useSubRoute';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -68,9 +68,9 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route path={DASHBOARD_ROOT_ROUTE} element={<PageLayout />}>
-            <Route path='/:subRoute/:selectedContext?' element={<SubRouteGuard />} />
+            <Route path='/:subroute/:selectedContext?' element={<SubrouteGuard />} />
             <Route
-              path='/:subRoute/:selectedContext/new'
+              path='/:subroute/:selectedContext/new'
               element={<CreateService organizations={organizations} user={user} />}
             />
           </Route>
@@ -86,12 +86,12 @@ export const App = (): JSX.Element => {
   );
 };
 
-function SubRouteGuard(): React.ReactElement {
-  const subRoute = useSubRoute();
+function SubrouteGuard(): React.ReactElement {
+  const subroute = useSubroute();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
-  switch (subRoute) {
+  switch (subroute) {
     case APP_DASHBOARD_BASENAME.replace('/', ''):
       return <Dashboard user={user} organizations={organizations} />;
 

@@ -1,5 +1,4 @@
-import type React from 'react';
-import { SubRoute } from '../../../context/HeaderContext';
+import { Subroute } from '../../../context/HeaderContext';
 
 enum HeaderMenuItemKey {
   OrgLibrary = 'orgLibrary',
@@ -10,18 +9,17 @@ export interface HeaderMenuItem {
   key: HeaderMenuItemKey;
   link: string;
   name: string;
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.OrgLibrary,
-    link: SubRoute.OrgLibrary,
+    link: Subroute.OrgLibrary,
     name: 'dashboard.library',
   },
   {
     key: HeaderMenuItemKey.AppDashboard,
-    link: SubRoute.AppDashboard,
+    link: Subroute.AppDashboard,
     name: 'dashboard.apps',
   },
 ];

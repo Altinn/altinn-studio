@@ -20,7 +20,7 @@ import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/Resour
 import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { SafeErrorView } from '../../components/SafeErrorView';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
-import { useSubRoute } from '../../hooks/useSubRoute';
+import { useSubroute } from '../../hooks/useSubRoute';
 
 type DashboardProps = {
   user: User;
@@ -31,7 +31,7 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const subRoute = useSubRoute();
+  const subroute = useSubroute();
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
@@ -59,7 +59,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               onClear={handleClearSearch}
             />
             <Link
-              href={`${DASHBOARD_BASENAME}/${subRoute}/${selectedContext}/new`}
+              href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
               className={classes.newLink}
             >
               <span>{t('dashboard.new_service')}</span>

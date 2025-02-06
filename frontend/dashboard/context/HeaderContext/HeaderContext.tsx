@@ -9,7 +9,7 @@ export enum SelectedContextType {
   None = 'none',
 }
 
-export enum SubRoute {
+export enum Subroute {
   AppDashboard = APP_DASHBOARD_BASENAME,
   OrgLibrary = ORG_LIBRARY_BASENAME,
 }

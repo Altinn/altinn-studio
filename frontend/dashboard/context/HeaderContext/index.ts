@@ -2,5 +2,5 @@ export {
   HeaderContext,
   type HeaderContextType,
   SelectedContextType,
-  SubRoute,
+  Subroute,
 } from './HeaderContext';

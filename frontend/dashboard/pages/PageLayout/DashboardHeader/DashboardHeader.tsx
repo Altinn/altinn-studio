@@ -16,9 +16,9 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
-import { useSubRoute } from '../../../hooks/useSubRoute';
-import type { HeaderMenuItem } from './dashboardHeaderMenuUtils';
-import { dashboardHeaderMenuItems } from './dashboardHeaderMenuUtils';
+import { useSubroute } from '../../../hooks/useSubRoute';
+import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
+import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -29,7 +29,7 @@ export const DashboardHeader = () => {
         <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
         <StudioPageHeader.Center>
           {dashboardHeaderMenuItems.map((menuItem) => (
-            <TopNavigationMenu key={menuItem.name} menuItem={menuItem} />
+            <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
           ))}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
@@ -44,7 +44,7 @@ type TopNavigationMenuProps = {
   menuItem: HeaderMenuItem;
 };
 
-function TopNavigationMenu({ menuItem }: TopNavigationMenuProps): React.ReactElement {
+function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
   const path: string = `${menuItem.link}/${selectedContext}`;
@@ -66,7 +66,7 @@ const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const selectedContext = useSelectedContext();
-  const subRoute = useSubRoute();
+  const subroute = useSubroute();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ const DashboardHeaderMenu = () => {
   const repoPath = useRepoPath();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate(`${subRoute}/${context}${location.search}`);
+    navigate(`${subroute}/${context}${location.search}`);
   };
 
   const allMenuItem: StudioProfileMenuItem = {
