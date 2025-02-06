@@ -1,9 +1,4 @@
-import {
-  areThereCodeListErrors,
-  findCodeListErrors,
-  isCodeListValid,
-  isFieldValid,
-} from './validation';
+import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { CodeList } from '../types/CodeList';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
 
@@ -105,28 +100,6 @@ describe('validation', () => {
     it('Returns true when the error map contains at least one "undefinedValue" error', () => {
       const errorMap: ValueErrorMap = ['undefinedValue', null];
       expect(areThereCodeListErrors(errorMap)).toBe(true);
-    });
-  });
-
-  describe('isFieldValid', () => {
-    it('Returns true for strings', () => {
-      expect(isFieldValid('test')).toBe(true);
-    });
-
-    it('Returns true for numbers', () => {
-      expect(isFieldValid(1)).toBe(true);
-    });
-
-    it('Returns true for booleans', () => {
-      expect(isFieldValid(true)).toBe(true);
-    });
-
-    it('Returns false for undefined', () => {
-      expect(isFieldValid(undefined)).toBe(false);
-    });
-
-    it('Returns false for null', () => {
-      expect(isFieldValid(null)).toBe(false);
     });
   });
 });

@@ -27,6 +27,8 @@ export function useOptionListEditorTexts(): CodeListEditorTexts {
     value: t('code_list_editor.column_title_value'),
     valueErrors: {
       duplicateValue: t('code_list_editor.duplicate_values_error'),
+      multipleTypes: t('code_list_editor.multiple_types_error'),
+      undefinedValue: t('code_list_editor.undefined_value_error'),
     },
   };
 }
