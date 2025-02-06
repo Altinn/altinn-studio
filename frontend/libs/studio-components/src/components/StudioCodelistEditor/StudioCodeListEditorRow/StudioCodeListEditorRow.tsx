@@ -10,7 +10,6 @@ import type { ValueError } from '../types/ValueError';
 import classes from './StudioCodeListEditorRow.module.css';
 import type { TextResource } from '../../../types/TextResource';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
-import { isValueValid } from '../validation';
 
 type StudioCodeListEditorRowProps = {
   error: ValueError | null;

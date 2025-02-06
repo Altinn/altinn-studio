@@ -192,7 +192,7 @@ export class ArrayUtils {
     ArrayUtils.removeItemByValue(array, '');
 
   /** Returns array with one occurence of every type from the input array **/
-  static extractUniqueTypes = <unknown>(array: unknown[]): string[] => {
+  static extractUniqueTypes = (array: unknown[]): string[] => {
     const typesInArray: string[] = [];
     array.forEach((element) => {
       typesInArray.push(typeof element);
