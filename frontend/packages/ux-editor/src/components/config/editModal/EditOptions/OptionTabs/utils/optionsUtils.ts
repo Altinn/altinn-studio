@@ -106,12 +106,13 @@ export function isOptionsIdReferenceId(
   return !!optionsId && !isOptionsIdFromLibrary(optionListIds, optionsId);
 }
 
-export function isOptionsModifiable(
+export function hasStaticOptionList(
   optionListIds: string[],
   optionsId: undefined | string,
   options: undefined | OptionList,
 ): boolean {
-  return (!!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId)) || !!options;
+  if (options) return true;
+  return !!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId);
 }
 
 function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {

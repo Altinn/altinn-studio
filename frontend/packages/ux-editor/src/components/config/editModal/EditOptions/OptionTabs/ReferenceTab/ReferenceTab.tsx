@@ -6,7 +6,7 @@ import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@s
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { isOptionsIdReferenceId, isOptionsModifiable } from '../utils/optionsUtils';
+import { isOptionsIdReferenceId, hasStaticOptionList } from '../utils/optionsUtils';
 import classes from './ReferenceTab.module.css';
 
 export function ReferenceTab({
@@ -41,7 +41,7 @@ export function ReferenceTab({
     );
   }
 
-  const shouldDisplayAlert: boolean = isOptionsModifiable(
+  const shouldDisplayAlert: boolean = hasStaticOptionList(
     optionListIds,
     component.optionsId,
     component.options,
