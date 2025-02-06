@@ -53,7 +53,8 @@ export const getPartyWithSubunitMock = (): PartyWithSubunit => ({
     onlyHierarchyElementWithNoAccess: false,
     childParties: [
       {
-        partyTypeName: PartyType.SubUnit,
+        partyTypeName: PartyType.Organisation,
+        unitType: 'BEDR',
         name: 'Subunit Org',
         partyId: 2,
         orgNumber: '223456789',

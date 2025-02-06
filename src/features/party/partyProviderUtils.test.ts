@@ -13,9 +13,10 @@ const setupParties = (): IParty[] => [
     onlyHierarchyElementWithNoAccess: false,
     childParties: [
       {
-        partyTypeName: PartyType.SubUnit,
+        partyTypeName: PartyType.Organisation,
         name: 'ChildParty1',
         partyId: 2,
+        unitType: 'BEDR',
         ssn: null,
         isDeleted: false,
         onlyHierarchyElementWithNoAccess: false,
@@ -52,7 +53,8 @@ describe('flattenParties', () => {
             name: 'ChildParty1',
             onlyHierarchyElementWithNoAccess: false,
             partyId: 2,
-            partyTypeName: 4,
+            unitType: 'BEDR',
+            partyTypeName: 2,
             ssn: null,
           },
         ],
@@ -67,15 +69,16 @@ describe('flattenParties', () => {
         isDeleted: false,
         name: 'ChildParty1',
         onlyHierarchyElementWithNoAccess: false,
+        unitType: 'BEDR',
         partyId: 2,
-        partyTypeName: 4,
+        partyTypeName: 2,
         ssn: null,
       },
     ];
 
     const result = flattenParties(parties);
     expect(result.length).toBe(3);
-    expect(result).toEqual(expect.arrayContaining(expectedOutput));
+    expect(result).toEqual(expectedOutput);
   });
 });
 
