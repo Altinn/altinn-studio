@@ -68,14 +68,8 @@ public class OrgTextsService : IOrgTextsService
         TextResource textResourceObject = await altinnOrgGitRepository.GetText(languageCode);
 
         // handle if file not already exist
-
         foreach (KeyValuePair<string, string> kvp in keysTexts)
         {
-            if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
-            {
-                throw new ArgumentException("The application name must be a value.");
-            }
-
             TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
             if (textResourceContainsKey is null)
             {

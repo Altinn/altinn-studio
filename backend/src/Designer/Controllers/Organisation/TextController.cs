@@ -104,7 +104,7 @@ public class TextController : ControllerBase
         {
             return BadRequest(exception.Message);
         }
-        catch (Exception)
+        catch (NotFoundException)
         {
             return BadRequest($"The text resource, resource.{languageCode}.json, could not be updated.");
         }
