@@ -157,7 +157,7 @@ describe('convertDataBindingToInternalFormat', () => {
     };
     const bindingKey = 'simpleBinding';
     const internalFormat = convertDataBindingToInternalFormat(
-      component as unknown as FormItem,
+      (component as unknown as FormItem)?.dataModelBindings,
       bindingKey,
     );
     expect(internalFormat).toEqual({ dataType: 'dataType', field: 'field' });
@@ -165,7 +165,10 @@ describe('convertDataBindingToInternalFormat', () => {
 
   it('should return correct format when it has old format', () => {
     const bindingKey = 'simpleBinding';
-    const internalFormat = convertDataBindingToInternalFormat(testComponent, bindingKey);
+    const internalFormat = convertDataBindingToInternalFormat(
+      testComponent?.dataModelBindings,
+      bindingKey,
+    );
     expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
 
@@ -175,7 +178,10 @@ describe('convertDataBindingToInternalFormat', () => {
       dataModelBindings: undefined,
     };
     const bindingKey = undefined;
-    const internalFormat = convertDataBindingToInternalFormat(component, bindingKey);
+    const internalFormat = convertDataBindingToInternalFormat(
+      component?.dataModelBindings,
+      bindingKey,
+    );
     expect(internalFormat).toEqual({ dataType: '', field: undefined });
   });
 });
