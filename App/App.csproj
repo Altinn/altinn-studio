@@ -5,7 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.416.test-refactor-app-settings-secret-logic.764d3c76">
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.424.signing.7b1498ba">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
