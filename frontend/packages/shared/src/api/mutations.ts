@@ -59,7 +59,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResource, ITextResourcesObjectFormat } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResource, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -79,6 +79,7 @@ import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
 import type { CodeList } from 'app-shared/types/CodeList';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 
 const headers = {
   Accept: 'application/json',
@@ -180,5 +181,5 @@ export const uploadCodeListForOrg = async (org: string, payload: FormData): Prom
 
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
-export const createTextResourcesForOrg = async (org: string, language: string): Promise<void> => Promise.resolve();
+export const createTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage[]> => Promise.resolve([textResourcesMock]); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
 export const updateTextResourcesForOrg = async (org: string, language: string, payload: ITextResource[]): Promise<void> => Promise.resolve();
