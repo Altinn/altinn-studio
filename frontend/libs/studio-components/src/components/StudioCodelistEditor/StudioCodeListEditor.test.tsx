@@ -22,7 +22,7 @@ import {
 import type { TextResource } from '../../types/TextResource';
 import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
 import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
-import { codeListWithMultipleTypes } from './test-data/CodeListWithMultipleTypes';
+import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
 import { codeListWithUndefinedValues } from './test-data/codeListWithUndefinedValues';
 
 // Test data:

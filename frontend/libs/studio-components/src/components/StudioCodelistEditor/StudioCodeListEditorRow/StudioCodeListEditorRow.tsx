@@ -204,9 +204,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps>(
         onFocus={onFocus}
         checked={value as boolean}
         value={String(value)}
-      >
-        {String(value)}
-      </StudioInputTable.Cell.Checkbox>
+      />
     );
   },
 );
