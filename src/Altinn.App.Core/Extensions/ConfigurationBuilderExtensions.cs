@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
 namespace Altinn.App.Core.Extensions;
@@ -8,6 +9,9 @@ namespace Altinn.App.Core.Extensions;
 /// </summary>
 public static class ConfigurationBuilderExtensions
 {
+    internal const string AppSettingsSecretsRoot = "/altinn-appsettings-secret";
+    internal const string AppSettingsSecretsFile = "altinn-appsettings-secret.json";
+
     /// <summary>
     /// Load all known configuration sources known to be needed by an app.
     /// </summary>
@@ -15,14 +19,28 @@ public static class ConfigurationBuilderExtensions
     /// <param name="args">The original command line arguments</param>
     public static void LoadAppConfig(this IConfigurationBuilder builder, string[]? args = null)
     {
+        builder.AddAppSettingsSecretFile();
+        builder.AddEnvironmentVariables();
+        builder.AddCommandLine(args ?? []);
+    }
+
+    internal static void AddAppSettingsSecretFile(
+        this IConfigurationBuilder builder,
+        string? root = null,
+        string? path = null
+    )
+    {
         try
         {
-            builder.AddJsonFile(
-                new PhysicalFileProvider("/altinn-appsettings-secret"),
-                @"altinn-appsettings-secret.json",
-                true,
-                true
-            );
+            root ??= AppSettingsSecretsRoot;
+            path ??= AppSettingsSecretsFile;
+
+            bool alreadyAdded = builder.Sources.OfType<JsonConfigurationSource>().Any(source => source.Path == path);
+
+            if (alreadyAdded)
+                return;
+
+            builder.AddJsonFile(new PhysicalFileProvider(root), path, true, true);
         }
         catch (DirectoryNotFoundException)
         {
@@ -31,9 +49,5 @@ public static class ConfigurationBuilderExtensions
             // with the root folder (and not have to catch this exception), but that would cause
             // 'reloadOnChange: true' to recurse through the entire file system to monitor for changes.
         }
-
-        // Add values from environment and command line arguments last, to override values from other sources.
-        builder.AddEnvironmentVariables();
-        builder.AddCommandLine(args ?? []);
     }
 }
