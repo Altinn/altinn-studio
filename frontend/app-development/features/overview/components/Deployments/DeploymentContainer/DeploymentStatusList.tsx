@@ -33,8 +33,10 @@ export const DeploymentStatusList = ({
         );
         const lastPipelineDeployment = pipelineDeploymentEnvList[0];
         const isDeploymentInProgress = lastPipelineDeployment?.build.result === BuildResult.none;
+
         return (
           <DeploymentStatus
+            deploymentType={lastPipelineDeployment?.deploymentType}
             key={orgEnvironment.name}
             kubernetesDeployment={kubernetesDeployment}
             isDeploymentInProgress={isDeploymentInProgress}

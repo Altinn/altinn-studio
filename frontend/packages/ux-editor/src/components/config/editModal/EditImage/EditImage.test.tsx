@@ -89,7 +89,6 @@ describe('EditImage', () => {
       },
     });
     await goToExternalUrlTab(user);
-    await clickExistingUrlButton(user);
     await enterUrlInField(user, undefined);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith({
@@ -203,6 +202,7 @@ const clickExistingUrlButton = async (user: UserEvent) => {
 };
 
 const enterUrlInField = async (user: UserEvent, url: string | undefined) => {
+  await clickExistingUrlButton(user);
   const enterUrlField = screen.getByRole('textbox', {
     name: textMock('ux_editor.properties_panel.images.enter_external_url'),
   });
@@ -217,7 +217,7 @@ const waitForUrlToBeValidated = async () => {
   );
 };
 
-const clickDeleteImageButton = async (user) => {
+const clickDeleteImageButton = async (user: UserEvent) => {
   const deleteImageButton = screen.getByRole('button', {
     name: textMock('ux_editor.properties_panel.images.delete_image_reference_title'),
   });

@@ -11,6 +11,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
+using Designer.Tests.Utils;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
@@ -90,15 +91,15 @@ namespace Designer.Tests.Fixtures
         private async Task BuildAndStartAltinnGiteaAsync()
         {
             string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
-            var altinnGiteaImage = new ImageFromDockerfileBuilder()
-                .WithDockerfileDirectory(giteaDockerFilePath)
-                .WithDockerfile("Dockerfile")
-                .WithName("repositories:latest")
-                .Build();
 
-            await altinnGiteaImage.CreateAsync();
+            const string giteaTestImageName = "repositories:latest";
 
-            _giteaContainer = new ContainerBuilder().WithImage(altinnGiteaImage.FullName)
+            if (!CommandExecutor.TryExecute($"docker build --no-cache -t {giteaTestImageName} {giteaDockerFilePath}", out string _, out string error))
+            {
+                throw new Exception($"Failed to build gitea image. Error: {error}");
+            }
+
+            _giteaContainer = new ContainerBuilder().WithImage(giteaTestImageName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")

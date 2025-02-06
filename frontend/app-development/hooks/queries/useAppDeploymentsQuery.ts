@@ -2,7 +2,6 @@ import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { DEPLOYMENTS_REFETCH_INTERVAL } from 'app-shared/constants';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 
 export const useAppDeploymentsQuery = (
@@ -14,7 +13,6 @@ export const useAppDeploymentsQuery = (
   return useQuery<DeploymentsResponse>({
     queryKey: [QueryKey.AppDeployments, owner, app],
     queryFn: () => getDeployments(owner, app),
-    refetchInterval: DEPLOYMENTS_REFETCH_INTERVAL,
     meta,
   });
 };
