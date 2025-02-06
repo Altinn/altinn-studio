@@ -1,0 +1,11 @@
+.noLibraryAccess {
+  background-image: url('/designer/img/Altinn-studio-stor.svg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.alert {
+  position: relative;
+  bottom: 10%;
+}
