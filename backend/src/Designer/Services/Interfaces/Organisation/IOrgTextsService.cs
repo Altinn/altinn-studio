@@ -29,7 +29,7 @@ public interface IOrgTextsService
     public Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode);
 
     /// <summary>
-    /// Updates values for
+    /// Updates values for specified keys in the text resouce.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
