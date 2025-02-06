@@ -39,6 +39,8 @@ public class GeneralSettings
     /// </summary>
     public bool DisableLocaltestValidation { get; set; }
 
+    internal bool DisableAppConfigurationCache { get; set; }
+
     /// <summary>
     /// The externally accesible base url for the app with trailing /
     /// </summary>

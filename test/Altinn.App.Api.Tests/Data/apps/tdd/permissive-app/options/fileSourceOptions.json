@@ -1,0 +1,24 @@
+[
+  // Comment is valid
+  {
+    "value": null,
+    "label": ""
+  },
+  {
+    "value": "string-value",
+    "label": "string-label"
+  },
+  {
+    "value": 3,
+    "label": "number"
+  },
+  {
+    "value": true,
+    "label": "boolean-true"
+  },
+  {
+    "value": false,
+    "label": "boolean-false",
+    // Trailing comma should be valid
+  },
+]

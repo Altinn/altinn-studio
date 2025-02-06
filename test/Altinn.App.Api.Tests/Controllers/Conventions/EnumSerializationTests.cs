@@ -59,7 +59,7 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task ValidateInstantiation_SerializesPartyTypesAllowedAsNumber()
     {
         // Arrange
-        using var client = GetRootedClient(Org, App, 1337, PartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, PartyId);
 
         // Act
         var response = await client.PostAsync(

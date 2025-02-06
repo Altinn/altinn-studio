@@ -3,6 +3,7 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
@@ -28,6 +29,7 @@ public class UserDefinedMetadataController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
+    private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
     /// Initialize a new instance of <see cref="UserDefinedMetadataController"/> with the given services.
@@ -35,15 +37,18 @@ public class UserDefinedMetadataController : ControllerBase
     /// <param name="instanceClient">A client that can be used to send instance requests to storage.</param>
     /// <param name="dataClient">A client that can be used to send data requests to storage.</param>
     /// <param name="appMetadata">The app metadata service</param>
+    /// <param name="authenticationContext">The authentication context service</param>
     public UserDefinedMetadataController(
         IInstanceClient instanceClient,
         IDataClient dataClient,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        IAuthenticationContext authenticationContext
     )
     {
         _instanceClient = instanceClient;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
+        _authenticationContext = authenticationContext;
     }
 
     /// <summary>
@@ -136,7 +141,10 @@ public class UserDefinedMetadataController : ControllerBase
             );
         }
 
-        if (DataElementAccessChecker.GetUpdateProblem(instance, dataTypeFromMetadata, User) is { } problem)
+        if (
+            DataElementAccessChecker.GetUpdateProblem(instance, dataTypeFromMetadata, _authenticationContext.Current) is
+            { } problem
+        )
         {
             return StatusCode(problem.Status ?? 500, problem);
         }

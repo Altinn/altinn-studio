@@ -56,7 +56,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
     private HttpClient? _client;
 
-    private HttpClient GetClient() => _client ??= GetRootedClient(Org, App, UserId, null);
+    private HttpClient GetClient() => _client ??= GetRootedUserClient(Org, App, UserId, InstanceOwnerPartyId);
 
     // Constructor with common setup
     public DataControllerPatchTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
@@ -91,7 +91,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         }
         OutputHelper.WriteLine($"Calling PATCH {url}");
         using var httpClient = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = TestAuthentication.GetUserToken(userId: 1337);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators },
@@ -315,7 +315,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Be("melding.name is required in component with id default.page.name for binding simpleBinding");
 
         // Run full validation to see that result is the same
-        using var client = GetRootedClient(Org, App, UserId, null);
+        using var client = GetRootedUserClient(Org, App, UserId, InstanceOwnerPartyId);
         var validationResponse = await client.GetAsync($"/{Org}/{App}/instances/{_instanceId}/validate");
         validationResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         var validationResponseString = await validationResponse.Content.ReadAsStringAsync();
@@ -855,7 +855,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}?language=nn";
         OutputHelper.WriteLine($"Calling GET {url}");
         using var httpClient = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = TestAuthentication.GetUserToken(userId: UserId, InstanceOwnerPartyId);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await httpClient.GetAsync(url);
         var responseString = await response.Content.ReadAsStringAsync();

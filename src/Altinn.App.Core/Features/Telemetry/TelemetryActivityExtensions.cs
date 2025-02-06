@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Correspondence.Models;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -332,7 +334,6 @@ public static class TelemetryActivityExtensions
                 if (fromTask is not null)
                 {
                     tags.Add("from.task.name", fromTask.Name);
-                    tags.Add("from.task.validation.status", fromTask.Validated?.ToString());
                 }
             }
             var to = change.NewProcessState;
@@ -343,10 +344,70 @@ public static class TelemetryActivityExtensions
                 if (toTask is not null)
                 {
                     tags.Add("to.task.name", toTask.Name);
-                    tags.Add("to.task.validation.status", toTask.Validated?.ToString());
                 }
             }
             activity.AddEvent(new ActivityEvent("change", tags: tags));
+        }
+
+        return activity;
+    }
+
+    internal static Activity? SetAuthenticated(this Activity? activity, Authenticated currentAuth)
+    {
+        if (activity is null)
+            return null;
+
+        activity.SetTag(Labels.UserAuthenticationType, currentAuth.GetType().Name);
+        activity.SetTag(Labels.UserAuthenticationTokenIssuer, currentAuth.TokenIssuer);
+        activity.SetTag(Labels.UserAuthenticationTokenIsExchanged, currentAuth.TokenIsExchanged);
+        switch (currentAuth)
+        {
+            case Authenticated.None:
+                break;
+            case Authenticated.User auth:
+            {
+                activity.SetUserId(auth.UserId);
+                activity.SetUserPartyId(auth.SelectedPartyId);
+                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
+                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
+                activity.SetTag(Labels.UserAuthenticationInAltinnPortal, auth.InAltinnPortal);
+                break;
+            }
+            case Authenticated.SelfIdentifiedUser auth:
+            {
+                activity.SetUserId(auth.UserId);
+                activity.SetUserPartyId(auth.PartyId);
+                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
+                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
+                break;
+            }
+            case Authenticated.Org auth:
+            {
+                activity.SetOrganisationNumber(auth.OrgNo);
+                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
+                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
+                break;
+            }
+            case Authenticated.ServiceOwner auth:
+            {
+                activity.SetOrganisationNumber(auth.OrgNo);
+                activity.SetOrganisationName(auth.Name);
+                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
+                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
+                break;
+            }
+            case Authenticated.SystemUser auth:
+            {
+                if (auth.SystemUserId is [var systemUserId, ..])
+                    activity.SetTag(Labels.OrganisationSystemUserId, systemUserId);
+
+                activity.SetOrganisationNumber(auth.SystemUserOrgNr.Get(OrganisationNumberFormat.Local));
+                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
+                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
+                break;
+            }
+            default:
+                break;
         }
 
         return activity;

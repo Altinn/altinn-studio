@@ -14,6 +14,7 @@ namespace Altinn.App.Core.Helpers;
 /// <summary>
 /// The helper for user functionality
 /// </summary>
+[Obsolete("Use Altinn.App.Core.Features.Auth.IAuthenticationContext instead")]
 public class UserHelper
 {
     private readonly IProfileClient _profileClient;

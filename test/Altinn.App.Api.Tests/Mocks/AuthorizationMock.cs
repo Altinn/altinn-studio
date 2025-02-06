@@ -4,7 +4,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Platform.Authorization.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
@@ -12,7 +11,7 @@ public class AuthorizationMock : IAuthorizationClient
 {
     public Task<List<Party>?> GetPartyList(int userId)
     {
-        throw new NotImplementedException();
+        return Task.FromResult<List<Party>?>([]);
     }
 
     public Task<bool?> ValidateSelectedParty(int userId, int partyId)

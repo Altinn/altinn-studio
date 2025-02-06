@@ -72,7 +72,7 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
         int instanceOwnerPartyId = 500600;
         Guid instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
         Guid dataGuid = Guid.Parse("f3e04c65-aa70-40ec-84df-087cc2583402");
-        HttpClient client = GetRootedClient(org, app, 1337, instanceOwnerPartyId);
+        using HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
 
         TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
 

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Profile;
@@ -43,17 +44,15 @@ public class PrefillSITests
         var dataModel = new PrefillTestDataModel();
 
         var loggerMock = new Mock<ILogger<PrefillSI>>();
-        var profileClientMock = new Mock<IProfileClient>();
         var appResourcesMock = new Mock<IAppResources>();
         var altinnPartyClientMock = new Mock<IAltinnPartyClient>();
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        var authenticationContextMock = new Mock<IAuthenticationContext>();
 
         var prefillToTest = new PrefillSI(
             loggerMock.Object,
-            profileClientMock.Object,
             appResourcesMock.Object,
             altinnPartyClientMock.Object,
-            httpContextAccessorMock.Object
+            authenticationContextMock.Object
         );
 
         prefillToTest.PrefillDataModel(dataModel, externalPrefill, continueOnError: false);

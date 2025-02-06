@@ -281,7 +281,7 @@ public class LookupPersonControllerTests : ApiTestBase, IClassFixture<WebApplica
     private HttpClient GetHttpClient()
     {
         HttpClient client = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = TestAuthentication.GetUserToken(1337);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }

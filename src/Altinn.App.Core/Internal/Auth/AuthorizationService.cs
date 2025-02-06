@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -17,6 +18,7 @@ public class AuthorizationService : IAuthorizationService
 {
     private readonly IAuthorizationClient _authorizationClient;
     private readonly IEnumerable<IUserActionAuthorizerProvider> _userActionAuthorizers;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
@@ -24,15 +26,18 @@ public class AuthorizationService : IAuthorizationService
     /// </summary>
     /// <param name="authorizationClient">The authorization client</param>
     /// <param name="userActionAuthorizers">The user action authorizers</param>
+    /// <param name="authenticationContext">The authentication context</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AuthorizationService(
         IAuthorizationClient authorizationClient,
         IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers,
+        IAuthenticationContext authenticationContext,
         Telemetry? telemetry = null
     )
     {
         _authorizationClient = authorizationClient;
         _userActionAuthorizers = userActionAuthorizers;
+        _authenticationContext = authenticationContext;
         _telemetry = telemetry;
     }
 
@@ -71,7 +76,13 @@ public class AuthorizationService : IAuthorizationService
             )
         )
         {
-            var context = new UserActionAuthorizerContext(user, instanceIdentifier, taskId, action);
+            var context = new UserActionAuthorizerContext(
+                user,
+                instanceIdentifier,
+                taskId,
+                action,
+                _authenticationContext.Current
+            );
             if (!await authorizerRegistrator.Authorizer.AuthorizeAction(context))
             {
                 return false;

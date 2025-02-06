@@ -21,7 +21,9 @@ public static class ProcessStateExtensions
             copyOfState.CurrentTask = new ProcessElementInfo();
             copyOfState.CurrentTask.FlowType = original.CurrentTask.FlowType;
             copyOfState.CurrentTask.Name = original.CurrentTask.Name;
+#pragma warning disable CS0618 // Type or member is obsolete
             copyOfState.CurrentTask.Validated = original.CurrentTask.Validated;
+#pragma warning restore CS0618 // Type or member is obsolete
             copyOfState.CurrentTask.AltinnTaskType = original.CurrentTask.AltinnTaskType;
             copyOfState.CurrentTask.Flow = original.CurrentTask.Flow;
             copyOfState.CurrentTask.ElementId = original.CurrentTask.ElementId;

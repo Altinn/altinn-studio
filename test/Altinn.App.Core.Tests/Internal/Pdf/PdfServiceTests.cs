@@ -1,7 +1,8 @@
 using System.Net;
-using System.Security.Claims;
+using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -11,10 +12,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Constants;
-using Castle.Core.Logging;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -32,7 +30,6 @@ public class PdfServiceTests
     private readonly Mock<IDataClient> _dataClient = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
     private readonly Mock<IPdfGeneratorClient> _pdfGeneratorClient = new();
-    private readonly Mock<IProfileClient> _profile = new();
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
     );
@@ -44,6 +41,8 @@ public class PdfServiceTests
     private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
 
     private readonly Mock<IUserTokenProvider> _userTokenProvider;
+
+    private readonly Mock<IAuthenticationContext> _authenticationContext = new();
 
     private readonly Mock<ILogger<PdfService>> _logger = new();
 
@@ -67,6 +66,8 @@ public class PdfServiceTests
 
         _userTokenProvider = new Mock<IUserTokenProvider>();
         _userTokenProvider.Setup(s => s.GetUserToken()).Returns("usertoken");
+
+        _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
     }
 
     [Fact]
@@ -258,95 +259,6 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GetLanguage_ShouldReturnLanguageFromUserPreference()
-    {
-        // Arrange
-        var profileMock = new Mock<IProfileClient>();
-        profileMock
-            .Setup(s => s.GetUserProfile(It.IsAny<int>()))
-            .Returns(
-                Task.FromResult<UserProfile?>(
-                    new UserProfile
-                    {
-                        UserId = 123,
-                        ProfileSettingPreference = new ProfileSettingPreference { Language = LanguageConst.En },
-                    }
-                )
-            );
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
-
-        var target = SetupPdfService(profile: profileMock);
-
-        // Act
-        var language = await target.GetLanguage(user);
-
-        // Assert
-        language.Should().Be(LanguageConst.En);
-    }
-
-    [Fact]
-    public async Task GetLanguage_NoLanguageInUserPreference_ShouldReturnBokmål()
-    {
-        // Arrange
-        var profileMock = new Mock<IProfileClient>();
-        profileMock
-            .Setup(s => s.GetUserProfile(It.IsAny<int>()))
-            .Returns(
-                Task.FromResult<UserProfile?>(
-                    new UserProfile
-                    {
-                        UserId = 123,
-                        ProfileSettingPreference = new ProfileSettingPreference
-                        {
-                            /* No language preference set*/
-                        },
-                    }
-                )
-            );
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
-
-        var target = SetupPdfService(profile: profileMock);
-
-        // Act
-        var language = await target.GetLanguage(user);
-
-        // Assert
-        language.Should().Be(LanguageConst.Nb);
-    }
-
-    [Fact]
-    public async Task GetLanguage_UserIsNull_ShouldReturnBokmål()
-    {
-        // Arrange
-        ClaimsPrincipal? user = null;
-        var target = SetupPdfService();
-
-        // Act
-        var language = await target.GetLanguage(user);
-
-        // Assert
-        language.Should().Be(LanguageConst.Nb);
-    }
-
-    [Fact]
-    public async Task GetLanguage_UserProfileIsNull_ShouldThrow()
-    {
-        // Arrange
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
-
-        var profileMock = new Mock<IProfileClient>();
-        profileMock.Setup(s => s.GetUserProfile(It.IsAny<int>())).Returns(Task.FromResult<UserProfile?>(null));
-
-        var target = SetupPdfService(profile: profileMock);
-
-        // Act
-        var func = async () => await target.GetLanguage(user);
-
-        // Assert
-        await func.Should().ThrowAsync<Exception>().WithMessage("Could not get user profile while getting language");
-    }
-
-    [Fact]
     public void GetOverridenLanguage_ShouldReturnLanguageFromQuery()
     {
         // Arrange
@@ -393,6 +305,7 @@ public class PdfServiceTests
         Mock<IPdfGeneratorClient>? pdfGeneratorClient = null,
         IOptions<PdfGeneratorSettings>? pdfGeneratorSettingsOptions = null,
         IOptions<GeneralSettings>? generalSettingsOptions = null,
+        Mock<IAuthenticationContext>? authenticationContext = null,
         TelemetrySink? telemetrySink = null
     )
     {
@@ -400,11 +313,11 @@ public class PdfServiceTests
             appResources?.Object ?? _appResources.Object,
             dataClient?.Object ?? _dataClient.Object,
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
-            profile?.Object ?? _profile.Object,
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,
             _logger.Object,
+            authenticationContext?.Object ?? _authenticationContext.Object,
             telemetrySink?.Object
         );
     }

@@ -1,4 +1,4 @@
-{
+﻿{
   openapi: 3.0.1,
   info: {
     title: Altinn App Api,
@@ -3288,7 +3288,8 @@ The body of the request isn't used for anything despite this being a POST operat
           200: {
             description: OK
           }
-        }
+        },
+        deprecated: true
       }
     },
     /{org}/{app}/api/v1/parties/{partyId}: {

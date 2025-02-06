@@ -64,9 +64,12 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     /// <param name="value">The value to parse</param>
     /// <param name="organisationNumber">The resulting <see cref="OrganisationNumber"/> instance</param>
     /// <returns><c>true</c> on successful parse, <c>false</c> otherwise</returns>
-    public static bool TryParse(string value, out OrganisationNumber organisationNumber)
+    public static bool TryParse(string? value, out OrganisationNumber organisationNumber)
     {
         organisationNumber = default;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
 
         // Either local="991825827" or international="0192:991825827"
         if (value.Length != 9 && value.Length != 14)

@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -16,6 +18,14 @@ namespace Altinn.App.Core.Tests.Internal.Auth;
 
 public class AuthorizationServiceTests
 {
+    private IAuthenticationContext MockAuthContext(int userId = 1337, int partyId = 1338)
+    {
+        var mock = new Mock<IAuthenticationContext>();
+        mock.SetupGet(a => a.Current)
+            .Returns(TestAuthentication.GetUserAuthentication(userId: userId, userPartyId: partyId));
+        return mock.Object;
+    }
+
     [Fact]
     public async Task GetPartyList_returns_party_list_from_AuthorizationClient()
     {
@@ -30,6 +40,7 @@ public class AuthorizationServiceTests
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
             new List<IUserActionAuthorizerProvider>(),
+            MockAuthContext(userId: userId),
             telemetrySink.Object
         );
 
@@ -55,7 +66,8 @@ public class AuthorizationServiceTests
         authorizationClientMock.Setup(a => a.ValidateSelectedParty(userId, partyId)).ReturnsAsync(true);
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>()
+            new List<IUserActionAuthorizerProvider>(),
+            MockAuthContext(userId: userId, partyId: partyId)
         );
 
         // Act
@@ -86,7 +98,8 @@ public class AuthorizationServiceTests
             .ReturnsAsync(true);
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>()
+            new List<IUserActionAuthorizerProvider>(),
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -126,7 +139,8 @@ public class AuthorizationServiceTests
             .ReturnsAsync(false);
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>()
+            new List<IUserActionAuthorizerProvider>(),
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -177,7 +191,8 @@ public class AuthorizationServiceTests
 
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>() { userActionAuthorizerProvider }
+            new List<IUserActionAuthorizerProvider>() { userActionAuthorizerProvider },
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -229,7 +244,8 @@ public class AuthorizationServiceTests
 
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>() { userActionAuthorizerProvider }
+            new List<IUserActionAuthorizerProvider>() { userActionAuthorizerProvider },
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -294,7 +310,8 @@ public class AuthorizationServiceTests
             {
                 userActionAuthorizerOneProvider,
                 userActionAuthorizerTwoProvider,
-            }
+            },
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -372,7 +389,8 @@ public class AuthorizationServiceTests
                 userActionAuthorizerOneProvider,
                 userActionAuthorizerTwoProvider,
                 userActionAuthorizerThreeProvider,
-            }
+            },
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Act
@@ -460,7 +478,8 @@ public class AuthorizationServiceTests
                 userActionAuthorizerOneProvider,
                 userActionAuthorizerTwoProvider,
                 userActionAuthorizerThreeProvider,
-            }
+            },
+            MockAuthContext(partyId: instanceIdentifier.InstanceOwnerPartyId)
         );
 
         // Actπ
@@ -517,7 +536,8 @@ public class AuthorizationServiceTests
 
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>()
+            new List<IUserActionAuthorizerProvider>(),
+            MockAuthContext()
         );
 
         // Act

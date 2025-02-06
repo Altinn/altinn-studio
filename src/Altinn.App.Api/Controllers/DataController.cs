@@ -10,6 +10,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Helpers;
@@ -55,7 +56,7 @@ public class DataController : ControllerBase
     private readonly IFeatureManager _featureManager;
     private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
-
+    private readonly IAuthenticationContext _authenticationContext;
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -74,6 +75,7 @@ public class DataController : ControllerBase
     /// <param name="fileValidationService">Service used to validate files uploaded.</param>
     /// <param name="patchService">Service for applying a json patch to a json serializable object</param>
     /// <param name="modelDeserializer">Service for serializing and deserializing models</param>
+    /// <param name="authenticationContext">The authentication context service</param>
     public DataController(
         ILogger<DataController> logger,
         IInstanceClient instanceClient,
@@ -87,7 +89,8 @@ public class DataController : ControllerBase
         IAppMetadata appMetadata,
         IFeatureManager featureManager,
         InternalPatchService patchService,
-        ModelSerializationService modelDeserializer
+        ModelSerializationService modelDeserializer,
+        IAuthenticationContext authenticationContext
     )
     {
         _logger = logger;
@@ -104,6 +107,7 @@ public class DataController : ControllerBase
         _featureManager = featureManager;
         _patchService = patchService;
         _modelDeserializer = modelDeserializer;
+        _authenticationContext = authenticationContext;
     }
 
     /// <summary>
@@ -247,7 +251,10 @@ public class DataController : ControllerBase
 
             var (instance, dataType, applicationMetadata) = instanceResult.Ok;
 
-            if (DataElementAccessChecker.GetCreateProblem(instance, dataType, User) is { } accessProblem)
+            if (
+                DataElementAccessChecker.GetCreateProblem(instance, dataType, _authenticationContext.Current) is
+                { } accessProblem
+            )
             {
                 return accessProblem;
             }
@@ -522,7 +529,10 @@ public class DataController : ControllerBase
             }
             var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            if (DataElementAccessChecker.GetReaderProblem(instance, dataType, User) is { } accessProblem)
+            if (
+                DataElementAccessChecker.GetReaderProblem(instance, dataType, _authenticationContext.Current) is
+                { } accessProblem
+            )
             {
                 return Problem(accessProblem);
             }
@@ -588,7 +598,10 @@ public class DataController : ControllerBase
             }
             var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
+            if (
+                DataElementAccessChecker.GetUpdateProblem(instance, dataType, _authenticationContext.Current) is
+                { } accessProblem
+            )
             {
                 return Problem(accessProblem);
             }
@@ -705,7 +718,10 @@ public class DataController : ControllerBase
             // Verify that the data elements isn't restricted for the user
             foreach (var dataType in dataTypes)
             {
-                if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
+                if (
+                    DataElementAccessChecker.GetUpdateProblem(instance, dataType, _authenticationContext.Current) is
+                    { } accessProblem
+                )
                 {
                     return Problem(accessProblem);
                 }
@@ -773,7 +789,15 @@ public class DataController : ControllerBase
             }
             var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            if (DataElementAccessChecker.GetDeleteProblem(instance, dataType, dataGuid, User) is { } accessProblem)
+            if (
+                DataElementAccessChecker.GetDeleteProblem(
+                    instance,
+                    dataType,
+                    dataGuid,
+                    _authenticationContext.Current
+                ) is
+                { } accessProblem
+            )
             {
                 return Problem(accessProblem);
             }

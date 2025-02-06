@@ -1,8 +1,5 @@
-using System.Collections.Frozen;
-using System.Diagnostics;
-using System.Security.Claims;
 using Altinn.App.Core.Features;
-using AltinnCore.Authentication.Constants;
+using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.App.Api.Infrastructure.Middleware;
@@ -11,53 +8,6 @@ internal sealed class TelemetryEnrichingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<TelemetryEnrichingMiddleware> _logger;
-    private static readonly FrozenDictionary<string, Action<Claim, Activity>> _claimActions;
-
-    static TelemetryEnrichingMiddleware()
-    {
-        var actions = new Dictionary<string, Action<Claim, Activity>>(StringComparer.OrdinalIgnoreCase)
-        {
-            { AltinnCoreClaimTypes.UserName, static (claim, activity) => activity.SetUsername(claim.Value) },
-            {
-                AltinnCoreClaimTypes.UserId,
-                static (claim, activity) =>
-                {
-                    if (int.TryParse(claim.Value, out var result))
-                    {
-                        activity.SetUserId(result);
-                    }
-                }
-            },
-            {
-                AltinnCoreClaimTypes.PartyID,
-                static (claim, activity) =>
-                {
-                    if (int.TryParse(claim.Value, out var result))
-                    {
-                        activity.SetUserPartyId(result);
-                    }
-                }
-            },
-            {
-                AltinnCoreClaimTypes.AuthenticateMethod,
-                static (claim, activity) => activity.SetAuthenticationMethod(claim.Value)
-            },
-            {
-                AltinnCoreClaimTypes.AuthenticationLevel,
-                static (claim, activity) =>
-                {
-                    if (int.TryParse(claim.Value, out var result))
-                    {
-                        activity.SetAuthenticationLevel(result);
-                    }
-                }
-            },
-            { AltinnCoreClaimTypes.Org, static (claim, activity) => activity.SetOrganisationName(claim.Value) },
-            { AltinnCoreClaimTypes.OrgNumber, static (claim, activity) => activity.SetOrganisationNumber(claim.Value) },
-        };
-
-        _claimActions = actions.ToFrozenDictionary();
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TelemetryEnrichingMiddleware"/> class.
@@ -85,13 +35,9 @@ internal sealed class TelemetryEnrichingMiddleware
 
         try
         {
-            foreach (var claim in context.User.Claims)
-            {
-                if (_claimActions.TryGetValue(claim.Type, out var action))
-                {
-                    action(claim, activity);
-                }
-            }
+            var authenticationContext = context.RequestServices.GetRequiredService<IAuthenticationContext>();
+            var currentAuth = authenticationContext.Current;
+            activity.SetAuthenticated(currentAuth);
 
             // Set telemetry tags with route values if available.
             if (

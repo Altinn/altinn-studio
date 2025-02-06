@@ -28,16 +28,25 @@
           url.scheme: http
         },
         {
+          user.authentication.inAltinnPortal: True
+        },
+        {
           user.authentication.level: 4
         },
         {
-          user.authentication.method: Mock
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: False
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
         },
         {
           user.id: 10
-        },
-        {
-          user.name: User10
         },
         {
           user.party.id: Scrubbed

@@ -3284,7 +3284,8 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/parties/{partyId}": {

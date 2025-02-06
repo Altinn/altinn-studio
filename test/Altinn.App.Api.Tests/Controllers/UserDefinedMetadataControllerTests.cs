@@ -22,7 +22,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
     [Fact]
     public async Task PutUserDefinedMetadata_HappyPath_ReturnsOk()
     {
-        HttpClient client = GetHttpClient();
+        using HttpClient client = GetRootedUserClient(Org, App, 1337);
         (string instanceId, string dataGuid) = await CreateInstanceAndDataElement(client);
 
         // Update custom metadata
@@ -63,7 +63,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
     [Fact]
     public async Task PutUserDefinedMetadata_DuplicatedKey_ReturnsBadRequest()
     {
-        HttpClient client = GetHttpClient();
+        using HttpClient client = GetRootedUserClient(Org, App, 1337);
         (string instanceId, string dataGuid) = await CreateInstanceAndDataElement(client);
 
         // Update custom metadata
@@ -88,7 +88,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
     [Fact]
     public async Task PutUserDefinedMetadata_NotAllowedKey_ReturnsBadRequest()
     {
-        HttpClient client = GetHttpClient();
+        using HttpClient client = GetRootedUserClient(Org, App, 1337);
         (string instanceId, string dataGuid) = await CreateInstanceAndDataElement(client);
 
         // Update custom metadata
@@ -113,7 +113,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
     [Fact]
     public async Task PutUserDefinedMetadata_InvalidDataElementId_ReturnsNotFound()
     {
-        HttpClient client = GetHttpClient();
+        using HttpClient client = GetRootedUserClient(Org, App, 1337);
 
         // Create instance
         HttpResponseMessage createResponse = await client.PostAsync(
@@ -157,13 +157,5 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
         string instanceId = createdInstance.Id;
 
         return (instanceId, dataGuid);
-    }
-
-    private HttpClient GetHttpClient()
-    {
-        HttpClient client = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return client;
     }
 }

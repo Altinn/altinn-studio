@@ -167,6 +167,26 @@ public sealed partial class Telemetry : IDisposable
         public const string UserAuthenticationLevel = "user.authentication.level";
 
         /// <summary>
+        /// Label for the authentication type for the current client.
+        /// </summary>
+        public const string UserAuthenticationType = "user.authentication.type";
+
+        /// <summary>
+        /// Label for the authentication token issuer.
+        /// </summary>
+        public const string UserAuthenticationTokenIssuer = "user.authentication.token.issuer";
+
+        /// <summary>
+        /// Label for the authentication token isExchanged flag.
+        /// </summary>
+        public const string UserAuthenticationTokenIsExchanged = "user.authentication.token.isExchanged";
+
+        /// <summary>
+        /// Label for the authentication token is issued from Altinn portal.
+        /// </summary>
+        public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";
+
+        /// <summary>
         /// Label for the organisation name.
         /// </summary>
         public const string OrganisationName = "organisation.name";
@@ -175,6 +195,11 @@ public sealed partial class Telemetry : IDisposable
         /// Label for the organisation number.
         /// </summary>
         public const string OrganisationNumber = "organisation.number";
+
+        /// <summary>
+        /// Label for the ID of the system user.
+        /// </summary>
+        public const string OrganisationSystemUserId = "organisation.systemuser.id";
 
         /// <summary>
         /// Label for the Correspondence ID.

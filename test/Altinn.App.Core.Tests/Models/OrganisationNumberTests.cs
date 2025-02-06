@@ -31,6 +31,7 @@ public class OrganisationNumberTests
         "207154156",
         "601050765",
         "085483285",
+        "004430301",
     ];
 
     internal static readonly string[] InvalidOrganisationNumbers =

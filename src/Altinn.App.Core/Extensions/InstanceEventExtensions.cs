@@ -33,11 +33,13 @@ public static class InstanceEventExtensions
                     Name = original.ProcessInfo?.CurrentTask?.Name,
                     Started = original.ProcessInfo?.CurrentTask?.Started,
                     Ended = original.ProcessInfo?.CurrentTask?.Ended,
+#pragma warning disable CS0618 // Type or member is obsolete
                     Validated = new ValidationStatus
                     {
                         CanCompleteTask = original.ProcessInfo?.CurrentTask?.Validated?.CanCompleteTask ?? false,
                         Timestamp = original.ProcessInfo?.CurrentTask?.Validated?.Timestamp,
                     },
+#pragma warning restore CS0618 // Type or member is obsolete
                 },
 
                 StartEvent = original.ProcessInfo?.StartEvent,
@@ -49,6 +51,9 @@ public static class InstanceEventExtensions
                 OrgId = original.User.OrgId,
                 UserId = original.User.UserId,
                 NationalIdentityNumber = original.User?.NationalIdentityNumber,
+                SystemUserId = original.User?.SystemUserId,
+                SystemUserOwnerOrgNo = original.User?.SystemUserOwnerOrgNo,
+                SystemUserName = original.User?.SystemUserName,
             },
         };
     }

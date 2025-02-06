@@ -56,7 +56,7 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     private async Task<HttpResponseMessage> CallValidateInstanceApi()
     {
         using var httpClient = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = TestAuthentication.GetUserToken(userId: 1337);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return await httpClient.GetAsync($"/{Org}/{App}/instances/{InstanceId}/validate");
     }
@@ -64,7 +64,7 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     private async Task<(HttpResponseMessage response, string responseString)> CallValidateDataApi()
     {
         using var httpClient = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = TestAuthentication.GetUserToken(userId: 1337);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await httpClient.GetAsync($"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}/validate");
         var responseString = await LogResponse(response);

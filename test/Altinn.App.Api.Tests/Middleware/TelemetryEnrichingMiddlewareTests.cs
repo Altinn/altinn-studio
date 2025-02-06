@@ -46,7 +46,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
     public async Task Should_Have_Root_AspNetCore_Trace_Org()
     {
         var org = Guid.NewGuid().ToString();
-        string token = PrincipalUtil.GetOrgToken(org, "160694123", 4);
+        string token = TestAuthentication.GetServiceOwnerToken();
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
@@ -68,7 +68,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
     public async Task Should_Have_Root_AspNetCore_Trace_User()
     {
         var partyId = Random.Shared.Next();
-        var principal = PrincipalUtil.GetUserPrincipal(10, partyId, 4);
+        var principal = TestAuthentication.GetUserPrincipal(10, partyId, 4);
         var token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
 
         var (telemetry, request) = AnalyzeTelemetry(token);
@@ -91,7 +91,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
     public async Task Should_Always_Be_A_Root_Trace()
     {
         var partyId = Random.Shared.Next();
-        var principal = PrincipalUtil.GetUserPrincipal(10, partyId, 4);
+        var principal = TestAuthentication.GetUserPrincipal(10, partyId, 4);
         var token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
 
         var (telemetry, request) = AnalyzeTelemetry(token, includeTraceContext: true);
@@ -118,7 +118,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
     public async Task Should_Always_Be_A_Root_Trace_Unless_Pdf()
     {
         var partyId = Random.Shared.Next();
-        var principal = PrincipalUtil.GetUserPrincipal(10, partyId, 4);
+        var principal = TestAuthentication.GetUserPrincipal(10, partyId, 4);
         var token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
 
         var (telemetry, request) = AnalyzeTelemetry(token, includeTraceContext: true, includePdfHeader: true);

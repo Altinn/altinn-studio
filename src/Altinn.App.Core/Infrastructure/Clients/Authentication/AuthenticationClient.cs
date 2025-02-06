@@ -2,9 +2,8 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -16,36 +15,36 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authentication;
 public class AuthenticationClient : IAuthenticationClient
 {
     private readonly ILogger _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly HttpClient _client;
+    private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthenticationClient"/> class
     /// </summary>
     /// <param name="platformSettings">The current platform settings.</param>
     /// <param name="logger">the logger</param>
-    /// <param name="httpContextAccessor">The http context accessor </param>
     /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
+    /// <param name="authenticationContext">The authentication context.</param>
     public AuthenticationClient(
         IOptions<PlatformSettings> platformSettings,
         ILogger<AuthenticationClient> logger,
-        IHttpContextAccessor httpContextAccessor,
-        HttpClient httpClient
+        HttpClient httpClient,
+        IAuthenticationContext authenticationContext
     )
     {
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
         httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthenticationEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
+        _authenticationContext = authenticationContext;
     }
 
     /// <inheritdoc />
     public async Task<string> RefreshToken()
     {
         string endpointUrl = $"refresh";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, General.RuntimeCookieName);
+        string token = _authenticationContext.Current.Token; // TODO: check if authenticated?
         HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)

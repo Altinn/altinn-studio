@@ -29,7 +29,9 @@ public class AppProcessElementInfo : ProcessElementInfo
         Name = processElementInfo.Name;
         AltinnTaskType = processElementInfo.AltinnTaskType;
         Ended = processElementInfo.Ended;
+#pragma warning disable CS0618 // Type or member is obsolete
         Validated = processElementInfo.Validated;
+#pragma warning restore CS0618 // Type or member is obsolete
         FlowType = processElementInfo.FlowType;
         Actions = new Dictionary<string, bool>();
         UserActions = new List<UserAction>();

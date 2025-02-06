@@ -1,0 +1,57 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: POST {org}/{app}/instances/create,
+      Tags: [
+        {
+          http.request.method: POST
+        },
+        {
+          http.response.status_code: 201
+        },
+        {
+          http.route: {org}/{app}/instances/create
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_1
+        },
+        {
+          url.path: /tdd/permissive-app/instances/create
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.level: 0
+        },
+        {
+          user.authentication.method: Mock
+        },
+        {
+          user.authentication.token.isExchanged: False
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: SelfIdentifiedUser
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.party.id: 501337
+        }
+      ],
+      IdFormat: W3C,
+      Kind: Server
+    }
+  ],
+  Metrics: []
+}

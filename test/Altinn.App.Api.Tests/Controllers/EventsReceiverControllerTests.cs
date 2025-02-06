@@ -25,7 +25,7 @@ public class EventsReceiverControllerTests : ApiTestBase, IClassFixture<WebAppli
         var org = "tdd";
         var app = "contributer-restriction";
 
-        var client = GetRootedClient(org, app, 1338, null);
+        using var client = GetRootedUserClient(org, app, 1338);
         CloudEvent cloudEvent = new()
         {
             Id = Guid.NewGuid().ToString(),
@@ -60,7 +60,7 @@ public class EventsReceiverControllerTests : ApiTestBase, IClassFixture<WebAppli
         var org = "tdd";
         var app = "contributer-restriction";
 
-        var client = GetRootedClient(org, app, userId: 1338, partyId: null);
+        using var client = GetRootedUserClient(org, app, userId: 1338);
         CloudEvent cloudEvent = new()
         {
             Id = Guid.NewGuid().ToString(),

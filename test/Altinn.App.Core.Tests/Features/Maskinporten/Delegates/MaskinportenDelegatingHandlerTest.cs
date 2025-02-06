@@ -12,7 +12,7 @@ public class MaskinportenDelegatingHandlerTest
     {
         // Arrange
         var scopes = new[] { "scope1", "scope2" };
-        var accessToken = PrincipalUtil.GetMaskinportenToken(scope: "-").AccessToken;
+        var accessToken = TestAuthentication.GetMaskinportenToken(scope: "-").AccessToken;
         var (client, handler) = TestHelpers.MockMaskinportenDelegatingHandlerFactory(
             TokenAuthorities.Maskinporten,
             scopes,

@@ -1,14 +1,12 @@
 using System.Globalization;
 using System.Reflection;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Prefill;
-using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -18,10 +16,9 @@ namespace Altinn.App.Core.Implementation;
 public class PrefillSI : IPrefill
 {
     private readonly ILogger _logger;
-    private readonly IProfileClient _profileClient;
     private readonly IAppResources _appResourcesService;
     private readonly IAltinnPartyClient _altinnPartyClientClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly Telemetry? _telemetry;
     private static readonly string _erKey = "ER";
     private static readonly string _dsfKey = "DSF";
@@ -33,25 +30,22 @@ public class PrefillSI : IPrefill
     /// Creates a new instance of the <see cref="PrefillSI"/> class
     /// </summary>
     /// <param name="logger">The logger</param>
-    /// <param name="profileClient">The profile client</param>
     /// <param name="appResourcesService">The app's resource service</param>
     /// <param name="altinnPartyClientClient">The register client</param>
-    /// <param name="httpContextAccessor">A service with access to the http context.</param>
+    /// <param name="authenticationContext">The authentication context</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public PrefillSI(
         ILogger<PrefillSI> logger,
-        IProfileClient profileClient,
         IAppResources appResourcesService,
         IAltinnPartyClient altinnPartyClientClient,
-        IHttpContextAccessor httpContextAccessor,
+        IAuthenticationContext authenticationContext,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
-        _profileClient = profileClient;
         _appResourcesService = appResourcesService;
         _altinnPartyClientClient = altinnPartyClientClient;
-        _httpContextAccessor = httpContextAccessor;
+        _authenticationContext = authenticationContext;
         _telemetry = telemetry;
     }
 
@@ -94,7 +88,17 @@ public class PrefillSI : IPrefill
             _allowOverwrite = allowOverwriteToken.ToObject<bool>();
         }
 
-        Party? party = await _altinnPartyClientClient.GetParty(int.Parse(partyId, CultureInfo.InvariantCulture));
+        var currentAuth = _authenticationContext.Current;
+        var partyIdNum = int.Parse(partyId, CultureInfo.InvariantCulture);
+        Party? party = currentAuth switch
+        {
+            Authenticated.User user when user.SelectedPartyId == partyIdNum => await user.LookupSelectedParty(),
+            Authenticated.SelfIdentifiedUser user when user.PartyId == partyIdNum => (await user.LoadDetails()).Party,
+            Authenticated.SystemUser systemUser
+                when await systemUser.LoadDetails() is { } details && details.Party.PartyId == partyIdNum =>
+                details.Party,
+            _ => await _altinnPartyClientClient.GetParty(partyIdNum),
+        };
         if (party == null)
         {
             string errorMessage = $"Could find party for partyId: {partyId}";
@@ -113,13 +117,23 @@ public class PrefillSI : IPrefill
 
             if (userProfileDict.Count > 0)
             {
-                var httpContext =
-                    _httpContextAccessor.HttpContext
-                    ?? throw new Exception(
-                        "Could not get HttpContext - must be in a request context to get current user"
-                    );
-                int userId = AuthenticationHelper.GetUserId(httpContext);
-                UserProfile? userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
+                UserProfile? userProfile = null;
+                switch (currentAuth)
+                {
+                    case Authenticated.User user:
+                    {
+                        var details = await user.LoadDetails(validateSelectedParty: false);
+                        userProfile = details.Profile;
+                        break;
+                    }
+                    case Authenticated.SelfIdentifiedUser user:
+                    {
+                        var details = await user.LoadDetails();
+                        userProfile = details.Profile;
+                        break;
+                    }
+                }
+
                 if (userProfile != null)
                 {
                     JObject userProfileJsonObject = JObject.FromObject(userProfile);

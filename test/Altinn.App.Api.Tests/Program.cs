@@ -8,6 +8,7 @@ using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -57,7 +58,10 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
-builder.Configuration.GetSection("GeneralSettings:DisableLocaltestValidation").Value = "true";
+builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
+builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
+
+// AppConfigurationCache.Disable = true;
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
@@ -95,6 +99,7 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IEventHandler, DummyFailureEventHandler>();
     services.AddTransient<IEventHandler, DummySuccessEventHandler>();
     services.AddTransient<IAppMetadata, AppMetadataMock>();
+    services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<IDataClient, DataClientMock>();
     services.AddTransient<IAltinnPartyClient, AltinnPartyClientMock>();
     services.AddTransient<IProfileClient, ProfileClientMock>();

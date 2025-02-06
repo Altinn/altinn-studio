@@ -70,7 +70,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         int partyId = 500000;
         Guid instanceId = new Guid("5d9e906b-83ed-44df-85a7-2f104c640bff");
 
-        HttpClient client = GetRootedClient(org, app, 1337, partyId, 3);
+        HttpClient client = GetRootedUserClient(org, app, 1337, partyId, 3);
 
         TestData.PrepareInstance(org, app, partyId, instanceId);
 
@@ -150,7 +150,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 Content = new StringContent("this is the binary pdf content"),
             };
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         // both "?lang" and "?language" should work
         var nextResponse = await client.PutAsync(
             $"{Org}/{App}/instances/{_instanceId}/process/next?lang={language}",
@@ -183,7 +183,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 Content = new StringContent("this is the binary pdf content"),
             };
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         // both "?lang" and "?language" should work
         var nextResponse = await client.PutAsync(
             $"{Org}/{App}/instances/{_instanceId}/process/next?language={language}",
@@ -227,7 +227,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             // Return a 429 to simulate pdf generation failure
             return new HttpResponseMessage(HttpStatusCode.TooManyRequests);
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
@@ -278,7 +278,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 activityFilter: this.ActivityFilter
             );
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
@@ -333,7 +333,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Verifiable(Times.Once);
 
         // create client for tests
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         var dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
 
         // Update hidden data value
@@ -426,7 +426,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Verifiable(Times.Once);
 
         // create client for tests
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
         // Update hidden data value
         var serializedPatch = JsonSerializer.Serialize(
@@ -534,7 +534,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(dataValidator.Object);
             services.AddSingleton(pdfMock.Object);
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
@@ -560,7 +560,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/completeProcess", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
@@ -582,7 +582,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
         };
-        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         using var content = new StringContent(
             """{"action": "unknown-action_unauthorized"}""",
             Encoding.UTF8,
@@ -615,7 +615,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 }
             );
         };
-        HttpClient client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        HttpClient client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
         string url = $"/{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/process/history";
 
         HttpResponseMessage response = await client.GetAsync(url);

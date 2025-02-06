@@ -90,7 +90,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             Times.Once()
         );
 
-        HttpClient client = GetRootedClient(_org, _app, 1337, null, authenticationLevel: 2);
+        HttpClient client = GetRootedUserClient(_org, _app, 1337, _instanceOwnerPartyId, authenticationLevel: 2);
         var content = JsonContent.Create(new Skjema() { Melding = new() { Random = "fromClient" } });
         var response = await client.PostAsync(
             $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/{dataTypeString}",
@@ -149,7 +149,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             Times.Exactly(1)
         );
 
-        HttpClient client = GetRootedClient(_org, _app, 1337, null, authenticationLevel: 2);
+        HttpClient client = GetRootedUserClient(_org, _app, 1337, _instanceOwnerPartyId, authenticationLevel: 2);
 
         // Update data element
         var updateDataElementContent = new ByteArrayContent(binaryData)
@@ -217,7 +217,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             Times.Exactly(1)
         );
 
-        HttpClient client = GetRootedClient(_org, _app, 1337, null, authenticationLevel: 2);
+        HttpClient client = GetRootedUserClient(_org, _app, 1337, _instanceOwnerPartyId, authenticationLevel: 2);
 
         // Update data element
         var updateDataElementContent = new ByteArrayContent(binaryData)

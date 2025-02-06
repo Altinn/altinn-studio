@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Auth;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -55,6 +56,12 @@ public class IdentityTelemetryFilter : ITelemetryProcessor
                 {
                     request.Properties.Add("orgNumber", orgNumber?.ToString(CultureInfo.InvariantCulture) ?? "");
                 }
+
+                var authContext = ctx.RequestServices.GetRequiredService<IAuthenticationContext>();
+                var auth = authContext.Current;
+                request.Properties.Add("tokenIssuer", auth.TokenIssuer.ToString());
+                request.Properties.Add("tokenIsExchanged", auth.TokenIsExchanged.ToString());
+                request.Properties.Add("authType", auth.GetType().Name);
             }
         }
 

@@ -93,6 +93,11 @@ public class Signee
 #nullable restore
 
     /// <summary>
+    /// The system user id of the user performing the signing
+    /// </summary>
+    public Guid? SystemUserId { get; set; }
+
+    /// <summary>
     /// The SSN of the user performing the signing, set if the signer is a person
     /// </summary>
     public string? PersonNumber { get; set; }
