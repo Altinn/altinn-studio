@@ -8,6 +8,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
+import { StringUtils } from '@studio/pure-functions';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -73,7 +74,7 @@ describe('PageLayout', () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
     expect(mockedNavigate).toHaveBeenCalledWith(
-      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
       expect.anything(),
     );
   });
@@ -82,7 +83,7 @@ describe('PageLayout', () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
     expect(mockedNavigate).toHaveBeenCalledWith(
-      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
       expect.anything(),
     );
   });
@@ -96,7 +97,7 @@ describe('PageLayout', () => {
       sessionStorage.setItem('dashboard::selectedContext', `"${context}"`);
       renderWithMockServices();
       expect(mockedNavigate).toHaveBeenCalledWith(
-        `${Subroute.AppDashboard}/${context}`,
+        `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${context}`,
         expect.anything(),
       );
     },
@@ -108,7 +109,7 @@ describe('PageLayout', () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
     expect(mockedNavigate).toHaveBeenCalledWith(
-      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
       expect.anything(),
     );
   });

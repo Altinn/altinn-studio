@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import type {
   ServicesContextProps,
   ServicesContextProviderProps,
@@ -29,8 +29,8 @@ export const MockServicesContextWrapper = ({
   };
 
   return (
-    <MemoryRouter>
+    <BrowserRouter>
       <ServicesContextProvider {...queries}>{children}</ServicesContextProvider>
-    </MemoryRouter>
+    </BrowserRouter>
   );
 };
