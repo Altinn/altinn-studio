@@ -9,12 +9,14 @@ import type { AxiosResponse } from 'axios';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { fetchApplicationMetadata } from 'src/queries/queries';
-import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { CompExternalExact } from 'src/layout/layout';
+import type { CompExternalExact, ILayoutCollection } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -141,6 +143,56 @@ describe('FileUploadComponent', () => {
 
       expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
     });
+  });
+
+  it('an error should be displayed if two components are configured with the same binding', async () => {
+    jest
+      .spyOn(window, 'logError')
+      .mockImplementation(() => {})
+      .mockName('window.logError');
+    jest
+      .spyOn(window, 'logErrorOnce')
+      .mockImplementation(() => {})
+      .mockName('window.logErrorOnce');
+    await renderWithInstanceAndLayout({
+      renderer: () => <GenericComponentById id='FileUpload1' />,
+      queries: {
+        fetchLayouts: async (): Promise<ILayoutCollection> => ({
+          page1: {
+            data: {
+              layout: [
+                {
+                  id: 'FileUpload1',
+                  type: 'FileUpload',
+                  dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                  minNumberOfAttachments: 1,
+                  maxNumberOfAttachments: 5,
+                  maxFileSizeInMB: 2,
+                  displayMode: 'list',
+                },
+                {
+                  id: 'FileUpload2',
+                  type: 'FileUpload',
+                  dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                  minNumberOfAttachments: 1,
+                  maxNumberOfAttachments: 5,
+                  maxFileSizeInMB: 2,
+                  displayMode: 'list',
+                },
+              ],
+            },
+          },
+        }),
+      },
+    });
+
+    expect(
+      screen.getByText(
+        'Det er flere filopplastingskomponenter med samme datamodell-binding. Hver komponent må ha en unik binding. ' +
+          "Andre komponenter med samme binding: 'FileUpload2'",
+      ),
+    ).toBeInTheDocument();
+    jest.restoreAllMocks();
   });
 });
 

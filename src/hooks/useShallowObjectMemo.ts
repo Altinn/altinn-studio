@@ -4,17 +4,15 @@ import { useRef } from 'react';
  * Similar to useShallow from zustand: https://zustand.docs.pmnd.rs/guides/prevent-rerenders-with-use-shallow
  * only this works on objects directly instead of selectors.
  */
-export function useShallowObjectMemo<T extends Object>(next: T): T {
+export function useShallowObjectMemo<T extends ObjectOrArray>(next: T): T {
   const prev = useRef<T>();
   return objectShallowEqual(next, prev.current) ? prev.current : (prev.current = next);
 }
 
-type Object = { [key: string]: unknown };
-
 /**
  * Assumes that both prev and next are objects with the exact same keys
  */
-function objectShallowEqual<T extends Object>(next: T, prev?: T): prev is T {
+function objectShallowEqual<T extends ObjectOrArray>(next: T, prev?: T): prev is T {
   if (!prev) {
     return false;
   }

@@ -5,12 +5,14 @@ import { FrontendValidationSource, ValidationMask } from 'src/features/validatio
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
+import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -42,6 +44,10 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
 
   shouldRenderInAutomaticPDF() {
     return true;
+  }
+
+  renderLayoutValidators(props: NodeValidationProps<'FileUpload'>): JSX.Element | null {
+    return <FileUploadLayoutValidator {...props} />;
   }
 
   // This component does not have empty field validation, so has to override its inherited method

@@ -1155,6 +1155,15 @@ export const NodesInternal = {
     });
   },
 
+  useNodeErrors(node: LayoutNode | undefined) {
+    return Store.useSelector((s) => {
+      if (!node) {
+        return undefined;
+      }
+      return s.nodeData[node.id]?.errors;
+    });
+  },
+
   useNodeData<N extends LayoutNode | undefined, Out>(
     node: N,
     selector: (nodeData: NodeDataFromNode<N>, readiness: NodesReadiness, fullState: NodesContext) => Out,

@@ -4,6 +4,7 @@ import { isAttachmentUploaded } from 'src/features/attachments';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
+import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -11,6 +12,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { AttachmentValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type { NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -38,6 +40,10 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
 
   renderSummary2(props: Summary2Props<'FileUploadWithTag'>): JSX.Element | null {
     return <AttachmentSummaryComponent2 targetNode={props.target} />;
+  }
+
+  renderLayoutValidators(props: NodeValidationProps<'FileUploadWithTag'>): JSX.Element | null {
+    return <FileUploadLayoutValidator {...props} />;
   }
 
   // This component does not have empty field validation, so has to override its inherited method

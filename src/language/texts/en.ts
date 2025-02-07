@@ -425,6 +425,8 @@ export function en() {
       subform_no_datatype_appmetadata: "Data type '{0}' was not found in applicationmetadata.json",
       subform_misconfigured_add_button:
         "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
+      file_upload_same_binding:
+        'There are multiple FileUpload components with the same data model binding. Each component must have a unique binding. Other components with the same binding: {0}',
     },
     version_error: {
       version_mismatch: 'Version mismatch',

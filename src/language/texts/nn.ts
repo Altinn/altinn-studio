@@ -426,6 +426,8 @@ export function nn(): FixedLanguageList {
       subform_no_datatype_appmetadata: "Datatype '{0}' vart ikkje funnen i applicationmetadata.json.",
       subform_misconfigured_add_button:
         "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er ei motseiing, Sidan brukaren aldri vil få lov til å utføre handlingane bak legg-til knappen.",
+      file_upload_same_binding:
+        'Det er fleire filopplastingskomponentar med same datamodellbinding. Kvar komponent må ha ein unik binding. Andre komponentar med same binding: {0}',
     },
     version_error: {
       version_mismatch: 'Versjonsfeil',
