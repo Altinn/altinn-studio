@@ -4,7 +4,7 @@ import { SelectedContextType } from '../../context/HeaderContext';
 describe('utils', () => {
   describe('isOrg', () => {
     it('Returns true when the input is not a reserved keyword', () => {
-      expect(isOrg('organization')).toBe(true);
+      expect(isOrg('organisation')).toBe(true);
     });
 
     it.each([SelectedContextType.Self, SelectedContextType.All, SelectedContextType.None])(
