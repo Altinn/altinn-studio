@@ -3,36 +3,15 @@ import React from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
-import { SelectedContextType } from '../../context/HeaderContext';
-import classes from './OrgContentLibrary.module.css';
 import { useTranslation } from 'react-i18next';
+import { isOrg } from './utils';
 
 export function OrgContentLibrary(): ReactElement {
   const selectedContext = useSelectedContext();
-  const contextWithNoLibraryAccess: string[] = [
-    SelectedContextType.Self,
-    SelectedContextType.All,
-    SelectedContextType.None,
-  ];
-
-  return contextWithNoLibraryAccess.includes(selectedContext) ? (
-    <ContextWithoutLibraryAccess />
-  ) : (
+  return isOrg(selectedContext) ? (
     <OrgContentLibraryWithContext />
-  );
-}
-
-function ContextWithoutLibraryAccess(): ReactElement {
-  const { t } = useTranslation();
-  return (
-    <StudioCenter className={classes.noLibraryAccess}>
-      <StudioAlert className={classes.alert}>
-        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
-        <StudioParagraph>
-          {t('dashboard.org_library.alert_no_org_selected_no_access')}
-        </StudioParagraph>
-      </StudioAlert>
-    </StudioCenter>
+  ) : (
+    <ContextWithoutLibraryAccess />
   );
 }
 
@@ -52,4 +31,18 @@ function OrgContentLibraryWithContext(): ReactElement {
   });
 
   return <div>{getContentResourceLibrary()}</div>;
+}
+
+function ContextWithoutLibraryAccess(): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <StudioCenter>
+      <StudioAlert>
+        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
+        <StudioParagraph>
+          {t('dashboard.org_library.alert_no_org_selected_no_access')}
+        </StudioParagraph>
+      </StudioAlert>
+    </StudioCenter>
+  );
 }
