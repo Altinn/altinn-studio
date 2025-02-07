@@ -49,6 +49,8 @@ import {
   dataTypePath,
   optionListPath,
   undeployAppFromEnvPath,
+  orgCodeListPath,
+  orgCodeListUploadPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -75,8 +77,8 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
-import type { CodeListData } from 'app-shared/types/CodeListData';
 import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 
 const headers = {
@@ -172,11 +174,10 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
 // Organisation library code lists:
-// Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14505
-export const createCodeListForOrg = async (org: string, payload: CodeListData): Promise<void> => Promise.resolve();
-export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<void> => Promise.resolve();
-export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<void> => Promise.resolve();
-export const uploadCodeListForOrg = async (org: string, app: string, payload: FormData): Promise<void> => Promise.resolve();
+export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
+export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
 // Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
