@@ -698,6 +698,141 @@ public abstract class Authenticated
         return (TokenIssuer.Unknown, isExchanged);
     }
 
+    internal static Authenticated FromLocalTest(
+        string tokenStr,
+        ApplicationMetadata appMetadata,
+        Func<string?> getSelectedParty,
+        Func<int, Task<UserProfile?>> getUserProfile,
+        Func<int, Task<Party?>> lookupUserParty,
+        Func<string, Task<Party>> lookupOrgParty,
+        Func<int, Task<List<Party>?>> getPartyList,
+        Func<int, int, Task<bool?>> validateSelectedParty,
+        Func<int, int, Task<IEnumerable<Role>>> getUserRoles
+    )
+    {
+        if (string.IsNullOrWhiteSpace(tokenStr))
+            return new None(TokenIssuer.None, false, Scopes.None, tokenStr);
+
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(tokenStr);
+        var claims = token.Claims;
+
+        Claim? authLevelClaim = null;
+        Claim? orgClaim = null;
+        Claim? orgNoClaim = null;
+        Claim? userIdClaim = null;
+        Claim? usernameClaim = null;
+        Claim? partyIdClaim = null;
+        Claim? scopeClaim = null;
+
+        var tokenIssuer = TokenIssuer.Altinn;
+        var isExchanged = true;
+
+        foreach (var claim in claims)
+        {
+            TryAssign(claim, AltinnCoreClaimTypes.AuthenticationLevel, ref authLevelClaim);
+            TryAssign(claim, AltinnCoreClaimTypes.Org, ref orgClaim);
+            TryAssign(claim, AltinnCoreClaimTypes.OrgNumber, ref orgNoClaim);
+            TryAssign(claim, AltinnCoreClaimTypes.PartyID, ref partyIdClaim);
+            TryAssign(claim, AltinnCoreClaimTypes.UserId, ref userIdClaim);
+            TryAssign(claim, AltinnCoreClaimTypes.UserName, ref usernameClaim);
+            TryAssign(claim, JwtClaimTypes.Scope, ref scopeClaim);
+        }
+
+        var scopes = new Scopes(scopeClaim?.Value);
+
+        int? partyId = null;
+        if (!string.IsNullOrWhiteSpace(partyIdClaim?.Value))
+        {
+            if (!int.TryParse(partyIdClaim.Value, CultureInfo.InvariantCulture, out var partyIdClaimValue))
+                throw new AuthenticationContextException(
+                    $"Invalid party ID claim value for token: {partyIdClaim.Value}"
+                );
+            partyId = partyIdClaimValue;
+        }
+
+        int authLevel;
+        if (!string.IsNullOrWhiteSpace(orgClaim?.Value))
+        {
+            // In this case the token should have a serviceowner scope,
+            // due to the `urn:altinn:org` claim
+            if (string.IsNullOrWhiteSpace(orgNoClaim?.Value))
+                throw new AuthenticationContextException("Missing org number claim for service owner token");
+
+            ParseAuthLevel(authLevelClaim?.Value, out authLevel);
+
+            return new ServiceOwner(
+                orgClaim.Value,
+                orgNoClaim.Value,
+                authLevel,
+                "localtest",
+                tokenIssuer,
+                isExchanged,
+                scopes,
+                tokenStr,
+                lookupOrgParty
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(userIdClaim?.Value))
+            throw new AuthenticationContextException("Missing user ID claim for user token");
+        if (!int.TryParse(userIdClaim.Value, CultureInfo.InvariantCulture, out int userId))
+            throw new AuthenticationContextException(
+                $"Invalid user ID claim value for user token: {userIdClaim.Value}"
+            );
+
+        if (partyId is null)
+            throw new AuthenticationContextException("Missing party ID for user token");
+
+        ParseAuthLevel(authLevelClaim?.Value, out authLevel);
+        if (authLevel == 0)
+        {
+            if (string.IsNullOrWhiteSpace(usernameClaim?.Value))
+                throw new AuthenticationContextException("Missing username claim for self-identified user token");
+
+            return new SelfIdentifiedUser(
+                usernameClaim.Value,
+                userId,
+                partyId.Value,
+                "localtest",
+                tokenIssuer,
+                isExchanged,
+                scopes,
+                tokenStr,
+                getUserProfile,
+                appMetadata
+            );
+        }
+
+        int selectedPartyId = partyId.Value;
+        if (getSelectedParty() is { } selectedPartyStr)
+        {
+            if (!int.TryParse(selectedPartyStr, CultureInfo.InvariantCulture, out var selectedParty))
+                throw new AuthenticationContextException($"Invalid party ID in cookie: {selectedPartyStr}"); // TODO: maybe not throw?
+
+            selectedPartyId = selectedParty;
+        }
+
+        return new User(
+            userId,
+            partyId.Value,
+            authLevel,
+            "localtest",
+            selectedPartyId,
+            true,
+            tokenIssuer,
+            isExchanged,
+            scopes,
+            tokenStr,
+            getUserProfile,
+            lookupUserParty,
+            getPartyList,
+            validateSelectedParty,
+            getUserRoles,
+            appMetadata
+        );
+    }
+
     internal static Authenticated From(
         string tokenStr,
         bool isAuthenticated,
@@ -731,16 +866,6 @@ public abstract class Authenticated
         Claim? usernameClaim = null;
         Claim? consumerClaim = null;
         OrgClaim? consumerClaimValue = null;
-
-        static bool TryAssign(Claim claim, string name, [NotNullWhen(true)] ref Claim? dest)
-        {
-            if (claim.Type.Equals(name, StringComparison.OrdinalIgnoreCase))
-            {
-                dest = claim;
-                return true;
-            }
-            return false;
-        }
 
         foreach (var claim in claims)
         {
@@ -780,21 +905,6 @@ public abstract class Authenticated
                     $"Invalid party ID claim value for token: {partyIdClaim.Value}"
                 );
             partyId = partyIdClaimValue;
-        }
-
-        static void ParseAuthLevel(string? value, out int authLevel)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new AuthenticationContextException($"Missing authentication level claim value for token");
-            if (!int.TryParse(value, CultureInfo.InvariantCulture, out authLevel))
-                throw new AuthenticationContextException(
-                    $"Invalid authentication level claim value for token: {value}"
-                );
-
-            if (authLevel is < 0 or > 4)
-                throw new AuthenticationContextException(
-                    $"Invalid authentication level claim value for token: {authLevel}"
-                );
         }
 
         int authLevel;
@@ -949,6 +1059,29 @@ public abstract class Authenticated
             getUserRoles,
             appMetadata
         );
+    }
+
+    private static void ParseAuthLevel(string? value, out int authLevel)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new AuthenticationContextException($"Missing authentication level claim value for token");
+        if (!int.TryParse(value, CultureInfo.InvariantCulture, out authLevel))
+            throw new AuthenticationContextException($"Invalid authentication level claim value for token: {value}");
+
+        if (authLevel is < 0 or > 4)
+            throw new AuthenticationContextException(
+                $"Invalid authentication level claim value for token: {authLevel}"
+            );
+    }
+
+    private static bool TryAssign(Claim claim, string name, [NotNullWhen(true)] ref Claim? dest)
+    {
+        if (claim.Type.Equals(name, StringComparison.OrdinalIgnoreCase))
+        {
+            dest = claim;
+            return true;
+        }
+        return false;
     }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]

@@ -58,21 +58,44 @@ internal sealed class AuthenticationContext : IAuthenticationContext
             Authenticated authInfo;
             if (!httpContext.Items.TryGetValue(ItemsKey, out var authInfoObj))
             {
+                var appSettings = _appSettings.CurrentValue;
+                var generalSettings = _generalSettings.CurrentValue;
                 var token = JwtTokenUtil.GetTokenFromContext(httpContext, _appSettings.CurrentValue.RuntimeCookieName);
-                var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
 
-                authInfo = Authenticated.From(
-                    tokenStr: token,
-                    isAuthenticated: isAuthenticated,
-                    _appConfigurationCache.ApplicationMetadata,
-                    () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                    _profileClient.GetUserProfile,
-                    _altinnPartyClient.GetParty,
-                    (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                    _authorizationClient.GetPartyList,
-                    _authorizationClient.ValidateSelectedParty,
-                    _authorizationClient.GetUserRoles
-                );
+                var isLocaltest =
+                    appSettings.OpenIdWellKnownEndpoint?.Contains("localhost:5101", StringComparison.OrdinalIgnoreCase)
+                    ?? false && generalSettings.HostName == "local.altinn.cloud";
+                if (isLocaltest)
+                {
+                    authInfo = Authenticated.FromLocalTest(
+                        tokenStr: token,
+                        _appConfigurationCache.ApplicationMetadata,
+                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                        _profileClient.GetUserProfile,
+                        _altinnPartyClient.GetParty,
+                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                        _authorizationClient.GetPartyList,
+                        _authorizationClient.ValidateSelectedParty,
+                        _authorizationClient.GetUserRoles
+                    );
+                }
+                else
+                {
+                    var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
+                    authInfo = Authenticated.From(
+                        tokenStr: token,
+                        isAuthenticated: isAuthenticated,
+                        _appConfigurationCache.ApplicationMetadata,
+                        () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                        _profileClient.GetUserProfile,
+                        _altinnPartyClient.GetParty,
+                        (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
+                        _authorizationClient.GetPartyList,
+                        _authorizationClient.ValidateSelectedParty,
+                        _authorizationClient.GetUserRoles
+                    );
+                }
+
                 httpContext.Items[ItemsKey] = authInfo;
             }
             else
