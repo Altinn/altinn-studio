@@ -159,13 +159,10 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: multipleSelectId }] });
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideTypeSelector());
-    await user.click(overrideSelectType('string'));
+    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
 
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: multipleSelectId, displayType: 'string' }]),
-      ),
+    expect(defaultProps.onChange).toHaveBeenCalledWith(
+      expect.arrayContaining([{ componentId: multipleSelectId, displayType: 'string' }]),
     );
   });
 
@@ -173,24 +170,13 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: checkBoxId }] });
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideTypeSelector());
-    await user.click(overrideSelectType('string'));
+    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.arrayContaining([{ componentId: checkBoxId, displayType: 'string' }]),
       ),
     );
-  });
-
-  it('should not be able to override display type when input in combobox is invalid', async () => {
-    const user = userEvent.setup();
-    render({ overrides: [{ componentId: checkBoxId }] });
-    await user.click(overrideCollapsedButton(1));
-
-    const typeSelector = overrideTypeSelector();
-    await user.type(typeSelector, 'invalid');
-    await waitFor(() => expect(defaultProps.onChange).not.toHaveBeenCalled());
   });
 
   it('should collapse and uncollapse override', async () => {
