@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAvatar,
@@ -16,6 +16,9 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
+import { useSubroute } from '../../../hooks/useSubRoute';
+import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
+import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -24,6 +27,11 @@ export const DashboardHeader = () => {
     <StudioPageHeader>
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
+        <StudioPageHeader.Center>
+          {dashboardHeaderMenuItems.map((menuItem) => (
+            <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+          ))}
+        </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <DashboardHeaderMenu />
         </StudioPageHeader.Right>
@@ -32,10 +40,33 @@ export const DashboardHeader = () => {
   );
 };
 
+type TopNavigationMenuProps = {
+  menuItem: HeaderMenuItem;
+};
+
+function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
+  const selectedContext: string = useSelectedContext();
+  const { t } = useTranslation();
+  const path: string = `${menuItem.link}/${selectedContext}`;
+
+  return (
+    <StudioPageHeader.HeaderLink
+      color='dark'
+      variant='regular'
+      renderLink={(props) => (
+        <NavLink to={path} {...props}>
+          {t(menuItem.name)}
+        </NavLink>
+      )}
+    />
+  );
+}
+
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
@@ -44,7 +75,7 @@ const DashboardHeaderMenu = () => {
   const repoPath = useRepoPath();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate('/' + context + location.search);
+    navigate(`${subroute}/${context}${location.search}`);
   };
 
   const allMenuItem: StudioProfileMenuItem = {

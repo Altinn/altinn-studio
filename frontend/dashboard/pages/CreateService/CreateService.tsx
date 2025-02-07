@@ -10,9 +10,8 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
-import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { useSubroute } from '../../hooks/useSubRoute';
 
 const initialFormError: NewAppForm = {
   org: '',
@@ -37,6 +36,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   });
 
   const [formError, setFormError] = useState<NewAppForm>(initialFormError);
+
+  const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
 
   const navigateToEditorOverview = (org: string, app: string) => {
     const packagesRouter = new PackagesRouter({
@@ -74,8 +76,6 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     );
   };
 
-  const selectedContext = useSelectedContext();
-
   return (
     <div className={classes.wrapper}>
       <NewApplicationForm
@@ -88,7 +88,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         setFormError={setFormError}
         actionableElement={{
           type: 'link',
-          href: `${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`,
+          href: `/${subroute}/${selectedContext}`,
         }}
       />
     </div>

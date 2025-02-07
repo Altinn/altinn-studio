@@ -1,1 +1,6 @@
-export { HeaderContext, type HeaderContextType, SelectedContextType } from './HeaderContext';
+export {
+  HeaderContext,
+  type HeaderContextType,
+  SelectedContextType,
+  Subroute,
+} from './HeaderContext';
