@@ -7,7 +7,6 @@ import {
 //Test data
 const stringSelectedType: SummaryCustomTargetType = 'string';
 const listSelectedType: SummaryCustomTargetType = 'list';
-const notSetSelectedType: SummaryCustomTargetType = 'notSet';
 const componentId = 'component123';
 
 describe('mapSelectedTypeToConfig', () => {
@@ -16,7 +15,7 @@ describe('mapSelectedTypeToConfig', () => {
       displayType: stringSelectedType,
       componentId,
     };
-    const result = mapSelectedTypeToConfig(stringSelectedType, componentId);
+    const result = mapSelectedTypeToConfig({ displayType: stringSelectedType, componentId });
     expect(result).toEqual(expectedConfig);
   });
 
@@ -25,7 +24,7 @@ describe('mapSelectedTypeToConfig', () => {
       displayType: listSelectedType,
       componentId,
     };
-    const result = mapSelectedTypeToConfig(listSelectedType, componentId);
+    const result = mapSelectedTypeToConfig({ displayType: listSelectedType, componentId });
 
     expect(result).toEqual(expectedConfig);
   });
@@ -34,7 +33,7 @@ describe('mapSelectedTypeToConfig', () => {
     const expectedConfig: Summary2OverrideConfig = {
       componentId,
     };
-    const result = mapSelectedTypeToConfig(notSetSelectedType, componentId);
+    const result = mapSelectedTypeToConfig({ displayType: '', componentId });
 
     expect(result).toEqual(expectedConfig);
   });

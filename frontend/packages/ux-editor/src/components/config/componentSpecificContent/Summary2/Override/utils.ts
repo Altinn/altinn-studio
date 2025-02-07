@@ -5,7 +5,7 @@ import {
 
 type SelectedTypeProps = {
   componentId: string;
-  displayType?: SummaryCustomTargetType;
+  displayType: SummaryCustomTargetType | '';
 };
 
 export const mapSelectedTypeToConfig = ({
