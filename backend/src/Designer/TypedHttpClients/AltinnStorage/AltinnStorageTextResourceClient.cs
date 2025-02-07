@@ -36,7 +36,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task Upsert(string org, string app, TextResource textResource, string envName)
         {
             Uri uri = await CreatePostUri(envName, org, app);
-            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(textResource);
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
             {

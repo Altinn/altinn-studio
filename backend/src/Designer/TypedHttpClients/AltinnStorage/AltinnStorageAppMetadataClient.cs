@@ -2,10 +2,12 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -51,7 +53,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         {
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}?appId={org}/{app}");
-            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -63,6 +64,21 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
             await _httpClient.SendAsync(request);
+        }
+
+        public async Task<ApplicationMetadata> GetApplicationMetadataAsync(AltinnRepoContext altinnRepoContext,
+            string envName,
+            CancellationToken cancellationToken = default)
+        {
+            Guard.AssertValidEnvironmentName(envName);
+
+            var storageUri = await CreateStorageUri(envName);
+            Uri uri = new($"{storageUri}{altinnRepoContext.Org}/{altinnRepoContext.Repo}");
+            using HttpRequestMessage request = new(HttpMethod.Get, uri);
+            HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            // Using Newtonsoft serializer since newtonsoft annotations are used in ApplicationMetadata.
+            return JsonSerializer.Deserialize<ApplicationMetadata>(responseContent);
         }
 
         private async Task<Uri> CreateStorageUri(string envName)
