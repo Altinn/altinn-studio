@@ -9,7 +9,7 @@ export const useCustomConfigType = (): CustomConfigType[] => {
   const { t } = useTranslation();
   return [
     {
-      value: 'notSet',
+      value: '',
       label: t('ux_editor.component_properties.summary.override.display_type.not_set'),
     },
     {

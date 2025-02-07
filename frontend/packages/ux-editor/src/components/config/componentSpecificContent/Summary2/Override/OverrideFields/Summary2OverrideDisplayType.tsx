@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioCombobox } from '@studio/components';
+import { StudioCard, StudioNativeSelect } from '@studio/components';
 import type {
   Summary2OverrideConfig,
   SummaryCustomTargetType,
@@ -22,9 +22,8 @@ export const Summary2OverrideDisplayType = ({
   onChange,
 }: Summary2OverrideDisplayTypeProps) => {
   const { t } = useTranslation();
-  const selectedComponentType = componentOptions?.find(
-    (comp) => comp.id === override?.componentId,
-  )?.type;
+  const { displayType, componentId } = override;
+  const selectedComponentType = componentOptions?.find((comp) => comp.id === componentId)?.type;
   const customConfigTypes: CustomConfigType[] = useCustomConfigType();
 
   const checkboxOrMultipleselect =
@@ -35,29 +34,28 @@ export const Summary2OverrideDisplayType = ({
     return null;
   }
 
-  const handleCustomTypeChange = (newSelectedType: string): void => {
-    if (!['list', 'string', 'notSet'].includes(newSelectedType)) return;
-    const summary2OverrideConfig = mapSelectedTypeToConfig(
-      newSelectedType as SummaryCustomTargetType,
-      override.componentId,
-    );
+  const handleCustomTypeChange = (newDisplayType: SummaryCustomTargetType): void => {
+    const summary2OverrideConfig = mapSelectedTypeToConfig({
+      componentId,
+      displayType: newDisplayType,
+    });
     onChange(summary2OverrideConfig);
   };
 
   return (
     <StudioCard.Content>
-      <StudioCombobox
+      <StudioNativeSelect
         size='sm'
         label={t('ux_editor.component_properties.summary.override.display_type')}
-        onValueChange={(e) => handleCustomTypeChange(e[0])}
-        value={override?.displayType ? [override.displayType] : ['notSet']}
+        value={displayType}
+        onChange={(e) => handleCustomTypeChange(e.target.value as SummaryCustomTargetType)}
       >
         {customConfigTypes.map((type: CustomConfigType) => (
-          <StudioCombobox.Option key={type.value} value={type.value}>
+          <option key={type.label} value={type.value}>
             {type.label}
-          </StudioCombobox.Option>
+          </option>
         ))}
-      </StudioCombobox>
+      </StudioNativeSelect>
     </StudioCard.Content>
   );
 };
