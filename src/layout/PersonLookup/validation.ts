@@ -45,7 +45,7 @@ export function checkValidSsn(ssn: string): boolean {
 const nameSchema: JSONSchemaType<Pick<Person, 'name'>> = {
   type: 'object',
   properties: {
-    name: { type: 'string', minLength: 2, errorMessage: 'person_lookup.validation_error_name_too_short' },
+    name: { type: 'string', minLength: 1, errorMessage: 'person_lookup.validation_error_name_too_short' },
   },
   required: ['name'],
 };

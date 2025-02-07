@@ -41,12 +41,12 @@ describe('Person lookup component', () => {
 
     // Try to get info without setting a surname
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.findByText(/etternavn må være minst 2 tegn langt/i).should('exist');
+    cy.findByText(/Etternavn kan ikke være tomt/i).should('exist');
 
     // Type valid surname
     cy.findByRole('textbox', { name: /Etternavn/i }).type('Test');
     cy.findByRole('textbox', { name: /Etternavn/i }).blur();
-    cy.findByText(/etternavn må være minst 2 tegn langt/i).should('not.exist');
+    cy.findByText(/Etternavn kan ikke være tomt/i).should('not.exist');
 
     // Fetch person successfully
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();

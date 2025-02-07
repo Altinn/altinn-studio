@@ -334,7 +334,7 @@ export function nb(): FixedLanguageList {
       surname_label: 'Etternavn',
       name_label: 'Navn',
       from_registry_description: 'Fra folkeregisteret',
-      validation_error_name_too_short: 'Etternavn må være minst 2 tegn langt',
+      validation_error_name_too_short: 'Etternavn kan ikke være tomt.',
       validation_error_ssn: 'Fødselsnummeret/D-nummeret er ugyldig.',
       validation_error_not_found:
         'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. \n\nMerk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret.',
