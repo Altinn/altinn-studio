@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,9 +14,10 @@ import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/feat
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
+const queryClient = createQueryClientMock();
 
 describe('OptionTabs', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(jest.clearAllMocks);
 
   it('should render component', () => {
     renderOptionTabs();
@@ -52,6 +54,7 @@ describe('OptionTabs', () => {
 
   it('should show referenceId tab when component has optionsId defined not matching an optionId in optionsId-list', () => {
     const optionsId = 'optionsId';
+    queryClient.setQueryData([QueryKey.OptionListIds], []);
     renderOptionTabs({
       componentProps: {
         optionsId,
@@ -173,7 +176,7 @@ function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.Rad
     />,
     {
       queries,
-      queryClient: createQueryClientMock(),
+      queryClient,
     },
   );
 }

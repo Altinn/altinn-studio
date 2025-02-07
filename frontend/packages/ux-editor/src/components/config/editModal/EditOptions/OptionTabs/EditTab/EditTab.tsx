@@ -12,7 +12,7 @@ import { useComponentErrorMessage } from '../../../../../../hooks';
 import {
   handleOptionsChange,
   updateComponentOptions,
-  isOptionsModifiable,
+  hasStaticOptionList,
   isOptionsIdReferenceId,
   isInitialOptionsSet,
 } from '../utils/optionsUtils';
@@ -61,7 +61,7 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
     case 'success':
       return (
         <div className={classes.container}>
-          {isOptionsModifiable(optionListIds, component.optionsId, component.options) ? (
+          {hasStaticOptionList(optionListIds, component.optionsId, component.options) ? (
             <OptionListEditor
               ref={dialogRef}
               component={component}
