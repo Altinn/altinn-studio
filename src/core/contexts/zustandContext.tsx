@@ -7,10 +7,10 @@ import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { SelectorStrictness, useDelayedSelector } from 'src/hooks/delayedSelectors';
-import { useShallow } from 'src/hooks/useShallowObjectMemo';
+import { useShallow } from 'src/hooks/useShallowMemo';
 import type { CreateContextProps } from 'src/core/contexts/context';
 import type { DSConfig, DSMode, DSProps, DSReturn } from 'src/hooks/delayedSelectors';
-import type { ObjectOrArray } from 'src/hooks/useShallowObjectMemo';
+import type { ObjectOrArray } from 'src/hooks/useShallowMemo';
 
 type ExtractFromStoreApi<T> = T extends StoreApi<infer U> ? Exclude<U, void> : never;
 

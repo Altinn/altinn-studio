@@ -10,7 +10,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
 import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
-import { useShallowObjectMemo } from 'src/hooks/useShallowObjectMemo';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { Hidden, NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useInnerDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
 import { useInnerNodeFormDataSelector } from 'src/utils/layout/useNodeItem';
@@ -90,7 +90,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
 
   const roles = useCurrentPartyRoles();
 
-  return useShallowObjectMemo({
+  return useShallowMemo({
     roles,
     formDataSelector,
     formDataRowsSelector,

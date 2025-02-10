@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useShallowObjectMemo } from 'src/hooks/useShallowObjectMemo';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, NodeValidationProps } from 'src/layout/layout';
@@ -35,7 +35,7 @@ export function FileUploadLayoutValidator(
     }
   }
 
-  const othersWithSameBindingMemo = useShallowObjectMemo(othersWithSameBinding);
+  const othersWithSameBindingMemo = useShallowMemo(othersWithSameBinding);
 
   useEffect(() => {
     let error: string | null = null;

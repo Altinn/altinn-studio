@@ -14,7 +14,7 @@ import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/us
 import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { Validation } from 'src/features/validation/validationContext';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
-import { useShallowObjectMemo } from 'src/hooks/useShallowObjectMemo';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCommitWhenFinished } from 'src/utils/layout/generator/CommitQueue';
 import { Hidden, NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useInnerDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
@@ -83,7 +83,7 @@ function useExpressionDataSources(): ExpressionDataSources {
     nodeDataSelector,
   );
 
-  return useShallowObjectMemo({
+  return useShallowMemo({
     roles,
     formDataSelector,
     formDataRowsSelector,
@@ -126,7 +126,7 @@ function useValidationDataSources(): ValidationDataSources {
   const applicationMetadata = useApplicationMetadata();
   const layoutSets = useLayoutSets();
 
-  return useShallowObjectMemo({
+  return useShallowMemo({
     formDataSelector,
     invalidDataSelector,
     attachmentsSelector,

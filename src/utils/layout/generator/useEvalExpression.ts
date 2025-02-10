@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useShallowObjectMemo } from 'src/hooks/useShallowObjectMemo';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -49,7 +49,7 @@ export function useEvalExpression<V extends ExprVal>(
   _options?: Omit<EvalExprOptions, 'config' | 'errorIntroText'>,
   enabled = true,
 ) {
-  const options = useShallowObjectMemo(_options ?? {});
+  const options = useShallowMemo(_options ?? {});
   return useMemo(() => {
     if (!enabled) {
       return defaultValue;
