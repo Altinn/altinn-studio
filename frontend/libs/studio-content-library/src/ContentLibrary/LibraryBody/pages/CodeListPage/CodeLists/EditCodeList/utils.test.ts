@@ -4,7 +4,7 @@ import {
   textResourcesNb,
 } from '../../../../../../test-data/textResources';
 import { createTextResourceWithLanguage, getTextResourcesForLanguage } from './utils';
-import { TextResourceWithLanguage } from '../../../../../../types/TextResourceWithLanguage';
+import type { TextResourceWithLanguage } from '../../../../../../types/TextResourceWithLanguage';
 
 describe('utils', () => {
   describe('getTextResourcesForLanguage', () => {
