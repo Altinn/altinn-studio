@@ -7,7 +7,8 @@ import { setLastChangedAndSortResourceListByDate } from '../../utils/mapperUtils
 
 /**
  * Query to get the list of resources. It maps the date to correct display format
- * and sorts the list before it is being returned.
+ * and sorts the list before it is being returned. For resources not checked into
+ * Gitea, it sets a special last changed date to prioritize them in the sorted list.
  *
  * @param org the organisation of the user
  *

@@ -4,7 +4,8 @@ import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
 const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
 /**
- * Sorts a resource list by the date so the newest is at the top
+ * Sets a special last changed date for resources not checked into Gitea and
+ * sorts the resource list by date so the newest is at the top.
  *
  * @param resourceList the list to sort
  *
