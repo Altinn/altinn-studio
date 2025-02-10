@@ -108,31 +108,31 @@ public class CodeListService : ICodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> CreateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
-        var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
 
-        return updatedOptions;
+        List<OptionListData> optionLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        return optionLists;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UpdateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
-        var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
 
-        return updatedOptions;
+        List<OptionListData> optionLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        return optionLists;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UploadCodeList(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -145,10 +145,8 @@ public class CodeListService : ICodeListService
             throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
         }
 
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
-
-        return deserializedOptions;
+        List<OptionListData> optionLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        return optionLists;
     }
 
     /// <inheritdoc />

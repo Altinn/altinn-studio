@@ -49,7 +49,7 @@ public interface ICodeListService
     /// <param name="optionsListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<Option>> CreateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new option to the option list.
@@ -61,7 +61,7 @@ public interface ICodeListService
     /// <param name="optionsListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<Option>> UpdateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new option to the option list.
@@ -73,7 +73,7 @@ public interface ICodeListService
     /// <param name="optionsListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<Option>> UploadCodeList(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an options list from the app repository.
