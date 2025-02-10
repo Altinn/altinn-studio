@@ -114,13 +114,7 @@ type TypedInputCellProps<T extends CodeListItemValue> = {
   error?: string;
 };
 
-function TypedInputCell({
-  error,
-  label,
-  value,
-  onChange,
-  autoComplete,
-}: TypedInputCellProps<CodeListItemValue>) {
+function TypedInputCell({ error, value, ...rest }: TypedInputCellProps<CodeListItemValue>) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
@@ -134,37 +128,11 @@ function TypedInputCell({
   switch (typeof value) {
     case 'number':
     case 'undefined': // StudioDecimalField returns undefined when the field is cleared
-      return (
-        <NumberfieldCell
-          label={label}
-          value={value}
-          autoComplete={autoComplete}
-          onChange={onChange}
-          onFocus={handleFocus}
-          ref={ref}
-        />
-      );
+      return <NumberfieldCell value={value} onFocus={handleFocus} ref={ref} {...rest} />;
     case 'boolean':
-      return (
-        <CheckboxCell
-          label={label}
-          value={value}
-          onChange={onChange}
-          onFocus={handleFocus}
-          ref={ref}
-        />
-      );
+      return <CheckboxCell value={value} onFocus={handleFocus} ref={ref} {...rest} />;
     default:
-      return (
-        <TextfieldCell
-          label={label}
-          value={value}
-          autoComplete={autoComplete}
-          onChange={onChange}
-          onFocus={handleFocus}
-          ref={ref}
-        />
-      );
+      return <TextfieldCell value={value} onFocus={handleFocus} ref={ref} {...rest} />;
   }
 }
 
