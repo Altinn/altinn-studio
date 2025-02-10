@@ -139,7 +139,6 @@ type PageValidation = {
 export type Summary2OverrideConfig = {
   componentId: string;
   hidden?: boolean;
-  forceShow?: boolean;
   emptyFieldText?: string;
   isCompact?: boolean;
   displayType?: SummaryCustomTargetType;

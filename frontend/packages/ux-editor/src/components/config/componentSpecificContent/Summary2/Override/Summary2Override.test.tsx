@@ -105,22 +105,6 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('should be able to change override forceShow', async () => {
-    const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1', hidden: false }] });
-    await user.click(overrideCollapsedButton(1));
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: textMock('ux_editor.component_properties.summary.override.force_show'),
-      }),
-    );
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', forceShow: true, hidden: false }]),
-      ),
-    );
-  });
-
   it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: container1IdMock, isCompact: false }] });
