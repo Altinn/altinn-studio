@@ -1,4 +1,6 @@
 import React, { useContext } from 'react';
+import classes from './DashboardHeader.module.css';
+import cn from 'classnames';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -48,6 +50,7 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.Reac
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
   const path: string = `${menuItem.link}/${selectedContext}`;
+  const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
 
   return (
     <StudioPageHeader.HeaderLink
@@ -55,11 +58,22 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.Reac
       variant='regular'
       renderLink={(props) => (
         <NavLink to={path} {...props}>
-          {t(menuItem.name)}
+          <span
+            className={cn({
+              [classes.active]: menuItem.key === currentRoutePath,
+            })}
+          >
+            {t(menuItem.name)}
+          </span>
         </NavLink>
       )}
     />
   );
+}
+
+function extractSecondLastRouterParam(pathname: string): string {
+  const pathnameArray = pathname.split('/');
+  return pathnameArray[pathnameArray.length - 2];
 }
 
 const DashboardHeaderMenu = () => {
