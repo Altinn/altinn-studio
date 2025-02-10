@@ -24,7 +24,7 @@ export function addNewCodeListItem(codeList: CodeList): CodeList {
 }
 
 function createNewEmptyItem(codeList: CodeList): CodeListItem {
-  if (codeList.length === 0) return emptyStringItem;
+  if (isCodeListEmpty(codeList)) return emptyStringItem;
 
   switch (getTypeOfLastValue(codeList)) {
     case 'number':
@@ -36,8 +36,11 @@ function createNewEmptyItem(codeList: CodeList): CodeListItem {
   }
 }
 
-function getTypeOfLastValue(codeList: CodeList): TypeofResult {
-  const lastCodeListItem = codeList[codeList.length - 1];
+export function getTypeOfLastValue(codeList: CodeList): TypeofResult {
+  if (isCodeListEmpty(codeList)) {
+    throw new Error('Cannot get type of last value from empty code list');
+  }
+  const lastCodeListItem = ArrayUtils.last(codeList);
   return typeof lastCodeListItem.value;
 }
 

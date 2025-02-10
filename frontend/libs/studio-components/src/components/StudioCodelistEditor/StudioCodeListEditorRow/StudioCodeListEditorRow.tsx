@@ -114,7 +114,7 @@ type TypedInputCellProps<T extends CodeListItemValue> = {
   error?: string;
 };
 
-function TypedInputCell({ error, value, ...rest }: TypedInputCellProps<CodeListItemValue>) {
+function TypedInputCell({ value, error, ...rest }: TypedInputCellProps<CodeListItemValue>) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
@@ -137,7 +137,7 @@ function TypedInputCell({ error, value, ...rest }: TypedInputCellProps<CodeListI
 }
 
 const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | undefined>>(
-  ({ label, value, onChange, onFocus, autoComplete }, ref) => {
+  ({ label, onChange, ...rest }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number | undefined): void => {
         onChange(numberValue);
@@ -147,13 +147,11 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
 
     return (
       <StudioInputTable.Cell.Numberfield
-        ref={ref}
-        aria-label={label}
-        autoComplete={autoComplete}
         className={classes.textfieldCell}
+        aria-label={label}
         onChange={handleNumberChange}
-        onFocus={onFocus}
-        value={value}
+        ref={ref}
+        {...rest}
       />
     );
   },
@@ -162,7 +160,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
 NumberfieldCell.displayName = 'NumberfieldCell';
 
 const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
-  ({ label, value, onChange, onFocus }, ref) => {
+  ({ value, label, onChange, ...rest }, ref) => {
     const handleBooleanChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
         onChange(event.target.checked);
@@ -172,12 +170,12 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
 
     return (
       <StudioInputTable.Cell.Checkbox
-        ref={ref}
+        value={String(value)}
+        checked={value}
         aria-label={label}
         onChange={handleBooleanChange}
-        onFocus={onFocus}
-        checked={value}
-        value={String(value)}
+        ref={ref}
+        {...rest}
       />
     );
   },
@@ -186,7 +184,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
 CheckboxCell.displayName = 'CheckboxCell';
 
 const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
-  ({ label, value, onChange, onFocus, autoComplete }, ref) => {
+  ({ label, onChange, ...rest }, ref) => {
     const handleTextChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
         onChange(event.target.value);
@@ -196,13 +194,11 @@ const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
 
     return (
       <StudioInputTable.Cell.Textfield
-        ref={ref}
-        aria-label={label}
-        autoComplete={autoComplete}
         className={classes.textfieldCell}
+        aria-label={label}
         onChange={handleTextChange}
-        onFocus={onFocus}
-        value={value}
+        ref={ref}
+        {...rest}
       />
     );
   },
