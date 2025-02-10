@@ -302,7 +302,7 @@ describe('ArrayUtils', () => {
     });
   });
 
-  describe('hasSingularType', () => {
+  describe('hasSingleType', () => {
     it('returns true for an array with all strings', () => {
       expect(ArrayUtils.hasSingleType(['a', 'b', 'c'])).toBe(true);
     });
