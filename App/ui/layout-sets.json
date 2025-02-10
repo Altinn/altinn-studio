@@ -14,13 +14,6 @@
       "tasks": [
         "SigningTask_Founders"
       ]
-    },
-    {
-      "id": "signing-auditor",
-      "dataType": "Skjemadata",
-      "tasks": [
-        "SigningTask_Auditor"
-      ]
     }
   ],
   "uiSettings": {}

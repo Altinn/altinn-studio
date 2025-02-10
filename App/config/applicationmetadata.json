@@ -45,7 +45,6 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,
@@ -120,23 +119,6 @@
     },
     {
       "id": "signatures-auditor",
-      "allowedContentTypes": [
-        "application/json"
-      ],
-      "allowedContributers": [
-        "app:owned"
-      ],
-      "taskId": "SigningTask_Auditor",
-      "maxCount": 1,
-      "minCount": 0,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
-    },
-    {
-      "id": "signeeStates-auditor",
       "allowedContentTypes": [
         "application/json"
       ],
