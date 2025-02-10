@@ -229,7 +229,7 @@ const overrideSelectType = (type: string) =>
   });
 
 const renderedTypeOptions = () => {
-  const expectedOptions = ['list', 'string', 'not_set'].map((type) =>
+  const expectedOptions = ['list', 'string'].map((type) =>
     textMock(`ux_editor.component_properties.summary.override.display_type.${type}`),
   );
 
