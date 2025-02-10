@@ -140,7 +140,7 @@ public class CodeListController : ControllerBase
         bool optionsListExists = await _codeListService.CodeListExists(org, Repo, developer, optionsListId, cancellationToken);
         if (optionsListExists)
         {
-            List<OptionListData> optionLists = await _codeListService.DeleteCodeList(org, Repo, developer, optionsListId);
+            List<OptionListData> optionLists = await _codeListService.DeleteCodeList(org, Repo, developer, optionsListId, cancellationToken);
             return Ok(optionLists);
         }
 
