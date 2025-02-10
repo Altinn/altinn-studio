@@ -5,6 +5,7 @@ import { ResourceTable } from './ResourceTable';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { LOCAL_RESOURCE_CHANGED_TIME } from 'resourceadm/utils/resourceListUtils';
 
 const resource1Title = 'tittel 1';
 const mockResourceListItem1: ResourceListItem = {
@@ -25,15 +26,24 @@ const mockResourceListItem2: ResourceListItem = {
 const resource3Title = 'tittel 3';
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: resource3Title, en: '', nn: '' },
-  createdBy: 'John Doe',
+  createdBy: '',
   lastChanged: null,
   identifier: 'resource-3',
   environments: ['at22'],
+};
+const resource4Title = 'tittel 4';
+const mockResourceListItem4: ResourceListItem = {
+  title: { nb: resource4Title, en: '', nn: '' },
+  createdBy: '',
+  lastChanged: LOCAL_RESOURCE_CHANGED_TIME,
+  identifier: 'resource-4',
+  environments: ['gitea'],
 };
 const mockResourceList: ResourceListItem[] = [
   mockResourceListItem1,
   mockResourceListItem2,
   mockResourceListItem3,
+  mockResourceListItem4,
 ];
 
 describe('ResourceTable', () => {
@@ -96,6 +106,13 @@ describe('ResourceTable', () => {
 
     const lastChangedCell = screen.getByText('28.08.2023');
     expect(lastChangedCell).toBeInTheDocument();
+  });
+
+  it('displays last changed date blank if resource has last changed date in the future', () => {
+    render(<ResourceTable {...defaultProps} list={[mockResourceListItem4]} />);
+
+    const lastChangedCell = screen.queryByText('31.12.9999');
+    expect(lastChangedCell).not.toBeInTheDocument();
   });
 
   it('displays environments for resource', () => {

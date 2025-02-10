@@ -1,5 +1,6 @@
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
 const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
 /**
@@ -9,10 +10,16 @@ const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
  *
  * @returns the sorted list
  */
-export const sortResourceListByDate = (resourceList: ResourceListItem[]): ResourceListItem[] => {
+export const setLastChangedAndSortResourceListByDate = (
+  resourceList: ResourceListItem[],
+): ResourceListItem[] => {
   const listWithSortedEnvs = resourceList.map((resource) => {
     return {
       ...resource,
+      lastChanged:
+        resource.lastChanged === null && resource.environments.includes('gitea')
+          ? LOCAL_RESOURCE_CHANGED_TIME
+          : resource.lastChanged,
       environments: resource.environments.sort((a, b) => EnvOrder.indexOf(a) - EnvOrder.indexOf(b)),
     };
   });
