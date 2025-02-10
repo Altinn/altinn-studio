@@ -5,6 +5,7 @@ import {
   emptyBooleanItem,
   emptyNumberItem,
   emptyStringItem,
+  getTypeOfLastValue,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -64,6 +65,13 @@ describe('StudioCodelistEditor utils', () => {
       const codeList = createTestCodeList();
       const updatedCodeList = addNewCodeListItem(codeList);
       expect(updatedCodeList).not.toBe(codeList);
+    });
+  });
+
+  describe('getTypeOfLastValue', () => {
+    it('should throw an error when the code list is empty', () => {
+      const emptyCodeList: CodeList = [];
+      expect(() => getTypeOfLastValue(emptyCodeList)).toThrow();
     });
   });
 
