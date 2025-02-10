@@ -136,7 +136,7 @@ function TypedInputCell({ error, value, ...rest }: TypedInputCellProps<CodeListI
   }
 }
 
-const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number>>(
+const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number | undefined>>(
   ({ label, value, onChange, onFocus, autoComplete }, ref) => {
     const handleNumberChange = useCallback(
       (numberValue: number | undefined): void => {
