@@ -5,7 +5,7 @@ import { ResourceTable } from './ResourceTable';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { LOCAL_RESOURCE_CHANGED_TIME } from 'resourceadm/utils/resourceListUtils';
+import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
 const resource1Title = 'tittel 1';
 const mockResourceListItem1: ResourceListItem = {
