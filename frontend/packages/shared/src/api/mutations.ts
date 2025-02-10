@@ -48,6 +48,7 @@ import {
   createInstancePath,
   dataTypePath,
   optionListPath,
+  undeployAppFromEnvPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -95,6 +96,7 @@ export const commitAndPushChanges = (org: string, app: string, payload: CreateRe
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
+export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) =>

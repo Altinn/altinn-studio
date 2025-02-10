@@ -10,11 +10,11 @@ using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
-using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -197,25 +197,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
-    services.RegisterServiceImplementations(configuration);
-
-    services.AddHttpContextAccessor();
-    services.AddMemoryCache();
-    services.AddResponseCompression();
-    services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
-
-    CreateDirectory(configuration);
-
-    services.ConfigureDataProtection(configuration, logger);
-    services.ConfigureMvc();
-    services.ConfigureNonMarkedSettings(configuration);
-
-    services.RegisterTypedHttpClients(configuration);
-    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
-    services.ConfigureAuthentication(configuration, env);
-
-    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-
     // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
@@ -234,6 +215,25 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
+
+    services.RegisterServiceImplementations(configuration);
+
+    services.AddHttpContextAccessor();
+    services.AddMemoryCache();
+    services.AddResponseCompression();
+    services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
+
+    CreateDirectory(configuration);
+
+    services.ConfigureDataProtection(configuration, logger);
+    services.ConfigureMvc();
+    services.ConfigureNonMarkedSettings(configuration);
+
+    services.RegisterTypedHttpClients(configuration);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
+    services.ConfigureAuthentication(configuration, env);
+
+    services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
     services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -274,6 +274,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.KnownProxies.Clear();
         });
     }
+
+    services.AddQuartzJobScheduling(configuration);
 
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
@@ -322,8 +324,7 @@ void Configure(IConfiguration configuration)
     app.MapControllers();
 
     app.MapHealthChecks("/health");
-    app.MapHub<PreviewHub>("/previewHub");
-    app.MapHub<SyncHub>("/sync-hub");
+    app.MapHubs();
 
     app.UseMiddleware<RequestSynchronizationMiddleware>();
 

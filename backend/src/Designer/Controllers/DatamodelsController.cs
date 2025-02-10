@@ -24,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to data modelling
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]

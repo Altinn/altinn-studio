@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioToggleableTextfieldSchema } from './StudioToggleableTextfieldSchema';
-import { KeyVerticalIcon } from '@studio/icons';
 
 type Story = StoryFn<typeof StudioToggleableTextfieldSchema>;
 
@@ -15,18 +14,9 @@ export const Preview: Story = (args) => (
 );
 
 Preview.args = {
-  viewProps: {
-    variant: 'tertiary',
-    size: 'small',
-    children: 'My awesome value',
-  },
-  inputProps: {
-    icon: <KeyVerticalIcon />,
-    label: 'My awesome label',
-    size: 'small',
-    placeholder: 'Placeholder',
-    error: '',
-  },
+  label: 'My awesome label',
+  value: 'value',
+  error: '',
 };
 
 export default meta;

@@ -13,9 +13,9 @@ export default meta;
 export const Preview: Story = {
   args: {
     label: 'Velg tekst',
-    emptyListText: 'Fant ingen tekster',
     textResources: textResourcesMock,
     onValueChange: (id: string) => console.log(id),
+    noTextResourceOptionLabel: 'Ikke oppgitt',
     value: 'land.NO',
   },
 };

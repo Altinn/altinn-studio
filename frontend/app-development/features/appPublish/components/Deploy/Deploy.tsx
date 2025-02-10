@@ -10,7 +10,6 @@ import { StudioError, StudioSpinner } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
-  lastBuildId: string;
   isDeploymentInProgress: boolean;
   envName: string;
   isProduction: boolean;
@@ -19,7 +18,6 @@ export interface DeployProps {
 
 export const Deploy = ({
   appDeployedVersion,
-  lastBuildId,
   isDeploymentInProgress,
   envName,
   isProduction,
@@ -34,7 +32,7 @@ export const Deploy = ({
     isPending: permissionsIsPending,
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app, { hideDefaultError: true });
-  const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
+  const { mutate, isPending: isPendingCreateDeployment } = useCreateDeploymentMutation(org, app, {
     hideDefaultError: true,
   });
 
@@ -85,14 +83,13 @@ export const Deploy = ({
       },
     );
 
-  const deployIsPending = isPending || (!!data?.build?.id && data?.build?.id !== lastBuildId);
-  const deployInProgress = deployIsPending || isDeploymentInProgress;
+  const deployInProgress: boolean = isPendingCreateDeployment || isDeploymentInProgress;
 
   return (
     <DeployDropdown
       appDeployedVersion={appDeployedVersion}
       disabled={deployInProgress}
-      isPending={deployIsPending}
+      isPending={deployInProgress}
       selectedImageTag={selectedImageTag}
       setSelectedImageTag={setSelectedImageTag}
       startDeploy={startDeploy}

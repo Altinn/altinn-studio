@@ -33,10 +33,10 @@ function textResourceTexts(
 ): TextResourceInputTexts {
   return {
     editValue: createTextResourceEditButtonTitle(rowNumber, property),
-    emptyResourceList: 'No text resources found.',
     idLabel: 'ID:',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
+    noTextResourceOptionLabel: 'None',
     valueLabel: createTextResourceValueLabel(rowNumber, property),
   };
 }

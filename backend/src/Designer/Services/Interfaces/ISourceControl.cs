@@ -82,14 +82,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         List<Commit> Log(string org, string repository);
 
         /// <summary>
-        /// Gets initial commit
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>The first commits</returns>
-        Commit GetInitialCommit(string org, string repository);
-
-        /// <summary>
         /// Gets the latest commit for current user
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
@@ -128,35 +120,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void Commit(CommitInfo commitInfo);
 
         /// <summary>
-        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        void ResetCommit(string org, string repository);
-
-        /// <summary>
-        /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
-        /// by checking out the specific file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="fileName">the name of the file</param>
-        void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName);
-
-        /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <param name="fileName">the entire file path with filen name</param>
         void StageChange(string org, string repository, string fileName);
-
-        /// <summary>
-        /// Halts the merge operation and keeps local changes
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of the repository</param>
-        void AbortMerge(string org, string repository);
 
         /// <summary>
         /// Ensures repository is cloned if not, it clones it.

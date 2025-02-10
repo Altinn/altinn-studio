@@ -1,6 +1,6 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
-import { type TableColumn } from '../../types/TableColumn';
+import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import {
   StudioActionCloseButton,
@@ -14,76 +14,70 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';
 import { EditColumnElementContent } from './EditColumnElementContent';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { useTextIdMutation } from 'app-development/hooks/mutations';
 import {
   getComponentsForSubformTable,
-  getTitleIdForColumn,
-  getValueOfTitleId,
+  getDefaultDataModel,
 } from '../../utils/editSubformTableColumnsUtils';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
+import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
-export type ColumnElementProps = {
-  sourceColumn: TableColumn;
+export type EditColumnElementProps = {
+  tableColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
-  onEdit: (tableColumn: TableColumn) => void;
+  onChange: (tableColumn: TableColumn) => void;
+  onClose: () => void;
   subformLayout: string;
 };
 
 export const EditColumnElement = ({
-  sourceColumn,
+  tableColumn,
   columnNumber,
   onDeleteColumn,
-  onEdit,
+  onChange,
+  onClose,
   subformLayout,
-}: ColumnElementProps): ReactElement => {
+}: EditColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: textResources } = useTextResourcesQuery(org, app);
-  const [tableColumn, setTableColumn] = useState(sourceColumn);
-  const [title, setTitle] = useState<string>(
-    getValueOfTitleId(sourceColumn.headerContent, textResources),
-  );
-  const [uniqueTitleId, _] = useState(
-    getTitleIdForColumn({
-      titleId: tableColumn.headerContent,
-      subformId: subformLayout,
-      textResources,
-    }),
-  );
-  const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
-  const { mutate: textIdMutation } = useTextIdMutation(org, app);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const handleSave = () => {
-    upsertTextResource({ language: 'nb', textId: uniqueTitleId, translation: title });
-    onEdit({ ...tableColumn, headerContent: uniqueTitleId });
-  };
-
-  const handleDelete = () => {
-    textIdMutation([{ oldId: uniqueTitleId }]);
-    onDeleteColumn();
-  };
+  const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
   const selectComponent = (values: string[]) => {
-    const selectedComponentId = values[0];
-    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    const componentId = values[0];
+    setSelectedComponentId(componentId);
 
-    const binding = convertDataBindingToInternalFormat(selectedComponent, 'simpleBinding');
-    const updatedTableColumn = {
-      ...sourceColumn,
+    const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
+
+    const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
+
+    const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
+
+    onChange({
+      ...tableColumn,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: binding.field },
-    };
-
-    setTitle(getValueOfTitleId(selectedComponent.textResourceBindings.title, textResources));
-    setTableColumn(updatedTableColumn);
+    });
   };
 
-  const availableComponents = getComponentsForSubformTable(formLayouts);
-  const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
+  const handleBindingChange = (field: string) => {
+    const updatedTableColumn = {
+      ...tableColumn,
+      cellContent: { query: field },
+    };
+    onChange(updatedTableColumn);
+  };
+
+  const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
+  const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
+  const isSaveButtonDisabled = !tableColumn.headerContent || !tableColumn.cellContent?.query;
+
+  const component = availableComponents.find((comp) => comp.id === selectedComponentId);
+  const hasMultipleDataModelBindings = Object.keys(component?.dataModelBindings ?? {}).length > 1;
+  const isTableColumnDefined = tableColumn.headerContent || tableColumn.cellContent?.query;
 
   return (
     <StudioCard className={classes.wrapper}>
@@ -93,21 +87,28 @@ export const EditColumnElement = ({
           components={availableComponents}
           onSelectComponent={selectComponent}
         />
-        {tableColumn.headerContent && (
+        {hasMultipleDataModelBindings && (
+          <DataModelBindingsCombobox
+            onSelectComponent={handleBindingChange}
+            component={component}
+            selectedField={tableColumn.cellContent?.query}
+          />
+        )}
+        {isTableColumnDefined && (
           <EditColumnElementContent
-            cellContent={tableColumn.cellContent.query}
-            title={title}
-            setTitle={setTitle}
+            subformLayout={subformLayout}
+            tableColumn={tableColumn}
+            onChange={onChange}
           />
         )}
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
-            onClick={handleSave}
+            onClick={onClose}
             title={t('general.save')}
             disabled={isSaveButtonDisabled}
           />
-          <StudioDeleteButton title={t('general.delete')} onDelete={handleDelete} />
+          <StudioDeleteButton title={t('general.delete')} onDelete={onDeleteColumn} />
         </div>
       </StudioCard.Content>
     </StudioCard>

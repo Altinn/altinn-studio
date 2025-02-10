@@ -2,13 +2,12 @@ import {
   updateComponentWithSubform,
   filterOutTableColumn,
   getComponentsForSubformTable,
-  getTitleIdForColumn,
 } from './editSubformTableColumnsUtils';
-import { type FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { type TableColumn } from '../types/TableColumn';
+import type { TableColumn } from '../types/TableColumn';
 import { componentMocks } from '../../../../testing/componentMocks';
-import { type IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 
 // Mock data for testing
@@ -44,9 +43,16 @@ const formLayouts: IFormLayouts = {
         ...componentMocks[ComponentType.Input],
         dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
       },
+      ['componentId4']: {
+        ...componentMocks[ComponentType.Input],
+        textResourceBindings: { title: 'mockDescriptionId' },
+        dataModelBindings: {
+          simpleBinding: { dataType: 'mockDataModel', field: 'mockDataModelBinding4' } as any, // TODO: remove as any when https://github.com/Altinn/altinn-studio/issues/14441 is solved
+        },
+      },
     },
     order: {
-      ['container1']: ['componentId1', 'componentId2', 'componentId3'],
+      ['container1']: ['componentId1', 'componentId2', 'componentId3', 'componentId4'],
     },
   },
 };
@@ -121,9 +127,11 @@ describe('editSubformTableColumnsUtils', () => {
   });
 
   describe('getComponentsForSubformTable', () => {
-    it('should return components with title and data model bindings', () => {
-      const availableComponents = getComponentsForSubformTable(formLayouts);
-      expect(availableComponents.length).toEqual(1);
+    const defaultDataModel = 'mockDataModel';
+
+    it('Should return components with a title and either a matching default data model or no data model', () => {
+      const availableComponents = getComponentsForSubformTable(formLayouts, defaultDataModel);
+      expect(availableComponents.length).toEqual(2);
     });
 
     it('should return an empty array if no components have title and data model bindings', () => {
@@ -141,44 +149,11 @@ describe('editSubformTableColumnsUtils', () => {
         },
       };
 
-      const availableComponents = getComponentsForSubformTable(noAvailableComponentsInFormLayouts);
+      const availableComponents = getComponentsForSubformTable(
+        noAvailableComponentsInFormLayouts,
+        defaultDataModel,
+      );
       expect(availableComponents.length).toEqual(0);
-    });
-  });
-
-  describe('getTitleIdForColumn', () => {
-    it('should return a titleId with the correct prefix', () => {
-      const titleId = getTitleIdForColumn({
-        titleId: 'subform_table_column_title_subformId',
-        subformId: 'subformId',
-        textResources: {},
-      });
-      expect(titleId).toEqual('subform_table_column_title_subformId');
-    });
-
-    it('should return a titleId with a random number if the input does not have the correct prefix', () => {
-      const titleId = getTitleIdForColumn({
-        titleId: 'not_correct_prefix',
-        subformId: 'subformId',
-        textResources: {},
-      });
-      expect(titleId.startsWith('subform_table_column_title_')).toBeTruthy();
-    });
-
-    it('should return a titleId with a random number if the input is not unique', () => {
-      const textResources = {
-        nb: [{ id: 'subform_table_column_title_123', value: 'title' }],
-      };
-
-      const titleId = getTitleIdForColumn({
-        titleId: 'subform_table_column_title_subformId',
-        subformId: 'subformId',
-        textResources,
-      });
-
-      const isUnique = (id: string): boolean =>
-        !textResources.nb.some((resource) => resource.id === id);
-      expect(isUnique(titleId)).toBeTruthy();
     });
   });
 });

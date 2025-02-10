@@ -31,15 +31,16 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             TrimmedControllerName(nameof(AppDevelopmentController)),
             GenerateFrozenSet(
-                nameof(AppDevelopmentController.SaveFormLayout),
-                nameof(AppDevelopmentController.UpdateFormLayoutName),
-                nameof(AppDevelopmentController.SaveLayoutSettings),
-                nameof(AppDevelopmentController.SaveRuleHandler),
-                nameof(AppDevelopmentController.SaveRuleConfig),
                 nameof(AppDevelopmentController.AddLayoutSet),
-                nameof(AppDevelopmentController.UpdateLayoutSetName),
                 nameof(AppDevelopmentController.DeleteFormLayout),
-                nameof(AppDevelopmentController.DeleteLayoutSet)
+                nameof(AppDevelopmentController.DeleteLayoutSet),
+                nameof(AppDevelopmentController.GetModelMetadata),
+                nameof(AppDevelopmentController.SaveFormLayout),
+                nameof(AppDevelopmentController.SaveLayoutSettings),
+                nameof(AppDevelopmentController.SaveRuleConfig),
+                nameof(AppDevelopmentController.SaveRuleHandler),
+                nameof(AppDevelopmentController.UpdateFormLayoutName),
+                nameof(AppDevelopmentController.UpdateLayoutSetName)
             )
         },
         {
@@ -54,8 +55,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
                 nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
-                nameof(ProcessModelingController.ProcessDataTypesChangedNotify),
-                nameof(ProcessModelingController.SaveProcessDefinitionFromTemplate)
+                nameof(ProcessModelingController.ProcessDataTypesChangedNotify)
             )
         },
         {
@@ -73,7 +73,21 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             TrimmedControllerName(nameof(DeploymentsController)),
             GenerateFrozenSet(
-                nameof(DeploymentsController.Create)
+                nameof(DeploymentsController.Create),
+                nameof(DeploymentsController.Undeploy)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(DatamodelsController)),
+            GenerateFrozenSet(
+                nameof(DatamodelsController.Get),
+                nameof(DatamodelsController.PutDatamodel)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(PreviewController)),
+            GenerateFrozenSet(
+                nameof(PreviewController.Datamodel)
             )
         }
     }.ToFrozenDictionary();

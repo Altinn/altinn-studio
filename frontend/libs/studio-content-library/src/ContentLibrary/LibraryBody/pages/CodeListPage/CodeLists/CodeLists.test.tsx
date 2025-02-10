@@ -238,9 +238,9 @@ describe('CodeLists', () => {
     expect(onUpdateCodeListIdMock).not.toHaveBeenCalled();
   });
 
-  it('renders error message if option list has error', () => {
+  it('renders error message if option list has format error', () => {
     renderCodeLists({ codeListsData: [{ ...codeListsDataMock[0], hasError: true, data: null }] });
-    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
+    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.format_error'));
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -267,7 +267,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
   );
   await user.click(codeListIdToggleTextfield);
   const codeListIdInput = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_edit_id_title', {
+    textMock('app_content_library.code_lists.code_list_view_id_title', {
       codeListName: oldCodeListId,
     }),
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import {
   NewApplicationForm,
   type NewApplicationFormProps,
@@ -8,7 +8,11 @@ import {
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '../../testing/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
 
 const mockOnSubmit = jest.fn();
 
@@ -51,12 +55,18 @@ const defaultProps: NewApplicationFormProps = {
   actionableElement: mockCancelComponentButton,
 };
 
+jest.mock('../../hooks/queries/useUserOrgPermissionsQuery');
+
+(useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
+  data: { canCreateOrgRepo: true },
+});
+
 describe('NewApplicationForm', () => {
   afterEach(jest.clearAllMocks);
 
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
-    render(<NewApplicationForm {...defaultProps} />);
+    renderNewApplicationForm();
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -81,7 +91,7 @@ describe('NewApplicationForm', () => {
 
   it('does not call onSubmit when form is submitted with invalid data', async () => {
     const user = userEvent.setup();
-    render(<NewApplicationForm {...defaultProps} />);
+    renderNewApplicationForm();
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -96,4 +106,47 @@ describe('NewApplicationForm', () => {
 
     expect(mockOnSubmit).toHaveBeenCalledTimes(0);
   });
+
+  it('should notify the user if they lack permission to create a new application for the organization and disable the "Create" button', async () => {
+    const user = userEvent.setup();
+    (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
+      data: { canCreateOrgRepo: false },
+    });
+    renderNewApplicationForm(defaultProps);
+
+    const serviceOwnerSelect = screen.getByLabelText(textMock('general.service_owner'));
+    await user.selectOptions(serviceOwnerSelect, mockOrg.username);
+    expect(
+      await screen.findByText(textMock('dashboard.missing_service_owner_rights_error_message')),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeDisabled();
+  });
+
+  it('should enable the "Create" button and not display an error if the user has permission to create an organization', async () => {
+    const user = userEvent.setup();
+    (useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
+      data: { canCreateOrgRepo: true },
+    });
+    renderNewApplicationForm(defaultProps);
+
+    const serviceOwnerSelect = screen.getByLabelText(textMock('general.service_owner'));
+    await user.selectOptions(serviceOwnerSelect, mockOrg.username);
+    expect(
+      screen.queryByText(textMock('dashboard.missing_service_owner_rights_error_message')),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
+  });
 });
+
+function renderNewApplicationForm(
+  newApplicationFormProps?: Partial<NewApplicationFormProps>,
+  services?: Partial<ServicesContextProps>,
+) {
+  return renderWithProviders(
+    <NewApplicationForm {...defaultProps} {...newApplicationFormProps} />,
+    {
+      queries: services,
+      queryClient: createQueryClientMock(),
+    },
+  );
+}

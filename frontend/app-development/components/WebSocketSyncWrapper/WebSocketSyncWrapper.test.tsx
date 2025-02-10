@@ -3,7 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWebSocket } from 'app-development/hooks/useWebSocket';
-import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -12,6 +12,8 @@ import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncS
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
+import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
 jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
@@ -27,8 +29,8 @@ describe('WebSocketSyncWrapper', () => {
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
-      clientsName: ['FileSyncSuccess', 'FileSyncError'],
-      webSocketUrl: SyncEventsWebSocketHub(),
+      clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
+      webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
     });
   });
@@ -82,6 +84,32 @@ describe('WebSocketSyncWrapper', () => {
     await waitFor(() => {
       expect(invalidator.invalidateQueriesByFileLocation).toHaveBeenCalledWith(
         syncSuccessMock.source.name,
+      );
+    });
+  });
+
+  it('should invalidate entity queries by resourceName when a message with resourceName is received', async () => {
+    const entityUpdateMock: EntityUpdated = {
+      resourceName: 'entityResourceName',
+    };
+    const queryClientMock = createQueryClientMock();
+    const invalidator = EntityUpdatedQueriesInvalidator.getInstance(queryClientMock, org, app);
+    invalidator.invalidateQueriesByResourceName = jest.fn();
+
+    const mockOnWSMessageReceived = jest
+      .fn()
+      .mockImplementation((callback: Function) => callback(entityUpdateMock));
+
+    (useWebSocket as jest.Mock).mockReturnValue({
+      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      onWSMessageReceived: mockOnWSMessageReceived,
+    });
+
+    renderWebSocketSyncWrapper();
+
+    await waitFor(() => {
+      expect(invalidator.invalidateQueriesByResourceName).toHaveBeenCalledWith(
+        entityUpdateMock.resourceName,
       );
     });
   });
