@@ -140,7 +140,8 @@ public class ActionsController : ControllerBase
             user.UserId,
             actionRequest.ButtonId,
             actionRequest.Metadata,
-            language
+            language,
+            currentAuth
         );
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
