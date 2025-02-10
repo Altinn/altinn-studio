@@ -69,6 +69,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.waitForTreeItemToGetNewLabel(INPUT_COMPONENT_LABEL);
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
   await textEditorPage.verifyTextEditorPage();
 
@@ -212,6 +213,7 @@ const navigateToUiEditorAndVerifyPage = async (
   header: Header,
   uiEditorPage: UiEditorPage,
 ): Promise<void> => {
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnPageAccordion(PAGE_1);

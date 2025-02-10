@@ -3,12 +3,15 @@ import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificC
 import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-type ForceShowSwitchProps = {
+type OverrideShowComponentSwitch = {
   onChange: (updatedOverride: Summary2OverrideConfig) => void;
   override: Summary2OverrideConfig;
 };
 
-export const OverrideShowComponentSwitch = ({ onChange, override }: ForceShowSwitchProps) => {
+export const OverrideShowComponentSwitch = ({
+  onChange,
+  override,
+}: OverrideShowComponentSwitch) => {
   const { t } = useTranslation();
   return (
     <StudioSwitch

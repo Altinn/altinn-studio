@@ -133,10 +133,8 @@ test('that the user can edit the id of a task and add data-types to sign', async
 
   const signingTask = await addNewSigningTaskToProcessEditor(page);
 
-  const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
-
   const newId: string = 'signing_id';
-  await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
+  await editRandomGeneratedId(processEditorPage, newId);
 
   await processEditorPage.signingTaskConfig.clickDataTypesToSignCombobox();
   const dataTypeToSign: string = 'ref-data-as-pdf';
@@ -223,10 +221,9 @@ const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => 
 
 const editRandomGeneratedId = async (
   processEditorPage: ProcessEditorPage,
-  randomGeneratedId: string,
   newId: string,
 ): Promise<void> => {
-  await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
+  await processEditorPage.clickOnTaskIdEditButton();
   await processEditorPage.waitForEditIdInputFieldToBeVisible();
   await processEditorPage.emptyIdTextfield();
   await processEditorPage.writeNewId(newId);
@@ -261,6 +258,7 @@ const navigateToDataModelAndCreateNewDataModel = async (
   header: Header,
   newDataModelName: string,
 ): Promise<void> => {
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
   await dataModelPage.clickOnCreateNewDataModelButton();
@@ -271,6 +269,7 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
   await dataModelPage.waitForSuccessAlertToDisappear();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 };

@@ -12,18 +12,17 @@ import classes from './Summary2OverrideEntry.module.css';
 import { useTranslation } from 'react-i18next';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
-import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
-import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
-import { type TargetProps } from '../Summary2Target/targetUtils';
+import { type TargetComponentProps } from '../Summary2Target/targetUtils';
+import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowComponentSwitch';
 
 type Summary2OverrideEntryProps = {
   index: number;
   open: boolean;
   setOpen: (open: boolean) => void;
-  componentOptions: TargetProps[];
+  componentOptions: TargetComponentProps[];
   override: Summary2OverrideConfig;
   onChange: (override: Summary2OverrideConfig) => void;
   onDelete: () => void;
@@ -76,8 +75,11 @@ export const Summary2OverrideEntry = ({
           <>
             <StudioDivider className={classes.divider} />
             <CompactViewSwitch onChange={onChange} override={override} />
-            <Summary2OverrideDisplayType onChange={onChange} override={override} />
-            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
+            <Summary2OverrideDisplayType
+              onChange={onChange}
+              override={override}
+              componentOptions={componentOptions}
+            />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}

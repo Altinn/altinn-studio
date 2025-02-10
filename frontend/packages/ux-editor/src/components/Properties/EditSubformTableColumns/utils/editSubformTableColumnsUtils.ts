@@ -2,10 +2,7 @@ import { type FormItem } from '@altinn/ux-editor/types/FormItem';
 import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
 import type { IInternalLayout, IFormLayouts } from '@altinn/ux-editor/types/global';
-import { type ITextResources } from 'app-shared/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
-import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
-import { getRandNumber } from '@altinn/text-editor/utils';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
@@ -54,36 +51,4 @@ export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: strin
   const layoutSet = layoutSets?.sets.find((layoutSet) => layoutSet.id === subformLayout);
 
   return layoutSet?.dataType ?? '';
-};
-
-export const getValueOfTitleId = (titleId: string, textResources: ITextResources): string => {
-  return textResourceByLanguageAndIdSelector('nb', titleId)(textResources)?.value;
-};
-
-type TitleIdForColumn = {
-  titleId: string;
-  subformId: string;
-  textResources: ITextResources;
-};
-
-export const getTitleIdForColumn = ({
-  titleId,
-  subformId,
-  textResources,
-}: TitleIdForColumn): string => {
-  const prefixTitleId = 'subform_table_column_title_';
-
-  if (titleId.startsWith(prefixTitleId)) {
-    return titleId;
-  }
-
-  const resourcesArray = Object.values(textResources).flat();
-  const isUnique = (id: string): boolean => !resourcesArray.some((resource) => resource.id === id);
-
-  let uniqueTitleId = prefixTitleId + subformId;
-  while (!isUnique(uniqueTitleId)) {
-    uniqueTitleId = prefixTitleId + subformId + getRandNumber();
-  }
-
-  return uniqueTitleId;
 };

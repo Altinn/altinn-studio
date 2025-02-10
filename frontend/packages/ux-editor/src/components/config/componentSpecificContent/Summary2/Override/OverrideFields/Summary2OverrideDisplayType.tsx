@@ -8,31 +8,37 @@ import { type CustomConfigType, useCustomConfigType } from '../hook/useCustomCon
 import { useTranslation } from 'react-i18next';
 import { mapSelectedTypeToConfig } from '../utils';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import type { TargetComponentProps } from '../../Summary2Target/targetUtils';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
+  componentOptions: TargetComponentProps[];
   onChange: (override: Summary2OverrideConfig) => void;
 };
 
 export const Summary2OverrideDisplayType = ({
   override,
+  componentOptions,
   onChange,
 }: Summary2OverrideDisplayTypeProps) => {
   const { t } = useTranslation();
+  const selectedComponentType = componentOptions?.find(
+    (comp) => comp.id === override?.componentId,
+  )?.type;
+
+  const checkboxOrMultipleselect =
+    selectedComponentType?.includes(ComponentType.MultipleSelect) ||
+    selectedComponentType?.includes(ComponentType.Checkboxes);
+
+  if (!checkboxOrMultipleselect) {
+    return null;
+  }
 
   const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const newSelectedType = event.target.value as SummaryCustomTargetType;
     const summary2OverrideConfig = mapSelectedTypeToConfig(newSelectedType, override.componentId);
     onChange(summary2OverrideConfig);
   };
-
-  const checkboxOrMultipleselect =
-    override.componentId?.includes(ComponentType.MultipleSelect) ||
-    override.componentId?.includes(ComponentType.Checkboxes);
-
-  if (!checkboxOrMultipleselect) {
-    return null;
-  }
 
   return (
     <StudioCard.Content>

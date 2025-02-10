@@ -2,13 +2,12 @@ import {
   updateComponentWithSubform,
   filterOutTableColumn,
   getComponentsForSubformTable,
-  getTitleIdForColumn,
 } from './editSubformTableColumnsUtils';
-import { type FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { type TableColumn } from '../types/TableColumn';
+import type { TableColumn } from '../types/TableColumn';
 import { componentMocks } from '../../../../testing/componentMocks';
-import { type IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 
 // Mock data for testing
@@ -155,42 +154,6 @@ describe('editSubformTableColumnsUtils', () => {
         defaultDataModel,
       );
       expect(availableComponents.length).toEqual(0);
-    });
-  });
-
-  describe('getTitleIdForColumn', () => {
-    it('should return a titleId with the correct prefix', () => {
-      const titleId = getTitleIdForColumn({
-        titleId: 'subform_table_column_title_subformId',
-        subformId: 'subformId',
-        textResources: {},
-      });
-      expect(titleId).toEqual('subform_table_column_title_subformId');
-    });
-
-    it('should return a titleId with a random number if the input does not have the correct prefix', () => {
-      const titleId = getTitleIdForColumn({
-        titleId: 'not_correct_prefix',
-        subformId: 'subformId',
-        textResources: {},
-      });
-      expect(titleId.startsWith('subform_table_column_title_')).toBeTruthy();
-    });
-
-    it('should return a titleId with a random number if the input is not unique', () => {
-      const textResources = {
-        nb: [{ id: 'subform_table_column_title_123', value: 'title' }],
-      };
-
-      const titleId = getTitleIdForColumn({
-        titleId: 'subform_table_column_title_subformId',
-        subformId: 'subformId',
-        textResources,
-      });
-
-      const isUnique = (id: string): boolean =>
-        !textResources.nb.some((resource) => resource.id === id);
-      expect(isUnique(titleId)).toBeTruthy();
     });
   });
 });

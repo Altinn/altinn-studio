@@ -44,7 +44,6 @@ export const DeploymentEnvironment = ({
       <div className={classes.content}>
         <Deploy
           appDeployedVersion={kubernetesDeployment?.version}
-          lastBuildId={lastPipelineDeployment?.build?.id}
           isDeploymentInProgress={isDeploymentInProgress}
           envName={envName}
           isProduction={isProduction}

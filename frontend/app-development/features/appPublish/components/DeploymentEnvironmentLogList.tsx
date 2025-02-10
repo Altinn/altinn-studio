@@ -109,9 +109,7 @@ export const DeploymentEnvironmentLogList = ({
                       <Table.Cell
                         className={classNames(classes.tableCell, tableCellStatusClassName)}
                       >
-                        {t(
-                          `app_deployment.pipeline_deployment.build_result.${deploy.build.result}`,
-                        )}
+                        {t(getStatusTextByDeploymentType(deploy))}
                       </Table.Cell>
                       <Table.Cell
                         className={classNames(classes.tableCell, tableCellStatusClassName)}
@@ -155,3 +153,11 @@ export const DeploymentEnvironmentLogList = ({
     </div>
   );
 };
+
+function getStatusTextByDeploymentType(deployment: PipelineDeployment): string {
+  const isUndeploy = deployment.deploymentType === 'Decommission';
+  const deploymentResult = deployment.build.result;
+  return isUndeploy
+    ? `app_deployment.pipeline_undeploy.build_result.${deploymentResult}`
+    : `app_deployment.pipeline_deployment.build_result.${deploymentResult}`;
+}
