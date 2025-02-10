@@ -292,11 +292,12 @@ describe('ArrayUtils', () => {
 
   describe('extractUniqueTypes', () => {
     it('returns array with one occurence of every type from input array', () => {
-      const array = ['hello', 'world', 1, 2, true, false, undefined];
+      const array = ['hello', 'world', 1, 2, true, false, {}, null, undefined];
       expect(ArrayUtils.extractUniqueTypes(array)).toEqual([
         'string',
         'number',
         'boolean',
+        'object',
         'undefined',
       ]);
     });
