@@ -140,7 +140,8 @@ public class CodeListController : ControllerBase
         bool optionsListExists = await _codeListService.CodeListExists(org, Repo, developer, optionsListId, cancellationToken);
         if (optionsListExists)
         {
-            _codeListService.DeleteCodeList(org, Repo, developer, optionsListId);
+            List<OptionListData> optionLists = await _codeListService.DeleteCodeList(org, Repo, developer, optionsListId);
+            return Ok(optionLists);
         }
 
         return Ok($"The options file {optionsListId}.json has been deleted.");

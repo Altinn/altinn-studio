@@ -145,16 +145,23 @@ public class CodeListService : ICodeListService
             throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
         }
 
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
+
         List<OptionListData> optionLists = await GetCodeLists(org, repo, developer, cancellationToken);
         return optionLists;
     }
 
     /// <inheritdoc />
-    public void DeleteCodeList(string org, string repo, string developer, string optionsListId)
+    public async Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         altinnAppGitRepository.DeleteOptionsList(optionsListId);
+
+        List<OptionListData> optionLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        return optionLists;
     }
 
     /// <inheritdoc />

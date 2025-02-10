@@ -82,7 +82,8 @@ public interface ICodeListService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the options list</param>
-    public void DeleteCodeList(string org, string repo, string developer, string optionsListId);
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if an options list exists in the app repository.
