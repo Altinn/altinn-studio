@@ -1,5 +1,6 @@
 import 'cypress-wait-until';
 
+import escapeRegex from 'escape-string-regexp';
 import deepEqual from 'fast-deep-equal';
 import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
@@ -90,7 +91,7 @@ Cypress.Commands.add('navPage', (page: string) => {
     if (win.innerWidth < 768) {
       cy.get(appFrontend.navMobileMenu).should('have.attr', 'aria-expanded', 'false').click();
     }
-    cy.get(appFrontend.navMenu).findByText(page).parent();
+    cy.get(appFrontend.navMenu).findByRole('button', { name: new RegExp(`^\\d+\\. ${escapeRegex(page)}$`) });
   });
 });
 

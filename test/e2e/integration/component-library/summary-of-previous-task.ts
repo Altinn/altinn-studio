@@ -29,7 +29,7 @@ describe('Render summary of previous task', () => {
     cy.findByRole('button', { name: /Datepicker/i }).click();
     cy.findByRole('textbox', { name: /datofeltet/i }).type('01.01.2022');
 
-    cy.get('#navigation-menu').find('button').contains('Oppsummering 2.0').click();
+    cy.gotoNavPage('Oppsummering 2.0');
 
     cy.changeLayout((component) => {
       if (component.type === 'PersonLookup') {
@@ -51,7 +51,7 @@ describe('Render summary of previous task', () => {
     cy.contains(fileName);
     cy.contains(fileType);
 
-    cy.get('#navigation-menu').find('button').contains('Oppsummering av side fra tidligere Task').click();
+    cy.gotoNavPage('Oppsummering av side fra tidligere Task');
 
     // Assert that the address data is rendered on the next page as we are showing the Address page.
     // None of the other data should be shown
@@ -69,7 +69,7 @@ describe('Render summary of previous task', () => {
 
     // Assert that the input field data is rendered on the next page as we are showing the Input component.
     // None of the other data should be shown
-    cy.get('#navigation-menu').find('button').contains('Oppsummering av komponent fra tidligere Task').click();
+    cy.gotoNavPage('Oppsummering av komponent fra tidligere Task');
 
     cy.get('body').should('not.contain', inputText);
     cy.contains(address);

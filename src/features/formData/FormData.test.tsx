@@ -467,7 +467,7 @@ describe('FormData', () => {
 
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Lock form data' }));
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
       const patchReq = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0][1] as IDataModelPatchRequest;

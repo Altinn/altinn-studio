@@ -1083,7 +1083,7 @@ export const NodesInternal = {
   useWaitUntilReady() {
     const store = Store.useLaxStore();
     const waitForState = useWaitForState<undefined, NodesContext | typeof ContextNotProvided>(store);
-    const waitForCommits = Store.useSelector((s) => s.waitForCommits);
+    const waitForCommits = Store.useLaxSelector((s) => s.waitForCommits);
     return useCallback(async () => {
       await waitForState((state) => {
         if (state === ContextNotProvided) {
@@ -1091,7 +1091,7 @@ export const NodesInternal = {
         }
         return state.readiness === NodesReadiness.Ready && state.hiddenViaRulesRan;
       });
-      if (waitForCommits) {
+      if (waitForCommits && waitForCommits !== ContextNotProvided) {
         await waitForCommits();
       }
     }, [waitForState, waitForCommits]);

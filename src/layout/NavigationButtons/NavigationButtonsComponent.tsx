@@ -4,9 +4,9 @@ import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
-import { useIsSaving } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
+import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
@@ -17,28 +17,22 @@ export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useNodeItem(node);
-  const { navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
-  const next = useNextPageKey();
-  const previous = usePreviousPageKey();
+  const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
+  const hasNext = !!useNextPageKey();
+  const hasPrevious = !!usePreviousPageKey();
   const returnToView = useReturnToView();
   const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
-  const isSaving = useIsSaving();
+  const [isProcessing, processing] = useIsProcessing<'next' | 'previous' | 'backToSummary'>();
   const parentIsPage = node.parent instanceof LayoutPage;
-
-  const refPrev = React.useRef<HTMLButtonElement>(null);
-  const refNext = React.useRef<HTMLButtonElement>(null);
 
   const nextTextKey = textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
   const returnToViewText =
     summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
 
-  const disablePrevious = previous === undefined;
-  const disableNext = next === undefined;
-
   const showBackToSummaryButton = returnToView !== undefined;
   const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
-  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : !disableNext;
+  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
 
@@ -53,54 +47,45 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
    */
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
-  const onClickPrevious = async () => {
-    if (!previous || disablePrevious) {
-      return;
-    }
+  const onClickPrevious = () =>
+    processing('previous', async () => {
+      await maybeSaveOnPageChange();
 
-    maybeSaveOnPageChange();
-
-    const prevScrollPosition = getScrollPosition();
-    if (validateOnPrevious) {
-      const hasError = await onPageNavigationValidation(node.page, validateOnPrevious);
-      if (hasError) {
-        // Block navigation if validation fails
-        resetScrollPosition(prevScrollPosition);
-        return;
+      const prevScrollPosition = getScrollPosition();
+      if (validateOnPrevious) {
+        const hasError = await onPageNavigationValidation(node.page, validateOnPrevious);
+        if (hasError) {
+          // Block navigation if validation fails
+          resetScrollPosition(prevScrollPosition);
+          return;
+        }
       }
-    }
 
-    await navigateToPage(previous, { skipAutoSave: true });
-  };
+      await navigateToPreviousPage({ skipAutoSave: true });
+    });
 
-  const onClickNext = async () => {
-    if (!next || disableNext) {
-      return;
-    }
+  const onClickNext = () =>
+    processing('next', async () => {
+      await maybeSaveOnPageChange();
 
-    maybeSaveOnPageChange();
-
-    const prevScrollPosition = getScrollPosition();
-    if (validateOnNext && !returnToView) {
-      const hasErrors = await onPageNavigationValidation(node.page, validateOnNext);
-      if (hasErrors) {
-        // Block navigation if validation fails, unless returnToView is set (Back to summary)
-        resetScrollPosition(prevScrollPosition);
-        return;
+      const prevScrollPosition = getScrollPosition();
+      if (validateOnNext && !returnToView) {
+        const hasErrors = await onPageNavigationValidation(node.page, validateOnNext);
+        if (hasErrors) {
+          // Block navigation if validation fails, unless returnToView is set (Back to summary)
+          resetScrollPosition(prevScrollPosition);
+          return;
+        }
       }
-    }
 
-    await navigateToPage(next, { skipAutoSave: true });
-  };
+      await navigateToNextPage({ skipAutoSave: true });
+    });
 
-  const onClickBackToSummary = async () => {
-    if (!returnToView) {
-      return;
-    }
-
-    maybeSaveOnPageChange();
-    await navigateToPage(returnToView, { skipAutoSave: true });
-  };
+  const onClickBackToSummary = () =>
+    processing('backToSummary', async () => {
+      await maybeSaveOnPageChange();
+      await navigateToPage(returnToView, { skipAutoSave: true });
+    });
 
   /**
    * The buttons are rendered in order BackToSummary -> Next -> Previous, but shown in the form as Previous -> Next -> BackToSummary.
@@ -117,8 +102,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         {showBackToSummaryButton && (
           <Flex item>
             <Button
-              disabled={isSaving}
-              ref={refNext}
+              disabled={!!isProcessing}
+              isLoading={isProcessing === 'backToSummary'}
               onClick={onClickBackToSummary}
             >
               <Lang id={returnToViewText} />
@@ -128,8 +113,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         {showNextButton && (
           <Flex item>
             <Button
-              disabled={isSaving}
-              ref={refNext}
+              disabled={!!isProcessing}
+              isLoading={isProcessing === 'next'}
               onClick={onClickNext}
               // If we are showing a back to summary button, we want the "next" button to be secondary
               variant={showBackToSummaryButton ? 'secondary' : 'primary'}
@@ -138,14 +123,14 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             </Button>
           </Flex>
         )}
-        {!disablePrevious && showBackButton && (
+        {hasPrevious && showBackButton && (
           <Flex
             item
             style={{ flex: 0 }}
           >
             <Button
-              disabled={isSaving}
-              ref={refPrev}
+              disabled={!!isProcessing}
+              isLoading={isProcessing === 'previous'}
               variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
               onClick={onClickPrevious}
             >

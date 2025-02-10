@@ -22,8 +22,15 @@
   margin: 2px;
 }
 
-.containerBase:active {
-  background-color: var(--colors-primary-blueDark);
+.buttonContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinner {
+  width: 17px !important;
+  height: 17px !important;
 }
 
 .buttonBase {
@@ -41,14 +48,26 @@
   font-size: 1rem;
 }
 
-.buttonBase:hover {
-  outline: 3px solid var(--colors-primary-blueMedium);
-}
-
 .buttonBase:focus-within {
   outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
   outline-offset: var(--fds-focus-border-width);
   box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
+}
+
+.buttonBase:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.buttonBase:active:not(:disabled) {
+  background-color: var(--colors-primary-blueLight);
+  outline: 3px solid var(--colors-primary-blueMedium);
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.buttonBase:hover:not(:disabled) {
+  outline: 3px solid var(--colors-primary-blueMedium);
 }
 
 .buttonSelected {

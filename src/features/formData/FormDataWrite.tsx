@@ -345,6 +345,7 @@ function FormDataEffects() {
   const isSaving = useIsSaving();
   const isUpdatingInitialValidations = useIsUpdatingInitialValidations();
   const debounce = useDebounceImmediately();
+  const requestManualSave = useRequestManualSave();
   const hasUnsavedChangesNow = useHasUnsavedChangesNow();
 
   // If errors occur, we want to throw them so that the user can see them, and they
@@ -389,11 +390,17 @@ function FormDataEffects() {
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = useSelector(hasDebouncedUnsavedChanges);
   const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
-  const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
+  const shouldSave = needsToSave && (autoSaving || manualSaveRequested);
 
   useEffect(() => {
-    shouldSave && performSave();
-  }, [performSave, shouldSave]);
+    if (manualSaveRequested && !needsToSave) {
+      requestManualSave(false);
+    }
+  }, [manualSaveRequested, needsToSave, requestManualSave]);
+
+  useEffect(() => {
+    canSaveNow && shouldSave && performSave();
+  }, [performSave, canSaveNow, shouldSave]);
 
   // Always save unsaved changes when the user navigates away from the page and this component is unmounted.
   // We cannot put the current and last saved data in the dependency array, because that would cause the effect
@@ -518,14 +525,15 @@ const useWaitForSave = () => {
         return Promise.resolve(undefined);
       }
 
-      if (requestManualSave) {
-        requestSave();
-      }
-
       return await waitFor((state, setReturnValue) => {
         if (state === ContextNotProvided) {
           setReturnValue(undefined);
           return true;
+        }
+
+        if (requestManualSave && !state.manualSaveRequested && hasDebouncedUnsavedChanges(state)) {
+          requestSave();
+          return false;
         }
 
         if (hasUnsavedChanges(state)) {

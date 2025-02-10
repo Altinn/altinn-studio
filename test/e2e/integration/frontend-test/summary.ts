@@ -104,6 +104,7 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
         cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
         cy.get('button[aria-label*="Today"]').click();
+        cy.get(appFrontend.errorReport).should('not.exist');
         cy.findByRole('button', { name: /Tilbake til oppsummering/ }).click();
       });
 
