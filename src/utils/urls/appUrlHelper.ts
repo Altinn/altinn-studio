@@ -52,10 +52,13 @@ export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string 
 
 export const getAnonymousStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
   `${appPath}/v1/data/anonymous?dataType=${dataType}&includeRowId=${includeRowIds.toString()}`;
+
 export const getStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
   `${appPath}/v1/data?dataType=${dataType}&includeRowId=${includeRowIds.toString()}`;
+
 export const getStatefulDataModelUrl = (instanceId: string, dataGuid: string, includeRowIds: boolean) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}?includeRowId=${includeRowIds.toString()}`;
+
 export const getMultiPatchUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/data`;
 
 export const getDataModelGuidUrl = (instanceId: string, dataGuid: string) =>

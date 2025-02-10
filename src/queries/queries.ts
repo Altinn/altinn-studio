@@ -192,8 +192,11 @@ export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchR
   httpPatch<IDataModelMultiPatchResponse>(url, data);
 
 // When saving data for stateless apps
-export const doPostStatelessFormData = async (url: string, data: object): Promise<object> =>
-  (await httpPost(url, undefined, data)).data;
+export const doPostStatelessFormData = async (
+  url: string,
+  data: object,
+  options?: AxiosRequestConfig,
+): Promise<object> => (await httpPost(url, options, data)).data;
 
 /**
  * Query functions (these should use httpGet and start with 'fetch')
