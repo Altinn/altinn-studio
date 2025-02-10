@@ -16,7 +16,7 @@ const mockMenuItem: NavigationMenuSmallItem = {
     href: menuItemLink,
     openInNewTab: false,
   },
-  isBeta: true,
+  isBeta: false,
 };
 
 const mockOnClick = jest.fn();
@@ -32,7 +32,7 @@ describe('SmallHeaderMenuItem', () => {
     renderSmallHeaderMenuItem();
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} Beta`,
+      name: textMock(menuItemName),
     });
     expect(linkElement).toBeInTheDocument();
     expect(linkElement).toHaveAttribute('href', menuItemLink);
@@ -44,9 +44,29 @@ describe('SmallHeaderMenuItem', () => {
     });
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} Beta`,
+      name: textMock(menuItemName),
     });
     expect(linkElement).toHaveClass('active');
+  });
+
+  it('should add "isBeta" class when menuItem is beta', () => {
+    renderSmallHeaderMenuItem({
+      componentProps: { menuItem: { ...mockMenuItem, isBeta: true } },
+    });
+
+    const linkElement = screen.getByRole('menuitem', {
+      name: textMock(menuItemName),
+    });
+    expect(linkElement).toHaveClass('isBeta');
+  });
+
+  it('should not add "isBeta" class by default', () => {
+    renderSmallHeaderMenuItem();
+
+    const linkElement = screen.getByRole('menuitem', {
+      name: textMock(menuItemName),
+    });
+    expect(linkElement).not.toHaveClass('isBeta');
   });
 
   it('should call onClick when the NavLink is clicked', async () => {
@@ -54,7 +74,7 @@ describe('SmallHeaderMenuItem', () => {
     renderSmallHeaderMenuItem();
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} Beta`,
+      name: textMock(menuItemName),
     });
     await user.click(linkElement);
 
@@ -76,7 +96,7 @@ describe('SmallHeaderMenuItem', () => {
     });
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock('testMenuItem')} Beta`,
+      name: textMock('testMenuItem'),
     });
     expect(linkElement).toHaveAttribute('target', '_blank');
     expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');

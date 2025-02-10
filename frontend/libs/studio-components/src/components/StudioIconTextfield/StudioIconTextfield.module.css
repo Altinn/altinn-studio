@@ -1,15 +1,23 @@
 .container {
   display: flex;
-  gap: var(--fds-spacing-2);
-  padding: var(--fds-spacing-3);
-  box-sizing: border-box;
+  flex-direction: column;
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
 }
 
-.prefixIcon {
-  color: var(--fds-semantic-text-neutral-default);
-  margin-top: var(--fds-spacing-7);
-  font-size: var(--fds-sizing-4);
-  align-content: center;
+.iconLabel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--fds-spacing-1);
+  font-weight: 500;
+  align-items: center;
+}
+
+.iconLabel:has(:nth-child(3)) {
+  grid-template-columns: auto 1fr auto;
+}
+
+.padLockIcon {
+  justify-self: flex-end;
 }
 
 .textfield {

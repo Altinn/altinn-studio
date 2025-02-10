@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -122,6 +121,49 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string expectedApp = "app-with-summary2-components-after-deleting-references";
+
+            string[] layoutPaths = [
+                "component/layouts/Side1.json",
+                "component/layouts/Side2.json",
+                "component2/layouts/Side1.json",
+                "component2/layouts/Side2.json"
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                Assert.True(JsonUtils.DeepEquals(actual, expected));
+            });
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "component", "Side2", "Input-Om7N3y", "Input-Om7N3y-new")]
+        public async Task SaveFormLayoutWithUpdatedComponentName_UpdatesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId, string newComponentId)
+        {
+            string actualApp = "app-with-summary2-components";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
+            JsonNode layoutWithUpdatedComponent = JsonNode.Parse(layout);
+
+            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            var payload = new JsonObject
+            {
+                ["componentIdsChange"] = new JsonArray() {
+                    new JsonObject
+                    {
+                        ["oldComponentId"] = componentId,
+                        ["newComponentId"] = newComponentId,
+                    }
+                },
+                ["layout"] = layoutWithUpdatedComponent
+            };
+            HttpResponseMessage response = await SendHttpRequest(url, payload);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string expectedApp = "app-with-summary2-components-after-updating-references";
 
             string[] layoutPaths = [
                 "component/layouts/Side1.json",

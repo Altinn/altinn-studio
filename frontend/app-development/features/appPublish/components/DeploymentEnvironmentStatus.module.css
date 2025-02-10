@@ -1,23 +1,11 @@
 .alert {
   border: none;
   box-shadow: unset;
-  display: block;
   position: relative;
   height: 100%;
   box-sizing: border-box;
   border-radius: 0;
 }
-
-/* SVG styling is to move the alert-icon from left to right */
-.alert > svg {
-  position: absolute;
-  right: var(--fds-spacing-3);
-  top: var(--fds-spacing-3);
-}
-
-/* .inProgress > svg {
-  visibility: hidden;
-} */
 
 .loadingSpinner {
   display: flex;
