@@ -24,7 +24,7 @@ function findValueError(
 ): ValueError | null {
   if (value === undefined) return 'undefinedValue';
   if (ArrayUtils.isDuplicate(value, allValues)) return 'duplicateValue';
-  if (!ArrayUtils.hasSingularType(allValues)) return 'multipleTypes';
+  if (!ArrayUtils.hasSingleType(allValues)) return 'multipleTypes';
   else return null;
 }
 

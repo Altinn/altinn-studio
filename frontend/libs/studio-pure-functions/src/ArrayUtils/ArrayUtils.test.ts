@@ -304,19 +304,19 @@ describe('ArrayUtils', () => {
 
   describe('hasSingularType', () => {
     it('returns true for an array with all strings', () => {
-      expect(ArrayUtils.hasSingularType(['a', 'b', 'c'])).toBe(true);
+      expect(ArrayUtils.hasSingleType(['a', 'b', 'c'])).toBe(true);
     });
 
     it('returns true for an array with all numbers', () => {
-      expect(ArrayUtils.hasSingularType([1, 2, 3])).toBe(true);
+      expect(ArrayUtils.hasSingleType([1, 2, 3])).toBe(true);
     });
 
     it('returns false for an array with mixed types', () => {
-      expect(ArrayUtils.hasSingularType([1, 'a', true])).toBe(false);
+      expect(ArrayUtils.hasSingleType([1, 'a', true])).toBe(false);
     });
 
     it('returns false for an empty array', () => {
-      expect(ArrayUtils.hasSingularType([])).toBe(false);
+      expect(ArrayUtils.hasSingleType([])).toBe(false);
     });
   });
 });
