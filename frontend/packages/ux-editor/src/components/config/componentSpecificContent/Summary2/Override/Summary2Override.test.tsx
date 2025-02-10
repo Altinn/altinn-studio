@@ -167,6 +167,13 @@ describe('Summary2Override', () => {
     );
   });
 
+  it('should remove prop `displayType` if it is set and user reselect component which is not multiple select nor checkbox', async () => {
+    render({ overrides: [{ componentId: component1IdMock, displayType: 'string' }] });
+    await userEvent.click(overrideCollapsedButton(1));
+
+    expect(defaultProps.onChange).toHaveBeenCalledWith([{ componentId: component1IdMock }]);
+  });
+
   it('should collapse and uncollapse override', async () => {
     render({ overrides: [{ componentId: '1' }] });
     await userEvent.click(overrideCollapsedButton(1));
