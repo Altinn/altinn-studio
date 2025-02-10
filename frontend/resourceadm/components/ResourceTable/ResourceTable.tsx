@@ -147,10 +147,17 @@ export const ResourceTable = ({
       heading: t('dashboard.resource_table_header_last_changed'),
       sortable: true,
       bodyCellFormatter: (value: string) => {
-        if (!value || new Date(value).getTime() === LOCAL_RESOURCE_CHANGED_TIME.getTime()) {
+        if (!value) return '';
+        const date = new Date(value);
+        // Compare only the date components
+        if (
+          date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
+          date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
+          date.getDate() === LOCAL_RESOURCE_CHANGED_TIME.getDate()
+        ) {
           return '';
         }
-        return new Date(value).toLocaleDateString('no-NB', {
+        return date.toLocaleDateString('no-NB', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
