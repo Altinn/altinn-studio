@@ -5,14 +5,13 @@ import {
 
 type SelectedTypeProps = {
   componentId: string;
-  displayType: SummaryCustomTargetType | '';
+  displayType: SummaryCustomTargetType;
 };
 
 export const mapSelectedTypeToConfig = ({
   componentId,
   displayType,
 }: SelectedTypeProps): Summary2OverrideConfig => {
-  if (!displayType) return { componentId };
   return {
     displayType,
     componentId,

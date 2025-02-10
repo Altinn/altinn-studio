@@ -28,13 +28,4 @@ describe('mapSelectedTypeToConfig', () => {
 
     expect(result).toEqual(expectedConfig);
   });
-
-  it('should map selected notSet type to config correctly', () => {
-    const expectedConfig: Summary2OverrideConfig = {
-      componentId,
-    };
-    const result = mapSelectedTypeToConfig({ displayType: '', componentId });
-
-    expect(result).toEqual(expectedConfig);
-  });
 });

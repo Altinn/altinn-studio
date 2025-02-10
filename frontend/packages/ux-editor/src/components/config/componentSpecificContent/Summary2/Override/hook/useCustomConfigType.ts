@@ -9,16 +9,12 @@ export const useCustomConfigType = (): CustomConfigType[] => {
   const { t } = useTranslation();
   return [
     {
-      value: '',
-      label: t('ux_editor.component_properties.summary.override.display_type.not_set'),
+      value: 'list',
+      label: t('ux_editor.component_properties.summary.override.display_type.list'),
     },
     {
       value: 'string',
       label: t('ux_editor.component_properties.summary.override.display_type.string'),
-    },
-    {
-      value: 'list',
-      label: t('ux_editor.component_properties.summary.override.display_type.list'),
     },
   ];
 };
