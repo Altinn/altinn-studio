@@ -95,6 +95,18 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
+        public void GetSchemaFiles_FilesExistOutsideModelsFolder_ShouldNotReturnFiles()
+        {
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(repositoriesRootDirectory);
+
+            var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository("ttd", "app-with-misplaced-datamodels", "testUser");
+            var files = altinnGitRepository.GetSchemaFiles(true);
+
+            Assert.Empty(files);
+        }
+
+        [Fact]
         public async Task RepositoryType_SettingsExists_ShouldUseThat()
         {
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
