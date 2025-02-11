@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -17,7 +18,6 @@ using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -56,6 +56,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
             services.AddEidLoggerTypedHttpClient(config);
             services.AddTransient<GiteaTokenDelegatingHandler>();
+            services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
 
@@ -112,9 +113,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             where TInterface : class
             => services.AddHttpClient<TInterface, TImplementation>((sp, httpClient) =>
                 {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
+                .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
 
 
