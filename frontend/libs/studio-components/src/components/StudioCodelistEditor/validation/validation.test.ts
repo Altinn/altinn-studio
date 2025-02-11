@@ -32,9 +32,9 @@ const codeListWithMultipleTypes: CodeList = [
     label: 'Label 2',
   },
 ];
-const codeListWithUndefinedValue: CodeList = [
+const codeListWithNullValue: CodeList = [
   {
-    value: undefined,
+    value: null,
     label: 'Label 1',
   },
   {
@@ -70,9 +70,9 @@ describe('validation', () => {
       expect(errors).toEqual(['multipleTypes', 'multipleTypes'] satisfies ValueErrorMap);
     });
 
-    it('Returns an array with code word "undefinedValue" corresponding to undefined values', () => {
-      const errors = findCodeListErrors(codeListWithUndefinedValue);
-      expect(errors).toEqual(['undefinedValue', 'multipleTypes'] satisfies ValueErrorMap);
+    it('Returns an array with code word "nullValue" corresponding to undefined values', () => {
+      const errors = findCodeListErrors(codeListWithNullValue);
+      expect(errors).toEqual(['nullValue', 'multipleTypes'] satisfies ValueErrorMap);
     });
   });
 
@@ -97,8 +97,8 @@ describe('validation', () => {
       expect(areThereCodeListErrors(errorMap)).toBe(true);
     });
 
-    it('Returns true when the error map contains at least one "undefinedValue" error', () => {
-      const errorMap: ValueErrorMap = ['undefinedValue', null];
+    it('Returns true when the error map contains at least one "nullValue" error', () => {
+      const errorMap: ValueErrorMap = ['nullValue', null];
       expect(areThereCodeListErrors(errorMap)).toBe(true);
     });
   });

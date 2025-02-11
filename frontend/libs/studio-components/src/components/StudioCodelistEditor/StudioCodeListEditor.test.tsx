@@ -518,8 +518,8 @@ describe('StudioCodeListEditor', () => {
       expect(numberfield).toHaveProperty('inputMode', 'decimal');
     });
 
-    it('Renders numberfield when item value is undefined', () => {
-      renderCodeListEditor({ codeList: [{ value: undefined, label: 'test-label' }] });
+    it('Renders numberfield when item value is null', () => {
+      renderCodeListEditor({ codeList: [{ value: null, label: 'test-label' }] });
       const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
       expect(numberfield).toHaveProperty('inputMode', 'decimal');
     });

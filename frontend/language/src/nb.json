@@ -163,7 +163,7 @@
   "code_list_editor.empty": "Kodelisten er tom.",
   "code_list_editor.error_duplicate_values": "Alle verdier må være unike.",
   "code_list_editor.error_multiple_types": "Alle verdier må være av samme type.",
-  "code_list_editor.error_undefined_value": "Verdien kan ikke være udefinert.",
+  "code_list_editor.error_null_value": "Verdien kan ikke være tom.",
   "code_list_editor.general_error": "Kan ikke lagre kodelisten, den inneholder feil.",
   "code_list_editor.help_text_item": "Hjelpetekst for alternativ {{number}}",
   "code_list_editor.label_item": "Ledetekst for alternativ {{number}}",
