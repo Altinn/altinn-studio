@@ -27,31 +27,31 @@ public class PlatformSubscriptionAuthDelegatingHandler(PlatformSettings platform
         }
         else if (uri.Host.Contains("at21", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT21);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT21);
         }
         else if (uri.Host.Contains("at22", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT22);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT22);
         }
         else if (uri.Host.Contains("at23", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT23);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT23);
         }
         else if (uri.Host.Contains("at24", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT24);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyAT24);
         }
         else if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyTT02);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyTT02);
         }
         else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyYT01);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyYT01);
         }
         else if (uri.Host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
         {
-           request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyProd);
+            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyProd);
         }
 
         return await base.SendAsync(request, cancellationToken);
