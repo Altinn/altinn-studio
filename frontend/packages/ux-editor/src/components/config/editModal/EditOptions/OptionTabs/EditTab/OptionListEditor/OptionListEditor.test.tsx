@@ -18,9 +18,9 @@ import { componentMocks } from '../../../../../../../testing/componentMocks';
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const handleComponentChange = jest.fn();
 const apiResult: OptionList = [
-  { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-  { value: 2, label: 'label number', description: null, helpText: null },
-  { value: true, label: 'label boolean', description: null, helpText: null },
+  { value: 'value 1', label: 'label 1', description: 'description', helpText: 'help text' },
+  { value: 'value 2', label: 'label 2', description: null, helpText: null },
+  { value: 'value 3', label: 'label 3', description: null, helpText: null },
 ];
 const getOptionListMock = jest
   .fn()
@@ -83,7 +83,7 @@ describe('OptionListEditor', () => {
       expectedArgs.options[0].description = text;
 
       await user.click(getOptionModalButton());
-      const textBox = getTextBoxInput(1);
+      const textBox = getDescriptionInput(1);
       await user.type(textBox, text);
       await user.tab();
 
@@ -177,7 +177,7 @@ describe('OptionListEditor', () => {
       });
 
       await user.click(getOptionModalButton());
-      const textBox = getTextBoxInput(2);
+      const textBox = getDescriptionInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -188,13 +188,13 @@ describe('OptionListEditor', () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       const expectedResultAfterEdit: Option[] = [
-        { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-        { value: 2, label: 'label number', description: 'test', helpText: null },
-        { value: true, label: 'label boolean', description: null, helpText: null },
+        { value: 'value 1', label: 'label 1', description: 'description', helpText: 'help text' },
+        { value: 'value 2', label: 'label 2', description: 'test', helpText: null },
+        { value: 'value 3', label: 'label 3', description: null, helpText: null },
       ];
 
       await user.click(getOptionModalButton());
-      const textBox = getTextBoxInput(2);
+      const textBox = getDescriptionInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -245,7 +245,7 @@ function getOptionModalButton() {
   });
 }
 
-function getTextBoxInput(number: number) {
+function getDescriptionInput(number: number) {
   return screen.getByRole('textbox', {
     name: textMock('code_list_editor.description_item', { number }),
   });

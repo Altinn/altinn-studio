@@ -23,10 +23,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// and not any methods that are specific to App or Datamodels repositories.</remarks>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
-        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
+        private const string SCHEMA_FILES_PATTERN_JSON = "App/models/*.schema.json";
+        private const string SCHEMA_FILES_PATTERN_XSD = "App/models/*.xsd";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
-        private const string TEXT_FILES_PATTERN_JSON = "*.texts.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
 
@@ -81,12 +80,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files regardless of location in repository.
+        /// Finds all schema files in App/models directory in repository.
         /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
         {
             string schemaFilesPattern = xsd ? SCHEMA_FILES_PATTERN_XSD : SCHEMA_FILES_PATTERN_JSON;
-            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
+            IEnumerable<string> schemaFiles;
+
+            try
+            {
+                schemaFiles = FindFiles(new[] { schemaFilesPattern });
+            }
+            catch (DirectoryNotFoundException)
+            {
+                schemaFiles = new List<string>();
+            }
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
