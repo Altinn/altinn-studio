@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-02-11",
+      "title": "Ny oppsummeringskomponent",
+      "content": "Den nye Summary2-komponenten lar deg vise en oppsummering av enten en komponent, side eller layoutSet, enten i nåværende eller tidligere oppgaver. Den kan tilpasses for å dekke dine behov, og brukes også for å generere PDF."
+    },
+    {
       "date": "2025-01-17",
       "title": "Nå kan du ha flere datamodeller i et prosess-steg!",
       "content": "Du kan nå koble komponenter i et prosess-steg til andre datamodeller, ikke bare til den overordnede datamodellen for steget. Dette gir deg nye muligheter til å håndtere data i appene dine."
