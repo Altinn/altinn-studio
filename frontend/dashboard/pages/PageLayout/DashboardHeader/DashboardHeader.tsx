@@ -21,6 +21,7 @@ import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 import { useSubroute } from '../../../hooks/useSubRoute';
 import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
 import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
+import { StringUtils } from '@studio/pure-functions';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -60,7 +61,7 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.Reac
         <NavLink to={path} {...props}>
           <span
             className={cn({
-              [classes.active]: menuItem.key === currentRoutePath,
+              [classes.active]: StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
             })}
           >
             {t(menuItem.name)}
