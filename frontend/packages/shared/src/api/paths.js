@@ -146,7 +146,7 @@ export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${b
 export const resourcePublishStatusPath = (org, repo, id) => `${basePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
 export const resourceListPath = (org) => `${basePath}/${org}/resources/resourcelist?includeEnvResources=true`; // Get
 export const resourceCreatePath = (org) => `${basePath}/${org}/resources/addresource`; // Post
-export const resourceSinglePath = (org, repo, id) => `${basePath}/${org}/resources/${repo}/${id}`; // Get
+export const resourceSinglePath = (org, repo, id) => `${basePath}/${org}/resources/${repo}/${id}`; // Get, Delete
 export const resourceEditPath = (org, id) => `${basePath}/${org}/resources/updateresource/${id}`; // Put
 export const resourceValidatePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/validate/${id}`; // Get
 export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${org}/resources/validate/${repo}/${id}`; // Get

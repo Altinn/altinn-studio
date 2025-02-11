@@ -109,7 +109,7 @@ describe('ResourceTable', () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
 
-    const editButton = screen.getByText(
+    const editButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_edit', { resourceName: resource1Title }),
     );
     await user.click(editButton);
@@ -126,10 +126,10 @@ describe('ResourceTable', () => {
       />,
     );
 
-    const editButton = screen.queryByText(
+    const editButton = screen.queryByTitle(
       textMock('dashboard.resource_table_row_edit', { resourceName: resource3Title }),
     );
-    const importButton = screen.queryByText(
+    const importButton = screen.queryByTitle(
       textMock('dashboard.resource_table_row_import', { resourceName: resource3Title }),
     );
 
@@ -141,7 +141,7 @@ describe('ResourceTable', () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', { resourceName: resource3Title }),
     );
     await user.click(importButton);

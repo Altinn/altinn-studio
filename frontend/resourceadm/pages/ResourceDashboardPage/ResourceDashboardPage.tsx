@@ -20,6 +20,7 @@ import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useI
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
+import { useDeleteResourceMutation } from '../../hooks/mutations/useDeleteResourceMutation';
 
 /**
  * @component
@@ -36,6 +37,8 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
 
   const { mutate: importResource, isPending: isImportingResource } =
     useImportResourceFromAltinn3Mutation(org);
+
+  const { mutate: deleteResource } = useDeleteResourceMutation(org, app);
 
   const { t } = useTranslation();
 
@@ -87,6 +90,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     }
   };
 
+  const onClickDeleteResource = (resourceId: string): void => {
+    deleteResource(resourceId, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.dashboard_delete_resource_success'));
+      },
+    });
+  };
+
   /**
    * Display different content based on the loading state
    */
@@ -110,6 +121,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}
+            onClickDeleteResource={onClickDeleteResource}
             importResourceId={isImportingResource ? importData?.resourceId : ''}
           />
         </>

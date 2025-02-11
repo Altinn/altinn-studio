@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, FileImportIcon } from '@studio/icons';
 import { Tag } from '@digdir/designsystemet-react';
-import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio/components';
+import { StudioTableLocalPagination } from '@studio/components';
 import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import { ResourceTableActions } from './ResourceTableActions';
 
 export type ResourceTableProps = {
   /**
@@ -21,10 +21,16 @@ export type ResourceTableProps = {
   /**
    * Function to be executed when clicking the import resource button
    * @param id the id of the resource
-   * @param id all environments the resource with given id exists in
+   * @param availableEnvs all environments the resource with given id exists in
    * @returns void
    */
   onClickImportResource?: (id: string, availableEnvs: string[]) => void;
+  /**
+   * Function to be executed when clicking the delete resource button
+   * @param id the id of the resource
+   * @returns void
+   */
+  onClickDeleteResource?: (id: string) => void;
   /**
    * Id of the resource being imported. Only one resource can be imported at the same time
    */
@@ -44,52 +50,12 @@ export const ResourceTable = ({
   list,
   onClickEditResource,
   onClickImportResource,
+  onClickDeleteResource,
   importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
-  const renderLinkCell = (listItem: ResourceListItem): React.ReactElement => {
-    const existsInGitea = listItem.environments.some((env: string) => env === 'gitea');
-    if (existsInGitea) {
-      return (
-        <StudioButton
-          variant='tertiary'
-          icon={
-            <PencilIcon
-              title={t('dashboard.resource_table_row_edit', {
-                resourceName: getListItemTitle(listItem),
-              })}
-              className={classes.editLink}
-            />
-          }
-          onClick={() => onClickEditResource(listItem.identifier)}
-          size='medium'
-        />
-      );
-    } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
-      return <StudioSpinner spinnerTitle={t('dashboard.resource_table_row_importing')} />;
-    } else if (!!onClickImportResource) {
-      return (
-        <StudioButton
-          variant='tertiary'
-          icon={
-            <FileImportIcon
-              title={t('dashboard.resource_table_row_import', {
-                resourceName: getListItemTitle(listItem),
-              })}
-              className={classes.editLink}
-            />
-          }
-          onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          size='medium'
-        />
-      );
-    } else {
-      return null;
-    }
-  };
-
-  const getListItemTitle = (listItem): string => {
+  const getListItemTitle = (listItem: ResourceListItem): string => {
     return (
       listItem.title[i18n?.language] ||
       listItem.title.nb ||
@@ -103,25 +69,17 @@ export const ResourceTable = ({
       id: listItem.identifier,
       lastChanged: (listItem.lastChanged ?? '').toString(),
       title: getListItemTitle(listItem),
-
-      environments: (
-        <div className={classes.tagContainer}>
-          {listItem.environments.map((env: string) => {
-            let tagText = env.toUpperCase();
-            if (env === 'prod') {
-              tagText = t('dashboard.resource_table_row_in_prod');
-            } else if (env === 'gitea') {
-              tagText = t('dashboard.resource_table_row_in_gitea');
-            }
-            return (
-              <Tag key={env} color='info' size='small'>
-                {tagText}
-              </Tag>
-            );
-          })}
-        </div>
+      environments: <ResourceEnvironments listItem={listItem} />,
+      links: (
+        <ResourceTableActions
+          listItem={listItem}
+          resourceName={getListItemTitle(listItem)}
+          onEditResource={onClickEditResource}
+          onDeleteResource={onClickDeleteResource}
+          onImportResource={onClickImportResource}
+          importResourceId={importResourceId}
+        />
       ),
-      links: <div className={classes.editLinkCell}>{renderLinkCell(listItem)}</div>,
     };
   });
 
@@ -171,5 +129,30 @@ export const ResourceTable = ({
       size='small'
       emptyTableFallback={t('dashboard.resource_table_no_resources_result')}
     />
+  );
+};
+
+interface ResourceEnvironmentsProps {
+  listItem: ResourceListItem;
+}
+const ResourceEnvironments = ({ listItem }: ResourceEnvironmentsProps): ReactNode => {
+  const { t } = useTranslation();
+
+  return (
+    <div className={classes.tagContainer}>
+      {listItem.environments.map((env: string) => {
+        let tagText = env.toUpperCase();
+        if (env === 'prod') {
+          tagText = t('dashboard.resource_table_row_in_prod');
+        } else if (env === 'gitea') {
+          tagText = t('dashboard.resource_table_row_in_gitea');
+        }
+        return (
+          <Tag key={env} color='info' size='small'>
+            {tagText}
+          </Tag>
+        );
+      })}
+    </div>
   );
 };

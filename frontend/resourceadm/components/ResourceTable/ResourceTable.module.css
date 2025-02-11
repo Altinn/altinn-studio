@@ -1,10 +1,9 @@
-.editLinkCell {
+.actionButtonCell {
   display: flex;
   justify-content: flex-end;
 }
 
-.editLink {
-  color: var(--fds-semantic-text-action-default);
+.actionButtonIcon {
   font-size: var(--fds-sizing-7);
 }
 

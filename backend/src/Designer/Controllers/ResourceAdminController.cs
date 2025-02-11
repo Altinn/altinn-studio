@@ -215,6 +215,19 @@ namespace Altinn.Studio.Designer.Controllers
             return listviewServiceResources;
         }
 
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/{repository}/{id}")]
+        public ActionResult DeleteResource(string org, string repository, string id)
+        {
+            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            if (resource == null)
+            {
+                return new StatusCodeResult(404);
+            }
+            // TODO: call resource registry delete for TT02
+            return _repository.DeleteServiceResource(org, repository, id);
+        }
+
         [HttpGet]
         [Route("designer/api/{org}/resources/{repository}/{id}")]
         public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id)
