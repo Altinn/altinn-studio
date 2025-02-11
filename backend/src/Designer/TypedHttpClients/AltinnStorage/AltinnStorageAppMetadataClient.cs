@@ -1,7 +1,9 @@
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +26,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         private readonly IEnvironmentsService _environmentsService;
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger<AltinnStorageAppMetadataClient> _logger;
+
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
+        };
 
         /// <summary>
         /// Constructor
@@ -76,9 +86,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             Uri uri = new($"{storageUri}{altinnRepoContext.Org}/{altinnRepoContext.Repo}");
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            // Using Newtonsoft serializer since newtonsoft annotations are used in ApplicationMetadata.
-            return JsonSerializer.Deserialize<ApplicationMetadata>(responseContent);
+            return await response.Content.ReadFromJsonAsync<ApplicationMetadata>(_jsonOptions, cancellationToken);
+
         }
 
         private async Task<Uri> CreateStorageUri(string envName)
