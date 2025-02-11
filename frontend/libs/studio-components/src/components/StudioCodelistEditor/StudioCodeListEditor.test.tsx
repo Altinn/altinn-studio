@@ -20,6 +20,10 @@ import {
   textResources,
 } from './test-data/textResources';
 import type { TextResource } from '../../types/TextResource';
+import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
+import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
+import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
+import { codeListWithUndefinedValues } from './test-data/codeListWithUndefinedValues';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -364,79 +368,101 @@ describe('StudioCodeListEditor', () => {
     expect(screen.getAllByRole('row')).toHaveLength(newExpectedNumberOfRows);
   });
 
-  it('Applies invalid state to duplicated values', () => {
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const firstDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-    const secondDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
-    expect(firstDuplicateInput).toBeInvalid();
-    expect(secondDuplicateInput).toBeInvalid();
-  });
+  describe('Invalid code list handling', () => {
+    it('Applies invalid state to duplicated values', () => {
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const firstDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      const secondDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
+      expect(firstDuplicateInput).toBeInvalid();
+      expect(secondDuplicateInput).toBeInvalid();
+    });
 
-  it('Does not apply invalid state to unique values when other values are duplicated', () => {
-    renderCodeListEditor();
-    const uniqueValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    expect(uniqueValueInput).toBeValid();
-  });
+    it('Does not apply invalid state to unique values when other values are duplicated', () => {
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const uniqueValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      expect(uniqueValueInput).toBeValid();
+    });
 
-  it('Renders a general error message when there are errors', () => {
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    expect(screen.getByText(texts.generalError)).toBeInTheDocument();
-  });
+    it('Applies invalid state to undefined values', () => {
+      renderCodeListEditor({ codeList: codeListWithUndefinedValues });
+      const firstInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      const secondInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
+      const thirdInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      expect(firstInput).toBeInvalid();
+      expect(secondInput).toBeInvalid();
+      expect(thirdInput).toBeInvalid();
+    });
 
-  it('Does not render the error message when the code list is valid', () => {
-    renderCodeListEditor();
-    expect(screen.queryByText(texts.generalError)).not.toBeInTheDocument();
-  });
+    it('Applies invalid state to every value when there are multiple types', () => {
+      renderCodeListEditor({ codeList: codeListWithMultipleTypes });
+      const firstInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      const secondInput = screen.getByRole('checkbox', { name: texts.itemValue(2) });
+      const thirdInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      expect(firstInput).toBeInvalid();
+      expect(secondInput).toBeInvalid();
+      expect(thirdInput).toBeInvalid();
+    });
 
-  it('Does not trigger onChange while the code list is invalid', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    await user.type(validValueInput, 'new value');
-    expect(onChange).not.toHaveBeenCalled();
-  });
+    it('Renders a general error message when there are errors', () => {
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      expect(screen.getByText(texts.generalError)).toBeInTheDocument();
+    });
 
-  it('Does not trigger onBlurAny while the code list is invalid', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    await user.type(validValueInput, 'new value');
-    await user.tab();
-    expect(onBlurAny).not.toHaveBeenCalled();
-  });
+    it('Does not render the error message when the code list is valid', () => {
+      renderCodeListEditor();
+      expect(screen.queryByText(texts.generalError)).not.toBeInTheDocument();
+    });
 
-  it('Does not trigger onAddOrDeleteItem while the code list is invalid', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const addButton = screen.getByRole('button', { name: texts.add });
-    await user.click(addButton);
-    expect(onAddOrDeleteItem).not.toHaveBeenCalled();
-  });
+    it('Does not trigger onChange while the code list is invalid', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      await user.type(validValueInput, 'new value');
+      expect(onChange).not.toHaveBeenCalled();
+    });
 
-  it('Does trigger onInvalid if the code list is invalid', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    const newValue = 'new value';
-    await user.type(validValueInput, newValue);
-    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
-  });
+    it('Does not trigger onBlurAny while the code list is invalid', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      await user.type(validValueInput, 'new value');
+      await user.tab();
+      expect(onBlurAny).not.toHaveBeenCalled();
+    });
 
-  it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
-    await user.type(invalidValueInput, 'new unique value');
-    expect(onInvalid).not.toHaveBeenCalled();
-  });
+    it('Does not trigger onAddOrDeleteItem while the code list is invalid', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const addButton = screen.getByRole('button', { name: texts.add });
+      await user.click(addButton);
+      expect(onAddOrDeleteItem).not.toHaveBeenCalled();
+    });
 
-  it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
-    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    const newValue = 'new value';
-    await user.type(validValueInput, newValue);
-    expect(onInvalid).not.toHaveBeenCalled();
+    it('Does trigger onInvalid if the code list is invalid', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      const newValue = 'new value';
+      await user.type(validValueInput, newValue);
+      expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
+    });
+
+    it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
+      await user.type(invalidValueInput, 'new unique value');
+      expect(onInvalid).not.toHaveBeenCalled();
+    });
+
+    it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
+      const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      const newValue = 'new value';
+      await user.type(validValueInput, newValue);
+      expect(onInvalid).not.toHaveBeenCalled();
+    });
   });
 
   it('Renders without errors when changing item and no callbacks are provided', async () => {
@@ -477,6 +503,87 @@ describe('StudioCodeListEditor', () => {
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
     expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  describe('Type handling', () => {
+    it('Renders textfield when item value is a string', () => {
+      renderCodeListEditor();
+      const textfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      expect(textfield).not.toHaveProperty('inputMode', 'decimal');
+    });
+
+    it('Renders numberfield when item value is a number', () => {
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+      const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      expect(numberfield).toHaveProperty('inputMode', 'decimal');
+    });
+
+    it('Renders numberfield when item value is undefined', () => {
+      renderCodeListEditor({ codeList: [{ value: undefined, label: 'test-label' }] });
+      const numberfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      expect(numberfield).toHaveProperty('inputMode', 'decimal');
+    });
+
+    it('Renders checkbox when item value is a boolean', () => {
+      renderCodeListEditor({ codeList: codeListWithBooleanValues });
+      expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
+    });
+
+    it('Saves changed item value as string when initial value was string', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      const changedValue = 'new text';
+      await user.type(valueInput, changedValue);
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledTimes(1);
+      expect(onBlurAny).toHaveBeenCalledWith([
+        { ...codeListWithoutTextResources[0], value: changedValue },
+        codeListWithoutTextResources[1],
+        codeListWithoutTextResources[2],
+      ]);
+    });
+
+    it('Saves changed item value as number when initial value was number', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, '10');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledTimes(1);
+      expect(onBlurAny).toHaveBeenCalledWith([
+        { ...codeListWithNumberValues[0], value: 10 },
+        codeListWithNumberValues[1],
+        codeListWithNumberValues[2],
+      ]);
+    });
+
+    it('Saves changed item value as boolean when initial value was boolean', async () => {
+      const user = userEvent.setup();
+      const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleanValues[0]];
+      renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
+
+      const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });
+      await user.click(valueInput);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValues[0], value: false }]);
+    });
+
+    it('Numberfield does not change codelist when given string value', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, 'not-a-number');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
   });
 });
 
