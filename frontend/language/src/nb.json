@@ -1492,7 +1492,6 @@
   "ux_editor.component_properties.summary.override.description": "Overstyringer per komponent for oppsummeringen",
   "ux_editor.component_properties.summary.override.display_type": "Visningstype",
   "ux_editor.component_properties.summary.override.display_type.list": "Liste",
-  "ux_editor.component_properties.summary.override.display_type.not_set": "Ikke satt",
   "ux_editor.component_properties.summary.override.display_type.string": "Tekst",
   "ux_editor.component_properties.summary.override.empty_field_text": "Tekst du vil vise i tomme felt",
   "ux_editor.component_properties.summary.override.hidden": "Skjul feltet",
