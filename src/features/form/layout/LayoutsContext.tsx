@@ -95,7 +95,7 @@ export function useDataTypeFromLayoutSet(layoutSetName: string) {
 }
 
 export const LayoutsProvider = Provider;
-export const useLayouts = () => useCtx().layouts;
+export const useLayouts = (): ILayouts => useCtx()?.layouts ?? {};
 
 export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 

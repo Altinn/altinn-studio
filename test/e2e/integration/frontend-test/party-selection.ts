@@ -1,158 +1,14 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { cyMockResponses, CyPartyMocks } from 'test/e2e/pageobjects/party-mocks';
 
-import { PartyType } from 'src/types/shared';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
 
-const ExampleOrgWithSubUnit: IParty = {
-  partyId: 500000,
-  partyTypeName: PartyType.Organisation,
-  orgNumber: '897069650',
-  ssn: null,
-  unitType: 'AS',
-  name: 'DDG Fitness AS',
-  isDeleted: false,
-  onlyHierarchyElementWithNoAccess: false,
-  person: null,
-  organization: null,
-  childParties: [
-    {
-      partyId: 500001,
-      partyTypeName: PartyType.Organisation,
-      orgNumber: '897069651',
-      ssn: null,
-      unitType: 'BEDR',
-      name: 'DDG Fitness Bergen',
-      isDeleted: false,
-      onlyHierarchyElementWithNoAccess: false,
-      person: null,
-      organization: null,
-      childParties: null,
-    },
-  ],
-};
-
-const ExampleDeletedOrg: IParty = {
-  partyId: 500600,
-  partyTypeName: PartyType.Organisation,
-  orgNumber: '897069631',
-  ssn: null,
-  unitType: 'AS',
-  name: 'EAS Health Consulting',
-  isDeleted: true,
-  onlyHierarchyElementWithNoAccess: false,
-  person: null,
-  organization: null,
-  childParties: [],
-};
-
-const ExamplePerson1: IParty = {
-  partyId: 12345678,
-  partyTypeName: PartyType.Person,
-  ssn: '12312312345',
-  unitType: null,
-  name: 'Fake Party',
-  isDeleted: false,
-  onlyHierarchyElementWithNoAccess: false,
-  person: null,
-  organization: null,
-  childParties: null,
-};
-
-const ExamplePerson2: IParty = {
-  partyId: 12345679,
-  partyTypeName: PartyType.Person,
-  ssn: '12312312344',
-  unitType: null,
-  name: 'Fake Person2',
-  isDeleted: false,
-  onlyHierarchyElementWithNoAccess: false,
-  person: null,
-  organization: null,
-  childParties: null,
-};
-
-const InvalidParty: IParty = {
-  partyId: 50085642,
-  partyUuid: 'bb1aeb78-237e-47fb-b600-727803500985',
-  partyTypeName: 1,
-  orgNumber: '',
-  ssn: '23033600534',
-  unitType: null,
-  name: 'RISHAUG JULIUS',
-  isDeleted: false,
-  onlyHierarchyElementWithNoAccess: false,
-  person: null,
-  organization: null,
-  childParties: [],
-};
-
-interface Mockable {
-  preSelectedParty?: number;
-  currentParty?: IParty;
-  allowedToInstantiate?: IParty[] | ((parties: IParty[]) => IParty[]);
-  doNotPromptForParty?: boolean;
-  appPromptForPartyOverride?: IncomingApplicationMetadata['promptForParty'];
-  partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
-}
-
-function mockResponses(whatToMock: Mockable) {
-  if (whatToMock.preSelectedParty !== undefined) {
-    // Sets the 'AltinnPartyId' cookie to emulate having selected a party when logging in to Altinn
-    cy.setCookie('AltinnPartyId', whatToMock.preSelectedParty.toString());
-  }
-
-  if (whatToMock.currentParty) {
-    cy.intercept('GET', `**/api/authorization/parties/current?returnPartyObject=true`, (req) => {
-      req.on('response', (res) => {
-        res.body = whatToMock.currentParty;
-      });
-    });
-  }
-
-  if (whatToMock.allowedToInstantiate) {
-    cy.intercept('GET', `**/api/v1/parties?allowedtoinstantiatefilter=true`, (req) => {
-      req.continue((res) => {
-        const body =
-          whatToMock.allowedToInstantiate instanceof Function
-            ? whatToMock.allowedToInstantiate(res.body)
-            : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (whatToMock.allowedToInstantiate as any);
-        res.send(body);
-      });
-    });
-  }
-  if (whatToMock.doNotPromptForParty !== undefined) {
-    cy.intercept('GET', '**/api/v1/profile/user', {
-      body: {
-        profileSettingPreference: {
-          doNotPromptForParty: whatToMock.doNotPromptForParty,
-        },
-      },
-    });
-  }
-  if (whatToMock.appPromptForPartyOverride !== undefined || whatToMock.partyTypesAllowed !== undefined) {
-    cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        if (whatToMock.appPromptForPartyOverride !== undefined) {
-          res.body.promptForParty = whatToMock.appPromptForPartyOverride;
-        }
-        if (whatToMock.partyTypesAllowed !== undefined) {
-          res.body.partyTypesAllowed = whatToMock.partyTypesAllowed;
-        }
-      });
-    });
-  }
-
-  cy.intercept('**/active', []).as('noActiveInstances');
-}
-
 describe('Party selection', () => {
   it('Party selection filtering and search', () => {
-    mockResponses({ allowedToInstantiate: [ExampleOrgWithSubUnit, ExampleDeletedOrg] });
+    cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
     cy.get(appFrontend.reporteeSelection.error).contains(texts.selectNewReportee);
@@ -168,21 +24,22 @@ describe('Party selection', () => {
   });
 
   it('Should show the correct title', () => {
-    mockResponses({ allowedToInstantiate: [ExampleOrgWithSubUnit, ExampleDeletedOrg] });
+    cyMockResponses({ allowedToInstantiate: [CyPartyMocks.ExampleOrgWithSubUnit, CyPartyMocks.ExampleDeletedOrg] });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
     cy.title().should('eq', 'Hvem vil du sende inn for? - frontend-test - Testdepartementet');
   });
 
   it('Should skip party selection if you can only represent one person', () => {
-    mockResponses({
-      preSelectedParty: ExamplePerson1.partyId,
-      currentParty: ExamplePerson1,
-      allowedToInstantiate: [ExamplePerson1],
+    cyMockResponses({
+      preSelectedParty: CyPartyMocks.ExamplePerson1.partyId,
+      currentParty: CyPartyMocks.ExamplePerson1,
+      allowedToInstantiate: [CyPartyMocks.ExamplePerson1],
     });
-    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId=${ExamplePerson1.partyId}*`).as(
-      'loadInstance',
-    );
+    cy.intercept(
+      'POST',
+      `/ttd/frontend-test/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
+    ).as('loadInstance');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.reportee).should('not.exist');
     cy.wait('@loadInstance');
@@ -193,12 +50,12 @@ describe('Party selection', () => {
   });
 
   it('Should show party selection with a warning when you cannot use the preselected party', () => {
-    mockResponses({
-      preSelectedParty: ExampleOrgWithSubUnit.partyId,
+    cyMockResponses({
+      preSelectedParty: CyPartyMocks.ExampleOrgWithSubUnit.partyId,
 
       // We'll only allow one party to be selected, and it's not the preselected one. Even though one-party-choices
       // normally won't show up as being selectable, we'll still show the warning in these cases.
-      allowedToInstantiate: [ExamplePerson2],
+      allowedToInstantiate: [CyPartyMocks.ExamplePerson2],
       partyTypesAllowed: {
         person: true,
         subUnit: false,
@@ -213,7 +70,7 @@ describe('Party selection', () => {
   });
 
   it('Should show an error if there are no parties to select from', () => {
-    mockResponses({
+    cyMockResponses({
       allowedToInstantiate: [],
       partyTypesAllowed: {
         person: false,
@@ -229,8 +86,13 @@ describe('Party selection', () => {
   });
 
   it('List of parties should show correct icon and org nr or ssn', () => {
-    mockResponses({
-      allowedToInstantiate: (parties) => [...parties, ExamplePerson1, InvalidParty, ExampleOrgWithSubUnit],
+    cyMockResponses({
+      allowedToInstantiate: (parties) => [
+        ...parties,
+        CyPartyMocks.ExamplePerson1,
+        CyPartyMocks.InvalidParty,
+        CyPartyMocks.ExampleOrgWithSubUnit,
+      ],
       doNotPromptForParty: false,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
@@ -258,8 +120,8 @@ describe('Party selection', () => {
     it(`${
       doNotPromptForParty ? 'Does not prompt' : 'Prompts'
     } for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with multiple possible parties`, () => {
-      mockResponses({
-        allowedToInstantiate: (parties) => [...parties, ExamplePerson1],
+      cyMockResponses({
+        allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
         doNotPromptForParty,
       });
       cy.startAppInstance(appFrontend.apps.frontendTest);
@@ -295,7 +157,7 @@ describe('Party selection', () => {
 
   [true, false].forEach((doNotPromptForParty) => {
     it(`Does not prompt for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with only one possible party`, () => {
-      mockResponses({
+      cyMockResponses({
         doNotPromptForParty,
       });
 
@@ -355,10 +217,10 @@ describe('Party selection', () => {
     { doNotPromptForPartyPreference: false, appPromptForPartyOverride: 'never' as const },
   ].forEach(({ doNotPromptForPartyPreference, appPromptForPartyOverride }) => {
     it(`Correctly overrides the profile doNotPromptForPartyPreference when doNotPromptForPartyPreference=${doNotPromptForPartyPreference} and appPromptForPartyOverride=${appPromptForPartyOverride}`, () => {
-      mockResponses({
+      cyMockResponses({
         doNotPromptForParty: doNotPromptForPartyPreference,
         appPromptForPartyOverride,
-        allowedToInstantiate: (parties) => [...parties, ExamplePerson1],
+        allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
       });
       cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'default' });
       cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
