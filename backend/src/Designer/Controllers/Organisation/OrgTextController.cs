@@ -80,13 +80,12 @@ public class OrgTextController : ControllerBase
 
     /// <summary>
     /// Method to update multiple texts for given keys and a given
-    /// language in the text resource files in the old format.
+    /// language in the text resource files.
     /// Non-existing keys will be added.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
     /// <param name="languageCode">The languageCode for the text resource file that is being edited.</param>
-    /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
     /// <returns>The updated resource file</returns>
     [HttpPut]
     [Route("language/{languageCode}")]

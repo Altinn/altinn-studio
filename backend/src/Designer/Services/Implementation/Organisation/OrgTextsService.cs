@@ -46,7 +46,13 @@ public class OrgTextsService : IOrgTextsService
             throw new ArgumentException($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
         }
 
-        // updating application metadata with appTitle.
+        await UpdateAppTitleInApplicationMetadata(textResource, org, repo);
+
+        await altinnOrgGitRepository.SaveText(languageCode, textResource);
+    }
+
+    private async Task UpdateAppTitleInApplicationMetadata(TextResource textResource, string org, string repo)
+    {
         TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre => tre.Id == "appName" || tre.Id == "ServiceName");
 
         if (appTitleResourceElement != null && !string.IsNullOrEmpty(appTitleResourceElement.Value))
@@ -57,8 +63,6 @@ public class OrgTextsService : IOrgTextsService
         {
             throw new ArgumentException("The application name must be a value.");
         }
-
-        await altinnOrgGitRepository.SaveText(languageCode, textResource);
     }
 
     /// <inheritdoc />
