@@ -74,6 +74,7 @@ public class DeploymentPipelinePollingJob : IJob
         var appMetadata = await _altinnStorageAppMetadataClient.GetApplicationMetadataAsync(editingContext, environment);
         var copyInstanceSettings = appMetadata.CopyInstanceSettings ?? new CopyInstanceSettings();
         copyInstanceSettings.Enabled = false;
+        appMetadata.CopyInstanceSettings = copyInstanceSettings;
         await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(editingContext.Org, editingContext.Repo, appMetadata, environment);
     }
 
