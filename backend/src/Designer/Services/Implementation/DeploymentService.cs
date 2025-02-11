@@ -94,7 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
             await PublishAppDeployedEvent(deploymentEntity, cancellationToken);
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, cancellationToken);
+            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
         }
 
@@ -193,7 +193,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
-            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, cancellationToken);
+            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
         }
 
         private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
