@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
@@ -100,43 +99,34 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
       >
         {showBackToSummaryButton && (
-          <Flex item>
-            <Button
-              disabled={!!isProcessing}
-              isLoading={isProcessing === 'backToSummary'}
-              onClick={onClickBackToSummary}
-            >
-              <Lang id={returnToViewText} />
-            </Button>
-          </Flex>
+          <Button
+            disabled={!!isProcessing}
+            isLoading={isProcessing === 'backToSummary'}
+            onClick={onClickBackToSummary}
+          >
+            <Lang id={returnToViewText} />
+          </Button>
         )}
         {showNextButton && (
-          <Flex item>
-            <Button
-              disabled={!!isProcessing}
-              isLoading={isProcessing === 'next'}
-              onClick={onClickNext}
-              // If we are showing a back to summary button, we want the "next" button to be secondary
-              variant={showBackToSummaryButton ? 'secondary' : 'primary'}
-            >
-              <Lang id={nextTextKey} />
-            </Button>
-          </Flex>
+          <Button
+            disabled={!!isProcessing}
+            isLoading={isProcessing === 'next'}
+            onClick={onClickNext}
+            // If we are showing a back to summary button, we want the "next" button to be secondary
+            variant={showBackToSummaryButton ? 'secondary' : 'primary'}
+          >
+            <Lang id={nextTextKey} />
+          </Button>
         )}
         {hasPrevious && showBackButton && (
-          <Flex
-            item
-            style={{ flex: 0 }}
+          <Button
+            disabled={!!isProcessing}
+            isLoading={isProcessing === 'previous'}
+            variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
+            onClick={onClickPrevious}
           >
-            <Button
-              disabled={!!isProcessing}
-              isLoading={isProcessing === 'previous'}
-              variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
-              onClick={onClickPrevious}
-            >
-              <Lang id={backTextKey} />
-            </Button>
-          </Flex>
+            <Lang id={backTextKey} />
+          </Button>
         )}
       </div>
     </ComponentStructureWrapper>
