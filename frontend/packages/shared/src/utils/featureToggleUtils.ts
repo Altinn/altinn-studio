@@ -11,7 +11,6 @@ export enum FeatureFlag {
   OptionListEditor = 'optionListEditor',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   Subform = 'subform',
-  Summary2 = 'summary2',
   Undeploy = 'undeploy',
 }
 
