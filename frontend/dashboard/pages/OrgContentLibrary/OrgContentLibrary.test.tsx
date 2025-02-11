@@ -3,6 +3,14 @@ import { OrgContentLibrary } from './OrgContentLibrary';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
+import { SelectedContextType } from '../../context/HeaderContext';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    selectedContext: SelectedContextType.Self,
+  }),
+}));
 
 describe('OrgContentLibrary', () => {
   it('renders the library title', () => {
