@@ -111,18 +111,18 @@ describe('OrgContentLibrary', () => {
     );
     expect(errorToastMessage).toBeInTheDocument();
   });
-});
 
-it('calls onUploadCodeList and hides default error when handleUpload is triggered', async () => {
-  const user = userEvent.setup();
-  renderOrgContentLibraryWithCodeLists();
-  await goToLibraryPage(user, 'code_lists');
-  const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
-  await user.click(uploadCodeListButton);
-  expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
-  expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, expect.any(FormData));
-  const hideDefaultError = screen.queryByText(textMock('dashboard.org_library.default_error'));
-  expect(hideDefaultError).not.toBeInTheDocument();
+  it('calls onUploadCodeList and hides default error when handleUpload is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists();
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, expect.any(FormData));
+    const hideDefaultError = screen.queryByText(textMock('dashboard.org_library.default_error'));
+    expect(hideDefaultError).not.toBeInTheDocument();
+  });
 });
 
 const getLibraryPageTile = (libraryPage: string) =>
