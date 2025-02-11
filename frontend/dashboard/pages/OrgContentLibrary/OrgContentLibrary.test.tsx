@@ -3,8 +3,46 @@ import { OrgContentLibrary } from './OrgContentLibrary';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { org } from '@studio/testing/testids';
+import type { CodeListData } from '@studio/content-library';
+import type { CodeList } from '@studio/components';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+
+const updateCodeListButtonTextMock = 'Update Code List';
+const codeListNameMock = 'codeListNameMock';
+const codeListMock: CodeList = [{ value: '', label: '' }];
+const codeListsDataMock: CodeListData[] = [{ title: codeListNameMock, data: codeListMock }];
+
+jest.mock(
+  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
+  () => ({
+    CodeListPage: ({ onUpdateCodeList }: any) => (
+      <div>
+        <button
+          onClick={() => onUpdateCodeList({ title: codeListNameMock, codeList: codeListMock })}
+        >
+          {updateCodeListButtonTextMock}
+        </button>
+      </div>
+    ),
+  }),
+);
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    selectedContext: 'testOrg',
+  }),
+}));
 
 describe('OrgContentLibrary', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the library title', () => {
     renderWithProviders(<OrgContentLibrary />);
     const libraryTitle = screen.getByRole('heading', {
@@ -32,4 +70,56 @@ describe('OrgContentLibrary', () => {
     });
     expect(codeListMenuElement).toBeInTheDocument();
   });
+
+  it('calls onUpdateCodeList when onUpdateCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists();
+    await goToLibraryPage(user, 'code_lists');
+    const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
+    await user.click(updateCodeListButton);
+    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledWith(
+      org,
+      codeListNameMock,
+      codeListMock,
+    );
+  });
 });
+
+const getLibraryPageTile = (libraryPage: string) =>
+  screen.getByText(textMock(`app_content_library.${libraryPage}.page_name`));
+
+const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
+  const libraryPageNavTile = getLibraryPageTile(libraryPage);
+  await user.click(libraryPageNavTile);
+};
+
+type RenderOrgContentLibraryProps = {
+  queries?: Partial<ServicesContextProps>;
+  queryClient?: QueryClient;
+};
+
+const renderAppContentLibrary = ({
+  queries = {},
+  queryClient = createQueryClientMock(),
+}: RenderOrgContentLibraryProps = {}): void => {
+  renderWithProviders(<OrgContentLibrary />, {
+    queries,
+    queryClient,
+  });
+};
+
+function renderOrgContentLibraryWithCodeLists(
+  props?: Omit<RenderOrgContentLibraryProps, 'queryClient'>,
+): void {
+  const queryClient = createQueryClientWithOptionsDataList(codeListsDataMock);
+  renderAppContentLibrary({ ...props, queryClient });
+}
+
+function createQueryClientWithOptionsDataList(
+  codeListDataList: CodeListData[] | undefined,
+): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.OrgCodeLists, org], codeListDataList);
+  return queryClient;
+}
