@@ -506,7 +506,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature(FeatureFlag.Subform) && formItemConfigs[ComponentType.Subform],
+  formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -530,6 +530,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
+  formItemConfigs[ComponentType.Subform],
   formItemConfigs[ComponentType.Summary],
   shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
