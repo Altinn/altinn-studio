@@ -275,7 +275,7 @@ export function useNavigatePage() {
       }
 
       if (options?.skipAutoSave !== true) {
-        maybeSaveOnPageChange();
+        await maybeSaveOnPageChange();
       }
 
       if (isStatelessApp) {

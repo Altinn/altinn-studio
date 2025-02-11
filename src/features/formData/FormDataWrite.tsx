@@ -101,7 +101,7 @@ function useFormDataSaveMutation() {
     { prev: { [dataType: string]: object }; next: { [dataType: string]: object } },
     FormDataContext
   >(useStore());
-  const useIsSavingRef = useAsRef(useIsSaving());
+  const isSavingNow = useIsSavingNow();
   const queryClient = useQueryClient();
 
   // This updates the query cache with the new data models every time a save has finished. This means we won't have to
@@ -280,8 +280,8 @@ function useFormDataSaveMutation() {
   // Check if save has already started before calling mutate
   const _mutate = mutation.mutate;
   const mutate: typeof mutation.mutate = useCallback(
-    (...args) => !useIsSavingRef.current && _mutate(...args),
-    [useIsSavingRef, _mutate],
+    (...args) => !isSavingNow() && _mutate(...args),
+    [_mutate, isSavingNow],
   );
 
   return {

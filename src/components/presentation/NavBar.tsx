@@ -11,6 +11,7 @@ import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { httpGet } from 'src/utils/network/networking';
@@ -31,14 +32,16 @@ export const NavBar = ({ type }: INavBarProps) => {
   const party = useCurrentParty();
   const { expandedWidth, toggleExpandedWidth } = useUiConfigContext();
   const { hideCloseButton, showLanguageSelector, showExpandWidthButton } = usePageSettings();
+  const [isProcessing, processing] = useIsProcessing<'back'>();
 
-  const handleBackArrowButton = () => {
-    if (returnToView) {
-      navigateToPage(returnToView);
-    } else if (previous !== undefined && (type === ProcessTaskType.Data || type === PresentationType.Stateless)) {
-      navigateToPage(previous);
-    }
-  };
+  const handleBackArrowButton = () =>
+    processing('back', async () => {
+      if (returnToView) {
+        await navigateToPage(returnToView);
+      } else if (previous !== undefined && (type === ProcessTaskType.Data || type === PresentationType.Stateless)) {
+        await navigateToPage(previous);
+      }
+    });
 
   const handleModalCloseButton = async () => {
     const queryParameterReturnUrl = new URLSearchParams(window.location.search).get('returnUrl');
@@ -63,6 +66,8 @@ export const NavBar = ({ type }: INavBarProps) => {
       <div>
         {showBackArrow && (
           <Button
+            disabled={!!isProcessing}
+            isLoading={isProcessing === 'back'}
             className={classes.buttonMargin}
             onClick={handleBackArrowButton}
             variant='tertiary'
@@ -70,10 +75,12 @@ export const NavBar = ({ type }: INavBarProps) => {
             aria-label={langAsString('general.back')}
             icon={true}
           >
-            <Left
-              fontSize='1rem'
-              aria-hidden
-            />
+            {isProcessing !== 'back' && (
+              <Left
+                fontSize='1rem'
+                aria-hidden
+              />
+            )}
           </Button>
         )}
       </div>
