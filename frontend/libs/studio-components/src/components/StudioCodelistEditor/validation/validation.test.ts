@@ -70,7 +70,7 @@ describe('validation', () => {
       expect(errors).toEqual(['multipleTypes', 'multipleTypes'] satisfies ValueErrorMap);
     });
 
-    it('Returns an array with code word "nullValue" corresponding to undefined values', () => {
+    it('Returns an array with code word "nullValue" corresponding to null values', () => {
       const errors = findCodeListErrors(codeListWithNullValue);
       expect(errors).toEqual(['nullValue', 'multipleTypes'] satisfies ValueErrorMap);
     });
