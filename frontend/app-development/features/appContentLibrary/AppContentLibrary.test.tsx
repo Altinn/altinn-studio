@@ -17,6 +17,7 @@ import type { QueryClient } from '@tanstack/react-query';
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
 const updateCodeListIdButtonTextMock = 'Update Code List Id';
+const deleteCodeListButtonTextMock = 'Delete Code List';
 const codeListNameMock = 'codeListNameMock';
 const newCodeListNameMock = 'newCodeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
@@ -24,7 +25,12 @@ const optionListsDataMock: OptionListData[] = [{ title: codeListNameMock, data: 
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onUpdateCodeList, onUploadCodeList, onUpdateCodeListId }: any) => (
+    CodeListPage: ({
+      onUpdateCodeList,
+      onUploadCodeList,
+      onUpdateCodeListId,
+      onDeleteCodeList,
+    }: any) => (
       <div>
         <button
           onClick={() =>
@@ -42,6 +48,9 @@ jest.mock(
         </button>
         <button onClick={() => onUpdateCodeListId(codeListNameMock, newCodeListNameMock)}>
           {updateCodeListIdButtonTextMock}
+        </button>
+        <button onClick={() => onDeleteCodeList(optionListsDataMock[0].title)}>
+          {deleteCodeListButtonTextMock}
         </button>
       </div>
     ),
@@ -141,6 +150,20 @@ describe('AppContentLibrary', () => {
       app,
       codeListNameMock,
       newCodeListNameMock,
+    );
+  });
+
+  it('calls deleteOptionList when onDeleteCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderAppContentLibraryWithOptionLists();
+    await goToLibraryPage(user, 'code_lists');
+    const deleteCodeListButton = screen.getByRole('button', { name: deleteCodeListButtonTextMock });
+    await user.click(deleteCodeListButton);
+    expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(
+      org,
+      app,
+      optionListsDataMock[0].title,
     );
   });
 });
