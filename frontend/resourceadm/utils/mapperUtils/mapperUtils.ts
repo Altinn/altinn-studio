@@ -3,6 +3,13 @@ import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
 const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
+
+const setLastChangedDate = (resource: ResourceListItem): Date => {
+  return resource.lastChanged === null && resource.environments.includes('gitea')
+    ? LOCAL_RESOURCE_CHANGED_TIME
+    : new Date(resource.lastChanged);
+};
+
 /**
  * Sets a special last changed date for resources not checked into Gitea and
  * sorts the resource list by date so the newest is at the top.
@@ -17,10 +24,7 @@ export const setLastChangedAndSortResourceListByDate = (
   const listWithSortedEnvs = resourceList.map((resource) => {
     return {
       ...resource,
-      lastChanged:
-        resource.lastChanged === null && resource.environments.includes('gitea')
-          ? LOCAL_RESOURCE_CHANGED_TIME
-          : resource.lastChanged,
+      lastChanged: setLastChangedDate(resource),
       environments: resource.environments.sort((a, b) => EnvOrder.indexOf(a) - EnvOrder.indexOf(b)),
     };
   });
