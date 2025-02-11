@@ -530,7 +530,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
-  formItemConfigs[ComponentType.Subform],
   formItemConfigs[ComponentType.Summary],
   shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
@@ -615,7 +614,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.List,
     ComponentType.RepeatingGroup,
   ],
-  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
+  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
