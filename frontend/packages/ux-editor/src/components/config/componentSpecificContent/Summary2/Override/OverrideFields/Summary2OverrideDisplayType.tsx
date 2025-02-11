@@ -31,10 +31,6 @@ export const Summary2OverrideDisplayType = ({
     selectedComponentType?.includes(ComponentType.Checkboxes);
 
   if (!checkboxOrMultipleselect) {
-    if (override?.displayType) {
-      const { displayType, ...rest } = override;
-      onChange(rest);
-    }
     return null;
   }
 
