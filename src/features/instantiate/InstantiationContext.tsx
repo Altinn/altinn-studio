@@ -89,13 +89,16 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
       setBusyWithId(undefined);
       isInstantiatingRef.current = false;
     }
-  }, [instantiate.data?.id, instantiateWithPrefill.data?.id]);
+    if (instantiate.error || instantiateWithPrefill.error) {
+      isInstantiatingRef.current = false;
+    }
+  }, [instantiate.data?.id, instantiateWithPrefill.data?.id, instantiate.error, instantiateWithPrefill.error]);
 
   return (
     <Provider
       value={{
         instantiate: (node, instanceOwnerPartyId) => {
-          if (instantiate.data || instantiate.isPending || instantiate.error || isInstantiatingRef.current) {
+          if (instantiate.data || instantiate.isPending || isInstantiatingRef.current) {
             return;
           }
           isInstantiatingRef.current = true;
@@ -103,7 +106,7 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
           instantiate.mutate(instanceOwnerPartyId);
         },
         instantiateWithPrefill: (node, value) => {
-          if (instantiateWithPrefill.data || instantiateWithPrefill.isPending || instantiateWithPrefill.error) {
+          if (instantiateWithPrefill.data || instantiateWithPrefill.isPending || isInstantiatingRef.current) {
             return;
           }
           isInstantiatingRef.current = true;
