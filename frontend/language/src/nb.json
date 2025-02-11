@@ -101,7 +101,7 @@
   "app_deployment.pipeline_deployment.build_result.partiallySucceeded": "Versjonen er publisert i miljøet, men har noen feil eller mangler.",
   "app_deployment.pipeline_deployment.build_result.succeeded": "Versjonen er publisert i miljøet.",
   "app_deployment.pipeline_undeploy.build_result.failed": "Kunne ikke avpublisere appen. Prøv på nytt nå, eller vent litt og prøv igjen.",
-  "app_deployment.pipeline_undeploy.build_result.none": "Avpubliserer.",
+  "app_deployment.pipeline_undeploy.build_result.none": "Avpubliserer…",
   "app_deployment.pipeline_undeploy.build_result.succeeded": "Appen er tatt bort fra miljøet",
   "app_deployment.private_app_owner": "Som privatperson kan du ikke publisere denne appen til noe miljø.",
   "app_deployment.private_app_owner_help": "Det er bare brukere i en organisasjon som kan publisere denne appen til et miljø. <a>Ta kontakt med oss</a> hvis du trenger hjelp.",
