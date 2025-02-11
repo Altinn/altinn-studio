@@ -107,14 +107,14 @@ describe('Subform test', () => {
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should('contain.text', 'Minst 1 moped oppføring er påkrevd');
 
     // Test that save is blocked by validation
-    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
     cy.findByRole('button', { name: /ferdig/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /ferdig/i }).click();
     cy.get(appFrontend.errorReport).should('be.visible');
 
     // Test validation of subform content
-    cy.findByRole('button', { name: /avbryt/i }).click();
+    cy.findByRole('button', { name: /avbryt/i }).clickAndGone();
     cy.findByRole('button', { name: /neste/i }).click();
     cy.get(appFrontend.errorReport).should('be.visible');
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should(
@@ -127,12 +127,12 @@ describe('Subform test', () => {
     );
 
     // Test that editing a subform with visible validations shows validations upon entering
-    cy.findByRole('button', { name: /endre/i }).click();
+    cy.findByRole('button', { name: /endre/i }).clickAndGone();
     cy.findByRole('button', { name: /ferdig/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('be.visible');
 
     // Test that main form still shows the same validations as before upon exiting subform
-    cy.findByRole('button', { name: /avbryt/i }).click();
+    cy.findByRole('button', { name: /avbryt/i }).clickAndGone();
     cy.findByRole('button', { name: /neste/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('be.visible');
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should(
@@ -142,10 +142,10 @@ describe('Subform test', () => {
 
     // Test that main form still shows the same validations as before upon exiting a newly created subform
     // The reason for this case is that this did not work initially
-    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
     cy.findByRole('button', { name: /ferdig/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /avbryt/i }).click();
+    cy.findByRole('button', { name: /avbryt/i }).clickAndGone();
     cy.findByRole('button', { name: /neste/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('be.visible');
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should(
@@ -155,7 +155,7 @@ describe('Subform test', () => {
     cy.findAllByRole('button', { name: /slett/i }).last().clickAndGone();
 
     // Test that fixing the validations works
-    cy.findByRole('button', { name: /endre/i }).click();
+    cy.findByRole('button', { name: /endre/i }).clickAndGone();
     cy.findByRole('button', { name: /ferdig/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('be.visible');
     cy.findByRole('textbox', { name: /registreringsnummer/i }).type('ABC123');
@@ -163,7 +163,7 @@ describe('Subform test', () => {
     cy.findByRole('textbox', { name: /modell/i }).type('Scooter2000');
     cy.findByRole('textbox', { name: /produksjonsår/i }).type('2024');
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /ferdig/i }).click();
+    cy.findByRole('button', { name: /ferdig/i }).clickAndGone();
     cy.findByRole('button', { name: /neste/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
   });
@@ -172,19 +172,19 @@ describe('Subform test', () => {
     cy.findByRole('textbox', { name: /navn/i }).type('Per');
     cy.findByRole('textbox', { name: /alder/i }).type('28');
 
-    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
     cy.findByRole('textbox', { name: /registreringsnummer/i }).type('ABC123');
     cy.findByRole('textbox', { name: /merke/i }).type('Digdir');
     cy.findByRole('textbox', { name: /modell/i }).type('Scooter2000');
     cy.findByRole('textbox', { name: /produksjonsår/i }).type('2024');
-    cy.findByRole('button', { name: /ferdig/i }).click();
+    cy.findByRole('button', { name: /ferdig/i }).clickAndGone();
 
-    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
     cy.findByRole('textbox', { name: /registreringsnummer/i }).type('XYZ987');
     cy.findByRole('textbox', { name: /merke/i }).type('Altinn');
     cy.findByRole('textbox', { name: /modell/i }).type('3.0');
     cy.findByRole('textbox', { name: /produksjonsår/i }).type('2030');
-    cy.findByRole('button', { name: /ferdig/i }).click();
+    cy.findByRole('button', { name: /ferdig/i }).clickAndGone();
 
     cy.testPdf({
       snapshotName: 'subform',

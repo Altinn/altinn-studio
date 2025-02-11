@@ -9,6 +9,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -52,20 +53,22 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const addEntryMutation = useAddEntryMutation(dataType);
   const dataElements = useStrictDataElements(dataType);
   const navigate = useNavigate();
+  const { lock, unlock } = FD.useLocking(id);
   const [isAdding, setIsAdding] = useState(false);
   const [subformEntries, updateSubformEntries] = useState(dataElements);
 
   const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
 
   const addEntry = async () => {
-    setIsAdding(true);
-
     try {
+      setIsAdding(true);
+      await lock();
       const result = await addEntryMutation.mutateAsync({});
       navigate(`${node.id}/${result.id}`);
     } catch {
       // NOTE: Handled by useAddEntryMutation
     } finally {
+      unlock();
       setIsAdding(false);
     }
   };
@@ -146,6 +149,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
               id={`subform-${id}-add-button`}
               size='md'
               disabled={isAdding}
+              isLoading={isAdding}
               onClick={async () => await addEntry()}
               onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
                 const allowedKeys = ['enter', ' ', 'spacebar'];

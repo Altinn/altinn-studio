@@ -12,12 +12,12 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
+import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { promisify } from 'src/utils/promisify';
 import type { ButtonColor, ButtonVariant } from 'src/app-components/Button/Button';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -72,10 +72,10 @@ function useHandleClientActions(): UseHandleClientActions {
 
   const frontendActions: ClientActionHandlers = useMemo(
     () => ({
-      nextPage: promisify(navigateToNextPage),
-      previousPage: promisify(navigateToPreviousPage),
-      navigateToPage: promisify<ClientActionHandlers['navigateToPage']>(async ({ page }) => navigateToPage(page)),
-      closeSubform: promisify(exitSubform),
+      nextPage: navigateToNextPage,
+      previousPage: navigateToPreviousPage,
+      navigateToPage: async ({ page }) => navigateToPage(page),
+      closeSubform: exitSubform,
     }),
     [exitSubform, navigateToNextPage, navigateToPage, navigateToPreviousPage],
   );
@@ -238,8 +238,9 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const lockTools = FD.useLocking(id);
   const { isAuthorized } = useActionAuthorization();
   const { handleClientActions } = useHandleClientActions();
-  const { handleServerAction, isPending } = useHandleServerActionMutation(lockTools);
+  const { handleServerAction } = useHandleServerActionMutation(lockTools);
   const onPageNavigationValidation = useOnPageNavigationValidation();
+  const [isProcessing, processing] = useIsProcessing<'action'>();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
@@ -250,7 +251,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const isPermittedToPerformActions = actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const disabled = !isPermittedToPerformActions || isPending;
+  const disabled = !isPermittedToPerformActions || !!isProcessing;
 
   const isSubformCloseButton = actions.filter((action) => action.id === 'closeSubform').length > 0;
   let interceptedButtonStyle = buttonStyle ?? 'secondary';
@@ -264,27 +265,25 @@ export const CustomButtonComponent = ({ node }: Props) => {
     buttonText = 'general.done';
   }
 
-  const onClick = async () => {
-    if (disabled) {
-      return;
-    }
-    for (const action of actions) {
-      if (action.validation) {
-        const prevScrollPosition = getScrollPosition();
-        const hasErrors = await onPageNavigationValidation(node.page, action.validation);
-        if (hasErrors) {
-          resetScrollPosition(prevScrollPosition);
-          return;
+  const onClick = () =>
+    processing('action', async () => {
+      for (const action of actions) {
+        if (action.validation) {
+          const prevScrollPosition = getScrollPosition();
+          const hasErrors = await onPageNavigationValidation(node.page, action.validation);
+          if (hasErrors) {
+            resetScrollPosition(prevScrollPosition);
+            return;
+          }
+        }
+
+        if (isClientAction(action)) {
+          await handleClientActions([action]);
+        } else if (isServerAction(action)) {
+          await handleServerAction({ action, buttonId: id });
         }
       }
-
-      if (isClientAction(action)) {
-        await handleClientActions([action]);
-      } else if (isServerAction(action)) {
-        await handleServerAction({ action, buttonId: id });
-      }
-    }
-  };
+    });
 
   const style = buttonStyles[interceptedButtonStyle];
 
@@ -297,7 +296,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
         size={toShorthandSize(buttonSize)}
         color={buttonColor ?? style.color}
         variant={style.variant}
-        isLoading={isPending}
+        isLoading={!!isProcessing}
       >
         <Lang id={buttonText} />
       </Button>
