@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * Mutation to delete a resource
  *
  * @param org the organisation of the user
- * @param listIdentifier the identifier of access list to delete
+ * @param repo the repo to delete the resource from
  */
 export const useDeleteResourceMutation = (org: string, repo: string) => {
   const queryClient = useQueryClient();
