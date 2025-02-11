@@ -16,16 +16,16 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [ApiController]
 [Authorize]
 [Route("designer/api/{org}/text")]
-public class TextController : ControllerBase
+public class OrgTextController : ControllerBase
 {
     private readonly IOrgTextsService _orgTextsService;
     private const string Repo = "content";
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TextController"/>/> class.
+    /// Initializes a new instance of the <see cref="OrgTextController"/> class.
     /// </summary>
     /// <param name="orgTextsService">The texts service.</param>
-    public TextController(IOrgTextsService orgTextsService)
+    public OrgTextController(IOrgTextsService orgTextsService)
     {
         _orgTextsService = orgTextsService;
     }

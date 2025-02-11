@@ -7,8 +7,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgTextsService
 {
     /// <summary>
-    /// Gets texts file in old format in app repository according to
-    /// specified languageCode.
+    /// Gets texts file in organisation repository according to specified language Code.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
@@ -18,7 +17,7 @@ public interface IOrgTextsService
     public Task<TextResource> GetText(string org, string repo, string developer, string languageCode);
 
     /// <summary>
-    /// Saves text resource in old format.
+    /// Saves text resource.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
