@@ -63,7 +63,7 @@ export const Summary2OverrideEntry = ({
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
-          onValueChange={(value) => onChange({ ...override, componentId: value })}
+          onValueChange={(value) => onChange({ componentId: value })}
         ></Summary2ComponentReferenceSelector>
 
         <OverrideShowComponentSwitch onChange={onChange} override={override} />
