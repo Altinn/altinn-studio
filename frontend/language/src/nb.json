@@ -232,6 +232,8 @@
   "dashboard.open_repository": "Åpne repository",
   "dashboard.org_apps": "{{orgName}}s apper",
   "dashboard.org_data_models": "{{orgName}}s datamodeller",
+  "dashboard.org_library.code_list_upload_success": "Filen ble lastet opp.",
+  "dashboard.org_library.fetch_error": "Det har oppstått et problem ved henting av data til biblioteket.",
   "dashboard.org_resources": "{{orgName}}s ressurser",
   "dashboard.resource_contact_description": "Se oversikt over hvordan du kommer i kontakt med oss i Altinn Studio.",
   "dashboard.resource_contact_label": "Kontakt oss",
