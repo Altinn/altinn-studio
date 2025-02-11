@@ -34,7 +34,7 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             .Build();
 
         var trigger = TriggerBuilder.Create()
-            .WithIdentity(DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
+            .WithIdentity(DeploymentPipelinePollingJobConstants.TriggerIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
             .StartNow()
             .WithSimpleSchedule(x => x
                 .WithIntervalInSeconds(DeploymentPipelinePollingJobConstants.PollingIntervalInSeconds)
