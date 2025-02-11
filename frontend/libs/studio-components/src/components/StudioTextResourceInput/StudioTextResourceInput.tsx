@@ -27,7 +27,7 @@ type TextResourceInputPropsBase = {
   currentIdClass?: string;
   inputClass?: string;
   onChangeCurrentId: (id: string | null) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;

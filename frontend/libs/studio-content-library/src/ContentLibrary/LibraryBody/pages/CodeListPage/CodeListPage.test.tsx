@@ -13,6 +13,7 @@ import {
 } from '../../../../test-data/codeListDataList';
 import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../../test-data/textResources';
+import type { TextResource } from '../../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 
 const onDeleteCodeList = jest.fn();
@@ -182,6 +183,41 @@ describe('CodeListPage', () => {
     expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
     expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
   });
+
+  it('Renders with text resources in the input fields of the create dialog when given', async () => {
+    const user = userEvent.setup();
+
+    renderCodeListPage({ textResources });
+    const dialog = await openCreateDialog(user);
+    await addCodeListItem(user, dialog);
+    await openSearchModeForFirstLabel(user, dialog);
+    await openFirstLabelCombobox(user, dialog);
+
+    expect(getTextResourceOption(label1ResourceNb, dialog)).toBeInTheDocument();
+  });
+
+  it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed in the create dialog', async () => {
+    const user = userEvent.setup();
+    const onUpdateTextResource = jest.fn();
+    const newLabel = 'Ny ledetekst';
+
+    renderCodeListPage({ textResources, onUpdateTextResource });
+    const dialog = await openCreateDialog(user);
+    await addCodeListItem(user, dialog);
+    await openSearchModeForFirstLabel(user, dialog);
+    await openFirstLabelCombobox(user, dialog);
+    await user.click(getTextResourceOption(label1ResourceNb, dialog));
+    await openEditModeForFirstLabel(user, dialog);
+    await user.type(getFirstLabelField(dialog), newLabel);
+
+    const expectedLanguage = 'nb';
+    const expectedObject: TextResourceWithLanguage = {
+      language: expectedLanguage,
+      textResource: { ...label1ResourceNb, value: newLabel },
+    };
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
+    expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
+  });
 });
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
@@ -198,8 +234,12 @@ const openAndGetFirstLabelField = async (
 ): Promise<HTMLElement> => {
   await user.click(getCodeListHeading(codeListTitle));
   const accordion = getCodeListAccordion(codeListTitle);
+  return getFirstLabelField(accordion);
+};
+
+const getFirstLabelField = (area: HTMLElement): HTMLElement => {
   const labelFieldLabel = textMock('code_list_editor.text_resource.label.value', { number: 1 });
-  return within(accordion).getByRole('textbox', { name: labelFieldLabel });
+  return within(area).getByRole('textbox', { name: labelFieldLabel });
 };
 
 const getCodeListAccordion = (codeListTitle: string): HTMLElement =>
@@ -215,3 +255,37 @@ const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
 
 const renderCodeListPage = (props: Partial<CodeListPageProps> = {}): RenderResult =>
   render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
+
+const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
+  const createButtonLabel = textMock('app_content_library.code_lists.create_new_code_list');
+  await user.click(screen.getByRole('button', { name: createButtonLabel }));
+  return screen.getByRole('dialog');
+};
+
+const addCodeListItem = async (user: UserEvent, area: HTMLElement): Promise<void> => {
+  const addButtonLabel = textMock('code_list_editor.add_option');
+  await user.click(within(area).getByRole('button', { name: addButtonLabel }));
+};
+
+const openSearchModeForFirstLabel = async (user: UserEvent, area: HTMLElement): Promise<void> => {
+  const radioLabel = textMock('code_list_editor.text_resource.label.search_mode', { number: 1 });
+  const radio = within(area).getByRole('radio', { name: radioLabel });
+  await user.click(radio);
+};
+
+const openEditModeForFirstLabel = async (user: UserEvent, area: HTMLElement): Promise<void> => {
+  const radioLabel = textMock('code_list_editor.text_resource.label.edit_mode', { number: 1 });
+  const radio = await within(area).findByRole('radio', { name: radioLabel });
+  await user.click(radio);
+};
+
+const openFirstLabelCombobox = async (user: UserEvent, area: HTMLElement): Promise<void> => {
+  const comboboxLabel = textMock('code_list_editor.text_resource.label.select', { number: 1 });
+  const combobox = within(area).getByRole('combobox', { name: comboboxLabel });
+  await user.click(combobox);
+};
+
+const getTextResourceOption = (textResource: TextResource, area: HTMLElement): HTMLElement =>
+  within(area).getByRole('option', { name: retrieveOptionName(textResource) });
+
+const retrieveOptionName = ({ value, id }: TextResource): string => `${value} ${id}`;
