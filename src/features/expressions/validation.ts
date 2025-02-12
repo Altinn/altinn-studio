@@ -5,10 +5,9 @@ import {
 } from 'src/features/expressions/expression-functions';
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ExprVal } from 'src/features/expressions/types';
-import type { AnyFuncDef, FuncValidationDef } from 'src/features/expressions/expression-functions';
-import type { AnyExprArg, Expression, ExprFunction, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { AnyExprArg, Expression, ExprFunctionName, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
-enum ValidationErrorMessage {
+export enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',
   FuncNotImpl = 'Function "%s" not implemented',
   ArgUnexpected = 'Unexpected argument',
@@ -50,7 +49,7 @@ export function addError(
 }
 
 function validateFunctionArg(
-  func: ExprFunction,
+  func: ExprFunctionName,
   idx: number,
   actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
@@ -62,20 +61,28 @@ function validateFunctionArg(
     addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgUnexpected);
   } else {
     const targetType = ExprTypes[expectedType];
+    const expectedTypeReadable = expectedType.replaceAll('_', '');
 
     if (actualType === undefined) {
       if (targetType.nullable) {
         return;
       }
-      addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
+      addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedTypeReadable, 'null');
     } else if (!targetType.accepts.includes(actualType)) {
-      addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
+      const actualTypeReadable = actualType.replaceAll('_', '');
+      addError(
+        ctx,
+        [...path, `[${idx + 1}]`],
+        ValidationErrorMessage.ArgWrongType,
+        expectedTypeReadable,
+        actualTypeReadable,
+      );
     }
   }
 }
 
 function validateFunctionArgs(
-  func: ExprFunction,
+  func: ExprFunctionName,
   actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
@@ -88,12 +95,12 @@ function validateFunctionArgs(
 }
 
 function validateFunctionArgLength(
-  func: ExprFunction,
+  func: ExprFunctionName,
   actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
 ) {
-  const expected = ExprFunctionDefinitions[func].args as AnyExprArg[];
+  const expected: AnyExprArg[] = ExprFunctionDefinitions[func].args;
   if (expected.length === 0) {
     if (actual.length !== 0) {
       addError(ctx, path, ValidationErrorMessage.ArgsWrongNum, '0', `${actual.length}`);
@@ -123,6 +130,10 @@ function validateFunctionArgLength(
   }
 }
 
+function isValidFunctionName(funcName: unknown): funcName is ExprFunctionName {
+  return typeof funcName === 'string' && funcName in ExprFunctionDefinitions;
+}
+
 function validateFunction(
   funcName: unknown,
   rawArgs: unknown[],
@@ -137,14 +148,14 @@ function validateFunction(
 
   const pathArgs = [...path.slice(0, path.length - 1)];
 
-  if (funcName in ExprFunctionDefinitions) {
-    validateFunctionArgs(funcName as ExprFunction, argTypes, ctx, pathArgs);
+  if (isValidFunctionName(funcName)) {
+    validateFunctionArgs(funcName, argTypes, ctx, pathArgs);
 
-    const def = ExprFunctionDefinitions[funcName as ExprFunction] as AnyFuncDef;
-    const validatorExt = ExprFunctionValidationExtensions[funcName] as FuncValidationDef | undefined;
+    const def = ExprFunctionDefinitions[funcName];
+    const validatorExt = ExprFunctionValidationExtensions[funcName];
     const numErrorsBefore = Object.keys(ctx.errors).length;
     if (validatorExt?.runNumArgsValidator !== false) {
-      validateFunctionArgLength(funcName as ExprFunction, argTypes, ctx, pathArgs);
+      validateFunctionArgLength(funcName, argTypes, ctx, pathArgs);
     }
     if (validatorExt?.validator && Object.keys(ctx.errors).length === numErrorsBefore) {
       // Skip the custom validator if the argument length is wrong
@@ -205,7 +216,7 @@ function validateRecursively(expr: any, ctx: ValidationContext, path: string[]):
 export function canBeExpression(expr: any, checkIfValidFunction = false): expr is [] {
   const firstPass = Array.isArray(expr) && expr.length >= 1 && typeof expr[0] === 'string';
   if (checkIfValidFunction && firstPass) {
-    return expr[0] in ExprFunctionDefinitions;
+    return isValidFunctionName(expr[0]);
   }
 
   return firstPass;

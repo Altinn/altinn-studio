@@ -1,0 +1,5 @@
+{
+  "name": "Should lowercase the first letter when given multiple words",
+  "expression": ["lowerCaseFirst", "HELLO WORLD FOO BAR"],
+  "expects": "hELLO WORLD FOO BAR"
+}

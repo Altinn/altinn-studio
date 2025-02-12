@@ -1,7 +1,7 @@
 import Ajv from 'ajv';
 import expressionSchema from 'schemas/json/layout/expression.schema.v1.json';
 
-import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
+import { CompareOperators, ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
 import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
 
@@ -68,7 +68,7 @@ describe('expression schema tests', () => {
   const validate = ajv.compile(expressionSchema);
 
   it.each(functions)('$name should validate against generated function calls', ({ name, args }) => {
-    if (name === 'if') {
+    if (name === 'if' || name === 'compare') {
       // if is a special case, we'll skip it here
       return;
     }
@@ -123,11 +123,21 @@ describe('expression schema tests', () => {
   });
 
   it('no other function definitions should be present', () => {
-    const hardcodedAllowed = new Set(['func-if-without-else', 'func-if-with-else']);
     const functionDefs = Object.keys(expressionSchema.definitions).filter((key) => key.startsWith('func-'));
-    const validFunctionDefs = new Set(Object.keys(ExprFunctionDefinitions).map((name) => `func-${name}`));
-    const unknownFunctionDefs = functionDefs.filter((key) => !validFunctionDefs.has(key) && !hardcodedAllowed.has(key));
-    expect(unknownFunctionDefs).toEqual([]);
+    const validFunctionDefs = new Set([
+      'func-if-without-else',
+      'func-if-with-else',
+      'func-compare-inverse',
+      ...Object.keys(ExprFunctionDefinitions).map((name) => `func-${name}`),
+    ]);
+    const invalidFunctionDefs = functionDefs.filter((key) => !validFunctionDefs.has(key));
+    expect(invalidFunctionDefs).toEqual([]);
+  });
+
+  it('compare operators should be valid', () => {
+    const valid = new Set(Object.keys(CompareOperators));
+    const operators = new Set(expressionSchema.definitions['compare-operator'].enum);
+    expect(operators).toEqual(valid);
   });
 });
 

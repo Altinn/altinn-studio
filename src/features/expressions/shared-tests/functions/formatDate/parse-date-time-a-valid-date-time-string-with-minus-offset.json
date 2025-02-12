@@ -7,5 +7,8 @@
     "1990-12-31T15:59:50.123-08:00",
     "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
   ],
-  "expects": "e.Kr. 1990-12-31 mandag 23:59:50.123 p.m."
+  "expects": "e.Kr. 1990-12-31 mandag 23:59:50.123 p.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
 }

@@ -1,0 +1,35 @@
+{
+  "name": "Should count the number of data elements",
+  "expression": ["countDataElements", "subform"],
+  "expects": 3,
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": { "a": { "value": "ABC" } }
+    },
+    {
+      "dataElement": {
+        "id": "10dd7417-5b4e-402a-bb73-007537071f13",
+        "dataType": "subform"
+      },
+      "data": { "a": { "value": "ABC" } }
+    },
+    {
+      "dataElement": {
+        "id": "20dd7417-5b4e-402a-bb73-007537071f14",
+        "dataType": "subform"
+      },
+      "data": { "a": { "value": "ABC" } }
+    },
+    {
+      "dataElement": {
+        "id": "30dd7417-5b4e-402a-bb73-007537071f15",
+        "dataType": "subform"
+      },
+      "data": { "a": { "value": "ABC" } }
+    }
+  ]
+}

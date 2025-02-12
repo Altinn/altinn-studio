@@ -80,7 +80,11 @@
         { "$ref": "#/definitions/func-upperCase" },
         { "$ref": "#/definitions/func-_experimentalSelectAndMap" },
         { "$ref": "#/definitions/func-argv"},
-        { "$ref": "#/definitions/func-value"}
+        { "$ref": "#/definitions/func-value"},
+        { "$ref": "#/definitions/func-stringReplace" },
+        { "$ref": "#/definitions/func-stringSlice" },
+        { "$ref": "#/definitions/func-upperCaseFirst" },
+        { "$ref": "#/definitions/func-lowerCaseFirst" }
       ]
     },
     "boolean": {
@@ -112,7 +116,9 @@
         { "$ref": "#/definitions/func-endsWith" },
         { "$ref": "#/definitions/func-startsWith" },
         { "$ref": "#/definitions/func-commaContains" },
-        { "$ref": "#/definitions/func-hasRole" }
+        { "$ref": "#/definitions/func-hasRole" },
+        { "$ref": "#/definitions/func-compare" },
+        { "$ref": "#/definitions/func-compare-inverse" }
       ]
     },
     "number": {
@@ -128,7 +134,9 @@
       "title": "Any expression returning a number (strict)",
       "anyOf": [
         { "type": "number", "title": "Numeric constant" },
-        { "$ref": "#/definitions/func-stringLength" }
+        { "$ref": "#/definitions/func-stringLength" },
+        { "$ref": "#/definitions/func-stringIndexOf" },
+        { "$ref": "#/definitions/func-countDataElements" }
       ]
     },
     "func-if": {
@@ -176,6 +184,16 @@
       "items": [
         { "const":  "dataModel" },
         { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-countDataElements": {
+      "title": "Count data elements function",
+      "description": "This function will count the number of data elements of the specified data type in the current instance",
+      "type": "array",
+      "items": [
+        { "const":  "countDataElements" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
@@ -357,6 +375,31 @@
       ],
       "additionalItems": false
     },
+    "func-compare": {
+      "title": "Compare function",
+      "description": "This function compares two values (or expressions) and returns a boolean. The first and last arguments are values, and the second argument is a comparison operator.",
+      "type": "array",
+      "items": [
+        { "const":  "compare" },
+        { "$ref": "#/definitions/any" },
+        { "$ref": "#/definitions/compare-operator" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-compare-inverse": {
+      "title": "Inverse compare function",
+      "description": "This function compares two values (or expressions) and returns a boolean. The first and last arguments are values, and the third argument is a comparison operator.",
+      "type": "array",
+      "items": [
+        { "const":  "compare" },
+        { "$ref": "#/definitions/any" },
+        { "const": "not" },
+        { "$ref": "#/definitions/compare-operator" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
     "func-linkToComponent": {
       "title": "Link to component function",
       "description": "This function returns a link to a specific component in a form",
@@ -453,12 +496,47 @@
       ],
       "additionalItems": false
     },
+    "func-stringReplace": {
+      "title": "String replace function",
+      "description": "This function replaces all occurrences of a substring in a string with another string",
+      "type": "array",
+      "items": [
+        { "const":  "stringReplace" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
     "func-stringLength": {
       "title": "String length function",
       "description": "This function returns the length of a string",
       "type": "array",
       "items": [
         { "const":  "stringLength" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-stringSlice": {
+      "title": "String slice function",
+      "description": "This function returns a substring of a string (from start index to end index, can be negative)",
+      "type": "array",
+      "items": [
+        { "const":  "stringSlice" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-stringIndexOf": {
+      "title": "String index of function",
+      "description": "This function returns the index of the first occurrence of a substring in a string. If none is found, null is returned.",
+      "type": "array",
+      "items": [
+        { "const":  "stringIndexOf" },
+        { "$ref": "#/definitions/string" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
@@ -490,6 +568,26 @@
       "type": "array",
       "items": [
         { "const":  "upperCase" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-lowerCaseFirst": {
+      "title": "Lower case first function",
+      "description": "This function converts the first character of a string to lower case",
+      "type": "array",
+      "items": [
+        { "const":  "lowerCaseFirst" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-upperCaseFirst": {
+      "title": "Upper case first function",
+      "description": "This function converts the first character of a string to upper case",
+      "type": "array",
+      "items": [
+        { "const":  "upperCaseFirst" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
@@ -527,6 +625,10 @@
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
+    },
+    "compare-operator": {
+      "title": "Comparison operator",
+      "enum": ["equals", "greaterThan", "greaterThanEq", "lessThan", "lessThanEq", "isAfter", "isBefore", "isAfterEq", "isBeforeEq", "isSameDay"]
     }
   }
 }

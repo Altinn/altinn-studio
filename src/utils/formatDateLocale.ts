@@ -1,3 +1,6 @@
+import { getLanguageFromCode } from 'src/language/languages';
+import type { FixedLanguageList } from 'src/language/languages';
+
 const UNICODE_TOKENS = /[^a-zA-Z0-9]+/g;
 export type Token =
   | 'G'
@@ -38,7 +41,6 @@ export type Token =
   | 'SS'
   | 'SSS';
 type Separator = string | undefined;
-type TokenValueSeparator = [Token, string | undefined, Separator];
 
 const tokenMappings: Record<Token, Intl.DateTimeFormatOptions> = {
   G: { era: 'short' },
@@ -86,32 +88,25 @@ export function formatDateLocale(localeStr: string, date: Date, unicodeFormat?: 
   }
   const tokens = unicodeFormat.split(UNICODE_TOKENS) as Token[];
   const separators: Separator[] = unicodeFormat.match(UNICODE_TOKENS) ?? [];
+  const lang = getLanguageFromCode(localeStr);
 
-  const options: Partial<Record<Token, Intl.DateTimeFormatOptions>> = tokens.reduce(
-    (acc, token) => ({ ...acc, [token]: tokenMappings[token] }),
-    {},
-  );
+  let output = '';
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const options = tokenMappings[token];
+    const separator = separators[i] ?? '';
+    if (!options) {
+      // TODO: Throw an error instead?
+      output += `Unsupported: ${token}${separator}`;
+      continue;
+    }
 
-  const parts: Partial<Record<Token, Intl.DateTimeFormatPart>> = Object.keys(options)
-    .filter((token: Token) => options[token] !== undefined)
-    .reduce(
-      (acc, token: Token) => ({
-        ...acc,
-        [token]: selectPartToUse(new Intl.DateTimeFormat(localeStr, options[token]).formatToParts(date), token),
-      }),
-      {},
-    );
+    const formatLang = token === 'a' ? 'en' : localeStr;
+    const value = selectPartToUse(new Intl.DateTimeFormat(formatLang, options).formatToParts(date), token)?.value;
+    output += postProcessValue(token, date, lang, value) + separator;
+  }
 
-  const tokenValueSeparators = tokens.map<TokenValueSeparator>((token: Token, index) => [
-    token,
-    postProcessValue(token, date, parts[token]?.value),
-    separators?.[index],
-  ]);
-
-  return tokenValueSeparators.reduce((acc, [token, value, separator]) => {
-    const valueWithFallback = value ?? `Unsupported: ${token}`;
-    return `${acc}${valueWithFallback}${separator ?? ''}`;
-  }, '');
+  return output;
 }
 
 /**
@@ -136,7 +131,7 @@ export function getDatepickerFormat(unicodeFormat: string): string {
 }
 
 export function getFormatPattern(datePickerFormat: string): string {
-  return datePickerFormat.replaceAll(/d|m|y/gi, '#');
+  return datePickerFormat.replaceAll(/[dmy]/gi, '#');
 }
 
 function selectPartToUse(parts: Intl.DateTimeFormatPart[], token: Token) {
@@ -172,7 +167,7 @@ function selectPartToUse(parts: Intl.DateTimeFormatPart[], token: Token) {
   }
 }
 
-function postProcessValue(token: Token, date: Date, value?: string) {
+function postProcessValue(token: Token, date: Date, lang: FixedLanguageList | undefined, value: string | undefined) {
   if (value === undefined) {
     return value;
   }
@@ -191,6 +186,9 @@ function postProcessValue(token: Token, date: Date, value?: string) {
   }
   if (['E', 'EE', 'EEE'].includes(token)) {
     return value.replace(/\.$/, '');
+  }
+  if (token === 'a' && lang?.dateTime) {
+    return value === 'AM' ? lang.dateTime.am : lang.dateTime.pm;
   }
   return value;
 }

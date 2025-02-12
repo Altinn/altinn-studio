@@ -8,7 +8,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
+import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
@@ -115,6 +115,7 @@ describe('Expressions shared function tests', () => {
         positionalArguments,
         valueArguments,
         roles,
+        testCases,
       } = test;
 
       if (disabledFrontend) {
@@ -255,17 +256,21 @@ describe('Expressions shared function tests', () => {
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
       jest.mocked(useCurrentPartyRoles).mockReturnValue(roles as RoleResult);
 
+      let node: LayoutNode | undefined;
       const nodeId = nodeIdFromContext(context);
-      await renderWithNode({
+      const { rerender } = await renderWithNode({
         nodeId,
-        renderer: ({ node }) => (
-          <ExpressionRunner
-            node={node}
-            expression={expression}
-            positionalArguments={positionalArguments}
-            valueArguments={valueArguments}
-          />
-        ),
+        renderer: ({ node: _node }) => {
+          node = _node;
+          return (
+            <ExpressionRunner
+              node={node}
+              expression={expression}
+              positionalArguments={positionalArguments}
+              valueArguments={valueArguments}
+            />
+          );
+        },
         inInstance: !!instance || !!dataModels,
         queries: {
           fetchLayoutSets: async () => ({
@@ -283,18 +288,42 @@ describe('Expressions shared function tests', () => {
         },
       });
 
-      const errorMock = window.logError as jest.Mock;
-      const textContent = (await screen.findByTestId('expr-result')).textContent;
-      const result = textContent ? JSON.parse(textContent) : null;
+      await assertExpr({ expression, expects, expectsFailure });
 
-      if (expectsFailure) {
-        expect(errorMock).toHaveBeenCalledWith(expect.stringContaining(expectsFailure));
-        expect(errorMock).toHaveBeenCalledTimes(1);
-      } else {
-        expect(errorMock).not.toHaveBeenCalled();
-        ExprValidation.throwIfInvalid(expression);
-        expect(result).toEqual(expects);
+      if (testCases) {
+        for (const testCase of testCases) {
+          rerender(
+            <ExpressionRunner
+              node={node!}
+              expression={testCase.expression}
+              positionalArguments={positionalArguments}
+              valueArguments={valueArguments}
+            />,
+          );
+          await assertExpr(testCase);
+        }
       }
     });
   });
 });
+
+async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {
+  // Makes sure we don't end up with any unexpected properties (if there are, these should probably be added as
+  // dependencies for the expression in some way)
+  expect(Object.keys(rest)).toHaveLength(0);
+
+  const errorMock = window.logError as jest.Mock;
+  const textContent = (await screen.findByTestId('expr-result')).textContent;
+  const result = textContent ? JSON.parse(textContent) : null;
+
+  if (expectsFailure !== undefined) {
+    expect(errorMock).toHaveBeenCalledWith(expect.stringContaining(expectsFailure));
+    expect(errorMock).toHaveBeenCalledTimes(1);
+  } else {
+    expect(errorMock).not.toHaveBeenCalled();
+    ExprValidation.throwIfInvalid(expression);
+    expect(result).toEqual(expects);
+  }
+
+  jest.clearAllMocks();
+}

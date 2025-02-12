@@ -36,7 +36,11 @@ describe('Shared function tests should exist', () => {
   describe('Function tests', () => {
     for (const exprFunc of Object.keys(ExprFunctionDefinitions)) {
       it(`Expression function ${exprFunc} should have a test folder`, () => {
-        expect(sharedTests?.content.find(({ folderName }) => folderName === exprFunc)).toBeTruthy();
+        expect(
+          sharedTests?.content.find(
+            ({ folderName }) => folderName === exprFunc || folderName.startsWith(`${exprFunc}-`),
+          ),
+        ).toBeTruthy();
       });
     }
   });

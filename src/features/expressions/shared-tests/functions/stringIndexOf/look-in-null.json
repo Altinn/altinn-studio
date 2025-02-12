@@ -1,0 +1,5 @@
+{
+  "name": "Should return null when looking in null",
+  "expression": ["stringIndexOf", null, "foo"],
+  "expects": null
+}

@@ -7,5 +7,8 @@
     "1937-01-01T12:00:27.87+00:20",
     "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
   ],
-  "expects": "e.Kr. 1937-01-01 fredag 11:40:27.870 a.m."
+  "expects": "e.Kr. 1937-01-01 fredag 11:40:27.870 a.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
 }

@@ -1,0 +1,5 @@
+{
+  "name": "Should find the index of a number",
+  "expression": ["stringIndexOf", 123456789, "345"],
+  "expects": 2
+}

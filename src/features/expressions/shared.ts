@@ -49,10 +49,16 @@ export interface ContextTest extends SharedTest {
   expectedContexts: SharedTestContextList[];
 }
 
-export interface FunctionTest extends SharedTest {
+export interface FunctionTestBase {
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   expects?: unknown;
   expectsFailure?: string;
+}
+
+type FullFunctionTest = FunctionTestBase & SharedTest;
+
+export interface FunctionTest extends FullFunctionTest {
+  testCases?: FunctionTestBase[];
   context?: SharedTestFunctionContext;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;

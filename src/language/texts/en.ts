@@ -2,6 +2,10 @@ import type { NestedTexts } from 'src/language/languages';
 
 export function en() {
   return {
+    dateTime: {
+      am: 'AM',
+      pm: 'PM',
+    },
     altinn: {
       standard_validation: {
         file_content_type_not_allowed:

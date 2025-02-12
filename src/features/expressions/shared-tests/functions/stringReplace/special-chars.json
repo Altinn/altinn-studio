@@ -1,0 +1,5 @@
+{
+  "name": "Should find and replace special characters",
+  "expression": ["stringReplace", "Hello, {[!@#$%^&*()]}!", "{[!@#$%^&*()]}", "planet"],
+  "expects": "Hello, planet!"
+}

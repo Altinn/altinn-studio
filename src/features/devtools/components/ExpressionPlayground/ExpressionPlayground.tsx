@@ -15,7 +15,7 @@ import comboboxClasses from 'src/styles/combobox.module.css';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeTraversal, useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
-import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
+import type { ExprConfig, Expression, ExprFunctionName } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -131,7 +131,7 @@ export const ExpressionPlayground = () => {
 
       const calls: string[] = [];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const onAfterFunctionCall = (path: string[], func: ExprFunction, args: any[], result: any) => {
+      const onAfterFunctionCall = (path: string[], func: ExprFunctionName, args: any[], result: any) => {
         const indent = '  '.repeat(path.length);
         calls.push(`${indent}${JSON.stringify([func, ...args])} => ${JSON.stringify(result)}`);
       };

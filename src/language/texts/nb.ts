@@ -2,6 +2,10 @@ import type { FixedLanguageList, NestedTexts } from 'src/language/languages';
 
 export function nb(): FixedLanguageList {
   return {
+    dateTime: {
+      am: 'a.m.',
+      pm: 'p.m.',
+    },
     altinn: {
       standard_validation: {
         file_content_type_not_allowed:

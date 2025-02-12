@@ -4,7 +4,7 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
+import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
@@ -17,6 +17,7 @@ import { useInnerNodeFormDataSelector } from 'src/utils/layout/useNodeItem';
 import { useInnerNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
+import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
@@ -33,6 +34,7 @@ export interface ExpressionDataSources {
   process?: IProcess;
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
+  dataElementSelector: DataElementSelector;
   dataModelNames: string[];
   formDataSelector: FormDataSelector;
   formDataRowsSelector: FormDataRowsSelector;
@@ -60,6 +62,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
     nodeDataSelector,
     dataSelectorForTraversal,
     isHiddenSelector,
+    dataElementSelector,
   ] = useMultipleDelayedSelectors(
     FD.useDebouncedSelectorProps(),
     FD.useDebouncedRowsSelectorProps(),
@@ -68,6 +71,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
     NodesInternal.useNodeDataSelectorProps(),
     NodesInternal.useDataSelectorForTraversalProps(),
     Hidden.useIsHiddenSelectorProps(),
+    useLaxDataElementsSelectorProps(),
   );
 
   const process = useLaxProcessData();
@@ -109,5 +113,6 @@ export function useExpressionDataSources(): ExpressionDataSources {
     currentLayoutSet,
     externalApis,
     dataModelNames,
+    dataElementSelector,
   });
 }

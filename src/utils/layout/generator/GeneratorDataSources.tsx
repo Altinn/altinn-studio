@@ -54,6 +54,7 @@ function useExpressionDataSources(): ExpressionDataSources {
     nodeDataSelector,
     dataSelectorForTraversal,
     isHiddenSelector,
+    dataElementSelector,
   ] = useMultipleDelayedSelectors(
     FD.useDebouncedSelectorProps(),
     FD.useDebouncedRowsSelectorProps(),
@@ -62,6 +63,7 @@ function useExpressionDataSources(): ExpressionDataSources {
     NodesInternal.useNodeDataSelectorProps(),
     NodesInternal.useDataSelectorForTraversalProps(),
     Hidden.useIsHiddenSelectorProps(),
+    useLaxDataElementsSelectorProps(),
   );
 
   const process = useLaxProcessData();
@@ -102,6 +104,7 @@ function useExpressionDataSources(): ExpressionDataSources {
     currentLayoutSet,
     externalApis,
     dataModelNames,
+    dataElementSelector,
   });
 }
 

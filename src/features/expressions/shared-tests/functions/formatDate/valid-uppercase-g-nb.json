@@ -5,5 +5,8 @@
     "2023-03-04T05:06:07.120Z",
     "G"
   ],
-  "expects": "e.Kr."
+  "expects": "e.Kr.",
+  "profileSettings": {
+    "language": "nb"
+  }
 }

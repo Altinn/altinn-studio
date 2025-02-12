@@ -7,5 +7,8 @@
     "1963-06-19",
     "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
   ],
-  "expects": "e.Kr. 1963-06-19 onsdag 00:00:00.000 a.m."
+  "expects": "e.Kr. 1963-06-19 onsdag 00:00:00.000 a.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
 }

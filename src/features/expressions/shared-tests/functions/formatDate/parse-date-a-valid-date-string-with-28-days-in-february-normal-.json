@@ -7,5 +7,8 @@
     "2021-02-28",
     "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
   ],
-  "expects": "e.Kr. 2021-02-28 søndag 00:00:00.000 a.m."
+  "expects": "e.Kr. 2021-02-28 søndag 00:00:00.000 a.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
 }

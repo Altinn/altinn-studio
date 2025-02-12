@@ -1,0 +1,5 @@
+{
+  "name": "Should work when negative end index is before string starts",
+  "expression": ["stringSlice", "hello", 0, -8],
+  "expects": ""
+}

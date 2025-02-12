@@ -6,7 +6,7 @@ import {
   prettyError,
   traceExpressionError,
   UnexpectedType,
-  UnknownSourceType,
+  UnknownArgType,
   UnknownTargetType,
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
@@ -14,8 +14,10 @@ import { ExprVal } from 'src/features/expressions/types';
 import type { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import type {
   ExprConfig,
+  ExprDate,
+  ExprDateExtensions,
   Expression,
-  ExprFunction,
+  ExprFunctionName,
   ExprPositionalArgs,
   ExprValToActual,
   ExprValToActualOrExpr,
@@ -25,8 +27,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
-type BeforeFuncCallback = (path: string[], func: ExprFunction, args: unknown[]) => void;
-type AfterFuncCallback = (path: string[], func: ExprFunction, args: unknown[], result: unknown) => void;
+type BeforeFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[]) => void;
+type AfterFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[], result: unknown) => void;
 
 export interface EvalExprOptions {
   config?: ExprConfig;
@@ -132,7 +134,7 @@ export function evalExpr<V extends ExprVal = ExprVal>(
   }
 }
 
-export function argTypeAt(func: ExprFunction, argIndex: number): ExprVal | undefined {
+export function argTypeAt(func: ExprFunctionName, argIndex: number): ExprVal | undefined {
   const funcDef = ExprFunctionDefinitions[func];
   const possibleArgs = funcDef.args;
   const maybeReturn = possibleArgs[argIndex]?.type;
@@ -223,8 +225,7 @@ export function exprCastValue<T extends ExprVal>(
 
   const valueType = valueToExprValueType(value);
   if (!typeObj.accepts.includes(valueType)) {
-    const supported = [...typeObj.accepts, ...(typeObj.nullable ? ['null'] : [])].join(', ');
-    throw new UnknownSourceType(context.expr, context.path, typeof value, supported);
+    throw new UnknownArgType(context.expr, context.path, valueType.replaceAll('_', ''), toType.replaceAll('_', ''));
   }
 
   return typeObj.impl.apply(context, [value]);
@@ -328,7 +329,7 @@ export const ExprTypes: {
   },
   [ExprVal.Date]: {
     nullable: true,
-    accepts: [ExprVal.String, ExprVal.Number, ExprVal.Date, ExprVal.Any],
+    accepts: [ExprVal.String, ExprVal.Date, ExprVal.Any],
     impl(arg) {
       if (typeof arg === 'number') {
         return exprParseDate(this, String(arg)); // Might be just a 4-digit year
@@ -344,69 +345,66 @@ export const ExprTypes: {
 };
 
 /**
- * Strict date parser. We don't want to support all the formats that Date.parse() supports, because that
+ * Strict date parser. We don't want to support all the formats that Date.parse() and parseISO() supports, because that
  * would make it more difficult to implement the same functionality on the backend. For that reason, we
- * limit ourselves to simple ISO 8601 dates + the format DateTime is serialized to JSON in.
+ * limit ourselves to simple ISO 8601 dates + the format DateTime is serialized to JSON in. There are shared tests
+ * for this in the `formatDate` function folder.
  */
-const datePatterns = [
-  /^(\d{4})$/,
-  /^(\d{4})-(\d{2})-(\d{2})T?$/,
-  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})Z?([+-]\d{2}:\d{2})?$/,
-  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})Z?([+-]\d{2}:\d{2})?$/,
-  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})\.(\d+)Z?([+-]\d{2}:\d{2})?$/,
-];
+const datePattern =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}(?:[ Tt][0-9]{2}:[0-9]{2}(?::[0-9]{2}(\.[0-9]{1,9})?)?([Zz]|[+-][0-9]{2}:[0-9]{2})?)?$/;
 
-function exprParseDate(ctx: EvaluateExpressionParams, _date: string): Date | null {
+function exprParseDate(ctx: EvaluateExpressionParams, _date: string): ExprDate | null {
   const date = _date.toUpperCase();
-  for (const regexIdx in datePatterns) {
-    const regex = datePatterns[regexIdx];
-    const match = regex.exec(date);
-    if (!match) {
-      // To maintain compatibility with the backend, we only allow the above regexes to be parsed
-      continue;
+  const match = datePattern.exec(date);
+  if (!match) {
+    // To maintain compatibility with the backend, we only allow the above regex to be parsed
+    if (date.trim() !== '') {
+      throw new ExprRuntimeError(ctx.expr, ctx.path, `Unable to parse date "${date}": Unknown format`);
     }
 
-    // Special case that parseISO doesn't catch: Time zone offset cannot be +- >= 24 hours
-    const lastGroup = match[match.length - 1];
-    if (lastGroup && (lastGroup.startsWith('-') || lastGroup.startsWith('+'))) {
-      const offsetHours = parseInt(lastGroup.substring(1, 3), 10);
-      if (offsetHours >= 24) {
-        throw new ExprRuntimeError(
-          ctx.expr,
-          ctx.path,
-          `Unable to parse date "${date}": Format was recognized, but the date/time is invalid`,
-        );
-      }
-    }
+    return null;
+  }
 
-    const parsed = parseISO(date);
-    if (!isValid(parsed.getTime())) {
+  // Special case that parseISO doesn't catch: Time zone offset cannot be +- >= 24 hours
+  const lastGroup = match[match.length - 1];
+  if (lastGroup && (lastGroup.startsWith('-') || lastGroup.startsWith('+'))) {
+    const offsetHours = parseInt(lastGroup.substring(1, 3), 10);
+    if (offsetHours >= 24) {
       throw new ExprRuntimeError(
         ctx.expr,
         ctx.path,
         `Unable to parse date "${date}": Format was recognized, but the date/time is invalid`,
       );
     }
-
-    // Special case that parseISO gets wrong: Fractional seconds with more than 3 digits
-    // https://github.com/date-fns/date-fns/issues/3194
-    // https://github.com/date-fns/date-fns/pull/3199
-    if (regexIdx === '4' && match[7] && match[7].length > 3) {
-      // This is a sloppy workaround, and not really a fix. By just setting the correct amount of milliseconds we
-      // fix our shared tests to match the backend, but if you have an edge-case like 31.12.2021 23:59:59.9999999
-      // the parseISO function will think it's 2022. Saying it's really 01.01.2022 00:00:00.999 (like we're doing here)
-      // may look like we're just making things worse, but in most cases high precision fractionals will not roll you
-      // over to the next second (let alone the next year).
-      const ms = parseInt(match[7].substring(0, 3), 10);
-      parsed.setMilliseconds(ms);
-    }
-
-    return parsed;
   }
 
-  if (date.trim() !== '') {
-    throw new ExprRuntimeError(ctx.expr, ctx.path, `Unable to parse date "${date}": Unknown format`);
+  const parsed = parseISO(date);
+  if (!isValid(parsed.getTime())) {
+    throw new ExprRuntimeError(
+      ctx.expr,
+      ctx.path,
+      `Unable to parse date "${date}": Format was recognized, but the date/time is invalid`,
+    );
   }
 
-  return null;
+  // Special case that parseISO gets wrong: Fractional seconds with more than 3 digits
+  // https://github.com/date-fns/date-fns/issues/3194
+  // https://github.com/date-fns/date-fns/pull/3199
+  if (match[1]) {
+    // This is a sloppy workaround, and not really a fix. By just setting the correct amount of milliseconds we
+    // fix our shared tests to match the backend, but if you have an edge-case like 31.12.2021 23:59:59.9999999
+    // the parseISO function will think it's 2022. Saying it's really 01.01.2022 00:00:00.999 (like we're doing here)
+    // may look like we're just making things worse, but in most cases high precision fractionals will not roll you
+    // over to the next second (let alone the next year).
+    const ms = parseInt(match[1].substring(1, 4).padEnd(3, '0'), 10);
+    parsed.setMilliseconds(ms);
+  }
+
+  const isUtc = match[2] === 'Z' || match[2] === '+00:00' || match[2] === '-00:00';
+  const extensions: ExprDateExtensions = {
+    raw: date,
+    timeZone: isUtc ? 'utc' : match[2] ? match[2] : 'local',
+  };
+
+  return Object.assign(parsed, { exprDateExtensions: extensions });
 }

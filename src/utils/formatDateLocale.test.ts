@@ -38,7 +38,8 @@ function input(token: Token) {
   if (['s', 'ss'].includes(token)) {
     return nArray(60).map((i) => new Date(2023, 5, 15, 12, 13, i));
   }
-  return [];
+
+  throw new Error(`No input examples for token: ${token}`);
 }
 function output(token: Token, locale = 'en') {
   if (token == 'h') {
@@ -137,10 +138,15 @@ function output(token: Token, locale = 'en') {
   if (token === 'EEEEE') {
     return ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   }
-  if (token === 'a') {
+  if (token === 'a' && locale === 'en') {
     return nArray(12)
       .map(() => 'AM')
       .concat(nArray(12).map(() => 'PM'));
+  }
+  if (token === 'a') {
+    return nArray(12)
+      .map(() => 'a.m.')
+      .concat(nArray(12).map(() => 'p.m.'));
   }
   if (['m', 's'].includes(token)) {
     return nArray(60).map((n) => n.toString());
@@ -148,7 +154,8 @@ function output(token: Token, locale = 'en') {
   if (['mm', 'ss'].includes(token)) {
     return nArray(60).map((n) => n.toString().padStart(2, '0'));
   }
-  return [];
+
+  throw new Error(`No output examples for token: ${token}`);
 }
 
 const date = new Date('2023-05-15T12:30:45.789Z');
@@ -322,6 +329,12 @@ describe('formatDateLocale', () => {
   describe('AM/PM', () => {
     it.each(zip(input('a'), output('a')))('formats AM/PM correctly with token "a"', (input, output) => {
       expect(formatDateLocale('en', input, 'a')).toBe(output);
+    });
+    it.each(zip(input('a'), output('a', 'nb')))('formats AM/PM correctly with token "a"', (input, output) => {
+      expect(formatDateLocale('nb', input, 'a')).toBe(output);
+    });
+    it.each(zip(input('a'), output('a', 'nn')))('formats AM/PM correctly with token "a"', (input, output) => {
+      expect(formatDateLocale('nn', input, 'a')).toBe(output);
     });
   });
 
