@@ -251,7 +251,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
@@ -283,7 +283,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
@@ -312,7 +312,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
