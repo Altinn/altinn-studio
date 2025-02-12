@@ -65,12 +65,10 @@ export function LayoutSetsContainer() {
         ))}
       </StudioCombobox>
       {shouldDisplayFeature(FeatureFlag.ExportForm) && <ExportForm />}
-      {shouldDisplayFeature(FeatureFlag.Subform) && (
-        <DeleteSubformWrapper
-          layoutSets={layoutSetsResponse}
-          selectedLayoutSet={selectedFormLayoutSetName}
-        />
-      )}
+      <DeleteSubformWrapper
+        layoutSets={layoutSetsResponse}
+        selectedLayoutSet={selectedFormLayoutSetName}
+      />
     </div>
   );
 }

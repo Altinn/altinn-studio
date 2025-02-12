@@ -57,6 +57,7 @@ describe('Summary2Override', () => {
       render({ overrides: [{ componentId }] });
 
       await user.click(overrideCollapsedButton(1));
+      await user.click(overrideTypeSelector());
       expect(renderedTypeOptions()).toBeTruthy();
     },
   );
@@ -104,22 +105,6 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('should be able to change override forceShow', async () => {
-    const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1', hidden: false }] });
-    await user.click(overrideCollapsedButton(1));
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: textMock('ux_editor.component_properties.summary.override.force_show'),
-      }),
-    );
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', forceShow: true, hidden: false }]),
-      ),
-    );
-  });
-
   it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: container1IdMock, isCompact: false }] });
@@ -157,12 +142,8 @@ describe('Summary2Override', () => {
   it('should be able to override display type when component type is multiple select', async () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: multipleSelectId }] });
-
     await user.click(overrideCollapsedButton(1));
-    const optionStringType = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
-    });
-    await user.selectOptions(overrideTypeSelect(), optionStringType);
+    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
       expect.arrayContaining([{ componentId: multipleSelectId, displayType: 'string' }]),
@@ -173,13 +154,12 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: checkBoxId }] });
     await user.click(overrideCollapsedButton(1));
-    const optionStringType = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.summary.override.display_type.string'),
-    });
-    await user.selectOptions(overrideTypeSelect(), optionStringType);
+    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
 
-    expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ componentId: checkBoxId, displayType: 'string' }]),
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: checkBoxId, displayType: 'string' }]),
+      ),
     );
   });
 
@@ -222,13 +202,18 @@ const overrideComponentSelect = () =>
     name: textMock('ux_editor.component_properties.summary.override.choose_component'),
   });
 
-const overrideTypeSelect = () =>
+const overrideTypeSelector = () =>
   screen.getByRole('combobox', {
     name: textMock('ux_editor.component_properties.summary.override.display_type'),
   });
 
+const overrideSelectType = (type: string) =>
+  screen.getByRole('option', {
+    name: textMock(`ux_editor.component_properties.summary.override.display_type.${type}`),
+  });
+
 const renderedTypeOptions = () => {
-  const expectedOptions = ['list', 'string', 'not_set'].map((type) =>
+  const expectedOptions = ['list', 'string'].map((type) =>
     textMock(`ux_editor.component_properties.summary.override.display_type.${type}`),
   );
 

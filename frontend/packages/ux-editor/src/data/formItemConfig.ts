@@ -38,7 +38,6 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
@@ -506,7 +505,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature(FeatureFlag.Subform) && formItemConfigs[ComponentType.Subform],
+  formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -530,7 +529,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
-  shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
+  formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
@@ -589,7 +588,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Image,
     ComponentType.Link,
     ComponentType.IFrame,
-    ...(shouldDisplayFeature(FeatureFlag.Summary2) ? [ComponentType.Summary2] : []),
+    ComponentType.Summary2,
   ],
   button: [
     ComponentType.Button,
@@ -613,7 +612,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.List,
     ComponentType.RepeatingGroup,
   ],
-  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
+  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
