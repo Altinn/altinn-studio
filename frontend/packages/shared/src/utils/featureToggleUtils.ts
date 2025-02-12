@@ -10,8 +10,6 @@ export enum FeatureFlag {
   Maskinporten = 'maskinporten',
   OptionListEditor = 'optionListEditor',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  Subform = 'subform',
-  Summary2 = 'summary2',
   Undeploy = 'undeploy',
 }
 

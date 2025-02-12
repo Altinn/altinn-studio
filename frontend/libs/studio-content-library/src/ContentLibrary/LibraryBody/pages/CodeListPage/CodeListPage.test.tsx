@@ -12,6 +12,8 @@ import {
   codeListDataList,
 } from '../../../../test-data/codeListDataList';
 import { ArrayUtils } from '@studio/pure-functions';
+import { label1ResourceNb, textResources } from '../../../../test-data/textResources';
+import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 
 const onDeleteCodeList = jest.fn();
 const onUpdateCodeListId = jest.fn();
@@ -155,6 +157,31 @@ describe('CodeListPage', () => {
     expect(onUploadCodeList).toHaveBeenCalledTimes(1);
     expect(onUploadCodeList).toHaveBeenCalledWith(expect.any(Object));
   });
+
+  it('Renders with text resources in the input fields when given', async () => {
+    const user = userEvent.setup();
+    renderCodeListPage({ textResources, codeListsData: codeListDataList });
+    const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
+    expect(labelField).toHaveValue(label1ResourceNb.value);
+  });
+
+  it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed', async () => {
+    const user = userEvent.setup();
+    const onUpdateTextResource = jest.fn();
+    const newLabel = 'Ny ledetekst';
+
+    renderCodeListPage({ textResources, codeListsData: codeListDataList, onUpdateTextResource });
+    const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
+    await user.type(labelField, newLabel);
+
+    const expectedLanguage = 'nb';
+    const expectedObject: TextResourceWithLanguage = {
+      language: expectedLanguage,
+      textResource: { ...label1ResourceNb, value: newLabel },
+    };
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
+    expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
+  });
 });
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
@@ -163,6 +190,16 @@ const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> 
   );
   const file = new File(['test'], `${fileName}.json`, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);
+};
+
+const openAndGetFirstLabelField = async (
+  user: UserEvent,
+  codeListTitle: string,
+): Promise<HTMLElement> => {
+  await user.click(getCodeListHeading(codeListTitle));
+  const accordion = getCodeListAccordion(codeListTitle);
+  const labelFieldLabel = textMock('code_list_editor.text_resource.label.value', { number: 1 });
+  return within(accordion).getByRole('textbox', { name: labelFieldLabel });
 };
 
 const getCodeListAccordion = (codeListTitle: string): HTMLElement =>

@@ -190,4 +190,15 @@ export class ArrayUtils {
   /** Removes empty strings from a string array */
   static removeEmptyStrings = (array: string[]): string[] =>
     ArrayUtils.removeItemByValue(array, '');
+
+  /** Returns array with one occurence of every type from the input array **/
+  static extractUniqueTypes = (array: unknown[]): string[] => {
+    const typesInArray: string[] = array.map((element) => typeof element);
+    return ArrayUtils.removeDuplicates(typesInArray);
+  };
+
+  /** Checks if all elements are of the same type **/
+  static hasSingleType = (array: unknown[]): boolean => {
+    return ArrayUtils.extractUniqueTypes(array).length === 1;
+  };
 }

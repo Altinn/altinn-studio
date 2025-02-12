@@ -16,7 +16,6 @@ import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
 import { CheckmarkIcon } from '@studio/icons';
 import { type TargetComponentProps } from '../Summary2Target/targetUtils';
-import { ForceShowSwitch } from './OverrideFields/ForceShowSwitch';
 import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowComponentSwitch';
 
 type Summary2OverrideEntryProps = {
@@ -64,7 +63,7 @@ export const Summary2OverrideEntry = ({
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
-          onValueChange={(value) => onChange({ ...override, componentId: value })}
+          onValueChange={(value) => onChange({ componentId: value })}
         ></Summary2ComponentReferenceSelector>
 
         <OverrideShowComponentSwitch onChange={onChange} override={override} />
@@ -81,7 +80,6 @@ export const Summary2OverrideEntry = ({
               override={override}
               componentOptions={componentOptions}
             />
-            <ForceShowSwitch onChange={onChange} override={override} />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}
