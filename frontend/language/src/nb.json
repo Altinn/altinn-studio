@@ -119,7 +119,6 @@
   "app_deployment.table.build_log_active_link": "Se loggen",
   "app_deployment.table.build_log_expired_link": "Utløpt",
   "app_deployment.table.deployed_by_col": "Publisert av",
-  "app_deployment.table.deployed_version_history": "Versjoner som er publisert til {{envTitle}}",
   "app_deployment.table.deployed_version_history_empty": "Det er ingen publiseringshistorikk i {{envTitle}}",
   "app_deployment.table.status": "Status",
   "app_deployment.table.version_col": "Versjon",
