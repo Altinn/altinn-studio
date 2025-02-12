@@ -22,7 +22,7 @@ function findValueError(
   value: CodeListItemValue,
   allValues: CodeListItemValue[],
 ): ValueError | null {
-  if (value === undefined) return 'undefinedValue';
+  if (value === null) return 'nullValue';
   if (ArrayUtils.isDuplicate(value, allValues)) return 'duplicateValue';
   if (!ArrayUtils.hasSingleType(allValues)) return 'multipleTypes';
   else return null;
