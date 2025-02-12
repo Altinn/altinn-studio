@@ -37,16 +37,17 @@ public class OrgCodeListController : ControllerBase
     /// Fetches the contents of all the code-lists belonging to the organisation.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of <see cref="OptionListData" /> objects with all code-lists belonging to the organisation with data
     /// set if code-list is valid, or hasError set if code-list is invalid.</returns>
     [HttpGet]
-    public async Task<ActionResult<List<OptionListData>>> GetCodeLists(string org)
+    public async Task<ActionResult<List<OptionListData>>> GetCodeLists(string org, CancellationToken cancellationToken = default)
     {
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            List<OptionListData> codeLists = await _codeListService.GetCodeLists(org, Repo, developer);
+            List<OptionListData> codeLists = await _codeListService.GetCodeLists(org, Repo, developer, cancellationToken);
 
             return Ok(codeLists);
         }
@@ -135,7 +136,7 @@ public class OrgCodeListController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("{codeListId}")]
-    public async Task<ActionResult> DeleteCodeList(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> DeleteCodeList(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -143,7 +144,7 @@ public class OrgCodeListController : ControllerBase
         bool CodeListExists = await _codeListService.CodeListExists(org, Repo, developer, codeListId, cancellationToken);
         if (CodeListExists)
         {
-            List<OptionListData> codeLists = await _codeListService.DeleteCodeList(org, Repo, developer, codeListId);
+            List<OptionListData> codeLists = await _codeListService.DeleteCodeList(org, Repo, developer, codeListId, cancellationToken);
             return Ok(codeLists);
         }
 
