@@ -89,7 +89,7 @@ export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`
 
 // Library - org-level
 export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
-export const orgCodeListPath = (org, optionsListId) => `${basePath}/${org}/code-lists/${optionsListId}`; // Post, Put, Delete
+export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 
 // Organizations

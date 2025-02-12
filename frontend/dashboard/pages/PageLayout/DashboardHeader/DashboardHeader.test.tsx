@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext, SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
 import { useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type User } from 'app-shared/types/Repository';
@@ -14,7 +14,7 @@ const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn(),
+  useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
 }));
 
 const userMock: User = {
@@ -41,9 +41,7 @@ const mockOrg2: Organization = {
 const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
 
 describe('DashboardHeader', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(jest.clearAllMocks);
 
   it('should render the user name as the profile button when in self context', () => {
     (useParams as jest.Mock).mockReturnValue({
@@ -104,10 +102,37 @@ describe('DashboardHeader', () => {
     expect(logoutItem).toBeInTheDocument();
   });
 
+  it('should render correct menu elements in header', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
+    expect(libraryMenuItem).toBeInTheDocument();
+    const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
+    expect(appsMenuItem).toBeInTheDocument();
+  });
+
+  it('should render library menu element with correct link', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
+    expect(libraryMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
+    );
+  });
+
+  it('should render apps menu element with correct link', () => {
+    renderDashboardHeader();
+    const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
+    expect(appsMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
+  });
+
   it('should navigate to the correct organization context when an org is selected', async () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -118,7 +143,7 @@ describe('DashboardHeader', () => {
     const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledWith(`${Subroute.AppDashboard}/${mockOrg1.username}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -126,6 +151,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -136,7 +162,9 @@ describe('DashboardHeader', () => {
     const allItem = screen.getByRole('menuitemradio', { name: textMock('shared.header_all') });
     await user.click(allItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.All}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.All}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -144,6 +172,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.All,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -154,7 +183,9 @@ describe('DashboardHeader', () => {
     const selfItem = screen.getByRole('menuitemradio', { name: userMock.full_name });
     await user.click(selfItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.Self}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

@@ -62,6 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
         private const int PartyId = 51001;
         private const string MINIMUM_NUGET_VERSION = "8.0.0.0";
         private const int MINIMUM_PREVIEW_NUGET_VERSION = 15;
+        private const string OptionsFolderPath = "App/options/";
 
         /// <summary>
         /// Default action for the preview.
@@ -627,7 +628,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, OptionsFolderPath, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)

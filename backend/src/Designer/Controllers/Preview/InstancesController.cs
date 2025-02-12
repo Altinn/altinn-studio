@@ -29,6 +29,8 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     IApplicationMetadataService applicationMetadataService
 ) : Controller
 {
+    private const string OptionsFolderPath = "App/options/";
+
     // <summary>
     // Redirect requests from older versions of Studio to old controller
     // </summary>
@@ -187,7 +189,7 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
             // TODO: Need code to get dynamic options list based on language and source?
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
+            string options = await altinnAppGitRepository.GetOptionsList(optionListId, OptionsFolderPath, cancellationToken);
             return Ok(options);
         }
         catch (NotFoundException)
