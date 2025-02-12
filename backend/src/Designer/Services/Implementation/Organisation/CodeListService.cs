@@ -28,121 +28,7 @@ public class CodeListService : ICodeListService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    /// <inheritdoc />
-    public async Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string[] codelistIds = GetCodeListIds(org, repo, developer);
-        List<OptionListData> codeLists = [];
-        foreach (string codeListId in codelistIds)
-        {
-            try
-            {
-                List<Option> codeList = await GetCodeList(org, repo, developer, codeListId, cancellationToken);
-                OptionListData codeListData = new()
-                {
-                    Title = codeListId,
-                    Data = codeList,
-                    HasError = false
-                };
-                codeLists.Add(codeListData);
-            }
-            catch (InvalidOptionsFormatException)
-            {
-                OptionListData codeListData = new()
-                {
-                    Title = codeListId,
-                    Data = null,
-                    HasError = true
-                };
-                codeLists.Add(codeListData);
-            }
-        }
-
-        return codeLists;
-    }
-
-    private void ValidateOption(Option option)
-    {
-        var validationContext = new ValidationContext(option);
-        Validator.ValidateObject(option, validationContext, validateAllProperties: true);
-    }
-
-    /// <inheritdoc />
-    public async Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-
-        await altinnOrgGitRepository.CreateCodeList(codeListId, codeList, cancellationToken);
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
-
-        return codeLists;
-    }
-
-    /// <inheritdoc />
-    public async Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-
-        await altinnOrgGitRepository.UpdateCodeList(codeListId, codeList, cancellationToken);
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
-
-        return codeLists;
-    }
-
-    /// <inheritdoc />
-    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string codeListId, IFormFile payload, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
-
-        bool codeListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
-        if (codeListHasInvalidNullFields)
-        {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
-        }
-
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-        await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedOptions, cancellationToken);
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
-
-        return codeLists;
-    }
-
-    /// <inheritdoc />
-    public async Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
-    {
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-
-        altinnOrgGitRepository.DeleteCodeList(codeListId);
-
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
-
-        return codeLists;
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> CodeListExists(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        try
-        {
-            await GetCodeList(org, repo, developer, codeListId, cancellationToken);
-            return true;
-        }
-        catch (NotFoundException)
-        {
-            return false;
-        }
-    }
-
-    private string[] GetCodeListIds(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    public string[] GetCodeListIds(string org, string repo, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
@@ -158,7 +44,7 @@ public class CodeListService : ICodeListService
         }
     }
 
-    private async Task<List<Option>> GetCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> GetCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
@@ -177,5 +63,119 @@ public class CodeListService : ICodeListService
         }
 
         return codeList;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string[] optionListIds = GetCodeListIds(org, repo, developer);
+        List<OptionListData> optionLists = [];
+        foreach (string optionListId in optionListIds)
+        {
+            try
+            {
+                List<Option> optionList = await GetCodeList(org, repo, developer, optionListId, cancellationToken);
+                OptionListData optionListData = new()
+                {
+                    Title = optionListId,
+                    Data = optionList,
+                    HasError = false
+                };
+                optionLists.Add(optionListData);
+            }
+            catch (InvalidOptionsFormatException)
+            {
+                OptionListData optionListData = new()
+                {
+                    Title = optionListId,
+                    Data = null,
+                    HasError = true
+                };
+                optionLists.Add(optionListData);
+            }
+        }
+
+        return optionLists;
+    }
+
+    private void ValidateOption(Option option)
+    {
+        var validationContext = new ValidationContext(option);
+        Validator.ValidateObject(option, validationContext, validateAllProperties: true);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        await altinnOrgGitRepository.CreateCodeList(optionsListId, payload, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+
+        return codeLists;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        await altinnOrgGitRepository.UpdateCodeList(optionsListId, payload, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+
+        return codeLists;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
+            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+
+        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
+        if (optionListHasInvalidNullFields)
+        {
+            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+        }
+
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        await altinnOrgGitRepository.CreateCodeList(optionsListId, deserializedOptions, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+
+        return codeLists;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    {
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        altinnOrgGitRepository.DeleteCodeList(optionsListId);
+
+        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+
+        return codeLists;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> CodeListExists(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await GetCodeList(org, repo, developer, optionsListId, cancellationToken);
+            return true;
+        }
+        catch (NotFoundException)
+        {
+            return false;
+        }
     }
 }
