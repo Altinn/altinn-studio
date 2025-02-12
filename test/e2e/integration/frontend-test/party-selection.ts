@@ -1,6 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { cyMockResponses, CyPartyMocks } from 'test/e2e/pageobjects/party-mocks';
+import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 
 import type { IParty } from 'src/types/shared';
 
@@ -241,5 +241,45 @@ describe('Party selection', () => {
       cy.get('[id^="party-"]').should('not.exist');
       cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('not.exist');
     });
+  });
+
+  it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
+    cy.allowFailureOnEnd();
+    cyMockResponses({
+      allowedToInstantiate: removeAllButOneOrg,
+      doNotPromptForParty: false,
+    });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'accountant' });
+
+    // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    cy.findAllByText(/org\.nr\. \d+/)
+      .first()
+      .click();
+    cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
+
+    // Try again with another party
+    cy.findByRole('link', { name: 'skift aktør her' }).click();
+    cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
+
+    // The person on the other hand is allowed to instantiate
+    cy.findAllByText(/personnr\. \d+/)
+      .first()
+      .click();
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+
+    // To make sure this instance is different from the next, we navigate to the next process step in this one
+    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
+
+    // Navigate directly to /#/party-selection to test that instantiation once more works
+    cy.window().then((win) => {
+      win.location.hash = '#/party-selection';
+    });
+    cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
+
+    cy.findAllByText(/personnr\. \d+/)
+      .first()
+      .click();
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 });

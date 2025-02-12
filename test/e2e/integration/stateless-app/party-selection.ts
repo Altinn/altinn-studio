@@ -1,9 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
-
-import { PartyType } from 'src/types/shared';
-import type { IParty } from 'src/types/shared';
+import { cyMockResponses, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 
 const appFrontend = new AppFrontend();
 
@@ -16,22 +13,7 @@ describe('Stateless party selection', () => {
         bankruptcyEstate: false,
         organisation: false,
       },
-      allowedToInstantiate: (parties) => {
-        // The user in tt02 has so many valid parties that we get pagination. Remove all except the first organisation
-        // and all the persons.
-        const toKeep: IParty[] = [];
-        let foundOrganisation = false;
-        for (const party of parties) {
-          if (party.partyTypeName === PartyType.Organisation && !foundOrganisation) {
-            toKeep.push(party);
-            foundOrganisation = true;
-          }
-          if (party.partyTypeName === PartyType.Person) {
-            toKeep.push(party);
-          }
-        }
-        return toKeep;
-      },
+      allowedToInstantiate: removeAllButOneOrg,
       doNotPromptForParty: false,
     });
 
