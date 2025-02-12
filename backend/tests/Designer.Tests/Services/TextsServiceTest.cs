@@ -171,7 +171,7 @@ public class TextsServiceTest : IDisposable
         List<TextIdMutation> keyMutations = new() { new() { OldId = "label1", NewId = "label1new" } };
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        string raw = await altinnAppGitRepository.GetOptionsList("test-options", "App/options");
+        string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
         Assert.NotNull(optionsList);
@@ -187,7 +187,7 @@ public class TextsServiceTest : IDisposable
         List<TextIdMutation> keyMutations = new() { new() { OldId = "label1" } };
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        string raw = await altinnAppGitRepository.GetOptionsList("test-options", "App/options");
+        string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
         Assert.NotNull(optionsList);
