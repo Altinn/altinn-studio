@@ -16,7 +16,14 @@ export interface IOption {
 
 export type ITextResourceBindings = KeyValuePairs<string>;
 
-export type IDataModelBindings = KeyValuePairs<string>;
+export type ImplicitDataModelBinding = KeyValuePairs<string>;
+//** Undefined to be backward compatible */
+export type ExplicitDataModelBinding = {
+  dataType: string | undefined;
+  field: string | undefined;
+};
+
+export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
