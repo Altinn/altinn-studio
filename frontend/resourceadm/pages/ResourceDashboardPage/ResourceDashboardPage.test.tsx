@@ -321,6 +321,35 @@ describe('ResourceDashBoardPage', () => {
 
     expect(mockedNavigate).toHaveBeenCalled();
   });
+
+  it('shows success toast after resource is deleted', async () => {
+    const user = userEvent.setup();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const deleteButton = screen.getByTitle(
+      textMock('dashboard.resource_table_row_delete', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
+    await user.click(deleteButton);
+
+    const confirmDeleteButton = screen.getByText(
+      textMock('resourceadm.dashboard_delete_resource_confirm'),
+    );
+    await user.click(confirmDeleteButton);
+
+    const successToast = screen.getByText(
+      textMock('resourceadm.dashboard_delete_resource_success'),
+    );
+    expect(successToast).toBeInTheDocument();
+  });
 });
 
 const renderResourceDashboardPage = (
