@@ -10,8 +10,17 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
+import type { Organization } from 'app-shared/types/Organization';
+import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+
+// Test data:
+const org: Organization = {
+  avatar_url: 'data:image/svg+xml;utf8,<svg></svg>',
+  id: 1,
+  username: 'some-org',
+};
 
 describe('App', () => {
   it('should display spinner while loading', () => {
@@ -55,7 +64,8 @@ describe('App', () => {
   it('should display the library when the user clicks on the library link', async () => {
     const user = userEvent.setup();
     const client = createQueryClientWithUserAndOrg();
-    renderApp({ client });
+    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    renderApp({ client, initialEntries });
     await user.click(screen.getByRole('link', { name: textMock('dashboard.library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
   });
@@ -63,7 +73,8 @@ describe('App', () => {
   it('should display the apps overview when the user is on the library page and clicks on the apps link', async () => {
     const user = userEvent.setup();
     const client = createQueryClientWithUserAndOrg();
-    renderApp({ client });
+    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    renderApp({ client, initialEntries });
     await user.click(screen.getByRole('link', { name: textMock('dashboard.library') }));
     await user.click(screen.getByRole('link', { name: textMock('dashboard.apps') }));
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
@@ -91,6 +102,6 @@ const getLibraryHeading = (): HTMLElement =>
 function createQueryClientWithUserAndOrg(): QueryClient {
   const client = createQueryClientMock();
   client.setQueryData([QueryKey.CurrentUser], userMock);
-  client.setQueryData([QueryKey.Organizations], []);
+  client.setQueryData([QueryKey.Organizations], [org]);
   return client;
 }

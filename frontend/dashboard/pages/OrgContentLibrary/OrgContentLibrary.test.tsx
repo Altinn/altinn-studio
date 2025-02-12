@@ -1,10 +1,11 @@
 import React from 'react';
 import { OrgContentLibrary } from './OrgContentLibrary';
+import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { ProviderData } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -12,11 +13,14 @@ import { org } from '@studio/testing/testids';
 import type { CodeListData } from '@studio/content-library';
 import type { CodeList } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { SelectedContextType } from '../../context/HeaderContext';
+import { Route, Routes } from 'react-router-dom';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const codeListNameMock = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 const codeListsDataMock: CodeListData[] = [{ title: codeListNameMock, data: codeListMock }];
+const mockOrgPath: string = '/testOrg';
 
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
@@ -37,18 +41,30 @@ jest.mock(
   }),
 );
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    selectedContext: 'testOrg',
-  }),
-}));
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
+  it.each([SelectedContextType.None, SelectedContextType.All, SelectedContextType.Self])(
+    'renders alert and omits library content when context is %s',
+    (selectedContext) => {
+      renderOrgContentLibrary({ initialEntries: ['/' + selectedContext] });
+
+      const noOrgSelectedParagraph = screen.getByText(
+        textMock('dashboard.org_library.alert_no_org_selected'),
+      );
+      expect(noOrgSelectedParagraph).toBeInTheDocument();
+
+      const libraryTitle = screen.queryByRole('heading', {
+        name: textMock('app_content_library.library_heading'),
+      });
+      expect(libraryTitle).not.toBeInTheDocument();
+    },
+  );
+
   it('renders the library title', () => {
-    renderWithProviders(<OrgContentLibrary />);
+    renderOrgContentLibrary({ initialEntries: ['/some-org'] });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.library_heading'),
     });
@@ -56,7 +72,7 @@ describe('OrgContentLibrary', () => {
   });
 
   it('renders the library landing page by default', () => {
-    renderWithProviders(<OrgContentLibrary />);
+    renderOrgContentLibrary({ initialEntries: ['/some-org'] });
     const landingPageTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -68,7 +84,7 @@ describe('OrgContentLibrary', () => {
   });
 
   it('renders the code list menu element', () => {
-    renderWithProviders(<OrgContentLibrary />);
+    renderOrgContentLibrary({ initialEntries: ['/some-org'] });
     const codeListMenuElement = screen.getByRole('tab', {
       name: textMock('app_content_library.code_lists.page_name'),
     });
@@ -77,7 +93,7 @@ describe('OrgContentLibrary', () => {
 
   it('calls onUploadCodeList when onUploadCodeList is triggered', async () => {
     const user = userEvent.setup();
-    renderOrgContentLibraryWithCodeLists();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -87,7 +103,7 @@ describe('OrgContentLibrary', () => {
 
   it('renders success toast when onUploadCodeList is called successfully', async () => {
     const user = userEvent.setup();
-    renderOrgContentLibraryWithCodeLists();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -102,7 +118,10 @@ describe('OrgContentLibrary', () => {
     const uploadCodeListForOrg = jest
       .fn()
       .mockImplementation(() => Promise.reject({ response: {} }));
-    renderOrgContentLibraryWithCodeLists({ queries: { uploadCodeListForOrg } });
+    renderOrgContentLibraryWithCodeLists({
+      initialEntries: [mockOrgPath],
+      queries: { uploadCodeListForOrg },
+    });
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -114,7 +133,7 @@ describe('OrgContentLibrary', () => {
 
   it('calls onUploadCodeList and hides default error when handleUpload is triggered', async () => {
     const user = userEvent.setup();
-    renderOrgContentLibraryWithCodeLists();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -133,26 +152,18 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
   await user.click(libraryPageNavTile);
 };
 
-type RenderOrgContentLibraryProps = {
-  queries?: Partial<ServicesContextProps>;
-  queryClient?: QueryClient;
-};
+function renderOrgContentLibrary(providerData: ProviderData): RenderResult {
+  return renderWithProviders(
+    <Routes>
+      <Route path=':selectedContext' element={<OrgContentLibrary />} />
+    </Routes>,
+    providerData,
+  );
+}
 
-const renderAppContentLibrary = ({
-  queries = {},
-  queryClient = createQueryClientMock(),
-}: RenderOrgContentLibraryProps = {}): void => {
-  renderWithProviders(<OrgContentLibrary />, {
-    queries,
-    queryClient,
-  });
-};
-
-function renderOrgContentLibraryWithCodeLists(
-  props?: Omit<RenderOrgContentLibraryProps, 'queryClient'>,
-): void {
+function renderOrgContentLibraryWithCodeLists(providerData: ProviderData): void {
   const queryClient = createQueryClientWithOptionsDataList(codeListsDataMock);
-  renderAppContentLibrary({ ...props, queryClient });
+  renderOrgContentLibrary({ ...providerData, queryClient });
 }
 
 function createQueryClientWithOptionsDataList(

@@ -232,6 +232,8 @@
   "dashboard.open_repository": "Åpne repository",
   "dashboard.org_apps": "{{orgName}}s apper",
   "dashboard.org_data_models": "{{orgName}}s datamodeller",
+  "dashboard.org_library.alert_no_org_selected": "For å vise biblioteket, må du velge en organisasjon i menyen øverst til høyre.",
+  "dashboard.org_library.alert_no_org_selected_no_access": "Hvis du ikke har tilgang til noen organisasjoner, må du be om tilgang fra en tjenesteeier.",
   "dashboard.org_library.code_list_upload_success": "Filen ble lastet opp.",
   "dashboard.org_library.fetch_error": "Det har oppstått et problem ved henting av data til biblioteket.",
   "dashboard.org_resources": "{{orgName}}s ressurser",
