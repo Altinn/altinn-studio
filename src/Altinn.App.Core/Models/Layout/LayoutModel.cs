@@ -49,7 +49,6 @@ public class LayoutModel
     /// </summary>
     /// <param name="instance">The instance with data element information</param>
     /// <param name="dataModel">The data model to use for repeating groups</param>
-    /// <returns></returns>
     public async Task<List<ComponentContext>> GenerateComponentContexts(Instance instance, DataModel dataModel)
     {
         var pageContexts = new List<ComponentContext>();

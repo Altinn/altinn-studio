@@ -10,6 +10,15 @@
   },
   {
     Severity: Error,
+    DataElementId: MainDataElementGuid,
+    Field: Phone,
+    Code: Phone should not be "Phone",
+    Source: Expression,
+    NoIncrementalUpdates: false,
+    CustomTextKey: Phone should not be "Phone"
+  },
+  {
+    Severity: Error,
     DataElementId: SubForm1_Guid,
     Field: Address,
     Code: required,
@@ -52,6 +61,15 @@
     Description: Email is required in component with id subFormLayout.SubPage.Email for binding simpleBinding,
     Source: Required,
     NoIncrementalUpdates: false
+  },
+  {
+    Severity: Error,
+    DataElementId: SubForm2_Guid,
+    Field: Phone,
+    Code: Phone should not be "Phone2", but only single error when not null,
+    Source: Expression,
+    NoIncrementalUpdates: false,
+    CustomTextKey: Phone should not be "Phone2", but only single error when not null
   },
   {
     Severity: Error,

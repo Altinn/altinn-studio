@@ -200,6 +200,56 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         _applicationMetadata.DataTypes[1]
     );
 
+    private static readonly string _defaultValidationConfig = Json(
+        """
+        {
+          "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+          "validations": {
+              "Phone": [
+              "Phone-is-not-allowed",
+              "Phone-is-allowed"
+              ]
+            },
+            "definitions": {
+              "Phone-is-not-allowed": {
+                "message": "Phone should not be \"Phone\"",
+                "severity": "error",
+                "condition": ["equals", ["dataModel", ["argv", 0]], "Phone"]
+              },
+              "Phone-is-allowed": {
+                "message": "Phone should be \"Phone\"",
+                "severity": "error",
+                "condition": ["notEquals", ["dataModel", ["argv", 0]], "Phone"]
+              }
+            }
+        }
+        """
+    );
+
+    private static readonly string _subformValidationConfig = Json(
+        """
+        {
+          "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+          "validations": {
+              "Phone": ["phone2-is-not-allowed"],
+              "missing-in-model": ["none-is-not-allowed"]
+            },
+            "definitions": {
+              "phone2-is-not-allowed": {
+                "message": "Phone should not be \"Phone2\", but only single error when not null",
+                "severity": "error",
+                "condition": ["equals", ["dataModel", ["argv", 0]], "Phone2"]
+              },
+              "none-is-not-allowed": {
+                "message": "none is not allowed",
+                "severity": "error",
+                "condition": true
+              }
+            }
+        }
+        """
+    );
+
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Loose);
@@ -257,6 +307,8 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                     ],
                 }
             );
+        _appResourcesMock.Setup(ar => ar.GetValidationConfiguration(DefaultDataType)).Returns(_defaultValidationConfig);
+        _appResourcesMock.Setup(ar => ar.GetValidationConfiguration(SubformDataType)).Returns(_subformValidationConfig);
         _httpContextAccessorMock.SetupGet(hca => hca.HttpContext).Returns(new DefaultHttpContext());
     }
 
@@ -265,6 +317,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
     {
         _services.AddTransient<IValidator, RequiredLayoutValidator>();
         _services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
+        _services.AddTransient<IValidator, ExpressionValidator>();
         using var serviceProvider = _services.BuildServiceProvider();
 
         var validationService = serviceProvider.GetRequiredService<IValidationService>();
@@ -288,6 +341,8 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         PageComponentConverter.SetAsyncLocalPageName(layoutId, pageName);
         return JsonSerializer.Deserialize<PageComponent>(json) ?? throw new JsonException("Deserialization failed");
     }
+
+    private static string Json([StringSyntax("json")] string json) => json;
 
     ~SubFormTests()
     {

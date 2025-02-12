@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: an invalid closing Z after time-zone offset",
+  "expression": [
+    "formatDate",
+    "1963-06-19T08:30:06.28123+01:00Z",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"1963-06-19T08:30:06.28123+01:00Z\": Unknown format"
+}

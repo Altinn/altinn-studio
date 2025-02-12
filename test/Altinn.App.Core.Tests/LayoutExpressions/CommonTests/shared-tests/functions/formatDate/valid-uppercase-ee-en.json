@@ -1,0 +1,12 @@
+{
+  "name": "Should format date with format 'EE' as 'Sat'",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "EE"
+  ],
+  "expects": "Sat",
+  "profileSettings": {
+    "language": "en"
+  }
+}

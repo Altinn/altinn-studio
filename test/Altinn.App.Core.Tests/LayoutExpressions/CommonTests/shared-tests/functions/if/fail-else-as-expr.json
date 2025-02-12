@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given an expression instead of 'else'",
+  "expression": ["if", true, 123.456, ["if", true, "else", "else", "not-else?"], 654.321],
+  "expectsFailure": "Expected third argument to be \"else\""
+}

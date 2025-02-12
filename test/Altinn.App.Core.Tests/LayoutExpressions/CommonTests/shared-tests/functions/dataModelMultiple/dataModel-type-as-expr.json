@@ -1,0 +1,5 @@
+{
+  "name": "dataModel lookup cannot have a dynamic data type",
+  "expression": ["dataModel", "a.value", ["if", true, "non-default", "else", "default"]],
+  "expectsFailure": "The data type must be a string (expressions cannot be used here)"
+}

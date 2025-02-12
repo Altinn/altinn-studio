@@ -1,0 +1,27 @@
+{
+  "name": "isSameDay with different years",
+  "expression": ["compare", "2020-02-02", "isSameDay", "2020-02-02T23:59:59"],
+  "expects": true,
+  "testCases":[
+    {
+      "expression": ["compare", "2022-02-02T00:00", "isSameDay", "2022-02-02T00:00"
+      ],
+      "expects": true
+    },
+    {
+      "expression": ["compare", "2022-02-02T00:00Z", "isSameDay", "2022-02-02T00:00+00:00"
+      ],
+      "expects": true
+    },
+    {
+      "expression": ["compare", "2022-02-02T00:00", "isSameDay", "2022-02-02T23:59:59"
+      ],
+      "expects": true
+    },
+    {
+      "expression": ["compare", "2022-02-02T00:00", "isSameDay", "2022-02-02T00:00"
+      ],
+      "expects": true
+    }
+  ]
+}

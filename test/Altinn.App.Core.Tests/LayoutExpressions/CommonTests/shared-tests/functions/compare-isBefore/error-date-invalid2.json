@@ -1,0 +1,5 @@
+{
+  "name": "Should not parse an invalid date",
+  "expression": ["compare", "2021-02-29", "isBefore", ""],
+  "expectsFailure": "Unable to parse date \"2021-02-29\": Format was recognized, but the date/time is invalid"
+}

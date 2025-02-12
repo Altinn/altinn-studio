@@ -141,7 +141,7 @@ public class ExpressionValidator : IValidator
                     rowIndices: DataModel.GetRowIndices(resolvedField.Field),
                     dataElementIdentifier: resolvedField.DataElementIdentifier
                 );
-                var positionalArguments = new object[] { resolvedField };
+                var positionalArguments = new object[] { resolvedField.Field };
                 foreach (var validation in validations)
                 {
                     await RunValidation(

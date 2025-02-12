@@ -1,0 +1,5 @@
+{
+  "name": "Should format date when only a date + offset is given",
+  "expression": ["formatDate", "2023-01-01-08:00", "yyyy-MM-dd HH:mm:ss"],
+  "expectsFailure": "Unable to parse date \"2023-01-01-08:00\": Unknown format"
+}

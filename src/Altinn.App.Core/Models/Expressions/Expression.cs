@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Models.Expressions;
 /// Model for C# representation of a Layout Expression that can be part of a layout and Evaluated with <see cref="ExpressionEvaluator" />
 /// </summary>
 /// <remarks>
-/// All props are marked as nullable, but a valid instance has either <see cref="Function" /> and <see cref="Args" /> or <see cref="Value" />
+/// All props are marked as nullable, but a valid instance has either <see cref="Function" /> and <see cref="Args" /> or <see cref="ValueUnion" />
 /// </remarks>
 [JsonConverter(typeof(ExpressionConverter))]
 public readonly record struct Expression
@@ -18,9 +18,19 @@ public readonly record struct Expression
     ///     Construct a value expression with the given value
     /// </summary>
     /// <param name="value"></param>
+    public Expression(ExpressionValue value)
+    {
+        ValueUnion = value;
+    }
+
+    /// <summary>
+    ///     Construct a value expression with the given value
+    /// </summary>
+    /// <param name="value"></param>
+    [Obsolete("Use the constructor with ExpressionValue instead")]
     public Expression(object? value)
     {
-        Value = value;
+        ValueUnion = ExpressionValue.FromObject(value);
     }
 
     /// <summary>
@@ -36,6 +46,10 @@ public readonly record struct Expression
     /// Test function to see if this is representing a function with args.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Function), nameof(Args))]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [MemberNotNullWhen(false, nameof(Value))]
+#pragma warning restore CS0618 // Type or member is obsolete
+    [MemberNotNullWhen(false, nameof(ValueUnion))]
     public bool IsFunctionExpression => Function != ExpressionFunction.INVALID && Args != null;
 
     /// <summary>
@@ -49,12 +63,18 @@ public readonly record struct Expression
     public List<Expression>? Args { get; }
 
     /// <summary>
+    /// Get the object value for backwards compatibility
+    /// </summary>
+    [Obsolete("Use ValueUnion instead")]
+    public object? Value => ValueUnion.ToObject();
+
+    /// <summary>
     /// Some expressions are just literal values that evaluate to the same value.
     /// </summary>
     /// <remarks>
-    ///  If <see cref="Value" /> isn't null, <see cref="Function" /> and <see cref="Args" /> must be
+    ///  If <see cref="ValueUnion" /> isn't null, <see cref="Function" /> and <see cref="Args" /> must be
     /// </remarks>
-    public object? Value { get; }
+    public ExpressionValue ValueUnion { get; }
 
     /// <summary>
     /// Static helper to create an expression with the value of false

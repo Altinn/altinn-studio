@@ -21,17 +21,25 @@ public class LayoutEvaluatorState
     private readonly Instance _instanceContext;
     private readonly string? _gatewayAction;
     private readonly string? _language;
+    private readonly TimeZoneInfo? _timeZone;
     private readonly Lazy<Task<List<ComponentContext>>?> _rootContext;
 
     /// <summary>
     /// Constructor for LayoutEvaluatorState. Usually called via <see cref="LayoutEvaluatorStateInitializer" /> that can be fetched from dependency injection.
     /// </summary>
+    /// <param name="dataAccessor">Accessor for the instance data</param>
+    /// <param name="componentModel">The component model for the current layout</param>
+    /// <param name="frontEndSettings">The frontend settings for the current app</param>
+    /// <param name="gatewayAction">The gateway action (only for gateways)</param>
+    /// <param name="language">The language of the instance viewer</param>
+    /// <param name="timeZone">The timezone of the instance viewer</param>
     public LayoutEvaluatorState(
         IInstanceDataAccessor dataAccessor,
         LayoutModel? componentModel,
         FrontEndSettings frontEndSettings,
         string? gatewayAction = null,
-        string? language = null
+        string? language = null,
+        TimeZoneInfo? timeZone = null
     )
     {
         _dataModel = new DataModel(dataAccessor);
@@ -40,6 +48,7 @@ public class LayoutEvaluatorState
         _instanceContext = dataAccessor.Instance;
         _gatewayAction = gatewayAction;
         _language = language;
+        _timeZone = timeZone;
         _rootContext = new(() => _componentModel?.GenerateComponentContexts(_instanceContext, _dataModel));
     }
 
@@ -66,7 +75,12 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Gets the current language of the instance viewer
     /// </summary>
-    public string? GetLanguage() => _language;
+    public string GetLanguage() => _language ?? "nb";
+
+    /// <summary>
+    /// Gets the current timezone
+    /// </summary>
+    public TimeZoneInfo? GetTimeZone() => _timeZone;
 
     /// <summary>
     /// Get component from componentModel
@@ -184,6 +198,14 @@ public class LayoutEvaluatorState
             ),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Unknown Instance context property {key}"),
         };
+    }
+
+    /// <summary>
+    /// Count the number of data elements of a specific type
+    /// </summary>
+    public int CountDataElements(string dataTypeId)
+    {
+        return _instanceContext.Data.Count(d => d.DataType == dataTypeId);
     }
 
     /// <summary>

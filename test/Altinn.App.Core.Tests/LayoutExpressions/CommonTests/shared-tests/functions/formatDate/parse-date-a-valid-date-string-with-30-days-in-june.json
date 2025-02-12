@@ -1,0 +1,14 @@
+{
+  "comment": "This tests our compliance to the date format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date.json",
+  "name": "Compliance: a valid date string with 30 days in June",
+  "expression": [
+    "formatDate",
+    "2020-06-30",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expects": "e.Kr. 2020-06-30 tirsdag 00:00:00.000 a.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
+}

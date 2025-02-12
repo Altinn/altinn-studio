@@ -1,0 +1,12 @@
+{
+  "name": "Should format date with format 'EEE' as 'lau'",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "EEE"
+  ],
+  "expects": "lau",
+  "profileSettings": {
+    "language": "nn"
+  }
+}

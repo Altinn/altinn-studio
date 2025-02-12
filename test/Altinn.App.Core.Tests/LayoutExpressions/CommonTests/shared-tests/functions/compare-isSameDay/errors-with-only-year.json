@@ -1,0 +1,5 @@
+{
+  "name": "Errors with only year",
+  "expression": ["compare", "2020", "isSameDay", "2020"],
+  "expectsFailure": "Unable to parse date \"2020\": Unknown format"
+}

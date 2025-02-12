@@ -1,0 +1,5 @@
+{
+  "name": "notEquals is not implemented here",
+  "expression": ["compare", "yes", "notEquals", "no"],
+  "expectsFailure": "Invalid operator \"notEquals\""
+}

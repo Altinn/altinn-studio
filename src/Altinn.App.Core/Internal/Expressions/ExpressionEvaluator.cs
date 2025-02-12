@@ -33,12 +33,16 @@ public static class ExpressionEvaluator
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
             };
 
-            return await EvaluateExpression(state, expr, context) switch
+            var result = await EvaluateExpression_internal(state, expr, context);
+
+            return result.ValueKind switch
             {
-                true => true,
-                false => false,
-                null => defaultReturn,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Return was not boolean (value)"),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => defaultReturn,
+                _ => throw new ExpressionEvaluatorTypeErrorException(
+                    $"Return was not boolean. Was {result} of type {result.ValueKind}"
+                ),
             };
         }
         catch (Exception e)
@@ -60,23 +64,41 @@ public static class ExpressionEvaluator
         object?[]? positionalArguments = null
     )
     {
+        var positionalArgumentUnions = positionalArguments?.Select(ExpressionValue.FromObject).ToArray();
+        var result = await EvaluateExpression_internal(state, expr, context, positionalArgumentUnions);
+        return result.ToObject();
+    }
+
+    /// <summary>
+    /// private implementation in order to change the types of positional arguments without breaking change.
+    /// </summary>
+    private static async Task<ExpressionValue> EvaluateExpression_internal(
+        LayoutEvaluatorState state,
+        Expression expr,
+        ComponentContext context,
+        ExpressionValue[]? positionalArguments = null
+    )
+    {
         if (!expr.IsFunctionExpression)
         {
-            return expr.Value;
+            return expr.ValueUnion;
         }
-        var args = new object?[expr.Args.Count];
+        ValidateExpressionArgs(expr);
+        var args = new ExpressionValue[expr.Args.Count];
         for (var i = 0; i < args.Length; i++)
         {
-            args[i] = await EvaluateExpression(state, expr.Args[i], context, positionalArguments);
+            args[i] = await EvaluateExpression_internal(state, expr.Args[i], context, positionalArguments);
         }
-        // ! TODO: should find better ways to deal with nulls here for the next major version
-        var ret = expr.Function switch
+
+        ExpressionValue ret = expr.Function switch
         {
             ExpressionFunction.dataModel => await DataModel(args, context, state),
             ExpressionFunction.component => await Component(args, context, state),
-            ExpressionFunction.instanceContext => state.GetInstanceContext(args.First()?.ToString()!),
+            ExpressionFunction.countDataElements => CountDataElements(args, state),
             ExpressionFunction.@if => IfImpl(args),
-            ExpressionFunction.frontendSettings => state.GetFrontendSetting(args.First()?.ToString()!),
+            ExpressionFunction.formatDate => FormatDate(args, state),
+            ExpressionFunction.instanceContext => InstanceContext(state, args),
+            ExpressionFunction.frontendSettings => FrontendSetting(state, args),
             ExpressionFunction.concat => Concat(args),
             ExpressionFunction.equals => EqualsImplementation(args),
             ExpressionFunction.notEquals => !EqualsImplementation(args),
@@ -87,48 +109,109 @@ public static class ExpressionEvaluator
             ExpressionFunction.and => And(args),
             ExpressionFunction.or => Or(args),
             ExpressionFunction.not => Not(args),
+            ExpressionFunction.compare => Compare(args),
             ExpressionFunction.contains => Contains(args),
             ExpressionFunction.notContains => !Contains(args),
             ExpressionFunction.commaContains => CommaContains(args),
             ExpressionFunction.endsWith => EndsWith(args),
             ExpressionFunction.startsWith => StartsWith(args),
             ExpressionFunction.stringLength => StringLength(args),
+            ExpressionFunction.stringIndexOf => StringIndexOf(args),
+            ExpressionFunction.stringReplace => StringReplace(args),
+            ExpressionFunction.stringSlice => StringSlice(args),
             ExpressionFunction.round => Round(args),
             ExpressionFunction.upperCase => UpperCase(args),
             ExpressionFunction.lowerCase => LowerCase(args),
+            ExpressionFunction.lowerCaseFirst => LowerCaseFirst(args),
+            ExpressionFunction.upperCaseFirst => UpperCaseFirst(args),
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
-            ExpressionFunction.language => state.GetLanguage() ?? "nb",
-            _ => throw new ExpressionEvaluatorTypeErrorException($"Function \"{expr.Function}\" not implemented"),
+            ExpressionFunction.language => state.GetLanguage(),
+            _ => throw new ExpressionEvaluatorTypeErrorException("Function not implemented", expr.Function, args),
         };
         return ret;
     }
 
-    private static async Task<object?> DataModel(object?[] args, ComponentContext context, LayoutEvaluatorState state)
+    private static void ValidateExpressionArgs(Expression expr)
     {
-        if (args is [DataReference dataReference])
+        switch (expr)
         {
-            return await DataModel(
-                new ModelBinding() { Field = dataReference.Field },
-                dataReference.DataElementIdentifier,
-                context.RowIndices,
-                state
-            );
+            case { Function: ExpressionFunction.dataModel, Args: [_, { IsFunctionExpression: true }] }:
+                throw new ExpressionEvaluatorTypeErrorException(
+                    "The data type must be a string (expressions cannot be used here)"
+                );
+            case { Function: ExpressionFunction.@if, Args: [_, _, { IsFunctionExpression: true }, _] }:
+                throw new ExpressionEvaluatorTypeErrorException("Expected third argument to be \"else\"");
+            case { Function: ExpressionFunction.compare, Args: [_, { IsFunctionExpression: true }, _] }:
+            case { Function: ExpressionFunction.compare, Args: [_, _, { IsFunctionExpression: true }, _] }:
+                throw new ExpressionEvaluatorTypeErrorException(
+                    "Invalid operator (it cannot be an expression or null)"
+                );
+            case { Function: ExpressionFunction.compare, Args: [_, { IsFunctionExpression: true }, _, _] }:
+                throw new ExpressionEvaluatorTypeErrorException(
+                    "Second argument must be \"not\" when providing 4 arguments in total"
+                );
         }
-        var key = args switch
+        ;
+    }
+
+    private static string InstanceContext(LayoutEvaluatorState state, ExpressionValue[] args)
+    {
+        if (args is [{ ValueKind: JsonValueKind.String } arg])
         {
-            [string field] => new ModelBinding { Field = field },
-            [string field, string dataType] => new ModelBinding { Field = field, DataType = dataType },
-            [ModelBinding binding] => binding,
-            [null] => throw new ExpressionEvaluatorTypeErrorException("Cannot lookup dataModel null"),
+            return state.GetInstanceContext(arg.String);
+        }
+        throw new ExpressionEvaluatorTypeErrorException(
+            "Unknown Instance context property type",
+            ExpressionFunction.instanceContext,
+            args
+        );
+    }
+
+    private static string? FrontendSetting(LayoutEvaluatorState state, ExpressionValue[] args)
+    {
+        return args switch
+        {
+            [{ ValueKind: JsonValueKind.String } arg] => state.GetFrontendSetting(arg.String),
+            [{ ValueKind: JsonValueKind.Null }] => throw new ExpressionEvaluatorTypeErrorException(
+                "Value cannot be null. (Parameter 'key')",
+                ExpressionFunction.frontendSettings,
+                args
+            ),
             _ => throw new ExpressionEvaluatorTypeErrorException(
-                $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
+                "Expected 1 argument",
+                ExpressionFunction.frontendSettings,
+                args
+            ),
+        };
+    }
+
+    private static async Task<ExpressionValue> DataModel(
+        ExpressionValue[] args,
+        ComponentContext context,
+        LayoutEvaluatorState state
+    )
+    {
+        ModelBinding key = args switch
+        {
+            [{ ValueKind: JsonValueKind.String } field] => new ModelBinding { Field = field.String },
+            [{ ValueKind: JsonValueKind.String } field, { ValueKind: JsonValueKind.String } dataType] =>
+                new ModelBinding { Field = field.String, DataType = dataType.String },
+            [{ ValueKind: JsonValueKind.Null }] => throw new ExpressionEvaluatorTypeErrorException(
+                "Cannot lookup dataModel null",
+                ExpressionFunction.dataModel,
+                args
+            ),
+            _ => throw new ExpressionEvaluatorTypeErrorException(
+                "expected 1-2 argument(s)",
+                ExpressionFunction.dataModel,
+                args
             ),
         };
         return await DataModel(key, context.DataElementIdentifier, context.RowIndices, state);
     }
 
-    private static async Task<object?> DataModel(
+    private static async Task<ExpressionValue> DataModel(
         ModelBinding key,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? indexes,
@@ -137,22 +220,29 @@ public static class ExpressionEvaluator
     {
         var data = await state.GetModelData(key, defaultDataElementIdentifier, indexes);
 
-        // Only allow IConvertible types to be returned from data model
-        // Objects and arrays should return null
-        return data switch
-        {
-            IConvertible c => c,
-            _ => null,
-        };
+        return ExpressionValue.FromObject(data);
     }
 
-    private static async Task<object?> Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<ExpressionValue> Component(
+        ExpressionValue[] args,
+        ComponentContext? context,
+        LayoutEvaluatorState state
+    )
     {
-        var componentId = args.First()?.ToString();
-        if (componentId is null)
+        var componentId = args switch
         {
-            throw new ArgumentException("Cannot lookup component null");
-        }
+            [{ ValueKind: JsonValueKind.String } arg] => arg.String,
+            [{ } arg] => throw new ExpressionEvaluatorTypeErrorException(
+                $"Cannot lookup component {arg}",
+                ExpressionFunction.component,
+                args
+            ),
+            _ => throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected 1 argument",
+                ExpressionFunction.component,
+                args
+            ),
+        };
 
         if (context?.Component is null)
         {
@@ -163,7 +253,7 @@ public static class ExpressionEvaluator
 
         if (targetContext is null)
         {
-            return null;
+            return ExpressionValue.Null;
         }
 
         if (targetContext.Component is GroupComponent)
@@ -177,27 +267,41 @@ public static class ExpressionEvaluator
         }
         if (await targetContext.IsHidden(state))
         {
-            return null;
+            return ExpressionValue.Null;
         }
 
         return await DataModel(binding, context.DataElementIdentifier, context.RowIndices, state);
     }
 
-    private static string? Concat(object?[] args)
+    private static int CountDataElements(ExpressionValue[] args, LayoutEvaluatorState state)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument(s), got {args.Length}");
+        }
+        if (args is not [{ ValueKind: JsonValueKind.String } dataType])
+        {
+            throw new ExpressionEvaluatorTypeErrorException("Expected dataType argument to be a string");
+        }
+
+        return state.CountDataElements(dataType.String);
+    }
+
+    private static string Concat(ExpressionValue[] args)
     {
         return string.Join(
             "",
             args.Select(a =>
-                a switch
+                a.ValueKind switch
                 {
-                    string s => s,
+                    JsonValueKind.String => a.String,
                     _ => ToStringForEquals(a),
                 }
             )
         );
     }
 
-    private static bool Contains(object?[] args)
+    private static bool Contains(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
@@ -214,11 +318,190 @@ public static class ExpressionEvaluator
         return stringOne.Contains(stringTwo, StringComparison.InvariantCulture);
     }
 
-    private static bool EndsWith(object?[] args)
+    private static string? FormatDate(ExpressionValue[] args, LayoutEvaluatorState state)
+    {
+        if (args.Length is < 1 or > 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1-2 argument(s), got {args.Length}");
+        }
+
+        DateTimeOffset? date = PrepareDateArg(args[0], out var hasTimezone);
+        if (date is null)
+        {
+            return null;
+        }
+
+        var timezone = state.GetTimeZone();
+        if (hasTimezone && timezone is not null)
+        {
+            // If the date has a timezone, we need to convert it to the user's timezone before displaying it
+            date = TimeZoneInfo.ConvertTime(date.Value, timezone);
+        }
+
+        string? language = state.GetLanguage();
+        return UnicodeDateTimeTokenConverter.Format(
+            date,
+            args.Length == 2 ? ToStringForEquals(args[1]) : null,
+            language
+        );
+    }
+
+    private static bool Compare(ExpressionValue[] args)
+    {
+        return args switch
+        {
+            [var a, { ValueKind: JsonValueKind.String } op, var b] => Compare(a, op.String, b),
+
+            [var a, { ValueKind: JsonValueKind.String } not, { ValueKind: JsonValueKind.String } op, var b] =>
+                not.String == "not"
+                    ? !Compare(a, op.String, b)
+                    : throw new ExpressionEvaluatorTypeErrorException(
+                        $"Second argument must be \"not\" when providing 4 arguments in total"
+                    ),
+            _ => throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected 3-4 argument(s), got {args.Length}",
+                ExpressionFunction.compare,
+                args
+            ),
+        };
+    }
+
+    private static bool Compare(ExpressionValue a, string opString, ExpressionValue b)
+    {
+        // For all operators except for 'equals', every call with any null argument should return false
+        if (opString != "equals" && (a.ValueKind == JsonValueKind.Null || b.ValueKind == JsonValueKind.Null))
+        {
+            return false;
+        }
+
+        ExpressionValue[] passOnArgs = [a, b];
+
+        return opString switch
+        {
+            "equals" => EqualsImplementation(passOnArgs),
+            "greaterThan" => GreaterThan(passOnArgs),
+            "greaterThanEq" => GreaterThanEq(passOnArgs),
+            "lessThan" => LessThan(passOnArgs),
+            "lessThanEq" => LessThanEq(passOnArgs),
+            "isBefore" => DateIsBefore(passOnArgs),
+            "isAfter" => DateIsAfter(passOnArgs),
+            "isBeforeEq" => DateIsBeforeEq(passOnArgs),
+            "isAfterEq" => DateIsAfterEq(passOnArgs),
+            "isSameDay" => DateIsSameDay(a, b),
+            _ => throw new ExpressionEvaluatorTypeErrorException($"Invalid operator \"{opString}\""),
+        };
+    }
+
+    private static DateTimeOffset? PrepareDateArg(ExpressionValue arg, out bool hasTimezone)
+    {
+        var dateStr = (
+            arg switch
+            {
+                { ValueKind: JsonValueKind.String } => arg.String,
+                { ValueKind: JsonValueKind.Null } => null,
+                _ => throw new ExpressionEvaluatorTypeErrorException(
+                    $"Date expressions only accept strings or null, got {arg} of type {arg.ValueKind}"
+                ),
+            }
+        );
+        if (string.IsNullOrWhiteSpace(dateStr))
+        {
+            hasTimezone = false;
+            return null;
+        }
+        var date = UnicodeDateTimeTokenConverter.Parse(dateStr, out hasTimezone);
+        if (date is null)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Unable to parse date \"{dateStr}\": Unknown format");
+        }
+
+        return date;
+    }
+
+    private static (DateTimeOffset?, DateTimeOffset?) PrepareDateArgs(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args for date compare");
+        }
+
+        var a = PrepareDateArg(args[0], out bool aHasTimezone);
+        var b = PrepareDateArg(args[1], out bool bHasTimezone);
+        if (a.HasValue && b.HasValue && aHasTimezone != bHasTimezone)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Can not compare timestamps with timezone info against timestamps withou timezone info",
+                ExpressionFunction.compare,
+                args
+            );
+        }
+
+        return (a, b);
+    }
+
+    private static bool DateIsBefore(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareDateArgs(args);
+        return a < b;
+    }
+
+    private static bool DateIsAfter(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareDateArgs(args);
+        return a > b;
+    }
+
+    private static bool DateIsBeforeEq(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareDateArgs(args);
+        return a <= b;
+    }
+
+    private static bool DateIsAfterEq(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareDateArgs(args);
+        return a >= b;
+    }
+
+    private static bool DateIsSameDay(ExpressionValue aExpr, ExpressionValue bExpr)
+    {
+        var a = PrepareDateArg(aExpr, out bool aHasTimezone);
+        var b = PrepareDateArg(bExpr, out bool bHasTimezone);
+        if (!a.HasValue || !b.HasValue)
+        {
+            return false;
+        }
+
+        if (aHasTimezone != bHasTimezone)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Can not compare timestamps where only one specify timezone",
+                ExpressionFunction.compare,
+                [aExpr, "isSameDay", bExpr]
+            );
+        }
+
+        if (a.Value.Offset != b.Value.Offset)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Can not figure out if timestamps in different timezones are in the same day",
+                ExpressionFunction.compare,
+                [aExpr, "isSameDay", bExpr]
+            );
+        }
+
+        return a.Value.Date == b.Value.Date;
+    }
+
+    private static bool EndsWith(ExpressionValue[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Expected 2 argument(s)",
+                ExpressionFunction.endsWith,
+                args
+            );
         }
         string? stringOne = ToStringForEquals(args[0]);
         string? stringTwo = ToStringForEquals(args[1]);
@@ -231,11 +514,15 @@ public static class ExpressionEvaluator
         return stringOne.EndsWith(stringTwo, StringComparison.InvariantCulture);
     }
 
-    private static bool StartsWith(object?[] args)
+    private static bool StartsWith(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Expected 2 argument(s)",
+                ExpressionFunction.startsWith,
+                args
+            );
         }
         string? stringOne = ToStringForEquals(args[0]);
         string? stringTwo = ToStringForEquals(args[1]);
@@ -248,11 +535,15 @@ public static class ExpressionEvaluator
         return stringOne.StartsWith(stringTwo, StringComparison.InvariantCulture);
     }
 
-    private static bool CommaContains(object?[] args)
+    private static bool CommaContains(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 arguments, got {args.Length}");
+            throw new ExpressionEvaluatorTypeErrorException(
+                "expect 2 arguments",
+                ExpressionFunction.commaContains,
+                args
+            );
         }
         string? stringOne = ToStringForEquals(args[0]);
         string? stringTwo = ToStringForEquals(args[1]);
@@ -265,21 +556,106 @@ public static class ExpressionEvaluator
         return stringOne.Split(",").Select(s => s.Trim()).Contains(stringTwo, StringComparer.InvariantCulture);
     }
 
-    private static int StringLength(object?[] args)
+    private static int StringLength(ExpressionValue[] args)
     {
         if (args.Length != 1)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+            throw new ExpressionEvaluatorTypeErrorException($"1 argument", ExpressionFunction.stringLength, args);
         }
         string? stringOne = ToStringForEquals(args[0]);
         return stringOne?.Length ?? 0;
     }
 
-    private static string Round(object?[] args)
+    private static int? StringIndexOf(ExpressionValue[] args)
+    {
+        if (args.Length != 2)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2 arguments, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        string? stringTwo = ToStringForEquals(args[1]);
+
+        if (stringOne is null || stringTwo is null)
+        {
+            return null;
+        }
+
+        var idx = stringOne.IndexOf(stringTwo, StringComparison.InvariantCulture);
+        return idx == -1 ? null : idx;
+    }
+
+    private static string? StringReplace(ExpressionValue[] args)
+    {
+        if (args.Length != 3)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 3 arguments, got {args.Length}");
+        }
+        string? subject = ToStringForEquals(args[0]);
+        string? search = ToStringForEquals(args[1]);
+        string? replace = ToStringForEquals(args[2]);
+
+        if (subject is null || search is null || replace is null || subject == "" || search == "")
+        {
+            return null;
+        }
+
+        return subject.Replace(search, replace, StringComparison.InvariantCulture);
+    }
+
+    private static string? StringSlice(ExpressionValue[] args)
+    {
+        if (args.Length < 2 || args.Length > 3)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 2-3 arguments, got {args.Length}");
+        }
+        string? subject = ToStringForEquals(args[0]);
+        double? start = PrepareNumericArg(args[1]);
+        double? end = args.Length == 3 ? PrepareNumericArg(args[2]) : null;
+        bool hasEnd = args.Length == 3;
+
+        if (start == null || (hasEnd && end == null))
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                "Start/end index cannot be null (if you used an expression like stringIndexOf here, make sure to guard against null)"
+            );
+        }
+
+        if (subject is null)
+        {
+            return null;
+        }
+
+        if (start < 0)
+        {
+            start = subject.Length + start;
+        }
+
+        start = Math.Max(0, Math.Min(subject.Length, start.Value)); // Clamp to be within the string
+
+        if (end == null)
+        {
+            return subject.Substring((int)start);
+        }
+
+        if (end < 0)
+        {
+            end = subject.Length + end;
+        }
+
+        end = Math.Max(0, Math.Min(subject.Length, end.Value)); // Clamp to be within the string
+
+        return subject.Substring((int)start, (int)(end - start));
+    }
+
+    private static string Round(ExpressionValue[] args)
     {
         if (args.Length < 1 || args.Length > 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected 1-2 argument(s), got {args.Length}");
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected 1-2 argument(s), got {args.Length}",
+                ExpressionFunction.round,
+                args
+            );
         }
 
         var number = PrepareNumericArg(args[0]);
@@ -290,15 +666,16 @@ public static class ExpressionEvaluator
         }
 
         int precision = 0;
-        if (args.Length == 2 && args[1] is not null)
+
+        if (args.Length == 2)
         {
-            precision = Convert.ToInt32(args[1], CultureInfo.InvariantCulture);
+            precision = (int)(PrepareNumericArg(args[1]) ?? 0);
         }
 
         return number.Value.ToString($"N{precision}", CultureInfo.InvariantCulture);
     }
 
-    private static string? UpperCase(object?[] args)
+    private static string? UpperCase(ExpressionValue[] args)
     {
         if (args.Length != 1)
         {
@@ -308,7 +685,7 @@ public static class ExpressionEvaluator
         return stringOne?.ToUpperInvariant();
     }
 
-    private static string? LowerCase(object?[] args)
+    private static string? LowerCase(ExpressionValue[] args)
     {
         if (args.Length != 1)
         {
@@ -318,38 +695,80 @@ public static class ExpressionEvaluator
         return stringOne?.ToLowerInvariant();
     }
 
-    private static bool PrepareBooleanArg(object? arg)
+    private static string? UpperCaseFirst(ExpressionValue[] args)
     {
-        return arg switch
+        if (args.Length != 1)
         {
-            bool b => b,
-            null => false,
-            string s => s switch
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        if (stringOne is null)
+        {
+            return null;
+        }
+        return stringOne.Length switch
+        {
+            0 => stringOne,
+            1 => stringOne.ToUpperInvariant(),
+            _ => stringOne[0].ToString().ToUpperInvariant() + stringOne[1..],
+        };
+    }
+
+    private static string? LowerCaseFirst(ExpressionValue[] args)
+    {
+        if (args.Length != 1)
+        {
+            throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
+        }
+        string? stringOne = ToStringForEquals(args[0]);
+        if (stringOne is null)
+        {
+            return null;
+        }
+        return stringOne.Length switch
+        {
+            0 => stringOne,
+            1 => stringOne.ToLowerInvariant(),
+            _ => stringOne[0].ToString().ToLowerInvariant() + stringOne[1..],
+        };
+    }
+
+    private static bool PrepareBooleanArg(ExpressionValue arg)
+    {
+        return arg.ValueKind switch
+        {
+            JsonValueKind.Null => false,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+
+            JsonValueKind.String => arg.String switch
             {
                 "true" => true,
                 "false" => false,
                 "1" => true,
                 "0" => false,
-                _ => ParseNumber(s, throwException: false) switch
+                _ => ParseNumber(arg.String, throwException: false) switch
                 {
                     1 => true,
                     0 => false,
-                    _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value \"{s}\""),
+                    _ => throw new ExpressionEvaluatorTypeErrorException(
+                        $"Expected boolean, got value \"{arg.String}\""
+                    ),
                 },
             },
-            double s => s switch
+            JsonValueKind.Number => arg.Number switch
             {
                 1 => true,
                 0 => false,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {s}"),
+                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {arg.Number}"),
             },
             _ => throw new ExpressionEvaluatorTypeErrorException(
-                "Unknown data type encountered in expression: " + arg.GetType().Name
+                "Unknown data type encountered in expression: " + arg.ValueKind
             ),
         };
     }
 
-    private static bool? And(object?[] args)
+    private static bool? And(ExpressionValue[] args)
     {
         if (args.Length == 0)
         {
@@ -361,7 +780,7 @@ public static class ExpressionEvaluator
         return preparedArgs.All(a => a);
     }
 
-    private static bool? Or(object?[] args)
+    private static bool? Or(ExpressionValue[] args)
     {
         if (args.Length == 0)
         {
@@ -373,7 +792,7 @@ public static class ExpressionEvaluator
         return preparedArgs.Any(a => a);
     }
 
-    private static bool? Not(object?[] args)
+    private static bool? Not(ExpressionValue[] args)
     {
         if (args.Length != 1)
         {
@@ -382,7 +801,7 @@ public static class ExpressionEvaluator
         return !PrepareBooleanArg(args[0]);
     }
 
-    private static (double?, double?) PrepareNumericArgs(object?[] args)
+    private static (double?, double?) PrepareNumericArgs(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
@@ -396,27 +815,33 @@ public static class ExpressionEvaluator
         return (a, b);
     }
 
-    private static double? PrepareNumericArg(object? arg)
+    private static double? PrepareNumericArg(ExpressionValue arg)
     {
-        return arg switch
+        return arg.ValueKind switch
         {
-            bool ab => throw new ExpressionEvaluatorTypeErrorException(
-                $"Expected number, got value {(ab ? "true" : "false")}"
-            ),
-            string s => ParseNumber(s),
-            IConvertible c => Convert.ToDouble(c, CultureInfo.InvariantCulture),
+            JsonValueKind.True or JsonValueKind.False or JsonValueKind.Array or JsonValueKind.Object =>
+                throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {arg}"),
+            JsonValueKind.String => ParseNumber(arg.String),
+            JsonValueKind.Number => arg.Number,
+
             _ => null,
         };
     }
 
-    private static object? IfImpl(object?[] args)
+    private static ExpressionValue IfImpl(ExpressionValue[] args)
     {
         if (args.Length == 2)
         {
-            return PrepareBooleanArg(args[0]) ? args[1] : null;
+            return PrepareBooleanArg(args[0]) ? args[1] : ExpressionValue.Null;
         }
 
-        if (args.Length > 2 && !"else".Equals(args[2] as string, StringComparison.OrdinalIgnoreCase))
+        if (
+            args.Length > 2
+            && !(
+                args[2].ValueKind == JsonValueKind.String
+                && "else".Equals(args[2].String, StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             throw new ExpressionEvaluatorTypeErrorException("Expected third argument to be \"else\"");
         }
@@ -447,7 +872,7 @@ public static class ExpressionEvaluator
         return null;
     }
 
-    private static bool? LessThan(object?[] args)
+    private static bool LessThan(ExpressionValue[] args)
     {
         var (a, b) = PrepareNumericArgs(args);
 
@@ -458,7 +883,7 @@ public static class ExpressionEvaluator
         return a < b; // Actual implementation
     }
 
-    private static bool? LessThanEq(object?[] args)
+    private static bool LessThanEq(ExpressionValue[] args)
     {
         var (a, b) = PrepareNumericArgs(args);
 
@@ -469,70 +894,62 @@ public static class ExpressionEvaluator
         return a <= b; // Actual implementation
     }
 
-    private static bool? GreaterThan(object?[] args)
+    private static bool GreaterThan(ExpressionValue[] args)
     {
         var (a, b) = PrepareNumericArgs(args);
 
         if (a is null || b is null)
         {
-            return false; // error handeling
+            return false; // error handling
         }
         return a > b; // Actual implementation
     }
 
-    private static bool? GreaterThanEq(object?[] args)
+    private static bool GreaterThanEq(ExpressionValue[] args)
     {
         var (a, b) = PrepareNumericArgs(args);
 
         if (a is null || b is null)
         {
-            return false; // error handeling
+            return false; // false if any is null
         }
         return a >= b; // Actual implementation
     }
 
-    internal static string? ToStringForEquals(object? value) =>
-        value switch
+    internal static string? ToStringForEquals(ExpressionValue value) =>
+        value.ValueKind switch
         {
-            null => null,
-            bool bValue => bValue ? "true" : "false",
-            // Special case for "TruE" to be equal to true
-            string sValue when "true".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "true",
-            string sValue when "false".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "false",
-            string sValue when "null".Equals(sValue, StringComparison.OrdinalIgnoreCase) => null,
-            string sValue => sValue,
-            decimal decValue => decValue.ToString(CultureInfo.InvariantCulture),
-            double doubleValue => doubleValue.ToString(CultureInfo.InvariantCulture),
-            float floatValue => floatValue.ToString(CultureInfo.InvariantCulture),
-            int intValue => intValue.ToString(CultureInfo.InvariantCulture),
-            uint uintValue => uintValue.ToString(CultureInfo.InvariantCulture),
-            short shortValue => shortValue.ToString(CultureInfo.InvariantCulture),
-            ushort ushortValue => ushortValue.ToString(CultureInfo.InvariantCulture),
-            long longValue => longValue.ToString(CultureInfo.InvariantCulture),
-            ulong ulongValue => ulongValue.ToString(CultureInfo.InvariantCulture),
-            byte byteValue => byteValue.ToString(CultureInfo.InvariantCulture),
-            sbyte sbyteValue => sbyteValue.ToString(CultureInfo.InvariantCulture),
-            // BigInteger bigIntValue => bigIntValue.ToString(CultureInfo.InvariantCulture), // Big integer not supported in json
-            DateTime dtValue => JsonSerializer.Serialize(dtValue),
-            DateOnly dateValue => JsonSerializer.Serialize(dateValue),
-            TimeOnly timeValue => JsonSerializer.Serialize(timeValue),
-            //TODO: Consider having JsonSerializer as a fallback for everything (including arrays and objects)
-            _ => throw new NotImplementedException(
-                $"ToStringForEquals not implemented for type {value.GetType().Name}"
-            ),
+            JsonValueKind.Null => null,
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.String => value.String switch
+            {
+                // Special case for "TruE" to be equal to true
+                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => "true",
+                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => "false",
+                { } sValue when sValue.Equals("null", StringComparison.OrdinalIgnoreCase) => null,
+                { } sValue => sValue,
+            },
+            JsonValueKind.Number => value.Number.ToString(CultureInfo.InvariantCulture),
+            _ => throw new NotImplementedException($"ToStringForEquals not implemented for {value.ValueKind}"),
         };
 
-    internal static bool? EqualsImplementation(object?[] args)
+    internal static bool EqualsImplementation(ExpressionValue[] args)
     {
         if (args.Length != 2)
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
         }
 
-        return string.Equals(ToStringForEquals(args[0]), ToStringForEquals(args[1]), StringComparison.Ordinal);
+        return EqualsImplementation(args[0], args[1]);
     }
 
-    private static object? Argv(object?[] args, object?[]? positionalArguments)
+    internal static bool EqualsImplementation(ExpressionValue a, ExpressionValue b)
+    {
+        return string.Equals(ToStringForEquals(a), ToStringForEquals(b), StringComparison.Ordinal);
+    }
+
+    private static ExpressionValue Argv(ExpressionValue[] args, ExpressionValue[]? positionalArguments)
     {
         if (args.Length != 1)
         {

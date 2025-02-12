@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: invalid non-padded month dates",
+  "expression": [
+    "formatDate",
+    "1963-6-19T08:30:06.283185Z",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"1963-6-19T08:30:06.283185Z\": Unknown format"
+}

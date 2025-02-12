@@ -1,10 +1,11 @@
-using System.Collections;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -37,6 +38,10 @@ public class TestFunctions
     public async Task And_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
+    [SharedTest("formatDate")]
+    public async Task FormatDate_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
     [SharedTest("frontendSettings")]
     public async Task FrontendSettings_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
@@ -57,6 +62,38 @@ public class TestFunctions
     public async Task Language_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
+    [SharedTest("compare-equals")]
+    public async Task CompareEquals_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-error")]
+    public async Task CompareError_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-greaterThan")]
+    public async Task CompareGreaterThan_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-isAfter")]
+    public async Task CompareIsAfter_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-isAfterEq")]
+    public async Task CompareIsAfterEq_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-isBefore")]
+    public async Task CompareIsBefore_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-isBeforeEq")]
+    public async Task CompareIsBeforeEq_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("compare-isSameDay")]
+    public async Task CompareIsSameDay_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
     [SharedTest("contains")]
     public async Task Contains_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
@@ -67,6 +104,10 @@ public class TestFunctions
     [Theory]
     [SharedTest("dataModelMultiple")]
     public async Task DataModelMultiple_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("countDataElements")]
+    public async Task CountDataElements_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("endsWith")]
@@ -129,6 +170,26 @@ public class TestFunctions
     public async Task LowerCase_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
+    [SharedTest("upperCaseFirst")]
+    public async Task UpperCaseFirst_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("lowerCaseFirst")]
+    public async Task LowerCaseFirst_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("stringSlice")]
+    public async Task StringSlice_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("stringReplace")]
+    public async Task StringReplace_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("stringIndexOf")]
+    public async Task StringIndexOf_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
     [SharedTest("startsWith")]
     public async Task StartsWith_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
@@ -170,7 +231,8 @@ public class TestFunctions
     private async Task RunTestCase(string testName, string folder)
     {
         var test = await LoadTestCase(testName, folder);
-        _output.WriteLine($"{test.Filename} in {test.Folder}");
+        _output.WriteLine(test.Name);
+        _output.WriteLine($"{test.Folder}{Path.DirectorySeparatorChar}{test.Filename}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
 
@@ -219,43 +281,127 @@ public class TestFunctions
             var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataTypes[0]);
             componentModel = new LayoutModel([layout], null);
         }
+        else if (test.Layouts is null && dataTypes.Count > 0)
+        {
+            // Create a working dummy layout to avoid null reference exceptions and make dataModel lookups work.
+            var componentLookup = new Dictionary<string, BaseComponent>();
+            componentLookup.Add(
+                "myParagraph",
+                new BaseComponent(
+                    "myParagraph",
+                    "Paragraph",
+                    null,
+                    new Expression(),
+                    new Expression(),
+                    new Expression(),
+                    null
+                )
+            );
+            var componentList = new List<BaseComponent>();
+            componentList.Add(componentLookup["myParagraph"]);
+            var layout = new LayoutSetComponent(
+                [
+                    new PageComponent(
+                        "formLayout",
+                        "formLayout",
+                        componentList,
+                        componentLookup,
+                        new Expression(),
+                        new Expression(),
+                        new Expression(),
+                        null
+                    ),
+                ],
+                "layout",
+                dataTypes[0]
+            );
+            componentModel = new LayoutModel([layout], null);
+        }
+
         var state = new LayoutEvaluatorState(
             dataAccessor,
             componentModel,
             test.FrontEndSettings ?? new FrontEndSettings(),
             test.GatewayAction,
-            test.ProfileSettings?.Language
+            test.ProfileSettings?.Language,
+            TimeZoneInfo.Utc // Frontend uses UTC when formating dates
         );
 
-        if (test.ExpectsFailure is not null)
+        ComponentContext? context = null;
+        if (test.Context is not null)
         {
-            if (test.ParsingException is not null)
-            {
-                test.ParsingException.Message.Should().Be(test.ExpectsFailure);
-            }
-            else
-            {
-                Func<Task> act = async () =>
-                {
-                    await ExpressionEvaluator.EvaluateExpression(
-                        state,
-                        test.Expression,
-                        test.Context?.ToContext(componentModel, state)!,
-                        positionalArguments
-                    );
-                };
-                (await act.Should().ThrowAsync<Exception>()).WithMessage($"*{test.ExpectsFailure}*");
-            }
+            context = test.Context.ToContext(componentModel, state);
+        }
+        else if (componentModel is not null)
+        {
+            context = (
+                await componentModel.GenerateComponentContexts(test.Instance, new DataModel(dataAccessor))
+            ).First();
+        }
 
+        if (test.ExpectsFailure is not null && test.ParsingException is not null)
+        {
+            test.ParsingException.Message.Should().Be(test.ExpectsFailure);
             return;
         }
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
+        await RunTestCaseItem(
+            new ExpressionTestCaseRoot.TestCaseItem()
+            {
+                Expects = test.Expects,
+                Expression = test.Expression,
+                ExpectsFailure = test.ExpectsFailure,
+            },
+            state,
+            context,
+            positionalArguments
+        );
+
+        if (test.TestCases != null)
+        {
+            foreach (var testCase in test.TestCases)
+            {
+                await RunTestCaseItem(testCase, state, context, positionalArguments);
+            }
+        }
+    }
+
+    private async Task RunTestCaseItem(
+        ExpressionTestCaseRoot.TestCaseItem test,
+        LayoutEvaluatorState state,
+        ComponentContext? context,
+        object?[]? positionalArguments
+    )
+    {
+        if (test.ExpectsFailure is not null)
+        {
+            _output.WriteLine($"Expecting failure: {test.ExpectsFailure}");
+            _output.WriteLine($"Expression: {test.Expression}");
+            _output.WriteLine("");
+            Func<Task> act = async () =>
+            {
+                var evaluationResult = await ExpressionEvaluator.EvaluateExpression(
+                    state,
+                    test.Expression,
+                    context!,
+                    positionalArguments
+                );
+                _output.WriteLine($"Unexpected result: {evaluationResult}");
+            };
+            (await act.Should().ThrowAsync<Exception>()).WithMessage($"*{test.ExpectsFailure}*");
+
+            return;
+        }
+
+        _output.WriteLine($"Expecting success: {test.Expects}");
+        _output.WriteLine($"Expression: {test.Expression}");
+        _output.WriteLine("");
         var result = await ExpressionEvaluator.EvaluateExpression(
             state,
             test.Expression,
-            test.Context?.ToContext(componentModel, state)!,
+            context!,
             positionalArguments
         );
 

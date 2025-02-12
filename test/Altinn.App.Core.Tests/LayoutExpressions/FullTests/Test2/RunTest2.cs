@@ -44,8 +44,8 @@ public class RunTest2
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test2");
 
-        var hidden2 = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
-        hidden2
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        hidden
             .Should()
             .BeEquivalentTo(
                 [new DataReference() { Field = "some.data", DataElementIdentifier = state.GetDefaultDataElementId() }]

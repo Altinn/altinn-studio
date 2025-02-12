@@ -1,0 +1,5 @@
+{
+  "name": "Should work even if start index is too large",
+  "expression": ["stringSlice", "hello", 10],
+  "expects": ""
+}

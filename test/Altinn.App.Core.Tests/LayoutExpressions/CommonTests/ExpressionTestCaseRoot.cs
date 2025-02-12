@@ -42,6 +42,21 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("expectsFailure")]
     public string? ExpectsFailure { get; set; }
 
+    public class TestCaseItem
+    {
+        [JsonPropertyName("expression")]
+        public required Expression Expression { get; set; }
+
+        [JsonPropertyName("expects")]
+        public JsonElement Expects { get; set; }
+
+        [JsonPropertyName("expectsFailure")]
+        public string? ExpectsFailure { get; set; }
+    }
+
+    [JsonPropertyName("testCases")]
+    public List<TestCaseItem>? TestCases { get; set; }
+
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
     public IReadOnlyDictionary<string, PageComponent>? Layouts { get; set; }

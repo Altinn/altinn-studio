@@ -15,7 +15,7 @@
     }
   ],
   "validationConfig": {
-    "$schema": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
     "validations": {
       "form.names.name": ["none-is-not-allowed"]
     },

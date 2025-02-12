@@ -1,0 +1,5 @@
+{
+  "name": "Should be able to understand a date only valid in a leap year",
+  "expression": ["compare", "2020-02-29", "isAfter", "2020-02-28"],
+  "expects": true
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Simple equals test with string",
+  "expression": ["compare", "yes", "equals", "yes"],
+  "expects": true
+}
