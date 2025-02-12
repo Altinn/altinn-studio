@@ -462,7 +462,7 @@ namespace Altinn.Studio.Designer.Controllers
                         .Status(appContext.Org, appContext.Repo)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
-                };
+                }
 
                 foreach (var changedFile in changedFiles)
                 {
