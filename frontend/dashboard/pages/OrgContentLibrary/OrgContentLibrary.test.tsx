@@ -99,7 +99,7 @@ type RenderOrgContentLibraryProps = {
   queryClient?: QueryClient;
 };
 
-const renderAppContentLibrary = ({
+const renderOrgContentLibrary = ({
   queries = {},
   queryClient = createQueryClientMock(),
 }: RenderOrgContentLibraryProps = {}): void => {
@@ -113,7 +113,7 @@ function renderOrgContentLibraryWithCodeLists(
   props?: Omit<RenderOrgContentLibraryProps, 'queryClient'>,
 ): void {
   const queryClient = createQueryClientWithOptionsDataList(codeListsDataMock);
-  renderAppContentLibrary({ ...props, queryClient });
+  renderOrgContentLibrary({ ...props, queryClient });
 }
 
 function createQueryClientWithOptionsDataList(
