@@ -1,1 +1,1 @@
-export type ValueError = 'duplicateValue' | 'multipleTypes' | 'undefinedValue';
+export type ValueError = 'duplicateValue' | 'multipleTypes' | 'nullValue';

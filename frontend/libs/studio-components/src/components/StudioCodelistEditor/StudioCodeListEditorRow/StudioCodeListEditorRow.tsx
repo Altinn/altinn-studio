@@ -127,7 +127,7 @@ function TypedInputCell({ value, error, ...rest }: TypedInputCellProps<CodeListI
 
   switch (typeof value) {
     case 'number':
-    case 'undefined': // StudioDecimalField returns undefined when the field is cleared
+    case 'object': // StudioDecimalField returns null when the field is cleared
       return <NumberfieldCell value={value} onFocus={handleFocus} ref={ref} {...rest} />;
     case 'boolean':
       return <CheckboxCell value={value} onFocus={handleFocus} ref={ref} {...rest} />;

@@ -28,7 +28,7 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
     valueErrors: {
       duplicateValue: t('code_list_editor.error_duplicate_values'),
       multipleTypes: t('code_list_editor.error_multiple_types'),
-      undefinedValue: t('code_list_editor.error_undefined_value'),
+      nullValue: t('code_list_editor.error_null_value'),
     },
   };
 }
