@@ -13,5 +13,5 @@ export const useGetLayoutSetByName = ({
   app,
 }: UseGetLayoutSetByName): LayoutSet | null => {
   const { data: layoutSetsResponse } = useLayoutSetsQuery(org, app);
-  return layoutSetsResponse.sets.find((set) => set.id === name);
+  return layoutSetsResponse?.sets.find((set) => set.id === name);
 };

@@ -10,6 +10,7 @@ import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testi
 import {
   layoutSet1NameMock,
   layoutSet2NameMock,
+  layoutSetsExtendedMock,
   layoutSetsMock,
 } from '../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -42,7 +43,8 @@ describe('Summary2ComponentTargetSelector', () => {
     render();
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[0].tasks[0]);
+    expect(select).toHaveValue('');
+    expect(select).toHaveTextContent(layoutSetsMock.sets[0].id);
   });
 
   it('should select the task id from the target when the task id of the target is defined', async () => {
@@ -191,6 +193,7 @@ const defaultProps = {
 const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
   });

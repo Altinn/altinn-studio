@@ -5,15 +5,14 @@
   gap: var(--fds-spacing-2);
 }
 
-.prefixIcon {
-  grid-template-columns: auto 1fr;
-}
-
 .container:has(:nth-child(3)) {
   grid-template-columns: auto 1fr auto;
 }
 
 .label {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
   font-weight: 500;
 }
 

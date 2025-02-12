@@ -4,7 +4,7 @@ import { useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioCombobox } from '@studio/components';
+import { StudioCombobox, StudioErrorMessage } from '@studio/components';
 import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
@@ -42,6 +42,10 @@ export function LayoutSetsContainer() {
     }
   };
 
+  if (!layoutSets.sets.some((layoutSet) => layoutSet.id === selectedFormLayoutSetName)) {
+    return <StudioErrorMessage error={true}>{t('general.fetch_error_message')}</StudioErrorMessage>;
+  }
+
   return (
     <div className={classes.root}>
       <StudioCombobox
@@ -61,12 +65,10 @@ export function LayoutSetsContainer() {
         ))}
       </StudioCombobox>
       {shouldDisplayFeature(FeatureFlag.ExportForm) && <ExportForm />}
-      {shouldDisplayFeature(FeatureFlag.Subform) && (
-        <DeleteSubformWrapper
-          layoutSets={layoutSetsResponse}
-          selectedLayoutSet={selectedFormLayoutSetName}
-        />
-      )}
+      <DeleteSubformWrapper
+        layoutSets={layoutSetsResponse}
+        selectedLayoutSet={selectedFormLayoutSetName}
+      />
     </div>
   );
 }

@@ -395,20 +395,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<Branch>> GetBranches(string org, string repo)
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/branches");
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                return await response.Content.ReadAsAsync<List<Branch>>();
-            }
-
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " " + repo);
-
-            return new List<Branch>();
-        }
-
-        /// <inheritdoc />
         public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");

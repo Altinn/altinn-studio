@@ -1,25 +1,7 @@
-.container {
-  display: grid;
-  gap: var(--studio-property-vertical-gap);
-}
-
 .switch {
   padding-left: var(--fds-spacing-5);
 }
 
-.dataModelBindings {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
 .alert {
   margin: 0 var(--fds-spacing-5);
-}
-
-.wrapper {
-  padding-top: var(--fds-spacing-2);
-  padding-bottom: var(--fds-spacing-2);
-  text-overflow: ellipsis;
-  overflow: hidden;
 }

@@ -8,7 +8,9 @@ import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
-import { filterCodeLists } from './utils/codeListPageUtils';
+import { filterCodeLists } from './utils';
+import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
+import type { TextResources } from '../../../../types/TextResources';
 
 export type CodeListWithMetadata = {
   codeList: CodeList;
@@ -26,8 +28,10 @@ export type CodeListPageProps = {
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages: CodeListReference[];
+  textResources?: TextResources;
 };
 
 export function CodeListPage({
@@ -35,8 +39,10 @@ export function CodeListPage({
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  onUpdateTextResource,
   onUploadCodeList,
   codeListsUsages,
+  textResources,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
@@ -74,9 +80,11 @@ export function CodeListPage({
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
+        onUpdateTextResource={onUpdateTextResource}
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
         codeListsUsages={codeListsUsages}
+        textResources={textResources}
       />
     </div>
   );

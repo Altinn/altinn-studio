@@ -4,7 +4,6 @@ import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
-import classes from './EditUniqueFromSignaturesInDataTypes.module.css';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
@@ -51,7 +50,6 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           property={t(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           )}
-          size='small'
           icon={<PersonPencilIcon />}
         />
       ) : isSelectVisible ? (
@@ -63,15 +61,8 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types',
           )}
           title={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
-          value={
-            <>
-              {signingTasks?.map((dataType) => (
-                <div key={dataType.id} className={classes.dataType}>
-                  <PersonPencilIcon /> {dataType.name}
-                </div>
-              ))}
-            </>
-          }
+          icon={<PersonPencilIcon />}
+          value={signingTasks?.map((dataType) => <div key={dataType.id}>{dataType.name}</div>)}
         />
       )}
     </>

@@ -27,7 +27,6 @@ export const CustomReceiptContent = (): React.ReactElement => {
     return (
       <StudioProperty.Button
         onClick={openCustomReceiptFields}
-        size='small'
         property={t('process_editor.configuration_panel_custom_receipt_create_your_own_button')}
         className={classes.createButton}
       />

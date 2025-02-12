@@ -1,0 +1,7 @@
+.targetConfig {
+  padding-top: var(--fds-spacing-5);
+}
+
+.targetConfig > * {
+  padding-bottom: var(--fds-spacing-2);
+}

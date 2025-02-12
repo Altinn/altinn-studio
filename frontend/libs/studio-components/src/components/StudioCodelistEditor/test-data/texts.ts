@@ -4,6 +4,8 @@ import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 
 const valueErrors: ValueErrorMessages = {
   duplicateValue: 'The value must be unique.',
+  multipleTypes: 'All values must be of the same type.',
+  nullValue: 'The value cannot be empty.',
 };
 
 export const texts: CodeListEditorTexts = {
@@ -31,10 +33,10 @@ function textResourceTexts(
 ): TextResourceInputTexts {
   return {
     editValue: createTextResourceEditButtonTitle(rowNumber, property),
-    emptyResourceList: 'No text resources found.',
     idLabel: 'ID:',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
+    noTextResourceOptionLabel: 'None',
     valueLabel: createTextResourceValueLabel(rowNumber, property),
   };
 }

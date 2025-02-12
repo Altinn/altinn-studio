@@ -26,7 +26,9 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
     textResourceTexts,
     value: t('code_list_editor.column_title_value'),
     valueErrors: {
-      duplicateValue: t('code_list_editor.duplicate_values_error'),
+      duplicateValue: t('code_list_editor.error_duplicate_values'),
+      multipleTypes: t('code_list_editor.error_multiple_types'),
+      nullValue: t('code_list_editor.error_null_value'),
     },
   };
 }
@@ -39,10 +41,10 @@ function useTextResourceTexts(): (
   const prefix = 'code_list_editor.text_resource';
   return (number: number, property: CodeListItemTextProperty) => ({
     editValue: t(`${prefix}.${property}.edit_mode`, { number }),
-    emptyResourceList: t(`${prefix}.empty_list`),
     idLabel: t(`${prefix}.id_label`),
     search: t(`${prefix}.${property}.search_mode`, { number }),
     textResourcePickerLabel: t(`${prefix}.${property}.select`, { number }),
+    noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });
 }

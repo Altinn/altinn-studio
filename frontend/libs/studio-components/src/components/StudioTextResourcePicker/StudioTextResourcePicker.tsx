@@ -4,20 +4,24 @@ import type { TextResource } from '../../types/TextResource';
 import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
 import type { Override } from '../../types/Override';
+import classes from './StudioTextResourcePicker.module.css';
 
 export type StudioTextResourcePickerProps = Override<
   {
-    emptyListText: string;
-    onValueChange: (id: string) => void;
+    onValueChange: (id: string | null) => void;
     textResources: TextResource[];
+    noTextResourceOptionLabel: string;
     value?: string;
   },
   StudioComboboxProps
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  ({ textResources, onSelect, onValueChange, emptyListText, value, ...rest }, ref) => {
-    const handleValueChange = useCallback(([id]: string[]) => onValueChange(id), [onValueChange]);
+  ({ textResources, onSelect, onValueChange, noTextResourceOptionLabel, value, ...rest }, ref) => {
+    const handleValueChange = useCallback(
+      ([id]: string[]) => onValueChange(id || null),
+      [onValueChange],
+    );
 
     return (
       <StudioCombobox
@@ -27,12 +31,24 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
         {...rest}
         ref={ref}
       >
-        <StudioCombobox.Empty>{emptyListText}</StudioCombobox.Empty>
+        {renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
       </StudioCombobox>
     );
   },
 );
+
+function renderNoTextResourceOption(label: string): ReactElement {
+  // This cannot be a component function since the option component must be a direct child of the combobox component.
+  return (
+    <StudioCombobox.Option
+      aria-label={label}
+      className={classes.noTextResourceOption}
+      description={label}
+      value=''
+    />
+  );
+}
 
 function renderTextResourceOptions(textResources: TextResource[]): ReactElement[] {
   // This cannot be a component function since the option components must be direct children of the combobox component.

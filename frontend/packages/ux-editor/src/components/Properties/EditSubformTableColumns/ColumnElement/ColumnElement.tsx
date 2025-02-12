@@ -1,12 +1,13 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './ColumnElement.module.css';
-import { type TableColumn } from '../types/TableColumn';
+import type { TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type ColumnElementProps = {
   subformLayout: string;
@@ -14,7 +15,7 @@ export type ColumnElementProps = {
   columnNumber: number;
   isInitialOpenForEdit: boolean;
   onDeleteColumn: () => void;
-  onEdit: (tableColumn: TableColumn) => void;
+  onChange: (tableColumn: TableColumn) => void;
 };
 
 export const ColumnElement = ({
@@ -22,7 +23,7 @@ export const ColumnElement = ({
   columnNumber,
   isInitialOpenForEdit,
   onDeleteColumn,
-  onEdit,
+  onChange,
   subformLayout,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
@@ -30,21 +31,20 @@ export const ColumnElement = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const textKeyValue = textResourceByLanguageAndIdSelector(
-    'nb',
-    tableColumn.headerContent,
-  )(textResources)?.value;
+  const textKeyValue =
+    textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, tableColumn?.headerContent)(textResources)
+      ?.value || tableColumn?.headerContent;
 
   if (editing) {
     return (
       <EditColumnElement
         subformLayout={subformLayout}
-        sourceColumn={tableColumn}
+        tableColumn={tableColumn}
         columnNumber={columnNumber}
         onDeleteColumn={onDeleteColumn}
-        onEdit={(col) => {
+        onChange={onChange}
+        onClose={() => {
           setEditing(false);
-          onEdit(col);
         }}
       />
     );

@@ -22,5 +22,6 @@ public class BuildDbModel
 public enum BuildType
 {
     Deployment = 0,
-    Release = 1
+    Decommission = 1,
+    Release = 2
 }

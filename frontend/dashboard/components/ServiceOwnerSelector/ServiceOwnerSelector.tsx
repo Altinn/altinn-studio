@@ -10,6 +10,7 @@ export type ServiceOwnerSelectorProps = {
   organizations: Organization[];
   errorMessage?: string;
   name?: string;
+  onChange?: (org: string) => void;
 };
 
 export const ServiceOwnerSelector = ({
@@ -18,6 +19,7 @@ export const ServiceOwnerSelector = ({
   organizations,
   errorMessage,
   name,
+  onChange,
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
   const serviceOwnerId: string = useId();
@@ -38,6 +40,7 @@ export const ServiceOwnerSelector = ({
       name={name}
       id={serviceOwnerId}
       defaultValue={defaultValue}
+      onChange={(event) => onChange(event.target.value)}
     >
       {selectableOptions.map(({ value, label }) => (
         <option key={value} value={value}>

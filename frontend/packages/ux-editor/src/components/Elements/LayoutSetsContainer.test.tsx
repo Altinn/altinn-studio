@@ -14,11 +14,6 @@ import {
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
-import {
-  addFeatureFlagToLocalStorage,
-  removeFeatureFlagFromLocalStorage,
-  FeatureFlag,
-} from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
@@ -65,8 +60,7 @@ describe('LayoutSetsContainer', () => {
     expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 
-  it('should render the delete subform button when feature is enabled and selected layoutset is a subform', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.Subform);
+  it('should render the delete subform button when selected layoutset is a subform', () => {
     render({
       layoutSets: { sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] },
       selectedLayoutSet: layoutSet3SubformNameMock,
@@ -75,11 +69,9 @@ describe('LayoutSetsContainer', () => {
       name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubformButton).toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage(FeatureFlag.Subform);
   });
 
-  it('should not render the delete subform button when feature is enabled and selected layoutset is not a subform', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.Subform);
+  it('should not render the delete subform button when selected layoutset is not a subform', () => {
     render({
       layoutSets: { sets: [{ id: layoutSet1NameMock, dataType: 'data-model' }] },
       selectedLayoutSet: layoutSet1NameMock,
@@ -88,7 +80,6 @@ describe('LayoutSetsContainer', () => {
       name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubformButton).not.toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage(FeatureFlag.Subform);
   });
 
   it('should not render the delete subform button when feature is disabled', () => {
@@ -97,6 +88,12 @@ describe('LayoutSetsContainer', () => {
       name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubformButton).not.toBeInTheDocument();
+  });
+
+  it('should render an error message if selectedFormLayoutSetName is not in layoutSets', async () => {
+    render({ layoutSets: { sets: [] }, selectedLayoutSet: 'non-existing-layout-set' });
+    const errorMessage = screen.getByText(textMock('general.fetch_error_message'));
+    expect(errorMessage).toBeInTheDocument();
   });
 });
 

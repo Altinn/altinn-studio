@@ -1,6 +1,6 @@
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '../types/FormItem';
+import type { IDataModelBindings } from '../types/global';
 
 export const getMinOccursFromDataModelFields = (
   dataBindingName: string,
@@ -103,12 +103,12 @@ export type InternalBindingFormat = {
 };
 
 export const convertDataBindingToInternalFormat = (
-  component: FormItem,
+  dataModelBindings: IDataModelBindings,
   bindingKey: string,
 ): InternalBindingFormat => {
   const dataModelBinding =
-    component?.dataModelBindings && bindingKey in component.dataModelBindings
-      ? component.dataModelBindings[bindingKey]
+    dataModelBindings && bindingKey in dataModelBindings
+      ? dataModelBindings[bindingKey]
       : undefined;
 
   const isOldFormatOrNotSet =
@@ -141,13 +141,13 @@ export const validateSelectedDataField = (
 
 export const getDataModel = (
   isDataModelValid: boolean,
-  dataModelMetadata?: DataModelFieldElement[],
+  defaultDataModelName: string | undefined,
   currentDataModel?: string,
 ): string => {
-  if (dataModelMetadata) {
+  if (defaultDataModelName) {
     return isDataModelValid && currentDataModel !== undefined && currentDataModel !== ''
       ? currentDataModel
-      : dataModelMetadata[0]?.id;
+      : defaultDataModelName;
   }
   return currentDataModel;
 };

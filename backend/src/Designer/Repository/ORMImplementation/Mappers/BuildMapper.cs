@@ -23,8 +23,8 @@ public static class BuildMapper
             ExternalId = buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
-            Started = buildEntity.Started,
-            Finished = buildEntity.Finished,
+            Started = buildEntity.Started?.ToUniversalTime(),
+            Finished = buildEntity.Finished?.ToUniversalTime(),
             BuildType = buildType
         };
 }

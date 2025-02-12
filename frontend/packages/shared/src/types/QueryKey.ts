@@ -48,6 +48,7 @@ export enum QueryKey {
   IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
+  UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
 
   // Resourceadm

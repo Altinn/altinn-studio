@@ -1,14 +1,3 @@
-.selectedOption {
-  align-items: center;
-  display: flex;
-  gap: var(--fds-spacing-1);
-}
-
 .error {
   background-color: var(--fds-semantic-surface-danger-subtle);
-}
-
-.currentLinkedDataModel {
-  text-overflow: ellipsis;
-  overflow: hidden;
 }

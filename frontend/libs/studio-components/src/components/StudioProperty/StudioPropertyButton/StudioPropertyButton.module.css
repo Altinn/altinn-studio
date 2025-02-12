@@ -1,6 +1,8 @@
 .propertyButton {
   border-radius: 0;
-  display: flex;
+  border: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
   justify-content: flex-start;
   margin: calc(-1 * var(--studio-property-button-vertical-spacing)) 0;
   overflow: hidden;
@@ -10,6 +12,12 @@
 .propertyButton.withValue .content {
   color: var(--fds-semantic-text-neutral-default);
   text-align: left;
+}
+
+.propertyButton .property {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
 }
 
 .propertyButton.withValue .property {
