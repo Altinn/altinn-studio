@@ -62,7 +62,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const handleTextResourceChange = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
-      onChangeTextResource(newTextResource);
+      onChangeTextResource?.(newTextResource);
     };
 
     const rootClass = cn(givenClass, classes.container);

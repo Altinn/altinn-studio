@@ -193,7 +193,7 @@ describe('CodeListPage', () => {
     await openSearchModeForFirstLabel(user, dialog);
     await openFirstLabelCombobox(user, dialog);
 
-    expect(getTextResourceOption(label1ResourceNb, dialog)).toBeInTheDocument();
+    expect(getTextResourceOption(label1ResourceNb)).toBeInTheDocument();
   });
 
   it('Calls onUpdateTextResource with the new text resource and the default language when a text resource is changed in the create dialog', async () => {
@@ -206,7 +206,7 @@ describe('CodeListPage', () => {
     await addCodeListItem(user, dialog);
     await openSearchModeForFirstLabel(user, dialog);
     await openFirstLabelCombobox(user, dialog);
-    await user.click(getTextResourceOption(label1ResourceNb, dialog));
+    await user.click(getTextResourceOption(label1ResourceNb));
     await openEditModeForFirstLabel(user, dialog);
     await user.type(getFirstLabelField(dialog), newLabel);
 
@@ -285,7 +285,7 @@ const openFirstLabelCombobox = async (user: UserEvent, area: HTMLElement): Promi
   await user.click(combobox);
 };
 
-const getTextResourceOption = (textResource: TextResource, area: HTMLElement): HTMLElement =>
-  within(area).getByRole('option', { name: retrieveOptionName(textResource) });
+const getTextResourceOption = (textResource: TextResource): HTMLElement =>
+  screen.getByRole('option', { name: retrieveOptionName(textResource) });
 
 const retrieveOptionName = ({ value, id }: TextResource): string => `${value} ${id}`;
