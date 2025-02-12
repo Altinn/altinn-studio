@@ -39,11 +39,11 @@ public class CodeListService : ICodeListService
         {
             try
             {
-                List<Option> codeList6 = await GetCodeList(org, repo, developer, codeListId, cancellationToken);
+                List<Option> codeList = await GetCodeList(org, repo, developer, codeListId, cancellationToken);
                 OptionListData codeListData = new()
                 {
                     Title = codeListId,
-                    Data = codeList6,
+                    Data = codeList,
                     HasError = false
                 };
                 codeLists.Add(codeListData);
@@ -167,7 +167,7 @@ public class CodeListService : ICodeListService
         }
         catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
-            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code-list: {codeListId}.");
+            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code list: {codeListId}.");
         }
 
         return codeList;
