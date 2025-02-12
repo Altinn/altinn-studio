@@ -162,19 +162,15 @@ public class CodeListService : ICodeListService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        List<Option> codeList;
-
-        string codeListString = await altinnOrgGitRepository.GetCodeList(codeListId, cancellationToken);
         try
         {
-            codeList = JsonSerializer.Deserialize<List<Option>>(codeListString);
+            List<Option> codeList = await altinnOrgGitRepository.GetCodeList(codeListId, cancellationToken);
             codeList.ForEach(ValidateOption);
+            return codeList;
         }
         catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
             throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code list: {codeListId}.");
         }
-
-        return codeList;
     }
 }

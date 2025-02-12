@@ -56,25 +56,32 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Gets a specific code-list with the provided id.
+    /// Gets a specific code list with the provided id.
     /// </summary>
-    /// <param name="codeListId">The name of the code-list to fetch.</param>
+    /// <param name="codeListId">The name of the code list to fetch.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The code-list as a string.</returns>
-    public async Task<string> GetCodeList(string codeListId, CancellationToken cancellationToken = default)
+    /// <returns>The code list as a string.</returns>
+    public async Task<List<Option>> GetCodeList(string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
         if (!FileExistsByRelativePath(codeListFilePath))
         {
-            throw new NotFoundException($"Code-list file {codeListId}.json was not found.");
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
+        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, JsonOptions);
 
-        return fileContent;
+        return codeList;
     }
 
+    /// <summary>
+    /// Creates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to create.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public async Task CreateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -85,6 +92,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
     }
 
+    /// <summary>
+    /// Updates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public async Task UpdateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -95,12 +108,16 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
     }
 
+    /// <summary>
+    /// Deletes a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to be deleted.</param>
     public void DeleteCodeList(string codeListId)
     {
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
         if (!FileExistsByRelativePath(codeListFilePath))
         {
-            throw new NotFoundException($"Code-list file {codeListId}.json was not found.");
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
         }
 
         DeleteFileByRelativePath(codeListFilePath);
