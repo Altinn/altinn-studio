@@ -54,10 +54,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string ProcessDefinitionFilePath => Path.Combine(ProcessDefinitionFolderPath, ProcessDefinitionFilename);
 
         private const string LayoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
-
         private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
+        private const string SchemaFilesPatternJson = "App/models/*.schema.json";
+        private const string SchemaFilesPatternXsd = "App/models/*.xsd";
 
         public static readonly string InitialLayoutFileName = "Side1.json";
 
@@ -974,6 +975,40 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             allFilePaths.AddRange(files);
 
             return allFilePaths;
+        }
+
+        /// <summary>
+        /// Finds all schema files in App/models directory.
+        /// </summary>
+        public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
+        {
+            string schemaFilesPattern = xsd ? SchemaFilesPatternXsd : SchemaFilesPatternJson;
+            IEnumerable<string> schemaFiles;
+
+            try
+            {
+                schemaFiles = FindFiles(new[] { schemaFilesPattern });
+            }
+            catch (DirectoryNotFoundException)
+            {
+                schemaFiles = new List<string>();
+            }
+
+            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
+
+            return altinnCoreSchemaFiles;
+        }
+
+        private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
+        {
+            List<AltinnCoreFile> altinnCoreSchemaFiles = new();
+
+            foreach (string file in schemaFiles)
+            {
+                altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
+            }
+
+            return altinnCoreSchemaFiles;
         }
 
         /// <summary>

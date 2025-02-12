@@ -69,43 +69,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory));
         }
 
-        [Theory]
-        [InlineData("ttd", "apps-test", "testUser", 0)]
-        [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
-        [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
-        public void GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
-        {
-            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(repositoriesRootDirectory);
-
-            var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var files = altinnGitRepository.GetSchemaFiles();
-
-            Assert.Equal(expectedSchemaFiles, files.Count);
-        }
-
-        [Fact]
-        public void GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
-        {
-            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
-            var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
-
-            Assert.Equal(".json", file.FileType);
-            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
-        }
-
-        [Fact]
-        public void GetSchemaFiles_FilesExistOutsideModelsFolder_ShouldNotReturnFiles()
-        {
-            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(repositoriesRootDirectory);
-
-            var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository("ttd", "app-with-misplaced-datamodels", "testUser");
-            var files = altinnGitRepository.GetSchemaFiles(true);
-
-            Assert.Empty(files);
-        }
-
         [Fact]
         public async Task RepositoryType_SettingsExists_ShouldUseThat()
         {

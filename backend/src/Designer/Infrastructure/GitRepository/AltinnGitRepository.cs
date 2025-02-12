@@ -23,8 +23,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// and not any methods that are specific to App or Datamodels repositories.</remarks>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
-        private const string SCHEMA_FILES_PATTERN_JSON = "App/models/*.schema.json";
-        private const string SCHEMA_FILES_PATTERN_XSD = "App/models/*.xsd";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
@@ -77,28 +75,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
         {
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings, true);
-        }
-
-        /// <summary>
-        /// Finds all schema files in App/models directory in repository.
-        /// </summary>
-        public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
-        {
-            string schemaFilesPattern = xsd ? SCHEMA_FILES_PATTERN_XSD : SCHEMA_FILES_PATTERN_JSON;
-            IEnumerable<string> schemaFiles;
-
-            try
-            {
-                schemaFiles = FindFiles(new[] { schemaFilesPattern });
-            }
-            catch (DirectoryNotFoundException)
-            {
-                schemaFiles = new List<string>();
-            }
-
-            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
-
-            return altinnCoreSchemaFiles;
         }
 
         /// <summary>
@@ -249,18 +225,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private bool IsDatamodelsRepo()
         {
             return Repository.Contains("-datamodels");
-        }
-
-        private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
-        {
-            List<AltinnCoreFile> altinnCoreSchemaFiles = new();
-
-            foreach (string file in schemaFiles)
-            {
-                altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
-            }
-
-            return altinnCoreSchemaFiles;
         }
     }
 }
