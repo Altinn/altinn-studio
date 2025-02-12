@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
-import { Heading, Link, Table } from '@digdir/designsystemet-react';
+import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -46,14 +46,7 @@ export const DeploymentEnvironmentLogList = ({
         return <CheckmarkCircleFillIcon className={classnames} />;
       case BuildResult.none:
       default:
-        return (
-          <StudioSpinner
-            size='small'
-            spinnerTitle=''
-            showSpinnerTitle={false}
-            className={classes.loadingSpinner}
-          />
-        );
+        return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
     }
   };
 
