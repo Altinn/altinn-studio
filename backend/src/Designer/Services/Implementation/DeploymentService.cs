@@ -93,32 +93,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-            await PublishAppDeployedEvent(deploymentEntity, cancellationToken);
             await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
-        }
-
-        // Publish app deployed event
-        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var deploymentEntities = await _deploymentRepository.Get(deploymentEntity.Org, deploymentEntity.App,
-                    new DocumentQueryModel { Top = 1 });
-                bool newApp = !deploymentEntities.Any();
-
-
-                await _mediatr.Publish(new AppDeployedEvent
-                {
-                    EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
-                    AppsEnvironment = deploymentEntity.EnvName,
-                    DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
-                }, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error publishing AppDeployedEvent for {org}/{app}", deploymentEntity.Org, deploymentEntity.App);
-            }
         }
 
         /// <inheritdoc/>
