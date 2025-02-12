@@ -8,7 +8,7 @@ import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
-import { filterCodeLists } from './utils/codeListPageUtils';
+import { filterCodeLists } from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 
