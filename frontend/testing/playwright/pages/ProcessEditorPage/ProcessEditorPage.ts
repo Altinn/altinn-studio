@@ -68,7 +68,7 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
-    const text = this.page.getByText(`Navn: Altinn ${task} task`);
+    const text = this.page.getByText(`Navn Altinn ${task} task`);
     await expect(text).toBeVisible();
   }
 
