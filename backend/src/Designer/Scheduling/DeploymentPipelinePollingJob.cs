@@ -37,8 +37,9 @@ public class DeploymentPipelinePollingJob : IJob
         string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-        Enum.TryParse(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType), out PipelineType type);
-        string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
+        bool hasPipelineTypeArgument = context.JobDetail.JobDataMap.TryGetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType, out string pipelineType);
+        PipelineType type = hasPipelineTypeArgument ? Enum.Parse<PipelineType>(pipelineType!) : PipelineType.Deploy;
+        context.JobDetail.JobDataMap.TryGetString(DeploymentPipelinePollingJobConstants.Arguments.Environment, out string environment);
         Guard.ArgumentNotNull(buildId, nameof(buildId));
 
         var build = await _azureDevOpsBuildClient.Get(buildId);
