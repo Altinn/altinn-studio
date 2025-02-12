@@ -160,7 +160,8 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
-  it('should render CollapsiblePropertyEditor for the "sortOrder" property', () => {
+  it('should render CollapsiblePropertyEditor for the "sortOrder" property', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         schema: {
@@ -178,9 +179,7 @@ describe('FormComponentConfig', () => {
         },
       },
     });
-    expect(
-      screen.getByText(textMock('ux_editor.component_properties.sortOrder')),
-    ).toBeInTheDocument();
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.sortOrder')));
     expect(
       screen.getByRole('combobox', {
         name: textMock('ux_editor.component_properties.sortOrder'),
@@ -378,7 +377,8 @@ describe('FormComponentConfig', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should only render array properties with items of type string AND enum values', () => {
+  it('should only render array properties with items of type string AND enum values', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         schema: {
@@ -402,6 +402,9 @@ describe('FormComponentConfig', () => {
         },
       },
     });
+    await user.click(
+      screen.getByText(textMock('ux_editor.component_properties.supportedArrayProperty')),
+    );
     expect(
       screen.getByRole('combobox', {
         name: textMock('ux_editor.component_properties.supportedArrayProperty'),

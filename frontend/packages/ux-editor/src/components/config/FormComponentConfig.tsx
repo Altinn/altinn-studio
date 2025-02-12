@@ -19,7 +19,6 @@ import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
 import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
-import type { TranslationKey } from 'language/type';
 
 export interface IEditFormComponentProps {
   editFormId: string;
