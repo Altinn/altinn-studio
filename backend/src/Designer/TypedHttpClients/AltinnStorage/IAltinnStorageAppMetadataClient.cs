@@ -1,4 +1,6 @@
+using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -17,5 +19,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// <param name="envName">Environment Name</param>
         /// <returns></returns>
         Task UpsertApplicationMetadata(string org, string app, ApplicationMetadata applicationMetadata, string envName);
+
+        /// <summary>
+        /// Returns the application metadata that is stored in Platform.Storage
+        /// </summary>
+        /// <param name="altinnRepoContext">An <see cref="AltinnRepoContext"/> holding the info of the organization and the repo.</param>
+        /// <param name="envName">A name of the platform environment.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>An <see cref="ApplicationMetadata"/> that's currently stored in the storage</returns>
+        Task<ApplicationMetadata> GetApplicationMetadataAsync(AltinnRepoContext altinnRepoContext, string envName, CancellationToken cancellationToken = default);
+
     }
 }

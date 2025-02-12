@@ -2,9 +2,14 @@
   "$schema": "news.schema.json",
   "news": [
     {
-      "date": "2025-02-11",
+      "date": "2025-02-12",
       "title": "Ny Oppsummering-komponent!",
       "content": "Med Oppsummering kan du trekke ut og vise opplysninger som brukere har fylt ut i et skjema. Du kan vise informasjon fra enkeltkomponenter, sider eller sidegrupper. Du kan fra nå av (eller dato) bare bruke den nye komponenten for oppsummering fra Utforming-siden, men den gamle vil fungere i apper du har fra før."
+    },
+    {
+      "date": "2025-02-11",
+      "title": "Studio støtter underskjema!",
+      "content": "Du kan nå legge til underskjema i Altinn Studio! Dette gjør det enklere å strukturere komplekse skjema - du kan lage egne datamodeller og skjemaoppsett for gjentagende datastrukturer, og presentere disse som skjema inne i hovedskjema."
     },
     {
       "date": "2025-01-17",
