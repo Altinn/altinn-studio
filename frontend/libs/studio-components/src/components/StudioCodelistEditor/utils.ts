@@ -18,15 +18,21 @@ export const emptyBooleanItem: CodeListItem = {
   label: '',
 };
 
-export function addNewCodeListItem(codeList: CodeList): CodeList {
-  const newEmptyItem: CodeListItem = createNewEmptyItem(codeList);
+export function addNewCodeListItem(
+  codeList: CodeList,
+  valueType?: 'string' | 'number' | 'boolean',
+): CodeList {
+  const newEmptyItem = createNewEmptyItem(codeList, valueType);
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function createNewEmptyItem(codeList: CodeList): CodeListItem {
-  if (isCodeListEmpty(codeList)) return emptyStringItem;
+function createNewEmptyItem(
+  codeList: CodeList,
+  valueType?: 'string' | 'number' | 'boolean',
+): CodeListItem {
+  const typeToCreate = valueType ?? getTypeOfLastValue(codeList);
 
-  switch (getTypeOfLastValue(codeList)) {
+  switch (typeToCreate) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
