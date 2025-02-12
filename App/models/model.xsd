@@ -50,9 +50,6 @@
       <xs:element minOccurs="0" name="Answer" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-<<<<<<< HEAD
-  <xs:element name="Model">
-=======
   <xs:complexType name="Numbers">
     <xs:sequence>
       <xs:element minOccurs="0" name="TotalGjeld" type="xs:double" />
@@ -66,8 +63,7 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="model">
->>>>>>> master
+  <xs:element name="Model">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" name="inputfield" type="xs:string" />
@@ -96,6 +92,7 @@
         <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
         <xs:element minOccurs="0" name="checkboxForCard" type="xs:string" />
         <xs:element minOccurs="0" name="Numbers" type="Numbers" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="ListCheckboxExample" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

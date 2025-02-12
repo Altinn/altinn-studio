@@ -243,6 +243,12 @@
     },
     "Numbers": {
       "$ref": "#/$defs/Numbers"
+    },
+    "ListCheckboxExample": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

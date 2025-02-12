@@ -148,6 +148,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("Numbers")]
     public Numbers Numbers { get; set; }
 
+    [XmlElement("ListCheckboxExample", Order = 27)]
+    [JsonProperty("ListCheckboxExample")]
+    [JsonPropertyName("ListCheckboxExample")]
+    public List<string> ListCheckboxExample { get; set; }
+
   }
 
   public class GridExample
@@ -357,6 +362,7 @@ namespace Altinn.App.Models.Model
 
   public class Gjeldsfordeling
   {
+    [Range(0d, 100d)]
     [XmlElement("Prosent", Order = 1)]
     [JsonProperty("Prosent")]
     [JsonPropertyName("Prosent")]
