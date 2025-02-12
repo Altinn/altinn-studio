@@ -28,12 +28,4 @@ describe('formItemConfig', () => {
   test('that payment component is not available in the visible lists', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
   });
-
-  test('that Summary2 component is not available in the visible lists', () => {
-    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Summary2);
-  });
-  
-  test('that subform component is not available in the visible lists', () => {
-    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Subform);
-  });
 });

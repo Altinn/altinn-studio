@@ -38,7 +38,6 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
