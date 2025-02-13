@@ -1,7 +1,10 @@
+import type { ForwardedRef, PropsWithChildren } from 'react';
 import React from 'react';
+import type { RenderOptions, RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { StudioCombobox, type StudioComboboxProps } from './index';
 import userEvent from '@testing-library/user-event';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 const options = {
   ole: 'Ole',
@@ -135,15 +138,56 @@ describe('StudioCombobox', () => {
     await user.click(clearButton);
     await verifyOnValueChange({ onValueChange, expectedNumberOfCalls: 1, expectedValue: [] });
   });
+
+  it('Renders the list box in portal mode by default', async () => {
+    const wrapperTestId = 'wrapper';
+    const wrapper = ({ children }: PropsWithChildren<{}>) => (
+      <div data-testid={wrapperTestId}>{children}</div>
+    );
+    renderTestCombobox({}, { wrapper });
+    const combobox = screen.getByRole('combobox');
+    await userEvent.click(combobox);
+    expect(screen.getByTestId(wrapperTestId)).not.toContainElement(screen.getByRole('listbox'));
+  });
+
+  it('Renders the list box within the wrapper element when portal is set to false', async () => {
+    const wrapperTestId = 'wrapper';
+    const wrapper = ({ children }: PropsWithChildren<{}>) => (
+      <div data-testid={wrapperTestId}>{children}</div>
+    );
+    renderTestCombobox({ portal: false }, { wrapper });
+    const combobox = screen.getByRole('combobox');
+    await userEvent.click(combobox);
+    expect(screen.getByTestId(wrapperTestId)).toContainElement(screen.getByRole('listbox'));
+  });
+
+  it('Renders the list box within the dialog element when used inside a dialog', async () => {
+    const user = userEvent.setup();
+    const wrapper = ({ children }: PropsWithChildren<{}>) => <dialog open>{children}</dialog>;
+    renderTestCombobox({}, { wrapper });
+    await user.click(screen.getByRole('combobox'));
+    expect(screen.getByRole('dialog')).toContainElement(screen.getByRole('listbox'));
+  });
+
+  it('Forwards the ref to the combobox element', () => {
+    testRefForwarding<HTMLInputElement>(
+      (ref) => renderTestCombobox({}, undefined, ref),
+      () => screen.getByRole('combobox'),
+    );
+  });
 });
 
-const renderTestCombobox = (props?: StudioComboboxProps) => {
+const renderTestCombobox = (
+  props?: StudioComboboxProps,
+  renderOptions?: RenderOptions,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
   render(
-    <StudioCombobox {...props}>
+    <StudioCombobox {...props} ref={ref}>
       <StudioCombobox.Empty>{noResults}</StudioCombobox.Empty>
       <StudioCombobox.Option value={options.ole}>{options.ole}</StudioCombobox.Option>
       <StudioCombobox.Option value={options.dole}>{options.dole}</StudioCombobox.Option>
       <StudioCombobox.Option value={options.doffen}>{options.doffen}</StudioCombobox.Option>
     </StudioCombobox>,
+    renderOptions,
   );
-};
