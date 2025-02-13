@@ -1,5 +1,8 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import type { CodeListData } from '../CodeListPage';
+import type { TextResources } from '../../../../../types/TextResources';
+import type { TextResource } from '@studio/components';
+import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 
 export const getCodeListSourcesById = (
   codeListsUsages: CodeListReference[],
@@ -33,3 +36,13 @@ function caseInsensitiveMatch(target: string, searchString: string): boolean {
   const lowerCaseSearchString = searchString.toLowerCase();
   return lowerCaseTarget.includes(lowerCaseSearchString);
 }
+
+export const getTextResourcesForLanguage = (
+  language: string,
+  textResources?: TextResources,
+): TextResource[] | undefined => textResources?.[language];
+
+export const createTextResourceWithLanguage = (
+  language: string,
+  textResource: TextResource,
+): TextResourceWithLanguage => ({ language, textResource });
