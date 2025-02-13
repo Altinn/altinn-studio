@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import type { CodeList, TextResource } from '@studio/components';
 import { StudioHeading } from '@studio/components';
-import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
@@ -8,7 +8,11 @@ import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
-import { filterCodeLists } from './utils';
+import {
+  filterCodeLists,
+  getTextResourcesForLanguage,
+  createTextResourceWithLanguage,
+} from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 
@@ -53,6 +57,19 @@ export function CodeListPage({
     [codeListsData, searchString],
   );
 
+  const textResourcesForLanguage = useMemo(
+    () => getTextResourcesForLanguage(language, textResources),
+    [textResources],
+  );
+
+  const handleChangeTextResource = useCallback(
+    (textResource: TextResource) => {
+      const updatedTextResource = createTextResourceWithLanguage(language, textResource);
+      onUpdateTextResource?.(updatedTextResource);
+    },
+    [onUpdateTextResource],
+  );
+
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
@@ -70,22 +87,26 @@ export function CodeListPage({
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
+        onChangeTextResource={handleChangeTextResource}
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
+        textResources={textResourcesForLanguage}
       />
       <CodeLists
         codeListsData={filteredCodeLists}
+        onChangeTextResource={handleChangeTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
-        onUpdateTextResource={onUpdateTextResource}
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
         codeListsUsages={codeListsUsages}
-        textResources={textResources}
+        textResources={textResourcesForLanguage}
       />
     </div>
   );
 }
+
+const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
