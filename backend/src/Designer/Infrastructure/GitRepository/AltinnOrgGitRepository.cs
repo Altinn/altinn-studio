@@ -112,8 +112,11 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// Deletes a code list with the provided id.
     /// </summary>
     /// <param name="codeListId">The name of the cost list to be deleted.</param>
-    public void DeleteCodeList(string codeListId)
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public void DeleteCodeList(string codeListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
         if (!FileExistsByRelativePath(codeListFilePath))
         {

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
-public interface ICodeListService
+public interface IOrgCodeListService
 {
     /// <summary>
     /// Gets a code list from the app repository with the specified codeListId.
@@ -50,10 +50,9 @@ public interface ICodeListService
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="codeListId">Name of the new code list</param>
     /// <param name="payload">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string codeListId, IFormFile payload, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, IFormFile payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an code list from the org repository.

@@ -21,16 +21,16 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [Route("designer/api/{org}/code-lists")]
 public class OrgCodeListController : ControllerBase
 {
-    private readonly ICodeListService _codeListService;
+    private readonly IOrgCodeListService _orgCodeListService;
     private const string Repo = "content";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
-    /// <param name="codeListService">The CodeList service for organisation level</param>
-    public OrgCodeListController(ICodeListService codeListService)
+    /// <param name="orgCodeListService">The CodeList service for organisation level</param>
+    public OrgCodeListController(IOrgCodeListService orgCodeListService)
     {
-        _codeListService = codeListService;
+        _orgCodeListService = orgCodeListService;
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class OrgCodeListController : ControllerBase
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            List<OptionListData> codeLists = await _codeListService.GetCodeLists(org, Repo, developer, cancellationToken);
+            List<OptionListData> codeLists = await _orgCodeListService.GetCodeLists(org, Repo, developer, cancellationToken);
 
             return Ok(codeLists);
         }
@@ -74,7 +74,7 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<OptionListData> codeLists = await _codeListService.CreateCodeList(org, Repo, developer, codeListId, codeList, cancellationToken);
+        List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(org, Repo, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
     }
@@ -96,7 +96,7 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<OptionListData> codeLists = await _codeListService.UpdateCodeList(org, Repo, developer, codeListId, codeList, cancellationToken);
+        List<OptionListData> codeLists = await _orgCodeListService.UpdateCodeList(org, Repo, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
     }
@@ -113,11 +113,10 @@ public class OrgCodeListController : ControllerBase
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string fileName = file.FileName.Replace(".json", "");
 
         try
         {
-            List<OptionListData> codeLists = await _codeListService.UploadCodeList(org, Repo, developer, fileName, file, cancellationToken);
+            List<OptionListData> codeLists = await _orgCodeListService.UploadCodeList(org, Repo, developer, file, cancellationToken);
             return Ok(codeLists);
         }
         catch (JsonException e)
@@ -141,10 +140,10 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool CodeListExists = await _codeListService.CodeListExists(org, Repo, developer, codeListId, cancellationToken);
+        bool CodeListExists = await _orgCodeListService.CodeListExists(org, Repo, developer, codeListId, cancellationToken);
         if (CodeListExists)
         {
-            List<OptionListData> codeLists = await _codeListService.DeleteCodeList(org, Repo, developer, codeListId, cancellationToken);
+            List<OptionListData> codeLists = await _orgCodeListService.DeleteCodeList(org, Repo, developer, codeListId, cancellationToken);
             return Ok(codeLists);
         }
 

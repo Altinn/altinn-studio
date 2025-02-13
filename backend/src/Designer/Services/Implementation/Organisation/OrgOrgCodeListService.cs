@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class CodeListService : ICodeListService
+public class OrgOrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
@@ -23,7 +23,7 @@ public class CodeListService : ICodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public CodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public OrgOrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
@@ -63,12 +63,6 @@ public class CodeListService : ICodeListService
         return codeLists;
     }
 
-    private void ValidateOption(Option option)
-    {
-        var validationContext = new ValidationContext(option);
-        Validator.ValidateObject(option, validationContext, validateAllProperties: true);
-    }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
@@ -94,9 +88,10 @@ public class CodeListService : ICodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, string codeListId, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string codeListId = payload.FileName.Replace(".json", "");
 
         List<Option> deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
@@ -117,9 +112,10 @@ public class CodeListService : ICodeListService
     /// <inheritdoc />
     public async Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        altinnOrgGitRepository.DeleteCodeList(codeListId);
+        altinnOrgGitRepository.DeleteCodeList(codeListId, cancellationToken);
 
         List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
         return codeLists;
@@ -172,5 +168,11 @@ public class CodeListService : ICodeListService
         {
             throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code list: {codeListId}.");
         }
+    }
+
+    private void ValidateOption(Option option)
+    {
+        var validationContext = new ValidationContext(option);
+        Validator.ValidateObject(option, validationContext, validateAllProperties: true);
     }
 }
