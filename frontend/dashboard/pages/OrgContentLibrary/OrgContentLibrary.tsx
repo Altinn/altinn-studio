@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
+import type { CodeListWithMetadata } from '@studio/content-library';
+import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -25,9 +27,14 @@ export function OrgContentLibrary(): ReactElement {
 function OrgContentLibraryWithContext(): ReactElement {
   const selectedContext = useSelectedContext();
 
+  const { mutate: updateOptionList } = useUpdateOrgCodeListMutation(selectedContext);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
+
   const handleUpload = useUploadCodeList(selectedContext);
 
-  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
+  const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
+    updateOptionList({ title, data: codeList });
+  };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
@@ -36,7 +43,7 @@ function OrgContentLibraryWithContext(): ReactElement {
           codeListsData: [],
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
-          onUpdateCodeList: () => {},
+          onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
         },
       },

@@ -16,6 +16,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SelectedContextType } from '../../context/HeaderContext';
 import { Route, Routes } from 'react-router-dom';
 
+const updateCodeListButtonTextMock: string = 'Update Code List';
 const uploadCodeListButtonTextMock: string = 'Upload Code List';
 const deleteCodeListButtonTextMock: string = 'Delete Code List';
 const codeListNameMock: string = 'codeListNameMock';
@@ -26,8 +27,13 @@ const mockOrgPath: string = '/testOrg';
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onDeleteCodeList, onUploadCodeList }: any) => (
+    CodeListPage: ({ onDeleteCodeList, onUpdateCodeList, onUploadCodeList }: any) => (
       <div>
+        <button
+          onClick={() => onUpdateCodeList({ title: codeListNameMock, codeList: codeListMock })}
+        >
+          {updateCodeListButtonTextMock}
+        </button>
         <button
           onClick={() =>
             onUploadCodeList(
@@ -93,6 +99,20 @@ describe('OrgContentLibrary', () => {
       name: textMock('app_content_library.code_lists.page_name'),
     });
     expect(codeListMenuElement).toBeInTheDocument();
+  });
+
+  it('calls onUpdateCodeList when onUpdateCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
+    await goToLibraryPage(user, 'code_lists');
+    const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
+    await user.click(updateCodeListButton);
+    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledWith(
+      org,
+      codeListNameMock,
+      codeListMock,
+    );
   });
 
   it('calls onUploadCodeList when onUploadCodeList is triggered', async () => {
