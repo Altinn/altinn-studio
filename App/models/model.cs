@@ -151,7 +151,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("ListCheckboxExample", Order = 27)]
     [JsonProperty("ListCheckboxExample")]
     [JsonPropertyName("ListCheckboxExample")]
-    public List<string> ListCheckboxExample { get; set; }
+    public ListCheckboxExample ListCheckboxExample { get; set; }
 
   }
 
@@ -376,6 +376,28 @@ namespace Altinn.App.Models.Model
     public decimal? Belop { get; set; }
 
     public bool ShouldSerializeBelop() => Belop.HasValue;
+
+  }
+
+  public class ListCheckboxExample
+  {
+    [XmlElement("name", Order = 1)]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string name { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("age", Order = 2)]
+    [JsonProperty("age")]
+    [JsonPropertyName("age")]
+    public decimal? age { get; set; }
+
+    public bool ShouldSerializeage() => age.HasValue;
+
+    [XmlElement("profession", Order = 3)]
+    [JsonProperty("profession")]
+    [JsonPropertyName("profession")]
+    public string profession { get; set; }
 
   }
 }
