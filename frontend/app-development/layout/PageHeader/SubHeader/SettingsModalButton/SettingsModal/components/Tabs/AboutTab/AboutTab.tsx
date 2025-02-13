@@ -1,11 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import type { AppConfig } from 'app-shared/types/AppConfig';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { LoadingTabData } from '../../LoadingTabData';
@@ -15,20 +12,23 @@ import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
 import { usePreviewContext } from '../../../../../../../../contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { ServiceNames } from './InputFields/InputFields';
+import { useUpdateAppTitle } from '../../../hooks/useUpdateAppTitle';
+import { useLanguagesQuery } from '../../../../../../../../hooks/queries';
+import { getAppTitlesToDisplay } from './utils/getAppTitlesToDisplay';
 
 export const AboutTab = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-
   const repositoryType = getRepositoryType(org, app);
 
   const { doReloadPreview } = usePreviewContext();
 
   const {
-    status: appConfigStatus,
-    data: appConfigData,
-    error: appConfigError,
-  } = useAppConfigQuery(org, app);
+    status: appLangCodesStatus,
+    data: appLangCodesData,
+    error: appLangCodesError,
+  } = useLanguagesQuery(org, app);
   const {
     status: repositoryStatus,
     data: repositoryData,
@@ -40,24 +40,24 @@ export const AboutTab = (): React.ReactElement => {
     error: applicationMetadataError,
   } = useAppMetadataQuery(org, app);
 
-  const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
+  const updateAppTitle = useUpdateAppTitle(applicationMetadataData);
 
-  const handleSaveAppConfig = (appConfig: AppConfig) => {
-    if (appConfigData.serviceName !== appConfig.serviceName) {
+  const handleSaveServiceName = (serviceName: string, language: string) => {
+    if (applicationMetadataData.title[language] !== serviceName) {
       doReloadPreview();
     }
-    updateAppConfigMutation(appConfig);
+    updateAppTitle({ language, appTitle: serviceName });
   };
 
   const displayContent = () => {
-    switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, applicationMetadataStatus)) {
+    switch (mergeQueryStatuses(appLangCodesStatus, repositoryStatus, applicationMetadataStatus)) {
       case 'pending': {
         return <LoadingTabData />;
       }
       case 'error': {
         return (
           <TabDataError>
-            {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
+            {appLangCodesError && <ErrorMessage>{appLangCodesError.message}</ErrorMessage>}
             {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
             {applicationMetadataError && (
               <ErrorMessage>{applicationMetadataError.message}</ErrorMessage>
@@ -66,9 +66,18 @@ export const AboutTab = (): React.ReactElement => {
         );
       }
       case 'success': {
+        const appTitles: ServiceNames<(typeof appLangCodesData)[number]> = getAppTitlesToDisplay(
+          applicationMetadataData.title,
+          appLangCodesData,
+        );
         return (
           <>
-            <InputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
+            <InputFields
+              appLangCodes={appLangCodesData}
+              onSave={handleSaveServiceName}
+              repositoryName={repositoryData.name}
+              serviceNames={appTitles}
+            />
             <CreatedFor
               repositoryType={repositoryType}
               repository={repositoryData}

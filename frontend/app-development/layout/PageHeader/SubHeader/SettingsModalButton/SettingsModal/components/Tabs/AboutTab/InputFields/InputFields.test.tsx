@@ -1,58 +1,86 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { InputFieldsProps } from './InputFields';
+import type { InputFieldsProps, ServiceNames } from './InputFields';
 import { InputFields } from './InputFields';
-import { mockAppConfig } from 'app-development/layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/appConfigMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const mockNewText: string = 'test';
+const langNb = 'nb';
+const langEn = 'en';
+const langNn = 'nn';
+const langDa = 'da';
+const recommendedLanguages = [langNb, langEn, langNn];
+const appLangCodes: string[] = [langNb, langDa];
+const onSave = jest.fn();
+const repositoryName = 'repositoryName';
+const serviceNames: ServiceNames<(typeof appLangCodes)[number]> = {
+  [langNb]: 'mockAppTitleNb',
+  [langEn]: undefined,
+  [langNn]: undefined,
+  [langDa]: 'mockAppTitleDa',
+};
 
-const mockOnSave = jest.fn();
-
-const defaultProps: InputFieldsProps = {
-  appConfig: mockAppConfig,
-  onSave: mockOnSave,
+const defaultProps: InputFieldsProps<(typeof appLangCodes)[number]> = {
+  appLangCodes,
+  onSave,
+  repositoryName,
+  serviceNames,
 };
 
 describe('InputFields', () => {
   afterEach(jest.clearAllMocks);
 
-  it('displays the "repo" input as readonly', async () => {
+  it('displays the "repo" input as readonly', () => {
     render(<InputFields {...defaultProps} />);
 
     const repoNameInput = screen.getByLabelText(textMock('settings_modal.about_tab_repo_label'));
-    expect(repoNameInput).toHaveValue(mockAppConfig.repositoryName);
+    expect(repoNameInput).toHaveValue(repositoryName);
     expect(repoNameInput).toHaveAttribute('readonly');
   });
 
-  it('displays correct value in "name" input field, and updates the value on change', async () => {
+  it('displays correct value in nb "name" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
     render(<InputFields {...defaultProps} />);
 
-    const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
-    expect(appName).toHaveValue(mockAppConfig.serviceName);
-
+    const appName = screen.getByLabelText(textMock('language.nb'));
+    expect(appName).toHaveValue(serviceNames.nb);
+    await user.clear(appName);
     await user.type(appName, mockNewText);
 
-    expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
+    expect(appName).toHaveValue(mockNewText);
   });
 
-  it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
+  it.each(recommendedLanguages)(
+    'displays reccomended language "name" input field by default',
+    (lang) => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(textMock(`language.${lang}`));
+      expect(appName).toBeInTheDocument();
+    },
+  );
+
+  it('does not display non-recommended language "name" input field by default', () => {
+    render(<InputFields {...defaultProps} />);
+    const appName = screen.queryByLabelText(textMock(`language.${langDa}`));
+    expect(appName).not.toBeInTheDocument();
+  });
+
+  it('displays all language input fields when "show more languages" is clicked', async () => {
     const user = userEvent.setup();
     render(<InputFields {...defaultProps} />);
+    const showMoreLanguagesButton = screen.getByText(
+      textMock('settings_modal.about_tab.show_more_languages'),
+    );
+    await user.click(showMoreLanguagesButton);
 
-    const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
-    expect(altId).toHaveValue(mockAppConfig.serviceId);
-
-    await user.type(altId, mockNewText);
-
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
+    const appNameEn = screen.getByLabelText(textMock(`language.${langDa}`));
+    expect(appNameEn).toBeInTheDocument();
   });
 
   describe('InputFields Validation', () => {
     const user = userEvent.setup();
-    const appNameLabel = textMock('settings_modal.about_tab_name_label');
+    const appNameLabel = textMock('language.nb');
 
     it('should save changes when the form is valid', async () => {
       render(<InputFields {...defaultProps} />);
@@ -60,7 +88,7 @@ describe('InputFields', () => {
 
       await user.type(appName, mockNewText);
       await user.tab();
-      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      expect(onSave).toHaveBeenCalledTimes(1);
     });
 
     it('should not save changes when form is invalid', async () => {
@@ -69,7 +97,7 @@ describe('InputFields', () => {
 
       await user.clear(appName);
       await user.tab();
-      expect(mockOnSave).toHaveBeenCalledTimes(0);
+      expect(onSave).toHaveBeenCalledTimes(0);
     });
 
     it('should toggle error message based on form validation', async () => {
