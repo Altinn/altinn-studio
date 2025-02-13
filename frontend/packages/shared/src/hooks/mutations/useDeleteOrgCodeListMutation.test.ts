@@ -34,7 +34,7 @@ describe('useDeleteOrgCodeListMutation', () => {
 
   it('Calls deleteCodeListForOrg with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useDeleteOrgCodeListMutation(org));
-    await result.current.mutateAsync({ title });
+    await result.current.mutateAsync(title);
     expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledWith(org, title);
   });
