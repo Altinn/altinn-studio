@@ -120,6 +120,32 @@ describe('ResourceDeployEnvCard', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('should show warning when publishing to prod', async () => {
+    const prod_label = 'prod_label';
+    const user = userEvent.setup();
+    renderResourceDeployEnvCard({ env: { envType: 'prod', id: 'prod', label: 'prod_label' } });
+
+    const deployButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(prod_label) }),
+    });
+    await user.click(deployButton);
+
+    const confirmDeployButton = screen.getByRole('button', {
+      name: textMock('resourceadm.prod_delete_modal_confirm'),
+    });
+    await user.click(confirmDeployButton);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          textMock('resourceadm.resource_published_success', {
+            envName: textMock(prod_label),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+  });
 });
 
 const renderResourceDeployEnvCard = (

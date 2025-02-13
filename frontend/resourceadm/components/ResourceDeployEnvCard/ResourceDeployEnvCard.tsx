@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { Tag, Paragraph, Spinner, Alert } from '@digdir/designsystemet-react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -36,6 +36,7 @@ export const ResourceDeployEnvCard = ({
   newEnvVersion,
 }: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const modalRef = useRef<HTMLDialogElement>(null);
 
   const [hasNoPublishAccess, setHasNoPublishAccess] = useState<boolean>(false);
   const { org, app, resourceId } = useUrlParams();
@@ -45,6 +46,15 @@ export const ResourceDeployEnvCard = ({
     usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
+    if (env.id === 'prod') {
+      modalRef.current.showModal();
+    } else {
+      onPublishResource();
+    }
+  };
+
+  const onPublishResource = (): void => {
+    onCloseWarningModal();
     publishResource(env.id, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
@@ -57,8 +67,32 @@ export const ResourceDeployEnvCard = ({
     });
   };
 
+  const onCloseWarningModal = () => {
+    modalRef.current.close();
+  };
+
   return (
     <div className={classes.cardWrapper}>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={modalRef}
+          onClose={onCloseWarningModal}
+          heading={t('resourceadm.prod_delete_modal_heading')}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          footer={
+            <>
+              <StudioButton onClick={onPublishResource}>
+                {t('resourceadm.prod_delete_modal_confirm')}
+              </StudioButton>
+              <StudioButton onClick={onCloseWarningModal} variant='tertiary'>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
+          <Paragraph size='small'>{t('resourceadm.prod_delete_modal_body')}</Paragraph>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
       {publisingResourcePending ? (
         <Spinner title={t('resourceadm.deploy_deploying')}></Spinner>
       ) : (
