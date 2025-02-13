@@ -8,11 +8,13 @@ import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUplo
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
 import { isOrg } from './utils';
 
 export function OrgContentLibrary(): ReactElement {
   const selectedContext = useSelectedContext();
+
   return isOrg(selectedContext) ? (
     <OrgContentLibraryWithContext />
   ) : (
@@ -22,14 +24,17 @@ export function OrgContentLibrary(): ReactElement {
 
 function OrgContentLibraryWithContext(): ReactElement {
   const selectedContext = useSelectedContext();
+
   const handleUpload = useUploadCodeList(selectedContext);
+
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
           codeListsData: [],
-          onDeleteCodeList: () => {},
+          onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: () => {},
           onUploadCodeList: handleUpload,

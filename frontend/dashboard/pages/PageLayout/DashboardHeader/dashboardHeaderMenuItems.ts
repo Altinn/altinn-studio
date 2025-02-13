@@ -1,8 +1,8 @@
 import { Subroute } from '../../../context/HeaderContext';
 
 enum HeaderMenuItemKey {
-  OrgLibrary = 'orgLibrary',
-  AppDashboard = 'appDashboard',
+  OrgLibrary = 'org-library',
+  AppDashboard = 'app-dashboard',
 }
 
 export interface HeaderMenuItem {

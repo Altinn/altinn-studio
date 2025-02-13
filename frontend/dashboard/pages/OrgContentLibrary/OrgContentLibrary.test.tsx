@@ -16,8 +16,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SelectedContextType } from '../../context/HeaderContext';
 import { Route, Routes } from 'react-router-dom';
 
-const uploadCodeListButtonTextMock = 'Upload Code List';
-const codeListNameMock = 'codeListNameMock';
+const uploadCodeListButtonTextMock: string = 'Upload Code List';
+const deleteCodeListButtonTextMock: string = 'Delete Code List';
+const codeListNameMock: string = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 const codeListsDataMock: CodeListData[] = [{ title: codeListNameMock, data: codeListMock }];
 const mockOrgPath: string = '/testOrg';
@@ -25,7 +26,7 @@ const mockOrgPath: string = '/testOrg';
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onUploadCodeList }: any) => (
+    CodeListPage: ({ onDeleteCodeList, onUploadCodeList }: any) => (
       <div>
         <button
           onClick={() =>
@@ -35,6 +36,9 @@ jest.mock(
           }
         >
           {uploadCodeListButtonTextMock}
+        </button>
+        <button onClick={() => onDeleteCodeList(codeListsDataMock[0].title)}>
+          {deleteCodeListButtonTextMock}
         </button>
       </div>
     ),
@@ -141,6 +145,16 @@ describe('OrgContentLibrary', () => {
     expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, expect.any(FormData));
     const hideDefaultError = screen.queryByText(textMock('dashboard.org_library.default_error'));
     expect(hideDefaultError).not.toBeInTheDocument();
+  });
+
+  it('calls deleteCodeListForOrg when onDeleteCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: ['/testOrg'] });
+    await goToLibraryPage(user, 'code_lists');
+    const deleteCodeListButton = screen.getByRole('button', { name: deleteCodeListButtonTextMock });
+    await user.click(deleteCodeListButton);
+    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledWith(org, codeListsDataMock[0].title);
   });
 });
 
