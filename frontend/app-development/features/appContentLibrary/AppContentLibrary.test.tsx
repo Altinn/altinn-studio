@@ -169,5 +169,5 @@ function createQueryClientWithOptionsDataList(
 }
 
 function retrieveConfig(): PagesConfig {
-  return constructor.mock.calls[0][0].pages;
+  return mockConstructor.mock.calls[0][0].pages;
 }
