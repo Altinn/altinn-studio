@@ -107,18 +107,16 @@ function ControlledCodeListEditor({
   textResources,
 }: ControlledCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  const [valueType, setValueType] = useState<CodeListItemValueLiteral>('string');
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
-  const handleAddFirstItem = useCallback(
-    (valueType: CodeListItemValueLiteral) => {
-      const updatedCodeList = addNewCodeListItem(codeList, valueType);
-      onChange(updatedCodeList);
-      onAddOrDeleteItem?.(updatedCodeList);
-    },
-    [codeList, onChange, onAddOrDeleteItem],
-  );
+  const handleAddFirstItem = useCallback(() => {
+    const updatedCodeList = addNewCodeListItem(codeList, valueType);
+    onChange(updatedCodeList);
+    onAddOrDeleteItem?.(updatedCodeList);
+  }, [codeList, valueType, onChange, onAddOrDeleteItem]);
 
   const handleAddConsecutiveItems = useCallback(() => {
     const updatedCodeList = addNewCodeListItem(codeList);
@@ -144,7 +142,10 @@ function ControlledCodeListEditor({
           <AddButton onClick={handleAddConsecutiveItems} />
         </>
       ) : (
-        <TypeSelector handleAddButtonClick={handleAddFirstItem} />
+        <>
+          <TypeSelector setValueType={setValueType} />
+          <AddButton onClick={handleAddFirstItem} />
+        </>
       )}
       <Errors errorMap={errorMap} />
     </StudioFieldset>
@@ -237,12 +238,11 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
 }
 
 type TypeSelectorProps = {
-  handleAddButtonClick: (valueType: CodeListItemValueLiteral) => void;
+  setValueType: (valueType: CodeListItemValueLiteral) => void;
 };
 
-function TypeSelector({ handleAddButtonClick }: TypeSelectorProps): ReactElement {
+function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
   // const { texts } = useStudioCodeListEditorContext();
-  const [valueType, setValueType] = useState<CodeListItemValueLiteral>('string');
   const id = useId();
 
   return (
@@ -258,7 +258,6 @@ function TypeSelector({ handleAddButtonClick }: TypeSelectorProps): ReactElement
         <option value='number'>Tall</option>
         <option value='boolean'>Boolsk</option>
       </StudioNativeSelect>
-      <AddButton onClick={() => handleAddButtonClick(valueType)} />
     </>
   );
 }
