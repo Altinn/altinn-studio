@@ -33,6 +33,7 @@ function mockContentLibrary(
 
 const mockConstructor = jest.fn();
 const getContentResourceLibrary = jest.fn();
+
 // Test data:
 const codeListName = 'codeListNameMock';
 const codeList: CodeList = [{ value: '', label: '' }];
