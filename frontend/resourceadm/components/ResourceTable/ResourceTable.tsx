@@ -8,6 +8,14 @@ import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
+const isDateEqualToLocalResourceChangedTime = (date: Date): boolean => {
+  return (
+    date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
+    date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
+    date.getDate() === LOCAL_RESOURCE_CHANGED_TIME.getDate()
+  );
+};
+
 export type ResourceTableProps = {
   /**
    * The list to display in the table
@@ -151,11 +159,7 @@ export const ResourceTable = ({
           return '';
         }
         const date = new Date(value);
-        if (
-          date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
-          date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
-          date.getDate() === LOCAL_RESOURCE_CHANGED_TIME.getDate()
-        ) {
+        if (isDateEqualToLocalResourceChangedTime(date)) {
           return '';
         }
         return date.toLocaleDateString('no-NB', {
