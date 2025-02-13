@@ -62,5 +62,15 @@ namespace Altinn.Studio.Designer.Factories
             string[] paths = { _repositoriesRootDirectory, developer.AsFileName(), org.AsFileName(), repository.AsFileName() };
             return Path.Combine(paths);
         }
+
+        /// <summary>
+        /// Creates an instance of <see cref="AltinnOrgGitRepository"/>
+        /// </summary>
+        /// <returns><see cref="AltinnOrgGitRepository"/></returns>
+        public AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer)
+        {
+            var repositoryDirectory = GetRepositoryPath(org, repository, developer);
+            return new AltinnOrgGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
+        }
     }
 }
