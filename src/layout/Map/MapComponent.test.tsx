@@ -108,26 +108,6 @@ describe('MapComponent', () => {
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalledWith();
   });
 
-  it('should get different coordinates when map is clicked at different location', async () => {
-    const { formDataMethods, container } = await render();
-
-    // First click
-    await clickMap(container);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-      reference: { dataType: defaultDataTypeMock, field: 'myCoords' },
-      newValue: '64.886265,12.832031',
-    } satisfies FDNewValue);
-
-    // Second click at different location
-    await clickMap(container, 50, 50);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(2);
-    expect(formDataMethods.setLeafValue).toHaveBeenLastCalledWith({
-      reference: { dataType: defaultDataTypeMock, field: 'myCoords' },
-      newValue: '64.885810,12.833104',
-    } satisfies FDNewValue);
-  });
-
   it('should display attribution link', async () => {
     await render({
       component: {

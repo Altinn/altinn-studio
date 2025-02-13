@@ -744,7 +744,7 @@ describe('UI Components', () => {
     }
   });
 
-  it('Map component with simpleBinding', () => {
+  it('Map component with simpleBinding', function () {
     cy.fixture('map-tile.png', 'base64').then((data) => {
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'Map' && component.id === 'map') {
@@ -773,16 +773,47 @@ describe('UI Components', () => {
     cy.get(component('map')).findByAltText('Marker').should('be.visible');
     cy.get(component('map'))
       .findByText(/Valgt lokasjon: 59(\.\d{1,6})?° nord, 10(\.\d{1,6})?° øst/)
-      .should('be.visible');
+      .invoke('text')
+      .as('firstLocation');
 
     cy.get(component('mapSummary')).findByAltText('Marker').should('be.visible');
     cy.get(component('mapSummary'))
       .findByText(/Valgt lokasjon: 59(\.\d{1,6})?° nord, 10(\.\d{1,6})?° øst/)
-      .should('be.visible');
+      .invoke('text')
+      .then((text) => {
+        expect(text).to.eq(this.firstLocation);
+      });
 
     cy.get(component('mapValue'))
       .findByText(/59(\.\d{1,6})?, 10(\.\d{1,6})?/)
-      .should('be.visible');
+      .invoke('text')
+      .as('firstLocationRaw');
+
+    // Wait for aliases to be set before we continue
+    cy.get('@firstLocation').should('not.be.empty');
+    cy.get('@firstLocationRaw').should('not.be.empty');
+
+    // Click somewhere else on the map to set another location
+    cy.get(component('map')).click(300, 300);
+
+    cy.get(component('map')).findByAltText('Marker').should('be.visible');
+    cy.get(component('map'))
+      .findByText(/Valgt lokasjon: (\d+\.\d{1,6})?° nord, (\d+\.\d{1,6})?° øst/)
+      .invoke('text')
+      .as('secondLocation');
+
+    cy.get(component('mapSummary'))
+      .findByText(/Valgt lokasjon: (\d+\.\d{1,6})?° nord, (\d+\.\d{1,6})?° øst/)
+      .should((el) => {
+        expect(el.text()).to.eq(this.secondLocation);
+        expect(el.text()).not.to.eq(this.firstLocation);
+      });
+
+    cy.get(component('mapValue'))
+      .findByText(/(\d+\.\d{1,6})?, (\d+\.\d{1,6})?/)
+      .should((el) => {
+        expect(el.text()).not.to.eq(this.firstLocationRaw);
+      });
 
     // Set exact location so snapshot is consistent
     cy.findByRole('textbox', { name: /eksakt lokasjon/i }).clear();
