@@ -27,7 +27,7 @@ type TextResourceInputPropsBase = {
   currentIdClass?: string;
   inputClass?: string;
   onChangeCurrentId: (id: string | null) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;
@@ -62,7 +62,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const handleTextResourceChange = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
-      onChangeTextResource(newTextResource);
+      onChangeTextResource?.(newTextResource);
     };
 
     const rootClass = cn(givenClass, classes.container);
