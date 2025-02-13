@@ -26,7 +26,9 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
     textResourceTexts,
     value: t('code_list_editor.column_title_value'),
     valueErrors: {
-      duplicateValue: t('code_list_editor.duplicate_values_error'),
+      duplicateValue: t('code_list_editor.error_duplicate_values'),
+      multipleTypes: t('code_list_editor.error_multiple_types'),
+      nullValue: t('code_list_editor.error_null_value'),
     },
   };
 }
