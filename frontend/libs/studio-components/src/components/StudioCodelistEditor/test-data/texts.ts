@@ -5,7 +5,7 @@ import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 const valueErrors: ValueErrorMessages = {
   duplicateValue: 'The value must be unique.',
   multipleTypes: 'All values must be of the same type.',
-  undefinedValue: 'The value cannot be undefined.',
+  nullValue: 'The value cannot be empty.',
 };
 
 export const texts: CodeListEditorTexts = {

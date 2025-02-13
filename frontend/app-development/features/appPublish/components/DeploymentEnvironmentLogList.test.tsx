@@ -68,38 +68,6 @@ describe('DeploymentEnvironmentLogList', () => {
     expect(screen.getByText(pipelineDeployment.createdBy)).toBeInTheDocument();
   });
 
-  it('renders title when environment is production', async () => {
-    render({
-      pipelineDeploymentList: [pipelineDeployment],
-      envName: 'production',
-      isProduction: true,
-    });
-
-    expect(
-      screen.getByText(
-        textMock('app_deployment.table.deployed_version_history', {
-          envTitle: textMock('general.production_environment_alt').toLowerCase(),
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('renders title when environment is not production', async () => {
-    render({
-      pipelineDeploymentList: [pipelineDeployment],
-      envName: 'tt02',
-      isProduction: false,
-    });
-
-    expect(
-      screen.getByText(
-        textMock('app_deployment.table.deployed_version_history', {
-          envTitle: `${textMock('general.test_environment_alt').toLowerCase()} TT02`,
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
   it('renders when deployment is in progress', () => {
     render({
       pipelineDeploymentList: [
