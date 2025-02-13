@@ -209,16 +209,16 @@ export const DeployResourcePage = ({
       case 'error': {
         return (
           <StudioAlert severity='danger'>
-            <StudioParagraph>{t('general.fetch_error_message')}</StudioParagraph>
-            <StudioParagraph>{t('general.error_message_with_colon')}</StudioParagraph>
+            <StudioParagraph size='md'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph size='md'>{t('general.error_message_with_colon')}</StudioParagraph>
             {publishStatusError && (
-              <StudioErrorMessage>{publishStatusError.message}</StudioErrorMessage>
+              <StudioErrorMessage size='md'>{publishStatusError.message}</StudioErrorMessage>
             )}
             {validatePolicyError && (
-              <StudioErrorMessage>{validatePolicyError.message}</StudioErrorMessage>
+              <StudioErrorMessage size='md'>{validatePolicyError.message}</StudioErrorMessage>
             )}
             {validateResourceError && (
-              <StudioErrorMessage>{validateResourceError.message}</StudioErrorMessage>
+              <StudioErrorMessage size='md'>{validateResourceError.message}</StudioErrorMessage>
             )}
           </StudioAlert>
         );
