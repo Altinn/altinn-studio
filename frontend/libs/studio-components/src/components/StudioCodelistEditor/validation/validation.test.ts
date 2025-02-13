@@ -22,6 +22,26 @@ const codeListWithDuplicateValues: CodeList = [
     label: 'Label 2',
   },
 ];
+const codeListWithMultipleTypes: CodeList = [
+  {
+    value: 'value1',
+    label: 'Label 1',
+  },
+  {
+    value: 2,
+    label: 'Label 2',
+  },
+];
+const codeListWithNullValue: CodeList = [
+  {
+    value: null,
+    label: 'Label 1',
+  },
+  {
+    value: 'value2',
+    label: 'Label 2',
+  },
+];
 
 describe('validation', () => {
   describe('isCodeListValid', () => {
@@ -44,6 +64,16 @@ describe('validation', () => {
       const errors = findCodeListErrors(codeListWithDuplicateValues);
       expect(errors).toEqual(['duplicateValue', 'duplicateValue'] satisfies ValueErrorMap);
     });
+
+    it('Returns an array with code word "multipleTypes" corresponding to multiple values', () => {
+      const errors = findCodeListErrors(codeListWithMultipleTypes);
+      expect(errors).toEqual(['multipleTypes', 'multipleTypes'] satisfies ValueErrorMap);
+    });
+
+    it('Returns an array with code word "nullValue" corresponding to null values', () => {
+      const errors = findCodeListErrors(codeListWithNullValue);
+      expect(errors).toEqual(['nullValue', 'multipleTypes'] satisfies ValueErrorMap);
+    });
   });
 
   describe('areThereCodeListErrors', () => {
@@ -59,6 +89,16 @@ describe('validation', () => {
 
     it('Returns true when the error map contains at least one "duplicateValue" error', () => {
       const errorMap: ValueErrorMap = ['duplicateValue', null];
+      expect(areThereCodeListErrors(errorMap)).toBe(true);
+    });
+
+    it('Returns true when the error map contains at least one "multipleTypes" error', () => {
+      const errorMap: ValueErrorMap = ['multipleTypes', null];
+      expect(areThereCodeListErrors(errorMap)).toBe(true);
+    });
+
+    it('Returns true when the error map contains at least one "nullValue" error', () => {
+      const errorMap: ValueErrorMap = ['nullValue', null];
       expect(areThereCodeListErrors(errorMap)).toBe(true);
     });
   });

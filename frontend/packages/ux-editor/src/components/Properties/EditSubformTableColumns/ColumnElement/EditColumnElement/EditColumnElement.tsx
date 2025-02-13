@@ -21,6 +21,7 @@ import {
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import type { IDataModelBindings } from '../../../../../types/global';
 
 export type EditColumnElementProps = {
   tableColumn: TableColumn;
@@ -54,7 +55,10 @@ export const EditColumnElement = ({
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
-    const binding = convertDataBindingToInternalFormat(selectedComponent, bindingKey);
+    const binding = convertDataBindingToInternalFormat(
+      selectedComponent?.dataModelBindings,
+      bindingKey,
+    );
 
     onChange({
       ...tableColumn,
@@ -63,7 +67,11 @@ export const EditColumnElement = ({
     });
   };
 
-  const handleBindingChange = (field: string) => {
+  const handleBindingChange = (
+    dataModelBindings: IDataModelBindings,
+    dataModelBindingKey: string,
+  ) => {
+    const { field } = convertDataBindingToInternalFormat(dataModelBindings, dataModelBindingKey);
     const updatedTableColumn = {
       ...tableColumn,
       cellContent: { query: field },
@@ -76,7 +84,8 @@ export const EditColumnElement = ({
   const isSaveButtonDisabled = !tableColumn.headerContent || !tableColumn.cellContent?.query;
 
   const component = availableComponents.find((comp) => comp.id === selectedComponentId);
-  const hasMultipleDataModelBindings = Object.keys(component?.dataModelBindings ?? {}).length > 1;
+  const dataModelBindingKeys = Object.keys(component?.dataModelBindings ?? {});
+  const hasMultipleDataModelBindings = dataModelBindingKeys.length > 1;
   const isTableColumnDefined = tableColumn.headerContent || tableColumn.cellContent?.query;
 
   return (
@@ -89,9 +98,12 @@ export const EditColumnElement = ({
         />
         {hasMultipleDataModelBindings && (
           <DataModelBindingsCombobox
-            onSelectComponent={handleBindingChange}
-            component={component}
-            selectedField={tableColumn.cellContent?.query}
+            componentType={component?.type}
+            dataModelBindings={component?.dataModelBindings}
+            onDataModelBindingChange={(dataModelBindingKey: string) =>
+              handleBindingChange(component?.dataModelBindings, dataModelBindingKey)
+            }
+            initialDataModelBindingKey={dataModelBindingKeys[0]}
           />
         )}
         {isTableColumnDefined && (

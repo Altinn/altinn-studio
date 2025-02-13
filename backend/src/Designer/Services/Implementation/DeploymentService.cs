@@ -93,32 +93,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-            await PublishAppDeployedEvent(deploymentEntity, cancellationToken);
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, cancellationToken);
+            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
-        }
-
-        // Publish app deployed event
-        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var deploymentEntities = await _deploymentRepository.Get(deploymentEntity.Org, deploymentEntity.App,
-                    new DocumentQueryModel { Top = 1 });
-                bool newApp = !deploymentEntities.Any();
-
-
-                await _mediatr.Publish(new AppDeployedEvent
-                {
-                    EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
-                    AppsEnvironment = deploymentEntity.EnvName,
-                    DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
-                }, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error publishing AppDeployedEvent for {org}/{app}", deploymentEntity.Org, deploymentEntity.App);
-            }
         }
 
         /// <inheritdoc/>
@@ -193,15 +169,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
-            await PublishDeploymentPipelineQueued(editingContext, build, cancellationToken);
+            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build,
+        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
             CancellationToken cancellationToken) =>
             await _mediatr.Publish(new DeploymentPipelineQueued
             {
                 EditingContext = editingContext,
-                BuildId = build.Id
+                BuildId = build.Id,
+                PipelineType = pipelineType,
+                Environment = environment
             }, cancellationToken);
 
         private async Task<Build> QueueDeploymentBuild(
