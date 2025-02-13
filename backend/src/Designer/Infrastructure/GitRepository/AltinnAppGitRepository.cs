@@ -57,8 +57,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
-        private const string SchemaFilesPatternJson = "App/models/*.schema.json";
-        private const string SchemaFilesPatternXsd = "App/models/*.xsd";
+        private const string SchemaFilePatternJson = "*.schema.json";
+        private const string SchemaFilePatternXsd = "*.xsd";
 
         public static readonly string InitialLayoutFileName = "Side1.json";
 
@@ -982,12 +982,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
         {
-            string schemaFilesPattern = xsd ? SchemaFilesPatternXsd : SchemaFilesPatternJson;
+            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
+            string schemaFilesPath = Path.Combine(ModelFolderPath, schemaFilesPattern);
             IEnumerable<string> schemaFiles;
 
             try
             {
-                schemaFiles = FindFiles(new[] { schemaFilesPattern });
+                schemaFiles = FindFiles(new[] { schemaFilesPath });
             }
             catch (DirectoryNotFoundException)
             {
