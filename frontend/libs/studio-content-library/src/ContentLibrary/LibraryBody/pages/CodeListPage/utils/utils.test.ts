@@ -1,6 +1,18 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import { filterCodeLists, getCodeListSourcesById, getCodeListUsageCount } from './';
+import {
+  createTextResourceWithLanguage,
+  filterCodeLists,
+  getCodeListSourcesById,
+  getCodeListUsageCount,
+  getTextResourcesForLanguage,
+} from './';
 import type { CodeListData } from '../CodeListPage';
+import {
+  label1ResourceNb,
+  textResources,
+  textResourcesNb,
+} from '../../../../../test-data/textResources';
+import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 
 const codeListId1: string = 'codeListId1';
 const codeListId2: string = 'codeListId2';
@@ -39,6 +51,7 @@ describe('utils', () => {
       expect(codeListSources).toEqual([]);
     });
   });
+
   describe('getCodeListUsageCount', () => {
     it('returns the total count of all component IDs across all codeListSources', () => {
       const codeListSources: CodeListIdSource[] = [
@@ -134,6 +147,29 @@ describe('utils', () => {
       ];
       const result = filterCodeLists(specialCharacterCodeLists, '&');
       expect(result).toEqual([{ title: 'Cakes & Cookies' }]);
+    });
+  });
+
+  describe('getTextResourcesForLanguage', () => {
+    it('Returns the list of text resources for the given language', () => {
+      expect(getTextResourcesForLanguage('nb', textResources)).toEqual(textResourcesNb);
+    });
+
+    it('Returns undefined when the language does not exist', () => {
+      expect(getTextResourcesForLanguage('eo', textResources)).toBeUndefined();
+    });
+
+    it('Returns undefined when the textResources parameter is undefined', () => {
+      expect(getTextResourcesForLanguage('nb', undefined)).toBeUndefined();
+    });
+  });
+
+  describe('createTextResourceWithLanguage', () => {
+    it('Creates a TextResourceWithLanguage object from the parameters', () => {
+      const language = 'nb';
+      const textResource = label1ResourceNb;
+      const expectedResult: TextResourceWithLanguage = { language, textResource };
+      expect(createTextResourceWithLanguage(language, textResource)).toEqual(expectedResult);
     });
   });
 });
