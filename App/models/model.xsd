@@ -92,7 +92,7 @@
         <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
         <xs:element minOccurs="0" name="checkboxForCard" type="xs:string" />
         <xs:element minOccurs="0" name="Numbers" type="Numbers" />
-        <xs:element minOccurs="0" name="ListCheckboxExample">
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="ListCheckboxExample">
           <xs:complexType>
             <xs:sequence>
               <xs:element minOccurs="0" name="name" type="xs:string" />

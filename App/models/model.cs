@@ -151,7 +151,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("ListCheckboxExample", Order = 27)]
     [JsonProperty("ListCheckboxExample")]
     [JsonPropertyName("ListCheckboxExample")]
-    public ListCheckboxExample ListCheckboxExample { get; set; }
+    public List<ListCheckboxExample> ListCheckboxExample { get; set; }
 
   }
 
@@ -381,6 +381,14 @@ namespace Altinn.App.Models.Model
 
   public class ListCheckboxExample
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("name", Order = 1)]
     [JsonProperty("name")]
     [JsonPropertyName("name")]
