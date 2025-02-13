@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { Tag, Paragraph, Spinner, Alert } from '@digdir/designsystemet-react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioParagraph,
+  StudioSpinner,
+  StudioTag,
+} from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -60,26 +65,26 @@ export const ResourceDeployEnvCard = ({
   return (
     <div className={classes.cardWrapper}>
       {publisingResourcePending ? (
-        <Spinner title={t('resourceadm.deploy_deploying')}></Spinner>
+        <StudioSpinner spinnerTitle={t('resourceadm.deploy_deploying')}></StudioSpinner>
       ) : (
         <>
-          <Paragraph size='small'>
+          <StudioParagraph size='sm'>
             <strong>{t(env.label)}</strong>
-          </Paragraph>
-          <Paragraph size='small'>{t('resourceadm.deploy_version_number_text')}</Paragraph>
+          </StudioParagraph>
+          <StudioParagraph size='sm'>{t('resourceadm.deploy_version_number_text')}</StudioParagraph>
           <div className={classes.envWrapper}>
-            <Tag color='neutral' size='small'>
+            <StudioTag color='neutral' size='sm'>
               {currentEnvVersion}
-            </Tag>
+            </StudioTag>
             {newEnvVersion && (
               <>
                 <ArrowRightIcon
                   title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
                   fontSize='1.5rem'
                 />
-                <Tag color='success' size='small'>
+                <StudioTag color='success' size='sm'>
                   {newEnvVersion}
-                </Tag>
+                </StudioTag>
               </>
             )}
           </div>
@@ -87,11 +92,11 @@ export const ResourceDeployEnvCard = ({
             {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
           {hasNoPublishAccess && (
-            <Alert severity='danger'>
-              <Paragraph size='small'>
+            <StudioAlert severity='danger'>
+              <StudioParagraph size='sm'>
                 {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
-              </Paragraph>
-            </Alert>
+              </StudioParagraph>
+            </StudioAlert>
           )}
         </>
       )}

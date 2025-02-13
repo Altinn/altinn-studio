@@ -2,15 +2,19 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Heading } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
-import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioLink, StudioModal } from '@studio/components';
+import {
+  StudioButton,
+  StudioHeading,
+  StudioLink,
+  StudioModal,
+  StudioTextfield,
+} from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
@@ -113,43 +117,32 @@ export const AccessListDetail = ({
           {t('general.back')}
         </StudioLink>
       </div>
-      <Heading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_list_detail_header')}
-      </Heading>
-      <FieldWrapper
+      </StudioHeading>
+      <StudioTextfield
+        size='sm'
         label={t('resourceadm.listadmin_list_id')}
         description={t('resourceadm.listadmin_list_id_description')}
-      >
-        <Textfield value={list.identifier} readOnly />
-      </FieldWrapper>
-      <FieldWrapper
-        fieldId='listname'
+        readOnly
+        value={list.identifier}
+      />
+      <StudioTextfield
+        size='sm'
         label={t('resourceadm.listadmin_list_name')}
         description={t('resourceadm.listadmin_list_name_description')}
-        ariaDescriptionId='listname-description'
-      >
-        <Textfield
-          id='listname'
-          aria-describedby='listname-description'
-          value={listName}
-          onChange={(event) => setListName(event.target.value)}
-          onBlur={(event) => handleSave({ ...list, name: event.target.value })}
-        />
-      </FieldWrapper>
-      <FieldWrapper
-        fieldId='listdescription'
+        value={listName}
+        onChange={(event) => setListName(event.target.value)}
+        onBlur={(event) => handleSave({ ...list, name: event.target.value })}
+      />
+      <StudioTextfield
+        size='sm'
         label={t('resourceadm.listadmin_list_description')}
         description={t('resourceadm.listadmin_list_description_description')}
-        ariaDescriptionId='listdescription-description'
-      >
-        <Textfield
-          id='listdescription'
-          aria-describedby='listdescription-description'
-          value={listDescription}
-          onChange={(event) => setListDescription(event.target.value)}
-          onBlur={(event) => handleSave({ ...list, description: event.target.value })}
-        />
-      </FieldWrapper>
+        value={listDescription}
+        onChange={(event) => setListDescription(event.target.value)}
+        onBlur={(event) => handleSave({ ...list, description: event.target.value })}
+      />
       <AccessListMembers
         org={org}
         env={env}
@@ -165,7 +158,7 @@ export const AccessListDetail = ({
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
           disabled={isDeletingAccessList}
-          size='medium'
+          size='md'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

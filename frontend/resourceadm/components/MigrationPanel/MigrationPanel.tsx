@@ -1,8 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Alert, Checkbox, Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioCheckbox,
+  StudioHeading,
+  StudioModal,
+} from '@studio/components';
 import classes from './MigrationPanel.module.css';
 import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
@@ -82,28 +87,32 @@ export const MigrationPanel = ({
             <StudioButton
               disabled={!isMigrateCheckboxChecked}
               onClick={() => postMigrateDelegations()}
-              size='medium'
+              size='md'
             >
               {t('resourceadm.migration_disable_service_confirm')}
             </StudioButton>
-            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='medium'>
+            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='md'>
               {t('general.cancel')}
             </StudioButton>
           </>
         }
       >
-        <Alert severity='warning'>{t('resourceadm.migration_disable_service_modal_body')}</Alert>
-        <Checkbox.Group
+        <StudioAlert severity='warning'>
+          {t('resourceadm.migration_disable_service_modal_body')}
+        </StudioAlert>
+        <StudioCheckbox.Group
           legend=''
           onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
           value={isMigrateCheckboxChecked ? ['checked'] : []}
         >
-          <Checkbox value='checked'>{t('resourceadm.migration_confirm_migration')}</Checkbox>
-        </Checkbox.Group>
+          <StudioCheckbox value='checked'>
+            {t('resourceadm.migration_confirm_migration')}
+          </StudioCheckbox>
+        </StudioCheckbox.Group>
       </StudioModal.Dialog>
       <div className={classes.migrationPanel}>
         <div className={classes.migrationPanelInner}>
-          <Heading size='sm'>{t(env.label)}</Heading>
+          <StudioHeading size='sm'>{t(env.label)}</StudioHeading>
           <div>
             {t('resourceadm.migration_altinn2_delegations')}{' '}
             {!isLoadingDelegationCount && (
@@ -114,12 +123,14 @@ export const MigrationPanel = ({
             {t('resourceadm.migration_altinn3_delegations')} <strong>N/A</strong>
           </div>
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
-            <Alert severity='info' size='sm'>
+            <StudioAlert severity='info' size='sm'>
               {t('resourceadm.migration_not_needed')}
-            </Alert>
+            </StudioAlert>
           )}
           {errorMessage && (
-            <Alert severity={errorMessage.severity}>{t(errorMessage.errorMessage)}</Alert>
+            <StudioAlert severity={errorMessage.severity}>
+              {t(errorMessage.errorMessage)}
+            </StudioAlert>
           )}
         </div>
         <StudioButton

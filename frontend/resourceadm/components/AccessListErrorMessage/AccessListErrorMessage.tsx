@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import { type EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
@@ -22,5 +22,5 @@ export const AccessListErrorMessage = ({
       envName: t(getEnvLabel(env)),
     });
 
-  return <Alert severity='danger'>{errorMessage}</Alert>;
+  return <StudioAlert severity='danger'>{errorMessage}</StudioAlert>;
 };

@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React from 'react';
-import classes from './ResourceSeachBox.module.css';
-import { Textfield } from '@digdir/designsystemet-react';
+import classes from './ResourceSearchBox.module.css';
+import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type SearchBoxProps = {
@@ -30,7 +30,7 @@ export const SearchBox = ({ onChange }: SearchBoxProps): React.JSX.Element => {
 
   return (
     <div className={classes.searchBox}>
-      <Textfield onChange={handleChange} label={t('resourceadm.dashboard_searchbox')} />
+      <StudioTextfield onChange={handleChange} label={t('resourceadm.dashboard_searchbox')} />
     </div>
   );
 };
