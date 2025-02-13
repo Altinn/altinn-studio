@@ -40,7 +40,10 @@ const componentsWithTitleAndDefaultDataModel = (
 ): FormItem[] => {
   const hasValidDataBinding = (comp: FormItem) =>
     Object.keys(comp.dataModelBindings ?? {}).some((binding) => {
-      const { dataType, field } = convertDataBindingToInternalFormat(comp, binding);
+      const { dataType, field } = convertDataBindingToInternalFormat(
+        comp?.dataModelBindings,
+        binding,
+      );
       return dataType === defaultDataModel || (dataType === '' && field !== '');
     });
 

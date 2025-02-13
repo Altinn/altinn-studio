@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Scheduling;
 using MediatR;
 using Quartz;
 
@@ -8,8 +9,6 @@ namespace Altinn.Studio.Designer.EventHandlers.DeploymentPipelineQueued;
 public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.DeploymentPipelineQueued>
 {
     private readonly ISchedulerFactory _schedulerFactory;
-    private const string DeploymentPipelineGroup = nameof(DeploymentPipelineGroup);
-    private const int PollingIntervalInSeconds = 10;
 
     public DeploymentPipelineQueuedHandler(ISchedulerFactory schedulerFactory)
     {
@@ -21,22 +20,24 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
         var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
         var jobData = new JobDataMap
         {
-            { "org", notification.EditingContext.Org },
-            { "app", notification.EditingContext.Repo },
-            { "developer", notification.EditingContext.Developer },
-            { "buildId", notification.BuildId.ToString() }
+            { DeploymentPipelinePollingJobConstants.Arguments.Org, notification.EditingContext.Org },
+            { DeploymentPipelinePollingJobConstants.Arguments.App, notification.EditingContext.Repo },
+            { DeploymentPipelinePollingJobConstants.Arguments.Developer, notification.EditingContext.Developer },
+            { DeploymentPipelinePollingJobConstants.Arguments.BuildId, notification.BuildId.ToString() },
+            { DeploymentPipelinePollingJobConstants.Arguments.PipelineType, notification.PipelineType.ToString() },
+            { DeploymentPipelinePollingJobConstants.Arguments.Environment, notification.Environment }
         };
 
         var job = JobBuilder.Create<Scheduling.DeploymentPipelinePollingJob>()
-            .WithIdentity($"{nameof(Scheduling.DeploymentPipelinePollingJob)}-{notification.EditingContext.Org}-{notification.EditingContext.Repo}-{notification.BuildId}", DeploymentPipelineGroup)
+            .WithIdentity(DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
             .UsingJobData(jobData)
             .Build();
 
         var trigger = TriggerBuilder.Create()
-            .WithIdentity($"{nameof(Scheduling.DeploymentPipelinePollingJob)}-{notification.EditingContext.Org}-{notification.EditingContext.Repo}-{notification.BuildId}", DeploymentPipelineGroup)
+            .WithIdentity(DeploymentPipelinePollingJobConstants.TriggerIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
             .StartNow()
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(PollingIntervalInSeconds)
+                .WithIntervalInSeconds(DeploymentPipelinePollingJobConstants.PollingIntervalInSeconds)
                 .RepeatForever())
             .Build();
 
