@@ -1,6 +1,6 @@
 import type { CodeList } from './types/CodeList';
 import type { ReactElement } from 'react';
-import React, { useMemo, useRef, useCallback } from 'react';
+import React, { useState, useId, useMemo, useRef, useCallback } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
@@ -9,6 +9,7 @@ import {
   addNewCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
+  getTypeOfLastValue,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -18,7 +19,6 @@ import {
 } from './StudioCodeListEditorContext';
 import classes from './StudioCodeListEditor.module.css';
 import { PlusIcon } from '@studio/icons';
-import { StudioParagraph } from '../StudioParagraph';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
@@ -27,6 +27,9 @@ import type { TextResource } from '../../types/TextResource';
 import { usePropState } from '@studio/hooks';
 import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
+import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
+import { StudioNativeSelect } from '../StudioNativeSelect';
+import type { CodeListItemValueLiteral } from './types/CodeListItemValue';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -104,28 +107,35 @@ function ControlledCodeListEditor({
   onChangeTextResource,
   textResources,
 }: ControlledCodeListEditorProps): ReactElement {
+  const isFirstItem = !codeList || isCodeListEmpty(codeList);
+  const initialValueType = isFirstItem ? 'string' : getTypeOfLastValue(codeList);
+  const [valueType, setValueType] = useState<CodeListItemValueLiteral>(initialValueType);
+
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
-
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddButtonClick = useCallback(() => {
-    const updatedCodeList = addNewCodeListItem(codeList);
+    const updatedCodeList = addNewCodeListItem(codeList, valueType);
     onChange(updatedCodeList);
     onAddOrDeleteItem?.(updatedCodeList);
-  }, [codeList, onChange, onAddOrDeleteItem]);
+  }, [codeList, valueType, onChange, onAddOrDeleteItem]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable
-        codeList={codeList}
-        errorMap={errorMap}
-        onAddOrDeleteItem={onAddOrDeleteItem}
-        onBlurAny={onBlurAny}
-        onChange={onChange}
-        onChangeTextResource={onChangeTextResource}
-        textResources={textResources}
-      />
+      {isFirstItem ? (
+        <TypeSelector setValueType={setValueType} />
+      ) : (
+        <CodeListTable
+          codeList={codeList}
+          errorMap={errorMap}
+          onAddOrDeleteItem={onAddOrDeleteItem}
+          onBlurAny={onBlurAny}
+          onChange={onChange}
+          onChangeTextResource={onChangeTextResource}
+          textResources={textResources}
+        />
+      )}
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
@@ -134,20 +144,7 @@ function ControlledCodeListEditor({
 
 type CodeListTableProps = ControlledCodeListEditorProps & ErrorsProps;
 
-function CodeListTable(props: CodeListTableProps): ReactElement {
-  return isCodeListEmpty(props.codeList) ? (
-    <EmptyCodeListTable />
-  ) : (
-    <CodeListTableWithContent {...props} />
-  );
-}
-
-function EmptyCodeListTable(): ReactElement {
-  const { texts } = useStudioCodeListEditorContext();
-  return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
-}
-
-function CodeListTableWithContent({ onBlurAny, ...rest }: CodeListTableProps): ReactElement {
+function CodeListTable({ onBlurAny, ...rest }: CodeListTableProps): ReactElement {
   return (
     <StudioInputTable onBlurAny={onBlurAny}>
       <TableHeadings />
@@ -230,8 +227,33 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
   }
 }
 
+type TypeSelectorProps = {
+  setValueType: (valueType: CodeListItemValueLiteral) => void;
+};
+
+function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
+  // const { texts } = useStudioCodeListEditorContext();
+  const id = useId();
+
+  return (
+    <>
+      <StudioLabelAsParagraph size='sm' htmlFor={id}>
+        Velg hvilken type verdiene i kodelisten skal ha:
+      </StudioLabelAsParagraph>
+      <StudioNativeSelect
+        name={id}
+        onChange={(event) => setValueType(event.target.value as 'string' | 'number' | 'boolean')}
+      >
+        <option value='string'>Tekst (anbefalt)</option>
+        <option value='number'>Tall</option>
+        <option value='boolean'>Boolsk</option>
+      </StudioNativeSelect>
+    </>
+  );
+}
+
 type AddButtonProps = {
-  onClick: () => void;
+  onClick: (valueType?: CodeListItemValueLiteral) => void;
 };
 
 function AddButton({ onClick }: AddButtonProps): ReactElement {
