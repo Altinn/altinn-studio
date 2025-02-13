@@ -6,7 +6,7 @@ import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
-import { getCodeListSourcesById, getCodeListUsageCount } from '../utils/codeListPageUtils';
+import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../../types/TextResources';
 

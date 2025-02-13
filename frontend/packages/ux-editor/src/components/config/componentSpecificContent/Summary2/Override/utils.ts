@@ -3,12 +3,17 @@ import {
   type SummaryCustomTargetType,
 } from 'app-shared/types/ComponentSpecificConfig';
 
-export const mapSelectedTypeToConfig = (
-  newSelectedType: SummaryCustomTargetType,
-  componentId: string,
-): Summary2OverrideConfig => {
+type SelectedTypeProps = {
+  componentId: string;
+  displayType: SummaryCustomTargetType;
+};
+
+export const mapSelectedTypeToConfig = ({
+  componentId,
+  displayType,
+}: SelectedTypeProps): Summary2OverrideConfig => {
   return {
-    displayType: newSelectedType,
+    displayType,
     componentId,
   };
 };

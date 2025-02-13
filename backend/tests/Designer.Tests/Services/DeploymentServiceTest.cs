@@ -59,9 +59,9 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData("ttd", "apps-test-tba", false)]
-        [InlineData("ttd", "new-app", true)]
-        public async Task CreateAsync_OK(string org, string app, bool newApp)
+        [InlineData("ttd", "apps-test-tba")]
+        [InlineData("ttd", "new-app")]
+        public async Task CreateAsync_OK(string org, string app)
         {
             // Arrange
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
@@ -131,11 +131,11 @@ namespace Designer.Tests.Services
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
 
-            var expectedDeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp;
-            _mediatrMock.Verify(m => m.Publish(It.Is<AppDeployedEvent>(n =>
+            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
                 n.EditingContext.Org == org &&
                 n.EditingContext.Repo == app &&
-                n.DeployType == expectedDeployType), It.IsAny<CancellationToken>()), Times.Once);
+                n.Environment == deploymentModel.EnvName &&
+                n.PipelineType == PipelineType.Deploy), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
