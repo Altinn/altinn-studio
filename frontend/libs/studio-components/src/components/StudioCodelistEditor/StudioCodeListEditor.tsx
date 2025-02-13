@@ -28,6 +28,7 @@ import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import { StudioNativeSelect } from '../StudioNativeSelect';
+import type { CodeListItemValueLiteral } from './types/CodeListItemValue';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -111,7 +112,7 @@ function ControlledCodeListEditor({
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddFirstItem = useCallback(
-    (valueType: 'string' | 'number' | 'boolean') => {
+    (valueType: CodeListItemValueLiteral) => {
       const updatedCodeList = addNewCodeListItem(codeList, valueType);
       onChange(updatedCodeList);
       onAddOrDeleteItem?.(updatedCodeList);
@@ -119,14 +120,11 @@ function ControlledCodeListEditor({
     [codeList, onChange, onAddOrDeleteItem],
   );
 
-  const handleAddConsecutiveItems = useCallback(
-    (valueType: 'string' | 'number' | 'boolean') => {
-      const updatedCodeList = addNewCodeListItem(codeList);
-      onChange(updatedCodeList);
-      onAddOrDeleteItem?.(updatedCodeList);
-    },
-    [codeList, onChange, onAddOrDeleteItem],
-  );
+  const handleAddConsecutiveItems = useCallback(() => {
+    const updatedCodeList = addNewCodeListItem(codeList);
+    onChange(updatedCodeList);
+    onAddOrDeleteItem?.(updatedCodeList);
+  }, [codeList, onChange, onAddOrDeleteItem]);
 
   const shouldRenderTable = codeList && !isCodeListEmpty(codeList);
 
@@ -142,7 +140,6 @@ function ControlledCodeListEditor({
             onChange={onChange}
             onChangeTextResource={onChangeTextResource}
             textResources={textResources}
-            handleAddButtonClick={handleAddFirstItem}
           />
           <AddButton onClick={handleAddConsecutiveItems} />
         </>
@@ -154,10 +151,7 @@ function ControlledCodeListEditor({
   );
 }
 
-type CodeListTableProps = {
-  handleAddButtonClick: (valueType: never) => void;
-} & ControlledCodeListEditorProps &
-  ErrorsProps;
+type CodeListTableProps = ControlledCodeListEditorProps & ErrorsProps;
 
 function CodeListTable({ onBlurAny, ...rest }: CodeListTableProps): ReactElement {
   return (
@@ -243,12 +237,12 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
 }
 
 type TypeSelectorProps = {
-  handleAddButtonClick: (valueType) => void;
+  handleAddButtonClick: (valueType: CodeListItemValueLiteral) => void;
 };
 
 function TypeSelector({ handleAddButtonClick }: TypeSelectorProps): ReactElement {
   // const { texts } = useStudioCodeListEditorContext();
-  const [valueType, setValueType] = useState<'string' | 'number' | 'boolean'>('string');
+  const [valueType, setValueType] = useState<CodeListItemValueLiteral>('string');
   const id = useId();
 
   return (
@@ -270,7 +264,7 @@ function TypeSelector({ handleAddButtonClick }: TypeSelectorProps): ReactElement
 }
 
 type AddButtonProps = {
-  onClick: (valueType?) => void;
+  onClick: (valueType?: CodeListItemValueLiteral) => void;
 };
 
 function AddButton({ onClick }: AddButtonProps): ReactElement {
