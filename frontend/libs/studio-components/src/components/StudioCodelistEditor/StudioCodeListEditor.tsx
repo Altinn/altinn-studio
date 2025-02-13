@@ -111,42 +111,32 @@ function ControlledCodeListEditor({
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
+  const isFirstItem = !codeList || isCodeListEmpty(codeList);
 
-  const handleAddFirstItem = useCallback(() => {
-    const updatedCodeList = addNewCodeListItem(codeList, valueType);
+  const handleAddButtonClick = useCallback(() => {
+    const updatedCodeList = isFirstItem
+      ? addNewCodeListItem(codeList, valueType)
+      : addNewCodeListItem(codeList);
     onChange(updatedCodeList);
     onAddOrDeleteItem?.(updatedCodeList);
-  }, [codeList, valueType, onChange, onAddOrDeleteItem]);
-
-  const handleAddConsecutiveItems = useCallback(() => {
-    const updatedCodeList = addNewCodeListItem(codeList);
-    onChange(updatedCodeList);
-    onAddOrDeleteItem?.(updatedCodeList);
-  }, [codeList, onChange, onAddOrDeleteItem]);
-
-  const shouldRenderTable = codeList && !isCodeListEmpty(codeList);
+  }, [isFirstItem, codeList, valueType, onChange, onAddOrDeleteItem]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      {shouldRenderTable ? (
-        <>
-          <CodeListTable
-            codeList={codeList}
-            errorMap={errorMap}
-            onAddOrDeleteItem={onAddOrDeleteItem}
-            onBlurAny={onBlurAny}
-            onChange={onChange}
-            onChangeTextResource={onChangeTextResource}
-            textResources={textResources}
-          />
-          <AddButton onClick={handleAddConsecutiveItems} />
-        </>
+      {isFirstItem ? (
+        <TypeSelector setValueType={setValueType} />
       ) : (
-        <>
-          <TypeSelector setValueType={setValueType} />
-          <AddButton onClick={handleAddFirstItem} />
-        </>
+        <CodeListTable
+          codeList={codeList}
+          errorMap={errorMap}
+          onAddOrDeleteItem={onAddOrDeleteItem}
+          onBlurAny={onBlurAny}
+          onChange={onChange}
+          onChangeTextResource={onChangeTextResource}
+          textResources={textResources}
+        />
       )}
+      <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
