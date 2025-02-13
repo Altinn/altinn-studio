@@ -7,19 +7,18 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
-import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
-import type { TextResources } from '../../../../../types/TextResources';
+import type { TextResource } from '@studio/components';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
+  onChangeTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
   codeListInEditMode: string | undefined;
   codeListNames: string[];
   codeListsUsages: CodeListReference[];
-  textResources?: TextResources;
+  textResources?: TextResource[];
 };
 
 export function CodeLists({
