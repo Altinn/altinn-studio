@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         };
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
+        /// Initializes a new instance of the <see cref="AltinnAppGitRepository"/> class.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
