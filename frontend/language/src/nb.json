@@ -234,6 +234,8 @@
   "dashboard.org_data_models": "{{orgName}}s datamodeller",
   "dashboard.org_library.alert_no_org_selected": "For å vise biblioteket, må du velge en organisasjon i menyen øverst til høyre.",
   "dashboard.org_library.alert_no_org_selected_no_access": "Hvis du ikke har tilgang til noen organisasjoner, må du be om tilgang fra en tjenesteeier.",
+  "dashboard.org_library.code_list_upload_success": "Filen ble lastet opp.",
+  "dashboard.org_library.fetch_error": "Det har oppstått et problem ved henting av data til biblioteket.",
   "dashboard.org_resources": "{{orgName}}s ressurser",
   "dashboard.resource_contact_description": "Se oversikt over hvordan du kommer i kontakt med oss i Altinn Studio.",
   "dashboard.resource_contact_label": "Kontakt oss",

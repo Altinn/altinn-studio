@@ -16,16 +16,27 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SelectedContextType } from '../../context/HeaderContext';
 import { Route, Routes } from 'react-router-dom';
 
-const deleteCodeListButtonTextMock = 'Delete Code List';
-const codeListNameMock = 'codeListNameMock';
+const uploadCodeListButtonTextMock: string = 'Upload Code List';
+const deleteCodeListButtonTextMock: string = 'Delete Code List';
+const codeListNameMock: string = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 const codeListsDataMock: CodeListData[] = [{ title: codeListNameMock, data: codeListMock }];
+const mockOrgPath: string = '/testOrg';
 
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onDeleteCodeList }: any) => (
+    CodeListPage: ({ onDeleteCodeList, onUploadCodeList }: any) => (
       <div>
+        <button
+          onClick={() =>
+            onUploadCodeList(
+              new File(['test'], `${codeListNameMock}.json`, { type: 'application/json' }),
+            )
+          }
+        >
+          {uploadCodeListButtonTextMock}
+        </button>
         <button onClick={() => onDeleteCodeList(codeListsDataMock[0].title)}>
           {deleteCodeListButtonTextMock}
         </button>
@@ -82,6 +93,58 @@ describe('OrgContentLibrary', () => {
       name: textMock('app_content_library.code_lists.page_name'),
     });
     expect(codeListMenuElement).toBeInTheDocument();
+  });
+
+  it('calls onUploadCodeList when onUploadCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, expect.any(FormData));
+  });
+
+  it('renders success toast when onUploadCodeList is called successfully', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    const successToastMessage = screen.getByText(
+      textMock('dashboard.org_library.code_list_upload_success'),
+    );
+    expect(successToastMessage).toBeInTheDocument();
+  });
+
+  it('renders error toast when onUploadCodeList is rejected with unknown error code', async () => {
+    const user = userEvent.setup();
+    const uploadCodeListForOrg = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: {} }));
+    renderOrgContentLibraryWithCodeLists({
+      initialEntries: [mockOrgPath],
+      queries: { uploadCodeListForOrg },
+    });
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    const errorToastMessage = screen.getByText(
+      textMock('dashboard.org_library.code_list_upload_generic_error'),
+    );
+    expect(errorToastMessage).toBeInTheDocument();
+  });
+
+  it('calls onUploadCodeList and hides default error when handleUpload is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: [mockOrgPath] });
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, expect.any(FormData));
+    const hideDefaultError = screen.queryByText(textMock('dashboard.org_library.default_error'));
+    expect(hideDefaultError).not.toBeInTheDocument();
   });
 
   it('calls deleteCodeListForOrg when onDeleteCodeList is triggered', async () => {

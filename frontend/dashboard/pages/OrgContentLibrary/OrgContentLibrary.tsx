@@ -1,10 +1,15 @@
 import type { ReactElement } from 'react';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
+import { useTranslation } from 'react-i18next';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
+import type { ApiError } from 'app-shared/types/api/ApiError';
+import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
+import { toast } from 'react-toastify';
+import type { AxiosError } from 'axios';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
-import { useTranslation } from 'react-i18next';
 import { isOrg } from './utils';
 
 export function OrgContentLibrary(): ReactElement {
@@ -19,6 +24,9 @@ export function OrgContentLibrary(): ReactElement {
 
 function OrgContentLibraryWithContext(): ReactElement {
   const selectedContext = useSelectedContext();
+
+  const handleUpload = useUploadCodeList(selectedContext);
+
   const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
@@ -29,7 +37,7 @@ function OrgContentLibraryWithContext(): ReactElement {
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: () => {},
-          onUploadCodeList: () => {},
+          onUploadCodeList: handleUpload,
         },
       },
     },
@@ -49,5 +57,27 @@ function ContextWithoutLibraryAccess(): ReactElement {
         </StudioParagraph>
       </StudioAlert>
     </StudioCenter>
+  );
+}
+
+function useUploadCodeList(org: string): (file: File) => void {
+  const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(org, {
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+  });
+  const { t } = useTranslation();
+
+  return useCallback(
+    (file: File) =>
+      uploadCodeList(file, {
+        onSuccess: () => {
+          toast.success(t('dashboard.org_library.code_list_upload_success'));
+        },
+        onError: (error: AxiosError<ApiError>) => {
+          if (isErrorUnknown(error)) {
+            toast.error(t('dashboard.org_library.code_list_upload_generic_error'));
+          }
+        },
+      }),
+    [uploadCodeList, t],
   );
 }
