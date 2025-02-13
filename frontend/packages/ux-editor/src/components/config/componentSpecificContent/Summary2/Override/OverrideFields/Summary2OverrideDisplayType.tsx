@@ -34,7 +34,7 @@ export const Summary2OverrideDisplayType = ({
       <StudioNativeSelect
         size='sm'
         label={t('ux_editor.component_properties.summary.override.display_type')}
-        value={displayType || 'list'}
+        value={displayType}
         onChange={(e) => handleCustomTypeChange(e.target.value as OverrideDisplayType)}
       >
         {customConfigTypes.map((type: CustomConfigType) => (

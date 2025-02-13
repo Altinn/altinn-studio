@@ -26,6 +26,7 @@ import type {
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;
 const subformComponentId = subformComponentMock.id;
+const repeatingGroupComponentId = container2IdMock;
 const layoutMockWithMultipleSelect = {
   ...layoutMock,
   components: {
@@ -191,24 +192,28 @@ describe('Summary2Override', () => {
 
   it('should render component specific overrides', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: container2IdMock }] });
+    render({ overrides: [{ componentId: repeatingGroupComponentId }] });
 
     await user.click(overrideCollapsedButton(1));
     await user.selectOptions(overrideDisplaySelector(), overrideDisplaySelectType('table'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ componentId: container2IdMock, display: 'table' }]),
+      expect.arrayContaining([{ componentId: repeatingGroupComponentId, display: 'table' }]),
     );
   });
 
   it.each([
     {
-      componentId: container2IdMock,
-      defaultProps: { componentId: container2IdMock, display: 'full' },
+      componentId: repeatingGroupComponentId,
+      defaultProps: { componentId: repeatingGroupComponentId, display: 'full' },
     },
     {
       componentId: subformComponentId,
       defaultProps: { componentId: subformComponentId, display: 'table' },
+    },
+    {
+      componentId: multipleSelectId,
+      defaultProps: { componentId: multipleSelectId, displayType: 'list' },
     },
   ])('should set default props for components', async (args) => {
     const user = userEvent.setup();

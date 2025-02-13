@@ -66,6 +66,9 @@ export const Summary2OverrideEntry = ({
         return { display: 'full' };
       case ComponentType.Subform:
         return { display: 'table' };
+      case ComponentType.Checkboxes:
+      case ComponentType.MultipleSelect:
+        return { displayType: 'list' };
       default:
         return {};
     }
