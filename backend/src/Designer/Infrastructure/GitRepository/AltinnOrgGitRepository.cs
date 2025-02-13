@@ -36,16 +36,18 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Returns a specific text resource
-    /// based on language code from the application.
+    /// Returns a specific text resource based on language code.
     /// </summary>
+    /// <param name="languageCode">Language code</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The text file as a <see cref="TextResource"/></returns>
     /// <remarks>
-    /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
+    /// Format of the <see cref="TextResource"/> is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
     /// </remarks>
-    public async Task<TextResource> GetText(string language, CancellationToken cancellationToken = default)
+    public async Task<TextResource> GetText(string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
+        string resourcePath = GetPathToJsonTextsFile($"resource.{languageCode}.json");
         if (!FileExistsByRelativePath(resourcePath))
         {
             throw new NotFoundException("Text resource file not found.");
@@ -57,16 +59,18 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Saves the text resource based on language code from the application.
+    /// Saves the text resource based on language code.
     /// </summary>
     /// <param name="languageCode">Language code</param>
     /// <param name="jsonTexts">text resource</param>
-    public async Task SaveText(string languageCode, TextResource jsonTexts)
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string fileName = $"resource.{languageCode}.json";
         string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
         string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
-        await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true);
+        await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);
     }
 
     private static string GetPathToJsonTextsFile(string fileName)

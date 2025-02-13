@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
@@ -13,8 +14,9 @@ public interface IOrgTextsService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="languageCode">LanguageCode</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The text file</returns>
-    public Task<TextResource> GetText(string org, string repo, string developer, string languageCode);
+    public Task<TextResource> GetText(string org, string repo, string developer, string languageCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Saves text resource.
@@ -24,8 +26,9 @@ public interface IOrgTextsService
     /// <param name="developer">Username of developer</param>
     /// <param name="textResource">The text resource to be saved</param>
     /// <param name="languageCode">LanguageCode</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
-    public Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode);
+    public Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates values for specified keys in the text resouce.
@@ -35,6 +38,7 @@ public interface IOrgTextsService
     /// <param name="developer">Username of developer</param>
     /// <param name="keysTexts">KeysTexts</param>
     /// <param name="languageCode">LanguageCode</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
-    public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
+    public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default);
 }
