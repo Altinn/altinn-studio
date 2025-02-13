@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
-import { sortResourceListByDate } from '../../utils/mapperUtils';
+import { setLastChangedAndSortResourceListByDate } from '../../utils/mapperUtils';
 
 /**
  * Query to get the list of resources. It maps the date to correct display format
- * and sorts the list before it is being returned.
+ * and sorts the list before it is being returned. For resources not checked into
+ * Gitea, it sets a special last changed date to prioritize them in the sorted list.
  *
  * @param org the organisation of the user
  *
@@ -23,7 +24,7 @@ export const useGetResourceListQuery = (
     queryKey: [QueryKey.ResourceList, org],
     queryFn: () => getResourceList(org),
     select: (resourceListItems: ResourceListItem[]) =>
-      resourceListItems && sortResourceListByDate(resourceListItems),
+      resourceListItems && setLastChangedAndSortResourceListByDate(resourceListItems),
     enabled: !disabled,
   });
 };

@@ -245,18 +245,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            if (string.IsNullOrEmpty(listviewResource.CreatedBy))
-            {
-                string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                string userFullName = await GetCachedUserFullName(localUserName);
-                listviewResource.CreatedBy = userFullName;
-            }
-
-            if (listviewResource.LastChanged == null)
-            {
-                listviewResource.LastChanged = DateTime.Now;
-            }
-
             return listviewResource;
         }
 
