@@ -9,6 +9,7 @@ import {
   addNewCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
+  getTypeOfLastValue,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -106,20 +107,19 @@ function ControlledCodeListEditor({
   onChangeTextResource,
   textResources,
 }: ControlledCodeListEditorProps): ReactElement {
-  const { texts } = useStudioCodeListEditorContext();
-  const [valueType, setValueType] = useState<CodeListItemValueLiteral>('string');
-  const fieldsetRef = useRef<HTMLFieldSetElement>(null);
-
-  const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
   const isFirstItem = !codeList || isCodeListEmpty(codeList);
+  const initialValueType = isFirstItem ? 'string' : getTypeOfLastValue(codeList);
+  const [valueType, setValueType] = useState<CodeListItemValueLiteral>(initialValueType);
+
+  const { texts } = useStudioCodeListEditorContext();
+  const fieldsetRef = useRef<HTMLFieldSetElement>(null);
+  const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddButtonClick = useCallback(() => {
-    const updatedCodeList = isFirstItem
-      ? addNewCodeListItem(codeList, valueType)
-      : addNewCodeListItem(codeList);
+    const updatedCodeList = addNewCodeListItem(codeList, valueType);
     onChange(updatedCodeList);
     onAddOrDeleteItem?.(updatedCodeList);
-  }, [isFirstItem, codeList, valueType, onChange, onAddOrDeleteItem]);
+  }, [codeList, valueType, onChange, onAddOrDeleteItem]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>

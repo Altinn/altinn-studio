@@ -21,19 +21,14 @@ export const emptyBooleanItem: CodeListItem = {
 
 export function addNewCodeListItem(
   codeList: CodeList,
-  valueType?: CodeListItemValueLiteral,
+  valueType: CodeListItemValueLiteral,
 ): CodeList {
   const newEmptyItem = createNewEmptyItem(codeList, valueType);
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function createNewEmptyItem(
-  codeList: CodeList,
-  valueType?: CodeListItemValueLiteral,
-): CodeListItem {
-  const typeToCreate = valueType ?? getTypeOfLastValue(codeList);
-
-  switch (typeToCreate) {
+function createNewEmptyItem(codeList: CodeList, valueType: CodeListItemValueLiteral): CodeListItem {
+  switch (valueType) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
