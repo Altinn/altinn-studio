@@ -13,7 +13,7 @@ import type { Override } from '../../types/Override';
 export type StudioDecimalInputProps = Override<
   {
     description?: string;
-    onChange: (value: number) => void;
+    onChange: (value: number | null) => void;
     value?: number;
     validationErrorMessage?: string;
   },

@@ -4,8 +4,8 @@ export const isStringValidDecimalNumber = (value: string): boolean => {
   return numberRegex.test(value);
 };
 
-export const convertStringToNumber = (value: string): number =>
-  value ? Number(value.replace(',', '.')) : undefined;
+export const convertStringToNumber = (value: string): number | null =>
+  value ? Number(value.replace(',', '.')) : null;
 
 export const convertNumberToString = (value?: number): string =>
   value?.toString().replace('.', ',') || '';

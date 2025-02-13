@@ -37,7 +37,7 @@ public class DeploymentPipelinePollingJob : IJob
         string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-        Enum.TryParse(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType), out PipelineType type);
+        PipelineType type = Enum.Parse<PipelineType>(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!, true);
         string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
         Guard.ArgumentNotNull(buildId, nameof(buildId));
 

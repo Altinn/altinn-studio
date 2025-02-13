@@ -6,7 +6,6 @@ import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeploy
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -49,7 +48,7 @@ export const DeploymentEnvironmentStatus = ({
         <Heading spacing level={2} size='xsmall'>
           {envTitle}
         </Heading>
-        {kubernetesDeployment?.version && shouldDisplayFeature(FeatureFlag.Undeploy) && (
+        {kubernetesDeployment?.version && (
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
