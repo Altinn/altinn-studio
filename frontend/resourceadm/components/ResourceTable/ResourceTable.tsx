@@ -147,9 +147,10 @@ export const ResourceTable = ({
       heading: t('dashboard.resource_table_header_last_changed'),
       sortable: true,
       bodyCellFormatter: (value: string) => {
-        if (!value) return '';
+        if (!value) {
+          return '';
+        }
         const date = new Date(value);
-        // Compare only the date components
         if (
           date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
           date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
