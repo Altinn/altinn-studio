@@ -64,7 +64,7 @@ export function CodeListPage({
 
   const handleChangeTextResource = useCallback(
     (textResource: TextResource) => {
-      const updatedTextResource = createTextResourceWithLanguage('nb', textResource);
+      const updatedTextResource = createTextResourceWithLanguage(language, textResource);
       onUpdateTextResource?.(updatedTextResource);
     },
     [onUpdateTextResource],
