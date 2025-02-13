@@ -8,3 +8,4 @@ export type {
 export type { TextResource } from './types/TextResource';
 export type { TextResourceWithLanguage } from './types/TextResourceWithLanguage';
 export type { TextResources } from './types/TextResources';
+export type { PagesConfig } from './types/PagesProps';
