@@ -6,6 +6,7 @@ import { exprCastValue } from 'src/features/expressions';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
+import { CodeListPending } from 'src/features/options/CodeListsProvider';
 import { SearchParams } from 'src/features/routing/AppRoutingContext';
 import { implementsDisplayData } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
@@ -163,6 +164,10 @@ export const ExprFunctionDefinitions = {
   },
   displayValue: {
     args: args(required(ExprVal.String)),
+    returns: ExprVal.String,
+  },
+  optionLabel: {
+    args: args(required(ExprVal.String), required(ExprVal.Any)),
     returns: ExprVal.String,
   },
   formatDate: {
@@ -502,6 +507,32 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       nodeDataSelector: this.dataSources.nodeDataSelector,
     });
   },
+  optionLabel(optionsId, value) {
+    if (optionsId === null) {
+      throw new ExprRuntimeError(this.expr, this.path, `Expected an options id`);
+    }
+
+    const options = this.dataSources.codeListSelector(optionsId);
+    if (!options) {
+      throw new ExprRuntimeError(this.expr, this.path, `Could not find options with id "${optionsId}"`);
+    }
+
+    if (options === CodeListPending) {
+      // We don't have the options yet, but it's not an error to ask for them.
+      return null;
+    }
+
+    // Lax comparison by design. Numbers in raw option lists will be cast to strings by useGetOptions(), so we cannot
+    // be strict about the type here.
+    const option = options.find((o) => o.value == value);
+
+    if (option) {
+      const node = this.node instanceof BaseLayoutNode ? this.node : undefined;
+      return this.dataSources.langToolsSelector(node).langAsNonProcessedString(option.label);
+    }
+
+    return null;
+  },
   formatDate(date, format) {
     if (date === null) {
       return null;
@@ -739,6 +770,14 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       if (!validOperators.includes(op)) {
         const validList = validOperators.map((o) => `"${o}"`).join(', ');
         addError(ctx, [...path, `[${opIdx + 1}]`], 'Invalid operator "%s", valid operators are %s', op, validList);
+      }
+    },
+  },
+  optionLabel: {
+    validator({ rawArgs, ctx, path }) {
+      const optionsId = rawArgs[0];
+      if (optionsId === null || typeof optionsId !== 'string') {
+        addError(ctx, [...path, '[1]'], 'The first argument must be a string (expressions cannot be used here)');
       }
     },
   },

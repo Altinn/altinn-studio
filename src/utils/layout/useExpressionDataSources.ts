@@ -8,6 +8,7 @@ import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
+import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -19,6 +20,7 @@ import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsSt
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
+import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
@@ -51,6 +53,7 @@ export interface ExpressionDataSources {
   externalApis: ExternalApisResult;
   roles: RoleResult;
   currentDataModelPath?: IDataModelReference;
+  codeListSelector: CodeListSelector;
 }
 
 export function useExpressionDataSources(): ExpressionDataSources {
@@ -63,6 +66,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
     dataSelectorForTraversal,
     isHiddenSelector,
     dataElementSelector,
+    codeListSelector,
   ] = useMultipleDelayedSelectors(
     FD.useDebouncedSelectorProps(),
     FD.useDebouncedRowsSelectorProps(),
@@ -72,6 +76,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
     NodesInternal.useDataSelectorForTraversalProps(),
     Hidden.useIsHiddenSelectorProps(),
     useLaxDataElementsSelectorProps(),
+    useCodeListSelectorProps(),
   );
 
   const process = useLaxProcessData();
@@ -114,5 +119,6 @@ export function useExpressionDataSources(): ExpressionDataSources {
     externalApis,
     dataModelNames,
     dataElementSelector,
+    codeListSelector,
   });
 }

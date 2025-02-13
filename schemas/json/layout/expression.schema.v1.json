@@ -84,7 +84,8 @@
         { "$ref": "#/definitions/func-stringReplace" },
         { "$ref": "#/definitions/func-stringSlice" },
         { "$ref": "#/definitions/func-upperCaseFirst" },
-        { "$ref": "#/definitions/func-lowerCaseFirst" }
+        { "$ref": "#/definitions/func-lowerCaseFirst" },
+        { "$ref": "#/definitions/func-optionLabel" }
       ]
     },
     "boolean": {
@@ -622,6 +623,17 @@
       "type": "array",
       "items": [
         { "const":  "value" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-optionLabel": {
+      "title": "Get an option label by value",
+      "description": "This function will look up a label for an option in a code list, based on the value of the option. First argument is optionsId, second the value to look up.",
+      "type": "array",
+      "items": [
+        { "const":  "optionLabel" },
+        { "$ref": "#/definitions/string" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false

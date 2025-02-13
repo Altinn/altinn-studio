@@ -2,6 +2,7 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { AxiosResponse } from 'axios';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -20,6 +21,7 @@ import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSour
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -78,6 +80,10 @@ describe('Expressions shared function tests', () => {
       .mockImplementation(() => {})
       .mockName('window.logError');
     jest
+      .spyOn(window, 'logWarnOnce')
+      .mockImplementation(() => {})
+      .mockName('window.logWarnOnce');
+    jest
       .spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
       .mockName('window.logErrorOnce');
@@ -116,6 +122,7 @@ describe('Expressions shared function tests', () => {
         valueArguments,
         roles,
         testCases,
+        codeLists,
       } = test;
 
       if (disabledFrontend) {
@@ -152,8 +159,39 @@ describe('Expressions shared function tests', () => {
             ? getProcessDataMock()
             : undefined;
 
+      // This decides whether we load this in an instance or not. There are more things to load and more to
+      // do in an instance, so it's slower, but also required for some functions.
+      const inInstance = Boolean(
+        dataModels || codeLists || instanceDataElements || permissions || instance || _layouts,
+      );
+
+      const layouts: ILayoutCollection = _layouts ? structuredClone(_layouts) : getDefaultLayouts();
+
+      // Frontend will look inside the layout for data model bindings, expressions with dataModel and expressions with
+      // optionLabel in order to figure out which data models and code lists to load.
+      // Since the expression we're testing is not part of the layout, we need to add it here so that everything is
+      // loaded correctly.
+      const firstPage = Object.values(layouts)[0];
+      firstPage?.data.layout.push({
+        id: 'theCurrentExpression',
+        type: 'NavigationButtons',
+        ...({
+          // This makes sure that the expression is never evaluated, as it is not a valid property. All properties
+          // that can handle expressions (like 'hidden') will be evaluated during hierarchy generation, but errors
+          // from there (such as unknown extra properties like this one) will not cause test failures here (so doing
+          // this is safe). DataModelsProvider however, will recursively look inside the layout and find anything
+          // that resembles an expression and load the data model it refers to. In other words, this makes sure we
+          // load any data models that are only references in the expression we're testing - not elsewhere in the
+          // layout. For an example of a test that would fail without this, see 'dataModel-non-default-model.json'.
+          // It has only a Paragraph component with no expressions in it, so without injecting the tested
+          // expression into that layout, DataModelsProvider would not load the data model that the expression refers
+          // to, and the test would fail.
+          notAnActualExpression: expression,
+        } as object),
+      });
+
       const applicationMetadata = getIncomingApplicationMetadataMock(
-        instance ? {} : { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] },
+        inInstance ? {} : { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] },
       );
       if (instanceDataElements) {
         for (const element of instanceDataElements) {
@@ -181,32 +219,6 @@ describe('Expressions shared function tests', () => {
           id: 'default',
           appLogic: { classRef: 'some-class', taskId: 'Task_1' },
         } as unknown as IDataType);
-      }
-
-      let layouts: ILayoutCollection | undefined;
-      if (_layouts) {
-        // Frontend will look inside the layout for data model bindings and expressions in order to figure out which
-        // data models to load. Since the expression we're testing is not part of the layout, we need to add it here
-        // so that everything is loaded correctly.
-        layouts = structuredClone(_layouts);
-        const firstPage = Object.values(layouts)[0];
-        firstPage?.data.layout.push({
-          id: 'theCurrentExpression',
-          type: 'NavigationButtons',
-          ...({
-            // This makes sure that the expression is never evaluated, as it is not a valid property. All properties
-            // that can handle expressions (like 'hidden') will be evaluated during hierarchy generation, but errors
-            // from there (such as unknown extra properties like this one) will not cause test failures here (so doing
-            // this is safe). DataModelsProvider however, will recursively look inside the layout and find anything
-            // that resembles an expression and load the data model it refers to. In other words, this makes sure we
-            // load any data models that are only references in the expression we're testing - not elsewhere in the
-            // layout. For an example of a test that would fail without this, see 'dataModel-non-default-model.json'.
-            // It has only a Paragraph component with no expressions in it, so without injecting the tested
-            // expression into that layout, DataModelsProvider would not load the data model that the expression refers
-            // to, and the test would fail.
-            notAnActualExpression: expression,
-          } as object),
-        });
       }
 
       const profile = getProfileMock();
@@ -271,12 +283,12 @@ describe('Expressions shared function tests', () => {
             />
           );
         },
-        inInstance: !!instance || !!dataModels,
+        inInstance,
         queries: {
           fetchLayoutSets: async () => ({
             sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
           }),
-          fetchLayouts: async () => layouts ?? getDefaultLayouts(),
+          fetchLayouts: async () => layouts,
           fetchFormData,
           fetchInstanceData,
           ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
@@ -285,6 +297,14 @@ describe('Expressions shared function tests', () => {
             language: 'nb',
             resources: textResources || [],
           }),
+          fetchOptions: async (url: string) => {
+            const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
+            if (!codeLists || !codeListId || !codeLists[codeListId]) {
+              throw new Error(`No code lists found for ${url}`);
+            }
+            const data = codeLists[codeListId];
+            return { data } as AxiosResponse<IRawOption[], unknown>;
+          },
         },
       });
 

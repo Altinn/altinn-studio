@@ -5,6 +5,7 @@ import type { ExprPositionalArgs, ExprVal, ExprValToActualOrExpr, ExprValueArgs 
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'src/types/shared';
 
@@ -29,7 +30,8 @@ interface SharedTest {
     language?: string;
   };
   externalApis?: ExternalApisResult;
-  roles: RoleResult;
+  roles?: RoleResult;
+  codeLists?: Record<string, IRawOption[]>;
 }
 
 export interface SharedTestContext {
