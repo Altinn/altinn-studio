@@ -16,21 +16,25 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SelectedContextType } from '../../context/HeaderContext';
 import { Route, Routes } from 'react-router-dom';
 
-const updateCodeListButtonTextMock = 'Update Code List';
-const codeListNameMock = 'codeListNameMock';
+const updateCodeListButtonTextMock: string = 'Update Code List';
+const mockOrgPath: string = '/testOrg';
+const deleteCodeListButtonTextMock: string = 'Delete Code List';
+const codeListNameMock: string = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 const codeListsDataMock: CodeListData[] = [{ title: codeListNameMock, data: codeListMock }];
-const mockOrgPath: string = '/testOrg';
 
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onUpdateCodeList }: any) => (
+    CodeListPage: ({ onDeleteCodeList, onUpdateCodeList }: any) => (
       <div>
         <button
           onClick={() => onUpdateCodeList({ title: codeListNameMock, codeList: codeListMock })}
         >
           {updateCodeListButtonTextMock}
+        </button>
+        <button onClick={() => onDeleteCodeList(codeListsDataMock[0].title)}>
+          {deleteCodeListButtonTextMock}
         </button>
       </div>
     ),
@@ -99,6 +103,16 @@ describe('OrgContentLibrary', () => {
       codeListNameMock,
       codeListMock,
     );
+  });
+
+  it('calls deleteCodeListForOrg when onDeleteCodeList is triggered', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithCodeLists({ initialEntries: ['/testOrg'] });
+    await goToLibraryPage(user, 'code_lists');
+    const deleteCodeListButton = screen.getByRole('button', { name: deleteCodeListButtonTextMock });
+    await user.click(deleteCodeListButton);
+    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledWith(org, codeListsDataMock[0].title);
   });
 });
 

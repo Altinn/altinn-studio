@@ -4,12 +4,14 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type { CodeListWithMetadata } from '@studio/content-library';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { isOrg } from './utils';
 
 export function OrgContentLibrary(): ReactElement {
   const selectedContext = useSelectedContext();
+
   return isOrg(selectedContext) ? (
     <OrgContentLibraryWithContext />
   ) : (
@@ -19,7 +21,9 @@ export function OrgContentLibrary(): ReactElement {
 
 function OrgContentLibraryWithContext(): ReactElement {
   const selectedContext = useSelectedContext();
+
   const { mutate: updateOptionList } = useUpdateOrgCodeListMutation(selectedContext);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateOptionList({ title, data: codeList });
@@ -30,7 +34,7 @@ function OrgContentLibraryWithContext(): ReactElement {
       codeList: {
         props: {
           codeListsData: [],
-          onDeleteCodeList: () => {},
+          onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: () => {},
