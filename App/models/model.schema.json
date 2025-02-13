@@ -245,16 +245,19 @@
       "$ref": "#/$defs/Numbers"
     },
     "ListCheckboxExample": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "age": {
-          "type": "integer"
-        },
-        "profession": {
-          "type": "string"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "profession": {
+            "type": "string"
+          }
         }
       }
     }
