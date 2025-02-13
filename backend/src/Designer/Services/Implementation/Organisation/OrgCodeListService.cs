@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgOrgCodeListService : IOrgCodeListService
+public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
@@ -23,7 +23,7 @@ public class OrgOrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OrgOrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }

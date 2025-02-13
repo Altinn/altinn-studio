@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ILanguagesService, LanguagesService>();
             services.AddTransient<ITextsService, TextsService>();
             services.AddTransient<IOptionsService, OptionsService>();
-            services.AddTransient<IOrgCodeListService, OrgOrgCodeListService>();
+            services.AddTransient<IOrgCodeListService, OrgCodeListService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddHttpClient<IOrgService, OrgService>();
             services.AddHttpClient<ImageClient>();
