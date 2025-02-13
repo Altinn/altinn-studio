@@ -24,14 +24,14 @@ const defaultProps: EditColumnElementProps = {
 };
 const textKeyMock = 'textkeymock1';
 const textValueMock = 'textkeymock1';
-const addressDataField = convertDataBindingToInternalFormat(
+const { field: addressDataField } = convertDataBindingToInternalFormat(
   subformLayoutMock.component4.dataModelBindings,
   'address',
-).field;
-const postPlaceDataField = convertDataBindingToInternalFormat(
+);
+const { field: postPlaceDataField } = convertDataBindingToInternalFormat(
   subformLayoutMock.component4.dataModelBindings,
   'postPlace',
-).field;
+);
 
 describe('EditColumnElementComponentSelect', () => {
   afterEach(() => {
@@ -137,9 +137,7 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: {
-          query: addressDataField,
-        },
+        cellContent: { query: addressDataField },
       },
     });
     const componentSelect = screen.getByRole('combobox', {
@@ -165,9 +163,7 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: {
-          query: addressDataField,
-        },
+        cellContent: { query: addressDataField },
       },
     });
     const componentSelect = screen.getByRole('combobox', {
