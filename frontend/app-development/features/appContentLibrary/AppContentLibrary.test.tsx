@@ -27,13 +27,12 @@ jest.mock('@studio/content-library', () => ({
 function mockContentLibrary(
   ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
 ): Partial<ResourceContentLibraryImpl> {
-  constructor(...args);
+  mockConstructor(...args);
   return { getContentResourceLibrary };
 }
 
-const constructor = jest.fn();
+const mockConstructor = jest.fn();
 const getContentResourceLibrary = jest.fn();
-
 // Test data:
 const codeListName = 'codeListNameMock';
 const codeList: CodeList = [{ value: '', label: '' }];
