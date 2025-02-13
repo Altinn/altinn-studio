@@ -10,6 +10,7 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
@@ -23,6 +24,14 @@ const defaultProps: EditColumnElementProps = {
 };
 const textKeyMock = 'textkeymock1';
 const textValueMock = 'textkeymock1';
+const addressDataField = convertDataBindingToInternalFormat(
+  subformLayoutMock.component4.dataModelBindings,
+  'address',
+).field;
+const postPlaceDataField = convertDataBindingToInternalFormat(
+  subformLayoutMock.component4.dataModelBindings,
+  'postPlace',
+).field;
 
 describe('EditColumnElementComponentSelect', () => {
   afterEach(() => {
@@ -128,7 +137,9 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+        cellContent: {
+          query: addressDataField,
+        },
       },
     });
     const componentSelect = screen.getByRole('combobox', {
@@ -154,7 +165,9 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+        cellContent: {
+          query: addressDataField,
+        },
       },
     });
     const componentSelect = screen.getByRole('combobox', {
@@ -265,7 +278,7 @@ describe('EditColumnElementComponentSelect', () => {
       onChange: onChangeMock,
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+        cellContent: { query: addressDataField },
       },
     });
 
@@ -303,7 +316,7 @@ describe('EditColumnElementComponentSelect', () => {
       onChange: onChangeMock,
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+        cellContent: { query: addressDataField },
       },
     });
     const componentSelect = screen.getByRole('combobox', {
@@ -326,7 +339,7 @@ describe('EditColumnElementComponentSelect', () => {
     });
     await user.click(
       screen.getByRole('option', {
-        name: new RegExp(subformLayoutMock.component4.dataModelBindings.postPlace),
+        name: new RegExp(postPlaceDataField),
       }),
     );
 
