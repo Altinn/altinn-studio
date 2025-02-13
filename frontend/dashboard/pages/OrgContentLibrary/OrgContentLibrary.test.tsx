@@ -1,7 +1,7 @@
 import React from 'react';
 import { OrgContentLibrary } from './OrgContentLibrary';
 import type { RenderResult } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ProviderData } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
@@ -56,6 +56,24 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
+  it('renders a spinner when waiting for code lists', () => {
+    renderOrgContentLibrary({ initialEntries: [mockOrgPath] });
+    const spinner = screen.getByText(textMock('general.loading'));
+    expect(spinner).toBeInTheDocument();
+  });
+
+  it('Renders an error message when the code lists query fails', async () => {
+    const getCodeListsForOrg = () => Promise.reject(new Error('Test error'));
+    renderOrgContentLibrary({
+      queries: { getCodeListsForOrg },
+      queryClient: createQueryClientMock(),
+      initialEntries: [mockOrgPath],
+    });
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    const errorMessage = screen.getByText(textMock('dashboard.org_library.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
   it.each([SelectedContextType.None, SelectedContextType.All, SelectedContextType.Self])(
     'renders alert and omits library content when context is %s',
     (selectedContext) => {
@@ -73,8 +91,9 @@ describe('OrgContentLibrary', () => {
     },
   );
 
-  it('renders the library title', () => {
+  it('renders the library title', async () => {
     renderOrgContentLibrary({ initialEntries: ['/some-org'] });
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.library_heading'),
     });
