@@ -164,6 +164,10 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{GiteaFixture.DbConnectionString}"",
                         ""DesignerDbPwd"": """"
+                    }},
+                    ""SchedulingSettings"": {{
+                        ""UsePersistentScheduling"": true,
+                        ""AddHostedService"": false
                     }}
               }}
             ";

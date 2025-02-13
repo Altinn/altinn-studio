@@ -1,44 +1,61 @@
 import { HttpTransportType, type HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
 export class WSConnector {
-  private connection: HubConnection;
+  private connections: Array<HubConnection> = [];
   private static instance: WSConnector;
-  private clientsName: string[] = [];
+  private clientsName: Array<string> = [];
 
   constructor(
-    private readonly webSocketUrl: string,
-    clientsName: string[],
+    private readonly webSocketUrls: Array<string>,
+    clientsName: Array<string>,
   ) {
-    this.createConnection(this.webSocketUrl);
-    this.startConnection();
+    this.createMultipleConnections(this.webSocketUrls);
+    this.startConnections();
     this.clientsName = clientsName;
   }
 
   // Singleton pattern to ensure only one instance of the WSConnector is created
-  public static getInstance(webSocketUrl: string, clientsName: string[]): WSConnector {
+  public static getInstance(webSocketUrls: Array<string>, clientsName: Array<string>): WSConnector {
     if (!WSConnector.instance) {
-      WSConnector.instance = new WSConnector(webSocketUrl, clientsName);
+      WSConnector.instance = new WSConnector(webSocketUrls, clientsName);
     }
     return WSConnector.instance;
   }
 
   public onMessageReceived<T>(callback: (message: T) => void): void {
     this.clientsName.forEach((clientName) => {
-      this.connection.on(clientName, (message: T) => callback(message));
+      this.connections.forEach((connection) => {
+        connection.on(clientName, (message: T) => callback(message));
+      });
     });
   }
 
-  private createConnection(webSocketUrl: string): void {
-    this.connection = new HubConnectionBuilder()
-      .withUrl(webSocketUrl, {
-        skipNegotiation: true,
-        transport: HttpTransportType.WebSockets,
-      })
-      .withAutomaticReconnect()
-      .build();
+  private createMultipleConnections(webSocketUrls: Array<string>): void {
+    if (!webSocketUrls.length) {
+      throw new WSConnectorMissingWebSocketUrlsException();
+    }
+    webSocketUrls.forEach((webSocketUrl: string) => this.createConnection(webSocketUrl));
   }
 
-  private startConnection(): void {
-    this.connection.start().catch((e) => console.error('Connection failed: ', e));
+  private createConnection(webSocketUrl: string): void {
+    this.connections = [
+      ...this.connections,
+      new HubConnectionBuilder()
+        .withUrl(webSocketUrl, {
+          skipNegotiation: true,
+          transport: HttpTransportType.WebSockets,
+        })
+        .withAutomaticReconnect()
+        .build(),
+    ];
+  }
+
+  private startConnections(): void {
+    this.connections.forEach((connection: HubConnection) => this.startConnection(connection));
+  }
+
+  private startConnection(connection: HubConnection): void {
+    connection.start().catch((e) => console.error('Connection failed: ', e));
   }
 }

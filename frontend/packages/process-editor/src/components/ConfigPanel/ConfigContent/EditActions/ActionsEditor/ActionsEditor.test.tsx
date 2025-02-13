@@ -1,6 +1,7 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import { ActionsEditor, type ActionsEditorProps } from './ActionsEditor';
@@ -15,7 +16,17 @@ const actionElementMock: Action = {
   action: 'reject',
 };
 
+const onDeleteClick = jest.fn();
+const defaultActionsEditorProps: ActionsEditorProps = {
+  actionElement: actionElementMock,
+  mode: 'view',
+  actionIndex: 0,
+  onDeleteClick,
+};
+
 describe('ActionsEditor', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should display action in view mode by default', () => {
     renderActionsEditor();
     const actionButton = screen.getByRole('button', {
@@ -35,7 +46,7 @@ describe('ActionsEditor', () => {
   });
 
   it('should display view mode when mode is set to view', () => {
-    renderActionsEditor({ mode: 'view' });
+    renderActionsEditor();
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
@@ -120,9 +131,7 @@ describe('ActionsEditor', () => {
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
     }));
-
-    const onDeleteClick = jest.fn();
-    renderActionsEditor({ mode: 'edit', onDeleteClick });
+    renderActionsEditor({ mode: 'edit' });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', {
@@ -130,6 +139,25 @@ describe('ActionsEditor', () => {
       }),
     });
     await user.click(deleteButton);
+    expect(onDeleteClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('should invoke onDelete callback when closing edit mode without adding an action', async () => {
+    const user = userEvent.setup();
+    const deleteActionFromTaskMock = jest.fn();
+
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      deleteActionFromTask: deleteActionFromTaskMock,
+    }));
+    renderActionsEditor({
+      actionElement: { ...actionElementMock, action: undefined },
+      mode: 'edit',
+    });
+
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.close_item', { item: undefined }),
+    });
+    await user.click(cancelButton);
     expect(onDeleteClick).toHaveBeenCalledTimes(1);
   });
 
@@ -177,21 +205,11 @@ describe('ActionsEditor', () => {
   });
 });
 
-type RenderActionsEditorProps = {
-  mode?: ActionsEditorProps['mode'];
-  actionElement?: Action;
-  onDeleteClick: ActionsEditorProps['onDeleteClick'];
-};
-const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
+const renderActionsEditor = (props: Partial<ActionsEditorProps> = {}): RenderResult => {
   return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
-        <ActionsEditor
-          actionElement={props?.actionElement || actionElementMock}
-          mode={props?.mode || 'view'}
-          actionIndex={0}
-          onDeleteClick={props?.onDeleteClick}
-        />
+        <ActionsEditor {...defaultActionsEditorProps} {...props} />
       </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );

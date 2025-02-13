@@ -5,7 +5,7 @@ import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants'
 const basePath = '/designer/api';
 
 // Ansattporten
-export const authStatusAnsattporten = () => `${basePath}/ansattporten/auth-status`;
+export const authStatusAnsattporten = () => `${basePath}/ansattporten/auth-status`; // Get
 export const loginWithAnsattPorten = (redirectTo) => `${basePath}/ansattporten/login?redirect_to=${redirectTo}`;
 export const availableMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes/maskinporten`; // Get
 export const selectedMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes`; // Get, Put
@@ -30,7 +30,7 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     modelPath,
     saveOnly,
   })}`; // Get, Put, Delete
-export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`;
+export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`; // Get, Put
 export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
 export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
@@ -78,14 +78,10 @@ export const userLogoutPath = () => `/repos/user/logout`;
 export const userLogoutAfterPath = () => `/Home/Logout`;
 
 // Images
-export const allImagesPath = (org, app) => `${basePath}/${org}/${app}/images/all`; // Get
 export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Post
 export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}/images/${encodeURIComponent(imageFilePath)}`; // Get, Delete
 export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
 export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
-
-// Languages - new text-format
-export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
@@ -94,37 +90,27 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
-// Preview - SignalR Hub
-export const previewSignalRHubSubPath = () => `/previewHub`;
-
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
-export const releasesPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/releases?${s({ sortDirection })}`;
-export const deploymentsPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/deployments?${s({ sortDirection })}`;
-export const deployPermissionsPath = (org, app) => `${basePath}/${org}/${app}/deployments/permissions`;
-export const envConfigPath = () => `${basePath}/environments`;
+export const releasesPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/releases?${s({ sortDirection })}`; // Get, Post
+export const deploymentsPath = (org, app, sortDirection) => `${basePath}/${org}/${app}/deployments?${s({ sortDirection })}`; // Get, Post
+export const deployPermissionsPath = (org, app) => `${basePath}/${org}/${app}/deployments/permissions`; // Get
+export const envConfigPath = () => `${basePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${basePath}/${org}/${app}/deployments/undeploy`;
 
 // Repositories
-export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
-export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
 export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
   `${basePath}/repos/repo/${org}/copy-app?${s({
     sourceRepository,
     targetRepository,
     targetOrg,
-  })}`;
+  })}`; // Post
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
-export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
-export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
-export const masterRepoStatusPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/branches/branch?branch=master`; // Get
-export const repoBranchesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/branches`; // Get
 export const repoCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `${basePath}/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
 export const repoLatestCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/latest-commit`; // Get
-export const repoLogPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/log`; // Get
 export const repoMetaPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/push`; // Post
@@ -179,16 +165,18 @@ export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}
 
 // Preview
 export const instancesPath = (org, app) => `/${org}/${app}/instances`;
-export const createInstancePath = (org, app, partyId, taskId) => `${instancesPath(org, app)}?instanceOwnerPartyId=${partyId}&taskId=${taskId}`;
+export const createInstancePath = (org, app, partyId, taskId) => `${instancesPath(org, app)}?instanceOwnerPartyId=${partyId}&taskId=${taskId}`; // Post
 
 // Process Editor
-export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
-export const processEditorDataTypesChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-types`;
+export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`; // Get, Put
+export const processEditorDataTypesChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
-export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;
+export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
 
 // Event Hubs
-export const SyncEventsWebSocketHub = () => '/sync-hub';
+export const syncEventsWebSocketHub = () => '/hubs/sync';
+export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
+export const previewWebSocketHub = () => `/hubs/preview`;
 
 // Contact
 export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;

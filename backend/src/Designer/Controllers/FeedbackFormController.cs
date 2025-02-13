@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace Altinn.Studio.Designer.Controllers;
 
