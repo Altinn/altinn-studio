@@ -3,10 +3,10 @@ import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 export type EditBindingButtons = {
-  handleBindingChange: (binding: InternalBindingFormat) => void;
+  handleBindingChange: (binding: ExplicitDataModelBinding) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
 };
 

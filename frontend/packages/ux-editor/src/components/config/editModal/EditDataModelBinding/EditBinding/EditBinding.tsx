@@ -8,7 +8,6 @@ import {
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
-  type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
@@ -17,6 +16,7 @@ import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 export type EditBindingProps = {
   bindingKey: string;
@@ -24,7 +24,7 @@ export type EditBindingProps = {
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
-  internalBindingFormat: InternalBindingFormat;
+  internalBindingFormat: ExplicitDataModelBinding;
 };
 
 export const EditBinding = ({
@@ -41,7 +41,7 @@ export const EditBinding = ({
     internalBindingFormat.dataType,
   );
 
-  const handleBindingChange = (updatedBinding?: InternalBindingFormat) => {
+  const handleBindingChange = (updatedBinding?: ExplicitDataModelBinding) => {
     const selectedDataFieldElement = updatedBinding?.field;
 
     const value =

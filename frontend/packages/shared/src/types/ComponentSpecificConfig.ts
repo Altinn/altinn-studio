@@ -7,44 +7,40 @@ import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import type { BooleanExpression, StringExpression } from '@studio/components';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import type { ExplicitDataModelBinding, IDataModelBindings } from '@altinn/ux-editor/types/global';
 
 type DataModelBindingsForAddress = {
-  address: string;
-  zipCode: string;
-  postPlace: string;
-  careOf?: string;
-  houseNumber?: string;
+  address: string | ExplicitDataModelBinding;
+  zipCode: string | ExplicitDataModelBinding;
+  postPlace: string | ExplicitDataModelBinding;
+  careOf?: string | ExplicitDataModelBinding;
+  houseNumber?: string | ExplicitDataModelBinding;
 };
 
-type DataModelBindingsForCustom = {
-  [id: string]: string;
-};
+type DataModelBindingsForCustom = IDataModelBindings;
 
 type DataModelBindingsForGroup = {
-  group: string;
+  group: string | ExplicitDataModelBinding;
 };
 
-type DataModelBindingsForList = {
-  [id: string]: string;
-};
+type DataModelBindingsForList = IDataModelBindings;
 
 type DataModelBindingsLikert = {
-  answer: string;
-  questions: string;
+  answer: string | ExplicitDataModelBinding;
+  questions: string | ExplicitDataModelBinding;
 };
 
 type DataModelBindingsList = {
-  list: string;
+  list: string | ExplicitDataModelBinding;
 };
 
 type DataModelBindingsOptionsSimple = {
-  simpleBinding: string | InternalBindingFormat;
-  metadata?: string;
+  simpleBinding: string | ExplicitDataModelBinding;
+  metadata?: string | ExplicitDataModelBinding;
 };
 
 export type DataModelBindingsSimple = {
-  simpleBinding: string | InternalBindingFormat;
+  simpleBinding: string | ExplicitDataModelBinding;
 };
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;

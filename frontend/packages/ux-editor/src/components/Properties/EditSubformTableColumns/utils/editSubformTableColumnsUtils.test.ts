@@ -47,7 +47,7 @@ const formLayouts: IFormLayouts = {
         ...componentMocks[ComponentType.Input],
         textResourceBindings: { title: 'mockDescriptionId' },
         dataModelBindings: {
-          simpleBinding: { dataType: 'mockDataModel', field: 'mockDataModelBinding4' } as any, // TODO: remove as any when https://github.com/Altinn/altinn-studio/issues/14441 is solved
+          simpleBinding: { dataType: 'mockDataModel', field: 'mockDataModelBinding4' },
         },
       },
     },

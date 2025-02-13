@@ -9,10 +9,11 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const defaultLabel = 'label';
 const defaultBindingKey = 'simpleBinding';
@@ -37,15 +38,19 @@ type MockedParentComponentProps = EditBindingProps;
 
 const MockedParentComponent = (props: MockedParentComponentProps) => {
   const [newInternalBindingFormat, setNewInternalBindingFormat] =
-    React.useState<InternalBindingFormat>(props.internalBindingFormat);
+    React.useState<ExplicitDataModelBinding>(props.internalBindingFormat);
+
   return (
     <EditBinding
       {...props}
       handleComponentChange={(formItem) => {
-        const fieldBinding = formItem.dataModelBindings[defaultBindingKey] as InternalBindingFormat;
+        const { field } = convertDataBindingToInternalFormat(
+          props.component.dataModelBindings,
+          props.bindingKey,
+        );
         setNewInternalBindingFormat((prev) => ({
           ...prev,
-          field: fieldBinding.field,
+          field,
         }));
       }}
       internalBindingFormat={newInternalBindingFormat}

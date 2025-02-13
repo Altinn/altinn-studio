@@ -11,11 +11,16 @@ import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
 const cellContentDefaultMock: string = 'Default';
 const columnNumberMock: number = 1;
+const addressDataField = convertDataBindingToInternalFormat(
+  subformLayoutMock.component4.dataModelBindings,
+  'address',
+).field;
 
 const mockTableColumn: TableColumn = {
   headerContent: headerContentMock,
@@ -47,7 +52,7 @@ describe('ColumnElement', () => {
       onChange: onChangeMock,
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
+        cellContent: { query: addressDataField },
       },
     });
 
