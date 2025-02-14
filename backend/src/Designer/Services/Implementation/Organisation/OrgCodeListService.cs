@@ -18,6 +18,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private const string Repo = "content";
 
     /// <summary>
     /// Constructor
@@ -29,17 +30,17 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string[] codeListIds = GetCodeListIds(org, repo, developer);
+        string[] codeListIds = GetCodeListIds(org, developer);
         List<OptionListData> codeLists = [];
         foreach (string codeListId in codeListIds)
         {
             try
             {
-                List<Option> codeList = await GetCodeList(org, repo, developer, codeListId, cancellationToken);
+                List<Option> codeList = await GetCodeList(org, developer, codeListId, cancellationToken);
                 OptionListData codeListData = new()
                 {
                     Title = codeListId,
@@ -64,33 +65,36 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         await altinnOrgGitRepository.CreateCodeList(codeListId, codeList, cancellationToken);
 
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
         return codeLists;
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         await altinnOrgGitRepository.UpdateCodeList(codeListId, codeList, cancellationToken);
 
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
         return codeLists;
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         string codeListId = payload.FileName.Replace(".json", "");
 
         List<Option> deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
@@ -105,30 +109,31 @@ public class OrgCodeListService : IOrgCodeListService
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
         await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
 
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
         return codeLists;
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> DeleteCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         altinnOrgGitRepository.DeleteCodeList(codeListId, cancellationToken);
 
-        List<OptionListData> codeLists = await GetCodeLists(org, repo, developer, cancellationToken);
+        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
         return codeLists;
     }
 
     /// <inheritdoc />
-    public async Task<bool> CodeListExists(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
-            await GetCodeList(org, repo, developer, codeListId, cancellationToken);
+            await GetCodeList(org, developer, codeListId, cancellationToken);
             return true;
         }
         catch (NotFoundException)
@@ -137,9 +142,10 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    private string[] GetCodeListIds(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    private string[] GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         try
@@ -153,9 +159,10 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    private async Task<List<Option>> GetCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default)
+    private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         try
@@ -174,5 +181,10 @@ public class OrgCodeListService : IOrgCodeListService
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
+    }
+
+    private static string GetStaticContentRepo(string org)
+    {
+        return $"{org}-{Repo}";
     }
 }
