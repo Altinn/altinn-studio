@@ -8,19 +8,22 @@ type DataModelBindingsComboboxProps = {
   componentType: string;
   dataModelBindings?: IDataModelBindings;
   onDataModelBindingChange: (dataModelBindingKey: string) => void;
-  initialDataModelBindingKey: string;
 };
 
 export const DataModelBindingsCombobox = ({
   componentType,
   dataModelBindings,
   onDataModelBindingChange,
-  initialDataModelBindingKey,
 }: DataModelBindingsComboboxProps) => {
   const { t } = useTranslation();
-  const [dataModelBindingKey, setDataModelBindingKey] = useState<string>(
-    initialDataModelBindingKey,
-  );
+  const bindings = Object.keys(dataModelBindings).map((key) => {
+    const dataModelBinding = convertDataBindingToInternalFormat(dataModelBindings?.[key]);
+    return {
+      key,
+      dataModelBinding,
+    };
+  });
+  const [dataModelBindingKey, setDataModelBindingKey] = useState<string>(bindings[0].key);
 
   const onValueChange = (value: string) => {
     setDataModelBindingKey(value);
@@ -39,16 +42,13 @@ export const DataModelBindingsCombobox = ({
       value={[dataModelBindingKey]}
       onValueChange={(values) => onValueChange(values[0])}
     >
-      {Object.keys(dataModelBindings).map((key) => {
-        const { field } = convertDataBindingToInternalFormat(dataModelBindings, key);
+      {bindings.map(({ key, dataModelBinding }) => {
         return (
-          field && (
-            <StudioCombobox.Option key={key} value={key} description={field}>
-              {key === 'simpleBinding'
-                ? t(`ux_editor.component_title.${componentType}`)
-                : t(`ux_editor.modal_properties_data_model_label.${key}`)}
-            </StudioCombobox.Option>
-          )
+          <StudioCombobox.Option key={key} value={key} description={dataModelBinding.field}>
+            {key === 'simpleBinding'
+              ? t(`ux_editor.component_title.${componentType}`)
+              : t(`ux_editor.modal_properties_data_model_label.${key}`)}
+          </StudioCombobox.Option>
         );
       })}
     </StudioCombobox>

@@ -28,8 +28,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
 
   const internalBindingFormat = convertDataBindingToInternalFormat(
-    component?.dataModelBindings,
-    bindingKey,
+    component?.dataModelBindings?.[bindingKey],
   );
 
   const labelSpecificText = label

@@ -103,14 +103,8 @@ export type InternalBindingFormat = {
 };
 
 export const convertDataBindingToInternalFormat = (
-  dataModelBindings: IDataModelBindings,
-  bindingKey: string,
+  dataModelBinding: string | InternalBindingFormat,
 ): InternalBindingFormat => {
-  const dataModelBinding =
-    dataModelBindings && bindingKey in dataModelBindings
-      ? dataModelBindings[bindingKey]
-      : undefined;
-
   const isOldFormatOrNotSet =
     typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
 

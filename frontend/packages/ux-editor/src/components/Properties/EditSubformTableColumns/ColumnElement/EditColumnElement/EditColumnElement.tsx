@@ -44,6 +44,8 @@ export const EditColumnElement = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
+  const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
 
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
@@ -56,13 +58,16 @@ export const EditColumnElement = ({
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
     const binding = convertDataBindingToInternalFormat(
-      selectedComponent?.dataModelBindings,
-      bindingKey,
+      selectedComponent?.dataModelBindings?.[bindingKey],
     );
+
+    const title =
+      selectedComponent?.textResourceBindings?.[`${bindingKey}Title`] ??
+      selectedComponent?.textResourceBindings?.title;
 
     onChange({
       ...tableColumn,
-      headerContent: selectedComponent.textResourceBindings?.title,
+      headerContent: title,
       cellContent: { query: binding.field },
     });
   };
@@ -71,16 +76,20 @@ export const EditColumnElement = ({
     dataModelBindings: IDataModelBindings,
     dataModelBindingKey: string,
   ) => {
-    const { field } = convertDataBindingToInternalFormat(dataModelBindings, dataModelBindingKey);
+    const { field } = convertDataBindingToInternalFormat(dataModelBindings?.[dataModelBindingKey]);
+
+    const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
+    const title =
+      selectedComponent?.textResourceBindings?.[`${dataModelBindingKey}Title`] ??
+      selectedComponent?.textResourceBindings?.title;
     const updatedTableColumn = {
       ...tableColumn,
+      headerContent: title,
       cellContent: { query: field },
     };
     onChange(updatedTableColumn);
   };
 
-  const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
-  const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
   const isSaveButtonDisabled = !tableColumn.headerContent || !tableColumn.cellContent?.query;
 
   const component = availableComponents.find((comp) => comp.id === selectedComponentId);
@@ -103,7 +112,6 @@ export const EditColumnElement = ({
             onDataModelBindingChange={(dataModelBindingKey: string) =>
               handleBindingChange(component?.dataModelBindings, dataModelBindingKey)
             }
-            initialDataModelBindingKey={dataModelBindingKeys[0]}
           />
         )}
         {isTableColumnDefined && (
