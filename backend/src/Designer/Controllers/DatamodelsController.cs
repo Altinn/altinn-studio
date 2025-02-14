@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("org/all-json")]
+        [Route("all-json")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetAllJsonDataModels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -138,7 +138,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("org/all-xsd")]
+        [Route("all-xsd")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetAllXsdDataModels(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
