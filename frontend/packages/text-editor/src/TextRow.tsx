@@ -55,7 +55,7 @@ export const TextRow = ({
       return null;
     }
 
-    if (idExists(newTextId)) {
+    if (idExists(newTextId) && textId.toLowerCase() !== newTextId.toLowerCase()) {
       return t('text_editor.key.error_duplicate');
     }
     const textIdValidationResult = validateTextId(newTextId);
