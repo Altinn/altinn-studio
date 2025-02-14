@@ -6,6 +6,15 @@ import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio
 import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
+
+const isDateEqualToLocalResourceChangedTime = (date: Date): boolean => {
+  return (
+    date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
+    date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
+    date.getDate() === LOCAL_RESOURCE_CHANGED_TIME.getDate()
+  );
+};
 
 export type ResourceTableProps = {
   /**
@@ -145,14 +154,20 @@ export const ResourceTable = ({
       accessor: 'lastChanged',
       heading: t('dashboard.resource_table_header_last_changed'),
       sortable: true,
-      bodyCellFormatter: (value: string) =>
-        value
-          ? new Date(value).toLocaleDateString('no-NB', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            })
-          : '',
+      bodyCellFormatter: (value: string) => {
+        if (!value) {
+          return '';
+        }
+        const date = new Date(value);
+        if (isDateEqualToLocalResourceChangedTime(date)) {
+          return '';
+        }
+        return date.toLocaleDateString('no-NB', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+      },
     },
     {
       accessor: 'environments',

@@ -250,7 +250,7 @@
   "dashboard.resource_status_label": "Driftsmeldinger",
   "dashboard.resource_table_header_createdby": "Opprettet av",
   "dashboard.resource_table_header_environment": "Miljø",
-  "dashboard.resource_table_header_last_changed": "Sist endret",
+  "dashboard.resource_table_header_last_changed": "Siste delte endringer",
   "dashboard.resource_table_header_name": "Navn",
   "dashboard.resource_table_header_resourceid": "Ressurs-id",
   "dashboard.resource_table_no_resources_result": "Ingen ressurser funnet",
