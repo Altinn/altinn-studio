@@ -31,8 +31,8 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     saveOnly,
   })}`; // Get, Put, Delete
 export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`; // Get, Put
-export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-json`; // Get
-export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-xsd`; // Get
+export const dataModelsAppJsonPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-json`; // Get
+export const dataModelsAppXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
 
