@@ -141,7 +141,7 @@ describe('StudioCombobox', () => {
 
   it('Renders the list box in portal mode by default', async () => {
     const wrapperTestId = 'wrapper';
-    const wrapper = ({ children }: PropsWithChildren<{}>) => (
+    const wrapper = ({ children }: PropsWithChildren) => (
       <div data-testid={wrapperTestId}>{children}</div>
     );
     renderTestCombobox({}, { wrapper });
@@ -152,7 +152,7 @@ describe('StudioCombobox', () => {
 
   it('Renders the list box within the wrapper element when portal is set to false', async () => {
     const wrapperTestId = 'wrapper';
-    const wrapper = ({ children }: PropsWithChildren<{}>) => (
+    const wrapper = ({ children }: PropsWithChildren) => (
       <div data-testid={wrapperTestId}>{children}</div>
     );
     renderTestCombobox({ portal: false }, { wrapper });
@@ -163,7 +163,7 @@ describe('StudioCombobox', () => {
 
   it('Renders the list box within the dialog element when used inside a dialog', async () => {
     const user = userEvent.setup();
-    const wrapper = ({ children }: PropsWithChildren<{}>) => <dialog open>{children}</dialog>;
+    const wrapper = ({ children }: PropsWithChildren) => <dialog open>{children}</dialog>;
     renderTestCombobox({}, { wrapper });
     await user.click(screen.getByRole('combobox'));
     expect(screen.getByRole('dialog')).toContainElement(screen.getByRole('listbox'));
@@ -174,6 +174,13 @@ describe('StudioCombobox', () => {
       (ref) => renderTestCombobox({}, undefined, ref),
       () => screen.getByRole('combobox'),
     );
+  });
+
+  it('Sets the ref to null when unmounted', () => {
+    const ref = React.createRef<HTMLInputElement>();
+    const { unmount } = renderTestCombobox({}, undefined, ref);
+    unmount();
+    expect(ref.current).toBeNull();
   });
 });
 

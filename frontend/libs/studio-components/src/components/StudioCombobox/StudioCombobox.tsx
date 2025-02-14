@@ -13,12 +13,16 @@ export const StudioCombobox = forwardRef<HTMLInputElement, StudioComboboxProps>(
     const forwardedRef = useForwardedRef<HTMLInputElement>(ref);
     const [portal, setPortal] = useState<boolean>(givenPortal);
 
+    const removePortalIfInDialog = useCallback((node: HTMLInputElement | null): void => {
+      if (node && isWithinDialog(node)) setPortal(false);
+    }, []);
+
     const internalRef = useCallback(
-      (node?: HTMLInputElement) => {
+      (node: HTMLInputElement | null): void => {
         forwardedRef.current = node;
-        if (node && isWithinDialog(node)) setPortal(false);
+        removePortalIfInDialog(node);
       },
-      [forwardedRef],
+      [forwardedRef, removePortalIfInDialog],
     );
 
     return (
