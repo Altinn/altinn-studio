@@ -21,7 +21,7 @@ import {
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { IDataModelBindings } from '../../../../../types/global';
+import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
 
 export type EditColumnElementProps = {
   tableColumn: TableColumn;
@@ -67,7 +67,7 @@ export const EditColumnElement = ({
   };
 
   const handleBindingChange = (
-    dataModelBindings: IDataModelBindings,
+    dataModelBindings: IDataModelBindingsKeyValue,
     dataModelBindingKey: string,
   ) => {
     const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);

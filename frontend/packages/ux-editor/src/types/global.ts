@@ -22,9 +22,10 @@ export type ExplicitDataModelBinding = {
   field: string;
 };
 
-export type IDataModelBindings =
+export type IDataModelBindingsKeyValue =
   | KeyValuePairs<ImplicitDataModelBinding>
   | KeyValuePairs<ExplicitDataModelBinding>;
+export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
 
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;

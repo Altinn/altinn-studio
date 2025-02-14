@@ -7,40 +7,43 @@ import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import type { BooleanExpression, StringExpression } from '@studio/components';
-import type { ExplicitDataModelBinding, IDataModelBindings } from '@altinn/ux-editor/types/global';
+import type {
+  IDataModelBindings,
+  IDataModelBindingsKeyValue,
+} from '@altinn/ux-editor/types/global';
 
 type DataModelBindingsForAddress = {
-  address: string | ExplicitDataModelBinding;
-  zipCode: string | ExplicitDataModelBinding;
-  postPlace: string | ExplicitDataModelBinding;
-  careOf?: string | ExplicitDataModelBinding;
-  houseNumber?: string | ExplicitDataModelBinding;
+  address: IDataModelBindings;
+  zipCode: IDataModelBindings;
+  postPlace: IDataModelBindings;
+  careOf?: IDataModelBindings;
+  houseNumber?: IDataModelBindings;
 };
 
-type DataModelBindingsForCustom = IDataModelBindings;
+type DataModelBindingsForCustom = IDataModelBindingsKeyValue;
 
 type DataModelBindingsForGroup = {
-  group: string | ExplicitDataModelBinding;
+  group: IDataModelBindings;
 };
 
-type DataModelBindingsForList = IDataModelBindings;
+type DataModelBindingsForList = IDataModelBindingsKeyValue;
 
 type DataModelBindingsLikert = {
-  answer: string | ExplicitDataModelBinding;
-  questions: string | ExplicitDataModelBinding;
+  answer: IDataModelBindings;
+  questions: IDataModelBindings;
 };
 
 type DataModelBindingsList = {
-  list: string | ExplicitDataModelBinding;
+  list: IDataModelBindings;
 };
 
 type DataModelBindingsOptionsSimple = {
-  simpleBinding: string | ExplicitDataModelBinding;
-  metadata?: string | ExplicitDataModelBinding;
+  simpleBinding: IDataModelBindings;
+  metadata?: IDataModelBindings;
 };
 
 export type DataModelBindingsSimple = {
-  simpleBinding: string | ExplicitDataModelBinding;
+  simpleBinding: IDataModelBindings;
 };
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
