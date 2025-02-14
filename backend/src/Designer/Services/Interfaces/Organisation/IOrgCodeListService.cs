@@ -13,64 +13,58 @@ public interface IOrgCodeListService
     /// Gets a code list from the app repository with the specified codeListId.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code list</returns>
-    public Task<List<OptionListData>> GetCodeLists(string org, string repo, string developer, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the app repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the new code list</param>
     /// <param name="codeList">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<OptionListData>> CreateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new option to the code list.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the new code list</param>
     /// <param name="codeList">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<OptionListData>> UpdateCodeList(string org, string repo, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new option to the code list.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="payload">The code list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<OptionListData>> UploadCodeList(string org, string repo, string developer, IFormFile payload, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an code list from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<OptionListData>> DeleteCodeList(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default);
+    public Task<List<OptionListData>> DeleteCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if a code list exists in the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<bool> CodeListExists(string org, string repo, string developer, string codeListId, CancellationToken cancellationToken = default);
+    public Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default);
 }
