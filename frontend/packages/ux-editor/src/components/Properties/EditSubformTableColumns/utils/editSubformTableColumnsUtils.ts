@@ -38,16 +38,28 @@ const componentsWithTitleAndDefaultDataModel = (
   components: FormItem[],
   defaultDataModel: string,
 ): FormItem[] => {
-  const hasValidDataBinding = (comp: FormItem) =>
-    Object.keys(comp.dataModelBindings ?? {}).some((binding) => {
-      const { dataType, field } = convertDataBindingToInternalFormat(
-        comp?.dataModelBindings,
-        binding,
-      );
-      return dataType === defaultDataModel || (dataType === '' && field !== '');
+  return components?.reduce((filteredComponents, component) => {
+    const dataModelBindings = {};
+    Object.keys(component.dataModelBindings ?? {}).forEach((bindingKey) => {
+      const dataModelBinding = component?.dataModelBindings?.[bindingKey];
+      const binding = convertDataBindingToInternalFormat(dataModelBinding);
+
+      const hasValidDataBinding =
+        (binding.dataType === defaultDataModel || binding.dataType === '') && binding.field !== '';
+      if (hasValidDataBinding) {
+        dataModelBindings[bindingKey] = dataModelBinding;
+      }
     });
 
-  return components.filter((comp) => comp.textResourceBindings?.title && hasValidDataBinding(comp));
+    if (Object.keys(dataModelBindings ?? {}).length > 0) {
+      filteredComponents.push({
+        ...component,
+        dataModelBindings,
+      });
+    }
+
+    return filteredComponents;
+  }, []);
 };
 
 export const getDefaultDataModel = (layoutSets: LayoutSets, subformLayout: string): string => {
