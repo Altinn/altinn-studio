@@ -7,69 +7,48 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import type { UserEvent } from '@testing-library/user-event';
-import userEvent from '@testing-library/user-event';
 import type { CodeList } from '@studio/components';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { OptionListData } from 'app-shared/types/OptionList';
 import type { QueryClient } from '@tanstack/react-query';
+import type {
+  CodeListData,
+  CodeListWithMetadata,
+  PagesConfig,
+  ResourceContentLibraryImpl,
+} from '@studio/content-library';
 
-const uploadCodeListButtonTextMock = 'Upload Code List';
-const updateCodeListButtonTextMock = 'Update Code List';
-const updateCodeListIdButtonTextMock = 'Update Code List Id';
-const deleteCodeListButtonTextMock = 'Delete Code List';
-const codeListNameMock = 'codeListNameMock';
-const newCodeListNameMock = 'newCodeListNameMock';
-const codeListMock: CodeList = [{ value: '', label: '' }];
-const optionListsDataMock: OptionListData[] = [{ title: codeListNameMock, data: codeListMock }];
-jest.mock(
-  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
-  () => ({
-    CodeListPage: ({
-      onUpdateCodeList,
-      onUploadCodeList,
-      onUpdateCodeListId,
-      onDeleteCodeList,
-    }: any) => (
-      <div>
-        <button
-          onClick={() =>
-            onUploadCodeList(
-              new File(['test'], `${codeListNameMock}.json`, { type: 'application/json' }),
-            )
-          }
-        >
-          {uploadCodeListButtonTextMock}
-        </button>
-        <button
-          onClick={() => onUpdateCodeList({ title: codeListNameMock, codeList: codeListMock })}
-        >
-          {updateCodeListButtonTextMock}
-        </button>
-        <button onClick={() => onUpdateCodeListId(codeListNameMock, newCodeListNameMock)}>
-          {updateCodeListIdButtonTextMock}
-        </button>
-        <button onClick={() => onDeleteCodeList(optionListsDataMock[0].title)}>
-          {deleteCodeListButtonTextMock}
-        </button>
-      </div>
-    ),
-  }),
-);
+// Mocks:
+jest.mock('@studio/content-library', () => ({
+  ...jest.requireActual('@studio/content-library'),
+  ResourceContentLibraryImpl: mockContentLibrary,
+}));
+
+function mockContentLibrary(
+  ...args: ConstructorParameters<typeof ResourceContentLibraryImpl>
+): Partial<ResourceContentLibraryImpl> {
+  mockConstructor(...args);
+  return { getContentResourceLibrary };
+}
+
+const mockConstructor = jest.fn();
+const getContentResourceLibrary = jest.fn();
+
+// Test data:
+const codeListName = 'codeListNameMock';
+const codeList: CodeList = [{ value: '', label: '' }];
+const codeListWithMetadata: CodeListWithMetadata = {
+  codeList,
+  title: codeListName,
+};
+const optionListData: OptionListData = { title: codeListName, data: codeList };
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the AppContentLibrary with codeLists and images resources available in the content menu', () => {
+  it('Renders the content library', async () => {
     renderAppContentLibraryWithOptionLists();
-    const libraryTitle = screen.getByRole('heading', {
-      name: textMock('app_content_library.landing_page.title'),
-    });
-    const codeListMenuElement = getLibraryPageTile('code_lists');
-    const imagesMenuElement = getLibraryPageTile('images');
-    expect(libraryTitle).toBeInTheDocument();
-    expect(codeListMenuElement).toBeInTheDocument();
-    expect(imagesMenuElement).toBeInTheDocument();
+    expect(getContentResourceLibrary).toHaveBeenCalledTimes(1);
   });
 
   it('renders a spinner when waiting for option lists', () => {
@@ -86,95 +65,81 @@ describe('AppContentLibrary', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('calls onUploadOptionList when onUploadCodeList is triggered', async () => {
-    const user = userEvent.setup();
+  it('Renders with the given code lists', () => {
     renderAppContentLibraryWithOptionLists();
-    await goToLibraryPage(user, 'code_lists');
-    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
-    await user.click(uploadCodeListButton);
-    expect(queriesMock.uploadOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadOptionList).toHaveBeenCalledWith(org, app, expect.any(FormData));
+    const codeListDataList = retrieveConfig().codeList.props.codeListsData;
+    const expectedData: CodeListData[] = [{ title: codeListName, data: codeList }];
+    expect(codeListDataList).toEqual(expectedData);
+  });
+
+  it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
+    const uploadOptionList = jest.fn();
+    const file = new File([''], 'list.json');
+    renderAppContentLibraryWithOptionLists({ queries: { uploadOptionList } });
+
+    retrieveConfig().codeList.props.onUploadCodeList(file);
+    await waitFor(expect(uploadOptionList).toHaveBeenCalled);
+
+    expect(uploadOptionList).toHaveBeenCalledTimes(1);
+    expect(uploadOptionList).toHaveBeenCalledWith(org, app, expect.any(FormData));
+    const formData: FormData = uploadOptionList.mock.calls[0][2];
+    expect(formData.get('file')).toBe(file);
   });
 
   it('renders success toast when onUploadOptionList is called successfully', async () => {
-    const user = userEvent.setup();
     renderAppContentLibraryWithOptionLists();
-    await goToLibraryPage(user, 'code_lists');
-    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
-    await user.click(uploadCodeListButton);
-    const successToastMessage = screen.getByText(
-      textMock('ux_editor.modal_properties_code_list_upload_success'),
-    );
-    expect(successToastMessage).toBeInTheDocument();
+    const file = new File([''], 'list.json');
+
+    retrieveConfig().codeList.props.onUploadCodeList(file);
+    await waitFor(expect(queriesMock.uploadOptionList).toHaveBeenCalled);
+
+    const successMessage = textMock('ux_editor.modal_properties_code_list_upload_success');
+    expect(screen.getByText(successMessage)).toBeInTheDocument();
   });
 
   it('renders error toast when onUploadOptionList is rejected with unknown error code', async () => {
-    const user = userEvent.setup();
     const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const file = new File([''], 'list.json');
     renderAppContentLibraryWithOptionLists({ queries: { uploadOptionList } });
-    await goToLibraryPage(user, 'code_lists');
-    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
-    await user.click(uploadCodeListButton);
-    const errorToastMessage = screen.getByText(
-      textMock('ux_editor.modal_properties_code_list_upload_generic_error'),
-    );
-    expect(errorToastMessage).toBeInTheDocument();
+
+    retrieveConfig().codeList.props.onUploadCodeList(file);
+    await waitFor(expect(uploadOptionList).toHaveBeenCalled);
+
+    const errorMessage = textMock('ux_editor.modal_properties_code_list_upload_generic_error');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('calls onUpdateOptionList when onUpdateCodeList is triggered', async () => {
-    const user = userEvent.setup();
+  it('calls updateOptionList with correct data when onUpdateCodeList is triggered', async () => {
     renderAppContentLibraryWithOptionLists();
-    await goToLibraryPage(user, 'code_lists');
-    const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
-    await user.click(updateCodeListButton);
+
+    retrieveConfig().codeList.props.onUpdateCodeList(codeListWithMetadata);
+    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
-      org,
-      app,
-      codeListNameMock,
-      codeListMock,
-    );
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, codeListName, codeList);
   });
 
-  it('calls onUpdateOptionListId when onUpdateCodeListId is triggered', async () => {
-    const user = userEvent.setup();
+  it('calls updateOptionListId with correct data when onUpdateCodeListId is triggered', async () => {
+    const newName = 'newName';
     renderAppContentLibraryWithOptionLists();
-    await goToLibraryPage(user, 'code_lists');
-    const updateCodeListIdButton = screen.getByRole('button', {
-      name: updateCodeListIdButtonTextMock,
-    });
-    await user.click(updateCodeListIdButton);
+
+    retrieveConfig().codeList.props.onUpdateCodeListId(codeListName, newName);
+    await waitFor(expect(queriesMock.updateOptionListId).toHaveBeenCalled);
+
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(
-      org,
-      app,
-      codeListNameMock,
-      newCodeListNameMock,
-    );
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, codeListName, newName);
   });
 
-  it('calls deleteOptionList when onDeleteCodeList is triggered', async () => {
-    const user = userEvent.setup();
+  it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
     renderAppContentLibraryWithOptionLists();
-    await goToLibraryPage(user, 'code_lists');
-    const deleteCodeListButton = screen.getByRole('button', { name: deleteCodeListButtonTextMock });
-    await user.click(deleteCodeListButton);
+
+    retrieveConfig().codeList.props.onDeleteCodeList(codeListName);
+    await waitFor(expect(queriesMock.deleteOptionList).toHaveBeenCalled);
+
     expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(
-      org,
-      app,
-      optionListsDataMock[0].title,
-    );
+    expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(org, app, codeListName);
   });
 });
-
-const getLibraryPageTile = (libraryPage: string) =>
-  screen.getByText(textMock(`app_content_library.${libraryPage}.page_name`));
-
-const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
-  const libraryPageNavTile = getLibraryPageTile(libraryPage);
-  await user.click(libraryPageNavTile);
-};
 
 type RenderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
@@ -191,7 +156,7 @@ const renderAppContentLibrary = ({
 function renderAppContentLibraryWithOptionLists(
   props?: Omit<RenderAppContentLibraryProps, 'queryClient'>,
 ): void {
-  const queryClient = createQueryClientWithOptionsDataList(optionListsDataMock);
+  const queryClient = createQueryClientWithOptionsDataList([optionListData]);
   renderAppContentLibrary({ ...props, queryClient });
 }
 
@@ -202,4 +167,8 @@ function createQueryClientWithOptionsDataList(
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   return queryClient;
+}
+
+function retrieveConfig(): PagesConfig {
+  return mockConstructor.mock.calls[0][0].pages;
 }
