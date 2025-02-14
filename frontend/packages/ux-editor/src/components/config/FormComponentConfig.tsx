@@ -18,8 +18,12 @@ import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
-import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { SelectPropertyEditor } from './CollapsiblePropertyEditor/SelectPropertyEditor';
 
+//TODO: 1- Fix css for the SelectPropertyEditor component
+//TODO: 2-  Add test cases for the SelectPropertyEditor component.
+//TODO: 3-  Remove CollapsiblePropertyEditor component. And change the name of the folder to SelectPropertyEditor.(or new place for the new folder)
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormItem;
@@ -43,6 +47,9 @@ export const FormComponentConfig = ({
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+
+  const selectedDataType = useComponentPropertyEnumValue();
+  const [selectedValue, setSelectedValue] = useState<string[]>([]);
 
   if (!schema?.properties) return null;
 
@@ -221,26 +228,41 @@ export const FormComponentConfig = ({
 
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
+        const selectedStringPropertiesDisplay = () => {
+          const value = component[propertyKey];
+          if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
+          if (value) return selectedDataType(value);
+          return undefined;
+        };
+
         return (
-          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
+          <SelectPropertyEditor
+            key={propertyKey}
+            property={componentPropertyLabel(propertyKey)}
+            title={componentPropertyLabel(propertyKey)}
+            value={selectedStringPropertiesDisplay()}
+          >
             <EditStringValue
+              key={propertyKey}
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey={propertyKey}
               enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
         return (
-          <CollapsiblePropertyEditor
+          <SelectPropertyEditor
             key={propertyKey}
-            label={componentPropertyLabel(
+            property={componentPropertyLabel(
               `${propertyKey}${propertyKey === 'preselectedOptionIndex' ? '_button' : ''}`,
             )}
+            title={componentPropertyLabel(propertyKey)}
+            value={component[propertyKey]}
           >
             <EditNumberValue
               component={component}
@@ -249,27 +271,45 @@ export const FormComponentConfig = ({
               key={propertyKey}
               enumValues={properties[propertyKey]?.enum}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
+        const selectedValuesDisplay =
+          component[propertyKey] && component[propertyKey].length > 0
+            ? component[propertyKey].map((dataType) => (
+                <div key={dataType}>{selectedDataType(dataType)}</div>
+              ))
+            : undefined;
+        const selectProperty =
+          selectedValue.length > 0
+            ? t('ux_editor.component_properties.selected_validations')
+            : componentPropertyLabel(propertyKey);
         return (
-          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
+          <SelectPropertyEditor
+            key={propertyKey}
+            property={selectProperty}
+            title={componentPropertyLabel(propertyKey)}
+            value={selectedValuesDisplay}
+          >
             <EditStringValue
               component={component}
-              handleComponentChange={handleComponentUpdate}
+              handleComponentChange={(updatedComponent) => {
+                setSelectedValue(updatedComponent[propertyKey]);
+                handleComponentUpdate(updatedComponent);
+              }}
               propertyKey={propertyKey}
               key={propertyKey}
               enumValues={properties[propertyKey]?.items?.enum}
               multiple={true}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
-      {/** Object properties */}
+      {/** Object properties  */}
       {objectPropertyKeys.map((propertyKey) => {
         return (
           <Card key={propertyKey} className={classes.objectPropertyContainer}>

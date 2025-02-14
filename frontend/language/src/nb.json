@@ -1445,6 +1445,7 @@
   "ux_editor.component_properties.select_all_attachments": "Alle vedlegg",
   "ux_editor.component_properties.select_attachments": "Velg vedlegg",
   "ux_editor.component_properties.select_pdf": "Inkluder skjemagenerert pdf",
+  "ux_editor.component_properties.selected_validations": "Valideringstyper",
   "ux_editor.component_properties.sender": "Den som har sendt inn skjemaet",
   "ux_editor.component_properties.severity": "Alvorlighetsgrad",
   "ux_editor.component_properties.showAddButton": "Vis Legg til-knapp",
