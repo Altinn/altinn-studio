@@ -13,6 +13,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgTextsService : IOrgTextsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private const string Repo = "content";
 
     /// <summary>
     /// Constructor
@@ -24,9 +25,10 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public async Task<TextResource> GetText(string org, string repo, string developer, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<TextResource> GetText(string org, string developer, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
@@ -35,9 +37,10 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public async Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default)
+    public async Task SaveText(string org, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
@@ -52,9 +55,10 @@ public class OrgTextsService : IOrgTextsService
 
 
     /// <inheritdoc />
-    public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
+    public async Task UpdateTextsForKeys(string org, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         TextResource textResourceObject = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
@@ -83,5 +87,10 @@ public class OrgTextsService : IOrgTextsService
         }
 
         await altinnOrgGitRepository.SaveText(languageCode, textResourceObject, cancellationToken);
+    }
+
+    private static string GetStaticContentRepo(string org)
+    {
+        return $"{org}-{Repo}";
     }
 }

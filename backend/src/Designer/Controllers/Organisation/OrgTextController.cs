@@ -20,7 +20,6 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgTextController : ControllerBase
 {
     private readonly IOrgTextsService _orgTextsService;
-    private const string Repo = "content";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgTextController"/> class.
@@ -46,7 +45,7 @@ public class OrgTextController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         try
         {
-            TextResource textResource = await _orgTextsService.GetText(org, Repo, developer, languageCode, cancellationToken);
+            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
             return Ok(textResource);
         }
         catch (NotFoundException)
@@ -73,8 +72,8 @@ public class OrgTextController : ControllerBase
 
         try
         {
-            await _orgTextsService.SaveText(org, Repo, developer, jsonData, languageCode, cancellationToken);
-            TextResource textResource = await _orgTextsService.GetText(org, Repo, developer, languageCode, cancellationToken);
+            await _orgTextsService.SaveText(org, developer, jsonData, languageCode, cancellationToken);
+            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
             return Ok(textResource);
         }
         catch (ArgumentException e)
@@ -102,8 +101,8 @@ public class OrgTextController : ControllerBase
 
         try
         {
-            await _orgTextsService.UpdateTextsForKeys(org, Repo, developer, keysTexts, languageCode, cancellationToken);
-            TextResource textResource = await _orgTextsService.GetText(org, Repo, developer, languageCode, cancellationToken);
+            await _orgTextsService.UpdateTextsForKeys(org, developer, keysTexts, languageCode, cancellationToken);
+            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
             return Ok(textResource);
         }
         catch (ArgumentException exception)
