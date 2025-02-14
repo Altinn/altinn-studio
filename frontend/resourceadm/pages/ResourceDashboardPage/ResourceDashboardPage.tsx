@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
-import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { ResourceTable } from '../../components/ResourceTable';
-import { SearchBox } from '../../components/ResourceSeachBox';
+import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
 import { NewResourceModal } from '../../components/NewResourceModal';
 import { ImportResourceModal } from '../../components/ImportResourceModal';
@@ -14,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
@@ -94,7 +93,11 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     if (resourceListPending || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='xlarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
+          <StudioSpinner
+            size='xl'
+            variant='interaction'
+            spinnerTitle={t('resourceadm.dashboard_spinner')}
+          />
         </div>
       );
     } else {
@@ -102,9 +105,9 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div>
-            <Heading size='xsmall' level={2}>
+            <StudioHeading size='xs' level={2}>
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
-            </Heading>
+            </StudioHeading>
           </div>
           <ResourceTable
             list={filteredResourceList}
@@ -120,19 +123,19 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
-        <Heading size='large' level={1}>
+        <StudioHeading size='lg' level={1}>
           {getReposLabel({
             selectedContext: org,
             orgs: organizations ? organizations : [],
             t,
             isResourcesRepo: true,
           })}
-        </Heading>
+        </StudioHeading>
         <div className={classes.topRightWrapper}>
           <ButtonRouterLink
             variant='tertiary'
             color='second'
-            size='medium'
+            size='md'
             to={`${getResourceDashboardURL(org, app)}/accesslists`}
           >
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
@@ -143,7 +146,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-            size='medium'
+            size='md'
             icon={<MigrationIcon />}
             iconPlacement='right'
           >
@@ -154,7 +157,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
-            size='medium'
+            size='md'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
           >

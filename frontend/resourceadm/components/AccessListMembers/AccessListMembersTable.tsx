@@ -1,9 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
-import { StudioButton, StudioTableLocalPagination } from '@studio/components';
+import { StudioButton, StudioErrorMessage, StudioTableLocalPagination } from '@studio/components';
 import type { Columns } from '@studio/components';
 import classes from './AccessListMembers.module.css';
 import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
@@ -35,7 +34,9 @@ export const AccessListMembersTable = ({
     let buttonIcon: React.JSX.Element;
     let buttonText: string;
     if (invalidItems?.indexOf(item.orgNr) > -1) {
-      return <ErrorMessage size='small'>{t('resourceadm.listadmin_invalid_org')}</ErrorMessage>;
+      return (
+        <StudioErrorMessage size='sm'>{t('resourceadm.listadmin_invalid_org')}</StudioErrorMessage>
+      );
     }
     const orgAriaString = `${item.orgName} ${stringNumberToAriaLabel(item.orgNr)}`;
     if (isAdd) {
