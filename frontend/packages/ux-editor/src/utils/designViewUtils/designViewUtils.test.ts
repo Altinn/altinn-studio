@@ -33,6 +33,15 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('ux_editor.pages_error_unique');
     });
 
+    it('return null when new name is the same as old name but with uppercase', () => {
+      const nameErrorkey = getPageNameErrorKey(
+        mockOldName.toUpperCase(),
+        mockOldName,
+        mockLayoutOrder,
+      );
+      expect(nameErrorkey).toEqual(null);
+    });
+
     it('returns empty error key when name is empty', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateEmpty,
