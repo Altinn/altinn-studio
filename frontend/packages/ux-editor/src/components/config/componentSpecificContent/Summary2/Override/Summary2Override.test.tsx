@@ -198,7 +198,7 @@ describe('Summary2Override', () => {
     await user.selectOptions(overrideDisplaySelector(), overrideDisplaySelectType('table'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ componentId: repeatingGroupComponentId, display: 'full' }]),
+      expect.arrayContaining([{ componentId: repeatingGroupComponentId, display: 'table' }]),
     );
   });
 
