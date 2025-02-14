@@ -40,7 +40,7 @@ export const DataModelBindingsCombobox = ({
       onValueChange={(values) => onValueChange(values[0])}
     >
       {Object.keys(dataModelBindings).map((key) => {
-        const { field } = convertDataBindingToInternalFormat(dataModelBindings, key);
+        const { field } = convertDataBindingToInternalFormat(dataModelBindings?.[key]);
         return (
           field && (
             <StudioCombobox.Option key={key} value={key} description={field}>

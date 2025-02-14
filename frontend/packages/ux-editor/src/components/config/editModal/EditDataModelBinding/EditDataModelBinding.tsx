@@ -23,13 +23,11 @@ export const EditDataModelBinding = <T extends ComponentType>({
   renderOptions,
 }: EditDataModelBindingProps<T>) => {
   const { key, label } = renderOptions || {};
-  const bindingKey = key || 'simpleBinding';
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
-
+  const bindingKey = key || 'simpleBinding';
   const internalBindingFormat = convertDataBindingToInternalFormat(
-    component?.dataModelBindings,
-    bindingKey,
+    component?.dataModelBindings[bindingKey],
   );
 
   const labelSpecificText = label

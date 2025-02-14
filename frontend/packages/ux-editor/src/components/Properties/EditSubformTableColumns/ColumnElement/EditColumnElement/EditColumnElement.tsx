@@ -56,8 +56,7 @@ export const EditColumnElement = ({
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
     const binding = convertDataBindingToInternalFormat(
-      selectedComponent?.dataModelBindings,
-      bindingKey,
+      selectedComponent?.dataModelBindings?.[bindingKey],
     );
 
     onChange({
@@ -71,7 +70,7 @@ export const EditColumnElement = ({
     dataModelBindings: IDataModelBindings,
     dataModelBindingKey: string,
   ) => {
-    const { field } = convertDataBindingToInternalFormat(dataModelBindings, dataModelBindingKey);
+    const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);
     const updatedTableColumn = {
       ...tableColumn,
       cellContent: { query: field },
