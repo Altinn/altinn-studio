@@ -2,10 +2,10 @@ import type { CodeListIdSource, CodeListReference } from '../types/CodeListRefer
 import type { CodeListData } from '../CodeListPage';
 
 export const getCodeListSourcesById = (
-  codeListsUsages: CodeListReference[],
+  codeListsUsages: CodeListReference[] | undefined,
   codeListTitle: string,
 ): CodeListIdSource[] => {
-  const codeListUsages: CodeListReference | undefined = codeListsUsages.find(
+  const codeListUsages: CodeListReference | undefined = codeListsUsages?.find(
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
   return codeListUsages?.codeListIdSources ?? [];
