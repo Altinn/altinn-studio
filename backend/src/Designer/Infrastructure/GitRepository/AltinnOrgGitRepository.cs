@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 public class AltinnOrgGitRepository : AltinnGitRepository
 {
-    private const string LanguageResourceFolderName = "texts/";
+    private const string LanguageResourceFolderName = "Texts/";
 
 
     private static readonly JsonSerializerOptions JsonOptions = new()
