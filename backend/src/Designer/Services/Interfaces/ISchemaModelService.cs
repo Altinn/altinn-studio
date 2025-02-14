@@ -26,9 +26,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets a list of the schema files within App/models directory.
         /// </summary>
-        /// /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="xsd">Value to indicate if schema files should be XSDs or not</param>
-        /// <returns>A total list of schema files within the repository, regardless of location.</returns>
+-        /// <returns>A total list of schema files within the repository, regardless of location.</returns>
++        /// <returns>A list of schema files within the App/models directory.</returns>
         IList<AltinnCoreFile> GetAppSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false);
 
         /// <summary>
