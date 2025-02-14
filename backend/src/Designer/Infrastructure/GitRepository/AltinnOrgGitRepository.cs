@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -11,6 +13,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 public class AltinnOrgGitRepository : AltinnGitRepository
 {
+    private const string CodeListFolderPath = "Codelists/";
     private const string LanguageResourceFolderName = "Texts/";
 
 
@@ -76,5 +79,95 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     private static string GetPathToJsonTextsFile(string fileName)
     {
         return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
+    }
+
+    /// <summary>
+    /// Gets all code list Ids
+    /// </summary>
+    /// <returns>A list of code list Ids</returns>
+    public string[] GetCodeListIds(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListFolder = Path.Combine(CodeListFolderPath);
+        if (!DirectoryExistsByRelativePath(codeListFolder))
+        {
+            return [];
+        }
+
+        string[] fileNames = GetFilesByRelativeDirectoryAscSorted(codeListFolder, "*.json");
+        IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
+        return codeListIds.ToArray();
+    }
+
+    /// <summary>
+    /// Gets a specific code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to fetch.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The code list as a string.</returns>
+    public async Task<List<Option>> GetCodeList(string codeListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        if (!FileExistsByRelativePath(codeListFilePath))
+        {
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
+        }
+        string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
+        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, JsonOptions);
+
+        return codeList;
+    }
+
+    /// <summary>
+    /// Creates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to create.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task CreateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string payloadString = JsonSerializer.Serialize(codeList, JsonOptions);
+
+        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task UpdateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListString = JsonSerializer.Serialize(codeList, JsonOptions);
+
+        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
+    }
+
+    /// <summary>
+    /// Deletes a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to be deleted.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public void DeleteCodeList(string codeListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        if (!FileExistsByRelativePath(codeListFilePath))
+        {
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
+        }
+
+        DeleteFileByRelativePath(codeListFilePath);
     }
 }

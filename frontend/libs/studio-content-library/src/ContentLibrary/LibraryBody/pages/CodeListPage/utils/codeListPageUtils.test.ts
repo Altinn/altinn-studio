@@ -41,6 +41,11 @@ describe('getCodeListSourcesById', () => {
     const codeListSources = getCodeListSourcesById([], codeListId1);
     expect(codeListSources).toEqual([]);
   });
+
+  it('return an empty array if codeListUsages and codeListTitle is undefined', () => {
+    const codeListSources = getCodeListSourcesById(undefined, undefined);
+    expect(codeListSources).toEqual([]);
+  });
 });
 describe('getCodeListUsageCount', () => {
   it('returns the total count of all component IDs across all codeListSources', () => {
