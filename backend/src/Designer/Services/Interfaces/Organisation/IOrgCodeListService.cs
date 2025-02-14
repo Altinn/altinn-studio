@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgCodeListService
 {
     /// <summary>
-    /// Gets a code list from the app repository with the specified codeListId.
+    /// Gets a code list from the org repository with the specified codeListId.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
@@ -19,7 +19,7 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates a new code list in the app repository.
+    /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
@@ -30,7 +30,7 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new option to the code list.
+    /// Updates an existing code list with new contsnts.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
@@ -41,7 +41,7 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new option to the code list.
+    /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
     /// <param name="org">Organisation</param>
