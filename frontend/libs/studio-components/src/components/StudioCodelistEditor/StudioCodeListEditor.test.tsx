@@ -24,6 +24,7 @@ import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
 import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
 import { codeListWithUndefinedValues } from './test-data/codeListWithUndefinedValues';
+import { emptyStringItem } from './utils';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -506,6 +507,22 @@ describe('StudioCodeListEditor', () => {
   });
 
   describe('Type handling', () => {
+    it('Renders type selector when code list is empty', () => {
+      expect(1).toBeNull();
+    });
+
+    it("Creates an empty string item when 'text' is selected and 'Add new' is pressed", () => {
+      expect(1).toBeNull();
+    });
+
+    it("Creates an empty number item when 'number' is selected and 'Add new' is pressed", () => {
+      expect(1).toBeNull();
+    });
+
+    it("Creates an empty boolean item when 'boolean' is selected and 'Add new' is pressed", () => {
+      expect(1).toBeNull();
+    });
+
     it('Renders textfield when item value is a string', () => {
       renderCodeListEditor();
       const textfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
@@ -583,6 +600,10 @@ describe('StudioCodeListEditor', () => {
       await user.tab();
 
       expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
+
+    it('Added new items should be same type as previous item', () => {
+      expect(1).toBeNull();
     });
   });
 });
