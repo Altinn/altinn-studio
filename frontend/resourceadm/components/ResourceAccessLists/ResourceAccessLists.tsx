@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Heading } from '@digdir/designsystemet-react';
 import classes from './ResourceAccessLists.module.css';
-import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
+import {
+  StudioSpinner,
+  StudioButton,
+  StudioLink,
+  StudioCheckbox,
+  StudioHeading,
+} from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
@@ -104,20 +109,20 @@ export const ResourceAccessLists = ({
       <StudioLink href={backUrl} onClick={handleBackClick}>
         {t('general.back')}
       </StudioLink>
-      <Heading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_resource_header', {
           resourceTitle: resourceData.title.nb,
           env: env.toUpperCase(),
         })}
-      </Heading>
-      <Heading level={2} size='xsmall'>
+      </StudioHeading>
+      <StudioHeading level={2} size='xs'>
         {t('resourceadm.listadmin_resource_list_checkbox_header')}
-      </Heading>
+      </StudioHeading>
       <div className={classes.listCheckboxWrapper}>
         {accessLists?.pages.map((list) => {
           return (
             <div key={list.identifier} className={classes.listCheckboxItem}>
-              <Checkbox
+              <StudioCheckbox
                 value={list.identifier}
                 checked={selectedLists.indexOf(list.identifier) > -1}
                 onChange={(event) => {
@@ -129,7 +134,7 @@ export const ResourceAccessLists = ({
                 }}
               >
                 {list.name}
-              </Checkbox>
+              </StudioCheckbox>
               <ButtonRouterLink
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
                 icon={<PencilWritingIcon />}

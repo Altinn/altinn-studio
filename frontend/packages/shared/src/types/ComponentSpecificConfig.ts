@@ -105,10 +105,6 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
-export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
-
-export type SummaryCustomTargetType = 'list' | 'string';
-
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -136,13 +132,18 @@ type PageValidation = {
   show: AllowedValidationMasks;
 };
 
+export type OverrideDisplayType = 'list' | 'string';
+export type OverrideDisplay = 'table' | 'full';
 export type Summary2OverrideConfig = {
   componentId: string;
   hidden?: boolean;
   emptyFieldText?: string;
   isCompact?: boolean;
-  displayType?: SummaryCustomTargetType;
+  displayType?: OverrideDisplayType;
+  display?: OverrideDisplay;
 };
+
+export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
 export type Summary2TargetConfig = {
   type?: SummaryTargetType;
