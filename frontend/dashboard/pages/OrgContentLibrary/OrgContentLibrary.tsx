@@ -35,25 +35,25 @@ function OrgContentLibraryWithContext(): ReactElement {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
 
-  const { data: codeListsResponseList, status: codeListDataListStatus } =
+  const { data: codeListsResponse, status: codeListResponseStatus } =
     useOrgCodeListsQuery(selectedContext);
 
-  switch (codeListDataListStatus) {
+  switch (codeListResponseStatus) {
     case 'pending':
       return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
     case 'error':
       return <StudioPageError message={t('dashboard.org_library.fetch_error')} />;
     case 'success':
-      return <OrgContentLibraryWithContextAndData codeListsData={codeListsResponseList} />;
+      return <OrgContentLibraryWithContextAndData codeListsDataList={codeListsResponse} />;
   }
 }
 
 type OrgContentLibraryWithContextAndDataProps = {
-  codeListsData: CodeListData[];
+  codeListsDataList: CodeListData[];
 };
 
 function OrgContentLibraryWithContextAndData({
-  codeListsData,
+  codeListsDataList,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
   const selectedContext = useSelectedContext();
 
@@ -70,7 +70,7 @@ function OrgContentLibraryWithContextAndData({
     pages: {
       codeList: {
         props: {
-          codeListsData,
+          codeListsData: codeListsDataList,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
