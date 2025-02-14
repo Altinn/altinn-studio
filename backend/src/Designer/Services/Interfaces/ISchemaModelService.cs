@@ -16,12 +16,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface ISchemaModelService
     {
         /// <summary>
-        /// Gets a list of the schema files within the repository.
+        /// Gets a list of all the schema files within the repository.
         /// </summary>
         /// /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="xsd">Value to indicate if schema files should be XSDs or not</param>
         /// <returns>A total list of schema files within the repository, regardless of location.</returns>
-        IList<AltinnCoreFile> GetSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false);
+        IList<AltinnCoreFile> GetAllSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false);
+
+        /// <summary>
+        /// Gets a list of the schema files within App/models directory.
+        /// </summary>
+        /// /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="xsd">Value to indicate if schema files should be XSDs or not</param>
+        /// <returns>A total list of schema files within the repository, regardless of location.</returns>
+        IList<AltinnCoreFile> GetAppSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false);
 
         /// <summary>
         /// Gets the JSON content of the specified schema file.
