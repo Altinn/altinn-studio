@@ -1,8 +1,12 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import { Tag } from '@digdir/designsystemet-react';
-import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio/components';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTableLocalPagination,
+  StudioTag,
+} from '@studio/components';
 import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -72,7 +76,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
-          size='medium'
+          size='md'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
@@ -90,7 +94,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          size='medium'
+          size='md'
         />
       );
     } else {
@@ -123,9 +127,9 @@ export const ResourceTable = ({
               tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
-              <Tag key={env} color='info' size='small'>
+              <StudioTag key={env} color='info' size='sm'>
                 {tagText}
-              </Tag>
+              </StudioTag>
             );
           })}
         </div>
