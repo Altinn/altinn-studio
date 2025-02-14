@@ -21,7 +21,10 @@ export const getPageNameErrorKey = (
   oldName: string,
   layoutOrder: string[],
 ): TranslationKey => {
-  if (pageNameExists(newNameCandidate, layoutOrder) && oldName !== newNameCandidate) {
+  if (
+    pageNameExists(newNameCandidate, layoutOrder) &&
+    oldName.toLowerCase() !== newNameCandidate.toLowerCase()
+  ) {
     return 'ux_editor.pages_error_unique';
   } else if (!newNameCandidate) {
     return 'ux_editor.pages_error_empty';
