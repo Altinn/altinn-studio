@@ -24,6 +24,7 @@ import { codeListWithNumberValues } from './test-data/codeListWithNumberValues';
 import { codeListWithBooleanValues } from './test-data/codeListWithBooleanValues';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
 import { codeListWithUndefinedValues } from './test-data/codeListWithUndefinedValues';
+import { emptyBooleanItem, emptyNumberItem, emptyStringItem } from './utils';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -92,11 +93,6 @@ describe('StudioCodeListEditor', () => {
   it('Renders a button to add a new code list item', () => {
     renderCodeListEditor();
     expect(screen.getByRole('button', { name: texts.add })).toBeInTheDocument();
-  });
-
-  it('Renders a message when the code list is empty', () => {
-    renderCodeListEditor({ codeList: [] });
-    expect(screen.getByText(texts.emptyCodeList)).toBeInTheDocument();
   });
 
   it('Calls the onChange callback with the new code list when a value is changed', async () => {
@@ -506,6 +502,101 @@ describe('StudioCodeListEditor', () => {
   });
 
   describe('Type handling', () => {
+    it('Renders type selector when code list is empty', () => {
+      renderCodeListEditor({ codeList: [] });
+      const stringOption = screen.getByRole('option', { name: 'Tekst (anbefalt)' });
+      const numberOption = screen.getByRole('option', { name: 'Tall' });
+      const booleanOption = screen.getByRole('option', { name: 'Boolsk' });
+      expect(stringOption).toBeInTheDocument();
+      expect(numberOption).toBeInTheDocument();
+      expect(booleanOption).toBeInTheDocument();
+    });
+
+    it('Does not render type selector when code list is already populated', () => {
+      renderCodeListEditor();
+      const typeSelector = screen.queryByRole('combobox');
+      expect(typeSelector).not.toBeInTheDocument();
+    });
+
+    it("Creates an empty string item when 'text' is selected and 'Add new' is pressed", async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: [] });
+
+      const typeSelector = screen.getByRole('combobox');
+      const stringOption = screen.getByRole('option', { name: 'Tekst (anbefalt)' });
+      const addButton = screen.getByRole('button', { name: texts.add });
+
+      await user.selectOptions(typeSelector, stringOption);
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyStringItem]);
+    });
+
+    it("Creates an empty number item when 'number' is selected and 'Add new' is pressed", async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: [] });
+
+      const typeSelector = screen.getByRole('combobox');
+      const numberOption = screen.getByRole('option', { name: 'Tall' });
+      const addButton = screen.getByRole('button', { name: texts.add });
+
+      await user.selectOptions(typeSelector, numberOption);
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyNumberItem]);
+    });
+
+    it("Creates an empty boolean item when 'boolean' is selected and 'Add new' is pressed", async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: [] });
+
+      const typeSelector = screen.getByRole('combobox');
+      const booleanOption = screen.getByRole('option', { name: 'Boolsk' });
+      const addButton = screen.getByRole('button', { name: texts.add });
+
+      await user.selectOptions(typeSelector, booleanOption);
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyBooleanItem]);
+    });
+
+    it('Creates an empty string item when the last element in code list is a string', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+
+      const addButton = screen.getByRole('button', { name: texts.add });
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([
+        ...codeListWithoutTextResources,
+        emptyStringItem,
+      ]);
+    });
+
+    it('Creates an empty number item when the last element in code list is a number', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const addButton = screen.getByRole('button', { name: texts.add });
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([
+        ...codeListWithNumberValues,
+        emptyNumberItem,
+      ]);
+    });
+
+    it('Creates an empty boolean item when the last element in code list is a boolean', async () => {
+      const user = userEvent.setup();
+      const codeListWithTrueValue = [{ label: 'test', value: true }];
+      renderCodeListEditor({ codeList: codeListWithTrueValue });
+
+      const addButton = screen.getByRole('button', { name: texts.add });
+      await user.click(addButton);
+
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([...codeListWithTrueValue, emptyBooleanItem]);
+    });
+
     it('Renders textfield when item value is a string', () => {
       renderCodeListEditor();
       const textfield = screen.getByRole('textbox', { name: texts.itemValue(1) });
@@ -529,7 +620,7 @@ describe('StudioCodeListEditor', () => {
       expect(screen.getByRole('checkbox', { name: texts.itemValue(1) })).toBeInTheDocument();
     });
 
-    it('Saves changed item value as string when initial value was string', async () => {
+    it('Saves changed item value as string when initial value was a string', async () => {
       const user = userEvent.setup();
       renderCodeListEditor();
 
@@ -546,7 +637,7 @@ describe('StudioCodeListEditor', () => {
       ]);
     });
 
-    it('Saves changed item value as number when initial value was number', async () => {
+    it('Saves changed item value as number when initial value was a number', async () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: codeListWithNumberValues });
 
@@ -562,7 +653,18 @@ describe('StudioCodeListEditor', () => {
       ]);
     });
 
-    it('Saves changed item value as boolean when initial value was boolean', async () => {
+    it('Numberfield does not update code list when given a string value', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor({ codeList: codeListWithNumberValues });
+
+      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+      await user.type(valueInput, 'not-a-number');
+      await user.tab();
+
+      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
+    });
+
+    it('Saves changed item value as boolean when initial value was a boolean', async () => {
       const user = userEvent.setup();
       const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleanValues[0]];
       renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
@@ -572,17 +674,6 @@ describe('StudioCodeListEditor', () => {
 
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith([{ ...codeListWithBooleanValues[0], value: false }]);
-    });
-
-    it('Numberfield does not change codelist when given string value', async () => {
-      const user = userEvent.setup();
-      renderCodeListEditor({ codeList: codeListWithNumberValues });
-
-      const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-      await user.type(valueInput, 'not-a-number');
-      await user.tab();
-
-      expect(onBlurAny).toHaveBeenCalledWith([...codeListWithNumberValues]);
     });
   });
 });

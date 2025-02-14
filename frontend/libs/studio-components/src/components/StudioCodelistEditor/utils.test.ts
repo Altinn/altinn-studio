@@ -27,43 +27,28 @@ const testCodeList: CodeList = [
 const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
-  describe('addEmptyCodeListItem', () => {
-    it('Adds an empty string item when the code list is empty', () => {
-      const codeList: CodeList = [];
-      const updatedCodeList = addNewCodeListItem(codeList);
+  describe('addNewCodeListItem', () => {
+    it('Adds an empty string when valueType is string', () => {
+      const codeList: CodeList = [{ value: 'test-value', label: 'stringItem' }];
+      const updatedCodeList = addNewCodeListItem(codeList, 'string');
       expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
     });
 
-    it("Adds an empty string item when the last item's value is a string", () => {
-      const codeList: CodeList = [
-        { value: 1, label: 'numberItem' },
-        { value: 'two', label: 'stringItem' },
-      ];
-      const updatedCodeList = addNewCodeListItem(codeList);
-      expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
-    });
-
-    it("Adds an empty number item when the last item's value is a number", () => {
-      const codeList: CodeList = [
-        { value: 'one', label: 'stringItem' },
-        { value: 2, label: 'numberItem' },
-      ];
-      const updatedCodeList = addNewCodeListItem(codeList);
+    it('Adds an empty number item when valueType is number', () => {
+      const codeList: CodeList = [{ value: 1, label: 'numberItem' }];
+      const updatedCodeList = addNewCodeListItem(codeList, 'number');
       expect(updatedCodeList).toEqual([...codeList, emptyNumberItem]);
     });
 
-    it("Adds an empty boolean item when the last item's value is a boolean", () => {
-      const codeList: CodeList = [
-        { value: 0, label: 'numberItem' },
-        { value: true, label: 'booleanItem' },
-      ];
-      const updatedCodeList = addNewCodeListItem(codeList);
+    it('Adds an empty boolean item when valueType is boolean', () => {
+      const codeList: CodeList = [{ value: true, label: 'booleanItem' }];
+      const updatedCodeList = addNewCodeListItem(codeList, 'boolean');
       expect(updatedCodeList).toEqual([...codeList, emptyBooleanItem]);
     });
 
     it('Returns a new instance', () => {
       const codeList = createTestCodeList();
-      const updatedCodeList = addNewCodeListItem(codeList);
+      const updatedCodeList = addNewCodeListItem(codeList, 'string');
       expect(updatedCodeList).not.toBe(codeList);
     });
   });
