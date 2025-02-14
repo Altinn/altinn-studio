@@ -22,14 +22,10 @@ export type ExplicitDataModelBinding = {
   field: string;
 };
 
-export const isExplicitDataModelBinding = (
-  binding: IDataModelBindings,
-): binding is KeyValuePairs<ExplicitDataModelBinding> | undefined =>
-  typeof binding === 'object' && 'dataType' in binding && 'field' in binding;
-
 export type IDataModelBindings =
   | KeyValuePairs<ImplicitDataModelBinding>
   | KeyValuePairs<ExplicitDataModelBinding>;
+
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
