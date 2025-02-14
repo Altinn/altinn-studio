@@ -1,7 +1,15 @@
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
-import type { CodeListWithMetadata } from '@studio/content-library';
+import type { CodeListData, CodeListWithMetadata } from '@studio/content-library';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import {
+  StudioAlert,
+  StudioCenter,
+  StudioParagraph,
+  StudioPageError,
+  StudioPageSpinner,
+} from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -9,10 +17,9 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
-import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
-import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
 import { isOrg } from './utils';
+import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
 
 export function OrgContentLibrary(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -25,6 +32,29 @@ export function OrgContentLibrary(): ReactElement {
 }
 
 function OrgContentLibraryWithContext(): ReactElement {
+  const { t } = useTranslation();
+  const selectedContext = useSelectedContext();
+
+  const { data: codeListsResponse, status: codeListResponseStatus } =
+    useOrgCodeListsQuery(selectedContext);
+
+  switch (codeListResponseStatus) {
+    case 'pending':
+      return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
+    case 'error':
+      return <StudioPageError message={t('dashboard.org_library.fetch_error')} />;
+    case 'success':
+      return <OrgContentLibraryWithContextAndData codeListsDataList={codeListsResponse} />;
+  }
+}
+
+type OrgContentLibraryWithContextAndDataProps = {
+  codeListsDataList: CodeListData[];
+};
+
+function OrgContentLibraryWithContextAndData({
+  codeListsDataList,
+}: OrgContentLibraryWithContextAndDataProps): ReactElement {
   const selectedContext = useSelectedContext();
 
   const { mutate: updateOptionList } = useUpdateOrgCodeListMutation(selectedContext);
@@ -40,7 +70,7 @@ function OrgContentLibraryWithContext(): ReactElement {
     pages: {
       codeList: {
         props: {
-          codeListsData: [],
+          codeListsData: codeListsDataList,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
