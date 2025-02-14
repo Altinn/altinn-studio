@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     {
         /// <summary>
         /// Creates an instance of <see cref="AltinnGitRepository"/>
-        /// </summary>        
+        /// </summary>
         /// <param name="org">The organization owning the repository identfied by it's short name as defined in Gitea.</param>
         /// <param name="repository">The name of the repository as specified in Gitea.</param>
         /// <param name="developer">The user name of the developer working on the repository.</param>
@@ -17,10 +17,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 
         /// <summary>
         /// Creates an instance of <see cref="AltinnAppGitRepository"/>
-        /// </summary>        
+        /// </summary>
         /// <param name="org">The organization owning the repository identfied by it's short name as defined in Gitea.</param>
         /// <param name="repository">The name of the repository as specified in Gitea.</param>
         /// <param name="developer">The user name of the developer working on the repository.</param>
         AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer);
+
+        /// <summary>
+        /// Creates an instance of <see cref="AltinnOrgGitRepository"/>
+        /// </summary>
+        /// <param name="org">The organization owning the repository identified by its short name as defined in Gitea.</param>
+        /// <param name="repository">The name of the repository as specified in Gitea.</param>
+        /// <param name="developer">The user name of the developer working on the repository.</param>
+        AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer);
     }
 }
