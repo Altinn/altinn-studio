@@ -25,6 +25,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { UrlConstants } from 'resourceadm/utils/urlUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -240,11 +241,7 @@ export const DeployResourcePage = ({
               {displayStatusCard()}
               <StudioParagraph size='sm' className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
-                  <StudioLink
-                    href='https://www.altinn.no/'
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
+                  <StudioLink href={UrlConstants.ALTINN} rel='noopener noreferrer' target='_blank'>
                     Altinn.no
                   </StudioLink>
                 </Trans>
