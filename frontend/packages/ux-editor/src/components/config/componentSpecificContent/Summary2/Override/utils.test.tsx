@@ -1,12 +1,12 @@
 import { mapSelectedTypeToConfig } from './utils';
 import {
   type Summary2OverrideConfig,
-  type SummaryCustomTargetType,
+  type OverrideDisplayType,
 } from 'app-shared/types/ComponentSpecificConfig';
 
 //Test data
-const stringSelectedType: SummaryCustomTargetType = 'string';
-const listSelectedType: SummaryCustomTargetType = 'list';
+const stringSelectedType: OverrideDisplayType = 'string';
+const listSelectedType: OverrideDisplayType = 'list';
 const componentId = 'component123';
 
 describe('mapSelectedTypeToConfig', () => {
