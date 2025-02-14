@@ -649,6 +649,7 @@
   "overview.reset_repo_confirm_info": "Du sletter nå alle endringer du har gjort på <bold>{{repositoryName}}</bold>. Du kan ikke gjenopprette dem.",
   "overview.reset_repo_confirm_repo_name": "Skriv inn navnet på appen for å bekrefte at du vil slette",
   "overview.reset_repo_loading": "Sletter...",
+  "policy_editor.access_package_accordion_header": "Vis alle tilgangspakker",
   "policy_editor.access_package_add": "Legg til tilgangspakke {{packageName}}",
   "policy_editor.access_package_all_packages": "Alle tilgangspakker",
   "policy_editor.access_package_chosen_packages": "Valgte tilgangspakker",
