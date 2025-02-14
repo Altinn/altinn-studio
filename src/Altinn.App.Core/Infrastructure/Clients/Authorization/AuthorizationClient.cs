@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
@@ -198,6 +199,9 @@ public class AuthorizationClient : IAuthorizationClient
         try
         {
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return roles;
+
             if (response.IsSuccessStatusCode)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();

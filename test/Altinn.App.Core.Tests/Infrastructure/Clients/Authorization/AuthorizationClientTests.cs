@@ -1,21 +1,24 @@
-#nullable disable
 using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Platform.Authorization.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Moq.Protected;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+using WireMock.Server;
 
 namespace Altinn.App.Core.Tests.Infrastructure.Clients.Authorization;
 
@@ -113,134 +116,131 @@ public class AuthorizationClientTests
     }
 
     [Fact]
-    public async Task GetUserRolesAsync_returns_roles_on_success()
+    public async Task GetUserRoles_Handles_200()
     {
-        var userId = 1337;
-        var userPartyId = 2001;
-        var expectedRoles = new List<Role>()
-        {
-            new() { Type = "altinn", Value = "bobet" },
-            new() { Type = "altinn", Value = "bobes" },
-        };
+        await using var fixture = Fixture.Create();
 
-        var responseJson = JsonSerializer.Serialize(expectedRoles);
+        Role[] expectedRoles =
+        [
+            new Role { Type = "altinn", Value = "bobet" },
+            new Role { Type = "altinn", Value = "bobes" },
+        ];
 
-        var httpMessageHandler = new Mock<HttpMessageHandler>();
-
-        httpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(m =>
-                    m.RequestUri != null
-                    && m.RequestUri.ToString()
-                        .Contains($"roles?coveredByUserId={userId}&offeredByPartyId={userPartyId}")
-                ),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(
-                new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json"),
-                }
+        var server = fixture.Server;
+        server
+            .Given(Request.Create().WithPath(Fixture.ApiPath).UsingGet())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json")
+                    .WithBodyAsJson(expectedRoles)
             );
-        var httpClient = new HttpClient(httpMessageHandler.Object);
 
-        TelemetrySink telemetrySink = new();
-        var pdpMock = new Mock<IPDP>();
+        var actualRoles = await fixture.Client.GetUserRoles(1337, 2001);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Headers["Cookie"] = "AltinnStudioRuntime=myFakeJwtToken";
-
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(_ => _.HttpContext).Returns(httpContext);
-
-        var appSettingsMock = new Mock<IOptionsMonitor<AppSettings>>();
-        appSettingsMock
-            .Setup(s => s.CurrentValue)
-            .Returns(new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" });
-
-        var platformSettings = Options.Create(
-            new PlatformSettings
-            {
-                ApiAuthorizationEndpoint = "http://authorization.test/",
-                SubscriptionKey = "dummyKey",
-            }
-        );
-        var logger = NullLogger<AuthorizationClient>.Instance;
-
-        var client = new AuthorizationClient(
-            platformSettings,
-            httpContextAccessorMock.Object,
-            httpClient,
-            appSettingsMock.Object,
-            pdpMock.Object,
-            logger,
-            telemetrySink.Object
-        );
-
-        var actualRoles = await client.GetUserRoles(userId, userPartyId);
-
-        actualRoles.Should().BeEquivalentTo(expectedRoles);
+        Assert.Equivalent(expectedRoles, actualRoles);
     }
 
     [Fact]
-    public async Task GetUserRolesAsync_throws_exception_on_error_status_code()
+    public async Task GetUserRoles_Handles_404()
     {
-        var userId = 1337;
-        var userPartyId = 2001;
+        await using var fixture = Fixture.Create();
 
-        var httpMessageHandler = new Mock<HttpMessageHandler>();
+        Role[] expectedRoles = [];
 
-        httpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(m =>
-                    m.RequestUri != null
-                    && m.RequestUri.ToString()
-                        .Contains($"roles?coveredByUserId={userId}&offeredByPartyId={userPartyId}")
-                ),
-                ItExpr.IsAny<CancellationToken>()
+        var server = fixture.Server;
+        server
+            .Given(Request.Create().WithPath(Fixture.ApiPath).UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(404));
+
+        var actualRoles = await fixture.Client.GetUserRoles(1337, 2001);
+
+        Assert.Equivalent(expectedRoles, actualRoles);
+    }
+
+    [Fact]
+    public async Task GetUserRoles_Throws_On_500()
+    {
+        await using var fixture = Fixture.Create();
+        var server = fixture.Server;
+        server
+            .Given(Request.Create().WithPath(Fixture.ApiPath).UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => fixture.Client.GetUserRoles(1337, 2001));
+    }
+
+    private sealed record Fixture(WebApplication App) : IAsyncDisposable
+    {
+        internal const string ApiPath = "/authorization/api/v1/roles";
+
+        public Mock<IHttpClientFactory> HttpClientFactoryMock =>
+            Mock.Get(App.Services.GetRequiredService<IHttpClientFactory>());
+
+        public WireMockServer Server => App.Services.GetRequiredService<WireMockServer>();
+
+        public AuthorizationClient Client =>
+            App.Services.GetServices<IAuthorizationClient>().OfType<AuthorizationClient>().Single();
+
+        private sealed class ReqHandler(Action? onRequest = null) : DelegatingHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken
             )
-            .ReturnsAsync(
-                new HttpResponseMessage
+            {
+                onRequest?.Invoke();
+                return base.SendAsync(request, cancellationToken);
+            }
+        }
+
+        public static Fixture Create(
+            Action<IServiceCollection>? registerCustomAppServices = default,
+            Action? onRequest = null
+        )
+        {
+            var server = WireMockServer.Start();
+
+            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            mockHttpClientFactory
+                .Setup(f => f.CreateClient(It.IsAny<string>()))
+                .Returns(() => server.CreateClient(new ReqHandler(onRequest)));
+
+            var app = Api.Tests.TestUtils.AppBuilder.Build(
+                configData: new Dictionary<string, string?>()
                 {
-                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
-                    Content = new StringContent("Internal Server Error"),
+                    // API endpoint is configured this way since we have our `PlatformSettings`
+                    // while PEP has it's own `PlatformSettings` class.
+                    // So if we went the `services.Configure` route we would have to do it twice,
+                    // once for ours and once for PEP's.
+                    { "PlatformSettings:ApiAuthorizationEndpoint", server.Url + ApiPath },
+                    { "PlatformSettings:SubscriptionKey", "dummyKey" },
+                    { "AppSettings:RuntimeCookieName", "AltinnStudioRuntime" },
+                },
+                registerCustomAppServices: services =>
+                {
+                    services.AddSingleton(_ => server);
+
+                    registerCustomAppServices?.Invoke(services);
+                },
+                overrideAltinnAppServices: services =>
+                {
+                    var httpContext = new DefaultHttpContext();
+                    httpContext.Request.Headers["Cookie"] = "AltinnStudioRuntime=myFakeJwtToken";
+
+                    var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+                    httpContextAccessorMock.Setup(_ => _.HttpContext).Returns(httpContext);
+
+                    services.AddSingleton(httpContextAccessorMock.Object);
+                    services.AddSingleton(mockHttpClientFactory.Object);
                 }
             );
 
-        var httpClient = new HttpClient(httpMessageHandler.Object);
+            return new Fixture(app);
+        }
 
-        var pdpMock = new Mock<IPDP>();
-        var appSettingsMock = new Mock<IOptionsMonitor<AppSettings>>();
-        appSettingsMock
-            .Setup(s => s.CurrentValue)
-            .Returns(new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" });
-
-        var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" });
-        var logger = NullLogger<AuthorizationClient>.Instance;
-        TelemetrySink telemetry = new();
-
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Headers["Cookie"] = "AltinnStudioRuntime=myFakeJwtToken";
-
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(_ => _.HttpContext).Returns(httpContext);
-
-        var client = new AuthorizationClient(
-            platformSettings,
-            httpContextAccessorMock.Object,
-            httpClient,
-            appSettingsMock.Object,
-            pdpMock.Object,
-            logger,
-            telemetry.Object
-        );
-
-        await Assert.ThrowsAsync<Exception>(() => client.GetUserRoles(userId, userPartyId));
+        public async ValueTask DisposeAsync() => await App.DisposeAsync();
     }
 
     private static ClaimsPrincipal GetClaims(string partyId)
@@ -264,6 +264,8 @@ public class AuthorizationClientTests
         var xacmlJesonRespons = File.ReadAllText(
             Path.Join("Infrastructure", "Clients", "Authorization", "TestData", $"{filename}.json")
         );
-        return JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJesonRespons);
+        var response = JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJesonRespons);
+        Assert.NotNull(response);
+        return response;
     }
 }

@@ -1,8 +1,14 @@
 namespace Altinn.App.Core.Tests.Features.Auth;
 
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Auth;
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Enums;
+using Altinn.Platform.Register.Models;
+using AltinnCore.Authentication.Constants;
+using global::Authorization.Platform.Authorization.Models;
 
 public class AuthenticatedTests
 {
@@ -92,9 +98,79 @@ public class AuthenticatedTests
             },
         };
 
+    private Authenticated Parse(JwtSecurityToken jwtToken, string token, AuthenticationTypes type)
+    {
+        string ReadClaim(string claimType)
+        {
+            var claim = jwtToken.Claims.Single(c => c.Type == claimType);
+            Assert.NotNull(claim.Value);
+            return claim.Value;
+        }
+
+        int ReadClaimInt(string claimType)
+        {
+            var claim = jwtToken.Claims.Single(c => c.Type == claimType);
+            Assert.NotNull(claim.Value);
+            return int.Parse(claim.Value, CultureInfo.InvariantCulture);
+        }
+
+        Authenticated auth;
+        Party party;
+
+        switch (type)
+        {
+            case AuthenticationTypes.User:
+                party = new Party()
+                {
+                    PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                    PartyTypeName = PartyType.Person,
+                    OrgNumber = null,
+                    SSN = "12345678901",
+                    Name = "Test Testesen",
+                };
+                auth = Authenticated.From(
+                    tokenStr: token,
+                    isAuthenticated: true,
+                    appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                    getSelectedParty: () => ReadClaim(AltinnCoreClaimTypes.PartyID),
+                    getUserProfile: _ =>
+                        Task.FromResult<UserProfile?>(
+                            new UserProfile
+                            {
+                                UserId = ReadClaimInt(AltinnCoreClaimTypes.UserId),
+                                PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                                Party = party,
+                            }
+                        ),
+                    lookupUserParty: _ => Task.FromResult<Party?>(party),
+                    lookupOrgParty: _ => null!,
+                    getPartyList: _ => Task.FromResult<List<Party>?>([party]),
+                    validateSelectedParty: (_, _) => Task.FromResult<bool?>(true),
+                    getUserRoles: (_, _) => Task.FromResult<IEnumerable<Role>>([])
+                );
+                break;
+            default:
+                auth = Authenticated.From(
+                    tokenStr: token,
+                    isAuthenticated: true,
+                    appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                    getSelectedParty: () => null,
+                    getUserProfile: _ => null!,
+                    lookupUserParty: _ => null!,
+                    lookupOrgParty: _ => null!,
+                    getPartyList: _ => null!,
+                    validateSelectedParty: (_, _) => null!,
+                    getUserRoles: (_, _) => null!
+                );
+                break;
+        }
+
+        return auth;
+    }
+
     [Theory]
     [MemberData(nameof(Tokens))]
-    public void Can_Parse_Real_Tokens(
+    public async Task Can_Parse_Real_Tokens(
         string token,
         AuthenticationTypes tokenType,
         TokenIssuer issuer,
@@ -111,44 +187,25 @@ public class AuthenticatedTests
 
         if (!succeeds)
         {
-            Assert.ThrowsAny<Exception>(
-                () =>
-                    Authenticated.From(
-                        tokenStr: token,
-                        isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
-                        getSelectedParty: () => null,
-                        getUserProfile: _ => null!,
-                        lookupUserParty: _ => null!,
-                        lookupOrgParty: _ => null!,
-                        getPartyList: _ => null!,
-                        validateSelectedParty: (_, _) => null!,
-                        getUserRoles: (_, _) => null!
-                    )
-            );
+            Assert.ThrowsAny<Exception>(() => Parse(jwtToken, token, tokenType));
             return;
         }
 
-        var auth = Authenticated.From(
-            tokenStr: token,
-            isAuthenticated: true,
-            appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
-            getSelectedParty: () => null,
-            getUserProfile: _ => null!,
-            lookupUserParty: _ => null!,
-            lookupOrgParty: _ => null!,
-            getPartyList: _ => null!,
-            validateSelectedParty: (_, _) => null!,
-            getUserRoles: (_, _) => null!
-        );
+        var auth = Parse(jwtToken, token, tokenType);
 
         switch (tokenType)
         {
             case AuthenticationTypes.User:
-                Assert.IsType<Authenticated.User>(auth);
+                var user = Assert.IsType<Authenticated.User>(auth);
                 Assert.Equal(issuer, auth.TokenIssuer);
                 Assert.Equal(isExchanged, auth.TokenIsExchanged);
                 Assert.Equal(token, auth.Token);
+                var details = await user.LoadDetails(validateSelectedParty: true);
+                Assert.NotNull(details);
+                // Snapshot user and details with Verify
+                await Verify(new { User = user, Details = details })
+                    .AutoVerify()
+                    .UseParameters(tokenType, issuer, isExchanged, succeeds);
                 break;
             case AuthenticationTypes.SelfIdentifiedUser:
                 Assert.IsType<Authenticated.SelfIdentifiedUser>(auth);
