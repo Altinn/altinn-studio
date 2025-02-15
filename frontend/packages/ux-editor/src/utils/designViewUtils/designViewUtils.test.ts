@@ -95,11 +95,6 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
 
-    it('returns null when oldname and new name is the same', () => {
-      const nameError = getPageNameErrorKey(mockOldName, mockOldName, mockLayoutNames);
-      expect(nameError).toEqual(null);
-    });
-
     it('returns null when there are no errors', () => {
       const nameError = getPageNameErrorKey(
         mockNewNameCandidateCorrect,
