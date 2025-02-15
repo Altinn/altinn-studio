@@ -65,7 +65,7 @@ export const PageConfigPanel = () => {
         }}
       />
       {layoutIsSelected && (
-        <>
+        <span key={selectedFormLayoutName}>
           <EditPageId layoutName={selectedFormLayoutName} />
           <Accordion color='subtle'>
             <Accordion.Item>
@@ -91,7 +91,7 @@ export const PageConfigPanel = () => {
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>
-        </>
+        </span>
       )}
       <PageConfigWarningModal modalRef={modalRef} />
     </>

@@ -45,7 +45,6 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   return (
     <div className={classes.changePageId}>
       <StudioToggleableTextfield
-        key={layoutName}
         customValidation={(value: string) => {
           const validationResult = getPageNameErrorKey(value, layoutName, layoutOrder);
           return validationResult ? t(validationResult) : undefined;
