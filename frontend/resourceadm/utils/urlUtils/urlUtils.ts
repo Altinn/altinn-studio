@@ -1,5 +1,6 @@
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { isOrgNrString } from '../stringUtils';
+import { UrlConstants } from './urlConstants';
 
 /**
  * Returns the path to the dashboard based on the name of the organisation
@@ -48,5 +49,5 @@ export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string
   const partyType = isSubParty ? 'underenheter' : 'enheter';
   const isOrgnrSearch = isOrgNrString(search);
   const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
-  return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&size=10`;
+  return `${UrlConstants.BRREG}${partyType}?${searchTerm}&size=10`;
 };
