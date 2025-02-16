@@ -19,11 +19,10 @@ import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { SelectPropertyEditor } from './CollapsiblePropertyEditor/SelectPropertyEditor';
+import { SelectPropertyEditor } from './SelectPropertyEditor/SelectPropertyEditor';
 
-//TODO: 1- Fix css for the SelectPropertyEditor component
 //TODO: 2-  Add test cases for the SelectPropertyEditor component.
-//TODO: 3-  Remove CollapsiblePropertyEditor component. And change the name of the folder to SelectPropertyEditor.(or new place for the new folder)
+//TODO: 3-  Remove CollapsiblePropertyEditor folder.
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormItem;
