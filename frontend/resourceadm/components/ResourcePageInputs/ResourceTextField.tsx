@@ -1,6 +1,6 @@
 import React, { useState, forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Textfield } from '@digdir/designsystemet-react';
+import { StudioTextfield } from '@studio/components';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 
@@ -93,11 +93,11 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
 
     return (
       <div className={classes.inputWrapper}>
-        <Textfield
+        <StudioTextfield
           id={id}
           label={<ResourceFieldHeader label={label} required={required} />}
           description={description}
-          size='small'
+          size='sm'
           value={val}
           onChange={(e) => {
             setVal(e.target.value);

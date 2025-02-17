@@ -12,18 +12,27 @@ import {
   componentWithMultipleSelectMock,
   layout1NameMock,
   layoutMock,
+  container2IdMock,
+  subformComponentMock,
 } from '../../../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { layoutSet1NameMock, layoutSetsExtendedMock } from '../../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../../testing/mocks';
+import type {
+  OverrideDisplay,
+  OverrideDisplayType,
+} from 'app-shared/types/ComponentSpecificConfig';
 
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;
+const subformComponentId = subformComponentMock.id;
+const repeatingGroupComponentId = container2IdMock;
 const layoutMockWithMultipleSelect = {
   ...layoutMock,
   components: {
     ...layoutMock.components,
     [multipleSelectId]: componentWithMultipleSelectMock,
+    [subformComponentId]: subformComponentMock,
   },
 };
 
@@ -42,11 +51,12 @@ describe('Summary2Override', () => {
   });
 
   it('should be able to remove override', async () => {
+    const user = userEvent.setup();
     render({
       overrides: [{ componentId: '1' }],
     });
-    await userEvent.click(overrideCollapsedButton(1));
-    await userEvent.click(removeOverrideButton());
+    await user.click(overrideCollapsedButton(1));
+    await user.click(removeOverrideButton());
     expect(defaultProps.onChange).toHaveBeenCalledWith([]);
   });
 
@@ -57,7 +67,7 @@ describe('Summary2Override', () => {
       render({ overrides: [{ componentId }] });
 
       await user.click(overrideCollapsedButton(1));
-      await user.click(overrideTypeSelector());
+      await user.click(overrideDisplayTypeSelector());
       expect(renderedTypeOptions()).toBeTruthy();
     },
   );
@@ -143,7 +153,7 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: multipleSelectId }] });
     await user.click(overrideCollapsedButton(1));
-    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
+    await user.selectOptions(overrideDisplayTypeSelector(), overrideDisplayType('string'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
       expect.arrayContaining([{ componentId: multipleSelectId, displayType: 'string' }]),
@@ -154,7 +164,7 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     render({ overrides: [{ componentId: checkBoxId }] });
     await user.click(overrideCollapsedButton(1));
-    await user.selectOptions(overrideTypeSelector(), overrideSelectType('string'));
+    await user.selectOptions(overrideDisplayTypeSelector(), overrideDisplayType('string'));
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
@@ -164,19 +174,64 @@ describe('Summary2Override', () => {
   });
 
   it('should collapse and uncollapse override', async () => {
+    const user = userEvent.setup();
     render({ overrides: [{ componentId: '1' }] });
-    await userEvent.click(overrideCollapsedButton(1));
+    await user.click(overrideCollapsedButton(1));
     expect(
       screen.queryByRole('button', {
         name: textMock('ux_editor.component_properties.summary.overrides.nth.*:1}'),
       }),
     ).not.toBeInTheDocument();
-    await userEvent.click(overrideCloseButton());
+    await user.click(overrideCloseButton());
     expect(
       screen.queryByRole('button', {
         name: textMock('ux_editor.component_properties.summary.overrides.nth.*:1}'),
       }),
     ).not.toBeInTheDocument();
+  });
+
+  it('should render component specific overrides', async () => {
+    const user = userEvent.setup();
+    render({ overrides: [{ componentId: repeatingGroupComponentId }] });
+
+    await user.click(overrideCollapsedButton(1));
+    await user.selectOptions(overrideDisplaySelector(), overrideDisplaySelectType('table'));
+
+    expect(defaultProps.onChange).toHaveBeenCalledWith(
+      expect.arrayContaining([{ componentId: repeatingGroupComponentId, display: 'table' }]),
+    );
+  });
+
+  it.each([
+    {
+      componentId: repeatingGroupComponentId,
+      defaultProps: { componentId: repeatingGroupComponentId, display: 'full' },
+    },
+    {
+      componentId: subformComponentId,
+      defaultProps: { componentId: subformComponentId, display: 'table' },
+    },
+    {
+      componentId: multipleSelectId,
+      defaultProps: { componentId: multipleSelectId, displayType: 'list' },
+    },
+  ])('should set default props for components', async (args) => {
+    const user = userEvent.setup();
+    render({ overrides: [{ componentId: component1IdMock }] });
+
+    await user.click(overrideCollapsedButton(1));
+    await user.click(overrideComponentSelect());
+    await user.click(
+      screen.getByRole('option', {
+        name: new RegExp(args.componentId),
+      }),
+    );
+
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining(args.defaultProps)]),
+      ),
+    );
   });
 });
 
@@ -202,12 +257,22 @@ const overrideComponentSelect = () =>
     name: textMock('ux_editor.component_properties.summary.override.choose_component'),
   });
 
-const overrideTypeSelector = () =>
+const overrideDisplaySelector = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.component_properties.summary.override.display'),
+  });
+
+const overrideDisplaySelectType = (type: OverrideDisplay) =>
+  screen.getByRole('option', {
+    name: textMock(`ux_editor.component_properties.summary.override.display.${type}`),
+  });
+
+const overrideDisplayTypeSelector = () =>
   screen.getByRole('combobox', {
     name: textMock('ux_editor.component_properties.summary.override.display_type'),
   });
 
-const overrideSelectType = (type: string) =>
+const overrideDisplayType = (type: OverrideDisplayType) =>
   screen.getByRole('option', {
     name: textMock(`ux_editor.component_properties.summary.override.display_type.${type}`),
   });
