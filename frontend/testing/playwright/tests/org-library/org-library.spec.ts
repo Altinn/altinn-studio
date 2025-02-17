@@ -35,6 +35,13 @@ const setupAndVerifyOrgLibraryPage = async (
   return orgLibraryPage;
 };
 
-test('initial test - will be replaced in next PR', async ({ page, testAppName }) => {
-  await setupAndVerifyOrgLibraryPage(page, testAppName);
+test('that it is possible to navigate to code list page and that the page is empty', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyOrgLibraryPage(page, testAppName);
+
+  await orgLibraryPage.clickOnNavigateToCodeListPage();
+  await orgLibraryPage.codeLists.waitForCodeListPageToLoad();
+  await orgLibraryPage.codeLists.verifyThatCodeListPageIsEmpty();
 });

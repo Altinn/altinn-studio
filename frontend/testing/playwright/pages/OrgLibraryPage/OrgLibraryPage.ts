@@ -2,10 +2,14 @@ import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { BasePage } from '../../helpers/BasePage';
 import type { Environment } from '../../helpers/StudioEnvironment';
+import { CodeLists } from './CodeLists';
 
 export class OrgLibraryPage extends BasePage {
+  public readonly codeLists: CodeLists;
+
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
+    this.codeLists = new CodeLists(page);
   }
 
   public async loadOrgLibraryPage(): Promise<void> {
@@ -24,5 +28,11 @@ export class OrgLibraryPage extends BasePage {
     });
 
     await expect(heading).toBeVisible();
+  }
+
+  public async clickOnNavigateToCodeListPage(): Promise<void> {
+    await this.page
+      .getByRole('tab', { name: this.textMock('app_content_library.code_lists.page_name') })
+      .click();
   }
 }
