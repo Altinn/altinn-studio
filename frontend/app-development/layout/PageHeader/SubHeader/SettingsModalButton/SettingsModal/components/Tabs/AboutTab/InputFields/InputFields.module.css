@@ -7,3 +7,7 @@
   padding-bottom: var(--field-spacing);
   border-bottom: var(--studio-border-divider);
 }
+
+.serviceName {
+  padding: var(--fds-spacing-2) 0;
+}
