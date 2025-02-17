@@ -1,7 +1,7 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
-import type { TypeofResult } from './types/TypeofResult';
 import { ArrayUtils } from '@studio/pure-functions';
+import type { CodeListItemValueLiteral } from './types/CodeListItemValue';
 
 export const emptyStringItem: CodeListItem = {
   value: '',
@@ -18,15 +18,16 @@ export const emptyBooleanItem: CodeListItem = {
   label: '',
 };
 
-export function addNewCodeListItem(codeList: CodeList): CodeList {
-  const newEmptyItem: CodeListItem = createNewEmptyItem(codeList);
+export function addNewCodeListItem(
+  codeList: CodeList,
+  valueType: CodeListItemValueLiteral,
+): CodeList {
+  const newEmptyItem = createNewEmptyItem(codeList, valueType);
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function createNewEmptyItem(codeList: CodeList): CodeListItem {
-  if (isCodeListEmpty(codeList)) return emptyStringItem;
-
-  switch (getTypeOfLastValue(codeList)) {
+function createNewEmptyItem(codeList: CodeList, valueType: CodeListItemValueLiteral): CodeListItem {
+  switch (valueType) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
@@ -36,12 +37,20 @@ function createNewEmptyItem(codeList: CodeList): CodeListItem {
   }
 }
 
-export function getTypeOfLastValue(codeList: CodeList): TypeofResult {
+export function getTypeOfLastValue(codeList: CodeList): CodeListItemValueLiteral {
   if (isCodeListEmpty(codeList)) {
     throw new Error('Cannot get type of last value from empty code list');
   }
+
   const lastCodeListItem = ArrayUtils.last(codeList);
-  return typeof lastCodeListItem.value;
+  switch (typeof lastCodeListItem.value) {
+    case 'number':
+      return 'number';
+    case 'boolean':
+      return 'boolean';
+    default:
+      return 'string';
+  }
 }
 
 function addCodeListItem(codeList: CodeList, item: CodeListItem): CodeList {

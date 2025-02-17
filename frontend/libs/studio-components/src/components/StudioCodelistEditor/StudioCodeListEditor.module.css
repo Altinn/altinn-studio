@@ -10,3 +10,7 @@
 .codeListEditor > legend {
   display: none;
 }
+
+.typeSelector {
+  width: 30%;
+}
