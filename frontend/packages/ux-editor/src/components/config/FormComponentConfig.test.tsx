@@ -6,13 +6,14 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 const somePropertyName = 'somePropertyName';
+const selectedDataType = 'selectedDataType';
 const customTextMockToHandleUndefined = (
   keys: string | string[],
   variables?: KeyValuePairs<string>,
@@ -279,6 +280,32 @@ describe('FormComponentConfig', () => {
     expect(
       screen.queryByText(textMock('ux_editor.component_properties.grid')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should render selectedDataType for SelectPropertyEditor ', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        schema: {
+          properties: {
+            [selectedDataType]: {
+              type: 'string',
+              enum: ['option1', 'option2'],
+            },
+          },
+        },
+      },
+    });
+    const button = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${selectedDataType}`),
+    });
+    await waitFor(() => expect(button).toBeInTheDocument());
+    await user.click(button);
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock(`ux_editor.component_properties.${selectedDataType}`),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should show description text for objects if key is defined', () => {
