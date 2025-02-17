@@ -49,7 +49,11 @@
           "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.summaryTitle",
           "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
-        "children": ["organisationLookup", "Input-virksomhet-epost"]
+        "children": [
+          "organisationLookup",
+          "Input-virksomhet-epost",
+          "Input-virksomhet-sms"
+        ]
       },
       {
         "id": "NavigationButtons-A564Nt",
@@ -60,7 +64,12 @@
       {
         "id": "Group-vvXQVJ",
         "type": "Group",
-        "children": ["personLookup", "Address-ORk7vt", "Input-person-epost"]
+        "children": [
+          "personLookup",
+          "Address-ORk7vt",
+          "Input-person-epost",
+          "Input-person-sms"
+        ]
       },
       {
         "id": "Group-0GS4J3",
@@ -111,6 +120,17 @@
           "lg": 12,
           "innerGrid": { "lg": 6 }
         }
+      },
+      {
+        "id": "Input-virksomhet-sms",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "StifterVirksomhet.Mobiltelefon"
+        },
+        "textResourceBindings": {
+          "title": "Mobiltelefon (for varsel om signering)"
+        },
+        "grid": { "lg": 6 }
       },
       {
         "id": "personLookup-hidden",
@@ -186,6 +206,15 @@
         "grid": {
           "lg": 6
         }
+      },
+      {
+        "id": "Input-person-sms",
+        "type": "Input",
+        "dataModelBindings": { "simpleBinding": "StifterPerson.Mobiltelefon" },
+        "textResourceBindings": {
+          "title": "Mobiltelefon (for varsel om signering)"
+        },
+        "grid": { "lg": 6 }
       },
       {
         "dataModelBindings": {
