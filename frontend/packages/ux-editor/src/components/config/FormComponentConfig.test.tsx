@@ -13,7 +13,6 @@ import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 const somePropertyName = 'somePropertyName';
-const selectedDataType = 'selectedDataType';
 const customTextMockToHandleUndefined = (
   keys: string | string[],
   variables?: KeyValuePairs<string>,
@@ -282,30 +281,56 @@ describe('FormComponentConfig', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render selectedDataType for SelectPropertyEditor ', async () => {
+  it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
     const user = userEvent.setup();
-    render({
-      props: {
-        schema: {
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'supportedArrayProperty';
+    renderWithProviders(
+      <FormComponentConfig
+        schema={{
           properties: {
-            [selectedDataType]: {
-              type: 'string',
-              enum: ['option1', 'option2'],
+            [propertyKey]: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
             },
           },
-        },
-      },
+        }}
+        editFormId=''
+        component={componentMocks.Input}
+        handleComponentUpdate={handleComponentUpdateMock}
+        hideUnsupported={false}
+      />,
+    );
+    const arrayPropertyButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
-    const button = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${selectedDataType}`),
+    await user.click(arrayPropertyButton);
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
-    await waitFor(() => expect(button).toBeInTheDocument());
-    await user.click(button);
-    expect(
-      screen.getByRole('combobox', {
-        name: textMock(`ux_editor.component_properties.${selectedDataType}`),
-      }),
-    ).toBeInTheDocument();
+    await user.click(combobox);
+
+    const option1 = screen.getByRole('option', {
+      name: textMock('ux_editor.component_properties.enum_option1'),
+    });
+    await user.click(option1);
+
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [propertyKey]: ['option1'],
+        }),
+      );
+    });
+
+    const selectedValueDisplay = screen.getByRole('option', {
+      name: textMock('ux_editor.component_properties.enum_option1'),
+    });
+    expect(selectedValueDisplay).toBeInTheDocument();
   });
 
   it('should show description text for objects if key is defined', () => {
