@@ -333,6 +333,41 @@ describe('FormComponentConfig', () => {
     expect(selectedValueDisplay).toBeInTheDocument();
   });
 
+  it('should return undefined when an error occurs in memoizedSelectedStringPropertiesDisplay', async () => {
+    const propertyKey = 'invalidPropertyKey';
+    const handleComponentUpdateMock = jest.fn();
+    const user = userEvent.setup();
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const arrayPropertyButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(arrayPropertyButton);
+    const combobox = screen.getByRole('combobox', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(combobox);
+    const option1 = screen.getByRole('option', {
+      name: textMock('ux_editor.component_properties.enum_option1'),
+    });
+    await user.click(option1);
+    expect(handleComponentUpdateMock).not.toHaveBeenCalled();
+  });
+
   it('should show description text for objects if key is defined', () => {
     render({
       props: {
