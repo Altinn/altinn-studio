@@ -18,6 +18,11 @@ export const InstantiateContainer = () => {
   const instantiation = useInstantiation();
   const clearRef = useAsRef(instantiation.clear);
 
+  if (instantiationCleanupTimeout) {
+    // If we render this again before the cleanup timeout has run, we should clear it to avoid the cleanup.
+    clearTimeout(instantiationCleanupTimeout);
+  }
+
   useEffect(() => {
     const shouldCreateInstance = !!party;
     if (shouldCreateInstance) {
@@ -28,7 +33,12 @@ export const InstantiateContainer = () => {
   // Clear the instantiation when the component is unmounted, to allow users to start a new instance later
   useEffect(() => {
     const clear = clearRef.current;
-    return () => clear();
+    return () => {
+      if (instantiationCleanupTimeout) {
+        clearTimeout(instantiationCleanupTimeout);
+      }
+      instantiationCleanupTimeout = setTimeout(clear, TIMEOUT);
+    };
   }, [clearRef]);
 
   if (isAxiosError(instantiation.error)) {
@@ -46,3 +56,11 @@ export const InstantiateContainer = () => {
 
   return <Loader reason='instantiating' />;
 };
+
+/* When this component is unmounted, we clear the instantiation to allow users to start a new instance later. This is
+ * needed for (for example) navigating back to party selection or instance selection, and then creating a new instance
+ * from there. However, React may decide to unmount this component and then mount it again quickly, so in those
+ * cases we want to avoid clearing the instantiation too soon (and cause a bug we had for a while where two instances
+ * would be created in quick succession). */
+const TIMEOUT = 500;
+let instantiationCleanupTimeout: ReturnType<typeof setTimeout> | undefined;

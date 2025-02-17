@@ -30,7 +30,10 @@ const ProcessContext = createContext<Pick<UseQueryResult<IProcess, HttpClientErr
   undefined,
 );
 
-export function ProcessProvider({ children, instanceId }: PropsWithChildren<{ instanceId: string }>) {
+export function ProcessProvider({ children }: PropsWithChildren) {
+  const partyId = useNavigationParam('partyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
+  const instanceId = `${partyId}/${instanceGuid}`;
   const taskId = useNavigationParam('taskId');
   const layoutSets = useLayoutSets();
   const navigateToTask = useNavigateToTask();
