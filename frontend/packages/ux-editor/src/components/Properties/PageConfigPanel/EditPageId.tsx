@@ -1,52 +1,54 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';
-import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
+import { useModifyPageMutation } from '../../../hooks/mutations/useModifyPageMutation';
+import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 
 export interface EditPageIdProps {
   layoutName: string;
 }
-export const EditPageId = ({ layoutName }: EditPageIdProps) => {
+export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
+  const { mutate: modifyPageMutation } = useModifyPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
+    pageName,
   );
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
   const t = useText();
 
   const handleSaveNewName = (newName: string) => {
-    if (newName === layoutName) return;
-    updateLayoutName(
-      { oldName: layoutName, newName },
-      {
-        onSuccess: async () => {
-          await updateLayoutsForPreview(selectedFormLayoutSetName);
-        },
-      },
-    );
-    mutateTextId([{ oldId: layoutName, newId: newName }]);
+    if (newName === pageName) return;
+    const newPage: PageModel = {
+      id: newName,
+    };
+    modifyPageMutation(newPage);
+    mutateTextId([{ oldId: pageName, newId: newName }]);
   };
 
   return (
     <div className={classes.changePageId}>
       <StudioToggleableTextfield
         customValidation={(value: string) => {
-          const validationResult = getPageNameErrorKey(value, layoutName, Object.keys(formLayouts));
+          const validationResult = getPageNameErrorKey(
+            value,
+            pageName,
+            pagesModel?.pages?.flatMap((pageModel) => pageModel.id),
+          );
           return validationResult && t(validationResult);
         }}
         label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
         onBlur={(event) => handleSaveNewName(event.target.value)}
         title={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        value={layoutName}
+        value={pageName}
       />
     </div>
   );
