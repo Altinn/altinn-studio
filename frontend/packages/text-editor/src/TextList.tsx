@@ -29,10 +29,12 @@ export const TextList = ({
   const { t } = useTranslation();
   const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 
-  const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
-  const idExists = (newTextId: string): boolean =>
-    textIds.some((textId) => StringUtils.areCaseInsensitiveEqual(textId, newTextId));
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
+  const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
+  const idExists = (newTextId: string, oldTextId: string): boolean =>
+    textIds
+      .filter((textId: string) => textId.toLowerCase() !== oldTextId.toLowerCase())
+      .some((textId: string) => StringUtils.areCaseInsensitiveEqual(textId, newTextId));
 
   return (
     <Table className={classes.textListTable}>

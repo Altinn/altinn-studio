@@ -12,7 +12,7 @@ import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
 
 export interface TextRowProps {
-  idExists: (textResourceId: string) => boolean;
+  idExists: (newTextId: string, oldTextId: string) => boolean;
   removeEntry: ({ textId }) => void;
   textId: string;
   textRowEntries: TextTableRowEntry[];
@@ -50,17 +50,10 @@ export const TextRow = ({
     setTextIdValue(newTextId);
   };
 
-  const validateNewTextId = (newTextId: string): string | null => {
-    if (newTextId === textId) {
-      return null;
-    }
-
-    if (idExists(newTextId)) {
-      return t('text_editor.key.error_duplicate');
-    }
-    const textIdValidationResult = validateTextId(newTextId);
-    return textIdValidationResult ? t(textIdValidationResult) : null;
-  };
+  const validateNewTextId = (newTextId: string): string | undefined =>
+    idExists(newTextId, textId)
+      ? t('text_editor.key.error_duplicate')
+      : validateTextId(newTextId) && t(validateTextId(newTextId));
 
   const handleTextIdBlur = () => {
     updateEntryId({ oldId: textId, newId: textIdValue });

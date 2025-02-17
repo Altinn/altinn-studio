@@ -111,6 +111,24 @@ describe('TextRow', () => {
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
   });
 
+  it('should not stop a call to upsertEntry to update key when new text key is equal the original but with some uppercase', async () => {
+    const user = userEvent.setup();
+    const updateEntryId = jest.fn();
+    renderTextRow({ updateEntryId });
+    const toggleKeyEditButton = screen.getByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
+    await user.click(toggleKeyEditButton);
+
+    const idInput = screen.getByRole('textbox', {
+      name: textMock('text_editor.key.edit', { textKey }),
+    });
+
+    await user.type(idInput, 'Value1');
+    await user.keyboard('{TAB}');
+    expect(updateEntryId).toHaveBeenCalledTimes(1);
+  });
+
   test('that the full row of languages is shown even if a translation is missing', async () => {
     renderTextRow({
       textRowEntries: [
