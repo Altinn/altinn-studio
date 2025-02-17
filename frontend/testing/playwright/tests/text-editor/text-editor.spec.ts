@@ -5,7 +5,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { TextEditorPage } from '../../pages/TextEditorPage';
 import { Gitea } from '../../helpers/Gitea';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
@@ -53,7 +53,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   testAppName,
 }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
@@ -87,7 +87,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   testAppName,
 }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
@@ -144,7 +144,7 @@ test('That the newly added language with key is updated on ui-editor page', asyn
   testAppName,
 }) => {
   await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
@@ -159,7 +159,7 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   testAppName,
 }) => {
   await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();
@@ -210,7 +210,7 @@ const updateTextKey = async (
 };
 
 const navigateToUiEditorAndVerifyPage = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   uiEditorPage: UiEditorPage,
 ): Promise<void> => {
   await header.verifyNoGeneralErrorMessage();
