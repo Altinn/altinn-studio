@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
-import { Accordion } from '@digdir/designsystemet-react';
+import { Accordion, Alert } from '@digdir/designsystemet-react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
@@ -10,6 +10,7 @@ import { EditFormComponent } from '../config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
 import { PageConfigPanel } from './PageConfigPanel';
 import { DeprecatedCalculationsInfo } from '@altinn/ux-editor/components/Properties/DeprecatedCalculationsInfo';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -36,6 +37,11 @@ export const Properties = () => {
 
   return (
     <div className={classes.root} key={formItemId}>
+      {isComponentDeprecated(formItem.type) && (
+        <Alert size='sm' className={classes.alertWrapper} severity='warning'>
+          {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
+        </Alert>
+      )}
       <PropertiesHeader
         formItem={formItem}
         handleComponentUpdate={async (updatedComponent) => {
