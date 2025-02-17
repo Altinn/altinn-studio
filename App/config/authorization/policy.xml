@@ -141,7 +141,7 @@
   >
     <xacml:Description
       >Rule that defines that user with role REGNA or DAGL can read, write and
-      for [ORG]/[APP] when it is in Task_1 and SigningTask_Founders and
+      sign for [ORG]/[APP] when it is in Task_1 and SigningTask_Founders and
       SigningTask_Auditor</xacml:Description
     >
     <xacml:Target>
