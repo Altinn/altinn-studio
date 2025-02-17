@@ -177,6 +177,12 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   itemType: 'CONTAINER',
   dataModelBindings: { group: '' },
 };
+
+const summaryComponent: FormComponent<ComponentType.Summary> = {
+  ...commonProps(ComponentType.Summary),
+  componentRef: 'some-component',
+};
+
 const summary2Component: FormComponent<ComponentType.Summary2> = {
   ...commonProps(ComponentType.Summary2),
   target: {
@@ -211,5 +217,6 @@ export const componentMocks = {
   [ComponentType.Subform]: subformComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
+  [ComponentType.Summary]: summaryComponent,
   [ComponentType.Summary2]: summary2Component,
 };

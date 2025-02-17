@@ -5,3 +5,7 @@
   gap: var(--fds-spacing-2);
   align-items: flex-start;
 }
+
+.alertWrapper {
+  margin: var(--fds-spacing-3);
+}
