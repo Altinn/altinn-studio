@@ -8,7 +8,6 @@ export type CodeListEditorTexts = {
   delete: string;
   deleteItem: (number: number) => string;
   description: string;
-  emptyCodeList: string;
   generalError: string;
   helpText: string;
   itemDescription: (number: number) => string;
@@ -17,8 +16,16 @@ export type CodeListEditorTexts = {
   itemValue: (number: number) => string;
   label: string;
   textResourceTexts: (number: number, property: CodeListItemTextProperty) => TextResourceInputTexts;
+  typeSelectorTexts: TypeSelectorTexts;
   value: string;
   valueErrors: ValueErrorMessages;
+};
+
+export type TypeSelectorTexts = {
+  label: string;
+  stringOption: string;
+  numberOption: string;
+  booleanOption: string;
 };
 
 export type ValueErrorMessages = Record<ValueError, string>;

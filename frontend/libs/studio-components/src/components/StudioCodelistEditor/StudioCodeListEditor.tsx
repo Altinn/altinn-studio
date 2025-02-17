@@ -232,23 +232,23 @@ type TypeSelectorProps = {
 };
 
 function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
-  // const { texts } = useStudioCodeListEditorContext();
+  const { texts } = useStudioCodeListEditorContext();
   const id = useId();
 
   return (
-    <>
+    <div className={classes.typeSelector}>
       <StudioLabelAsParagraph size='sm' htmlFor={id}>
-        Velg hvilken type verdiene i kodelisten skal ha:
+        {texts.typeSelectorTexts.label}
       </StudioLabelAsParagraph>
       <StudioNativeSelect
         name={id}
-        onChange={(event) => setValueType(event.target.value as 'string' | 'number' | 'boolean')}
+        onChange={(event) => setValueType(event.target.value as CodeListItemValueLiteral)}
       >
-        <option value='string'>Tekst (anbefalt)</option>
-        <option value='number'>Tall</option>
-        <option value='boolean'>Boolsk</option>
+        <option value='string'>{texts.typeSelectorTexts.stringOption}</option>
+        <option value='number'>{texts.typeSelectorTexts.numberOption}</option>
+        <option value='boolean'>{texts.typeSelectorTexts.booleanOption}</option>
       </StudioNativeSelect>
-    </>
+    </div>
   );
 }
 

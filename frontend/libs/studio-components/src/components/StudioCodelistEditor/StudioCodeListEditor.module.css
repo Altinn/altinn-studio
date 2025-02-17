@@ -10,3 +10,9 @@
 .codeListEditor > legend {
   display: none;
 }
+
+.typeSelector {
+  display: grid;
+  width: 30%;
+  gap: var(--fds-spacing-2);
+}
