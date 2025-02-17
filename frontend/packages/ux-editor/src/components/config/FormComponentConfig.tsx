@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
@@ -47,6 +47,16 @@ export const FormComponentConfig = ({
 
   const selectedDataType = useComponentPropertyEnumValue();
   const [selectedValue, setSelectedValue] = useState<string[]>([]);
+
+  const memoizedGetSelectedValuesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      if (!component[propertyKey] || component[propertyKey].length === 0) return undefined;
+      return component[propertyKey].map((dataType: string) => (
+        <div key={dataType}>{selectedDataType(dataType)}</div>
+      ));
+    },
+    [component, selectedDataType],
+  );
 
   if (!schema?.properties) return null;
 
@@ -274,12 +284,6 @@ export const FormComponentConfig = ({
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
-        const selectedValuesDisplay =
-          component[propertyKey] && component[propertyKey].length > 0
-            ? component[propertyKey].map((dataType) => (
-                <div key={dataType}>{selectedDataType(dataType)}</div>
-              ))
-            : undefined;
         const selectProperty =
           selectedValue.length > 0
             ? t('ux_editor.component_properties.selected_validations')
@@ -289,13 +293,17 @@ export const FormComponentConfig = ({
             key={propertyKey}
             property={selectProperty}
             title={componentPropertyLabel(propertyKey)}
-            value={selectedValuesDisplay}
+            value={memoizedGetSelectedValuesDisplay(propertyKey)}
           >
             <EditStringValue
               component={component}
               handleComponentChange={(updatedComponent) => {
-                setSelectedValue(updatedComponent[propertyKey]);
-                handleComponentUpdate(updatedComponent);
+                try {
+                  setSelectedValue(updatedComponent[propertyKey] || []);
+                  handleComponentUpdate(updatedComponent);
+                } catch (error) {
+                  console.error(error);
+                }
               }}
               propertyKey={propertyKey}
               key={propertyKey}
