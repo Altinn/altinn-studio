@@ -136,6 +136,10 @@ describe('TextRow', () => {
           lang: 'nb',
           translation: 'Dette er en tekst',
         },
+        {
+          lang: 'nn',
+          translation: 'Dette er en tekst',
+        },
       ],
     });
     const textFields = await screen.findAllByRole('textbox');
