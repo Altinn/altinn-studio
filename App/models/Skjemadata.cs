@@ -109,6 +109,11 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Epost")]
     public string Epost { get; set; }
 
+    [XmlElement("Mobiltelefon", Order = 10)]
+    [JsonProperty("Mobiltelefon")]
+    [JsonPropertyName("Mobiltelefon")]
+    public string Mobiltelefon { get; set; }
+
   }
 
   public class Adresse
@@ -194,6 +199,11 @@ namespace Altinn.App.Models.Skjemadata
     [JsonProperty("Epost")]
     [JsonPropertyName("Epost")]
     public string Epost { get; set; }
+
+    [XmlElement("Mobiltelefon", Order = 5)]
+    [JsonProperty("Mobiltelefon")]
+    [JsonPropertyName("Mobiltelefon")]
+    public string Mobiltelefon { get; set; }
 
   }
 

@@ -106,6 +106,10 @@
           "Epost": {
             "type": "string",
             "format": "email"
+          },
+          "Mobiltelefon": {
+            "type": "string",
+            "title": ""
           }
         },
         "required": [
@@ -132,6 +136,9 @@
           "Epost": {
             "type": "string",
             "format": "email"
+          },
+          "Mobiltelefon": {
+            "type": "string"
           }
         }
       }
