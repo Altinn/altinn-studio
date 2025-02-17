@@ -139,7 +139,7 @@ describe('DashboardHeader', () => {
     expect(libraryMenuItem).not.toBeInTheDocument();
   });
 
-  it('should not render library menu element when featureFlag is not turned on', () => {
+  it('should not render dashboard menu element when featureFlag is not turned on', () => {
     renderDashboardHeader();
     const dashboardMenuItem = screen.queryByRole('link', {
       name: textMock('dashboard.header_item_dashboard'),
