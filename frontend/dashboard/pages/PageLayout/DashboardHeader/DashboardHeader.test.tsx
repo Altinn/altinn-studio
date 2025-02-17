@@ -133,14 +133,18 @@ describe('DashboardHeader', () => {
 
   it('should not render library menu element when featureFlag is not turned on', () => {
     renderDashboardHeader();
-    const libraryMenuItem = screen.queryByRole('link', { name: textMock('dashboard.library') });
+    const libraryMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
     expect(libraryMenuItem).not.toBeInTheDocument();
   });
 
   it('should not render library menu element when featureFlag is not turned on', () => {
     renderDashboardHeader();
-    const libraryMenuItem = screen.queryByRole('link', { name: textMock('dashboard.library') });
-    expect(libraryMenuItem).not.toBeInTheDocument();
+    const dashboardMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(dashboardMenuItem).not.toBeInTheDocument();
   });
 
   it('should render apps menu element with correct link', () => {
