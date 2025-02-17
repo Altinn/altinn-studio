@@ -207,7 +207,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (hasMutated)
                 {
                     await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
-                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}");
+                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}.json");
                 }
             }
             return updatedFiles.Count > 0 ? ["App/ui/layouts"] : [];
