@@ -63,6 +63,15 @@ export const componentWithMultipleSelectMock: FormComponent = {
   propertyPath: 'definitions/multipleSelectComponent',
 };
 
+export const subformComponentMock: FormComponent = {
+  id: 'SubformComponent',
+  type: ComponentType.Subform,
+  dataModelBindings: { simpleBinding: 'some-path' },
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  propertyPath: 'definitions/subformComponent',
+};
+
 export const container1IdMock = 'Container-1';
 export const container2IdMock = 'Container-2';
 export const customRootPropertiesMock: KeyValuePairs = {

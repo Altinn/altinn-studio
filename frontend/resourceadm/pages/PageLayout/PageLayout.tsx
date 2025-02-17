@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import postMessages from 'app-shared/utils/postMessages';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { MergeConflict } from '../../components/MergeConflict';
 import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
 
 /**
@@ -18,7 +18,7 @@ export const PageLayout = (): React.JSX.Element => {
   const { pathname } = useLocation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
-  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
+  const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const { org, app } = useUrlParams();
   const { data: repoStatus } = useRepoStatusQuery(org, app);
@@ -37,7 +37,7 @@ export const PageLayout = (): React.JSX.Element => {
 
   useEffect(() => {
     if (repoStatus?.hasMergeConflict) {
-      mergeConflictModalRef.current.showModal();
+      setHasMergeConflict(true);
     }
   }, [repoStatus?.hasMergeConflict]);
 
@@ -47,7 +47,7 @@ export const PageLayout = (): React.JSX.Element => {
         event.origin === window.location.origin &&
         event.data === postMessages.forceRepoStatusCheck
       ) {
-        mergeConflictModalRef.current.showModal();
+        setHasMergeConflict(true);
       }
     };
 
@@ -55,13 +55,12 @@ export const PageLayout = (): React.JSX.Element => {
     return function cleanup() {
       window.removeEventListener('message', windowEventReceived);
     };
-  }, [mergeConflictModalRef]);
+  }, []);
 
   return (
     <>
-      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
-      <Outlet />
+      {hasMergeConflict ? <MergeConflict org={org} repo={app} /> : <Outlet />}
     </>
   );
 };
