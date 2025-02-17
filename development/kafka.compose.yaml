@@ -1,6 +1,6 @@
 services:
   zookeeper:
-    image: bitnami/zookeeper:latest
+    image: bitnami/zookeeper:3.9.3
     restart: always
     ports:
       - "2181:2181"
@@ -8,7 +8,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.9.0
     ports:
       - "9092:9092"
     restart: always
@@ -31,7 +31,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   schemaregistry:
-    image: confluentinc/cp-schema-registry:latest
+    image: confluentinc/cp-schema-registry:7.8.1
     restart: always
     ports:
       - "8081:8081"
@@ -46,7 +46,7 @@ services:
       - kafka
 
   kafdrop:
-    image: obsidiandynamics/kafdrop
+    image: obsidiandynamics/kafdrop:4.1.0
     restart: always
     ports:
       - "9000:9000"
