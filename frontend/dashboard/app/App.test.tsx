@@ -58,8 +58,8 @@ describe('App', () => {
   it('should display dashboard page when data are loaded', async () => {
     renderApp();
     await waitForElementToBeRemoved(querySpinner());
-    expect(screen.getByRole('link', { name: textMock('dashboard.apps') }));
-    expect(screen.getByRole('link', { name: textMock('dashboard.library') }));
+    expect(screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }));
+    expect(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
   });
 
   it('should display the apps overview by default', () => {
@@ -73,7 +73,7 @@ describe('App', () => {
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ client, initialEntries });
-    await user.click(screen.getByRole('link', { name: textMock('dashboard.library') }));
+    await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
   });
 
@@ -82,8 +82,10 @@ describe('App', () => {
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ client, initialEntries });
-    await user.click(screen.getByRole('link', { name: textMock('dashboard.library') }));
-    await user.click(screen.getByRole('link', { name: textMock('dashboard.apps') }));
+    await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
+    await user.click(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
+    );
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
   });
 });

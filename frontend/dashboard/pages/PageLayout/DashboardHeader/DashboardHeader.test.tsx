@@ -107,9 +107,13 @@ describe('DashboardHeader', () => {
   it('should render correct menu elements in header', () => {
     typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
     renderDashboardHeader();
-    const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
     expect(libraryMenuItem).toBeInTheDocument();
-    const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
     expect(appsMenuItem).toBeInTheDocument();
     typedLocalStorage.removeItem('featureFlags');
   });
@@ -117,7 +121,9 @@ describe('DashboardHeader', () => {
   it('should render library menu element with correct link', () => {
     typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
     renderDashboardHeader();
-    const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
     expect(libraryMenuItem).toHaveAttribute(
       'href',
       `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
@@ -140,7 +146,9 @@ describe('DashboardHeader', () => {
   it('should render apps menu element with correct link', () => {
     typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
     renderDashboardHeader();
-    const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
     expect(appsMenuItem).toHaveAttribute(
       'href',
       `${Subroute.AppDashboard}/${SelectedContextType.Self}`,

@@ -15,11 +15,11 @@ export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.OrgLibrary,
     link: Subroute.OrgLibrary,
-    name: 'dashboard.library',
+    name: 'dashboard.header_item_library',
   },
   {
     key: HeaderMenuItemKey.AppDashboard,
     link: Subroute.AppDashboard,
-    name: 'dashboard.apps',
+    name: 'dashboard.header_item_dashboard',
   },
 ];
