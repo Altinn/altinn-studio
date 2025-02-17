@@ -156,6 +156,12 @@ describe('PropertiesHeader', () => {
     const alert = screen.getByText(textMock('ux_editor.component_properties.deprecated.Summary'));
     expect(alert).toBeInTheDocument();
   });
+
+  it('should not show warning when component is not deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+    const alert = screen.queryByText(textMock('ux_editor.component_properties.deprecated.Input'));
+    expect(alert).not.toBeInTheDocument();
+  });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
