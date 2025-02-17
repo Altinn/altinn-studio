@@ -33,15 +33,16 @@ services:
   schemaregistry:
     image: confluentinc/cp-schema-registry:7.8.1
     restart: always
+    hostname: schemaregistry
+    container_name: schemaregistry
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
       SCHEMA_REGISTRY_HOST_NAME: schemaregistry
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-      SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
-      SCHEMA_REGISTRY_AUTHENTICATION_USER: schemauser
-      SCHEMA_REGISTRY_AUTHENTICATION_PASSWORD: Test1234$
+      SCHEMA_REGISTRY_BASIC_AUTH_CREDENTIALS_SOURCE: USER_INFO
+      SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO: schemauser:Test1234$
     depends_on:
       - kafka
 
