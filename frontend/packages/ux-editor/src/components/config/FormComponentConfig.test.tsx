@@ -160,7 +160,7 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
-  it('should render CollapsiblePropertyEditor for the "sortOrder" property', async () => {
+  it('should render property text for the "sortOrder" property', async () => {
     const user = userEvent.setup();
     render({
       props: {
@@ -187,7 +187,7 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render CollapsiblePropertyEditor for the "showValidations" property and EditStringValue for other properties', () => {
+  it('should render property text for the "showValidations" property', () => {
     render({
       props: {
         schema: {
@@ -217,7 +217,7 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render CollapsiblePropertyEditor for "preselectedOptionIndex" and EditNumberValue for other properties', () => {
+  it('should render property text for "preselectedOptionIndex" and EditNumberValue for other properties', () => {
     render({
       props: {
         schema: {
