@@ -20,20 +20,24 @@ import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 import { useSubroute } from '../../../hooks/useSubRoute';
 import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
-import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
+import { dashboardHeaderMenuItems, HeaderMenuItemKey } from './dashboardHeaderMenuItems';
 import { StringUtils } from '@studio/pure-functions';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
+  const headerMenuItems: HeaderMenuItem[] = getHeaderMenuItems();
+  const isMoreThanOneMenuItem: boolean = headerMenuItems.length > 1;
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
         <StudioPageHeader.Center>
-          {dashboardHeaderMenuItems.map((menuItem) => (
-            <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
-          ))}
+          {isMoreThanOneMenuItem &&
+            headerMenuItems.map((menuItem: HeaderMenuItem) => (
+              <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+            ))}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <DashboardHeaderMenu />
@@ -144,3 +148,14 @@ const DashboardHeaderMenu = () => {
     />
   );
 };
+
+function getHeaderMenuItems() {
+  if (shouldDisplayFeature(FeatureFlag.OrgLibrary)) {
+    return dashboardHeaderMenuItems;
+  }
+  return filterOutOrgLibraryFromMenuItems(dashboardHeaderMenuItems);
+}
+
+function filterOutOrgLibraryFromMenuItems(menuItems: HeaderMenuItem[]): HeaderMenuItem[] {
+  return menuItems.filter((item: HeaderMenuItem) => item.key !== HeaderMenuItemKey.OrgLibrary);
+}

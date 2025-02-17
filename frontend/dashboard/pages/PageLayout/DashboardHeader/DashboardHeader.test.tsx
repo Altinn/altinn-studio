@@ -9,6 +9,8 @@ import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import { type HeaderContextType } from 'dashboard/context/HeaderContext';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -103,29 +105,41 @@ describe('DashboardHeader', () => {
   });
 
   it('should render correct menu elements in header', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
     renderDashboardHeader();
     const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
     expect(libraryMenuItem).toBeInTheDocument();
     const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
     expect(appsMenuItem).toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should render library menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
     renderDashboardHeader();
     const libraryMenuItem = screen.getByRole('link', { name: textMock('dashboard.library') });
     expect(libraryMenuItem).toHaveAttribute(
       'href',
       `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
     );
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
+  it('should not render library menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.queryByRole('link', { name: textMock('dashboard.library') });
+    expect(libraryMenuItem).not.toBeInTheDocument();
   });
 
   it('should render apps menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
     renderDashboardHeader();
     const appsMenuItem = screen.getByRole('link', { name: textMock('dashboard.apps') });
     expect(appsMenuItem).toHaveAttribute(
       'href',
       `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
+    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should navigate to the correct organization context when an org is selected', async () => {
