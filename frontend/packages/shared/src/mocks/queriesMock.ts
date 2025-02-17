@@ -145,6 +145,7 @@ export const queriesMock: ServicesContextProps = {
       canCreateOrgRepo: true,
     }),
   ),
+  getPages: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
@@ -256,6 +257,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
   undeployAppFromEnv: jest.fn().mockImplementation(() => Promise.resolve()),
+  deletePage: jest.fn().mockImplementation(() => Promise.resolve()),
+  modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),
+  createPage: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),

@@ -7,11 +7,10 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appContextMock } from '../../../testing/appContextMock';
 import {
-  externalLayoutsMock,
   layout1NameMock,
   layout2NameMock,
+  pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
@@ -32,10 +31,10 @@ describe('EditPageId', () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
     const updateTextId = jest.fn();
-    const updateFormLayoutName = jest.fn().mockImplementation(() => Promise.resolve());
+    const modifyPage = jest.fn().mockImplementation(() => Promise.resolve());
     const mockQueries: Partial<ServicesContextProps> = {
       updateTextId,
-      updateFormLayoutName,
+      modifyPage,
     };
     renderEditPageId(mockQueries);
     const pageIdButton = screen.getByRole('button', {
@@ -48,17 +47,11 @@ describe('EditPageId', () => {
     await user.clear(editPageId);
     await user.type(editPageId, newPageName);
     await user.tab();
-    expect(updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(updateFormLayoutName).toHaveBeenCalledWith(
-      org,
-      app,
-      selectedLayout,
-      newPageName,
-      layoutSetName,
-    );
+    expect(modifyPage).toHaveBeenCalledTimes(1);
+    expect(modifyPage).toHaveBeenCalledWith(org, app, layoutSetName, selectedLayout, {
+      id: newPageName,
+    });
     expect(updateTextId).toHaveBeenCalledTimes(1);
-    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
-    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith(layoutSetName);
   });
 
   it('does not call updateFormLayoutName and textIdMutation when page ID is unchanged', async () => {
@@ -108,6 +101,7 @@ const renderEditPageId = (queries?: Partial<ServicesContextProps>) => {
     [QueryKey.FormLayoutSettings, org, app, layoutSetName],
     formLayoutSettingsMock,
   );
-  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], externalLayoutsMock);
+  // queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], externalLayoutsMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesModelMock);
   return renderWithProviders(<EditPageId layoutName={selectedLayout} />, { queries, queryClient });
 };
