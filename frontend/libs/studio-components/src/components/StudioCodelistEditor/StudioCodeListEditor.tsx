@@ -106,7 +106,7 @@ function ControlledCodeListEditor({
   onChangeTextResource,
   textResources,
 }: ControlledCodeListEditorProps): ReactElement {
-  const initialValueType = isCodeListEmpty(codeList) ? null : getTypeOfLastValue(codeList);
+  const initialValueType = isCodeListEmpty(codeList) ? 'string' : getTypeOfLastValue(codeList);
   const [valueType, setValueType] = useState<CodeListItemValueLiteral>(initialValueType);
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
@@ -245,7 +245,7 @@ function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
 }
 
 type AddButtonProps = {
-  onClick: (valueType?: CodeListItemValueLiteral) => void;
+  onClick: () => void;
 };
 
 function AddButton({ onClick }: AddButtonProps): ReactElement {
