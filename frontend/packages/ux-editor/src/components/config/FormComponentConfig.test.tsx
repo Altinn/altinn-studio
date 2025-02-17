@@ -494,6 +494,40 @@ describe('FormComponentConfig', () => {
     );
   });
 
+  it('should render array properties with enum values correctly', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'supportedArrayProperty';
+    const enumValues = ['option1', 'option2'];
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: enumValues,
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: enumValues,
+        },
+      },
+    });
+    const arrayPropertyButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(arrayPropertyButton);
+    for (const dataType of enumValues) {
+      expect(
+        screen.getByText(textMock(`ux_editor.component_properties.enum_${dataType}`)),
+      ).toBeInTheDocument();
+    }
+  });
+
   it('should call handleComponentUpdate with updated component when hasCustomFileEndings is true', async () => {
     const handleComponentUpdateMock = jest.fn();
     render({
