@@ -5,15 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.412.test-refactor-app-settings-secret-logic.a887f413">
-=======
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-pr.416.test-refactor-app-settings-secret-logic.764d3c76">
->>>>>>> master
-=======
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.435.signing.7ba99299">
->>>>>>> master
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.464.signing-refactor-sign-on-behalf.4598c5ca">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />

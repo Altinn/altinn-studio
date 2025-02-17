@@ -140,8 +140,8 @@
     Effect="Permit"
   >
     <xacml:Description
-      >Rule that defines that user with role REGNA or DAGL can read and write
-      for [ORG]/[APP] when it is in Task_1 and SigningTask_Founders and
+      >Rule that defines that user with role REGNA or DAGL can read, write and
+      sign for [ORG]/[APP] when it is in Task_1 and SigningTask_Founders and
       SigningTask_Auditor</xacml:Description
     >
     <xacml:Target>

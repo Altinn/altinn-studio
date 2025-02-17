@@ -41,6 +41,7 @@
               <xs:element minOccurs="0" name="Fullmektig" type="Fullmektig" />
               <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
               <xs:element minOccurs="0" name="Epost" type="xs:string" />
+              <xs:element minOccurs="0" name="Mobiltelefon" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -51,6 +52,7 @@
               <xs:element minOccurs="0" name="Adresse" type="Adresse" />
               <xs:element minOccurs="0" name="Organisasjonsnummer" type="xs:string" />
               <xs:element minOccurs="0" name="Epost" type="xs:string" />
+              <xs:element minOccurs="0" name="Mobiltelefon" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
