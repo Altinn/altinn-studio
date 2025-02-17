@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { Fragment, useEffect, useRef } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
@@ -65,7 +65,7 @@ export const PageConfigPanel = () => {
         }}
       />
       {layoutIsSelected && (
-        <span key={selectedFormLayoutName}>
+        <Fragment key={selectedFormLayoutName}>
           <EditPageId layoutName={selectedFormLayoutName} />
           <Accordion color='subtle'>
             <Accordion.Item>
@@ -91,7 +91,7 @@ export const PageConfigPanel = () => {
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>
-        </span>
+        </Fragment>
       )}
       <PageConfigWarningModal modalRef={modalRef} />
     </>
