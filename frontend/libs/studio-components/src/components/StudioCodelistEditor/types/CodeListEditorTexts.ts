@@ -16,7 +16,7 @@ export type CodeListEditorTexts = {
   itemValue: (number: number) => string;
   label: string;
   textResourceTexts: (number: number, property: CodeListItemTextProperty) => TextResourceInputTexts;
-  typeSelectorTexts: TypeSelectorTexts;
+  typeSelector: TypeSelectorTexts;
   value: string;
   valueErrors: ValueErrorMessages;
 };

@@ -505,7 +505,7 @@ describe('StudioCodeListEditor', () => {
     it('Renders type selector when code list is empty', () => {
       renderCodeListEditor({ codeList: [] });
       const typeSelector = screen.getByRole('combobox', {
-        name: texts.typeSelectorTexts.label,
+        name: texts.typeSelector.label,
       });
       expect(typeSelector).toBeInTheDocument();
     });
@@ -522,7 +522,7 @@ describe('StudioCodeListEditor', () => {
 
       const typeSelector = screen.getByRole('combobox');
       const stringOption = screen.getByRole('option', {
-        name: texts.typeSelectorTexts.stringOption,
+        name: texts.typeSelector.stringOption,
       });
       const addButton = screen.getByRole('button', { name: texts.add });
 
@@ -538,7 +538,7 @@ describe('StudioCodeListEditor', () => {
 
       const typeSelector = screen.getByRole('combobox');
       const numberOption = screen.getByRole('option', {
-        name: texts.typeSelectorTexts.numberOption,
+        name: texts.typeSelector.numberOption,
       });
       const addButton = screen.getByRole('button', { name: texts.add });
 
@@ -554,7 +554,7 @@ describe('StudioCodeListEditor', () => {
 
       const typeSelector = screen.getByRole('combobox');
       const booleanOption = screen.getByRole('option', {
-        name: texts.typeSelectorTexts.booleanOption,
+        name: texts.typeSelector.booleanOption,
       });
       const addButton = screen.getByRole('button', { name: texts.add });
 

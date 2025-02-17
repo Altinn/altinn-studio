@@ -6,7 +6,7 @@ import type {
 } from '../types/CodeListEditorTexts';
 import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 
-const typeSelectorTexts: TypeSelectorTexts = {
+const typeSelector: TypeSelectorTexts = {
   label: 'Type of values',
   stringOption: 'String',
   numberOption: 'Number',
@@ -33,7 +33,7 @@ export const texts: CodeListEditorTexts = {
   itemValue: (number) => `Value for item number ${number}`,
   label: 'Label',
   textResourceTexts,
-  typeSelectorTexts,
+  typeSelector: typeSelector,
   value: 'Value',
   valueErrors,
 };

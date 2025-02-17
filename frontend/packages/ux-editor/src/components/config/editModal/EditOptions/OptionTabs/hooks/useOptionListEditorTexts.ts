@@ -23,7 +23,7 @@ export function useOptionListEditorTexts(): CodeListEditorTexts {
     itemValue: (number: number) => t('code_list_editor.value_item', { number }),
     label: t('code_list_editor.column_title_label'),
     textResourceTexts,
-    typeSelectorTexts: {
+    typeSelector: {
       label: t('code_list_editor.type_selector_label'),
       stringOption: t('code_list_editor.type_selector_option_string'),
       numberOption: t('code_list_editor.type_selector_option_number'),

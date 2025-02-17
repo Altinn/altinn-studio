@@ -106,10 +106,8 @@ function ControlledCodeListEditor({
   onChangeTextResource,
   textResources,
 }: ControlledCodeListEditorProps): ReactElement {
-  const isFirstItem = !codeList || isCodeListEmpty(codeList);
-  const initialValueType = isFirstItem ? 'string' : getTypeOfLastValue(codeList);
+  const initialValueType = isCodeListEmpty(codeList) ? null : getTypeOfLastValue(codeList);
   const [valueType, setValueType] = useState<CodeListItemValueLiteral>(initialValueType);
-
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
@@ -122,7 +120,7 @@ function ControlledCodeListEditor({
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      {isFirstItem ? (
+      {isCodeListEmpty(codeList) ? (
         <TypeSelector setValueType={setValueType} />
       ) : (
         <CodeListTable
@@ -236,12 +234,12 @@ function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
   return (
     <StudioNativeSelect
       className={classes.typeSelector}
-      label={texts.typeSelectorTexts.label}
+      label={texts.typeSelector.label}
       onChange={(event) => setValueType(event.target.value as CodeListItemValueLiteral)}
     >
-      <option value='string'>{texts.typeSelectorTexts.stringOption}</option>
-      <option value='number'>{texts.typeSelectorTexts.numberOption}</option>
-      <option value='boolean'>{texts.typeSelectorTexts.booleanOption}</option>
+      <option value='string'>{texts.typeSelector.stringOption}</option>
+      <option value='number'>{texts.typeSelector.numberOption}</option>
+      <option value='boolean'>{texts.typeSelector.booleanOption}</option>
     </StudioNativeSelect>
   );
 }
