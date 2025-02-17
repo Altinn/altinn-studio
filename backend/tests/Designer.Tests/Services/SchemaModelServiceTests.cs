@@ -115,7 +115,7 @@ namespace Designer.Tests.Services
         {
             // Arrange
             var org = "ttd";
-            var sourceRepository = "xyz-datamodels";
+            var sourceRepository = "hvem-er-hvem";
             var developer = "testUser";
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
@@ -125,7 +125,7 @@ namespace Designer.Tests.Services
             {
 
                 var schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
-                Assert.Equal(6, schemaFiles.Count);
+                Assert.Equal(7, schemaFiles.Count);
 
                 // Act
                 var schemaToDelete = schemaFiles.First(s => s.FileName == "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json");
@@ -133,7 +133,7 @@ namespace Designer.Tests.Services
 
                 // Assert
                 schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
-                Assert.Equal(5, schemaFiles.Count);
+                Assert.Equal(6, schemaFiles.Count);
             }
             finally
             {
