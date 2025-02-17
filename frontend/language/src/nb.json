@@ -166,7 +166,7 @@
   "code_list_editor.help_text_item": "Hjelpetekst for alternativ {{number}}",
   "code_list_editor.label_item": "Ledetekst for alternativ {{number}}",
   "code_list_editor.legend": "Kodeliste",
-  "code_list_editor.type_selector_label": "Type verdier i kodelisten",
+  "code_list_editor.type_selector_label": "Type verdier",
   "code_list_editor.type_selector_option_string": "Tekst",
   "code_list_editor.type_selector_option_number": "Tall",
   "code_list_editor.type_selector_option_boolean": "Ja/nei",

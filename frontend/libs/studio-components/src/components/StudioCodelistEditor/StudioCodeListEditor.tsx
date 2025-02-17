@@ -1,6 +1,6 @@
 import type { CodeList } from './types/CodeList';
 import type { ReactElement } from 'react';
-import React, { useState, useId, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
@@ -27,7 +27,6 @@ import type { TextResource } from '../../types/TextResource';
 import { usePropState } from '@studio/hooks';
 import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
-import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import { StudioNativeSelect } from '../StudioNativeSelect';
 import type { CodeListItemValueLiteral } from './types/CodeListItemValue';
 
@@ -233,22 +232,17 @@ type TypeSelectorProps = {
 
 function TypeSelector({ setValueType }: TypeSelectorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  const id = useId();
 
   return (
-    <div className={classes.typeSelector}>
-      <StudioLabelAsParagraph size='sm' htmlFor={id}>
-        {texts.typeSelectorTexts.label}
-      </StudioLabelAsParagraph>
-      <StudioNativeSelect
-        name={id}
-        onChange={(event) => setValueType(event.target.value as CodeListItemValueLiteral)}
-      >
-        <option value='string'>{texts.typeSelectorTexts.stringOption}</option>
-        <option value='number'>{texts.typeSelectorTexts.numberOption}</option>
-        <option value='boolean'>{texts.typeSelectorTexts.booleanOption}</option>
-      </StudioNativeSelect>
-    </div>
+    <StudioNativeSelect
+      className={classes.typeSelector}
+      label={texts.typeSelectorTexts.label}
+      onChange={(event) => setValueType(event.target.value as CodeListItemValueLiteral)}
+    >
+      <option value='string'>{texts.typeSelectorTexts.stringOption}</option>
+      <option value='number'>{texts.typeSelectorTexts.numberOption}</option>
+      <option value='boolean'>{texts.typeSelectorTexts.booleanOption}</option>
+    </StudioNativeSelect>
   );
 }
 

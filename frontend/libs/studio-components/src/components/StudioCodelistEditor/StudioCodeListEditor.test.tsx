@@ -504,12 +504,10 @@ describe('StudioCodeListEditor', () => {
   describe('Type handling', () => {
     it('Renders type selector when code list is empty', () => {
       renderCodeListEditor({ codeList: [] });
-      const stringOption = screen.getByRole('option', { name: 'Tekst (anbefalt)' });
-      const numberOption = screen.getByRole('option', { name: 'Tall' });
-      const booleanOption = screen.getByRole('option', { name: 'Boolsk' });
-      expect(stringOption).toBeInTheDocument();
-      expect(numberOption).toBeInTheDocument();
-      expect(booleanOption).toBeInTheDocument();
+      const typeSelector = screen.getByRole('combobox', {
+        name: texts.typeSelectorTexts.label,
+      });
+      expect(typeSelector).toBeInTheDocument();
     });
 
     it('Does not render type selector when code list is already populated', () => {
@@ -518,12 +516,14 @@ describe('StudioCodeListEditor', () => {
       expect(typeSelector).not.toBeInTheDocument();
     });
 
-    it("Creates an empty string item when 'text' is selected and 'Add new' is pressed", async () => {
+    it("Creates an empty string item when string is selected and 'Add new' is pressed", async () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: [] });
 
       const typeSelector = screen.getByRole('combobox');
-      const stringOption = screen.getByRole('option', { name: 'Tekst (anbefalt)' });
+      const stringOption = screen.getByRole('option', {
+        name: texts.typeSelectorTexts.stringOption,
+      });
       const addButton = screen.getByRole('button', { name: texts.add });
 
       await user.selectOptions(typeSelector, stringOption);
@@ -532,12 +532,14 @@ describe('StudioCodeListEditor', () => {
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyStringItem]);
     });
 
-    it("Creates an empty number item when 'number' is selected and 'Add new' is pressed", async () => {
+    it("Creates an empty number item when number is selected and 'Add new' is pressed", async () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: [] });
 
       const typeSelector = screen.getByRole('combobox');
-      const numberOption = screen.getByRole('option', { name: 'Tall' });
+      const numberOption = screen.getByRole('option', {
+        name: texts.typeSelectorTexts.numberOption,
+      });
       const addButton = screen.getByRole('button', { name: texts.add });
 
       await user.selectOptions(typeSelector, numberOption);
@@ -546,12 +548,14 @@ describe('StudioCodeListEditor', () => {
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyNumberItem]);
     });
 
-    it("Creates an empty boolean item when 'boolean' is selected and 'Add new' is pressed", async () => {
+    it("Creates an empty boolean item when boolean is selected and 'Add new' is pressed", async () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: [] });
 
       const typeSelector = screen.getByRole('combobox');
-      const booleanOption = screen.getByRole('option', { name: 'Boolsk' });
+      const booleanOption = screen.getByRole('option', {
+        name: texts.typeSelectorTexts.booleanOption,
+      });
       const addButton = screen.getByRole('button', { name: texts.add });
 
       await user.selectOptions(typeSelector, booleanOption);
