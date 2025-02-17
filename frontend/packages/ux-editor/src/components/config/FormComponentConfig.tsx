@@ -60,14 +60,9 @@ export const FormComponentConfig = ({
 
   const memoizedSelectedStringPropertiesDisplay = useMemo(
     () => (propertyKey: string) => {
-      try {
-        const value = component[propertyKey];
-        if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
-        if (value) return selectedDataType(value);
-        return undefined;
-      } catch (error) {
-        return undefined;
-      }
+      const value = component[propertyKey];
+      if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
+      return value ? selectedDataType(value) : undefined;
     },
     [component, selectedDataType],
   );
