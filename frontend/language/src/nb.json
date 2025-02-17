@@ -1311,7 +1311,7 @@
   "ux_editor.component_properties.dateSent": "Dato eksemplaret ble sendt inn",
   "ux_editor.component_properties.defaultTab": "Standardfane",
   "ux_editor.component_properties.deleteButton": "Slett-knapp",
-  "ux_editor.component_properties.deprecated.Summary": "Vi har fått en ny og forbedret komponent for å oppsummere data. Bruk den nye oppsummeringskomponenten i stedet.",
+  "ux_editor.component_properties.deprecated.Summary": "Vi har forbedret komponenten for å oppsummere data. Bruk den nye oppsummeringskomponenten i stedet. Hvis du har brukt den gamle i apper som fortsatt er aktive, vil den fungere som normalt",
   "ux_editor.component_properties.direction": "Retning",
   "ux_editor.component_properties.display": "Visning",
   "ux_editor.component_properties.displayMode": "Visningsmodus (enkel eller liste)",
