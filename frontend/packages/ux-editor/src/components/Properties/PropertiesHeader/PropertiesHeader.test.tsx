@@ -15,6 +15,7 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMoc
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -148,6 +149,12 @@ describe('PropertiesHeader', () => {
       name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
     expect(setLayoutSetButton).not.toBeInTheDocument();
+  });
+
+  it('should show warning when component is deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Summary] });
+    const alert = screen.getByText(textMock('ux_editor.component_properties.deprecated.Summary'));
+    expect(alert).toBeInTheDocument();
   });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {

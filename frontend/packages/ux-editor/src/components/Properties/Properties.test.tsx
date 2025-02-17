@@ -269,14 +269,6 @@ describe('Properties', () => {
     expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
   });
-
-  describe('Deprecated component', () => {
-    it('should show warning when component is deprecated', () => {
-      renderProperties({ formItem: componentMocks[ComponentType.Summary] });
-      const alert = screen.getByText(textMock('ux_editor.component_properties.deprecated.Summary'));
-      expect(alert).toBeInTheDocument();
-    });
-  });
 });
 
 const getComponent = (
