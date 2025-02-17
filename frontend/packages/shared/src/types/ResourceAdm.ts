@@ -39,7 +39,8 @@ export type ResourceTypeOption =
   | 'GenericAccessResource'
   | 'Systemresource'
   | 'MaskinportenSchema'
-  | 'BrokerService';
+  | 'BrokerService'
+  | 'CorrespondenceService';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
