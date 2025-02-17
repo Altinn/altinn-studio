@@ -14,6 +14,7 @@
 
 .gridButton {
   padding: 0;
+  margin-bottom: var(--fds-spacing-0);
 }
 
 .gridHeader {
