@@ -58,6 +58,20 @@ export const FormComponentConfig = ({
     [component, selectedDataType],
   );
 
+  const memoizedSelectedStringPropertiesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      try {
+        const value = component[propertyKey];
+        if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
+        if (value) return selectedDataType(value);
+        return undefined;
+      } catch (error) {
+        return undefined;
+      }
+    },
+    [component, selectedDataType],
+  );
+
   if (!schema?.properties) return null;
 
   const { properties } = schema;
@@ -235,19 +249,12 @@ export const FormComponentConfig = ({
 
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
-        const selectedStringPropertiesDisplay = () => {
-          const value = component[propertyKey];
-          if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
-          if (value) return selectedDataType(value);
-          return undefined;
-        };
-
         return (
           <SelectPropertyEditor
             key={propertyKey}
             property={componentPropertyLabel(propertyKey)}
             title={componentPropertyLabel(propertyKey)}
-            value={selectedStringPropertiesDisplay()}
+            value={memoizedSelectedStringPropertiesDisplay(propertyKey)}
           >
             <EditStringValue
               key={propertyKey}
@@ -298,12 +305,8 @@ export const FormComponentConfig = ({
             <EditStringValue
               component={component}
               handleComponentChange={(updatedComponent) => {
-                try {
-                  setSelectedValue(updatedComponent[propertyKey] || []);
-                  handleComponentUpdate(updatedComponent);
-                } catch (error) {
-                  console.error(error);
-                }
+                setSelectedValue(updatedComponent[propertyKey]);
+                handleComponentUpdate(updatedComponent);
               }}
               propertyKey={propertyKey}
               key={propertyKey}
