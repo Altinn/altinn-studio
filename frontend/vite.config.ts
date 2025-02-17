@@ -23,6 +23,7 @@ export default {
   ],
   server: {
     port: 2004,
+    allowedHosts: ['vite_dev_server'],
   },
   preview: {
     port: 2004,
