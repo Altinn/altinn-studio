@@ -39,7 +39,7 @@ export const App = () => (
     />
 
     <Route
-      path='/instance/:partyId/:instanceGuid/*'
+      path='/instance/:instanceOwnerPartyId/:instanceGuid/*'
       element={
         <InstanceProvider>
           <Outlet />

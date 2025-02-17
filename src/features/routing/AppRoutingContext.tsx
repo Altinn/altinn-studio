@@ -10,7 +10,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 export type NavigationEffectCb = () => void;
 
 interface PathParams {
-  partyId?: string;
+  instanceOwnerPartyId?: string;
   instanceGuid?: string;
   taskId?: string;
   pageKey?: string;
@@ -150,15 +150,15 @@ export const useIsSubformPage = () =>
 export const useNavigate = () => useStaticSelector((ctx) => ctx.navigateRef).current!;
 
 const matchers: string[] = [
-  '/instance/:partyId/:instanceGuid',
-  '/instance/:partyId/:instanceGuid/:taskId',
-  '/instance/:partyId/:instanceGuid/:taskId/:pageKey',
+  '/instance/:instanceOwnerPartyId/:instanceGuid',
+  '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
+  '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageKey',
   '/:pageKey', // Stateless
 
   // Subform
-  '/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId',
-  '/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId',
-  '/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId/:pageKey',
+  '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:mainPageKey/:componentId',
+  '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId',
+  '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId/:pageKey',
 ];
 
 type Matches = ReturnType<typeof matchPath>[];
@@ -174,7 +174,7 @@ function paramFrom(matches: Matches, key: keyof PathParams): string | undefined 
 function matchParams(path: string): PathParams {
   const matches = matchers.map((matcher) => matchPath(matcher, path));
   return {
-    partyId: paramFrom(matches, 'partyId'),
+    instanceOwnerPartyId: paramFrom(matches, 'instanceOwnerPartyId'),
     instanceGuid: paramFrom(matches, 'instanceGuid'),
     taskId: paramFrom(matches, 'taskId'),
     pageKey: paramFrom(matches, 'pageKey'),

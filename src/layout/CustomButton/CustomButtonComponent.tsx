@@ -153,7 +153,7 @@ type UsePerformActionMutation = {
 
 function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerformActionMutation {
   const { doPerformAction } = useAppMutations();
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
   const markNotReady = NodesInternal.useMarkNotReady();
@@ -161,10 +161,10 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async ({ action, buttonId }: PerformActionMutationProps) => {
-      if (!instanceGuid || !partyId) {
+      if (!instanceGuid || !instanceOwnerPartyId) {
         throw Error('Cannot perform action without partyId and instanceGuid');
       }
-      return doPerformAction(partyId, instanceGuid, { action: action.id, buttonId }, selectedLanguage);
+      return doPerformAction(instanceOwnerPartyId, instanceGuid, { action: action.id, buttonId }, selectedLanguage);
     },
   });
 

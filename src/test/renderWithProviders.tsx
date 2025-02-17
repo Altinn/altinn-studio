@@ -256,11 +256,11 @@ export function InstanceRouter({
     >
       <Routes>
         <Route
-          path='instance/:partyId/:instanceGuid/:taskId/:pageId'
+          path='instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId'
           element={children}
         />
         <Route
-          path='instance/:partyId/:instanceGuid/:taskId'
+          path='instance/:instanceOwnerPartyId/:instanceGuid/:taskId'
           element={children}
         />
         <Route

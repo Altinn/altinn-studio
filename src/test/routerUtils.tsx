@@ -13,7 +13,7 @@ export const PageNavigationRouter =
     >
       <Routes>
         <Route
-          path='instance/:partyId/:instanceGuid/:taskId/:pageId'
+          path='instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId'
           element={children}
         />
       </Routes>

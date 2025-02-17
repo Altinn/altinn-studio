@@ -138,9 +138,9 @@ export const InstanceProvider = ({ children }: { children: React.ReactNode }) =>
 );
 
 const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  if (!partyId || !instanceGuid) {
+  if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing partyId or instanceGuid when creating instance context');
   }
 
@@ -152,7 +152,7 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     isLoading,
     data: queryData,
     refetch,
-  } = useGetInstanceDataQuery(!!instantiation.lastResult, partyId, instanceGuid);
+  } = useGetInstanceDataQuery(!!instantiation.lastResult, instanceOwnerPartyId, instanceGuid);
   const isDataSet = useSelector((state) => state.data !== undefined);
 
   const error = instantiation.error ?? queryError;
@@ -197,9 +197,9 @@ export function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
 const emptyArray: never[] = [];
 
 export const useLaxInstanceId = () => {
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  return partyId && instanceGuid ? `${partyId}/${instanceGuid}` : undefined;
+  return instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
 };
 
 export const useLaxInstanceData = <U,>(selector: (data: IInstance) => U) =>
@@ -243,12 +243,12 @@ export const useLaxInstanceAllDataElementsNow = () => {
 
 export const useStrictInstanceRefetch = () => useSelector((state) => state.reFetch);
 export const useStrictInstanceId = () => {
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  if (!partyId || !instanceGuid) {
+  if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing partyId or instanceGuid in URL');
   }
-  return `${partyId}/${instanceGuid}`;
+  return `${instanceOwnerPartyId}/${instanceGuid}`;
 };
 export const useStrictAppendDataElements = () => useSelector((state) => state.appendDataElements);
 export const useStrictMutateDataElement = () => useSelector((state) => state.mutateDataElement);

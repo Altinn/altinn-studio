@@ -173,12 +173,12 @@ export function FormFirstPage() {
  */
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const { isValidPageId, navigateToPage } = useNavigatePage();
   const applicationMetadataId = useApplicationMetadata()?.id;
 
-  const instanceId = `${partyId}/${instanceGuid}`;
+  const instanceId = `${instanceOwnerPartyId}/${instanceGuid}`;
   const currentViewCacheKey = instanceId || applicationMetadataId;
 
   useEffect(() => {

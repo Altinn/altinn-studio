@@ -132,7 +132,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
   // This needs up to date params, so using the native hook that re-renders often
   // However, this hook is only used in cases where we immediately navigate to a different path
   // so it does not make a difference here.
-  const { partyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = useNavigationParams();
+  const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = useNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
   const isStateless = useApplicationMetadata().isStatelessApp;
@@ -143,24 +143,24 @@ export const useStartUrl = (forcedTaskId?: string) => {
       return `/${firstPage}${queryKeys}`;
     }
     if (typeof forcedTaskId === 'string') {
-      return `/instance/${partyId}/${instanceGuid}/${forcedTaskId}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${forcedTaskId}${queryKeys}`;
     }
     if (taskType === ProcessTaskType.Archived) {
-      return `/instance/${partyId}/${instanceGuid}/${TaskKeys.ProcessEnd}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${TaskKeys.ProcessEnd}${queryKeys}`;
     }
     if (taskType !== ProcessTaskType.Data && taskId !== undefined) {
-      return `/instance/${partyId}/${instanceGuid}/${taskId}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
     }
     if (isSubformPage && taskId && mainPageKey && componentId && dataElementId && firstPage) {
-      return `/instance/${partyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${firstPage}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${firstPage}${queryKeys}`;
     }
     if (taskId && firstPage) {
-      return `/instance/${partyId}/${instanceGuid}/${taskId}/${firstPage}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${firstPage}${queryKeys}`;
     }
     if (taskId) {
-      return `/instance/${partyId}/${instanceGuid}/${taskId}${queryKeys}`;
+      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
     }
-    return `/instance/${partyId}/${instanceGuid}${queryKeys}`;
+    return `/instance/${instanceOwnerPartyId}/${instanceGuid}${queryKeys}`;
   }, [
     componentId,
     dataElementId,
@@ -170,7 +170,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     isSubformPage,
     mainPageKey,
     order,
-    partyId,
+    instanceOwnerPartyId,
     queryKeys,
     taskId,
     taskType,
@@ -187,11 +187,11 @@ export function useNavigateToTask() {
   return useCallback(
     (newTaskId?: string, options?: NavigateOptions & { runEffect?: boolean }) => {
       const { runEffect = true } = options ?? {};
-      const { partyId, instanceGuid, taskId } = navParams.current;
+      const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
       }
-      const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeysRef.current}`;
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeysRef.current}`;
       navigate(url, undefined, options, runEffect ? () => focusMainContent(options) : undefined);
     },
     [lastTaskId, navParams, navigate, queryKeysRef],
@@ -282,15 +282,15 @@ export function useNavigatePage() {
         return navigate(`/${page}${queryKeysRef.current}`, options, { replace }, () => focusMainContent(options));
       }
 
-      const { partyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
+      const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
 
       // Subform
       if (mainPageKey && componentId && dataElementId && options?.exitSubform !== true) {
-        const url = `/instance/${partyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${queryKeysRef.current}`;
+        const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${queryKeysRef.current}`;
         return navigate(url, options, { replace }, () => focusMainContent(options));
       }
 
-      let url = `/instance/${partyId}/${instanceGuid}/${taskId}/${page}`;
+      let url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}`;
 
       const searchParams = new URLSearchParams(queryKeysRef.current);
 

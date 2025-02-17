@@ -31,9 +31,9 @@ export function appSupportsRolesAPI({ altinnNugetVersion }: ApplicationMetadata)
 export const useCurrentPartyRoles = (): RoleResult => {
   const applicationMetadata = useApplicationMetadata();
   const supportsRolesAPI = appSupportsRolesAPI(applicationMetadata);
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  const query = useQuery(useCurrentPartyRolesQueryDef(supportsRolesAPI, partyId, instanceGuid));
+  const query = useQuery(useCurrentPartyRolesQueryDef(supportsRolesAPI, instanceOwnerPartyId, instanceGuid));
 
   return { data: query.data, error: query.error };
 };

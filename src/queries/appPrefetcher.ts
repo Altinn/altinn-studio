@@ -16,19 +16,19 @@ import { useProfileQueryDef } from 'src/features/profile/ProfileProvider';
  * Only prefetches instance and process if a party- and instanceid is present in the URL
  */
 export function AppPrefetcher() {
-  const { partyId, instanceGuid } =
-    matchPath({ path: '/instance/:partyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
-  const instanceId = partyId && instanceGuid ? `${partyId}/${instanceGuid}` : undefined;
+  const { instanceOwnerPartyId, instanceGuid } =
+    matchPath({ path: '/instance/:instanceOwnerPartyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
+  const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
 
   usePrefetchQuery(getApplicationMetadataQueryDef(instanceGuid));
   usePrefetchQuery(useLayoutSetsQueryDef());
-  usePrefetchQuery(useProfileQueryDef(true), Boolean(partyId));
+  usePrefetchQuery(useProfileQueryDef(true), Boolean(instanceOwnerPartyId));
   usePrefetchQuery(useOrgsQueryDef());
   usePrefetchQuery(useApplicationSettingsQueryDef());
-  usePrefetchQuery(usePartiesQueryDef(true), Boolean(partyId));
-  usePrefetchQuery(useCurrentPartyQueryDef(true), Boolean(partyId));
+  usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));
+  usePrefetchQuery(useCurrentPartyQueryDef(true), Boolean(instanceOwnerPartyId));
 
-  usePrefetchQuery(useInstanceDataQueryDef(false, partyId, instanceGuid));
+  usePrefetchQuery(useInstanceDataQueryDef(false, instanceOwnerPartyId, instanceGuid));
   usePrefetchQuery(getProcessQueryDef(instanceId));
 
   return null;

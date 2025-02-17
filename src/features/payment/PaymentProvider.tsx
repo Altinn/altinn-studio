@@ -26,9 +26,9 @@ export const PaymentContext = createContext<PaymentContextProps | undefined>(und
 
 export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const partyId = useNavigationParam('partyId');
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  const { mutate, error } = usePerformPayActionMutation(partyId, instanceGuid);
+  const { mutate, error } = usePerformPayActionMutation(instanceOwnerPartyId, instanceGuid);
   const isSubformPage = useIsSubformPage();
 
   const contextValue: PaymentContextProps = useMemo(
