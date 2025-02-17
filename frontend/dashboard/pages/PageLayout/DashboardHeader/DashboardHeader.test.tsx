@@ -131,6 +131,12 @@ describe('DashboardHeader', () => {
     expect(libraryMenuItem).not.toBeInTheDocument();
   });
 
+  it('should not render library menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.queryByRole('link', { name: textMock('dashboard.library') });
+    expect(libraryMenuItem).not.toBeInTheDocument();
+  });
+
   it('should render apps menu element with correct link', () => {
     typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
     renderDashboardHeader();
