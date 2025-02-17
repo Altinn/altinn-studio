@@ -28,7 +28,7 @@ const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
   describe('addNewCodeListItem', () => {
-    it('Adds an empty string when valueType is string', () => {
+    it('Adds an empty string item when valueType is string', () => {
       const codeList: CodeList = [{ value: 'test-value', label: 'stringItem' }];
       const updatedCodeList = addNewCodeListItem(codeList, 'string');
       expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
