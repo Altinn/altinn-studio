@@ -126,7 +126,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               label={t('schema_editor.name')}
               handleSave={handleChangeNodeName}
               schemaPointer={schemaPointer}
-              size='small'
             />
           )}
           {isReference(schemaNode) && (
@@ -183,7 +182,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
-            size='small'
             onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
             value={itemTitle}
           />
