@@ -71,7 +71,7 @@ public class DeploymentPipelinePollingJob : IJob
             await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
                 .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
 
-            await PublishCompletedEvent(editingContext, type, environment);
+            await PublishCompletedEvent(editingContext, type, environment, build.Result == BuildResult.Succeeded);
 
             CancelJob(context);
         }
@@ -79,7 +79,7 @@ public class DeploymentPipelinePollingJob : IJob
     }
 
     private async Task PublishCompletedEvent(AltinnRepoEditingContext editingContext, PipelineType type,
-        string environment)
+        string environment, bool succeeded)
     {
         try
         {
@@ -87,7 +87,8 @@ public class DeploymentPipelinePollingJob : IJob
             {
                 EditingContext = editingContext,
                 PipelineType = type,
-                Environment = environment
+                Environment = environment,
+                Succeeded = succeeded
             });
         }
         catch (Exception e)
