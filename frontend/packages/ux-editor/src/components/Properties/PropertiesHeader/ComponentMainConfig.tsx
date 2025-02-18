@@ -13,13 +13,12 @@ export const ComponentMainConfig = ({
   component,
   handleComponentChange,
 }: ComponentMainConfigProps) => {
-  if (component.type !== ComponentType.Summary2) return <HeaderMainConfig />;
-
-  return (
-    <>
-      {component.type === ComponentType.Summary2 && (
+  switch (component.type) {
+    case ComponentType.Summary2:
+      return (
         <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />
-      )}
-    </>
-  );
+      );
+    default:
+      return <HeaderMainConfig />;
+  }
 };
