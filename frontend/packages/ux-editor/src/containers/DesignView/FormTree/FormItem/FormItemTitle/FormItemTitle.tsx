@@ -27,7 +27,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
       ? t('ux_editor.component_group_deletion_text')
-      : t('ux_editor.component_deletion_text');
+      : t('ux_editor.component_and_page_deletion_text');
 
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id, {

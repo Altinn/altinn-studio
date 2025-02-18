@@ -90,7 +90,7 @@ describe('FormItemTitle', () => {
     render(component, label);
 
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
-    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_deletion_text'));
+    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_and_page_deletion_text'));
   });
 
   it('should prompt the user for confirmation before deleting the container component and its children', async () => {

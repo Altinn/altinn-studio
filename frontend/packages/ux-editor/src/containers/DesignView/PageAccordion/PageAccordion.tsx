@@ -56,7 +56,7 @@ export const PageAccordion = ({
   );
 
   const handleConfirmDelete = () => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
+    if (confirm(t('ux_editor.component_and_page_deletion_text'))) {
       deleteLayout(pageName, {
         onSuccess: async ({ layouts }) => {
           await updateLayoutsForPreview(
