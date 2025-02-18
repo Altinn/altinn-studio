@@ -8,17 +8,43 @@ const mockNewNameCandidateInvalid: string = 'Page????';
 const mockNewNameCandidateWithPeriod: string = 'Page.2';
 
 const mockOldName: string = 'oldName';
-const mockLayoutOrder: string[] = [mockOldName, mockNewNameCandidateExists, 'page3'];
+const mockLayoutNames: string[] = [mockOldName, mockNewNameCandidateExists, 'page3'];
 
 describe('designViewUtils', () => {
   describe('pageNameExists', () => {
     it('returns true if the page name exists', () => {
-      const exists = pageNameExists(mockOldName, mockLayoutOrder);
+      const exists = pageNameExists({
+        candidateName: mockNewNameCandidateExists,
+        oldName: mockOldName,
+        layoutNames: mockLayoutNames,
+      });
       expect(exists).toBeTruthy();
     });
 
     it('returns false if the page name does not exists', () => {
-      const exists = pageNameExists(mockNewNameCandidateCorrect, mockLayoutOrder);
+      const exists = pageNameExists({
+        candidateName: mockNewNameCandidateCorrect,
+        oldName: mockOldName,
+        layoutNames: mockLayoutNames,
+      });
+      expect(exists).toBeFalsy();
+    });
+
+    it('returns false if the page name is the same as the old name', () => {
+      const exists = pageNameExists({
+        candidateName: mockOldName,
+        oldName: mockOldName,
+        layoutNames: mockLayoutNames,
+      });
+      expect(exists).toBeFalsy();
+    });
+
+    it('returns false if the page name is the same as the old name but in different case', () => {
+      const exists = pageNameExists({
+        candidateName: mockOldName.toUpperCase(),
+        oldName: mockOldName,
+        layoutNames: mockLayoutNames,
+      });
       expect(exists).toBeFalsy();
     });
   });
@@ -28,7 +54,7 @@ describe('designViewUtils', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateExists,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameErrorkey).toEqual('ux_editor.pages_error_unique');
     });
@@ -37,7 +63,7 @@ describe('designViewUtils', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateEmpty,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameErrorkey).toEqual('ux_editor.pages_error_empty');
     });
@@ -46,7 +72,7 @@ describe('designViewUtils', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateTooLong,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
@@ -55,7 +81,7 @@ describe('designViewUtils', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateWithPeriod,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
     });
@@ -64,21 +90,16 @@ describe('designViewUtils', () => {
       const nameErrorkey = getPageNameErrorKey(
         mockNewNameCandidateInvalid,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameErrorkey).toEqual('validation_errors.name_invalid');
-    });
-
-    it('returns null when oldname and new name is the same', () => {
-      const nameError = getPageNameErrorKey(mockOldName, mockOldName, mockLayoutOrder);
-      expect(nameError).toEqual(null);
     });
 
     it('returns null when there are no errors', () => {
       const nameError = getPageNameErrorKey(
         mockNewNameCandidateCorrect,
         mockOldName,
-        mockLayoutOrder,
+        mockLayoutNames,
       );
       expect(nameError).toEqual(null);
     });
