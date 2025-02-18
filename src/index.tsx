@@ -22,7 +22,6 @@ import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
-import { LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -66,20 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
   root?.render(
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
-        <LoadingRegistryProvider>
-          <AppPrefetcher />
-          <AppWrapper>
-            <LanguageProvider>
-              <LangToolsStoreProvider>
-                <ViewportWrapper>
-                  <UiConfigProvider>
-                    <RouterProvider router={router} />
-                  </UiConfigProvider>
-                </ViewportWrapper>
-              </LangToolsStoreProvider>
-            </LanguageProvider>
-          </AppWrapper>
-        </LoadingRegistryProvider>
+        <AppPrefetcher />
+        <AppWrapper>
+          <LanguageProvider>
+            <LangToolsStoreProvider>
+              <ViewportWrapper>
+                <UiConfigProvider>
+                  <RouterProvider router={router} />
+                </UiConfigProvider>
+              </ViewportWrapper>
+            </LangToolsStoreProvider>
+          </LanguageProvider>
+        </AppWrapper>
       </ErrorBoundary>
     </AppQueriesProvider>,
   );

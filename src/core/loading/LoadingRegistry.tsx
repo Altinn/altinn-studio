@@ -25,7 +25,7 @@ function initialCreateStore() {
   }));
 }
 
-const { Provider, useShallowSelector, useStaticSelector } = createZustandContext({
+const { Provider, useShallowSelector, useStaticSelector, useHasProvider } = createZustandContext({
   name: 'LoadingRegistry',
   required: true,
   initialCreateStore,
@@ -63,6 +63,13 @@ export function BlockUntilAllLoaded({ children }: PropsWithChildren) {
  * the form can be rendered.
  */
 export function useMarkAsLoading(key: (string | number)[], value: boolean) {
+  const hasProvider = useHasProvider();
+  if (!hasProvider) {
+    throw new Error(
+      'useMarkAsLoading must be used within a LoadingRegistryProvider (currently only supported inside a FormProvider)',
+    );
+  }
+
   const keyStr = key.join('/');
   const setLoadingState = useStaticSelector((state) => state.setLoadingState);
 

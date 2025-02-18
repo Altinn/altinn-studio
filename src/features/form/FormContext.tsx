@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { BlockUntilAllLoaded } from 'src/core/loading/LoadingRegistry';
+import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
@@ -61,7 +61,7 @@ export function FormProvider({ children }: React.PropsWithChildren) {
 
 function Outer({ children }: React.PropsWithChildren) {
   return (
-    <>
+    <LoadingRegistryProvider>
       <FormPrefetcher />
       <LayoutsProvider>
         <CodeListsProvider>
@@ -88,7 +88,7 @@ function Outer({ children }: React.PropsWithChildren) {
           </DataModelsProvider>
         </CodeListsProvider>
       </LayoutsProvider>
-    </>
+    </LoadingRegistryProvider>
   );
 }
 

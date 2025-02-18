@@ -94,6 +94,65 @@ describe('Subform test', () => {
       cy.wrap($toast).should('contain', 'Maks antall moped oppføringer har blitt nådd');
       cy.wrap($toast).should('have.class', 'Toastify__toast--error');
     });
+
+    cy.get('#Input-Age').type('30');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    // Delete the last two mopeds (those with errors)
+    cy.get('#subform-subform-mopeder-table tbody tr').should('have.length', 3);
+    cy.get('#subform-subform-mopeder-table tbody tr').eq(1).findByText('Slett').clickAndGone();
+    cy.get('#subform-subform-mopeder-table tbody tr').should('have.length', 2);
+    cy.get('#subform-subform-mopeder-table tbody tr').eq(1).findByText('Slett').clickAndGone();
+    cy.get('#subform-subform-mopeder-table tbody tr').should('have.length', 1);
+    cy.get('[data-testid="NavigationButtons"] button.fds-btn--primary').clickAndGone();
+
+    // Verify summary fields
+    cy.get('[data-testid=summary-single-value-component]').eq(0).should('contain.text', name);
+    cy.get('[data-testid=summary-single-value-component]').eq(1).should('contain.text', '30 år');
+    cy.get('#label-attachment-summary2-attachments')
+      .next()
+      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+
+    cy.get('#form-content-subform-mopeder table tbody tr').should('have.length', 1);
+    cy.get('#form-content-subform-mopeder table tbody tr').within(() => {
+      cy.get('td').eq(0).should('have.text', regno);
+      cy.get('td').eq(1).should('have.text', merke);
+      cy.get('td').eq(2).should('have.text', extrainfo);
+    });
+
+    cy.get('#label-subform-boker').next().should('contain.text', 'Du har ikke lagt inn informasjon her');
+
+    cy.findByRole('button', { name: 'Vis Summary2 for hele steget' }).clickAndGone();
+
+    cy.get('.fds-paragraph')
+      .eq(0)
+      .should(
+        'contain.text',
+        'Subform komponentene finner du nederst på denne siden, under et par felter med personalia.',
+      );
+    cy.get('[data-testid=summary-single-value-component]').eq(0).should('contain.text', name);
+    cy.get('[data-testid=summary-single-value-component]').eq(1).should('contain.text', '30 år');
+    cy.get('#label-attachment-summary2-attachments')
+      .next()
+      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+
+    // There is probably room for improvement in the way Summary generates ids here, and we probably want
+    // to change the subform title to something other than the data model UUID.
+    cy.get('#label-undefined').should('contain.text', 'Dine mopeder');
+    cy.get('#label-undefined')
+      .next()
+      .invoke('text')
+      .should('match', /^[a-f0-9-]+$/);
+
+    cy.get('[data-testid=summary-single-value-component]').eq(2).should('contain.text', regno);
+    cy.get('[data-testid=summary-single-value-component]').eq(3).should('contain.text', merke);
+    cy.get('[data-testid=summary-single-value-component]').eq(4).should('contain.text', model);
+    cy.get('[data-testid=summary-single-value-component]').eq(5).should('contain.text', 'Har du ekstra info?');
+    cy.get('[data-testid=summary-single-value-component]').eq(5).should('contain.text', 'Ja');
+    cy.get('[data-testid=summary-single-value-component]').eq(6).should('contain.text', extrainfo);
+    cy.get('[data-testid=summary-single-value-component]').eq(7).should('contain.text', year);
+
+    cy.get('#label-subform-boker').next().should('contain.text', 'Du har ikke lagt inn informasjon her');
   });
 
   it('subform validation', () => {
