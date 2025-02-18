@@ -298,6 +298,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             await _sourceControl.PushChangesForRepository(commitInfo);
 
+            // Ensure that developers local repository is up to date
+            await ResetLocalRepository(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer));
+
             // Final changes are made in a seperate branch to be reviewed by developer
             string branchName = "complete_copy_of_app";
             string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
