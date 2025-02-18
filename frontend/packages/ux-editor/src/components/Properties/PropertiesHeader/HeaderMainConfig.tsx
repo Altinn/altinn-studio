@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioHeading } from '@studio/components';
 import { RequiredIndicator } from '../../RequiredIndicator';
-import classes from './ComponentMainConfig.module.css';
+import classes from './HeaderMainConfig.module.css';
 import { useTranslation } from 'react-i18next';
 
 type HeaderMainConfigProps = {

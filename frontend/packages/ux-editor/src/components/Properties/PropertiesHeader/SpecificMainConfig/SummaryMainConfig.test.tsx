@@ -1,8 +1,8 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from '../../../testing/mocks';
-import { ComponentMainConfig } from './ComponentMainConfig';
-import type { FormItem } from '../../../types/FormItem';
+import { renderWithProviders } from '../../../../testing/mocks';
+import { SummaryMainConfig } from './SummaryMainConfig';
+import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,8 +13,8 @@ import {
   layoutSet2NameMock,
   layoutSetsExtendedMock,
   layoutSetsMock,
-} from '../../../testing/layoutSetsMock';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+} from '../../../../testing/layoutSetsMock';
+import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 
 const summary2Component: FormItem = {
   id: '0',
@@ -78,7 +78,7 @@ const summary2TargetLayoutSet = () =>
   screen.getByRole('combobox', { name: /ux_editor.component_properties.target_layoutSet_id/ });
 
 const handleComponentChange = jest.fn();
-const render = (component: FormItem) => {
+const render = (component: FormItem<ComponentType.Summary2>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
@@ -86,7 +86,7 @@ const render = (component: FormItem) => {
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   renderWithProviders(
-    <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />,
+    <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />,
     {
       queryClient,
       appContextProps: {
