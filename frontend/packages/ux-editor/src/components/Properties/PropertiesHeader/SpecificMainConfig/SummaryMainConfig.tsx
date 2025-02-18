@@ -1,27 +1,22 @@
 import React from 'react';
-import type { FormItem } from '../../../types/FormItem';
-import classes from './ComponentMainConfig.module.css';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../../../types/FormItem';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { Accordion } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
+import { Summary2Override } from '../../../config/componentSpecificContent/Summary2/Override/Summary2Override';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { Summary2Target } from '../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
-import { StudioHeading } from '@studio/components';
-import { RequiredIndicator } from '../../RequiredIndicator';
+import { Summary2Target } from '../../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
+import { HeaderMainConfig } from '../HeaderMainConfig';
 
-export type ComponentMainConfigProps = {
-  component: FormItem;
+export type SummaryMainConfigProps = {
+  component: FormItem<ComponentType.Summary2>;
   handleComponentChange: (component: FormItem) => void;
 };
 
-export const ComponentMainConfig = ({
-  component,
-  handleComponentChange,
-}: ComponentMainConfigProps) => {
+export const SummaryMainConfig = ({ component, handleComponentChange }: SummaryMainConfigProps) => {
   const [accordionOpen, setAccordionOpen] = React.useState<Record<string, boolean>>({});
   const { t } = useTranslation();
 
@@ -40,37 +35,29 @@ export const ComponentMainConfig = ({
 
   return (
     <>
-      {component.type === ComponentType.Summary2 && (
-        <>
-          <div className={classes.componentMainConfig}>
-            <StudioHeading size='2xs'>
-              {t('ux_editor.component_properties.main_configuration')}
-              <RequiredIndicator />
-            </StudioHeading>
-            <Summary2Target target={component.target} onChange={handleTargetChange} />
-          </div>
-          <Accordion color='subtle'>
-            <Accordion.Item open={accordionOpen['summary2overrides'] === true}>
-              <Accordion.Header
-                onHeaderClick={() =>
-                  setAccordionOpen((prev) => {
-                    return { ...prev, summary2overrides: !prev['summary2overrides'] };
-                  })
-                }
-              >
-                {t('ux_editor.component_properties.summary.override.title')}
-              </Accordion.Header>
-              <Accordion.Content>
-                <Summary2Override
-                  target={component.target}
-                  overrides={component.overrides}
-                  onChange={handleOverridesChange}
-                />
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
-        </>
-      )}
+      <HeaderMainConfig>
+        <Summary2Target target={component.target} onChange={handleTargetChange} />
+      </HeaderMainConfig>
+      <Accordion color='subtle'>
+        <Accordion.Item open={accordionOpen['summary2overrides'] === true}>
+          <Accordion.Header
+            onHeaderClick={() =>
+              setAccordionOpen((prev) => {
+                return { ...prev, summary2overrides: !prev['summary2overrides'] };
+              })
+            }
+          >
+            {t('ux_editor.component_properties.summary.override.title')}
+          </Accordion.Header>
+          <Accordion.Content>
+            <Summary2Override
+              target={component.target}
+              overrides={component.overrides}
+              onChange={handleOverridesChange}
+            />
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 };
