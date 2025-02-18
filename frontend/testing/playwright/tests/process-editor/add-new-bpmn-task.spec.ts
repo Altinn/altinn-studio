@@ -6,7 +6,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { BpmnJSQuery } from '../../helpers/BpmnJSQuery';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
@@ -49,7 +49,7 @@ test('that the user can drag a new task in to the data model, and assign a data 
 }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
   const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
@@ -113,7 +113,7 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   testAppName,
 }) => {
   await setupAndVerifyProcessEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
   await commitAndPushToGitea(header);
 
@@ -129,7 +129,7 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
 
 // --------------------- Helper Functions ---------------------
 const goToGiteaAndNavigateToProcessBpmnFile = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();
@@ -142,7 +142,7 @@ const goToGiteaAndNavigateToProcessBpmnFile = async (
   await giteaPage.clickOnProcessBpmnFile();
 };
 
-const commitAndPushToGitea = async (header: Header): Promise<void> => {
+const commitAndPushToGitea = async (header: AppDevelopmentHeader): Promise<void> => {
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
@@ -151,7 +151,7 @@ const commitAndPushToGitea = async (header: Header): Promise<void> => {
 const navigateToDataModelAndCreateNewDataModel = async (
   dataModelPage: DataModelPage,
   processEditorPage: ProcessEditorPage,
-  header: Header,
+  header: AppDevelopmentHeader,
   newDataModelName: string,
 ): Promise<void> => {
   await header.verifyNoGeneralErrorMessage();

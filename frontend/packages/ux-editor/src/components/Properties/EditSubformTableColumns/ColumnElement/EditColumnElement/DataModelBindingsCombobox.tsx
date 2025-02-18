@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { StudioCombobox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import type { IDataModelBindings } from '../../../../../types/global';
+import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 
 type DataModelBindingsComboboxProps = {
   componentType: string;
-  dataModelBindings?: IDataModelBindings;
+  dataModelBindings?: IDataModelBindingsKeyValue;
   onDataModelBindingChange: (dataModelBindingKey: string) => void;
 };
 

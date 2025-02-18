@@ -54,10 +54,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string ProcessDefinitionFilePath => Path.Combine(ProcessDefinitionFolderPath, ProcessDefinitionFilename);
 
         private const string LayoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
-
         private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
+        private const string SchemaFilePatternJson = "*.schema.json";
+        private const string SchemaFilePatternXsd = "*.xsd";
 
         public static readonly string InitialLayoutFileName = "Side1.json";
 
@@ -974,6 +975,54 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             allFilePaths.AddRange(files);
 
             return allFilePaths;
+        }
+
+        /// <summary>
+        /// Finds all schema files in repository.
+        /// </summary>
+        public IList<AltinnCoreFile> GetAllSchemaFiles(bool xsd = false)
+        {
+            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
+
+            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
+            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
+
+            return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
+        /// Finds all schema files in App/models directory.
+        /// </summary>
+        public IList<AltinnCoreFile> GetAppSchemaFiles(bool xsd = false)
+        {
+            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
+            string schemaFilesPath = Path.Combine(ModelFolderPath, schemaFilesPattern);
+            IEnumerable<string> schemaFiles;
+
+            try
+            {
+                schemaFiles = FindFiles(new[] { schemaFilesPath });
+            }
+            catch (DirectoryNotFoundException)
+            {
+                schemaFiles = new List<string>();
+            }
+
+            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
+
+            return altinnCoreSchemaFiles;
+        }
+
+        private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
+        {
+            List<AltinnCoreFile> altinnCoreSchemaFiles = new();
+
+            foreach (string file in schemaFiles)
+            {
+                altinnCoreSchemaFiles.Add(AltinnCoreFile.CreateFromPath(file, RepositoryDirectory));
+            }
+
+            return altinnCoreSchemaFiles;
         }
 
         /// <summary>

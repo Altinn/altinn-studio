@@ -1,6 +1,6 @@
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { IDataModelBindings } from '../types/global';
+import type { ExplicitDataModelBinding, IDataModelBindings } from '../types/global';
 
 export const getMinOccursFromDataModelFields = (
   dataBindingName: string,
@@ -97,24 +97,20 @@ export const getDataModelFields = ({
   return filterDataModelFields(filter, dataModelMetadata);
 };
 
-export type InternalBindingFormat = {
-  field: string | undefined;
-  dataType: string | undefined;
-};
+const isExplicitDataModelBinding = (
+  binding?: IDataModelBindings,
+): binding is ExplicitDataModelBinding | undefined =>
+  typeof binding === 'object' && 'dataType' in binding && 'field' in binding;
 
 export const convertDataBindingToInternalFormat = (
-  dataModelBinding: string | InternalBindingFormat,
-): InternalBindingFormat => {
-  const isOldFormatOrNotSet =
-    typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
+  binding?: IDataModelBindings,
+): ExplicitDataModelBinding => {
+  if (isExplicitDataModelBinding(binding)) return binding;
 
-  if (isOldFormatOrNotSet) {
-    return {
-      field: dataModelBinding,
-      dataType: '',
-    };
-  }
-  return dataModelBinding;
+  return {
+    field: binding || '',
+    dataType: '',
+  };
 };
 
 export const validateSelectedDataModel = (
