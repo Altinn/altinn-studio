@@ -32,7 +32,7 @@ export class CellTextarea extends BaseInputCell<HTMLTextAreaElement, CellTextare
     const className = cn(classes.textareaCell, givenClass);
     return (
       <StudioTable.Cell className={className}>
-        <StudioTextarea hideLabel ref={ref} size='small' {...rest} {...eventProps} />
+        <StudioTextarea hideLabel ref={ref} {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }

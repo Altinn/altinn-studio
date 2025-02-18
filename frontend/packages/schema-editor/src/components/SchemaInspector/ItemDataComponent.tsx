@@ -195,7 +195,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
               setItemItemDescription(event.target.value)
             }
-            size='small'
             value={itemDescription}
           />
         </div>
