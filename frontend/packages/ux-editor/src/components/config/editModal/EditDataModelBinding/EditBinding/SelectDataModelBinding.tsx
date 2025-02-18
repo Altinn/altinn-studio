@@ -3,16 +3,16 @@ import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../hooks';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
 import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 type SelectDataModelProps = {
   currentDataModel: string;
   bindingKey: string;
-  handleBindingChange: (dataModelBindings: InternalBindingFormat) => void;
+  handleBindingChange: (dataModelBindings: ExplicitDataModelBinding) => void;
 };
 
 export const SelectDataModelBinding = ({
