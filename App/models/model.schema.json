@@ -257,6 +257,9 @@
           },
           "profession": {
             "type": "string"
+          },
+          "surname": {
+            "type": "string"
           }
         }
       }

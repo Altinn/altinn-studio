@@ -407,5 +407,10 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("profession")]
     public string profession { get; set; }
 
+    [XmlElement("surname", Order = 4)]
+    [JsonProperty("surname")]
+    [JsonPropertyName("surname")]
+    public string surname { get; set; }
+
   }
 }

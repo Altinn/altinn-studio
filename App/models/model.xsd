@@ -98,6 +98,7 @@
               <xs:element minOccurs="0" name="name" type="xs:string" />
               <xs:element minOccurs="0" name="age" type="xs:long" />
               <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
