@@ -827,7 +827,9 @@ describe('UI Components', () => {
     cy.get(component('map')).should('be.visible');
 
     // Make sure tiles are not faded before taking the snapshot
-    cy.get('.leaflet-layer img').each((layer) => cy.wrap(layer).should('have.css', 'opacity', '1'));
+    cy.get('.leaflet-tile').each((tile) =>
+      cy.wrap(tile).should('have.class', 'leaflet-tile-loaded').and('have.css', 'opacity', '1'),
+    );
 
     cy.snapshot('components:map-simpleBinding');
   });
@@ -871,6 +873,7 @@ describe('UI Components', () => {
 
     cy.findByRole('checkbox', { name: /hankabakken 2/i }).dsUncheck();
     cy.findByRole('checkbox', { name: /hankabakken 4/i }).dsUncheck();
+    cy.waitUntilSaved();
 
     // prettier-ignore
     {
@@ -891,6 +894,11 @@ describe('UI Components', () => {
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 4/i }).should('not.exist');
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 5/i }).should('be.visible');
     }
+
+    // Make sure tiles are not faded before taking the snapshot
+    cy.get('.leaflet-tile').each((tile) =>
+      cy.wrap(tile).should('have.class', 'leaflet-tile-loaded').and('have.css', 'opacity', '1'),
+    );
 
     cy.snapshot('components:map-geometries');
   });
