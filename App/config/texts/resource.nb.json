@@ -122,6 +122,10 @@
       "value": "Min Liste"
     },
     {
+      "id": "ListPage.List2.title",
+      "value": "Min Liste med Checkboxer"
+    },
+    {
       "id": "MapPage.Map.title",
       "value": "Min Kartkomponent"
     },

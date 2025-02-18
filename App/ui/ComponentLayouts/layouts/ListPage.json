@@ -49,6 +49,81 @@
           }
         },
         {
+          "id": "ListPage-ListWithCheckboxesComponent",
+          "type": "List",
+          "dataModelBindings": {
+            "saveToList": "ListCheckboxExample",
+            "name": "ListCheckboxExample.name",
+            "age": "ListCheckboxExample.age",
+            "profession": "ListCheckboxExample.profession"
+          },
+          "textResourceBindings": {
+            "title": "ListPage.List2.title"
+          },
+          "dataListId": "people",
+          "tableHeaders": {
+            "name": "Navn",
+            "age": "Alder",
+            "profession": "Yrke"
+          },
+          "sortableColumns": ["age"],
+          "pagination": {
+            "alternatives": [5, 10],
+            "default": 5
+          }
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxes",
+          "type": "RepeatingGroup",
+          "textResourceBindings": {
+            "title": "Repeterende Gruppe",
+          },
+          "dataModelBindings": {
+            "group": "ListCheckboxExample"
+          },
+          "hidden": false,
+          "children": [
+            "RepeatingGroupListWithCheckboxesAge",
+            "RepeatingGroupListWithCheckboxesName",
+            "RepeatingGroupListWithCheckboxesProfession",
+            "RepeatingGroupListWithCheckboxesSurname"
+          ]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesAge",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Age"
+          },
+          "value": ["dataModel","ListCheckboxExample.age"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesName",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Name"
+          },
+          "value": ["dataModel","ListCheckboxExample.name"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesProfession",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Profession"
+          },
+          "value": ["dataModel","ListCheckboxExample.profession"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesSurname",
+          "type": "Input",
+          "textResourceBindings": {
+            "title": "Surname"
+          },
+          "dataModelBindings": {
+            "simpleBinding": "ListCheckboxExample.surname"
+          }
+        },
+        {
           "id": "ListPage-Header-Summary",
           "type": "Header",
           "size": "h3",
