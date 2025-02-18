@@ -3,7 +3,7 @@ import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSu
 import type { ChangeEvent } from 'react';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
-import { StudioTextfield } from 'libs/studio-components/src/components/StudioTextfield';
+import { StudioTextfield } from '@studio/components';
 
 export const StringInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.String>) => {
   const { texts } = useStudioExpressionContext();
