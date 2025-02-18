@@ -60,16 +60,9 @@
         "textResourceBindings": {
           "title": "Har du ekstra info?"
         },
-        "options": [
-          {
-            "label": "Ja",
-            "value": true
-          },
-          {
-            "label": "Nei",
-            "value": false
-          }
-        ]
+        // This requires a network request, and must not have any mapping/queryParameters
+        // that makes it non-statically fetchable (for regression testing https://github.com/Altinn/app-frontend-react/issues/3019)
+        "optionsId": "janei"
       },
       {
         "dataModelBindings": {

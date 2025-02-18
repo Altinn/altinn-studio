@@ -58,7 +58,11 @@
       {
         "id": "button-group1",
         "type": "ButtonGroup",
-        "children": ["hovedskjema-backButton", "hovedskjema-submitButton"]
+        "children": [
+          "hovedskjema-backButton",
+          "hovedskjema-to-summary2",
+          "hovedskjema-submitButton"
+        ]
       },
       {
         "id": "hovedskjema-backButton",
@@ -70,6 +74,25 @@
           {
             "type": "ClientAction",
             "id": "previousPage"
+          }
+        ],
+        "buttonStyle": "secondary",
+        "buttonColor": "second",
+        "buttonSize": "sm"
+      },
+      {
+        "id": "hovedskjema-to-summary2",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Vis Summary2 for hele steget"
+        },
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "navigateToPage",
+            "metadata": {
+              "page": "oppsummering2"
+            }
           }
         ],
         "buttonStyle": "secondary",
