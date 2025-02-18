@@ -8,7 +8,6 @@ export function TextQuestion({ id, label, value, onChange }: QuestionsProps): Re
   const debouncedOnChange = (newValue: string) => debounce(() => onChange(id, newValue));
   return (
     <StudioTextarea
-      size='sm'
       id={id}
       label={label}
       value={value}

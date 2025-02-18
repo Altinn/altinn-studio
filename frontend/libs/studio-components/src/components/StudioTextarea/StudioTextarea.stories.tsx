@@ -10,7 +10,7 @@ const meta: Meta = {
   argTypes: {
     size: {
       control: 'radio',
-      options: ['small', 'medium', 'large'],
+      options: ['sm', 'md', 'lg'],
     },
   },
 };
@@ -21,6 +21,6 @@ Preview.args = {
   placeholder: 'Type something here...',
   error: '',
   hideLabel: false,
-  size: 'medium',
+  size: 'sm',
 };
 export default meta;

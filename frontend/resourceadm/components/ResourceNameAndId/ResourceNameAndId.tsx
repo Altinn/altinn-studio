@@ -102,7 +102,6 @@ export const ResourceNameAndId = ({
             <div className={classes.textfieldWrapper}>
               <StudioTextfield
                 value={id}
-                size='sm'
                 onChange={(e) => handleEditId(e.target.value)}
                 label={idLabel}
                 error={conflictErrorMessage}
@@ -163,7 +162,6 @@ export const ResourceNameAndId = ({
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           label={titleLabel}
-          size='sm'
         />
       </div>
       {displayIdTextOrInput()}

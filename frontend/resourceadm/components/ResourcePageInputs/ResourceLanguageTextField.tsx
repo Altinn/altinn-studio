@@ -131,7 +131,6 @@ export const ResourceLanguageTextField = ({
             id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
-            size='sm'
             value={translations['nb']}
             onChange={onChangeNbTextArea}
             onFocus={onFocus}
@@ -145,7 +144,6 @@ export const ResourceLanguageTextField = ({
             id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
-            size='sm'
             value={translations['nb']}
             onChange={onChangeNbTextField}
             onFocus={onFocus}

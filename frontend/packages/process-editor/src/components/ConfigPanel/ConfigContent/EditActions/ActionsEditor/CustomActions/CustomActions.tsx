@@ -40,7 +40,6 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
     <>
       <StudioTextfield
         onChange={onCustomActionChange}
-        size='small'
         label={t('process_editor.configuration_panel_actions_action_card_custom_label')}
         className={classes.customActionTextfield}
         value={isCustomAction ? actionElement.action : ''}
