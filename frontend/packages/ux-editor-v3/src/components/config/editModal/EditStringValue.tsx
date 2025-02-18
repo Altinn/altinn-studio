@@ -34,7 +34,7 @@ export const EditStringValue = ({
     <FormField
       id={component.id}
       label={getComponentPropertyLabel(propertyKey, t)}
-      value={multiple ? [component[propertyKey]] : component[propertyKey]}
+      value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
       helpText={helpText}
