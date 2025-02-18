@@ -103,15 +103,7 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
             return notification.Succeeded ? StudioStatisticsEvent.AppDecommissioned : StudioStatisticsEvent.AppDecommissionFailed;
         }
 
-        var deploymentsInEnvironment = (await _deploymentRepository.GetSucceeded(
-            notification.EditingContext.Org,
-            notification.EditingContext.Repo,
-            notification.Environment,
-            new DocumentQueryModel { SortDirection = SortDirection.Descending }
-        )).ToList();
-
-        bool isUpdate = (notification.Succeeded && deploymentsInEnvironment.Count > 2) ||
-                        (!notification.Succeeded && deploymentsInEnvironment.Count > 1);
+        bool isUpdate = await IsAppUpdated(notification);
 
         if (isUpdate)
         {
@@ -119,6 +111,26 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
         }
 
         return notification.Succeeded ? StudioStatisticsEvent.AppDeployed : StudioStatisticsEvent.AppDeployFailed;
+    }
+
+    /// <summary>
+    /// Calculates if the app is updated based on the deployment history
+    /// Current deploy is also stored in the database.
+    /// If the current deploy is successful we're checking if there is one more successful deploy in the environment other than the current one.
+    /// If the current deploy is unsuccessful we're checking if there was one successful deploy in the environment.
+    /// </summary>
+    public async Task<bool> IsAppUpdated(Events.DeploymentPipelineCompleted notification)
+    {
+        // if the current deployment is successful it will be contained in the list of successful deployments
+        var deploymentsInEnvironment = (await _deploymentRepository.GetSucceeded(
+            notification.EditingContext.Org,
+            notification.EditingContext.Repo,
+            notification.Environment,
+            new DocumentQueryModel { SortDirection = SortDirection.Descending }
+        )).ToList();
+
+        return (notification.Succeeded && deploymentsInEnvironment.Count > 1) ||
+                        (!notification.Succeeded && deploymentsInEnvironment.Count > 0);
     }
 
 }
