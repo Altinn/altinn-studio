@@ -49,6 +49,14 @@ public class FounderSigneesProvider : ISigneeProvider
                                 "Hei "
                                 + stifterPerson.Fornavn
                                 + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                        },
+                        Sms = new Sms
+                        {
+                            MobileNumber = stifterPerson.Mobiltelefon,
+                            Body =
+                                "Hei "
+                                + stifterPerson.Fornavn
+                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         }
                     }
                 }
@@ -81,6 +89,14 @@ public class FounderSigneesProvider : ISigneeProvider
                                 + stifterVirksomhet.Navn
                                 + ",\n\nNye stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
                         },
+                        Sms = new Sms
+                        {
+                            MobileNumber = stifterVirksomhet.Mobiltelefon,
+                            Body =
+                                "Hei "
+                                + stifterVirksomhet.Navn
+                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                        }
                     }
                 }
             };
