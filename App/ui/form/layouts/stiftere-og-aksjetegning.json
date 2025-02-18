@@ -130,11 +130,6 @@
         "textResourceBindings": {
           "title": "Mobiltelefon (for varsel om signering)"
         },
-        "formatting": {
-          "number": {
-            "prefix": "+47"
-          }
-        },
         "grid": { "lg": 6 }
       },
       {
@@ -218,11 +213,6 @@
         "dataModelBindings": { "simpleBinding": "StifterPerson.Mobiltelefon" },
         "textResourceBindings": {
           "title": "Mobiltelefon (for varsel om signering)"
-        },
-        "formatting": {
-          "number": {
-            "prefix": "+47"
-          }
         },
         "grid": { "lg": 6 }
       },
