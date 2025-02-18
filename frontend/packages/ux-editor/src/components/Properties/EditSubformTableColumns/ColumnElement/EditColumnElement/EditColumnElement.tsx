@@ -76,7 +76,7 @@ export const EditColumnElement = ({
     dataModelBindings: IDataModelBindingsKeyValue,
     dataModelBindingKey: string,
   ) => {
-    const { field } = convertDataBindingToInternalFormat(dataModelBindings?.[dataModelBindingKey]);
+    const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);
 
     const selectedComponent = availableComponents.find((comp) => comp.id === selectedComponentId);
     const title =
