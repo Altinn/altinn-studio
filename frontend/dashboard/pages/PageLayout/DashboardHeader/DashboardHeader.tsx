@@ -131,7 +131,7 @@ const DashboardHeaderMenu = () => {
 
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={showButtonText && triggerButtonText}
+      triggerButtonText={showButtonText ? triggerButtonText : undefined}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
