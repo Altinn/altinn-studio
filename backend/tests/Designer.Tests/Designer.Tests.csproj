@@ -117,9 +117,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\org-content-empty\Codelists\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\org-content-empty\Texts\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\org-content\Texts\" />
     <Folder Include="_TestData\Repositories\testUser\ttd\model-namespace\" />
   </ItemGroup>
 </Project>
