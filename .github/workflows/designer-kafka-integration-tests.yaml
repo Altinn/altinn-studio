@@ -29,6 +29,12 @@ jobs:
         run: |
           docker compose -f development/kafka/compose.yaml up -d
 
+      - name: show logs
+        run: |
+          docker ps
+          docker compose -f development/kafka/compose.yaml logs schemaregistry
+          docker compose -f development/kafka/compose.yaml logs kafka
+
       - name: Run integration tests
         run: |
            dotnet test backend/Designer.sln --filter "Category=KafkaIntegrationTest" -v m
