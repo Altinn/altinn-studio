@@ -7,6 +7,7 @@ export type CodeListEditorTexts = {
   codeList: string;
   delete: string;
   deleteItem: (number: number) => string;
+  deleteItemConfirmation: (number: number) => string;
   description: string;
   emptyCodeList: string;
   generalError: string;

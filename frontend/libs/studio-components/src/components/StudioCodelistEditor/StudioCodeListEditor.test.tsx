@@ -265,6 +265,8 @@ describe('StudioCodeListEditor', () => {
   it('Calls the onChange callback with the new code list when an item is removed', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -272,6 +274,16 @@ describe('StudioCodeListEditor', () => {
       codeListWithoutTextResources[1],
       codeListWithoutTextResources[2],
     ]);
+  });
+
+  it('Does not call onchange method when deletion is not confirmed', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+
+    const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
+    await user.click(deleteButton);
+    expect(onChange).toHaveBeenCalledTimes(0);
   });
 
   it('Calls the onChange callback with the new code list when an item is added', async () => {
@@ -321,6 +333,7 @@ describe('StudioCodeListEditor', () => {
 
   it('Calls the onAddOrDeleteItem callback with the new code list when an item is removed', async () => {
     const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     renderCodeListEditor();
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
@@ -329,6 +342,15 @@ describe('StudioCodeListEditor', () => {
       codeListWithoutTextResources[1],
       codeListWithoutTextResources[2],
     ]);
+  });
+
+  it('Does not call the onAddOrDeleteItem callback when it is not confirmed', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    renderCodeListEditor();
+    const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
+    await user.click(deleteButton);
+    expect(onAddOrDeleteItem).toHaveBeenCalledTimes(0);
   });
 
   it('Updates itself when the user changes something', async () => {
@@ -468,6 +490,7 @@ describe('StudioCodeListEditor', () => {
 
   it('Renders without errors when removing an item and no callbacks are provided', async () => {
     const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     renderCodeListEditor({
       onAddOrDeleteItem: undefined,
       onBlurAny: undefined,
