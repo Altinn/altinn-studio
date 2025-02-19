@@ -13,15 +13,17 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { implementsAnyValidation } from 'src/layout';
-import { useGetPage, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 
 export const NodeInspector = () => {
   const pageKey = useCurrentView();
-  const currentPage = useGetPage(pageKey);
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const selectedNode = useNode(selectedId);
-  const children = useNodeTraversal((t) => (currentPage ? t.with(currentPage).children() : undefined));
+  const children = NodesInternal.useShallowSelector((state) =>
+    Object.values(state.nodeData)
+      .filter((data) => data.pageKey === pageKey && data.parentId === undefined) // Find top-level nodes
+      .map((data) => data.layout.id),
+  );
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
   const focusLayoutInspector = useDevToolsStore((state) => state.actions.focusLayoutInspector);
 
@@ -32,7 +34,7 @@ export const NodeInspector = () => {
     >
       <div className={reusedClasses.container}>
         <NodeHierarchy
-          nodeIds={children?.map((c) => c.id) ?? []}
+          nodeIds={children?.map((id) => id) ?? []}
           selected={selectedId}
           onClick={setSelected}
         />

@@ -75,7 +75,7 @@ export function EditWindowComponent({
 
     await updateAttachment({
       attachment,
-      node,
+      nodeId: node.id,
       tags,
     });
   };

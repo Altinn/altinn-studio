@@ -1,4 +1,4 @@
-import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
+import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { FormDataSelector } from 'src/layout';

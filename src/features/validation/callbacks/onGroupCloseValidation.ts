@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
+import { getRecursiveValidations } from 'src/features/validation/ValidationStorePlugin';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
@@ -15,25 +15,23 @@ import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
  */
 export function useOnGroupCloseValidation() {
   const setNodeVisibility = NodesInternal.useSetNodeVisibility();
-  const nodeValidationSelector = NodesInternal.useValidationsSelector();
   const validating = Validation.useValidating();
-  const traversalSelector = useNodeTraversalSelector();
+  const nodeStore = NodesInternal.useStore();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent(
     (node: LayoutNode, restriction: TraversalRestriction, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
-
-      const nodesWithErrors = traversalSelector(
-        (t) =>
-          t
-            .with(node)
-            .children(undefined, restriction)
-            .map((child) => t.with(child).flat())
-            .flat()
-            .filter((n) => nodeValidationSelector(n, mask, 'error').length > 0),
-        [node, restriction, mask, nodeValidationSelector],
-      );
+      const state = nodeStore.getState();
+      const nodesWithErrors = getRecursiveValidations({
+        id: node.id,
+        includeHidden: false,
+        includeSelf: false,
+        severity: 'error',
+        restriction,
+        mask,
+        state,
+      }).map((v) => v.nodeId);
 
       if (nodesWithErrors.length > 0) {
         setNodeVisibility(nodesWithErrors, mask);

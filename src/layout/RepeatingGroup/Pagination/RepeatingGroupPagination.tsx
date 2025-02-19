@@ -15,8 +15,7 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
-import type { RepGroupRow } from 'src/layout/RepeatingGroup/types';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RepeatingGroupPaginationProps {
@@ -210,49 +209,31 @@ function PaginationComponent({
 /**
  * Returns a list of pagination pages containing errors
  */
-function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'RepeatingGroup'>) {
-  const rows = useNodeItem(node).rows;
-  const nodeValidationsSelector = NodesInternal.useValidationsSelector();
-  const traversalSelector = useNodeTraversalSelector();
+function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'RepeatingGroup'>): number[] {
+  const rows = useNodeItem(node, (i) => i.rows);
+  const deepValidations = NodesInternal.useVisibleValidationsDeep(node, 'visible', false, undefined, 'error');
 
   return useMemo(() => {
     if (typeof rowsPerPage !== 'number') {
       return [];
     }
 
-    const visibleRows: RepGroupRow[] = [];
-    for (const row of rows) {
-      if (row && !row.groupExpressions?.hiddenRow) {
-        visibleRows.push(row);
-      }
-    }
+    const { depth } = splitDashedKey(node.id);
+    const rowsWithErrors = new Set<number>(
+      deepValidations.map((v) => splitDashedKey(v.nodeId).depth.slice(depth.length)[0]),
+    );
 
-    const pagesWithErrors: number[] = [];
-
-    for (let i = 0; i < visibleRows.length; i++) {
-      const pageNumber = Math.floor(i / rowsPerPage);
-      if (pagesWithErrors.includes(pageNumber)) {
+    const pagesWithErrors = new Set<number>();
+    for (const i of rowsWithErrors) {
+      const isHidden = rows[i]?.groupExpressions?.hiddenRow;
+      if (isHidden) {
         continue;
       }
 
-      const deepNodes = visibleRows[i].itemIds?.flatMap((nodeId) =>
-        traversalSelector(
-          (t) => {
-            const node = t.findById(nodeId);
-            return node ? t.with(node).flat() : [];
-          },
-          [nodeId],
-        ),
-      );
-      for (const node of deepNodes || []) {
-        const validations = nodeValidationsSelector(node, 'visible', 'error');
-        if (validations.length > 0) {
-          pagesWithErrors.push(pageNumber);
-          break;
-        }
-      }
+      const pageNumber = Math.floor(i / rowsPerPage);
+      pagesWithErrors.add(pageNumber);
     }
 
-    return pagesWithErrors;
-  }, [nodeValidationsSelector, rows, rowsPerPage, traversalSelector]);
+    return Array.from(pagesWithErrors);
+  }, [rowsPerPage, node.id, deepValidations, rows]);
 }

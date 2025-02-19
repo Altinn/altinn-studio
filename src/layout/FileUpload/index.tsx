@@ -29,7 +29,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   }
 
   getDisplayData(node: LayoutNode<'FileUpload'>, { attachmentsSelector }: DisplayDataProps): string {
-    return attachmentsSelector(node)
+    return attachmentsSelector(node.id)
       .map((a) => a.data.filename)
       .join(', ');
   }
@@ -63,7 +63,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     const minNumberOfAttachments = nodeDataSelector((picker) => picker(node)?.item?.minNumberOfAttachments, [node]);
 
     // Validate minNumberOfAttachments
-    const attachments = attachmentsSelector(node);
+    const attachments = attachmentsSelector(node.id);
     if (
       minNumberOfAttachments !== undefined &&
       minNumberOfAttachments > 0 &&

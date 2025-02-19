@@ -4,7 +4,6 @@ import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { TypesFromCategory } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
   DefPluginChildClaimerProps,
   DefPluginExtraInItem,
@@ -158,7 +157,7 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     return state.item?.[this.settings.internalProp] || [];
   }
 
-  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childNode: LayoutNode): boolean {
+  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {
     return false;
   }
 }

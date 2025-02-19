@@ -79,7 +79,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
       return;
     }
     // we should upload all files, if any rejected files we should display an error
-    uploadAttachments({ files: acceptedFiles, node, dataModelBindings });
+    uploadAttachments({ files: acceptedFiles, nodeId: node.id, dataModelBindings });
 
     if (acceptedFiles.length > 0) {
       setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
@@ -87,7 +87,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
 
     const rejections = rejectedFiles.map((fileRejection) => new RejectedFileError(fileRejection, maxFileSizeInMB));
     if (rejections?.length) {
-      addRejectedAttachments(node, rejections);
+      addRejectedAttachments(node.id, rejections);
     }
   };
 

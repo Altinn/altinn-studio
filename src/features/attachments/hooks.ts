@@ -8,8 +8,8 @@ export const useAttachmentsAwaiter = () => NodesInternal.useWaitUntilUploaded();
 export const useAddRejectedAttachments = () => NodesInternal.useAddRejectedAttachments();
 export const useDeleteFailedAttachment = () => NodesInternal.useDeleteFailedAttachment();
 
-export const useAttachmentsFor = (node: FileUploaderNode) => NodesInternal.useAttachments(node);
-export const useFailedAttachmentsFor = (node: FileUploaderNode) => NodesInternal.useFailedAttachments(node);
+export const useAttachmentsFor = (node: FileUploaderNode) => NodesInternal.useAttachments(node.id);
+export const useFailedAttachmentsFor = (node: FileUploaderNode) => NodesInternal.useFailedAttachments(node.id);
 
 export const useAttachmentsSelector = () => NodesInternal.useAttachmentsSelector();
 

@@ -29,7 +29,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
   }
 
   getDisplayData(node: LayoutNode<'FileUploadWithTag'>, { attachmentsSelector }: DisplayDataProps): string {
-    return attachmentsSelector(node)
+    return attachmentsSelector(node.id)
       .map((a) => a.data.filename)
       .join(', ');
   }
@@ -59,7 +59,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     const minNumberOfAttachments = nodeDataSelector((picker) => picker(node)?.item?.minNumberOfAttachments, [node]);
 
     // Validate minNumberOfAttachments
-    const attachments = attachmentsSelector(node);
+    const attachments = attachmentsSelector(node.id);
     if (
       minNumberOfAttachments !== undefined &&
       minNumberOfAttachments > 0 &&

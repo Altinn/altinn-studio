@@ -415,7 +415,6 @@ export class ComponentConfig {
         import: 'TraversalRestriction',
         from: 'src/utils/layout/useNodeTraversal',
       });
-      const LayoutNode = new CG.import({ import: 'LayoutNode', from: 'src/utils/layout/LayoutNode' });
 
       const claimChildrenBody = childrenPlugins.map((plugin) =>
         `${pluginRef(plugin)}.claimChildren({
@@ -429,7 +428,7 @@ export class ComponentConfig {
       );
 
       const isChildHiddenBody = childrenPlugins.map(
-        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childNode)`,
+        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childId)`,
       );
 
       additionalMethods.push(
@@ -439,7 +438,7 @@ export class ComponentConfig {
         `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: ${TraversalRestriction}) {
           return [${pickDirectChildrenBody.join(', ')}];
         }`,
-        `isChildHidden(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}) {
+        `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string) {
           return [${isChildHiddenBody.join(', ')}].some((h) => h);
         }`,
       );
@@ -463,6 +462,9 @@ export class ComponentConfig {
         const baseState: ${BaseNodeData}<'${this.type}'> = {
           type: 'node',
           pageKey: props.pageKey,
+          parentId: props.parentId,
+          depth: props.depth,
+          isValid: props.isValid,
           item: undefined,
           layout: props.item,
           hidden: undefined,

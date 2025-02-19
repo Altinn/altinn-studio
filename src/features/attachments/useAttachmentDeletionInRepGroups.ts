@@ -1,15 +1,16 @@
 import { useCallback } from 'react';
 
 import { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
-import { useAttachmentsAwaiter, useAttachmentsRemover, useAttachmentsSelector } from 'src/features/attachments/hooks';
+import { useAttachmentsAwaiter, useAttachmentsRemover } from 'src/features/attachments/hooks';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
+import { attachmentSelector } from 'src/features/attachments/tools';
 import { useAsRef } from 'src/hooks/useAsRef';
+import { getComponentDef } from 'src/layout';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import type { CompWithPlugin, IDataModelBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
-
-type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -25,37 +26,43 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
   const remove = useAsRef(useAttachmentsRemover());
   const awaiter = useAttachmentsAwaiter();
   const nodeRef = useAsRef(node);
-  const attachmentsSelector = useAttachmentsSelector();
-  const traversalSelector = useNodeTraversalSelector();
-  const nodeItemSelector = NodesInternal.useNodeDataSelector();
+  const nodesStore = NodesInternal.useStore();
 
   return useCallback(
     async (restriction: TraversalRestriction): Promise<boolean> => {
-      const uploaders = traversalSelector(
-        (t) =>
-          t
-            .with(nodeRef.current)
-            .flat(undefined, restriction)
-            .filter((n) => n.def.hasPlugin(AttachmentsPlugin)),
-        [nodeRef.current, restriction],
-      ) as UploaderNode[];
+      const state = nodesStore.getState();
+      const recursiveChildren = new Set<string>(recursivelyFindChildren(nodeRef.current.id, state, restriction));
+      const uploaderNodeIds = Object.values(state.nodeData)
+        .filter((n) => {
+          if (!recursiveChildren.has(n.layout.id)) {
+            return false;
+          }
+          const def = getComponentDef(n.layout.type);
+          return def && def.hasPlugin(AttachmentsPlugin);
+        })
+        .map((n) => n.layout.id);
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
-      for (const uploader of uploaders) {
-        const files = attachmentsSelector(uploader);
+      for (const uploaderId of uploaderNodeIds) {
+        const nodeData = state.nodeData[uploaderId];
+        const dataModelBindings = nodeData?.layout.dataModelBindings as IDataModelBindings<
+          CompWithPlugin<typeof AttachmentsPlugin>
+        >;
+
+        const files = attachmentSelector(uploaderId)(state);
         for (const file of files) {
           if (isAttachmentUploaded(file)) {
             const result = await remove.current({
               attachment: file,
-              node: uploader,
-              dataModelBindings: nodeItemSelector((picker) => picker(uploader)?.layout.dataModelBindings, [uploader]),
+              nodeId: uploaderId,
+              dataModelBindings,
             });
             if (!result) {
               return false;
             }
           } else {
-            const uploaded = await awaiter(uploader, file);
+            const uploaded = await awaiter(uploaderId, file);
             if (uploaded) {
               const result = await remove.current({
                 attachment: {
@@ -64,8 +71,8 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
                   updating: false,
                   data: uploaded,
                 },
-                node: uploader,
-                dataModelBindings: nodeItemSelector((picker) => picker(uploader)?.layout.dataModelBindings, [uploader]),
+                nodeId: uploaderId,
+                dataModelBindings,
               });
               if (!result) {
                 return false;
@@ -80,6 +87,14 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 
       return true;
     },
-    [traversalSelector, nodeRef, attachmentsSelector, remove, nodeItemSelector, awaiter],
+    [nodesStore, nodeRef, remove, awaiter],
   );
+}
+
+function recursivelyFindChildren(parentId: string, state: NodesContext, restriction?: number): string[] {
+  const children = Object.values(state.nodeData)
+    .filter((n) => n.parentId === parentId && (restriction === undefined || n.rowIndex === restriction))
+    .map((n) => n.layout.id);
+
+  return [...children, ...children.flatMap((c) => recursivelyFindChildren(c, state, undefined))];
 }

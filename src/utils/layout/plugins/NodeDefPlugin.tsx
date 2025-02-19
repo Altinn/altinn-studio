@@ -4,7 +4,6 @@ import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImpor
 import type { SerializableSetting } from 'src/codegen/SerializableSetting';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps, ExprResolver } from 'src/layout/LayoutComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
@@ -261,7 +260,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
   pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction): string[];
-  isChildHidden(state: DefPluginState<Config>, childNode: LayoutNode): boolean;
+  isChildHidden(state: DefPluginState<Config>, childId: string): boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

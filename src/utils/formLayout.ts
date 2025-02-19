@@ -1,8 +1,6 @@
 import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
-import { getComponentCapabilities } from 'src/layout';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
   if (typeof lastIndex === 'undefined') {
@@ -22,28 +20,6 @@ export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilte
 
   return { startIndex, stopIndex: boundedStopIndex };
 };
-
-/**
- * Takes a layout and splits it into two return parts; the last will contain
- * all the buttons on the bottom of the input layout, while the first returned
- * value is the input layout except for these extracted components.
- */
-export function extractBottomButtons(topLevelNodes: LayoutNode[]) {
-  const all = [...topLevelNodes];
-  const toMainLayout: string[] = [];
-  const toErrorReport: string[] = [];
-  for (const node of all.reverse()) {
-    const capabilities = getComponentCapabilities(node.type);
-    const isButtonLike = node.isType('ButtonGroup') || (capabilities.renderInButtonGroup && !node.isType('Custom'));
-    if (isButtonLike && toMainLayout.length === 0) {
-      toErrorReport.push(node.id);
-    } else {
-      toMainLayout.push(node.id);
-    }
-  }
-
-  return [toMainLayout.reverse(), toErrorReport.reverse()];
-}
 
 /**
  * Some tasks other than data (for instance confirm, or other in the future) can be configured to behave like data steps

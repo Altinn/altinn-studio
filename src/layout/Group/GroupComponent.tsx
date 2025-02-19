@@ -11,9 +11,8 @@ import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
@@ -48,7 +47,7 @@ export function GroupComponent({
   const isHidden = Hidden.useIsHidden(groupNode);
 
   const children = useNodeDirectChildren(groupNode, restriction);
-  const depth = useNodeTraversal((traverser) => traverser.with(groupNode).parents().length);
+  const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
 
   if (isHidden) {
     return null;

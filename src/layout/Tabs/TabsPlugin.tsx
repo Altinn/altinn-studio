@@ -4,7 +4,6 @@ import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { CompTypes } from 'src/layout/layout';
 import type { TabConfig } from 'src/layout/Tabs/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
   DefPluginChildClaimerProps,
   DefPluginExtraInItem,
@@ -117,7 +116,7 @@ export class TabsPlugin<Type extends CompTypes>
     return out;
   }
 
-  isChildHidden(_state: DefPluginState<Config<Type>>, _childNode: LayoutNode): boolean {
+  isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {
     return false;
   }
 }

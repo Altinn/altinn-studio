@@ -308,6 +308,8 @@ describe('PDF', () => {
     });
 
     cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
+    cy.waitUntilSaved();
 
     cy.testPdf({
       callback: () => {
@@ -345,6 +347,8 @@ describe('PDF', () => {
     });
 
     cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
+    cy.waitUntilSaved();
 
     cy.testPdf({
       callback: () => {

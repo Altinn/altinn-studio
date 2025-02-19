@@ -3,9 +3,8 @@ import { useCallback } from 'react';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { getInitialMaskFromNodeItem, selectValidations } from 'src/features/validation/utils';
-import { isHidden, nodesProduce, useNodesLax } from 'src/utils/layout/NodesContext';
+import { isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
-import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
 import type {
   AnyValidation,
   AttachmentValidation,
@@ -19,7 +18,7 @@ import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPl
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export type ValidationsSelector = (
-  node: LayoutNode,
+  nodeOrId: LayoutNode | string,
   mask: NodeVisibility,
   severity?: ValidationSeverity,
   includeHidden?: boolean, // Defaults to false
@@ -134,40 +133,49 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           if (!node) {
             return emptyArray;
           }
-          return getValidations({ state, node, mask: showAll ? 'showAll' : 'visible' });
+          return getValidations({ state, id: node.id, mask: showAll ? 'showAll' : 'visible' });
         }),
       useVisibleValidationsDeep: (node, mask, includeSelf, restriction, severity) =>
         store.useMemoSelector((state) => {
           if (!node) {
             return emptyArray;
           }
-          return getRecursiveValidations({ state, node, mask, severity, includeSelf, restriction });
+          return getRecursiveValidations({ state, id: node.id, mask, severity, includeSelf, restriction });
         }),
       useValidationsSelector: () =>
         store.useDelayedSelector({
           mode: 'simple',
           selector:
-            (node: LayoutNode, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden: boolean = false) =>
+            (
+              nodeOrId: LayoutNode | string,
+              mask: NodeVisibility,
+              severity?: ValidationSeverity,
+              includeHidden: boolean = false,
+            ) =>
             (state: NodesContext) =>
-              getValidations({ state, node, mask, severity, includeHidden }),
+              getValidations({
+                state,
+                id: typeof nodeOrId === 'string' ? nodeOrId : nodeOrId.id,
+                mask,
+                severity,
+                includeHidden,
+              }),
         }) satisfies ValidationsSelector,
-      useAllValidations: (mask, severity, includeHidden) => {
-        const nodes = useNodesLax();
-        return store.useLaxMemoSelector((state) => {
+      useAllValidations: (mask, severity, includeHidden) =>
+        store.useLaxMemoSelector((state) => {
           const out: NodeRefValidation[] = [];
-          for (const node of nodes?.allNodes() ?? []) {
-            const validations = getValidations({ state, node, mask, severity, includeHidden });
+          for (const nodeData of Object.values(state.nodeData)) {
+            const id = nodeData.layout.id;
+            const validations = getValidations({ state, id, mask, severity, includeHidden });
             for (const validation of validations) {
-              out.push({ ...validation, nodeId: node.id });
+              out.push({ ...validation, nodeId: id });
             }
           }
 
           return out;
-        });
-      },
+        }),
       useGetNodesWithErrors: () => {
         const zustand = store.useLaxStore();
-        const nodes = useNodesLax();
         return useCallback(
           (mask, severity, includeHidden = false) => {
             if (zustand === ContextNotProvided) {
@@ -180,32 +188,31 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
 
             const outNodes: string[] = [];
             const outValidations: AnyValidation[] = [];
-            for (const node of nodes?.allNodes() ?? []) {
-              const validations = getValidations({ state, node, mask, severity, includeHidden });
+            for (const id of Object.keys(state.nodeData)) {
+              const validations = getValidations({ state, id, mask, severity, includeHidden });
               if (validations.length > 0) {
-                outNodes.push(node.id);
+                outNodes.push(id);
                 outValidations.push(...validations);
               }
             }
             return [outNodes, outValidations];
           },
-          [nodes, zustand],
+          [zustand],
         );
       },
-      usePageHasVisibleRequiredValidations: (pageKey) => {
-        const nodes = useNodesLax();
-        return store.useSelector((state) => {
+      usePageHasVisibleRequiredValidations: (pageKey) =>
+        store.useSelector((state) => {
           if (!pageKey) {
             return false;
           }
 
-          for (const node of nodes?.allNodes() ?? []) {
-            const nodeData = state.nodeData[node.id];
+          for (const nodeData of Object.values(state.nodeData)) {
             if (!nodeData || nodeData.pageKey !== pageKey) {
               continue;
             }
 
-            const validations = getValidations({ state, node, mask: 'visible', severity: 'error' });
+            const id = nodeData.layout.id;
+            const validations = getValidations({ state, id, mask: 'visible', severity: 'error' });
             for (const validation of validations) {
               if (validation.source === FrontendValidationSource.EmptyField) {
                 return true;
@@ -214,28 +221,26 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
 
           return false;
-        });
-      },
+        }),
     };
   }
 }
 
 interface GetValidationsProps {
   state: NodesContext;
-  node: LayoutNode;
+  id: string;
   mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
 }
 
-function getValidations({ state, node, mask, severity, includeHidden = false }: GetValidationsProps): AnyValidation[] {
-  const nodeData = state.nodeData[node.id];
-  if (!nodeData || !('validations' in nodeData) || !('validationVisibility' in nodeData)) {
+function getValidations({ state, id, mask, severity, includeHidden = false }: GetValidationsProps): AnyValidation[] {
+  const nodeData = state.nodeData[id];
+  if (!nodeData || !('validations' in nodeData) || !('validationVisibility' in nodeData) || !nodeData.isValid) {
     return emptyArray;
   }
 
-  const nodes = node.page.layoutSet;
-  if (!includeHidden && (!node || isHidden(state, node, nodes, hiddenOptions))) {
+  if (!includeHidden && isHidden(state, 'node', id, hiddenOptions)) {
     return emptyArray;
   }
 
@@ -256,31 +261,34 @@ interface GetDeepValidationsProps extends GetValidationsProps {
   restriction?: TraversalRestriction;
 }
 
-function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {
+export function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {
   const out: NodeRefValidation[] = [];
 
   if (props.includeSelf) {
     const nodeValidations = getValidations(props);
     for (const validation of nodeValidations) {
-      out.push({ ...validation, nodeId: props.node.id });
+      out.push({ ...validation, nodeId: props.id });
     }
   }
 
-  const nodes = props.node.page.layoutSet;
-  if (nodes) {
-    const children = props.node.children(new TraversalTask(props.state, nodes, undefined, props.restriction));
-    for (const child of children) {
-      out.push(
-        ...getRecursiveValidations({
-          ...props,
-          node: child,
+  const children = Object.values(props.state.nodeData)
+    .filter(
+      (nodeData) =>
+        nodeData.parentId === props.id && (props.restriction === undefined || props.restriction === nodeData.rowIndex),
+    )
+    .map((nodeData) => nodeData.layout.id);
 
-          // Restriction and includeSelf should only be applied to the first level (not recursively)
-          restriction: undefined,
-          includeSelf: true,
-        }),
-      );
-    }
+  for (const id of children) {
+    out.push(
+      ...getRecursiveValidations({
+        ...props,
+        id,
+
+        // Restriction and includeSelf should only be applied to the first level (not recursively)
+        restriction: undefined,
+        includeSelf: true,
+      }),
+    );
   }
 
   return out;

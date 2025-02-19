@@ -12,9 +12,9 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { useNodeTraversal, useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { ExprConfig, Expression, ExprFunctionName } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -76,8 +76,11 @@ export const ExpressionPlayground = () => {
 
   const traversalSelector = useNodeTraversalSelector();
 
-  const componentOptions = useNodeTraversal((t) =>
-    t.allNodes().map((n) => ({ label: n.id, value: `${n.page.pageKey}|${n.id}` })),
+  const componentOptions = NodesInternal.useMemoSelector((state) =>
+    Object.values(state.nodeData).map((nodeData) => ({
+      label: nodeData.layout.id,
+      value: `${nodeData.pageKey}|${nodeData.layout.id}`,
+    })),
   );
 
   useEffect(() => {

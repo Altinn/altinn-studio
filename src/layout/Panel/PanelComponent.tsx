@@ -7,8 +7,8 @@ import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type IPanelProps = PropsFromGenericComponent<'Panel'>;
@@ -17,13 +17,23 @@ export const PanelComponent = ({ node }: IPanelProps) => {
   const { textResourceBindings, variant, showIcon, grid } = useNodeItem(node);
   const fullWidth = !grid && node.parent instanceof LayoutPage;
 
-  const { isOnBottom, isOnTop } = useNodeTraversal((t) => {
-    const parent = t.parents()[0];
-    const children = t.with(parent).children();
-    const isOnBottom = children.indexOf(node) === children.length - 1;
-    const isOnTop = children.indexOf(node) === 0;
+  const { isOnBottom, isOnTop } = NodesInternal.useShallowSelector((state) => {
+    let children: string[] = [];
+    if (node.parent instanceof LayoutPage) {
+      children = Object.values(state.nodeData)
+        .filter((n) => n.pageKey === node.parent.pageKey && n.parentId === undefined)
+        .map((n) => n.layout.id);
+    } else {
+      const parentId = node.parent.id;
+      children = Object.values(state.nodeData)
+        .filter((n) => n.parentId === parentId)
+        .map((n) => n.layout.id);
+    }
+
+    const isOnBottom = children.indexOf(node.id) === children.length - 1;
+    const isOnTop = children.indexOf(node.id) === 0;
     return { isOnBottom, isOnTop };
-  }, node);
+  });
 
   if (!textResourceBindings?.body && !textResourceBindings?.title) {
     window.logWarn('Unable to render panel component: no text resource binding found.');

@@ -7,7 +7,6 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { TypesFromCategory } from 'src/layout/layout';
 import type { ChildIdMutator } from 'src/utils/layout/generator/GeneratorContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type {
   DefPluginChildClaimerProps,
@@ -236,7 +235,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
     return out;
   }
 
-  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childNode: LayoutNode): boolean {
+  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {
     // Repeating children plugins do not have any specific logic here, but beware that
     // the RepeatingGroup component does.
     return false;

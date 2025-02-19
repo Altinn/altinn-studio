@@ -37,7 +37,7 @@ import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector, NodesContext } from 'src/utils/layout/NodesContext';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { NodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
@@ -166,16 +166,9 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return false;
   }
 
-  shouldRenderInAutomaticPDF(node: LayoutNode<Type>, nodeDataSelector: NodeDataSelector): boolean {
-    const renderAsSummary = nodeDataSelector(
-      (picker) => {
-        const item = picker(node)?.item;
-        return item && 'renderAsSummary' in item ? item.renderAsSummary : false;
-      },
-      [node],
-    );
-
-    return !renderAsSummary;
+  shouldRenderInAutomaticPDF(data: NodeData<Type>): boolean {
+    const item = data.item;
+    return !(item && 'renderAsSummary' in item ? item.renderAsSummary : false);
   }
 
   /**
@@ -362,7 +355,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
 export abstract class ActionComponent<Type extends CompTypes> extends AnyComponent<Type> {
   readonly category = CompCategory.Action;
 
-  shouldRenderInAutomaticPDF(_node: LayoutNode<Type>, _nodeDataSelector: NodeDataSelector): boolean {
+  shouldRenderInAutomaticPDF(_data: NodeData<Type>): boolean {
     return false;
   }
 }

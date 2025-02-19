@@ -4,7 +4,6 @@ import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { CardConfigExternal } from 'src/layout/Cards/config.generated';
 import type { CompTypes } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
   DefPluginChildClaimerProps,
   DefPluginExtraInItem,
@@ -138,7 +137,7 @@ export class CardsPlugin<Type extends CompTypes>
     return out;
   }
 
-  isChildHidden(_state: DefPluginState<Config<Type>>, _childNode: LayoutNode): boolean {
+  isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {
     return false;
   }
 }

@@ -23,7 +23,7 @@ export function FailedAttachments({ node }: { node: FileUploaderNode }) {
         <FileUploadError
           key={attachment.data.temporaryId}
           attachment={attachment}
-          handleClose={() => deleteFailedAttachment(node, attachment.data.temporaryId)}
+          handleClose={() => deleteFailedAttachment(node.id, attachment.data.temporaryId)}
         />
       ))}
     </div>

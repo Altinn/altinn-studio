@@ -45,7 +45,7 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
       return;
     }
 
-    await removeAttachment({ attachment, node, dataModelBindings });
+    await removeAttachment({ attachment, nodeId: node.id, dataModelBindings });
     editWindowIsOpen && setEditIndex(-1);
   };
 

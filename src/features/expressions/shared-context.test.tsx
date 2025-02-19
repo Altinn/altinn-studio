@@ -8,11 +8,10 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeTraversalFromRoot } from 'src/utils/layout/useNodeTraversal';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 function contextSorter(a: SharedTestContext, b: SharedTestContext): -1 | 0 | 1 {
   if (a.component === b.component) {
@@ -22,16 +21,15 @@ function contextSorter(a: SharedTestContext, b: SharedTestContext): -1 | 0 | 1 {
   return a.component > b.component ? 1 : -1;
 }
 
-function recurse(t: NodeTraversalFromRoot, node: LayoutNode, key: string): SharedTestContextList {
-  const splitKey = splitDashedKey(node.id);
+function recurse(state: NodesContext, nodeId: string, pageKey: string): SharedTestContextList {
+  const splitKey = splitDashedKey(nodeId);
   const context: SharedTestContextList = {
     component: splitKey.baseComponentId,
-    currentLayout: key,
+    currentLayout: pageKey,
   };
-  const children = t
-    .with(node)
-    .children()
-    .map((child) => recurse(t, child, key));
+  const children = Object.values(state.nodeData)
+    .filter((n) => n.parentId === nodeId)
+    .map((n) => recurse(state, n.layout.id, pageKey));
   if (children.length) {
     context.children = children;
   }
@@ -43,18 +41,15 @@ function recurse(t: NodeTraversalFromRoot, node: LayoutNode, key: string): Share
 }
 
 function TestContexts() {
-  const contexts = useNodeTraversal((t) => {
+  const contexts = NodesInternal.useMemoSelector((state) => {
     const contexts: SharedTestContextList[] = [];
-    const pages = t.children();
-    for (const page of pages) {
-      const layout = t
-        .with(page)
-        .children()
-        .map((child) => recurse(t, child, page.pageKey));
+    for (const page of Object.values(state.pagesData.pages)) {
       contexts.push({
         component: page.pageKey,
         currentLayout: page.pageKey,
-        children: layout,
+        children: Object.values(state.nodeData)
+          .filter((n) => n.pageKey === page.pageKey && n.parentId === undefined)
+          .map((n) => recurse(state, n.layout.id, page.pageKey)),
       });
     }
 

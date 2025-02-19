@@ -3,7 +3,6 @@ import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import { typedBoolean } from 'src/utils/typing';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { IDataModelBindingsLikert } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type {
   DefPluginChildClaimerProps,
@@ -79,7 +78,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     return state.item?.rows.map((row) => row?.itemNodeId).filter(typedBoolean) ?? [];
   }
 
-  isChildHidden(_state: DefPluginState<Config>, _childNode: LayoutNode): boolean {
+  isChildHidden(_state: DefPluginState<Config>, _childId: string): boolean {
     return false;
   }
 

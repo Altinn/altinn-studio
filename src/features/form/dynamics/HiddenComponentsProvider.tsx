@@ -48,7 +48,6 @@ function useLegacyHiddenComponents() {
   }
 
   const props = [defaultDataType, hiddenNodes, formDataSelector, transposeSelector] as const;
-  const topLevelNode = traversalSelector((t) => t.allNodes()[0], []);
   for (const key of Object.keys(rules)) {
     if (!key) {
       continue;
@@ -77,7 +76,7 @@ function useLegacyHiddenComponents() {
         }
       }
     } else {
-      runConditionalRenderingRule(rule, topLevelNode, ...props);
+      runConditionalRenderingRule(rule, undefined, ...props);
     }
   }
 

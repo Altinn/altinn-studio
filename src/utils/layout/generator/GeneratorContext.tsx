@@ -25,7 +25,7 @@ export interface ChildClaimsMap {
 
 type GlobalProviderProps = Pick<GeneratorContext, 'layouts' | 'layoutMap' | 'registry'>;
 
-type PageProviderProps = Pick<GeneratorContext, 'childrenMap'> & {
+type PageProviderProps = Pick<GeneratorContext, 'childrenMap' | 'isValid'> & {
   parent: LayoutPage;
 };
 
@@ -57,6 +57,7 @@ interface GeneratorContext {
       }
     | undefined;
   depth: number; // Depth is 1 for top level nodes, 2 for children of top level nodes, etc.
+  isValid?: boolean; // False when page is not in the page order, and not a pdf page (forwarded to nodes as well)
 }
 
 const { Provider, useCtx, useLaxCtx } = createContext<GeneratorContext>({
@@ -188,4 +189,5 @@ export const GeneratorInternal = {
   useRowBinding: () => useCtx().row?.binding,
   useRowIndex: () => useCtx().row?.index,
   useIntermediateItem: () => useCtx().item,
+  useIsValid: () => useCtx().isValid ?? true,
 };

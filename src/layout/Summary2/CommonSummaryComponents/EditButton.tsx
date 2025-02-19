@@ -15,7 +15,7 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type EditButtonProps = {
+export type EditButtonProps = {
   componentNode: LayoutNode;
   summaryComponentId?: string;
   navigationOverride?: (() => Promise<NavigationResult> | void) | null;

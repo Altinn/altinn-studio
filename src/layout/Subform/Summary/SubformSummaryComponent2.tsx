@@ -14,11 +14,12 @@ import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.
 import { SubformSummaryTable } from 'src/layout/Subform/Summary/SubformSummaryTable';
 import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
+import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export const SummarySubformWrapper = ({ node }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) => {
+export const SummarySubformWrapper = ({ nodeId }: PropsWithChildren<{ nodeId: string }>) => {
+  const node = useNode(nodeId) as LayoutNode<'Subform'>;
   const { layoutSet, id, textResourceBindings } = useNodeItem(node);
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
@@ -121,16 +122,16 @@ export function SubformSummaryComponent2({
   subformId?: string;
   componentNode?: LayoutNode<'Subform'>;
 }) {
-  const children = useNodeTraversal((t) =>
-    t
-      .allNodes()
-      .filter((node) => node.isType('Subform'))
-      .filter((child) => {
+  const allOrOneSubformId = NodesInternal.useShallowSelector((state) =>
+    Object.values(state.nodeData)
+      .filter((data) => data.layout.type === 'Subform')
+      .filter((data) => {
         if (!subformId) {
-          return child;
+          return data;
         }
-        return child.id === subformId;
-      }),
+        return data.layout.id === subformId;
+      })
+      .map((data) => data.layout.id),
   );
 
   if (displayType === 'table' && componentNode) {
@@ -139,10 +140,10 @@ export function SubformSummaryComponent2({
 
   return (
     <>
-      {children.map((child, idx) => (
+      {allOrOneSubformId.map((childId, idx) => (
         <SummarySubformWrapper
           key={idx}
-          node={child}
+          nodeId={childId}
         />
       ))}
     </>

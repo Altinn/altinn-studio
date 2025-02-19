@@ -12,6 +12,7 @@ import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
+import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
@@ -19,9 +20,8 @@ import { isGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
-import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import { typedBoolean } from 'src/utils/typing';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type {
@@ -32,6 +32,7 @@ import type {
 } from 'src/layout/common.generated';
 import type { GridCellInternal, GridCellNode, GridRowInternal } from 'src/layout/Grid/types';
 import type { ITextResourceBindings } from 'src/layout/layout';
+import type { EditButtonProps } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type GridSummaryProps = Readonly<{
@@ -145,7 +146,7 @@ export function GridRowRenderer(props: GridRowProps) {
 
   const isSmall = isMobile && !pdfModeActive;
 
-  const firstNode = useFirstFormNode(row);
+  const firstNodeId = useFirstFormNodeId(row);
 
   if (isGridRowHidden(row, isHiddenSelector)) {
     return null;
@@ -171,9 +172,9 @@ export function GridRowRenderer(props: GridRowProps) {
       )}
       {!pdfModeActive && !row.header && !isSmall && (
         <Table.Cell align='right'>
-          {firstNode && !row.readOnly && (
-            <EditButton
-              componentNode={firstNode}
+          {firstNodeId && !row.readOnly && (
+            <WrappedEditButton
+              componentNodeId={firstNodeId}
               summaryComponentId=''
             />
           )}
@@ -183,18 +184,36 @@ export function GridRowRenderer(props: GridRowProps) {
   );
 }
 
-function useFirstFormNode(row: GridRowInternal) {
-  return useNodeTraversal((t) => {
+function useFirstFormNodeId(row: GridRowInternal): string | undefined {
+  return NodesInternal.useSelector((state) => {
     for (const cell of row.cells) {
       if (cell && 'nodeId' in cell && cell.nodeId) {
-        const node = t.findById(cell.nodeId);
-        if (node && node.isCategory(CompCategory.Form)) {
-          return node;
+        const nodeData = state.nodeData?.[cell.nodeId];
+        const def = nodeData && getComponentDef(nodeData.layout.type);
+        if (def && def.category === CompCategory.Form) {
+          return nodeData.layout.id;
         }
       }
     }
     return undefined;
   });
+}
+
+function WrappedEditButton({
+  componentNodeId,
+  ...rest
+}: { componentNodeId: string } & Omit<EditButtonProps, 'componentNode'>) {
+  const node = useNode(componentNodeId);
+  if (!node) {
+    return null;
+  }
+
+  return (
+    <EditButton
+      componentNode={node}
+      {...rest}
+    />
+  );
 }
 
 type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;

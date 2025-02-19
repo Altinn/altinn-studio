@@ -6,9 +6,7 @@ import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { PageValidation } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 /**
@@ -21,61 +19,64 @@ export function useOnPageNavigationValidation() {
   const getNodeValidations = NodesInternal.useValidationsSelector();
   const validating = Validation.useValidating();
   const pageOrder = usePageOrder();
-  const traversalSelector = useNodeTraversalSelector();
+  const nodeStore = NodesInternal.useStore();
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent(async (currentPage: LayoutPage, config: PageValidation): Promise<boolean> => {
     const pageConfig = config.page ?? 'current';
     const masks = config.show;
-
     const mask = getVisibilityMask(masks);
-    let nodes: LayoutNode[] = [];
-
     const currentIndex = pageOrder.indexOf(currentPage.pageKey);
 
+    if (!pageOrder || currentIndex === -1) {
+      return false;
+    }
+    const currentOrPreviousPages = new Set<string>();
+    for (const pageKey of pageOrder.slice(0, currentIndex + 1)) {
+      currentOrPreviousPages.add(pageKey);
+    }
+
+    const state = nodeStore.getState();
+    const nodeIds: string[] = [];
+    const nodesOnCurrentOrPreviousPages = new Set<string>();
+    let hasSubform = false;
+
+    let shouldCheckPage: (pageKey: string) => boolean = () => true; // Defaults to all pages
     if (pageConfig === 'current') {
-      // Get nodes for current page
-      nodes = traversalSelector((t) => t.with(currentPage).flat(), [currentPage]);
+      shouldCheckPage = (pageKey: string) => pageKey === currentPage.pageKey;
     } else if (pageConfig === 'currentAndPrevious') {
-      // Get nodes for current and previous pages
-      if (!pageOrder || currentIndex === -1) {
-        return false;
+      shouldCheckPage = (pageKey: string) => currentOrPreviousPages.has(pageKey);
+    }
+
+    for (const nodeData of Object.values(state.nodeData)) {
+      if (currentOrPreviousPages.has(nodeData.pageKey)) {
+        nodesOnCurrentOrPreviousPages.add(nodeData.layout.id);
       }
-      const pageKeysToCheck = pageOrder.slice(0, currentIndex + 1);
-      nodes = traversalSelector(
-        (t) => {
-          const out: LayoutNode[] = [];
-          for (const key of pageKeysToCheck) {
-            const page = t.findPage(key);
-            if (page) {
-              out.push(...t.with(page).flat());
-            }
-          }
-          return out;
-        },
-        [...pageKeysToCheck],
-      );
-    } else {
-      // Get all nodes
-      nodes = traversalSelector((t) => t.flat(), []);
+      if (!shouldCheckPage(nodeData.pageKey)) {
+        continue;
+      }
+      if (nodeData.layout.type === 'Subform') {
+        hasSubform = true;
+      }
+      nodeIds.push(nodeData.layout.id);
     }
 
     // We need to get updated validations from backend to validate subform
-    if (nodes.some((n) => n.isType('Subform'))) {
+    if (hasSubform) {
       await refetchInitialValidations();
       await validating();
     }
 
     // Get nodes with errors along with their errors
     let onCurrentOrPreviousPage = false;
-    const nodeErrors = nodes
-      .map((n) => {
-        const validations = getNodeValidations(n, mask, 'error');
+    const nodeErrors = nodeIds
+      .map((id) => {
+        const validations = getNodeValidations(id, mask, 'error');
         if (validations.length > 0) {
-          onCurrentOrPreviousPage = onCurrentOrPreviousPage || pageOrder.indexOf(n.pageKey) <= currentIndex;
+          onCurrentOrPreviousPage = onCurrentOrPreviousPage || nodesOnCurrentOrPreviousPages.has(id);
         }
-        return [n, validations.length > 0] as const;
+        return [id, validations.length > 0] as const;
       })
       .filter(([_, e]) => e);
 

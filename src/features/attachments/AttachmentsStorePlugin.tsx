@@ -11,6 +11,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/index';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
+import { appSupportsNewAttachmentAPI, attachmentSelector } from 'src/features/attachments/tools';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
@@ -25,24 +26,22 @@ import { backendValidationIssueGroupListToObject } from 'src/features/validation
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type {
   DataPostResponse,
-  FileUploaderNode,
   IAttachment,
   IAttachmentsMap,
   IFailedAttachment,
   TemporaryAttachment,
   UploadedAttachment,
 } from 'src/features/attachments/index';
+import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import type { CompWithBehavior } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { NodeData } from 'src/utils/layout/types';
@@ -74,28 +73,26 @@ export interface AttachmentActionUpload {
     temporaryId: string;
     file: File;
   }[];
-  node: FileUploaderNode;
+  nodeId: string;
   dataModelBindings: IDataModelBindingsSimple | IDataModelBindingsList | undefined;
 }
 
 export interface AttachmentActionUpdate {
   tags: string[];
-  node: FileUploaderNode;
+  nodeId: string;
   attachment: UploadedAttachment;
 }
 
 export interface AttachmentActionRemove {
-  node: FileUploaderNode;
+  nodeId: string;
   attachment: UploadedAttachment;
   dataModelBindings: IDataModelBindingsSimple | IDataModelBindingsList | undefined;
 }
 
 export interface AttachmentActionAddFailed {
-  node: FileUploaderNode;
+  nodeId: string;
   attachments: IFailedAttachment[];
 }
-
-export type AttachmentsSelector = (node: FileUploaderNode) => IAttachment[];
 
 export interface AttachmentsStorePluginConfig {
   extraFunctions: {
@@ -110,7 +107,7 @@ export interface AttachmentsStorePluginConfig {
     attachmentRemoveFulfilled: (action: AttachmentActionRemove) => void;
     attachmentRemoveRejected: (action: AttachmentActionRemove, error: AxiosError) => void;
 
-    deleteFailedAttachment: (node: FileUploaderNode, temporaryId: string) => void;
+    deleteFailedAttachment: (nodeId: string, temporaryId: string) => void;
     addFailedAttachments: (action: AttachmentActionAddFailed) => void;
   };
   extraHooks: {
@@ -121,14 +118,14 @@ export interface AttachmentsStorePluginConfig {
     ) => Promise<void>;
     useAttachmentsUpdate: () => (action: AttachmentActionUpdate) => Promise<void>;
     useAttachmentsRemove: () => (action: AttachmentActionRemove) => Promise<boolean>;
-    useDeleteFailedAttachment: () => (node: FileUploaderNode, temporaryId: string) => void;
-    useAddRejectedAttachments: () => (node: FileUploaderNode, errors: RejectedFileError[]) => void;
+    useDeleteFailedAttachment: () => (nodeId: string, temporaryId: string) => void;
+    useAddRejectedAttachments: () => (nodeId: string, errors: RejectedFileError[]) => void;
 
-    useAttachments: (node: FileUploaderNode) => IAttachment[];
-    useFailedAttachments: (node: FileUploaderNode) => IFailedAttachment[];
+    useAttachments: (nodeId: string) => IAttachment[];
+    useFailedAttachments: (nodeId: string) => IFailedAttachment[];
     useAttachmentsSelector: () => AttachmentsSelector;
     useAttachmentsSelectorProps: () => DSPropsForSimpleSelector<NodesContext, AttachmentsSelector>;
-    useWaitUntilUploaded: () => (node: FileUploaderNode, attachment: TemporaryAttachment) => Promise<IData | false>;
+    useWaitUntilUploaded: () => (nodeId: string, attachment: TemporaryAttachment) => Promise<IData | false>;
 
     useHasPendingAttachments: () => boolean;
     useAllAttachments: () => IAttachmentsMap;
@@ -142,10 +139,10 @@ type ProperData = NodeData<CompWithBehavior<'canHaveAttachments'>>;
 export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePluginConfig> {
   extraFunctions(set: NodeDataPluginSetState): AttachmentsStorePluginConfig['extraFunctions'] {
     return {
-      attachmentUpload: ({ files, node }) => {
+      attachmentUpload: ({ files, nodeId }) => {
         set(
           nodesProduce((draft) => {
-            const data = draft.nodeData[node.id] as ProperData;
+            const data = draft.nodeData[nodeId] as ProperData;
             for (const { file, temporaryId } of files) {
               data.attachments[temporaryId] = {
                 uploaded: false,
@@ -161,10 +158,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentUploadFinished: ({ node }, results) => {
+      attachmentUploadFinished: ({ nodeId }, results) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             for (const result of results) {
               if (isAttachmentUploadSuccess(result)) {
                 nodeData.attachments[result.newDataElementId] = nodeData.attachments[result.temporaryId];
@@ -179,10 +176,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentUpdate: ({ node, attachment, tags }) => {
+      attachmentUpdate: ({ nodeId, attachment, tags }) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             const attachmentData = nodeData.attachments[attachment.data.id];
             if (isAttachmentUploaded(attachmentData)) {
               attachmentData.updating = true;
@@ -193,10 +190,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentUpdateFulfilled: ({ node, attachment }) => {
+      attachmentUpdateFulfilled: ({ nodeId, attachment }) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             const attachmentData = nodeData.attachments[attachment.data.id];
             if (isAttachmentUploaded(attachmentData)) {
               attachmentData.updating = false;
@@ -206,10 +203,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentUpdateRejected: ({ node, attachment }, error) => {
+      attachmentUpdateRejected: ({ nodeId, attachment }, error) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             const attachmentData = nodeData.attachments[attachment.data.id];
             if (isAttachmentUploaded(attachmentData)) {
               attachmentData.updating = false;
@@ -220,10 +217,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentRemove: ({ node, attachment }) => {
+      attachmentRemove: ({ nodeId, attachment }) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             const attachmentData = nodeData.attachments[attachment.data.id];
             if (isAttachmentUploaded(attachmentData)) {
               attachmentData.deleting = true;
@@ -233,18 +230,18 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      attachmentRemoveFulfilled: ({ node, attachment }) => {
+      attachmentRemoveFulfilled: ({ nodeId, attachment }) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             delete nodeData.attachments[attachment.data.id];
           }),
         );
       },
-      attachmentRemoveRejected: ({ node, attachment }, error) => {
+      attachmentRemoveRejected: ({ nodeId, attachment }, error) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             const attachmentData = nodeData.attachments[attachment.data.id];
             if (isAttachmentUploaded(attachmentData)) {
               attachmentData.deleting = false;
@@ -255,19 +252,19 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           }),
         );
       },
-      deleteFailedAttachment: (node, temporaryId) => {
+      deleteFailedAttachment: (nodeId, temporaryId) => {
         set(
           nodesProduce((draft) => {
-            const nodeData = draft.nodeData[node.id] as ProperData;
+            const nodeData = draft.nodeData[nodeId] as ProperData;
             delete nodeData.attachmentsFailedToUpload[temporaryId];
           }),
         );
       },
-      addFailedAttachments: ({ node, attachments }) => {
+      addFailedAttachments: ({ nodeId, attachments }) => {
         set(
           nodesProduce((draft) => {
             for (const { data, error } of attachments) {
-              const nodeData = draft.nodeData[node.id] as ProperData;
+              const nodeData = draft.nodeData[nodeId] as ProperData;
               nodeData.attachmentsFailedToUpload[data.temporaryId] = {
                 data,
                 error,
@@ -309,8 +306,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               const updatedData: FDActionResult = { updatedDataModels: {}, updatedValidationIssues: {} };
 
               for (const { file, temporaryId } of fullAction.files) {
+                const { baseComponentId } = splitDashedKey(action.nodeId);
                 await uploadAttachment({
-                  dataTypeId: action.node.baseId,
+                  dataTypeId: baseComponentId,
                   file,
                 })
                   .then((reply) => {
@@ -337,10 +335,11 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               uploadFinished(fullAction, results);
               unlock(updatedData);
             } else {
+              const { baseComponentId } = splitDashedKey(action.nodeId);
               const results: ((AttachmentUploadSuccess & { newInstanceData: IData }) | AttachmentUploadFailure)[] =
                 await Promise.all(
                   fullAction.files.map(({ file, temporaryId }) =>
-                    uploadAttachmentOld({ dataTypeId: action.node.baseId, file })
+                    uploadAttachmentOld({ dataTypeId: baseComponentId, file })
                       .then((data) => {
                         if (!data || !data.blobStoragePath) {
                           return { temporaryId, error: new Error('Failed to upload attachment') };
@@ -454,13 +453,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           [removeDataElement, fulfill, lang, reject, remove, removeAttachment, removeValueFromList, setLeafValue],
         );
       },
-      useAttachments(node) {
+      useAttachments(nodeId) {
         return store.useShallowSelector((state) => {
-          if (!node) {
-            return emptyArray;
-          }
-
-          const nodeData = state.nodeData[node.id];
+          const nodeData = state.nodeData[nodeId];
           if (nodeData && 'attachments' in nodeData) {
             return Object.values(nodeData.attachments).sort(sortAttachmentsByName);
           }
@@ -485,9 +480,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const waitFor = useWaitForState<IData | false, NodesContext>(zustandStore);
 
         return useCallback(
-          (node, attachment) =>
+          (nodeId, attachment) =>
             waitFor((state, setReturnValue) => {
-              const nodeData = state.nodeData[node.id];
+              const nodeData = state.nodeData[nodeId];
               if (!nodeData || !('attachments' in nodeData) || !('attachmentsFailedToUpload' in nodeData)) {
                 setReturnValue(false);
                 return true;
@@ -548,13 +543,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           return map;
         });
       },
-      useFailedAttachments(node) {
+      useFailedAttachments(nodeId) {
         return store.useShallowSelector((state) => {
-          if (!node) {
-            return emptyArray;
-          }
-
-          const nodeData = state.nodeData[node.id];
+          const nodeData = state.nodeData[nodeId];
           if (nodeData && 'attachmentsFailedToUpload' in nodeData) {
             return Object.values(nodeData.attachmentsFailedToUpload).sort(sortAttachmentsByName);
           }
@@ -568,7 +559,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       useAddRejectedAttachments() {
         const addFailedAttachments = store.useStaticSelector((state) => state.addFailedAttachments);
         return useCallback(
-          (node: FileUploaderNode, errors: RejectedFileError[]) => {
+          (nodeId: string, errors: RejectedFileError[]) => {
             const attachments: IFailedAttachment[] = errors.map((error) => ({
               data: {
                 temporaryId: uuidv4(),
@@ -577,7 +568,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               },
               error,
             }));
-            addFailedAttachments({ node, attachments });
+            addFailedAttachments({ nodeId, attachments });
           },
           [addFailedAttachments],
         );
@@ -672,16 +663,6 @@ export function useAttachmentsUploadMutation() {
 
   return useMutation(options);
 }
-const attachmentSelector = (node: LayoutNode) => (state: NodesContext) => {
-  const nodeData = state.nodeData[node.id];
-  if (!nodeData) {
-    return emptyArray;
-  }
-  if (nodeData && 'attachments' in nodeData) {
-    return Object.values(nodeData.attachments).sort(sortAttachmentsByName);
-  }
-  return emptyArray;
-};
 
 function useAttachmentsAddTagMutation() {
   const { doAttachmentAddTag } = useAppMutations();
@@ -736,8 +717,4 @@ function useAttachmentsRemoveMutation() {
       window.logError('Failed to delete attachment:\n', error);
     },
   });
-}
-
-export function appSupportsNewAttachmentAPI({ altinnNugetVersion }: ApplicationMetadata) {
-  return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.5.0.153' });
 }

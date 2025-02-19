@@ -1,5 +1,5 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
+import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { Expression, ExprValToActual } from 'src/features/expressions/types';
 import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';

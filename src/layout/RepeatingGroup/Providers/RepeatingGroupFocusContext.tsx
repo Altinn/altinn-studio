@@ -4,9 +4,10 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 type FocusableHTMLElement =
   | HTMLButtonElement
@@ -37,29 +38,25 @@ export const useRepeatingGroupsFocusContext = () => useCtx();
 export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   const elementRefs = useMemo(() => new Map<string, HTMLElement | null>(), []);
   const waitingForFocus = useRef<number | null>(null);
-  const traversal = useNodeTraversalSelector();
 
   const { node, openForEditing, changePageToRow } = useRepeatingGroup();
   const getNodeItem = NodesInternal.useGetNodeData(node, (d) => d.item);
   useRegisterNodeNavigationHandler(async (targetNode) => {
     // Figure out if we are a parent of the target component, setting the targetChild to the target
     // component (or a nested repeating group containing the target component).
-    const targetChild = traversal(
-      (t) => {
-        if (targetNode.parent === node) {
-          // Direct child
-          return targetNode;
-        }
-        const parents = t.with(targetNode).parents();
-        for (const parent of parents) {
-          if (parent.parent === node) {
-            return parent as LayoutNode;
-          }
-        }
-        return undefined;
-      },
-      [targetNode, node],
-    );
+    let targetChild: LayoutNode | undefined;
+    let subject: LayoutNode | LayoutPage | undefined = targetNode;
+
+    while (subject) {
+      if (!(subject instanceof BaseLayoutNode)) {
+        break;
+      }
+      if (subject.parent === node) {
+        targetChild = subject;
+        break;
+      }
+      subject = subject.parent;
+    }
 
     if (!targetChild) {
       // We don't have any relation to the target

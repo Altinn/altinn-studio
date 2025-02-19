@@ -16,7 +16,7 @@ import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStor
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useLaxLayoutSettings, useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { OptionsStorePlugin } from 'src/features/options/OptionsStorePlugin';
 import { useIsCurrentView } from 'src/features/routing/AppRoutingContext';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
@@ -52,6 +52,7 @@ import type { OptionsStorePluginConfig } from 'src/features/options/OptionsStore
 import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
 import type { DSProps, DSReturn, InnerSelectorMode, OnlyReRenderWhen } from 'src/hooks/delayedSelectors';
+import type { ObjectOrArray } from 'src/hooks/useShallowMemo';
 import type { WaitForState } from 'src/hooks/useWaitForState';
 import type { CompExternal, CompTypes, ILayouts } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
@@ -816,9 +817,9 @@ function withDefaults(options?: IsHiddenOptions): Required<IsHiddenOptions> {
   return { respectDevTools, respectTracks, forcedVisibleByDevTools };
 }
 
-function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined, _options?: IsHiddenOptions) {
+function isHiddenPage(state: NodesContext, pageKey: string | undefined, _options?: IsHiddenOptions) {
   const options = withDefaults(_options);
-  if (!page) {
+  if (!pageKey) {
     return true;
   }
 
@@ -826,7 +827,6 @@ function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined
     return false;
   }
 
-  const pageKey = typeof page === 'string' ? page : page.pageKey;
   const pageState = state.pagesData.pages[pageKey];
   const hidden = pageState?.hidden;
   if (hidden) {
@@ -838,16 +838,21 @@ function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined
 
 export function isHidden(
   state: NodesContext,
-  nodeOrId: LayoutNode | LayoutPage | undefined | string,
-  nodes: LayoutPages,
+  type: 'page' | 'node',
+  id: string | undefined,
   _options?: IsHiddenOptions,
 ): boolean | undefined {
-  if (!nodeOrId) {
+  if (!id) {
     return undefined;
   }
 
-  if (nodeOrId instanceof LayoutPage) {
-    return isHiddenPage(state, nodeOrId, _options);
+  if (type === 'page') {
+    return isHiddenPage(state, id, _options);
+  }
+
+  const pageKey = state.nodeData[id]?.pageKey;
+  if (pageKey && isHiddenPage(state, pageKey, _options)) {
+    return true;
   }
 
   const options = withDefaults(_options);
@@ -855,31 +860,31 @@ export function isHidden(
     return false;
   }
 
-  const id = typeof nodeOrId === 'string' ? nodeOrId : nodeOrId.id;
-  const node = nodes.findById(id);
   const hidden = state.nodeData[id]?.hidden;
-  if (hidden === undefined) {
-    return undefined;
-  }
-
-  if (hidden) {
-    return true;
+  if (hidden === undefined || hidden === true) {
+    return hidden;
   }
 
   if (state.hiddenViaRules[id]) {
     return true;
   }
 
-  const parent = node?.parent;
-  if (parent && parent instanceof BaseLayoutNode && 'isChildHidden' in parent.def && state.nodeData[parent.id]) {
+  const parentId = state.nodeData[id]?.parentId;
+  const parent = parentId ? state.nodeData[parentId] : undefined;
+  const parentDef = parent ? getComponentDef(parent.layout.type) : undefined;
+  if (parent && parentDef && 'isChildHidden' in parentDef) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const childHidden = parent.def.isChildHidden(state.nodeData[parent.id] as any, node);
+    const childHidden = parentDef.isChildHidden(parent as any, id);
     if (childHidden) {
       return true;
     }
   }
 
-  return isHidden(state, parent, nodes, options);
+  if (parent) {
+    return isHidden(state, 'node', parent.layout.id, options);
+  }
+
+  return false;
 }
 
 function makeOptions(forcedVisibleByDevTools: boolean, options?: AccessibleIsHiddenOptions): IsHiddenOptions {
@@ -893,20 +898,26 @@ export type IsHiddenSelector = ReturnType<typeof Hidden.useIsHiddenSelector>;
 export const Hidden = {
   useIsHidden(node: LayoutNode | LayoutPage | undefined, options?: AccessibleIsHiddenOptions) {
     const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
-    const nodes = useNodes();
-    return WhenReady.useSelector((s) => isHidden(s, node, nodes, makeOptions(forcedVisibleByDevTools, options)));
+    const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
+    const id = node instanceof LayoutPage ? node.pageKey : node?.id;
+    return WhenReady.useSelector((s) => isHidden(s, type, id, makeOptions(forcedVisibleByDevTools, options)));
   },
   useIsHiddenPage(page: LayoutPage | string | undefined, options?: AccessibleIsHiddenOptions) {
     const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
-    return WhenReady.useSelector((s) => isHiddenPage(s, page, makeOptions(forcedVisibleByDevTools, options)));
+    return WhenReady.useSelector((s) => {
+      const pageKey = page instanceof LayoutPage ? page.pageKey : page;
+      return isHiddenPage(s, pageKey, makeOptions(forcedVisibleByDevTools, options));
+    });
   },
   useIsHiddenPageSelector() {
     const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
     return Store.useDelayedSelector(
       {
         mode: 'simple',
-        selector: (page: LayoutPage | string) => (state) =>
-          isHiddenPage(state, page, makeOptions(forcedVisibleByDevTools)),
+        selector: (page: LayoutPage | string) => (state) => {
+          const pageKey = page instanceof LayoutPage ? page.pageKey : page;
+          return isHiddenPage(state, pageKey, makeOptions(forcedVisibleByDevTools));
+        },
       },
       [forcedVisibleByDevTools],
     );
@@ -920,26 +931,30 @@ export const Hidden = {
   },
   useIsHiddenSelector() {
     const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
-    const nodes = useNodes();
     return Store.useDelayedSelector(
       {
         mode: 'simple',
-        selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) =>
-          isHidden(state, node, nodes, makeOptions(forcedVisibleByDevTools, options)),
+        selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) => {
+          const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
+          const id = node instanceof LayoutPage ? node.pageKey : typeof node === 'string' ? node : node?.id;
+          return isHidden(state, type, id, makeOptions(forcedVisibleByDevTools, options));
+        },
       },
-      [forcedVisibleByDevTools, nodes],
+      [forcedVisibleByDevTools],
     );
   },
   useIsHiddenSelectorProps() {
     const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
-    const nodes = useNodes();
     return Store.useDelayedSelectorProps(
       {
         mode: 'simple',
-        selector: (node: LayoutNode | LayoutPage, options?: IsHiddenOptions) => (state) =>
-          isHidden(state, node, nodes, makeOptions(forcedVisibleByDevTools, options)),
+        selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) => {
+          const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
+          const id = node instanceof LayoutPage ? node.pageKey : typeof node === 'string' ? node : node?.id;
+          return isHidden(state, type, id, makeOptions(forcedVisibleByDevTools, options));
+        },
       },
-      [forcedVisibleByDevTools, nodes],
+      [forcedVisibleByDevTools],
     );
   },
 
@@ -948,9 +963,8 @@ export const Hidden = {
    */
   useIsPageInOrder(pageKey: string) {
     const isCurrentView = useIsCurrentView(pageKey);
-    const maybeLayoutSettings = useLaxLayoutSettings();
-    const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? [] : maybeLayoutSettings.pages.order;
     const layoutSettings = useLayoutSettings();
+    const orderWithHidden = layoutSettings.pages.order;
 
     if (isCurrentView) {
       // If this is the current view, then it's never hidden. This avoids settings fields as hidden when
@@ -1249,6 +1263,12 @@ export const NodesInternal = {
       return s.nodeData[node.id] !== undefined;
     }),
   useHasErrors: () => Store.useSelector((s) => s.hasErrors),
+
+  // Raw selectors, used when there are no other hooks that match your needs
+  useSelector: <T,>(selector: (state: NodesContext) => T) => Store.useSelector(selector),
+  useShallowSelector: <T extends ObjectOrArray>(selector: (state: NodesContext) => T) =>
+    Store.useShallowSelector(selector),
+  useMemoSelector: <T,>(selector: (state: NodesContext) => T) => Store.useMemoSelector(selector),
 
   useStore: () => Store.useStore(),
   useSetNodeProps: () => Store.useStaticSelector((s) => s.setNodeProps),
