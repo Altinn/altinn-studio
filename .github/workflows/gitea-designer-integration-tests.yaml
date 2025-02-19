@@ -32,6 +32,6 @@ jobs:
         run: |
            dotnet build backend/Designer.sln -v m
 
-      - name: Test gitea tests
+      - name: Run integration tests
         run: |
-           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)|Category=KafkaIntegrationTest)" -v m
+           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)|(Category=KafkaIntegrationTest)" -v m
