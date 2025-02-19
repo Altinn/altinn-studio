@@ -75,7 +75,7 @@ const createOidcClientIfNotExists = async (env) => {
 
   const shouldCreateClient = !clients.some((app) => app.name === 'LocalTestOidcClient');
   if (!shouldCreateClient) {
-    return null;
+    return env;
   }
 
   var createdClient = await giteaApi({
@@ -170,11 +170,24 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
-  const result = await createOidcClientIfNotExists(env);
+  var newEnv = await setupRunnersToken(env);
+  newEnv = await createOidcClientIfNotExists(newEnv);
 
   await createCypressEnvFile(env);
-  return result;
+  return newEnv;
 };
+
+const setupRunnersToken = async (env) => {
+  const runnersToken = await giteaApi({
+    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/actions/runners/registration-token`,
+    method: 'GET',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+  });
+
+  env.GITEA_RUNNER_REGISTRATION_TOKEN = runnersToken.token;
+  return env;
+}
 
 const script = async () => {
   const env = ensureDotEnv();
