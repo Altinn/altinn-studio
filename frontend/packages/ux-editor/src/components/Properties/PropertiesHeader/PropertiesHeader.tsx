@@ -11,6 +11,7 @@ import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -50,7 +51,10 @@ export const PropertiesHeader = ({
           />
         )}
       </div>
-      <ComponentMainConfig component={formItem} handleComponentChange={handleComponentUpdate} />
+      {(formItem.type === ComponentType.Summary2 ||
+        shouldDisplayFeature(FeatureFlag.MainConfig)) && (
+        <ComponentMainConfig component={formItem} handleComponentChange={handleComponentUpdate} />
+      )}
     </>
   );
 };
