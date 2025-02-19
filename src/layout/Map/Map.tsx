@@ -119,7 +119,7 @@ export function Map({
   return (
     <MapContainer
       ref={map}
-      className={cn(classes.map, { [classes.mapReadOnly]: !isInteractive, [classes.printHack]: isPdf }, className)}
+      className={cn(classes.map, { [classes.mapReadOnly]: !isInteractive, [classes.print]: isPdf }, className)}
       center={center}
       zoom={zoom}
       bounds={bounds}

@@ -4,11 +4,11 @@
 
 .map {
   position: relative;
-  height: 40rem;
+  height: 600px;
 }
 
 /**
-* This will give the map an (almost) square aspect ratio when loading the print page
+* This will give the map an (almost) correct width for A4 paper before calling print.
 * Since it has @media only screen it will still scale to fit the page,
 * but the initial fitBounds will not depend on the PDF-service's browser viewport
 * Ideally, the browser's viewport would match the pages aspect ratio, as
@@ -19,9 +19,15 @@
 * load before the page prints, but you should at least see the relevant area.
 **/
 @media only screen {
-  .print-hack {
-    width: 42rem;
+  .print {
+    width: 670px;
   }
+}
+/**
+* This will give the map approximately the same aspect ratio in the PDF as it is shown on a desktop screen
+*/
+.print {
+  height: 470px;
 }
 
 /* We do not want the map to look faded in PDF, so using @media only screen */

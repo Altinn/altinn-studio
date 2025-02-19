@@ -548,7 +548,7 @@ Cypress.Commands.add('getSummary', (label) => {
 type ImageData = { path: string; dataUrl: string };
 Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, reset = true) => {
   // Store initial viewport size for later
-  cy.getCurrentViewportSize().as('viewportSize');
+  cy.getCurrentViewportSize().as('directSnapshotViewportSize');
   cy.viewport(width, minHeight);
 
   // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
@@ -606,7 +606,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   // Revert to original viewport
   if (reset) {
     cy.go('back');
-    cy.get<Size>('@viewportSize').then(({ width, height }) => {
+    cy.get<Size>('@directSnapshotViewportSize').then(({ width, height }) => {
       cy.viewport(width, height);
     });
   }
@@ -616,7 +616,7 @@ Cypress.Commands.add(
   'testPdf',
   ({ snapshotName = false, beforeReload, callback, returnToForm = false, enableResponseFuzzing = false }) => {
     // Store initial viewport size for later
-    cy.getCurrentViewportSize().as('viewportSize');
+    cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
     cy.location('hash', { log: false }).should('contain', '#/instance/');
@@ -690,7 +690,8 @@ Cypress.Commands.add(
       // Disable media emulation and revert to original viewport
       cy.clock().invoke('restore');
       cy.setEmulatedMedia();
-      cy.get<Size>('@viewportSize').then(({ width, height }) => {
+      cy.get<Size>('@testPdfViewportSize').then(({ width, height }) => {
+        cy.log(`Viewport size: ${width}x${height}`);
         cy.viewport(width, height);
       });
       cy.get('body').invoke('css', 'margin', '');
