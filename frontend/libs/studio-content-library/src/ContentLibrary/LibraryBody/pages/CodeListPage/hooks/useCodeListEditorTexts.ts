@@ -14,6 +14,8 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
     codeList: t('code_list_editor.legend'),
     delete: t('code_list_editor.column_title_delete'),
     deleteItem: (number: number) => t('code_list_editor.delete_code_list_item', { number }),
+    deleteItemConfirmation: (number: number) =>
+      t('code_list_editor.delete_code_list_item_confirm', { number }),
     description: t('code_list_editor.column_title_description'),
     emptyCodeList: t('code_list_editor.empty'),
     generalError: t('code_list_editor.general_error'),

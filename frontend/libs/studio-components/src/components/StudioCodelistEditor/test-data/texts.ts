@@ -13,6 +13,7 @@ export const texts: CodeListEditorTexts = {
   codeList: 'Code list',
   delete: 'Delete',
   deleteItem: (number) => `Delete item number ${number}`,
+  deleteItemConfirmation: (number) => `Are you sure you want to delete row ${number}?`,
   description: 'Description',
   emptyCodeList: 'The code list is empty.',
   generalError: 'The code list cannot be saved because it is not valid.',

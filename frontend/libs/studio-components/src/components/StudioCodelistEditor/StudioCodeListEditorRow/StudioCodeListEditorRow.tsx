@@ -254,11 +254,20 @@ type DeleteButtonCellProps = {
 
 function DeleteButtonCell({ onClick, number }: DeleteButtonCellProps) {
   const { texts } = useStudioCodeListEditorContext();
+
+  const delteConfirmationText: string = texts.deleteItemConfirmation(number);
+
+  const handleClick = () => {
+    if (confirm(delteConfirmationText)) {
+      onClick();
+    }
+  };
+
   return (
     <StudioInputTable.Cell.Button
       icon={<TrashIcon />}
       color='danger'
-      onClick={onClick}
+      onClick={handleClick}
       title={texts.deleteItem(number)}
     />
   );
