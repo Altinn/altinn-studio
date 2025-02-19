@@ -27,6 +27,33 @@ services:
         user_admin="Test1234$"
         user_user="Test1234$";
       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      interval: 2s
+      timeout: 10s
+      retries: 10
+
+  init-kafka:
+    image: bitnami/kafka:3.9.0
+    container_name: init-kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    environment:
+      KAFKA_CLIENT_USERNAME: admin
+      KAFKA_CLIENT_PASSWORD: Test1234$
+    command: |
+      "
+      # blocks until kafka is reachable
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic altinn-app --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+      "
 
   schemaregistry:
     image: confluentinc/cp-schema-registry:7.8.1

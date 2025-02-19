@@ -1,8 +1,6 @@
-using Altinn.Studio.Designer.Configuration.Marker;
-
 namespace Altinn.Studio.Designer.Configuration;
 
-public class KafkaSettings : ISettingsMarker
+public class KafkaSettings
 {
     public string BootstrapServers { get; set; }
     public string KafkaUserName { get; set; }

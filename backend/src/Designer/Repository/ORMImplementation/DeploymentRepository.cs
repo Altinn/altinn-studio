@@ -64,7 +64,7 @@ public class DeploymentRepository : IDeploymentRepository
         Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
         Guard.AssertArgumentNotNullOrWhiteSpace(app, nameof(app));
 
-        var deploymentsQuery = _dbContext.Deployments.Include(d => d.Build).AsNoTracking().Where(x => x.Org == org && x.App == app && x.EnvName == environment && x.Build.Result.Equals("succeeded", System.StringComparison.CurrentCultureIgnoreCase));
+        var deploymentsQuery = _dbContext.Deployments.Include(d => d.Build).AsNoTracking().Where(x => x.Org == org && x.App == app && x.EnvName == environment && x.Build.Result.ToLower() == "succeeded");
 
         deploymentsQuery = query.SortDirection == SortDirection.Descending
             ? deploymentsQuery.OrderByDescending(d => d.Created)

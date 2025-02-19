@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.EventHandlers.DeploymentPipelineCompleted;
+namespace Altinn.Studio.Designer.Models;
 
 public record StudioStatisticsModel
 {
