@@ -25,6 +25,10 @@ jobs:
             9.0.x
       - uses: actions/checkout@v4
 
+      - name: run kafka compose file
+        run: |
+          docker compose -f development/kafka/compose.yaml up -d
+
       - name: Run integration tests
         run: |
            dotnet test backend/Designer.sln --filter "Category=KafkaIntegrationTest" -v m
