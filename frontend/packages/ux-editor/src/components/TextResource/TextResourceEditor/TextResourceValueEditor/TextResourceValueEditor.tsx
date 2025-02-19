@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
@@ -12,7 +11,6 @@ import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
-  onSetCurrentValue: (value: string) => void;
 };
 
 const language = DEFAULT_LANGUAGE;
@@ -23,10 +21,7 @@ const findTextResource = (textResources: ITextResources, id: string) =>
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
   findTextResource(textResources, id)?.value || '';
 
-export const TextResourceValueEditor = ({
-  textResourceId,
-  onSetCurrentValue,
-}: TextResourceValueEditorProps) => {
+export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate } = useUpsertTextResourceMutation(org, app);
@@ -42,19 +37,11 @@ export const TextResourceValueEditor = ({
     setValueState(value);
   }, [value]);
 
-  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setTextEntryValue(e.currentTarget.value);
 
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      mutate({ textId: textResourceId, language, translation: event.target.value });
-    },
-    [textResourceId, mutate],
-  );
-
-  const handleBlur = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    onSetCurrentValue(event.target.value);
-    handleChange(event);
+  const handleBlur = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    mutate({ textId: textResourceId, language, translation: event.target.value });
   };
 
   return (
@@ -63,7 +50,7 @@ export const TextResourceValueEditor = ({
         label={t('ux_editor.text_resource_binding_text')}
         onBlur={handleBlur}
         value={valueState}
-        onChange={handleTextEntryChange}
+        onChange={handleChange}
         ref={textareaRef}
       />
       <div className={classes.id}>
