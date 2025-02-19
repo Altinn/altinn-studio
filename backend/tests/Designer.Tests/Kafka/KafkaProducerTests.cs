@@ -18,10 +18,10 @@ public class KafkaProducerTests : IDisposable
     public KafkaProducerTests()
     {
         _kafkaCompooseFilePath = AltinnStudioRepositoryScanner.FindKafkaComposerFilePath();
-        if (!CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} up -d", out string _, out string error))
-        {
-            throw new Exception($"Failed to start kafka stack. Error: {error}");
-        }
+        // if (!CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} up -d", out string _, out string error))
+        // {
+        //     throw new Exception($"Failed to start kafka stack. Error: {error}");
+        // }
     }
 
     [Fact]

@@ -25,12 +25,11 @@ jobs:
             9.0.x
       - uses: actions/checkout@v4
 
-      - name: Get Local IP Address
-        run: |
-          ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1
-
       - name: run kafka compose file
         run: |
+          ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1
+          KAFKA_ADVERTISED_HOST=$(ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 || true)
+          echo $KAFKA_ADVERTISED_HOST
           docker compose -f development/kafka/compose.yaml up -d
 
       - name: Run integration tests
