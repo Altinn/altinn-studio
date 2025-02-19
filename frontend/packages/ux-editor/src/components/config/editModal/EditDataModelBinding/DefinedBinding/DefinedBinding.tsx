@@ -6,15 +6,15 @@ import { useTranslation } from 'react-i18next';
 import {
   getDataModelFields,
   validateSelectedDataField,
-  type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 export type DefinedBindingProps = {
   onClick: () => void;
   label: string;
-  internalBindingFormat: InternalBindingFormat;
+  internalBindingFormat: ExplicitDataModelBinding;
   componentType: ComponentType;
   bindingKey: string;
 };

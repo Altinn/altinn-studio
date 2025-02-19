@@ -28,7 +28,6 @@ export function ArrayRestrictions({
             }
             value={restrictions[ArrRestrictionKey.minItems]}
             type='number'
-            size='sm'
           />
         </div>
         <div className={classes.item}>
@@ -43,7 +42,6 @@ export function ArrayRestrictions({
             }
             value={restrictions[ArrRestrictionKey.maxItems]}
             type='number'
-            size='sm'
           />
         </div>
       </div>

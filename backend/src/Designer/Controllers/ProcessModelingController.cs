@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
 using System.Text.Json;
@@ -14,13 +13,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller containing actions that concerns app-development
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/process-modelling")]
@@ -100,27 +99,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Accepted();
-        }
-
-        [HttpGet("templates/{appVersion}")]
-        public IEnumerable<string> GetTemplates(string org, string repo, SemanticVersion appVersion)
-        {
-            Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
-            return _processModelingService.GetProcessDefinitionTemplates(appVersion);
-        }
-
-        [HttpPut("templates/{appVersion}/{templateName}")]
-        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo,
-            SemanticVersion appVersion, string templateName, CancellationToken cancellationToken)
-        {
-            Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName,
-                appVersion, cancellationToken);
-
-            Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
-            return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
 
         [HttpPost("data-type/{dataTypeId}")]

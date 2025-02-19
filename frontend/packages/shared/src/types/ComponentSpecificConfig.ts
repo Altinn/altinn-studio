@@ -7,44 +7,43 @@ import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import type { BooleanExpression, StringExpression } from '@studio/components';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import type {
+  IDataModelBindings,
+  IDataModelBindingsKeyValue,
+} from '@altinn/ux-editor/types/global';
 
 type DataModelBindingsForAddress = {
-  address: string;
-  zipCode: string;
-  postPlace: string;
-  careOf?: string;
-  houseNumber?: string;
+  address: IDataModelBindings;
+  zipCode: IDataModelBindings;
+  postPlace: IDataModelBindings;
+  careOf?: IDataModelBindings;
+  houseNumber?: IDataModelBindings;
 };
 
-type DataModelBindingsForCustom = {
-  [id: string]: string;
-};
+type DataModelBindingsForCustom = IDataModelBindingsKeyValue;
 
 type DataModelBindingsForGroup = {
-  group: string;
+  group: IDataModelBindings;
 };
 
-type DataModelBindingsForList = {
-  [id: string]: string;
-};
+type DataModelBindingsForList = IDataModelBindingsKeyValue;
 
 type DataModelBindingsLikert = {
-  answer: string;
-  questions: string;
+  answer: IDataModelBindings;
+  questions: IDataModelBindings;
 };
 
 type DataModelBindingsList = {
-  list: string;
+  list: IDataModelBindings;
 };
 
 type DataModelBindingsOptionsSimple = {
-  simpleBinding: string | InternalBindingFormat;
-  metadata?: string;
+  simpleBinding: IDataModelBindings;
+  metadata?: IDataModelBindings;
 };
 
 export type DataModelBindingsSimple = {
-  simpleBinding: string | InternalBindingFormat;
+  simpleBinding: IDataModelBindings;
 };
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
@@ -105,10 +104,6 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
-export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
-
-export type SummaryCustomTargetType = 'list' | 'string' | 'notSet';
-
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -136,15 +131,18 @@ type PageValidation = {
   show: AllowedValidationMasks;
 };
 
+export type OverrideDisplayType = 'list' | 'string';
+export type OverrideDisplay = 'table' | 'full';
 export type Summary2OverrideConfig = {
   componentId: string;
   hidden?: boolean;
-  forceShow?: boolean;
   emptyFieldText?: string;
-  hideEmptyFields?: boolean;
   isCompact?: boolean;
-  displayType?: SummaryCustomTargetType;
+  displayType?: OverrideDisplayType;
+  display?: OverrideDisplay;
 };
+
+export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
 export type Summary2TargetConfig = {
   type?: SummaryTargetType;

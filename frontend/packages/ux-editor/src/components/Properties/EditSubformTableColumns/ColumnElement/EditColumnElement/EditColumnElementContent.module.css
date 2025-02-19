@@ -1,15 +1,7 @@
-.componentTitleButton,
-.componentCellContent {
-  padding-left: var(--fds-spacing-1);
-}
-
-.componentTitleButton > span:first-child {
-  display: flex;
-  gap: var(--fds-spacing-1);
-}
-
-.componentTitleButton {
-  margin-bottom: var(--fds-spacing-1);
+.textResource > button,
+.textResource > fieldset {
+  margin-inline: 0px;
+  padding-inline: 0px;
 }
 
 .componentCellContent {

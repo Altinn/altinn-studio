@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
@@ -89,8 +89,8 @@ describe('AboutResourcePage', () => {
 
     const idInput = screen.getByLabelText(textMock('resourceadm.about_resource_identifier_label'));
 
-    await idInput.focus();
-    await idInput.blur();
+    idInput.focus();
+    await waitFor(() => idInput.blur());
 
     expect(mockOnSaveResource).not.toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe('AboutResourcePage', () => {
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
     await user.type(titleNbInput, mockNewTitleInput);
-    await titleNbInput.blur();
+    await waitFor(() => titleNbInput.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -157,7 +157,7 @@ describe('AboutResourcePage', () => {
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
     await user.type(descriptionNbInput, mockNewDescriptionInput);
-    await descriptionNbInput.blur();
+    await waitFor(() => descriptionNbInput.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -179,7 +179,7 @@ describe('AboutResourcePage', () => {
 
     await user.clear(homepageInput);
     await user.type(homepageInput, mockNewHomepageInput);
-    await homepageInput.blur();
+    await waitFor(() => homepageInput.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -215,7 +215,7 @@ describe('AboutResourcePage', () => {
     expect(keywordInput).toHaveValue(keywordString);
 
     await user.type(keywordInput, mockNewKeyboardInput);
-    await keywordInput.blur();
+    await waitFor(() => keywordInput.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -235,7 +235,7 @@ describe('AboutResourcePage', () => {
 
     await user.clear(rightDescriptionInput);
     await user.type(rightDescriptionInput, mockNewRightDescriptionInput);
-    await rightDescriptionInput.blur();
+    await waitFor(() => rightDescriptionInput.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,

@@ -13,7 +13,6 @@ import { type ImageOption } from '../ImageOption';
 
 const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
-  lastBuildId: '',
   isDeploymentInProgress: false,
   envName: 'tt02',
   isProduction: false,

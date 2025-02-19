@@ -1,4 +1,4 @@
-import type { CodeList, CodeListEditorTexts } from '@studio/components';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components';
 import {
   StudioDeleteButton,
   StudioModal,
@@ -20,21 +20,25 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
+  onChangeTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
+  textResources?: TextResource[];
 };
 
 export function EditCodeList({
   codeList,
   codeListTitle,
+  onChangeTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
   codeListSources,
+  textResources,
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
@@ -63,7 +67,9 @@ export function EditCodeList({
         codeList={codeList}
         onAddOrDeleteItem={handleCodeListChange}
         onBlurAny={handleCodeListChange}
+        onChangeTextResource={onChangeTextResource}
         texts={editorTexts}
+        textResources={textResources}
       />
       <CodeListButtons
         codeListHasUsages={codeListHasUsages}
@@ -110,24 +116,12 @@ function EditCodeListTitle({
   return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
-      inputProps={{
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        icon: <KeyVerticalIcon />,
-        title: t('app_content_library.code_lists.code_list_edit_id_title', {
-          codeListName: codeListTitle,
-        }),
-        value: codeListTitle,
-        onBlur: (event) => handleUpdateCodeListId(event.target.value),
-        size: 'small',
-      }}
-      viewProps={{
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        children: codeListTitle,
-        variant: 'tertiary',
-        title: t('app_content_library.code_lists.code_list_view_id_title', {
-          codeListName: codeListTitle,
-        }),
-      }}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      onBlur={(event) => handleUpdateCodeListId(event.target.value)}
+      title={t('app_content_library.code_lists.code_list_view_id_title', {
+        codeListName: codeListTitle,
+      })}
+      value={codeListTitle}
     />
   ) : (
     <StudioDisplayTile
@@ -135,6 +129,7 @@ function EditCodeListTitle({
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
+      className={classes.displayTitle}
     />
   );
 }

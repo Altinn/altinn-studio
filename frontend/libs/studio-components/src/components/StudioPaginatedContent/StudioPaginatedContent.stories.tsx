@@ -15,7 +15,6 @@ const Children1 = ({ onChange, value }: ChildrenProps) => {
     <div>
       <StudioParagraph>Children 1</StudioParagraph>
       <StudioTextfield
-        size='sm'
         label='Please enter the value "3" to proceed to the next page.'
         onChange={onChange}
         value={value}

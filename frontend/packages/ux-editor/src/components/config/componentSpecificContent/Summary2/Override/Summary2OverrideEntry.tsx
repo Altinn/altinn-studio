@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -7,23 +6,25 @@ import {
   StudioDivider,
   StudioProperty,
 } from '@studio/components';
+import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import classes from './Summary2OverrideEntry.module.css';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
-import { ShowEmptyFieldSwitch } from './OverrideFields/ShowEmptyFieldsSwitch';
-import { OverrideShowComponentSwitch } from './OverrideFields/ForceShowSwitch';
+import type { TargetComponentProps } from '../Summary2Target/targetUtils';
+import { Summary2OverrideCompactSwitch } from './OverrideFields/CompactViewSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
-import { CompactViewSwitch } from './OverrideFields/CompactViewSwitch';
-import { CheckmarkIcon } from '@studio/icons';
-import { type TargetProps } from '../Summary2Target/targetUtils';
+import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowComponentSwitch';
+import { Summary2OverrideDisplaySelect } from './OverrideFields/Summary2OverrideDisplaySelect';
+import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
+import classes from './Summary2OverrideEntry.module.css';
 
 type Summary2OverrideEntryProps = {
   index: number;
   open: boolean;
   setOpen: (open: boolean) => void;
-  componentOptions: TargetProps[];
+  componentOptions: TargetComponentProps[];
   override: Summary2OverrideConfig;
   onChange: (override: Summary2OverrideConfig) => void;
   onDelete: () => void;
@@ -57,6 +58,28 @@ export const Summary2OverrideEntry = ({
     );
   }
 
+  const defaultOverrideConfig = (
+    componentType: ComponentType,
+  ): Omit<Summary2OverrideConfig, 'componentId'> => {
+    switch (componentType) {
+      case ComponentType.RepeatingGroup:
+        return { display: 'full' };
+      case ComponentType.Subform:
+        return { display: 'table' };
+      case ComponentType.Checkboxes:
+      case ComponentType.MultipleSelect:
+        return { displayType: 'list' };
+      default:
+        return {};
+    }
+  };
+
+  const onChangeTarget = (value: string) => {
+    const componentType = componentOptions.find((comp) => comp.id === value)?.type;
+    const defaults = defaultOverrideConfig(componentType);
+    onChange({ componentId: value, ...defaults });
+  };
+
   return (
     <StudioCard className={classes.card}>
       <StudioCard.Content className={classes.content}>
@@ -64,7 +87,7 @@ export const Summary2OverrideEntry = ({
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
           options={componentOptions}
-          onValueChange={(value) => onChange({ ...override, componentId: value })}
+          onValueChange={(value) => onChangeTarget(value)}
         ></Summary2ComponentReferenceSelector>
 
         <OverrideShowComponentSwitch onChange={onChange} override={override} />
@@ -75,9 +98,11 @@ export const Summary2OverrideEntry = ({
         ) : (
           <>
             <StudioDivider className={classes.divider} />
-            <CompactViewSwitch onChange={onChange} override={override} />
-            <Summary2OverrideDisplayType onChange={onChange} override={override} />
-            <ShowEmptyFieldSwitch onChange={onChange} override={override} />
+            <Summary2OverrideComponentSpecificConfig
+              componentOptions={componentOptions}
+              onChange={onChange}
+              override={override}
+            />
             <EmptyTextField onChange={onChange} override={override} />
           </>
         )}
@@ -96,4 +121,35 @@ export const Summary2OverrideEntry = ({
       </StudioCard.Content>
     </StudioCard>
   );
+};
+
+type Summary2OverrideComponentSpecificConfigProps = {
+  componentOptions: TargetComponentProps[];
+  onChange: (override: Summary2OverrideConfig) => void;
+  override: Summary2OverrideConfig;
+};
+
+const Summary2OverrideComponentSpecificConfig = ({
+  onChange,
+  override,
+  componentOptions,
+}: Summary2OverrideComponentSpecificConfigProps) => {
+  const selectedComponent = componentOptions?.find((comp) => comp.id === override.componentId);
+
+  if (!selectedComponent) {
+    return null;
+  }
+
+  switch (selectedComponent.type) {
+    case ComponentType.RepeatingGroup:
+    case ComponentType.Subform:
+      return <Summary2OverrideDisplaySelect onChange={onChange} override={override} />;
+    case ComponentType.Checkboxes:
+    case ComponentType.MultipleSelect:
+      return <Summary2OverrideDisplayType onChange={onChange} override={override} />;
+    case ComponentType.Group:
+      return <Summary2OverrideCompactSwitch onChange={onChange} override={override} />;
+    default:
+      return null;
+  }
 };

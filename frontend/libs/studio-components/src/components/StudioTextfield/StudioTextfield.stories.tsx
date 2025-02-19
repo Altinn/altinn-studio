@@ -10,7 +10,7 @@ const meta: Meta = {
   argTypes: {
     size: {
       control: 'radio',
-      options: ['small', 'medium', 'large'],
+      options: ['sm', 'md', 'lg'],
     },
   },
 };
@@ -20,7 +20,7 @@ Preview.args = {
   label: 'Textfield',
   placeholder: '',
   error: '',
-  size: 'small',
+  size: 'sm',
 };
 
 export default meta;

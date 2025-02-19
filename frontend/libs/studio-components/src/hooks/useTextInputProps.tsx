@@ -16,6 +16,7 @@ export function useTextInputProps<E extends ElementType>(
     errorAfterBlur,
     label,
     withAsterisk,
+    size = 'sm',
     ...rest
   } = props;
 
@@ -53,5 +54,6 @@ export function useTextInputProps<E extends ElementType>(
     onBlur: handleBlur,
     error: errorComponent,
     label: labelComponent,
+    size,
   } as Omit<SharedTextInputProps<E>, keyof AdditionalProps>;
 }

@@ -9,8 +9,7 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
-import type { PreviewContextProps } from '../contexts/PreviewContext';
-import { PreviewContextProvider } from '../contexts/PreviewContext';
+import { PreviewContext, type PreviewContextProps } from '../contexts/PreviewContext';
 
 export const renderWithProviders =
   (
@@ -27,9 +26,11 @@ export const renderWithProviders =
         clientConfig={queryClientConfigMock}
       >
         <PreviewConnectionContextProvider>
-          <PreviewContextProvider {...defaultPreviewContextProps} {...previewContextProps}>
+          <PreviewContext.Provider
+            value={{ ...defaultPreviewContextProps, ...previewContextProps }}
+          >
             <BrowserRouter>{component}</BrowserRouter>
-          </PreviewContextProvider>
+          </PreviewContext.Provider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>,
     );
@@ -42,9 +43,11 @@ export const renderWithProviders =
           clientConfig={queryClientConfigMock}
         >
           <PreviewConnectionContextProvider>
-            <PreviewContextProvider {...defaultPreviewContextProps} {...previewContextProps}>
+            <PreviewContext.Provider
+              value={{ ...defaultPreviewContextProps, ...previewContextProps }}
+            >
               <BrowserRouter>{rerenderedComponent}</BrowserRouter>
-            </PreviewContextProvider>
+            </PreviewContext.Provider>
           </PreviewConnectionContextProvider>
         </ServicesContextProvider>,
       );

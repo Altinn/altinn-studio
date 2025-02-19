@@ -27,6 +27,9 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         Task<DeploymentEntity> Get(string org, string buildId);
 
+
+        Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment);
+
         /// <summary>
         /// Calls a function to update deployment entity
         /// </summary>

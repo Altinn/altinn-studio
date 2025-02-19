@@ -13,25 +13,27 @@ const excludedComponents = [
   ComponentType.Button,
   ComponentType.ButtonGroup,
   ComponentType.CustomButton,
-  ComponentType.Grid,
-  ComponentType.Header,
   ComponentType.IFrame,
   ComponentType.Image,
-  ComponentType.InstantiationButton,
   ComponentType.InstanceInformation,
+  ComponentType.InstantiationButton,
   ComponentType.Link,
   ComponentType.NavigationBar,
   ComponentType.NavigationButtons,
   ComponentType.Panel,
-  ComponentType.Paragraph,
+  ComponentType.PaymentDetails,
   ComponentType.PrintButton,
   ComponentType.Summary,
   ComponentType.Summary2,
 ];
 
-export type TargetProps = {
+export type TargetPageProps = {
   id: string;
   description: string;
+};
+
+export type TargetComponentProps = TargetPageProps & {
+  type: ComponentType;
 };
 
 type getTargetLayoutSetNameProps = {
@@ -59,7 +61,7 @@ type GetComponentOptionsProps = {
 export const getComponentOptions = ({
   formLayoutsData,
   getComponentTitle,
-}: GetComponentOptionsProps): TargetProps[] => {
+}: GetComponentOptionsProps): TargetComponentProps[] => {
   const availableComponents = formLayoutsData
     ? Object.values(formLayoutsData).flatMap((layout) =>
         getAllLayoutComponents(layout, excludedComponents),
@@ -69,10 +71,11 @@ export const getComponentOptions = ({
   return availableComponents.map((formComponent: FormComponent) => ({
     id: formComponent.id,
     description: getComponentTitle(formComponent),
+    type: formComponent.type,
   }));
 };
 
-export const getPageOptions = (formLayoutsData: IFormLayouts): TargetProps[] => {
+export const getPageOptions = (formLayoutsData: IFormLayouts): TargetPageProps[] => {
   return formLayoutsData
     ? Object.keys(formLayoutsData).map((page) => ({
         id: page,
