@@ -98,8 +98,8 @@ export const DesignView = (): ReactNode => {
   /**
    * Displays the pages as an ordered list
    */
-  const displayPageAccordions = pagesModel?.pages?.map((pageName, i) => {
-    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName.id);
+  const displayPageAccordions = pagesModel?.pages?.map((pageModel) => {
+    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageModel.id);
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;
@@ -109,7 +109,7 @@ export const DesignView = (): ReactNode => {
 
     return (
       <PageAccordion
-        key={i}
+        key={pageModel.id}
         pageName={layout.page}
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
