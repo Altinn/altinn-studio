@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Kafka;
 
+[Trait("Category", "KafkaIntegrationTest")]
 public class KafkaProducerTests : IDisposable
 {
     private readonly string _kafkaCompooseFilePath;

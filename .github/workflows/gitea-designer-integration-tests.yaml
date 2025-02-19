@@ -1,4 +1,4 @@
-name: Run gitea integration tests
+name: Run gitea and other integration tests
 on:
   push:
     branches: [ main ]
@@ -15,8 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  gitea-and-db-integration-tests:
-    name: Run integration tests against actual gitea and db
+  gitea-db-kafka-integration-tests:
+    name: Run integration tests against actual gitea db and kafka
     runs-on: ubuntu-latest
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -34,4 +34,4 @@ jobs:
 
       - name: Test gitea tests
         run: |
-           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
+           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)|Category=KafkaIntegrationTest)" -v m
