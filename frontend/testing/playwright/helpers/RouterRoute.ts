@@ -5,6 +5,7 @@ type SupportedRoutes =
   | 'altinnLoginPage'
   | 'dashboard'
   | 'dashboardCreateApp'
+  | 'dashbpardAsOrg'
   | 'orgLibrary'
   | 'deploy'
   | 'editorOverview'
@@ -20,7 +21,8 @@ type RouterRoutes = Record<SupportedRoutes, string>;
 const routerRoutes: RouterRoutes = {
   altinnLoginPage: '/',
   dashboard: '/dashboard/app-dashboard/self',
-  dashboardCreateApp: '/dashboard/self/new',
+  dashboardCreateApp: '/dashboard/app-dashboard/self/new',
+  dashbpardAsOrg: '/dashboard/app-dashboard/{{org}}',
   orgLibrary: '/dashboard/org-library/{{org}}',
   deploy: '/editor/{{org}}/{{app}}/deploy',
   editorOverview: '/editor/{{org}}/{{app}}/overview',

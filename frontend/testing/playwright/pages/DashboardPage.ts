@@ -11,8 +11,16 @@ export class DashboardPage extends BasePage {
     await this.page.goto(this.getRoute('dashboard'));
   }
 
+  public async loadDashboardPageAsOrg(): Promise<void> {
+    await this.page.goto(this.getRoute('dashbpardAsOrg'));
+  }
+
   public async verifyDashboardPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('dashboard'));
+  }
+
+  public async verifyDashboardPageAsOrg(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('dashbpardAsOrg'));
   }
 
   public async clickOnCreateAppLink(): Promise<void> {
