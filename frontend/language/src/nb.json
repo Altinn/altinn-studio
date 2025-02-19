@@ -158,6 +158,7 @@
   "code_list_editor.column_title_label": "Ledetekst",
   "code_list_editor.column_title_value": "Verdi",
   "code_list_editor.delete_code_list_item": "Slett alternativ {{number}}",
+  "code_list_editor.delete_code_list_item_confirm": "Er du sikker på at du vil slette rad {{number}}?",
   "code_list_editor.description_item": "Beskrivelse for alternativ {{number}}",
   "code_list_editor.empty": "Kodelisten er tom.",
   "code_list_editor.error_duplicate_values": "Alle verdier må være unike.",
