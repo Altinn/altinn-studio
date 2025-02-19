@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class GetCodeListsTests: DesignerEndpointsTestsBase<GetCodeListsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     public GetCodeListsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
@@ -27,7 +27,7 @@ public class GetCodeListsTests: DesignerEndpointsTestsBase<GetCodeListsTests>, I
         // Arrange
         const string repo = "org-content";
         await CopyRepositoryForTest(Org, repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, ApiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, ApiUrl);
 
         // Arc
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -53,7 +53,7 @@ public class GetCodeListsTests: DesignerEndpointsTestsBase<GetCodeListsTests>, I
         // Arrange
         const string repo = "org-content-empty";
         await CopyRepositoryForTest(Org, repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, ApiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, ApiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

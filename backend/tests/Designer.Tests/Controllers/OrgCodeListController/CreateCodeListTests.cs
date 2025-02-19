@@ -39,7 +39,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, ApiUrl);
         httpRequestMessage.Content = new StringContent(codeListJson, Encoding.UTF8, "application/json");
         List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(codeListJson);
-        List<OptionListData> expectedResponse = new ([
+        List<OptionListData> expectedResponse = new([
             new OptionListData {Title = CodeListId, Data = codeListToCreate, HasError = false}
         ]);
 

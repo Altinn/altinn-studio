@@ -28,7 +28,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         const string codeListId = "codeListNumber";
         const string apiUrl = $"/designer/api/{Org}/code-lists/{codeListId}";
         await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Delete, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -49,7 +49,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         const string codeListId = "non-existing-code-list";
         const string apiUrl = $"/designer/api/{Org}/code-lists/{codeListId}";
         await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Delete, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

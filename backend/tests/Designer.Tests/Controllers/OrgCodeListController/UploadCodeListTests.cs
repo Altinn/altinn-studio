@@ -121,7 +121,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         var codeListContent = new ByteArrayContent(codeListBytes);
         codeListContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         content.Add(codeListContent, "file", CodeListFileName);
-        HttpRequestMessage requestMessage = new (HttpMethod.Post, ApiUrl)
+        HttpRequestMessage requestMessage = new(HttpMethod.Post, ApiUrl)
         {
             Content = content
         };

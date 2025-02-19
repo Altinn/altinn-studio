@@ -48,10 +48,10 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Put, ApiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
         httpRequestMessage.Content = new StringContent(codeListWithAnUpdate, Encoding.UTF8, "application/json");
         List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(codeListWithAnUpdate);
-        List<OptionListData> expectedResponse = new ([
+        List<OptionListData> expectedResponse = new([
             new OptionListData {Title = CodeListId, Data = codeList, HasError = false}
         ]);
 

@@ -23,7 +23,7 @@ public class OrgCodeListServiceTests
     {
 
         // Arrange
-        List<Option> expectedCodeList = new ()
+        List<Option> expectedCodeList = new()
         {
             new Option
             {
@@ -69,7 +69,7 @@ public class OrgCodeListServiceTests
     public async Task CreateCodeList_ShouldReturnAllCodeListsAfterCreation()
     {
         // Arrange
-        List<Option> newCodeList = new ()
+        List<Option> newCodeList = new()
         {
             new Option
             {
@@ -110,7 +110,7 @@ public class OrgCodeListServiceTests
     public async Task UpdateCodeList_ShouldReturnAllCodeListAfterUpdate()
     {
         // Arrange
-        List<Option> newCodeList = new ()
+        List<Option> newCodeList = new()
         {
             new Option
             {
@@ -150,7 +150,7 @@ public class OrgCodeListServiceTests
         const string jsonCodeList = @"[
             {""label"": ""someLabel"",""value"": ""someValue"" },
         ]";
-        List<Option> expectedCodeList = new ()
+        List<Option> expectedCodeList = new()
         {
             new Option
             {
@@ -247,7 +247,7 @@ public class OrgCodeListServiceTests
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory =
             new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OrgCodeListService service = new (altinnGitRepositoryFactory);
+        OrgCodeListService service = new(altinnGitRepositoryFactory);
 
         return service;
     }
