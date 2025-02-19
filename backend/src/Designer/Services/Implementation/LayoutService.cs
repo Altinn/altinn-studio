@@ -103,5 +103,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     LayoutSetName = layoutSetId,
             });
         }
+
+        public async Task UpdatePageOrder(AltinnRepoEditingContext editingContext, string layoutSetId, Pages pages)
+        {
+            AltinnAppGitRepository appRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+
+            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetId);
+            JsonArray pageOrder = jsonNode["pages"]["order"] as JsonArray;
+            pageOrder.Clear();
+            pages.pages.ForEach((page) => pageOrder.Add(page.id));
+            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+        }
     }
 }
