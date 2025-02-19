@@ -12,7 +12,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async loadDashboardPageAsOrg(): Promise<void> {
-    await this.page.goto(this.getRoute('dashbpardAsOrg'));
+    await this.page.goto(this.getRoute('dashboardAsOrg'));
   }
 
   public async verifyDashboardPage(): Promise<void> {
@@ -20,7 +20,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async verifyDashboardPageAsOrg(): Promise<void> {
-    await this.page.waitForURL(this.getRoute('dashbpardAsOrg'));
+    await this.page.waitForURL(this.getRoute('dashboardAsOrg'));
   }
 
   public async clickOnCreateAppLink(): Promise<void> {
