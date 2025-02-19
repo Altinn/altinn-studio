@@ -1,10 +1,11 @@
-import type { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import React, { forwardRef, useCallback } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
 import type { Override } from '../../types/Override';
 import classes from './StudioTextResourcePicker.module.css';
+import { doesTextResourceExist } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
@@ -23,11 +24,16 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
       [onValueChange],
     );
 
+    const selectedValues: string[] = useMemo(
+      () => (doesTextResourceExist(textResources, value) ? [value] : []),
+      [textResources, value],
+    );
+
     return (
       <StudioCombobox
         hideLabel
         onValueChange={handleValueChange}
-        value={value ? [value] : []}
+        value={selectedValues}
         {...rest}
         ref={ref}
       >
