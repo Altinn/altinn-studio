@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  gitea-db-integration-tests:
+  gitea-and-db-integration-tests:
     name: Run integration tests against actual gitea and dbs
     runs-on: ubuntu-latest
     env:

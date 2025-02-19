@@ -11,20 +11,19 @@ using Xunit;
 
 namespace Designer.Tests.Kafka;
 
-[Trait("Category", "KafkaIntegrationTest")]
 public class KafkaProducerTests : IDisposable
 {
     private readonly string _kafkaCompooseFilePath;
     public KafkaProducerTests()
     {
         _kafkaCompooseFilePath = AltinnStudioRepositoryScanner.FindKafkaComposerFilePath();
-        // if (!CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} up -d", out string _, out string error))
-        // {
-        //     throw new Exception($"Failed to start kafka stack. Error: {error}");
-        // }
+        if (!CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} up -d", out string _, out string error))
+        {
+            throw new Exception($"Failed to start kafka stack. Error: {error}");
+        }
     }
 
-    [Fact]
+    [Fact(Skip = "Can't run in pipeline")]
     public async Task KafkaPublisher_ProduceAsync_Successfully()
     {
         // Arrange
