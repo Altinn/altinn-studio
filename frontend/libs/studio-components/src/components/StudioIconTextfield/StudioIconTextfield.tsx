@@ -28,7 +28,6 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
         <StudioTextfield
           disabled={readOnly}
           id={textFieldId}
-          size='sm'
           className={classes.textfield}
           {...rest}
         />

@@ -93,7 +93,6 @@ export function NumberRestrictions({
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
               type='number'
-              size='sm'
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -119,7 +118,6 @@ export function NumberRestrictions({
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
               type='number'
-              size='sm'
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -143,7 +141,6 @@ export function NumberRestrictions({
           <StudioTextfield
             id='schema_editor.multipleOf'
             type='number'
-            size='sm'
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMultipleOf, e.target.value)
             }

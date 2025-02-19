@@ -197,7 +197,6 @@ export const AccessListMembers = ({
         <>
           <div className={classes.searchWrapper}>
             <StudioTextfield
-              size='sm'
               label={t('resourceadm.listadmin_search')}
               value={searchText}
               onChange={(event) => {

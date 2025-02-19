@@ -15,3 +15,7 @@
   vertical-align: top;
   width: 1%;
 }
+
+.openDialogButton {
+  margin-bottom: var(--fds-spacing-4);
+}
