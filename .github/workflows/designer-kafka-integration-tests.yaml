@@ -1,0 +1,30 @@
+name: Run kafka integration tests
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'development/kafka/**'
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'development/kafka/**'
+  workflow_dispatch:
+
+jobs:
+  kafka-integration-tests:
+    name: Run integration tests against kafka
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+      - uses: actions/checkout@v4
+
+      - name: Run integration tests
+        run: |
+           dotnet test backend/Designer.sln --filter "Category=KafkaIntegrationTest" -v m
