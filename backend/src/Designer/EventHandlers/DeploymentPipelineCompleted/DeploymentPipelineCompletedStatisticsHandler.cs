@@ -43,7 +43,6 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
             Environment = notification.Environment,
             Org = notification.EditingContext.Org,
             App = notification.EditingContext.Repo,
-            AppsEnvironment = notification.Environment,
             AdditionalData = new Dictionary<string, string>
             {
                 { "studioEnvironment", _hostingEnvironment.EnvironmentName }

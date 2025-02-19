@@ -47,7 +47,6 @@ public class KafkaProducerTests : IDisposable
             Description = "Test",
             Org = "ttd",
             App = "app",
-            AppsEnvironment = "local",
             AdditionalData = new Dictionary<string, string> { { "studioEnvironment", "local" } }
         };
 

@@ -9,6 +9,5 @@ public record StudioStatisticsModel
     public string Description { get; set; }
     public string Org { get; set; }
     public string App { get; set; }
-    public string AppsEnvironment { get; set; }
     public Dictionary<string, string> AdditionalData { get; set; }
 }
