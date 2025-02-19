@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,14 +71,11 @@ public class OrgCodeListController : ControllerBase
     public async Task<ActionResult<List<OptionListData>>> CreateCodeList(string org, [FromRoute] string codeListId, [FromBody] List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        Console.WriteLine(codeListId);
-        Console.WriteLine(codeList);
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(org, developer, codeListId, codeList, cancellationToken);
 
-        Console.WriteLine(codeLists);
         return Ok(codeLists);
     }
 
