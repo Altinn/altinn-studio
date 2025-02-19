@@ -1,6 +1,5 @@
 #nullable disable
 using Altinn.App.Core.Internal.Language;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ApplicationLanguage = Altinn.App.Core.Models.ApplicationLanguage;
 
@@ -10,7 +9,6 @@ namespace Altinn.App.Api.Controllers;
 /// Represents the Application language API giving access to the different languages supported by the application.
 /// </summary>
 [Route("{org}/{app}/api/v1/applicationlanguages")]
-[Authorize]
 public class ApplicationLanguageController : ControllerBase
 {
     private readonly IApplicationLanguage _applicationLanguage;
