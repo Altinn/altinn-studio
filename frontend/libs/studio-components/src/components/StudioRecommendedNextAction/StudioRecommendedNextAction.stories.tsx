@@ -56,7 +56,6 @@ export const ExampleUseCase: ExampleUseCase = (args): React.ReactElement => {
           error={name !== 'Bernard' ? 'Navnet må være Bernard' : ''}
           onChange={(e) => setName(e.target.value)}
           icon={<KeyVerticalIcon />}
-          size='sm'
           label='Nytt navn'
         />
       </StudioRecommendedNextAction>

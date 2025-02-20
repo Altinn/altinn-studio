@@ -87,7 +87,6 @@ export const CreateCustomReceiptForm = ({
         name='customReceiptLayoutSetId'
         label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
         value={existingCustomReceiptLayoutSetId}
-        size='small'
         error={layoutSetError}
         onChange={handleValidateLayoutSetId}
       />

@@ -127,7 +127,6 @@ function CreateNewCodeList({
       <StudioTextfield
         label={t('app_content_library.code_lists.create_new_code_list_name')}
         className={classes.codeListTitle}
-        size='small'
         onChange={(event) => handleCodeListTitleChange(event.target.value)}
         error={codeListTitleError}
       />

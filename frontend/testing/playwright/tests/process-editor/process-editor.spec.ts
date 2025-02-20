@@ -6,7 +6,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { BpmnJSQuery } from '../../helpers/BpmnJSQuery';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
@@ -98,7 +98,7 @@ test('Opening the settings modal from the header after the user has opened it fr
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
   const settingsModal = new SettingsModal(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
     'Task_1',
@@ -128,7 +128,7 @@ test('that the user can edit the id of a task and add data-types to sign', async
   testAppName,
 }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const signingTask = await addNewSigningTaskToProcessEditor(page);
@@ -152,7 +152,7 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const bpmnJSQuery = new BpmnJSQuery(page);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   // --------------------- Create new data model ---------------------
@@ -233,7 +233,7 @@ const editRandomGeneratedId = async (
 };
 
 const goToGiteaAndNavigateToProcessBpmnFile = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();
@@ -246,7 +246,7 @@ const goToGiteaAndNavigateToProcessBpmnFile = async (
   await giteaPage.clickOnProcessBpmnFile();
 };
 
-const commitAndPushToGitea = async (header: Header): Promise<void> => {
+const commitAndPushToGitea = async (header: AppDevelopmentHeader): Promise<void> => {
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
@@ -255,7 +255,7 @@ const commitAndPushToGitea = async (header: Header): Promise<void> => {
 const navigateToDataModelAndCreateNewDataModel = async (
   dataModelPage: DataModelPage,
   processEditorPage: ProcessEditorPage,
-  header: Header,
+  header: AppDevelopmentHeader,
   newDataModelName: string,
 ): Promise<void> => {
   await header.verifyNoGeneralErrorMessage();
@@ -275,7 +275,7 @@ const navigateToDataModelAndCreateNewDataModel = async (
 };
 
 const goToGiteaAndNavigateToApplicationMetadataFile = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();

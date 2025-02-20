@@ -62,7 +62,6 @@ export const ConfirmUndeployDialog = ({
           {t('app_deployment.undeploy_confirmation_dialog_description')}
         </StudioParagraph>
         <StudioTextfield
-          size='sm'
           label={t('app_deployment.undeploy_confirmation_input_label')}
           description={t('app_deployment.undeploy_confirmation_input_description', {
             appName,
