@@ -1,3 +1,7 @@
+export type AppPolicyActionMap = {
+  [key: string]: string;
+};
+
 export interface PolicyRuleCard {
   ruleId: string;
   description: string;
