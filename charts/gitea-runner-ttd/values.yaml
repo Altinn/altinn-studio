@@ -16,8 +16,8 @@ image:
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: "gitea-runner-ttd"
+fullnameOverride: "gitea-runner-ttd"
 
 environmentVariables:
   - name: DOCKER_HOST
@@ -41,10 +41,14 @@ podAnnotations: {}
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext: {
+  fsGroup: 1000
+}
+# fsGroup: 2000
 
-securityContext: {}
+securityContext: {
+  privileged: true
+}
   # capabilities:
   #   drop:
   #   - ALL

@@ -37,8 +37,6 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          securityContext:
-            privileged: true
           env:
             {{- if .Values.environmentVariables }}
             {{- range $variable := .Values.environmentVariables}}
@@ -54,6 +52,7 @@ spec:
               {{- end }}
             {{- end }}
             {{- end }}
+
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
