@@ -42,9 +42,8 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetRepository, Developer);
-        string filePath = Path.Combine(repoPath, "CodeLists/");
-        await File.WriteAllTextAsync(Path.Combine(filePath, "stringBoolNumbersCodeList.json"), stringBoolNumbersCodeList);
+        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
+        await File.WriteAllTextAsync(Path.Combine(repoPath, "Codelists", "stringBoolNumbersCodeList.json"), stringBoolNumbersCodeList);
 
         const string codeListWithAnUpdate = @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },

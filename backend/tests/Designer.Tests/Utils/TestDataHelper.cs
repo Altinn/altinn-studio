@@ -417,11 +417,11 @@ namespace Designer.Tests.Utils
             return bytes;
         }
 
-        public static string GenerateTestOrgName(int length = 28)
+        public static string GenerateTestOrgName(int length = 27)
         {
-            if (length is < 12 or > 28)
+            if (length is < 12 or > 27)
             {
-                throw new ArgumentException("Length for test org must be between 12 and 28.");
+                throw new ArgumentException("Length for test org must be between 12 and 27.");
             }
 
             return $"test-org-{Guid.NewGuid()}"[..length];
@@ -449,7 +449,7 @@ namespace Designer.Tests.Utils
             return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
         }
 
-        private static string GetOrgRepositoryDirectory(string developer, string org, string repository)
+        public static string GetOrgRepositoryDirectory(string developer, string org, string repository)
         {
             return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
         }
