@@ -192,7 +192,6 @@ export const ResourceReferenceFieldset = ({
         <StudioTextfield
           id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
-          size='sm'
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           error={hasError}

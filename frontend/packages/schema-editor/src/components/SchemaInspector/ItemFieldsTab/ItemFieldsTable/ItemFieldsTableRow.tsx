@@ -70,7 +70,6 @@ export const ItemFieldsTableRow = ({
           hideLabel
           onKeyDown={onKeyDown}
           schemaPointer={fullPath}
-          size='small'
           aria-label={t('schema_editor.field_name')}
         />
       </td>

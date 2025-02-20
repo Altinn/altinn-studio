@@ -60,7 +60,6 @@ export function ReferenceTab({
         label={t('ux_editor.modal_properties_custom_code_list_id')}
         onChange={(event) => handleOptionsIdChange(event.target.value)}
         value={referenceId}
-        size='small'
       />
       {shouldDisplayAlert && (
         <StudioAlert className={classes.alert} severity={'info'} size='sm'>
