@@ -28,7 +28,6 @@ export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
     <StudioTextfield
       label={t('ux_editor.component_properties.summary.override.empty_field_text')}
       autoFocus={true}
-      size='sm'
       onBlur={() => setOpen(false)}
       onKeyDown={({ key }) => key === 'Enter' && setOpen(false)}
       value={override.emptyFieldText}

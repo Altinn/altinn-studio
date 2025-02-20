@@ -97,7 +97,6 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
           id={id}
           label={<ResourceFieldHeader label={label} required={required} />}
           description={description}
-          size='sm'
           value={val}
           onChange={(e) => {
             setVal(e.target.value);

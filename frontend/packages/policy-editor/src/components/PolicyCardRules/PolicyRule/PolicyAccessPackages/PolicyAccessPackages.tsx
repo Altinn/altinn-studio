@@ -99,7 +99,6 @@ export const PolicyAccessPackages = (): ReactElement => {
               }
               hideLabel
               placeholder={t('policy_editor.access_package_search')}
-              size='small'
               value={searchValue}
               onChange={handleSearch}
             />

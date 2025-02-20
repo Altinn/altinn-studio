@@ -11,6 +11,7 @@ import {
   PropertyTypes,
   propertyTypeMatcher,
   getSupportedPropertyKeysForPropertyType,
+  isComponentDeprecated,
 } from './component';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type {
@@ -464,5 +465,15 @@ describe('getSupportedPropertyKeysForPropertyType', () => {
         ['testProperty'],
       ),
     ).toEqual(['testProperty1']);
+  });
+});
+
+describe('isComponentDeprecated', () => {
+  it('should return true if component is deprecated', () => {
+    expect(isComponentDeprecated(ComponentType.Summary)).toBe(true);
+  });
+
+  it('should return false if component is not deprecated', () => {
+    expect(isComponentDeprecated(ComponentType.Input)).toBe(false);
   });
 });

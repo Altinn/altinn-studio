@@ -978,9 +978,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Finds all schema files in repository.
+        /// </summary>
+        public IList<AltinnCoreFile> GetAllSchemaFiles(bool xsd = false)
+        {
+            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
+
+            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
+            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
+
+            return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
         /// Finds all schema files in App/models directory.
         /// </summary>
-        public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
+        public IList<AltinnCoreFile> GetAppSchemaFiles(bool xsd = false)
         {
             string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
             string schemaFilesPath = Path.Combine(ModelFolderPath, schemaFilesPattern);
