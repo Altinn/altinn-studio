@@ -157,7 +157,7 @@ public class DataController : ControllerBase
         {
             return BadRequest(await GetErrorDetails(fileValidationError.UploadValidationIssues));
         }
-        if (response.Error.Status == (int)HttpStatusCode.BadRequest)
+        if (response.Error.Status == StatusCodes.Status400BadRequest)
         {
             // Old clients will expect BadRequest to have a list of issues or a string
             // not problem details.
@@ -194,10 +194,10 @@ public class DataController : ControllerBase
     [HttpPost("{dataType}")]
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-    [ProducesResponseType(typeof(DataPostResponse), (int)HttpStatusCode.Created)]
-    [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.Conflict)]
-    [ProducesResponseType(typeof(DataPostErrorResponse), (int)HttpStatusCode.BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(DataPostErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DataPostResponse>> Post(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -322,7 +322,7 @@ public class DataController : ControllerBase
                     {
                         Title = "Missing content type",
                         Detail = "The request is missing a content type header.",
-                        Status = (int)HttpStatusCode.BadRequest,
+                        Status = StatusCodes.Status400BadRequest,
                     };
                 }
 
@@ -334,7 +334,7 @@ public class DataController : ControllerBase
                         Title = "Request too large",
                         Detail =
                             $"The request body is too large. The content length is {actualLength} bytes, which exceeds the limit of {dataType.MaxSize} MB",
-                        Status = (int)HttpStatusCode.RequestEntityTooLarge,
+                        Status = StatusCodes.Status413RequestEntityTooLarge,
                     };
                 }
 
@@ -344,7 +344,7 @@ public class DataController : ControllerBase
                     {
                         Title = "Invalid data",
                         Detail = "Invalid data provided. Error: The file is zero bytes.",
-                        Status = (int)HttpStatusCode.BadRequest,
+                        Status = StatusCodes.Status400BadRequest,
                     };
                 }
 
@@ -635,9 +635,9 @@ public class DataController : ControllerBase
     /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPatch("{dataGuid:guid}")]
-    [ProducesResponseType(typeof(DataPatchResponse), 200)]
-    [ProducesResponseType(typeof(ProblemDetails), 409)]
-    [ProducesResponseType(typeof(ProblemDetails), 422)]
+    [ProducesResponseType(typeof(DataPatchResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     [Obsolete("Use PatchFormDataMultiple instead")]
     public async Task<ActionResult<DataPatchResponse>> PatchFormData(
         [FromRoute] string org,
@@ -874,7 +874,7 @@ public class DataController : ControllerBase
             return StatusCode((int)se.StatusCode, se.Message);
         }
 
-        return StatusCode((int)HttpStatusCode.InternalServerError, $"{message}");
+        return StatusCode(StatusCodes.Status500InternalServerError, $"{message}");
     }
 
     /// <summary>
@@ -1161,7 +1161,7 @@ public class DataController : ControllerBase
 
     private ObjectResult Problem(ProblemDetails error)
     {
-        return StatusCode(error.Status ?? (int)HttpStatusCode.InternalServerError, error);
+        return StatusCode(error.Status ?? StatusCodes.Status500InternalServerError, error);
     }
 
     private async Task<
@@ -1177,7 +1177,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound,
+                    Status = StatusCodes.Status404NotFound,
                 };
             }
 
@@ -1192,7 +1192,7 @@ public class DataController : ControllerBase
                     Title = "Data Element Not Found",
                     Detail =
                         $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.BadRequest,
+                    Status = StatusCodes.Status404NotFound,
                 };
             }
 
@@ -1204,7 +1204,7 @@ public class DataController : ControllerBase
                     Title = "Data Type Not Found",
                     Detail =
                         $"""Could not find the specified data type: "{dataElement.DataType}" in applicationmetadata.json""",
-                    Status = (int)HttpStatusCode.BadRequest,
+                    Status = StatusCodes.Status400BadRequest,
                 };
             }
 
@@ -1239,7 +1239,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound,
+                    Status = StatusCodes.Status404NotFound,
                 };
             }
 
@@ -1258,7 +1258,7 @@ public class DataController : ControllerBase
                         Title = "Data Element Not Found",
                         Detail =
                             $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
-                        Status = (int)HttpStatusCode.NotFound,
+                        Status = StatusCodes.Status404NotFound,
                     };
                 }
 
@@ -1270,7 +1270,7 @@ public class DataController : ControllerBase
                         Title = "Data Type Not Found",
                         Detail =
                             $"""Data element {dataElement.Id} requires data type "{dataElement.DataType}", but it was not found in applicationmetadata.json""",
-                        Status = (int)HttpStatusCode.InternalServerError,
+                        Status = StatusCodes.Status500InternalServerError,
                     };
                 }
 
@@ -1303,7 +1303,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound,
+                    Status = StatusCodes.Status404NotFound,
                 };
             }
 
@@ -1316,7 +1316,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Data Type Not Found",
                     Detail = $"""Could not find the specified data type: "{dataTypeId}" in applicationmetadata.json""",
-                    Status = (int)HttpStatusCode.BadRequest,
+                    Status = StatusCodes.Status400BadRequest,
                 };
             }
 

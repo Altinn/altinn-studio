@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -49,7 +48,7 @@ public class DataPostErrorResponse : ProblemDetails
     {
         Title = "File validation failed";
         Detail = detail;
-        Status = (int)HttpStatusCode.BadRequest;
+        Status = StatusCodes.Status400BadRequest;
         UploadValidationIssues = validationIssues;
     }
 

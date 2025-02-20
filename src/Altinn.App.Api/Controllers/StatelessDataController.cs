@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -390,9 +389,9 @@ public class StatelessDataController : ControllerBase
     {
         if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
         {
-            return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
+            return StatusCode(StatusCodes.Status403Forbidden, enforcementResult.FailedObligations);
         }
 
-        return StatusCode((int)HttpStatusCode.Forbidden);
+        return StatusCode(StatusCodes.Status403Forbidden);
     }
 }

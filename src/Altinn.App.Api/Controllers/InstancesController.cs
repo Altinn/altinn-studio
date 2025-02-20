@@ -285,7 +285,7 @@ public class InstancesController : ControllerBase
             {
                 if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 {
-                    return StatusCode((int)HttpStatusCode.Forbidden);
+                    return StatusCode(StatusCodes.Status403Forbidden);
                 }
             }
 
@@ -301,7 +301,7 @@ public class InstancesController : ControllerBase
         if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
         {
             return StatusCode(
-                (int)HttpStatusCode.Forbidden,
+                StatusCodes.Status403Forbidden,
                 $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}"
             );
         }
@@ -310,7 +310,7 @@ public class InstancesController : ControllerBase
         InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(instanceTemplate);
         if (validationResult != null && !validationResult.Valid)
         {
-            return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
         instanceTemplate.Org = application.Org;
@@ -400,7 +400,7 @@ public class InstancesController : ControllerBase
                 return null;
 
             return StatusCode(
-                (int)HttpStatusCode.Forbidden,
+                StatusCodes.Status403Forbidden,
                 $"User instantiation is disabled for this application {org}/{app}"
             );
         }
@@ -476,7 +476,7 @@ public class InstancesController : ControllerBase
             {
                 if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 {
-                    return StatusCode((int)HttpStatusCode.Forbidden);
+                    return StatusCode(StatusCodes.Status403Forbidden);
                 }
             }
 
@@ -502,7 +502,7 @@ public class InstancesController : ControllerBase
         if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
         {
             return StatusCode(
-                (int)HttpStatusCode.Forbidden,
+                StatusCodes.Status403Forbidden,
                 $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}"
             );
         }
@@ -521,7 +521,7 @@ public class InstancesController : ControllerBase
         InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(instanceTemplate);
         if (validationResult != null && !validationResult.Valid)
         {
-            return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
         Instance instance;
@@ -675,7 +675,7 @@ public class InstancesController : ControllerBase
         InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(targetInstance);
         if (validationResult != null && !validationResult.Valid)
         {
-            return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
         ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
@@ -1267,10 +1267,10 @@ public class InstancesController : ControllerBase
     {
         if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
         {
-            return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
+            return StatusCode(StatusCodes.Status403Forbidden, enforcementResult.FailedObligations);
         }
 
-        return StatusCode((int)HttpStatusCode.Forbidden);
+        return StatusCode(StatusCodes.Status403Forbidden);
     }
 
     private async Task UpdatePresentationTextsOnInstance(

@@ -1,4 +1,3 @@
-using System.Net;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
@@ -74,7 +73,7 @@ public class ExternalApiController : ControllerBase
                 return StatusCode((int)httpEx.StatusCode.Value, errorMessage);
             }
 
-            return StatusCode((int)HttpStatusCode.InternalServerError, $"{genericErrorDescription}: {ex.Message}");
+            return StatusCode(StatusCodes.Status500InternalServerError, $"{genericErrorDescription}: {ex.Message}");
         }
     }
 }

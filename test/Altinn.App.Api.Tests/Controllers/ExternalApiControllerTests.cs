@@ -3,6 +3,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -40,7 +41,7 @@ public class ExternalApiControllerTests
         // Assert
         var okResult = result as OkObjectResult;
         Assert.NotNull(okResult);
-        okResult.StatusCode.Should().Be((int)HttpStatusCode.OK);
+        okResult.StatusCode.Should().Be(StatusCodes.Status200OK);
         okResult.Value.Should().Be(externalApiData);
     }
 
@@ -63,7 +64,7 @@ public class ExternalApiControllerTests
         // Assert
         var objectResult = result as BadRequestObjectResult;
         Assert.NotNull(objectResult);
-        objectResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        objectResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         objectResult.Value.Should().Be($"External api with id '{externalApiId}' not found.");
     }
 
@@ -86,7 +87,7 @@ public class ExternalApiControllerTests
         // Assert
         var objectResult = result as ObjectResult;
         Assert.NotNull(objectResult);
-        objectResult.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
+        objectResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         objectResult.Value.Should().Match(x => ((string)x).EndsWith("Error message"));
     }
 
@@ -113,7 +114,7 @@ public class ExternalApiControllerTests
         // Assert
         var objectResult = result as ObjectResult;
         Assert.NotNull(objectResult);
-        objectResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        objectResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
         objectResult
             .Value.Should()

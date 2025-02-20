@@ -271,7 +271,7 @@ public class ProcessController : ControllerBase
             return new ProblemDetails()
             {
                 Detail = $"{errorCount} validation errors found for task {currentTaskId}",
-                Status = (int)HttpStatusCode.Conflict,
+                Status = StatusCodes.Status409Conflict,
                 Title = "Validation failed for task",
                 Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues } },
             };
@@ -316,7 +316,7 @@ public class ProcessController : ControllerBase
                 return Conflict(
                     new ProblemDetails()
                     {
-                        Status = (int)HttpStatusCode.Conflict,
+                        Status = StatusCodes.Status409Conflict,
                         Title = "Process is not started. Use start!",
                     }
                 );
@@ -325,7 +325,7 @@ public class ProcessController : ControllerBase
             if (instance.Process.Ended.HasValue)
             {
                 return Conflict(
-                    new ProblemDetails() { Status = (int)HttpStatusCode.Conflict, Title = "Process is ended." }
+                    new ProblemDetails() { Status = StatusCodes.Status409Conflict, Title = "Process is ended." }
                 );
             }
 
@@ -336,7 +336,7 @@ public class ProcessController : ControllerBase
                 return Conflict(
                     new ProblemDetails()
                     {
-                        Status = (int)HttpStatusCode.Conflict,
+                        Status = StatusCodes.Status409Conflict,
                         Title = "Instance does not have current altinn task type information!",
                     }
                 );
@@ -358,7 +358,7 @@ public class ProcessController : ControllerBase
                     403,
                     new ProblemDetails()
                     {
-                        Status = (int)HttpStatusCode.Forbidden,
+                        Status = StatusCodes.Status403Forbidden,
                         Detail = $"User is not authorized to perform action {checkedAction} on task {currentTaskId}",
                         Title = "Unauthorized",
                     }
@@ -412,7 +412,7 @@ public class ProcessController : ControllerBase
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
-                        Status = (int)HttpStatusCode.Conflict,
+                        Status = StatusCodes.Status409Conflict,
                         Title = "Conflict",
                     }
                 );
@@ -422,7 +422,7 @@ public class ProcessController : ControllerBase
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
-                        Status = (int)HttpStatusCode.InternalServerError,
+                        Status = StatusCodes.Status500InternalServerError,
                         Title = "Internal server error",
                     }
                 );
@@ -432,7 +432,7 @@ public class ProcessController : ControllerBase
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
-                        Status = (int)HttpStatusCode.Forbidden,
+                        Status = StatusCodes.Status403Forbidden,
                         Title = "Unauthorized",
                     }
                 );
@@ -442,7 +442,7 @@ public class ProcessController : ControllerBase
                     new ProblemDetails()
                     {
                         Detail = $"Unknown ProcessErrorType {result.ErrorType}",
-                        Status = (int)HttpStatusCode.InternalServerError,
+                        Status = StatusCodes.Status500InternalServerError,
                         Title = "Internal server error",
                     }
                 );
@@ -487,7 +487,7 @@ public class ProcessController : ControllerBase
             return Conflict(
                 new ProblemDetails()
                 {
-                    Status = (int)HttpStatusCode.Conflict,
+                    Status = StatusCodes.Status409Conflict,
                     Title = "Process is not started. Use start!",
                 }
             );
