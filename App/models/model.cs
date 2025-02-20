@@ -158,6 +158,10 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("checkboxesPersons")]
     public string checkboxesPersons { get; set; }
 
+    [XmlElement("Dates", Order = 29)]
+    [JsonProperty("Dates")]
+    [JsonPropertyName("Dates")]
+    public Dates Dates { get; set; }
   }
 
   public class GridExample
@@ -417,5 +421,43 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("surname")]
     public string surname { get; set; }
 
+  }
+
+  public class Dates
+  {
+    [XmlElement("SetDate", Order = 1)]
+    [JsonProperty("SetDate")]
+    [JsonPropertyName("SetDate")]
+    public string SetDate { get; set; }
+
+    [XmlElement("String", Order = 2)]
+    [JsonProperty("String")]
+    [JsonPropertyName("String")]
+    public string String { get; set; }
+
+    [XmlElement("DateTime", Order = 3)]
+    [JsonProperty("DateTime")]
+    [JsonPropertyName("DateTime")]
+    public DateTime? DateTime { get; set; }
+
+    [XmlElement("DateOnly", Order = 4)]
+    [JsonProperty("DateOnly")]
+    [JsonPropertyName("DateOnly")]
+    public DateTime? DateOnly { get; set; }
+
+    [XmlElement("FormatStringBackend", Order = 5)]
+    [JsonProperty("FormatStringBackend")]
+    [JsonPropertyName("FormatStringBackend")]
+    public string FormatStringBackend { get; set; }
+
+    [XmlElement("FormatDateTimeBackend", Order = 6)]
+    [JsonProperty("FormatDateTimeBackend")]
+    [JsonPropertyName("FormatDateTimeBackend")]
+    public string FormatDateTimeBackend { get; set; }
+
+    [XmlElement("FormatDateOnlyBackend", Order = 7)]
+    [JsonProperty("FormatDateOnlyBackend")]
+    [JsonPropertyName("FormatDateOnlyBackend")]
+    public string FormatDateOnlyBackend { get; set; }
   }
 }

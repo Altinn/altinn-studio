@@ -22,6 +22,7 @@
       "TextPage",
       "NumberPage",
       "DatePage",
+      "DateAndFormatDate",
       "PersonLookupPage",
       "OrganisationLookupPage",
       "SummaryPage"

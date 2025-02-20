@@ -2,6 +2,7 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.ExternalApi;
+using Altinn.App.logic;
 using Altinn.App.logic.DataProcessing;
 using Altinn.App.Options;
 using Altinn.App.Services;
@@ -18,6 +19,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
     services.AddTransient<IExternalApiClient, ExternalApi>();
+    services.AddTransient<IDataProcessor, DataProcessor>();
 }
 
 // ###########################################################################
