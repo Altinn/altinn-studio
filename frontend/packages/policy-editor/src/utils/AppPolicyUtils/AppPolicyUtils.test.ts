@@ -1,3 +1,4 @@
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PolicyRuleCard, PolicyRuleResource } from '../../types';
 import {
   extractAllUniqueActions,
@@ -219,8 +220,8 @@ describe('AppPolicyUtils', () => {
           id: '[app]',
         },
       ];
-      const displayText = getSubResourceDisplayText(resource, 'app');
-      expect(displayText).toEqual('Hele tjenesten');
+      const displayText = getSubResourceDisplayText(resource, 'app', textMock);
+      expect(displayText).toEqual('[mockedText(policy_editor._subresource_covers.whole_service)]');
     });
 
     it('should return the display text for an app sub-resource with limitations', () => {
@@ -238,7 +239,7 @@ describe('AppPolicyUtils', () => {
           id: 'task_1',
         },
       ];
-      const displayText = getSubResourceDisplayText(resource, 'app');
+      const displayText = getSubResourceDisplayText(resource, 'app', textMock);
       expect(displayText).toEqual('task_1');
     });
 
@@ -257,7 +258,7 @@ describe('AppPolicyUtils', () => {
           id: 'task_1',
         },
       ];
-      const displayText = getSubResourceDisplayText(resource, 'resource');
+      const displayText = getSubResourceDisplayText(resource, 'resource', textMock);
       expect(displayText).toEqual('[org] - [app] - task_1');
     });
   });
@@ -360,11 +361,12 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app');
+      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
       expect(mappedActions).toEqual({
-        read: 'Hele tjenesten (1)',
-        write: 'Hele tjenesten (1), Hele tjenesten (3)',
-        start: 'Hele tjenesten (3)',
+        read: '[mockedText(policy_editor._subresource_covers.whole_service)] (1)',
+        write:
+          '[mockedText(policy_editor._subresource_covers.whole_service)] (1), [mockedText(policy_editor._subresource_covers.whole_service)] (3)',
+        start: '[mockedText(policy_editor._subresource_covers.whole_service)] (3)',
       });
     });
 
@@ -443,17 +445,17 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app');
+      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
       expect(mappedActions).toEqual({
         read: 'task_1 (1), task_2 (1)',
-        write: 'Hele tjenesten (3)',
-        instantiate: 'Hele tjenesten (2)',
+        write: '[mockedText(policy_editor._subresource_covers.whole_service)] (3)',
+        instantiate: '[mockedText(policy_editor._subresource_covers.whole_service)] (2)',
       });
     });
 
     it('should return an empty map if the list of rules is empty', () => {
       const rules: PolicyRuleCard[] = [];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app');
+      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
       expect(mappedActions).toEqual({});
     });
 
@@ -482,7 +484,7 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject2', 'app');
+      const mappedActions = mapActionsForRole(rules, 'subject2', 'app', textMock);
       expect(mappedActions).toEqual({});
     });
   });

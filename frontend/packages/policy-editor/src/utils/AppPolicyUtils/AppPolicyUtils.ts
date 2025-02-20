@@ -6,6 +6,13 @@ import type {
   PolicySubject,
 } from '../../types';
 
+export const APP_SUBRESOURCE_DEFAULT_LIMITATIONS = {
+  'urn:altinn:org': '[org]',
+  'urn:altinn:app': '[app]',
+};
+export const SERVICE_OWNER_SUBJECT_CODE = '[org]';
+export const SERVICE_OWNER_SUBJECT_NAME = 'Tjenesteeier';
+
 /**
  * Get the display name for a subject
  * @param subject The subject to get the display name for
@@ -13,8 +20,8 @@ import type {
  * @returns The display name for the subject, or the subject itself if no display name is found
  */
 export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubject[]): string => {
-  if (subject.toLowerCase() === '[org]') {
-    return 'Tjenesteeier';
+  if (subject.toLowerCase() === SERVICE_OWNER_SUBJECT_CODE) {
+    return SERVICE_OWNER_SUBJECT_NAME;
   }
   return (
     allSubjects.find((sub) => sub.subjectId.toLowerCase() === subject.toLowerCase())
@@ -45,14 +52,12 @@ export const filterRulesWithSubject = (
 export const filterDefaultAppLimitations = (
   appResources: PolicyRuleResource[],
 ): PolicyRuleResource[] => {
-  if (
-    !appResources.find((r) => r.type === 'urn:altinn:app') ||
-    !appResources.find((r) => r.type === 'urn:altinn:org')
-  ) {
+  const subResourceDefaultTypes = Object.keys(APP_SUBRESOURCE_DEFAULT_LIMITATIONS);
+  if (!appResources.find((r) => subResourceDefaultTypes.includes(r.type))) {
     return undefined;
   }
 
-  return appResources.filter((r) => r.type !== 'urn:altinn:org' && r.type !== 'urn:altinn:app');
+  return appResources.filter((r) => !subResourceDefaultTypes.includes(r.type));
 };
 
 /**
@@ -117,6 +122,7 @@ export const getSubjectCategoryTextKey = (
 export const getSubResourceDisplayText = (
   resources: PolicyRuleResource[],
   usageType: PolicyEditorUsage,
+  t: (key: string) => string,
 ): string => {
   if (usageType === 'app') {
     const limitations = filterDefaultAppLimitations(resources)
@@ -125,7 +131,7 @@ export const getSubResourceDisplayText = (
     if (limitations && limitations.length > 0) {
       return limitations;
     }
-    return 'Hele tjenesten';
+    return t('policy_editor._subresource_covers.whole_service');
   }
   return resources.map((r) => r.id).join(' - ');
 };
@@ -141,11 +147,12 @@ export const mapActionsForRole = (
   policyRules: PolicyRuleCard[],
   subject: string,
   usageType: PolicyEditorUsage,
+  t: (key: string) => string,
 ): AppPolicyActionMap => {
   const result = {};
   filterRulesWithSubject(policyRules, subject).forEach((rule) => {
     const covers = rule.resources
-      .map((r) => getSubResourceDisplayText(r, usageType).concat(` (${rule.ruleId})`))
+      .map((r) => getSubResourceDisplayText(r, usageType, t).concat(` (${rule.ruleId})`))
       .join(', ');
 
     rule.actions.forEach((action) => {
