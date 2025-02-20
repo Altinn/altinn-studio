@@ -41,14 +41,12 @@ podAnnotations: {}
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
-podSecurityContext: {
+podSecurityContext:
   fsGroup: 1000
-}
-# fsGroup: 2000
 
-securityContext: {
+securityContext:
   privileged: true
-}
+
   # capabilities:
   #   drop:
   #   - ALL
@@ -68,28 +66,16 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
-
 # Additional volumes on the output Deployment definition.
-volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
+volumes:
+  - name: runner-data-ttd
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-runner-ttd-volume-claim
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+volumeMounts:
+  - name: runner-data-ttd
+    mountPath: /data
 
 nodeSelector: {}
 
