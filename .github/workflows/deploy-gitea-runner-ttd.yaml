@@ -1,7 +1,7 @@
 name: Deploy Gitea Runner for ttd organization
 on:
   push:
-    branches: [ main, feat/gitea-runners ]
+    branches: [ main ]
     paths:
       - '.github/workflows/deploy-gitea-runner-ttd.yaml'
       - '.github/workflows/template-docker-push.yaml'
