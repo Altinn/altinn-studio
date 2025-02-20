@@ -46,7 +46,6 @@ export const FormComponentConfig = ({
   const [showGrid, setShowGrid] = useState(false);
 
   const selectedDataType = useComponentPropertyEnumValue();
-  const [selectedValue, setSelectedValue] = useState<string[]>([]);
 
   const memoizedGetSelectedValuesDisplay = useMemo(
     () => (propertyKey: string) => {
@@ -296,7 +295,6 @@ export const FormComponentConfig = ({
             <EditStringValue
               component={component}
               handleComponentChange={(updatedComponent) => {
-                setSelectedValue(updatedComponent[propertyKey]);
                 handleComponentUpdate(updatedComponent);
               }}
               propertyKey={propertyKey}
