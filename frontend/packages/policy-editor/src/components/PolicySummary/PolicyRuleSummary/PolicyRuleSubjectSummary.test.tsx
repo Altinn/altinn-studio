@@ -8,11 +8,6 @@ import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
 } from '../../../contexts/PolicyEditorContext';
-import {
-  mockSubject1,
-  mockSubjectId1,
-  mockSubjectBackendString1,
-} from '../../../../test/mocks/policySubjectMocks';
 import { mockAction1, mockAction2 } from '../../../../test/mocks/policyActionMocks';
 import type { PolicySubject } from '../../../types';
 
