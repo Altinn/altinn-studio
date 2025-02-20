@@ -1456,7 +1456,7 @@
   "ux_editor.component_properties.showIcon": "Vis ikon",
   "ux_editor.component_properties.showLabelsInTable": "Alternativene skal alltid vises i tabeller",
   "ux_editor.component_properties.showPageInAccordion": "Vis side i trekkspilliste",
-  "ux_editor.component_properties.showValidations": "Vis valideringstyper",
+  "ux_editor.component_properties.showValidations": "Valideringstyper",
   "ux_editor.component_properties.simplified": "Forenklet visning",
   "ux_editor.component_properties.size": "Størrelse",
   "ux_editor.component_properties.sortOrder": "Sorteringsrekkefølge",
