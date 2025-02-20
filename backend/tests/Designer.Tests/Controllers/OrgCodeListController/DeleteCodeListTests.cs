@@ -36,7 +36,6 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert

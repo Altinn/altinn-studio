@@ -16,7 +16,6 @@ public class OrgCodeListServiceTests
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    // private const string TargetRepository = "ttd-content";
 
     [Fact]
     public async Task GetCodeLists_ShouldReturnAllCodeLists()
@@ -216,6 +215,7 @@ public class OrgCodeListServiceTests
 
         // Act and assert
         await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await service.DeleteCodeList(targetOrg, Developer, codeListId));
+        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
     }
 
     [Fact]
@@ -233,7 +233,6 @@ public class OrgCodeListServiceTests
 
         // Assert
         Assert.True(codeListExists);
-
         TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
     }
 
@@ -252,7 +251,6 @@ public class OrgCodeListServiceTests
 
         // Assert
         Assert.False(codeListExists);
-
         TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
     }
 

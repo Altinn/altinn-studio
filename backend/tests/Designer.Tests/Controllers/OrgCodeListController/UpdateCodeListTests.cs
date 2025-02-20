@@ -85,7 +85,7 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         const string stringBoolNumbersCodeList = @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },

@@ -19,8 +19,6 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
-    // private const string ApiUrl = $"designer/api/{Org}/code-lists";
-    // private const string TargetRepository = "ttd-content";
 
     [Fact]
     public async Task GetCodeLists_Returns200Ok_With_CodeLists()

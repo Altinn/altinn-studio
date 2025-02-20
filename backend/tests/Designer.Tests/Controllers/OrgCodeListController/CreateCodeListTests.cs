@@ -75,7 +75,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         const string stringBoolNumbersCodeList = @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
@@ -100,7 +100,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         const string stringBoolNumbersCodeList = @"[
             { ""label"": """", ""value"": """" },
         ]";
@@ -122,7 +122,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
         // Act
@@ -146,7 +146,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         const string invalidCodeList = @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
@@ -172,7 +172,7 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         const string codeListWithMissingFields = @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
