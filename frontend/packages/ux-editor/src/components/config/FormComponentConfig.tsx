@@ -286,14 +286,10 @@ export const FormComponentConfig = ({
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
-        const selectProperty =
-          selectedValue.length > 0
-            ? t('ux_editor.component_properties.selected_validations')
-            : componentPropertyLabel(propertyKey);
         return (
           <SelectPropertyEditor
             key={propertyKey}
-            property={selectProperty}
+            property={componentPropertyLabel(propertyKey)}
             title={componentPropertyLabel(propertyKey)}
             value={memoizedGetSelectedValuesDisplay(propertyKey)}
           >
