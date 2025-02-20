@@ -139,7 +139,6 @@ export function StringRestrictions({
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
           <StudioTextfield
-            size='sm'
             type='number'
             label={t(StrRestrictionKey.minLength)}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -150,7 +149,6 @@ export function StringRestrictions({
         </div>
         <div className={classes.lengthField}>
           <StudioTextfield
-            size='sm'
             type='number'
             label={t(StrRestrictionKey.maxLength)}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -192,7 +190,6 @@ export function StringRestrictions({
               ))}
             </div>
             <StudioTextfield
-              size='sm'
               id={fieldId}
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                 handleValueChange(event.target.value)

@@ -121,14 +121,12 @@ export const AccessListDetail = ({
         {t('resourceadm.listadmin_list_detail_header')}
       </StudioHeading>
       <StudioTextfield
-        size='sm'
         label={t('resourceadm.listadmin_list_id')}
         description={t('resourceadm.listadmin_list_id_description')}
         readOnly
         value={list.identifier}
       />
       <StudioTextfield
-        size='sm'
         label={t('resourceadm.listadmin_list_name')}
         description={t('resourceadm.listadmin_list_name_description')}
         value={listName}
@@ -136,7 +134,6 @@ export const AccessListDetail = ({
         onBlur={(event) => handleSave({ ...list, name: event.target.value })}
       />
       <StudioTextfield
-        size='sm'
         label={t('resourceadm.listadmin_list_description')}
         description={t('resourceadm.listadmin_list_description_description')}
         value={listDescription}

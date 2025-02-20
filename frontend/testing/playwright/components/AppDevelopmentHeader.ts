@@ -10,7 +10,7 @@ const ALTINN_LOGO_TITLE: string = 'Altinn logo';
 
 const TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH: number = 10000;
 
-export class Header extends BasePage {
+export class AppDevelopmentHeader extends BasePage {
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
   }

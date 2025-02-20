@@ -11,7 +11,7 @@ import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { PreviewPage } from '../../pages/PreviewPage';
 import { DeployPage } from '../../pages/DeployPage';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { Gitea } from '../../helpers/Gitea';
 
 const getTtdApp = (appName: string) => `ttd-app-${appName}`;
@@ -51,7 +51,7 @@ test('That it is possible to navigate from overview to the app builder page and 
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
@@ -68,7 +68,7 @@ test('That it is possible to navigate from overview to the data model page and b
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const dataModelPage = new DataModelPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
@@ -85,7 +85,7 @@ test('That it is possible to navigate from overview to the text editor page and 
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const textEditorPage = new TextEditorPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
@@ -102,7 +102,7 @@ test('That it is possible to navigate from overview to the process editor page a
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
@@ -119,7 +119,7 @@ test('That it is possible to navigate from overview to the dashboard page by cli
 }) => {
   await setupAndVerifyOverviewPage(page, testAppName);
   const dashboardPage = new DashboardPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.clickOnNavigateToDashboard();
   await dashboardPage.verifyDashboardPage();
@@ -132,7 +132,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await setupAndVerifyOverviewPage(page, testAppName);
   const previewPage = new PreviewPage(page, { app: testAppName });
   const uiEditor = new UiEditorPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await header.clickOnPreviewButton();
   await previewPage.verifyPreviewPage();
@@ -161,7 +161,7 @@ test('That it is possible to navigate from overview to the deploy page and back 
   const dashboardPage = new DashboardPage(page, { app: appName });
   const overviewPage = new OverviewPage(page, { app: appName });
   const deployPage = new DeployPage(page, { app: appName });
-  const header = new Header(page, { app: appName });
+  const header = new AppDevelopmentHeader(page, { app: appName });
 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();

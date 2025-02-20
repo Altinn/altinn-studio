@@ -154,7 +154,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   ({ textResource, onChangeTextResource, ...rest }, ref): ReactElement => {
     const generalProps: StudioTextfieldProps = {
       hideLabel: true,
-      size: 'sm',
       ...rest,
     };
 
