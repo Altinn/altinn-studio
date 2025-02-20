@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -23,20 +24,22 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
     private const string Developer = "testUser";
-    private const string TargetRepository = "ttd-content";
     private const string CodeListId = "some_code_list_id";
-    private const string ApiUrl = $"designer/api/{Org}/code-lists/{CodeListId}";
 
     [Fact]
     public async Task Post_Returns_200OK_When_Creating_New_Code_List()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string codeListJson = @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, ApiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = new StringContent(codeListJson, Encoding.UTF8, "application/json");
         List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(codeListJson);
         List<OptionListData> expectedResponse = new([
@@ -67,8 +70,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     public async Task Post_Returns_200OK_When_CodeList_Values_Are_Bool_String_Numbers()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         const string stringBoolNumbersCodeList = @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
@@ -88,8 +95,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     public async Task Post_Returns_200OK_When_CodeList_Values_Are_Empty_Strings()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         const string stringBoolNumbersCodeList = @"[
             { ""label"": """", ""value"": """" },
         ]";
@@ -106,8 +117,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     public async Task Post_Returns_400BadRequest_When_CodeList_Is_Empty()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
         // Act
@@ -126,8 +141,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     public async Task Post_Returns_400BadRequest_When_CodeList_Has_Invalid_Format()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         const string invalidCodeList = @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
@@ -148,8 +167,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
     public async Task Post_Returns_400BadRequest_When_CodeList_Has_Missing_Required_Fields()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         const string codeListWithMissingFields = @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -18,16 +19,20 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
-    private const string ApiUrl = $"designer/api/{Org}/code-lists";
-    private const string TargetRepository = "ttd-content";
+    // private const string ApiUrl = $"designer/api/{Org}/code-lists";
+    // private const string TargetRepository = "ttd-content";
 
     [Fact]
     public async Task GetCodeLists_Returns200Ok_With_CodeLists()
     {
         // Arrange
         const string repo = "org-content";
-        await CopyRepositoryForTest(Org, repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Arc
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -52,8 +57,12 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
     {
         // Arrange
         const string repo = "org-content-empty";
-        await CopyRepositoryForTest(Org, repo, Developer, TargetRepository);
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, ApiUrl);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"designer/api/{targetOrg}/code-lists";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
+
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

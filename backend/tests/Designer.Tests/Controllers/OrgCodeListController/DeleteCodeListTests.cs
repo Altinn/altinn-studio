@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -19,15 +20,17 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private const string TargetRepository = "ttd-content";
 
     [Fact]
     public async Task Delete_Returns_200OK_When_Deleting_CodeList()
     {
         // Arrange
         const string codeListId = "codeListNumber";
-        const string apiUrl = $"/designer/api/{Org}/code-lists/{codeListId}";
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"/designer/api/{targetOrg}/code-lists/{codeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -47,8 +50,11 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
     {
         // Arrange
         const string codeListId = "non-existing-code-list";
-        const string apiUrl = $"/designer/api/{Org}/code-lists/{codeListId}";
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string apiUrl = $"/designer/api/{targetOrg}/code-lists/{codeListId}";
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act

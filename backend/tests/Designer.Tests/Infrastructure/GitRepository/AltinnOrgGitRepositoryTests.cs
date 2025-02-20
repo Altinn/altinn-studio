@@ -72,29 +72,6 @@ public class AltinnOrgGitRepositoryTests
         await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnOrgGitRepository.GetCodeList(codeListId));
     }
 
-    [Fact]
-    public async Task CreateCodeList_WithRepoThatHasCodeLists_ShouldCreateCodeList()
-    {
-        // Arrange
-        const string repository = "org-content-empty";
-        const string newCodeListName = "codeListString";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-
-        await TestDataHelper.CopyRepositoryForTest(Org, repository, Developer, targetRepository);
-        AltinnOrgGitRepository altinnOrgGitRepository = PrepareRepositoryForTest(Org, repository, Developer);
-
-        List<Option> newCodeList = new()
-        {
-            new Option { Label = "label1", Value = "value1", }, new Option { Label = "label2", Value = "value2", }
-        };
-
-        // Act
-        await altinnOrgGitRepository.CreateCodeList(newCodeListName, newCodeList);
-
-        // Assert
-
-    }
-
     private static AltinnOrgGitRepository PrepareRepositoryForTest(string org, string repository, string developer)
     {
 

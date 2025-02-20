@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -21,20 +22,21 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
     private const string Developer = "testUser";
-    private const string TargetRepository = "ttd-content";
     private const string CodeListFileName = "codeList.json";
-    private const string ApiUrl = $"designer/api/{Org}/code-lists/upload";
 
     [Fact]
     public async Task Post_Returns_200OK_When_Uploading_New_CodeList()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string jsonCodeList = @"[
             {""label"": ""Label1"", ""value"": ""Value1"", ""description"": ""Description1"", ""helpText"": ""helpText"" },
             {""label"": ""Label2"", ""value"": ""Value2"" }
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList);
+        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -51,11 +53,14 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
     public async Task Post_Retuns_200OK_When_Uploading_New_CodeList_With_Empty_Strings()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string jsonCodeList = @"[
             {""label"": """", ""value"": """" },
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList);
+        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -68,12 +73,15 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
     public async Task Post_Returns_400BadRequest_When_Uploading_New_CodeList_with_Missing_Fields()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string jsonCodeList = @"[
             {""label"": """" },
             {""value"": """" },
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList);
+        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -86,11 +94,14 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
     public async Task Post_Returns_400BadRequest_When_Uploading_New_CodeList_With_Null_Values()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string jsonCodeList = @"[
             {""label"": null, ""value"": null }
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList);
+        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -103,9 +114,12 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
     public async Task Post_Returns_400BadRequest_When_Uploading_New_CodeList_With_Invalid_Format()
     {
         // Arrange
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetRepository);
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
         const string jsonCodeList = @"[{""value"": {}, ""label"": """"}]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList);
+        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -114,14 +128,15 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
     }
 
-    private static HttpRequestMessage CreateTestFile(string jsonCodeList)
+    private static HttpRequestMessage CreateTestFile(string jsonCodeList, string targetOrg)
     {
+        string apiUrl = $"designer/api/{targetOrg}/code-lists/upload";
         byte[] codeListBytes = Encoding.UTF8.GetBytes(jsonCodeList);
         var content = new MultipartFormDataContent();
         var codeListContent = new ByteArrayContent(codeListBytes);
         codeListContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         content.Add(codeListContent, "file", CodeListFileName);
-        HttpRequestMessage requestMessage = new(HttpMethod.Post, ApiUrl)
+        HttpRequestMessage requestMessage = new(HttpMethod.Post, apiUrl)
         {
             Content = content
         };
