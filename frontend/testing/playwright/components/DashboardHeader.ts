@@ -11,7 +11,6 @@ export class DashboardHeader extends BasePage {
 
   public async clickOnNavigateToPageInTopMenuHeader(menuName: TopMenuName): Promise<void> {
     await this.page
-      .getByRole('list')
       .getByRole('link', { name: this.textMock(`dashboard.header_item_${menuName}`) })
       .click();
   }
