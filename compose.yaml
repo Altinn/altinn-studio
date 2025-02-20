@@ -159,7 +159,7 @@ services:
 
   studio_repositories_runner:
     container_name: gitea-runner
-    image: gitea/act_runner:latest-dind-rootless
+    image: gitea/act_runner:0.2.11-dind-rootless
     restart: always
     privileged: true
     depends_on:
