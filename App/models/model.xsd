@@ -102,6 +102,7 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element minOccurs="0" name="checkboxesPersons" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

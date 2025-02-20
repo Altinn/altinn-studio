@@ -153,6 +153,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("ListCheckboxExample")]
     public List<ListCheckboxExample> ListCheckboxExample { get; set; }
 
+    [XmlElement("checkboxesPersons", Order = 28)]
+    [JsonProperty("checkboxesPersons")]
+    [JsonPropertyName("checkboxesPersons")]
+    public string checkboxesPersons { get; set; }
+
   }
 
   public class GridExample
