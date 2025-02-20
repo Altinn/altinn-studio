@@ -23,7 +23,7 @@ describe('utils', () => {
       expect(convertStringToNumber('123.456')).toBe(123.456);
       expect(convertStringToNumber('123,456')).toBe(123.456);
       expect(convertStringToNumber('123')).toBe(123);
-      expect(convertStringToNumber('')).toBe(undefined);
+      expect(convertStringToNumber('')).toBe(null);
     });
   });
   describe('convertNumberToString', () => {

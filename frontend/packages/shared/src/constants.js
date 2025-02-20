@@ -9,7 +9,6 @@ export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/';
 export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
-export const DEPLOYMENTS_REFETCH_INTERVAL = 15000;
 export const AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS = 400;
 export const NEWS_EXPIRATION_TIME_IN_DAYS = 30;
 export const APP_NAME = 'appName';

@@ -52,6 +52,26 @@ export const componentWithOptionsMock: FormComponent = {
   optionsId: '',
   propertyPath: 'definitions/radioAndCheckboxComponents',
 };
+
+export const componentWithMultipleSelectMock: FormComponent = {
+  id: 'ComponentWithMultipleSelectMock',
+  type: ComponentType.MultipleSelect,
+  dataModelBindings: { simpleBinding: 'some-path' },
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  optionsId: '',
+  propertyPath: 'definitions/multipleSelectComponent',
+};
+
+export const subformComponentMock: FormComponent = {
+  id: 'SubformComponent',
+  type: ComponentType.Subform,
+  dataModelBindings: { simpleBinding: 'some-path' },
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  propertyPath: 'definitions/subformComponent',
+};
+
 export const container1IdMock = 'Container-1';
 export const container2IdMock = 'Container-2';
 export const customRootPropertiesMock: KeyValuePairs = {

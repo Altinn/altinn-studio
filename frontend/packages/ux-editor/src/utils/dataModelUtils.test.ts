@@ -11,7 +11,6 @@ import {
   validateSelectedDataModel,
 } from './dataModelUtils';
 import { dataModelMetadataMock } from '@altinn/ux-editor/testing/dataModelMock';
-import type { FormItem } from '../types/FormItem';
 
 describe('getMinOccursFromDataModelFields', () => {
   it('should be truthy if minOccurs is bigger than 0', () => {
@@ -157,26 +156,22 @@ describe('convertDataBindingToInternalFormat', () => {
     };
     const bindingKey = 'simpleBinding';
     const internalFormat = convertDataBindingToInternalFormat(
-      component as unknown as FormItem,
-      bindingKey,
+      component.dataModelBindings[bindingKey],
     );
     expect(internalFormat).toEqual({ dataType: 'dataType', field: 'field' });
   });
 
   it('should return correct format when it has old format', () => {
     const bindingKey = 'simpleBinding';
-    const internalFormat = convertDataBindingToInternalFormat(testComponent, bindingKey);
+    const internalFormat = convertDataBindingToInternalFormat(
+      testComponent.dataModelBindings[bindingKey],
+    );
     expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
 
   it('should return correct format when dataModelBindings and bindingKey is not defined', () => {
-    const component = {
-      ...testComponent,
-      dataModelBindings: undefined,
-    };
-    const bindingKey = undefined;
-    const internalFormat = convertDataBindingToInternalFormat(component, bindingKey);
-    expect(internalFormat).toEqual({ dataType: '', field: undefined });
+    const internalFormat = convertDataBindingToInternalFormat(undefined);
+    expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
 });
 

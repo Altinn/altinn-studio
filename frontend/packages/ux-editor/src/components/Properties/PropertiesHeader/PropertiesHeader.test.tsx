@@ -65,7 +65,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.click(editComponentIdButton);
 
@@ -83,7 +83,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.click(editComponentIdButton);
 

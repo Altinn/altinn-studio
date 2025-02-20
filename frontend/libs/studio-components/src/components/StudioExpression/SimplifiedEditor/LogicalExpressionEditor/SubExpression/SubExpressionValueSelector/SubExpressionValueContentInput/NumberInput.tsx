@@ -13,7 +13,6 @@ export const NumberInput = ({ value, onChange }: Props<SimpleSubexpressionValueT
     <StudioDecimalInput
       label={texts.value}
       onChange={handleChange}
-      size='small'
       validationErrorMessage={texts.numberValidationError}
       value={value.value}
     />

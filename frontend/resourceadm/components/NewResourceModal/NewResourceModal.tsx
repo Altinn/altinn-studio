@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
@@ -9,7 +8,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
@@ -107,9 +106,9 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             </>
           }
         >
-          <Paragraph size='small'>
+          <StudioParagraph size='sm'>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
-          </Paragraph>
+          </StudioParagraph>
           <ResourceNameAndId
             idLabel={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
             titleLabel={t('resourceadm.dashboard_resource_name_and_id_resource_name')}

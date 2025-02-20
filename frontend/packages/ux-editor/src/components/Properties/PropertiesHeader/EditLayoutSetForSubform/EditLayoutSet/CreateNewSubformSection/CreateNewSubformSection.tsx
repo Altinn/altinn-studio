@@ -110,7 +110,6 @@ export const CreateNewSubformSection = ({
           <StudioTextfield
             name='subform'
             label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-            size='sm'
             disabled={isPendingNewSubformMutation}
             onChange={(e) => handleSubformName(e.target.value)}
             error={newSubformNameError}
