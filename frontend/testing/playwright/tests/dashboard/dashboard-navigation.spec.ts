@@ -8,6 +8,7 @@ import { DashboardPage } from '../../pages/DashboardPage';
 import { DashboardHeader } from '../../components/DashboardHeader';
 
 const TEST_ORG: string = 'ttd';
+const ORG_LIBRARY_FEATURE_FLAG: string = '?featureFlags=orgLibrary&persistFeatureFlag=true';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -36,8 +37,8 @@ test('that it is possible to navigate from dashboard page to library page and ba
   });
   const orgLibraryPage = new OrgLibraryPage(page, { app: testAppName, org: TEST_ORG });
 
-  await dashboardPage.loadDashboardPageAsOrg();
-  await dashboardPage.verifyDashboardPageAsOrg();
+  await dashboardPage.loadDashboardPageAsOrg(ORG_LIBRARY_FEATURE_FLAG);
+  await dashboardPage.verifyDashboardPageAsOrg(ORG_LIBRARY_FEATURE_FLAG);
   await dashboardHeader.clickOnNavigateToPageInTopMenuHeader('library');
   await orgLibraryPage.verifyOrgLibraryPage();
   await orgLibraryPage.waitForPageHeaderToBeVisible();

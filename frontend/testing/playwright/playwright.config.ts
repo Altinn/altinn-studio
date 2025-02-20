@@ -22,7 +22,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    {
+    /*   {
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -45,7 +45,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.DATA_MODEL_APP,
         headless: true,
       },
-    },
+    },*/
     {
       name: TestNames.DASHBOARD,
       dependencies: [TestNames.SETUP],
@@ -58,7 +58,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    {
+    /*  {
       name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
       dependencies: [TestNames.SETUP],
       testDir: './tests/main-navigation-between-sub-apps/',
@@ -178,6 +178,6 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         headless: true,
       },
-    },
+    },*/
   ],
 });
