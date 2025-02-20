@@ -1,7 +1,7 @@
 name: Deploy Gitea Runner for ttd organization
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feat/gitea-runners ]
     paths:
       - '.github/workflows/deploy-gitea-runner-ttd.yaml'
       - '.github/workflows/template-docker-push.yaml'
@@ -29,7 +29,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      environments: ${{ github.event.inputs.environments || 'dev' }}
 
   determine-tag:
     needs: get-short-sha
