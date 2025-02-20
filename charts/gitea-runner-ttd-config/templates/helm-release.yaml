@@ -2,10 +2,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: gitea-runner-tdd
+  name: gitea-runner-ttd
   namespace: default
 spec:
-  releaseName: gitea-runner-tdd
+  releaseName: gitea-runner-ttd
   targetNamespace: default
   interval: 5m
   install:
@@ -17,7 +17,7 @@ spec:
   chart:
     spec:
       version: "{{ .Values.chartVersion }}"
-      chart: gitea-runner-tdd
+      chart: gitea-runner-ttd
       sourceRef:
         kind: HelmRepository
         name: studio-charts
