@@ -351,9 +351,22 @@ public class AppResourcesSI : IAppResources
 
     private LayoutSetComponent LoadLayout(LayoutSet layoutSet, List<DataType> dataTypes)
     {
-        var order =
-            GetLayoutSettingsForSet(layoutSet.Id)?.Pages?.Order
-            ?? throw new InvalidDataException($"No $Pages.Order field found for layoutSet {layoutSet.Id}");
+        var settings = GetLayoutSettingsForSet(layoutSet.Id);
+        var simplePageOrder = settings?.Pages?.Order;
+        var groupPageOrder = settings?.Pages?.Groups?.SelectMany(g => g.Order).ToList();
+        if (simplePageOrder is not null && groupPageOrder is not null)
+        {
+            throw new InvalidDataException(
+                $"Both $Pages.Order and $Pages.Groups fields are set for layoutSet {layoutSet.Id}"
+            );
+        }
+        var order = simplePageOrder ?? groupPageOrder;
+        if (order is null)
+        {
+            throw new InvalidDataException(
+                $"No $Pages.Order or $Pages.Groups field found for layoutSet {layoutSet.Id}"
+            );
+        }
 
         var pages = new List<PageComponent>();
         string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
