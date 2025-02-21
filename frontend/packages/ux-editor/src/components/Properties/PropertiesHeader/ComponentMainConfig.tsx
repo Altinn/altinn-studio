@@ -1,12 +1,13 @@
 import React from 'react';
-import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
+import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import type { FormContainer } from '@altinn/ux-editor/types/FormContainer';
 
 export type ComponentMainConfigProps = {
-  component: FormItem;
-  handleComponentChange: (component: FormItem) => void;
+  component: FormComponent | FormContainer;
+  handleComponentChange: (component: FormComponent | FormContainer) => void;
 };
 
 export const ComponentMainConfig = ({
@@ -19,6 +20,8 @@ export const ComponentMainConfig = ({
         <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
-      return <HeaderMainConfig />;
+      return (
+        <HeaderMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
   }
 };

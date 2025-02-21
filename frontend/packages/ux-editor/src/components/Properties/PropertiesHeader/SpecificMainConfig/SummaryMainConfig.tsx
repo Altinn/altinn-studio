@@ -35,7 +35,7 @@ export const SummaryMainConfig = ({ component, handleComponentChange }: SummaryM
 
   return (
     <>
-      <HeaderMainConfig>
+      <HeaderMainConfig component={component} handleComponentChange={handleComponentChange}>
         <Summary2Target target={component.target} onChange={handleTargetChange} />
       </HeaderMainConfig>
       <Accordion color='subtle'>
