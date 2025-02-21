@@ -7,46 +7,11 @@ import {
   filterRulesWithSubject,
   getSubResourceDisplayText,
   getSubjectCategoryTextKey,
+  getSubjectDisplayName,
   mapActionsForRole,
-} from './AppPolicyUtils';
+} from './';
 
 describe('AppPolicyUtils', () => {
-  describe('extractAllUniqueActions', () => {
-    it('should return a list of unique actions from a list of policy rules', () => {
-      const rules: PolicyRuleCard[] = [
-        {
-          ruleId: '1',
-          actions: ['read', 'write'],
-          resources: [],
-          subject: [],
-          description: 'test',
-        },
-        {
-          ruleId: '2',
-          actions: ['read'],
-          resources: [],
-          subject: [],
-          description: 'test',
-        },
-        {
-          ruleId: '3',
-          actions: ['write'],
-          resources: [],
-          subject: [],
-          description: 'test',
-        },
-      ];
-      const actions = extractAllUniqueActions(rules);
-      expect(actions).toEqual(['read', 'write']);
-    });
-
-    it('should return an empty list if the list of policy rules is empty', () => {
-      const rules: PolicyRuleCard[] = [];
-      const actions = extractAllUniqueActions(rules);
-      expect(actions).toEqual([]);
-    });
-  });
-
   describe('filterRulesWithSubject', () => {
     it('should return a list of rules with the provided subject', () => {
       const rules: PolicyRuleCard[] = [
@@ -169,6 +134,42 @@ describe('AppPolicyUtils', () => {
       ];
       const filteredResources = filterDefaultAppLimitations(appResources);
       expect(filteredResources).toEqual([]);
+    });
+  });
+
+  describe('extractAllUniqueActions', () => {
+    it('should return a list of unique actions from a list of policy rules', () => {
+      const rules: PolicyRuleCard[] = [
+        {
+          ruleId: '1',
+          actions: ['read', 'write'],
+          resources: [],
+          subject: [],
+          description: 'test',
+        },
+        {
+          ruleId: '2',
+          actions: ['read'],
+          resources: [],
+          subject: [],
+          description: 'test',
+        },
+        {
+          ruleId: '3',
+          actions: ['write'],
+          resources: [],
+          subject: [],
+          description: 'test',
+        },
+      ];
+      const actions = extractAllUniqueActions(rules);
+      expect(actions).toEqual(['read', 'write']);
+    });
+
+    it('should return an empty list if the list of policy rules is empty', () => {
+      const rules: PolicyRuleCard[] = [];
+      const actions = extractAllUniqueActions(rules);
+      expect(actions).toEqual([]);
     });
   });
 
@@ -486,6 +487,84 @@ describe('AppPolicyUtils', () => {
       ];
       const mappedActions = mapActionsForRole(rules, 'subject2', 'app', textMock);
       expect(mappedActions).toEqual({});
+    });
+  });
+
+  describe('getSubjectDisplayName', () => {
+    it('should return the display name for a subject', () => {
+      const subjects = [
+        {
+          subjectId: 'subject1',
+          subjectSource: 'altinn:role',
+          subjectTitle: 'Role 1',
+          subjectDescription: 'Role 1 description',
+        },
+        {
+          subjectId: 'subject2',
+          subjectSource: 'altinn:role',
+          subjectTitle: 'Role 2',
+          subjectDescription: 'Role 2 description',
+        },
+      ];
+      const displayName = getSubjectDisplayName('subject1', subjects);
+      expect(displayName).toEqual('Role 1');
+    });
+
+    it('should return the subject ID if the subject is not found', () => {
+      const subjects = [
+        {
+          subjectId: 'subject1',
+          subjectSource: 'urn:altinn:role',
+          subjectTitle: 'Role 1',
+          subjectDescription: 'Role 1 description',
+        },
+        {
+          subjectId: 'subject2',
+          subjectSource: 'urn:altinn:role',
+          subjectTitle: 'Role 2',
+          subjectDescription: 'Role 2 description',
+        },
+      ];
+      const displayName = getSubjectDisplayName('subject3', subjects);
+      expect(displayName).toEqual('subject3');
+    });
+
+    it('should return the service owner display name for the service owner subject', () => {
+      const subjects = [
+        {
+          subjectId: 'subject1',
+          subjectSource: 'altinn:role',
+          subjectTitle: 'Role 1',
+          subjectDescription: 'Role 1 description',
+        },
+        {
+          subjectId: '[org]',
+          subjectSource: 'altinn:org',
+          subjectTitle: 'Tjenesteeier',
+          subjectDescription: 'Tjenesteeier',
+        },
+      ];
+      const displayName = getSubjectDisplayName('[org]', subjects);
+      expect(displayName).toEqual('Tjenesteeier');
+    });
+
+    it('should return the service owner display name for the service owner subject regardless of case', () => {
+      const subjects = [
+        {
+          subjectId: 'subject1',
+          subjectSource: 'altinn:role',
+          subjectTitle: 'Role 1',
+          subjectDescription: 'Role 1 description',
+        },
+        {
+          subjectId: '[org]',
+          subjectSource: 'altinn:org',
+          subjectTitle: 'Tjenesteeier',
+          subjectDescription: 'Tjenesteeier',
+        },
+      ];
+      const displayName = getSubjectDisplayName('SUBJECT1', subjects);
+      expect(displayName).toEqual('Role 1');
     });
   });
 });
