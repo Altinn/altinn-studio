@@ -244,9 +244,9 @@ describe('CodeLists', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('calls onDeleteCodeList when clicking delete button', async () => {
+  it('calls onDeleteCodeList when the user clicks the delete button and confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
 
     renderCodeLists();
     const deleteCodeListButton = screen.getByRole('button', {
@@ -262,7 +262,7 @@ describe('CodeLists', () => {
 
   it('does not call onDeleteCodeList when it is not confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    jest.spyOn(window, 'confirm').mockImplementation(() => false);
 
     renderCodeLists();
     const deleteCodeListButton = screen.getByRole('button', {
