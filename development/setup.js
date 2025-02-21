@@ -170,8 +170,8 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
-  var newEnv = await setupRunnersToken(env);
-  newEnv = await createOidcClientIfNotExists(newEnv);
+  const envWithRunnerToken = await setupRunnersToken(env);
+  const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
 
   await createCypressEnvFile(env);
   return newEnv;
@@ -187,7 +187,7 @@ const setupRunnersToken = async (env) => {
 
   env.GITEA_RUNNER_REGISTRATION_TOKEN = runnersToken.token;
   return env;
-}
+};
 
 const script = async () => {
   const env = ensureDotEnv();
