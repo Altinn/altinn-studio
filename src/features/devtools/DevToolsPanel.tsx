@@ -74,19 +74,22 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
             onTouchStart={resizeHandlerMobile}
           />
           <div className={classes.panelContent}>
-            <div className={classes.closeButton}>
-              <Button
-                onClick={close}
-                variant='tertiary'
-                color='second'
-                aria-label='close'
-                icon={true}
-              >
-                <Close
-                  fontSize='1rem'
-                  aria-hidden
-                />
-              </Button>
+            <div className={classes.closeButtonContainer}>
+              <div className={classes.closeButtonBackground}>
+                <Button
+                  className={classes.closeButton}
+                  onClick={close}
+                  variant='tertiary'
+                  color='second'
+                  aria-label='close'
+                  icon={true}
+                >
+                  <Close
+                    fontSize='1rem'
+                    aria-hidden
+                  />
+                </Button>
+              </div>
             </div>
             <DevToolsErrorBoundary>
               <DevToolsControls />

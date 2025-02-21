@@ -90,19 +90,20 @@
   position: relative;
 }
 
-.header h3 {
-  margin-top: 0;
-  margin-right: 36px;
+.title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.title h3 {
+  word-break: break-all;
+  margin: 0;
   font-size: 1rem;
 }
-
-.header button {
-  height: 32px;
-  width: 32px;
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  z-index: 1001;
+.title button {
+  margin-top: -4px;
+  margin-right: -4px;
 }
 
 .headerLink {
@@ -136,19 +137,29 @@
   flex-direction: column;
 }
 
-.closeButton {
+.tab-list {
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding-right: 40px;
+  flex-shrink: 0;
+}
+
+.close-button-container {
   position: relative;
 }
 
-.closeButton > button {
+.close-button-background {
+  background-color: var(--colors-primary-greyLight);
+  position: absolute;
+  right: 0;
+  z-index: 1001;
+}
+
+.close-button {
   height: 37px;
   width: 37px;
   min-width: 0;
   min-height: 0;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1001;
 }
 
 .scrollable {

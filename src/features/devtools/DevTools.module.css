@@ -56,15 +56,22 @@
   width: 100%;
 }
 
-.closeButton > button {
+.close-button-container {
+  position: relative;
+}
+
+.close-button-background {
+  background-color: var(--colors-primary-greyLight);
+  position: absolute;
+  right: 0;
+  z-index: 1001;
+}
+
+.close-button {
   height: 37px;
   width: 37px;
   min-width: 0;
   min-height: 0;
-  position: absolute;
-  top: 10px;
-  right: 0;
-  z-index: 1001;
 }
 
 .tabs {
@@ -78,6 +85,7 @@
 .tabList {
   overflow-y: hidden;
   overflow-x: auto;
+  padding-right: 40px;
   flex-shrink: 0;
 }
 

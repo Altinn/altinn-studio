@@ -41,19 +41,22 @@ export const NodeInspector = () => {
       </div>
       {selectedId && selectedNode && (
         <>
-          <div className={reusedClasses.closeButton}>
-            <Button
-              onClick={() => setSelected(undefined)}
-              variant='tertiary'
-              color='second'
-              aria-label='close'
-              icon={true}
-            >
-              <Close
-                fontSize='1rem'
-                aria-hidden
-              />
-            </Button>
+          <div className={reusedClasses.closeButtonContainer}>
+            <div className={reusedClasses.closeButtonBackground}>
+              <Button
+                className={reusedClasses.closeButton}
+                onClick={() => setSelected(undefined)}
+                variant='tertiary'
+                color='second'
+                aria-label='close'
+                icon={true}
+              >
+                <Close
+                  fontSize='1rem'
+                  aria-hidden
+                />
+              </Button>
+            </div>
           </div>
           <NodeInspectorContextProvider
             value={{
@@ -67,7 +70,7 @@ export const NodeInspector = () => {
               defaultValue='properties'
               className={reusedClasses.tabs}
             >
-              <Tabs.List>
+              <Tabs.List className={reusedClasses.tabList}>
                 <Tabs.Tab value='properties'>Egenskaper</Tabs.Tab>
                 {implementsAnyValidation(selectedNode.def) && <Tabs.Tab value='validation'>Validering</Tabs.Tab>}
               </Tabs.List>
