@@ -54,27 +54,33 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
 describe('PolicyRuleSubjectSummary', () => {
   it('should render', () => {
     const actions = [mockAction1.actionId, mockAction2.actionId];
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    renderPolicyRuleSubjectSummary({ subject: 's1', actions }, {});
+    renderPolicyRuleSubjectSummary({ subject: 's1', actions }, {}, true);
     expect(screen.getByText('Subject 1')).toBeInTheDocument();
-    // We are rendering a table row independently of table, so we expect a console error
-    expect(consoleError).toHaveBeenCalled();
   });
 });
 
 const renderPolicyRuleSubjectSummary = (
   props: Partial<PolicyRuleSubjectSummaryProps>,
   policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
+  withTable: boolean = false,
 ) => {
   const defaultProps = {
     subject: 'subject',
     actions: ['action1', 'action2'],
   };
+
+  const component = <PolicyRuleSubjectSummary {...defaultProps} {...props} />;
   render(
     <PolicyEditorContext.Provider
       value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}
     >
-      <PolicyRuleSubjectSummary {...defaultProps} {...props} />
+      {withTable ? (
+        <table>
+          <tbody>{component}</tbody>
+        </table>
+      ) : (
+        component
+      )}
     </PolicyEditorContext.Provider>,
   );
 };

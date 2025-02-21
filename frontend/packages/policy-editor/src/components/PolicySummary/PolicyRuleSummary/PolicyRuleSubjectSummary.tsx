@@ -28,14 +28,14 @@ export const PolicyRuleSubjectSummary = ({
       <StudioTable.Cell>{subject}</StudioTable.Cell>
       <StudioTable.Cell>{getSubjectDisplayName(subject, subjects)}</StudioTable.Cell>
       <StudioTable.Cell>{t(getSubjectCategoryTextKey(subject, subjects))}</StudioTable.Cell>
-      {actions.map((action, index) => {
+      {actions.map((action) => {
         return (
-          <StudioTable.Cell key={index}>
+          <StudioTable.Cell key={action}>
             <div className={classes.limitationsCell}>
               {actionsForRole[action]
-                ? actionsForRole[action].split(', ').map((r, i) => {
+                ? actionsForRole[action].split(', ').map((r) => {
                     return (
-                      <StudioTag size='small' key={i} color='info'>
+                      <StudioTag size='small' key={`${action}-${r}`} color='info'>
                         {r}
                       </StudioTag>
                     );

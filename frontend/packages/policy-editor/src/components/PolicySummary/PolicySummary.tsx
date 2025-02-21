@@ -28,9 +28,9 @@ export function PolicySummary() {
             <StudioTable.HeaderCell>
               {t('policy_editor.summary_table.header_rolecategory')}
             </StudioTable.HeaderCell>
-            {extractAllUniqueActions(policyRules).map((action, index) => {
+            {extractAllUniqueActions(policyRules).map((action) => {
               return (
-                <StudioTable.HeaderCell key={index}>
+                <StudioTable.HeaderCell key={action}>
                   {t(`policy_editor.action_${action}`)}
                 </StudioTable.HeaderCell>
               );
@@ -38,12 +38,12 @@ export function PolicySummary() {
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {extractAllUniqueSubjects(policyRules).map((subject, index) => {
+          {extractAllUniqueSubjects(policyRules).map((subject) => {
             return (
               <PolicyRuleSubjectSummary
                 subject={subject}
                 actions={extractAllUniqueActions(policyRules)}
-                key={index}
+                key={subject}
               />
             );
           })}
