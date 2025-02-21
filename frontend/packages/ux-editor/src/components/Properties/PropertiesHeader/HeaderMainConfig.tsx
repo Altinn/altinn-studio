@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { TextResource } from '../../TextResource/TextResource';
+import { EditDataModelBinding } from '../../config/editModal/EditDataModelBinding/EditDataModelBinding';
+import { useFormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
 
 type HeaderMainConfigProps = {
   handleComponentChange: (component: FormItem) => void;
@@ -19,6 +21,7 @@ export const HeaderMainConfig = ({
   children,
 }: HeaderMainConfigProps): JSX.Element => {
   const { t } = useTranslation();
+  const { debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(component.type);
 
   if (!schema) {
@@ -46,7 +49,10 @@ export const HeaderMainConfig = ({
     handleComponentChange(componentCopy);
   };
 
-  const titleKey = Object.keys(schema.properties?.textResourceBindings?.properties?.title || {})[0];
+  const { dataModelBindings, textResourceBindings } = schema.properties;
+
+  const titleKey = Object.keys(textResourceBindings?.properties?.title || {})[0];
+  const dataModelBindingKey = Object.keys(dataModelBindings?.properties || {})[0];
 
   return (
     <div className={classes.componentMainConfig}>
@@ -63,6 +69,21 @@ export const HeaderMainConfig = ({
         />
       )}
       {children}
+      {dataModelBindingKey && (
+        <EditDataModelBinding
+          key={`${component.id}-data-model-dataModelBindingKey`}
+          component={component}
+          handleComponentChange={async (updatedComponent, mutateOptions) => {
+            handleComponentChange(updatedComponent);
+            debounceSave(component.id, updatedComponent, mutateOptions);
+          }}
+          editFormId={component.id}
+          renderOptions={{
+            key: dataModelBindingKey,
+            label: dataModelBindingKey !== 'simpleBinding' && dataModelBindingKey,
+          }}
+        />
+      )}
     </div>
   );
 };
