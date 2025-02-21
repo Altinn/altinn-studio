@@ -521,6 +521,7 @@ describe('StudioCodeListEditor', () => {
       await user.selectOptions(getTypeSelector(), stringOption);
       await user.click(getAddButton());
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyStringItem]);
     });
 
@@ -532,6 +533,7 @@ describe('StudioCodeListEditor', () => {
       await user.selectOptions(getTypeSelector(), numberOption);
       await user.click(getAddButton());
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyNumberItem]);
     });
 
@@ -543,6 +545,7 @@ describe('StudioCodeListEditor', () => {
       await user.selectOptions(getTypeSelector(), booleanOption);
       await user.click(getAddButton());
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([emptyBooleanItem]);
     });
 
@@ -553,6 +556,7 @@ describe('StudioCodeListEditor', () => {
       const addButton = screen.getByRole('button', { name: texts.add });
       await user.click(addButton);
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([
         ...codeListWithoutTextResources,
         emptyStringItem,
@@ -566,6 +570,7 @@ describe('StudioCodeListEditor', () => {
       const addButton = screen.getByRole('button', { name: texts.add });
       await user.click(addButton);
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([...codeListWithNumbers, emptyNumberItem]);
     });
 
@@ -577,6 +582,7 @@ describe('StudioCodeListEditor', () => {
       const addButton = screen.getByRole('button', { name: texts.add });
       await user.click(addButton);
 
+      expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
       expect(onAddOrDeleteItem).toHaveBeenCalledWith([...codeListWithTrueValue, emptyBooleanItem]);
     });
 
