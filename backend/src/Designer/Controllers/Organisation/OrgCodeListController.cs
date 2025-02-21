@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
-/// Controller containing actions related to code-lists on organisation level.
+/// Controller containing actions related to code lists on organisation level.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -33,12 +33,12 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
-    /// Fetches the contents of all the code-lists belonging to the organisation.
+    /// Fetches the contents of all the code lists belonging to the organisation.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of <see cref="OptionListData" /> objects with all code-lists belonging to the organisation with data
-    /// set if code-list is valid, or hasError set if code-list is invalid.</returns>
+    /// <returns>List of <see cref="OptionListData" /> objects with all code lists belonging to the organisation with data
+    /// set if code list is valid, or hasError set if code list is invalid.</returns>
     [HttpGet]
     public async Task<ActionResult<List<OptionListData>>> GetCodeLists(string org, CancellationToken cancellationToken = default)
     {
@@ -60,8 +60,8 @@ public class OrgCodeListController : ControllerBase
     /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="codeListId">Name of the code-list.</param>
-    /// <param name="codeList">Contents of the code-list.</param>
+    /// <param name="codeListId">Name of the code list.</param>
+    /// <param name="codeList">Contents of the code list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
     [Produces("application/json")]
@@ -79,11 +79,11 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
-    /// Creates or overwrites an code-list.
+    /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="codeListId">Name of the code-list.</param>
-    /// <param name="codeList">Contents of the code-list.</param>
+    /// <param name="codeListId">Name of the code list.</param>
+    /// <param name="codeList">Contents of the code list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
     [Produces("application/json")]
@@ -101,7 +101,7 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
-    /// Create new code-list.
+    /// Create new code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="file">File being uploaded.</param>
@@ -125,10 +125,10 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes an code-list.
+    /// Deletes a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="codeListId">Name of the code-list.</param>
+    /// <param name="codeListId">Name of the code list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpDelete]
     [Produces("application/json")]
