@@ -23,7 +23,7 @@ public class AppMetadata : IAppMetadata
 
     private readonly AppSettings _settings;
     private readonly IFrontendFeatures _frontendFeatures;
-    private readonly IExternalApiFactory _externalApiFactory;
+    private readonly IExternalApiFactory? _externalApiFactory;
     private readonly Telemetry? _telemetry;
     private ApplicationMetadata? _application;
 
@@ -32,19 +32,19 @@ public class AppMetadata : IAppMetadata
     /// </summary>
     /// <param name="settings">The app repository settings.</param>
     /// <param name="frontendFeatures">Application features service</param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="serviceProvider">A way to resolve internal services</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AppMetadata(
         IOptions<AppSettings> settings,
         IFrontendFeatures frontendFeatures,
-        IServiceProvider serviceProvider,
+        IServiceProvider? serviceProvider = null,
         Telemetry? telemetry = null
     )
     {
         _settings = settings.Value;
         _frontendFeatures = frontendFeatures;
         _telemetry = telemetry;
-        _externalApiFactory = serviceProvider.GetRequiredService<IExternalApiFactory>();
+        _externalApiFactory = serviceProvider?.GetRequiredService<IExternalApiFactory>();
     }
 
     /// <inheritdoc />
@@ -81,7 +81,7 @@ public class AppMetadata : IAppMetadata
                 }
 
                 application.Features = await _frontendFeatures.GetFrontendFeatures();
-                application.ExternalApiIds = _externalApiFactory.GetAllExternalApiIds();
+                application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
 
                 _application = application;
 

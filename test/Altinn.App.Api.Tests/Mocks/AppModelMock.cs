@@ -3,7 +3,7 @@ using Altinn.App.Core.Internal.AppModel;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
-public class AppModelMock : IAppModel
+public class AppModelMock<TAssemblyMarker> : IAppModel
 {
     public object Create(string classRef)
     {
@@ -13,6 +13,6 @@ public class AppModelMock : IAppModel
     public Type GetModelType(string classRef)
     {
         // The default implementations uses the executing assembly, but this does not work in the test project.
-        return Assembly.GetAssembly(typeof(AppModelMock))!.GetType(classRef, true)!;
+        return Assembly.GetAssembly(typeof(TAssemblyMarker))!.GetType(classRef, true)!;
     }
 }
