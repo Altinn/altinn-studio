@@ -75,7 +75,7 @@ const createOidcClientIfNotExists = async (env) => {
 
   const shouldCreateClient = !clients.some((app) => app.name === 'LocalTestOidcClient');
   if (!shouldCreateClient) {
-    return null;
+    return env;
   }
 
   var createdClient = await giteaApi({
@@ -160,7 +160,7 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
-const crateContentRepo = async (env) => {
+const createContentRepo = async (env) => {
   const repo = 'ttd-content';
   const filePathCodeList = 'Codelists/exampleCodeList.json';
   const filePathTexts = 'Texts/exampleText.json';
@@ -181,7 +181,9 @@ const crateContentRepo = async (env) => {
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
     body: {
-      content: btoa(`[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`),
+      content: Buffer.from(
+        `[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`,
+      ).toString('base64'),
     },
   });
 
@@ -191,9 +193,9 @@ const crateContentRepo = async (env) => {
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
     body: {
-      content: btoa(
+      content: Buffer.from(
         `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
-      ),
+      ).toString('base64'),
     },
   });
 };
@@ -208,13 +210,26 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
-  await crateContentRepo(env);
+  await createContentRepo(env);
 
-  const result = await createOidcClientIfNotExists(env);
+  const envWithRunnerToken = await setupRunnersToken(env);
+  const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
 
   await createCypressEnvFile(env);
 
-  return result;
+  return newEnv;
+};
+
+const setupRunnersToken = async (env) => {
+  const runnersToken = await giteaApi({
+    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/actions/runners/registration-token`,
+    method: 'GET',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+  });
+
+  env.GITEA_RUNNER_REGISTRATION_TOKEN = runnersToken.token;
+  return env;
 };
 
 const script = async () => {
