@@ -443,7 +443,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
-    public DateTime? DateOnly { get; set; }
+    public DateOnly? DateOnly { get; set; }
 
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]

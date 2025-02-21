@@ -19,7 +19,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
     services.AddTransient<IExternalApiClient, ExternalApi>();
-    services.AddTransient<IDataProcessor, DataProcessor>();
+    services.AddTransient<IDataWriteProcessor, DataProcessor>();
 }
 
 // ###########################################################################
