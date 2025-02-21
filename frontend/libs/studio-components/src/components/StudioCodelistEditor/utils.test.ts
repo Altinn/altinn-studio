@@ -5,11 +5,16 @@ import {
   emptyBooleanItem,
   emptyNumberItem,
   emptyStringItem,
+  evaluateDefaultType,
   getTypeOfLastValue,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
+import { CodeListItemType } from './types/CodeListItemType';
+import { codeListWithoutTextResources as codeListWithStrings } from './test-data/codeListWithoutTextResources';
+import { codeListWithNumbers } from './test-data/codeListWithNumbers';
+import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 
 // Test data:
 const testCodeList: CodeList = [
@@ -28,27 +33,24 @@ const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
   describe('addNewCodeListItem', () => {
-    it('Adds an empty string item when valueType is string', () => {
-      const codeList: CodeList = [{ value: 'test-value', label: 'stringItem' }];
-      const updatedCodeList = addNewCodeListItem(codeList, 'string');
-      expect(updatedCodeList).toEqual([...codeList, emptyStringItem]);
+    it('Adds an empty string item when the code list consists of strings', () => {
+      const updatedCodeList = addNewCodeListItem(codeListWithStrings, CodeListItemType.String);
+      expect(updatedCodeList).toEqual([...codeListWithStrings, emptyStringItem]);
     });
 
     it('Adds an empty number item when valueType is number', () => {
-      const codeList: CodeList = [{ value: 1, label: 'numberItem' }];
-      const updatedCodeList = addNewCodeListItem(codeList, 'number');
-      expect(updatedCodeList).toEqual([...codeList, emptyNumberItem]);
+      const updatedCodeList = addNewCodeListItem(codeListWithNumbers, CodeListItemType.Number);
+      expect(updatedCodeList).toEqual([...codeListWithNumbers, emptyNumberItem]);
     });
 
     it('Adds an empty boolean item when valueType is boolean', () => {
-      const codeList: CodeList = [{ value: true, label: 'booleanItem' }];
-      const updatedCodeList = addNewCodeListItem(codeList, 'boolean');
-      expect(updatedCodeList).toEqual([...codeList, emptyBooleanItem]);
+      const updatedCodeList = addNewCodeListItem(codeListWithBooleans, CodeListItemType.Boolean);
+      expect(updatedCodeList).toEqual([...codeListWithBooleans, emptyBooleanItem]);
     });
 
     it('Returns a new instance', () => {
       const codeList = createTestCodeList();
-      const updatedCodeList = addNewCodeListItem(codeList, 'string');
+      const updatedCodeList = addNewCodeListItem(codeList, CodeListItemType.String);
       expect(updatedCodeList).not.toBe(codeList);
     });
   });
@@ -102,6 +104,24 @@ describe('StudioCodelistEditor utils', () => {
     it('Returns false when the code list is not empty', () => {
       const codeList = createTestCodeList();
       expect(isCodeListEmpty(codeList)).toBe(false);
+    });
+  });
+
+  describe('evaluateDefaultType', () => {
+    it('Returns "string" when the code list is empty', () => {
+      expect(evaluateDefaultType([])).toBe(CodeListItemType.String);
+    });
+
+    it('Returns "string" when the code list consists of strings', () => {
+      expect(evaluateDefaultType(codeListWithStrings)).toBe(CodeListItemType.String);
+    });
+
+    it('Returns "number" when the code list consists of numbers', () => {
+      expect(evaluateDefaultType(codeListWithNumbers)).toBe(CodeListItemType.Number);
+    });
+
+    it('Returns "boolean" when the code list consists of booleans', () => {
+      expect(evaluateDefaultType(codeListWithBooleans)).toBe(CodeListItemType.Boolean);
     });
   });
 });

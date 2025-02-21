@@ -8,6 +8,7 @@ import type {
 export function useOptionListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();
   const textResourceTexts = useTextResourceTexts();
+  const typeSelectorOptions = useTypeSelectorOptions();
 
   return {
     add: t('code_list_editor.add_option'),
@@ -15,6 +16,7 @@ export function useOptionListEditorTexts(): CodeListEditorTexts {
     delete: t('code_list_editor.column_title_delete'),
     deleteItem: (number: number) => t('code_list_editor.delete_code_list_item', { number }),
     description: t('code_list_editor.column_title_description'),
+    emptyCodeList: t('code_list_editor.empty'),
     generalError: t('code_list_editor.general_error'),
     helpText: t('code_list_editor.column_title_help_text'),
     itemDescription: (number: number) => t('code_list_editor.description_item', { number }),
@@ -23,12 +25,9 @@ export function useOptionListEditorTexts(): CodeListEditorTexts {
     itemValue: (number: number) => t('code_list_editor.value_item', { number }),
     label: t('code_list_editor.column_title_label'),
     textResourceTexts,
-    typeSelector: {
-      label: t('code_list_editor.type_selector_label'),
-      stringOption: t('code_list_editor.type_selector_option_string'),
-      numberOption: t('code_list_editor.type_selector_option_number'),
-      booleanOption: t('code_list_editor.type_selector_option_boolean'),
-    },
+    typeSelectorDescription: t('code_list_editor.type_selector_description'),
+    typeSelectorLabel: t('code_list_editor.type_selector_label'),
+    typeSelectorOptions,
     value: t('code_list_editor.column_title_value'),
     valueErrors: {
       duplicateValue: t('code_list_editor.error_duplicate_values'),
@@ -53,4 +52,13 @@ function useTextResourceTexts(): (
     noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });
+}
+
+function useTypeSelectorOptions(): CodeListEditorTexts['typeSelectorOptions'] {
+  const { t } = useTranslation();
+  return {
+    string: t('code_list_editor.type_selector_option_string'),
+    number: t('code_list_editor.type_selector_option_number'),
+    boolean: t('code_list_editor.type_selector_option_boolean'),
+  };
 }

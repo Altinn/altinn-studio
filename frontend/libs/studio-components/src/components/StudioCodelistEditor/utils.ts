@@ -1,7 +1,7 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
 import { ArrayUtils } from '@studio/pure-functions';
-import type { CodeListItemValueLiteral } from './types/CodeListItemValue';
+import { CodeListItemType } from './types/CodeListItemType';
 
 export const emptyStringItem: CodeListItem = {
   value: '',
@@ -18,16 +18,13 @@ export const emptyBooleanItem: CodeListItem = {
   label: '',
 };
 
-export function addNewCodeListItem(
-  codeList: CodeList,
-  valueType: CodeListItemValueLiteral,
-): CodeList {
-  const newEmptyItem = createNewEmptyItem(codeList, valueType);
+export function addNewCodeListItem(codeList: CodeList, codeType: CodeListItemType): CodeList {
+  const newEmptyItem = createEmptyItem(codeType);
   return addCodeListItem(codeList, newEmptyItem);
 }
 
-function createNewEmptyItem(codeList: CodeList, valueType: CodeListItemValueLiteral): CodeListItem {
-  switch (valueType) {
+function createEmptyItem(codeType: CodeListItemType): CodeListItem {
+  switch (codeType) {
     case 'number':
       return emptyNumberItem;
     case 'boolean':
@@ -37,7 +34,7 @@ function createNewEmptyItem(codeList: CodeList, valueType: CodeListItemValueLite
   }
 }
 
-export function getTypeOfLastValue(codeList: CodeList): CodeListItemValueLiteral {
+export function getTypeOfLastValue(codeList: CodeList): CodeListItemType {
   if (isCodeListEmpty(codeList)) {
     throw new Error('Cannot get type of last value from empty code list');
   }
@@ -45,11 +42,11 @@ export function getTypeOfLastValue(codeList: CodeList): CodeListItemValueLiteral
   const lastCodeListItem = ArrayUtils.last(codeList);
   switch (typeof lastCodeListItem.value) {
     case 'number':
-      return 'number';
+      return CodeListItemType.Number;
     case 'boolean':
-      return 'boolean';
+      return CodeListItemType.Boolean;
     default:
-      return 'string';
+      return CodeListItemType.String;
   }
 }
 
@@ -71,4 +68,8 @@ export function changeCodeListItem(
 
 export function isCodeListEmpty(codeList: CodeList): boolean {
   return codeList.length === 0;
+}
+
+export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
+  return isCodeListEmpty(codeList) ? CodeListItemType.String : getTypeOfLastValue(codeList);
 }

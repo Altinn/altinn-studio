@@ -1,22 +1,21 @@
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 import type {
   CodeListEditorTexts,
-  TypeSelectorTexts,
+  TypeSelectorOptionTexts,
   ValueErrorMessages,
 } from '../types/CodeListEditorTexts';
 import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
-
-const typeSelector: TypeSelectorTexts = {
-  label: 'Type of values',
-  stringOption: 'String',
-  numberOption: 'Number',
-  booleanOption: 'Boolean',
-};
 
 const valueErrors: ValueErrorMessages = {
   duplicateValue: 'The value must be unique.',
   multipleTypes: 'All values must be of the same type.',
   nullValue: 'The value cannot be empty.',
+};
+
+const typeSelectorOptions: TypeSelectorOptionTexts = {
+  string: 'String',
+  number: 'Number',
+  boolean: 'Boolean',
 };
 
 export const texts: CodeListEditorTexts = {
@@ -25,6 +24,7 @@ export const texts: CodeListEditorTexts = {
   delete: 'Delete',
   deleteItem: (number) => `Delete item number ${number}`,
   description: 'Description',
+  emptyCodeList: 'The code list is empty.',
   generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',
   itemDescription: (number) => `Description for item number ${number}`,
@@ -33,7 +33,9 @@ export const texts: CodeListEditorTexts = {
   itemValue: (number) => `Value for item number ${number}`,
   label: 'Label',
   textResourceTexts,
-  typeSelector: typeSelector,
+  typeSelectorDescription: 'Choose the type of the codes.',
+  typeSelectorLabel: 'Type',
+  typeSelectorOptions,
   value: 'Value',
   valueErrors,
 };
