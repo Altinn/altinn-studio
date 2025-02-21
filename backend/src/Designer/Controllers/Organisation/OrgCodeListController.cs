@@ -139,13 +139,13 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, codeListId, cancellationToken);
-        if (!codeListExists)
+        bool CodeListExists = await _orgCodeListService.CodeListExists(org, developer, codeListId, cancellationToken);
+        if (CodeListExists)
         {
-            return NotFound($"The code list file {codeListId}.json does not exist.");
+            List<OptionListData> codeLists = await _orgCodeListService.DeleteCodeList(org, developer, codeListId, cancellationToken);
+            return Ok(codeLists);
         }
 
-        List<OptionListData> codeLists = await _orgCodeListService.DeleteCodeList(org, developer, codeListId, cancellationToken);
-        return Ok(codeLists);
+        return Ok($"The code-list file {codeListId}.json has been deleted.");
     }
 }
