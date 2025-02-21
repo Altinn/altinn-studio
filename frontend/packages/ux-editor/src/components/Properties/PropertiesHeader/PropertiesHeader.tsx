@@ -29,6 +29,9 @@ export const PropertiesHeader = ({
     ? QuestionmarkDiamondIcon
     : formItemConfigs[formItem.type]?.icon;
 
+  const hideContentWhenSubformGuide =
+    formItem.type === ComponentType.Subform && !formItem['layoutSet'];
+
   return (
     <>
       <StudioSectionHeader
@@ -43,18 +46,28 @@ export const PropertiesHeader = ({
         }}
       />
       <div className={classes.content}>
-        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
             handleComponentChange={handleComponentUpdate}
           />
         )}
+        {!hideContentWhenSubformGuide && (
+          <>
+            <EditComponentIdRow
+              component={formItem}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+            {(formItem.type === ComponentType.Summary2 ||
+              shouldDisplayFeature(FeatureFlag.MainConfig)) && (
+              <ComponentMainConfig
+                component={formItem}
+                handleComponentChange={handleComponentUpdate}
+              />
+            )}
+          </>
+        )}
       </div>
-      {(formItem.type === ComponentType.Summary2 ||
-        shouldDisplayFeature(FeatureFlag.MainConfig)) && (
-        <ComponentMainConfig component={formItem} handleComponentChange={handleComponentUpdate} />
-      )}
     </>
   );
 };

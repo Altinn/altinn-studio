@@ -1,4 +1,10 @@
+.wrapper {
+  display: block;
+  margin-top: var(--fds-spacing-3);
+  width: 100%;
+}
+
 .navigateSubformButton {
   margin-left: var(--fds-spacing-3);
-  margin-bottom: var(--fds-spacing-3);
+  margin-top: var(--fds-spacing-1);
 }

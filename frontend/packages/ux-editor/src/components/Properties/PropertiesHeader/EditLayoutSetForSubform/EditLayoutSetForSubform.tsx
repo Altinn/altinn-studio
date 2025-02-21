@@ -19,7 +19,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
   const existingLayoutSetForSubform = component['layoutSet'];
   if (existingLayoutSetForSubform) {
     return (
-      <>
+      <div className={classes.wrapper}>
         <DefinedLayoutSet existingLayoutSetForSubform={existingLayoutSetForSubform} />
         <StudioButton
           icon={<PencilIcon />}
@@ -30,7 +30,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
         >
           {t('ux_editor.component_properties.navigate_to_subform_button')}
         </StudioButton>
-      </>
+      </div>
     );
   }
 
