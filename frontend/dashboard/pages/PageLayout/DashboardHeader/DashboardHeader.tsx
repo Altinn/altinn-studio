@@ -22,6 +22,7 @@ import { useSubroute } from '../../../hooks/useSubRoute';
 import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
 import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
 import { StringUtils } from '@studio/pure-functions';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -31,9 +32,10 @@ export const DashboardHeader = () => {
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
         <StudioPageHeader.Center>
-          {dashboardHeaderMenuItems.map((menuItem) => (
-            <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
-          ))}
+          {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
+            dashboardHeaderMenuItems.map((menuItem: HeaderMenuItem) => (
+              <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+            ))}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <DashboardHeaderMenu />
@@ -129,7 +131,7 @@ const DashboardHeaderMenu = () => {
 
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={showButtonText && triggerButtonText}
+      triggerButtonText={showButtonText ? triggerButtonText : undefined}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
