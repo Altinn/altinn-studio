@@ -1,0 +1,9 @@
+{
+    "language": "nb",
+    "resources": [
+        {
+            "id": "someId",
+            "value": "someValue"
+        }
+    ]
+}
