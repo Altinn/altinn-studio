@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Radio } from '@digdir/designsystemet-react';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioRadio } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 
@@ -47,17 +46,17 @@ export const ImportAltinn3ResourceModal = forwardRef<
           </>
         }
       >
-        <Radio.Group
+        <StudioRadio.Group
           legend={t('resourceadm.dashboard_import_environment_radio_header')}
           value={selectedEnv ?? '-'} // bug: default value of radio cannot be null or undefined; that will cause the component to be uncontrolled until a value is set
           onChange={(newEnv: string) => setSelectedEnv(newEnv as EnvId)}
         >
           {availableEnvs.map((env) => (
-            <Radio key={env} value={env}>
+            <StudioRadio key={env} value={env}>
               {t(getEnvLabel(env))}
-            </Radio>
+            </StudioRadio>
           ))}
-        </Radio.Group>
+        </StudioRadio.Group>
       </StudioModal.Dialog>
     </StudioModal.Root>
   );

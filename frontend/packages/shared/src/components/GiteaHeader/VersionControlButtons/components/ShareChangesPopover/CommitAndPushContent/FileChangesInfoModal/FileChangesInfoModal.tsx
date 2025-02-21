@@ -34,7 +34,11 @@ export const FileChangesInfoModal = ({
 
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger icon={<ClockDashedIcon />} variant='tertiary'>
+      <StudioModal.Trigger
+        icon={<ClockDashedIcon />}
+        variant='tertiary'
+        className={classes.openDialogButton}
+      >
         {t('sync_header.review_file_changes')}
       </StudioModal.Trigger>
       <StudioModal.Dialog

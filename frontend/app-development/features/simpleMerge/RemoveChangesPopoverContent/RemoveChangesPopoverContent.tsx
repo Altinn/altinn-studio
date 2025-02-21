@@ -67,7 +67,6 @@ export const RemoveChangesPopoverContent = ({
         onChange={handleChange}
         autoFocus
         onKeyUp={handleOnKeypressEnter}
-        size='small'
       />
       {repoResetMutation.isPending && (
         <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.reset_repo_loading')} />

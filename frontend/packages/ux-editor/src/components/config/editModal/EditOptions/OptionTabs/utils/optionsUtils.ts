@@ -5,17 +5,6 @@ import type { FormComponent, SelectionComponentType } from '../../../../../../ty
 import type { FormContainer } from '../../../../../../types/FormContainer';
 import { ObjectUtils } from '@studio/pure-functions';
 
-export const componentUsesDynamicCodeList = (
-  codeListId: string,
-  optionListIds: string[],
-): boolean => {
-  if (!codeListId) {
-    return false;
-  }
-
-  return !optionListIds.includes(codeListId);
-};
-
 export function getSelectedOptionsType(
   codeListId: string | undefined,
   options: OptionList | undefined,
@@ -26,7 +15,7 @@ export function getSelectedOptionsType(
     return SelectedOptionsType.Unknown;
   }
 
-  return componentUsesDynamicCodeList(codeListId, optionListIds)
+  return isOptionsIdReferenceId(optionListIds, codeListId)
     ? SelectedOptionsType.ReferenceId
     : SelectedOptionsType.CodeList;
 }
@@ -46,7 +35,7 @@ export function getSelectedOptionsTypeWithManualSupport(
     return SelectedOptionsType.Manual;
   }
 
-  return componentUsesDynamicCodeList(codeListId, optionListIds)
+  return isOptionsIdReferenceId(optionListIds, codeListId)
     ? SelectedOptionsType.ReferenceId
     : SelectedOptionsType.CodeList;
 }
@@ -117,16 +106,17 @@ export function isOptionsIdReferenceId(
   return !!optionsId && !isOptionsIdFromLibrary(optionListIds, optionsId);
 }
 
-export function isOptionsModifiable(
+export function hasStaticOptionList(
   optionListIds: string[],
   optionsId: undefined | string,
   options: undefined | OptionList,
 ): boolean {
-  return (!!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId)) || !!options;
+  if (options) return true;
+  return !!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId);
 }
 
 function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {
-  return optionListIds.some((id: string) => id === optionsId);
+  return optionListIds.some((id: string) => id.toLowerCase() === optionsId?.toLowerCase());
 }
 
 export function isInitialOptionsSet(

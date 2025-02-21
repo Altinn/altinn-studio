@@ -160,6 +160,87 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
+  it('should render CollapsiblePropertyEditor for the "sortOrder" property', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            sortOrder: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+          },
+        },
+      },
+    });
+    await user.click(screen.getByText(textMock('ux_editor.component_properties.sortOrder')));
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.sortOrder'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should render CollapsiblePropertyEditor for the "showValidations" property and EditStringValue for other properties', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            showValidations: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['true', 'false'],
+              },
+            },
+            anotherProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.showValidations')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render CollapsiblePropertyEditor for "preselectedOptionIndex" and EditNumberValue for other properties', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            preselectedOptionIndex: {
+              type: 'number',
+              enum: [0, 1, 2],
+            },
+            anotherNumberProperty: {
+              type: 'number',
+              description: 'A sample number property',
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.preselectedOptionIndex_button')),
+    ).toBeInTheDocument();
+  });
+
   it('should not render property if it is null', () => {
     render({
       props: {
@@ -296,7 +377,8 @@ describe('FormComponentConfig', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should only render array properties with items of type string AND enum values', () => {
+  it('should only render array properties with items of type string AND enum values', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         schema: {
@@ -320,6 +402,9 @@ describe('FormComponentConfig', () => {
         },
       },
     });
+    await user.click(
+      screen.getByText(textMock('ux_editor.component_properties.supportedArrayProperty')),
+    );
     expect(
       screen.getByRole('combobox', {
         name: textMock('ux_editor.component_properties.supportedArrayProperty'),
@@ -399,6 +484,54 @@ describe('FormComponentConfig', () => {
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({ readOnly: true }),
     );
+  });
+
+  it('should toggle close button and grid width text when the open and close buttons are clicked', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        schema: InputSchema,
+      },
+    });
+    const openGridButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.grid'),
+    });
+    await user.click(openGridButton);
+    expect(screen.getByText(textMock('ux_editor.component_properties.grid'))).toBeInTheDocument();
+    const widthText = screen.getByText(textMock('ux_editor.modal_properties_grid'));
+    expect(widthText).toBeInTheDocument();
+
+    const closeGridButton = screen.getByRole('button', {
+      name: textMock('general.close'),
+    });
+    await user.click(closeGridButton);
+    expect(closeGridButton).not.toBeInTheDocument();
+    expect(widthText).not.toBeInTheDocument();
+  });
+
+  it('should not render grid width text if grid button is not clicked', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        schema: InputSchema,
+      },
+    });
+    expect(screen.queryByText(textMock('ux_editor.modal_properties_grid'))).not.toBeInTheDocument();
+    const openGridButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.grid'),
+    });
+    await user.click(openGridButton);
+    expect(screen.getByText(textMock('ux_editor.component_properties.grid'))).toBeInTheDocument();
+
+    const widthText = screen.getByText(textMock('ux_editor.modal_properties_grid'));
+    expect(widthText).toBeInTheDocument();
+
+    const closeGridButton = screen.getByRole('button', {
+      name: textMock('general.close'),
+    });
+    await user.click(closeGridButton);
+    expect(closeGridButton).not.toBeInTheDocument();
+    expect(widthText).not.toBeInTheDocument();
   });
 
   const render = ({

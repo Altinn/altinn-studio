@@ -27,7 +27,7 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
       <StudioCombobox
         hideLabel
         onValueChange={handleValueChange}
-        value={value ? [value] : ['']}
+        value={value ? [value] : []}
         {...rest}
         ref={ref}
       >
@@ -41,9 +41,12 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
 function renderNoTextResourceOption(label: string): ReactElement {
   // This cannot be a component function since the option component must be a direct child of the combobox component.
   return (
-    <StudioCombobox.Option className={classes.noTextResourceOption} value=''>
-      {label}
-    </StudioCombobox.Option>
+    <StudioCombobox.Option
+      aria-label={label}
+      className={classes.noTextResourceOption}
+      description={label}
+      value=''
+    />
   );
 }
 

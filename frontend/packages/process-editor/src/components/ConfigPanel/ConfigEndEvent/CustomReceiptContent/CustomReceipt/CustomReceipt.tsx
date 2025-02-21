@@ -1,14 +1,12 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
 import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/components';
-import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
 import { EditDataTypes } from '../../../ConfigContent/EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
 export const CustomReceipt = (): React.ReactElement => {
@@ -49,25 +47,9 @@ export const CustomReceipt = (): React.ReactElement => {
           customValidation={(newLayoutSetName: string) =>
             validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
           }
-          inputProps={{
-            icon: <KeyVerticalIcon />,
-            label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
-            value: existingCustomReceiptLayoutSetId,
-            onBlur: handleEditLayoutSetId,
-            size: 'small',
-          }}
-          viewProps={{
-            children: (
-              <Paragraph size='small'>
-                <strong>
-                  {t('process_editor.configuration_panel_custom_receipt_layout_set_name')}
-                </strong>
-                {existingCustomReceiptLayoutSetId}
-              </Paragraph>
-            ),
-            variant: 'tertiary',
-            'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
-          }}
+          label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
+          onBlur={handleEditLayoutSetId}
+          value={existingCustomReceiptLayoutSetId}
         />
         <EditDataTypes
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}

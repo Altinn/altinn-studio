@@ -16,7 +16,7 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindings } from '../../types/global';
+import type { IDataModelBindingsKeyValue } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
@@ -30,7 +30,7 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindings & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
   simpleBinding: 'some-path',
 };
 const updatedComponent: FormComponent = {

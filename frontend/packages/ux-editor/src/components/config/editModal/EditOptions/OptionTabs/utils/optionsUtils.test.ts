@@ -6,14 +6,13 @@ import type { SelectionComponentType } from '../../../../../../types/FormCompone
 import {
   getSelectedOptionsType,
   getSelectedOptionsTypeWithManualSupport,
-  componentUsesDynamicCodeList,
   hasOptionListChanged,
   handleOptionsChange,
   resetComponentOptions,
   updateComponentOptionsId,
   updateComponentOptions,
   isOptionsIdReferenceId,
-  isOptionsModifiable,
+  hasStaticOptionList,
   isInitialOptionsSet,
 } from './optionsUtils';
 import { componentMocks } from '../../../../../../testing/componentMocks';
@@ -113,26 +112,6 @@ describe('optionsUtils', () => {
     });
   });
 
-  describe('componentUsesDynamicCodeList', () => {
-    it('should return false if codeListId is set to an empty string', () => {
-      const codeListId = '';
-      const optionListIds = ['codeListId'];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(false);
-    });
-
-    it('should return false if codeListId is in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const optionListIds = [codeListId];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(false);
-    });
-
-    it('should return true if codeListId is not in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const optionListIds = ['anotherCodeListId'];
-      expect(componentUsesDynamicCodeList(codeListId, optionListIds)).toEqual(true);
-    });
-  });
-
   describe('hasOptionListChanged', () => {
     it('should return false if the optionList has not changed', () => {
       const oldOptions: OptionList = [{ label: 'label1', value: 'value1' }];
@@ -208,33 +187,33 @@ describe('optionsUtils', () => {
     });
   });
 
-  describe('isOptionsModifiable', () => {
+  describe('hasStaticOptionList', () => {
     it('should return true if options ID is a string and options ID is from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
       const options: OptionList = [{ value: 'value', label: 'label' }];
-      expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(true);
+      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
     });
 
     it('should return true if options is set on the component', () => {
       const optionListIds: string[] = [];
       const optionsId = '';
       const options: OptionList = [];
-      expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(true);
+      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionList = undefined;
-      expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(false);
+      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
     });
 
     it('should return false if options ID is not from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionList = undefined;
-      expect(isOptionsModifiable(optionListIds, optionsId, options)).toEqual(false);
+      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
     });
   });
 

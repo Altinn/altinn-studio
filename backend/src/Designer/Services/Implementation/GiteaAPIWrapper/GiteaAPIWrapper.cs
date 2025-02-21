@@ -245,18 +245,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            if (string.IsNullOrEmpty(listviewResource.CreatedBy))
-            {
-                string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                string userFullName = await GetCachedUserFullName(localUserName);
-                listviewResource.CreatedBy = userFullName;
-            }
-
-            if (listviewResource.LastChanged == null)
-            {
-                listviewResource.LastChanged = DateTime.Now;
-            }
-
             return listviewResource;
         }
 
@@ -392,20 +380,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
 
             return null;
-        }
-
-        /// <inheritdoc />
-        public async Task<List<Branch>> GetBranches(string org, string repo)
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/branches");
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                return await response.Content.ReadAsAsync<List<Branch>>();
-            }
-
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " " + repo);
-
-            return new List<Branch>();
         }
 
         /// <inheritdoc />

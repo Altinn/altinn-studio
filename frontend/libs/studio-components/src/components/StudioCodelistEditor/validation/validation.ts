@@ -22,7 +22,10 @@ function findValueError(
   value: CodeListItemValue,
   allValues: CodeListItemValue[],
 ): ValueError | null {
-  return ArrayUtils.isDuplicate(value, allValues) ? 'duplicateValue' : null;
+  if (value === null) return 'nullValue';
+  if (ArrayUtils.isDuplicate(value, allValues)) return 'duplicateValue';
+  if (!ArrayUtils.hasSingleType(allValues)) return 'multipleTypes';
+  else return null;
 }
 
 export function areThereCodeListErrors(errorMap: ValueErrorMap): boolean {

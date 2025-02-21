@@ -389,6 +389,102 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Equal(newOptionsListString, savedOptionsList);
         }
 
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", 0)]
+        [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
+        [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
+        public async Task GetAllSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetAllSchemaFiles();
+
+            Assert.Equal(expectedSchemaFiles, files.Count);
+        }
+
+        [Fact]
+        public async Task GetAllSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
+        {
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var file = altinnAppGitRepository.GetAllSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
+
+            Assert.Equal(".json", file.FileType);
+            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
+        }
+
+        [Fact]
+        public async Task GetAllSchemaFiles_FilesExistOutsideModelsFolder_ShouldReturnFiles()
+        {
+            string org = "ttd";
+            string repository = "app-with-misplaced-datamodels";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetAllSchemaFiles();
+
+            Assert.Single(files);
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", 0)]
+        [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
+        [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
+        public async Task GetAppSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetAppSchemaFiles();
+
+            Assert.Equal(expectedSchemaFiles, files.Count);
+        }
+
+        [Fact]
+        public async Task GetAppSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
+        {
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var file = altinnAppGitRepository.GetAppSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
+
+            Assert.Equal(".json", file.FileType);
+            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
+        }
+
+        [Fact]
+        public async Task GetAppSchemaFiles_FilesExistOutsideModelsFolder_ShouldNotReturnFiles()
+        {
+            string org = "ttd";
+            string repository = "app-with-misplaced-datamodels";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetAppSchemaFiles();
+
+            Assert.Empty(files);
+        }
+
         private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)
         {
 

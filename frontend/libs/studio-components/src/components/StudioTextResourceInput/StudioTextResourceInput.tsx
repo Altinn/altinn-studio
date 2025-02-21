@@ -8,20 +8,26 @@ import { PencilIcon, MagnifyingGlassIcon } from '@studio/icons';
 import classes from './StudioTextResourceInput.module.css';
 import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
-import { changeTextResourceInList, editTextResourceValue, getTextResourceById } from './utils';
+import {
+  changeTextResourceInList,
+  determineDefaultMode,
+  editTextResourceValue,
+  getTextResourceById,
+} from './utils';
 import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import cn from 'classnames';
+import { Mode } from './types/Mode';
 
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &
   HTMLAttributes<HTMLInputElement>;
 
 type TextResourceInputPropsBase = {
-  currentId: string;
+  currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
-  onChangeCurrentId: (id: string) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
+  onChangeCurrentId: (id: string | null) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;
@@ -44,9 +50,9 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     },
     ref,
   ): ReactElement => {
-    const [mode, setMode] = useState<Mode>(Mode.EditValue);
-    const [currentId, setCurrentId] = usePropState<string>(givenCurrentId);
+    const [currentId, setCurrentId] = usePropState<string | null | undefined>(givenCurrentId);
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
+    const [mode, setMode] = useState<Mode>(determineDefaultMode(currentId));
 
     const handleChangeCurrentId = (id: string): void => {
       setCurrentId(id);
@@ -56,7 +62,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const handleTextResourceChange = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
-      onChangeTextResource(newTextResource);
+      onChangeTextResource?.(newTextResource);
     };
 
     const rootClass = cn(givenClass, classes.container);
@@ -83,11 +89,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
 );
 
 StudioTextResourceInput.displayName = 'StudioTextResourceInput';
-
-enum Mode {
-  EditValue = 'editValue',
-  Search = 'search',
-}
 
 type InputBoxProps = StudioTextResourceInputProps & {
   mode: Mode;
@@ -145,11 +146,35 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
 InputBox.displayName = 'InputBox';
 
 type ValueFieldProps = StudioTextfieldProps & {
-  textResource: TextResource;
+  textResource?: TextResource;
   onChangeTextResource: (textResource: TextResource) => void;
 };
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
+  ({ textResource, onChangeTextResource, ...rest }, ref): ReactElement => {
+    const generalProps: StudioTextfieldProps = {
+      hideLabel: true,
+      ...rest,
+    };
+
+    if (textResource) {
+      return (
+        <EnabledValueField
+          ref={ref}
+          onChangeTextResource={onChangeTextResource}
+          textResource={textResource}
+          {...generalProps}
+        />
+      );
+    } else {
+      return <DisabledValueField ref={ref} {...generalProps} />;
+    }
+  },
+);
+
+ValueField.displayName = 'ValueField';
+
+const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   ({ textResource, onChange, onChangeTextResource, ...rest }, ref): ReactElement => {
     const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
       const { value } = event.target;
@@ -159,19 +184,18 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     };
 
     return (
-      <StudioTextfield
-        hideLabel
-        onChange={handleChange}
-        ref={ref}
-        size='sm'
-        value={textResource.value}
-        {...rest}
-      />
+      <StudioTextfield onChange={handleChange} ref={ref} value={textResource.value} {...rest} />
     );
   },
 );
 
-ValueField.displayName = 'ValueField';
+EnabledValueField.displayName = 'EnabledValueField';
+
+const DisabledValueField = forwardRef<HTMLInputElement, StudioTextfieldProps>(
+  (props, ref): ReactElement => <StudioTextfield disabled ref={ref} {...props} />,
+);
+
+DisabledValueField.displayName = 'DisabledValueField';
 
 type InputModeToggleProps = {
   className?: string;

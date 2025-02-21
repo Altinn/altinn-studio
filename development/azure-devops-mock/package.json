@@ -9,7 +9,7 @@
     "express": "4.21.2",
     "morgan": "1.10.0",
     "nodemon": "3.1.9",
-    "p-queue": "8.0.1"
+    "p-queue": "8.1.0"
   },
   "license": "MIT",
   "main": "index.js",

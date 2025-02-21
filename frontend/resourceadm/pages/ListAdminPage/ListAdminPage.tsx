@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
+import { ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioSpinner, StudioButton, StudioLink, StudioHeading } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -55,11 +55,11 @@ export const ListAdminPage = (): React.JSX.Element => {
       <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
         {t('resourceadm.listadmin_back')}
       </StudioLink>
-      <Heading level={1} size='large'>
+      <StudioHeading level={1} size='lg'>
         {t('resourceadm.listadmin_header')}
-      </Heading>
+      </StudioHeading>
       <div className={classes.environmentSelectorWrapper}>
-        <ToggleGroup size='small' onChange={navigateToListEnv} value={selectedEnv}>
+        <ToggleGroup size='sm' onChange={navigateToListEnv} value={selectedEnv}>
           {getAvailableEnvironments(org).map((environment) => {
             return (
               <ToggleGroup.Item key={environment.id} value={environment.id}>
@@ -91,11 +91,11 @@ export const ListAdminPage = (): React.JSX.Element => {
             )}
             {envListData && (
               <div>
-                <Heading level={2} size='xsmall'>
+                <StudioHeading level={2} size='xs'>
                   {t('resourceadm.listadmin_lists_in', {
                     environment: t(getEnvLabel(selectedEnv as EnvId)),
                   })}
-                </Heading>
+                </StudioHeading>
                 {envListData.pages.map((list) => {
                   return (
                     <div key={list.identifier} className={classes.tableRowContent}>

@@ -160,6 +160,44 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
+const crateContentRepo = async (env) => {
+  const repo = 'ttd-content';
+  const filePathCodeList = 'Codelists/exampleCodeList.json';
+  const filePathTexts = 'Texts/exampleText.json';
+
+  await giteaApi({
+    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/repos`,
+    method: 'POST',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      name: repo,
+    },
+  });
+
+  await giteaApi({
+    path: `/api/v1/repos/${env.GITEA_ORG_USER}/${repo}/contents/${filePathCodeList}`,
+    method: 'POST',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      content: btoa(`[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`),
+    },
+  });
+
+  await giteaApi({
+    path: `/api/v1/repos/${env.GITEA_ORG_USER}/${repo}/contents/${filePathTexts}`,
+    method: 'POST',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      content: btoa(
+        `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
+      ),
+    },
+  });
+};
+
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
@@ -170,9 +208,12 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
+  await crateContentRepo(env);
+
   const result = await createOidcClientIfNotExists(env);
 
   await createCypressEnvFile(env);
+
   return result;
 };
 
