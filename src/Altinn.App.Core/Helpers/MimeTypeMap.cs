@@ -251,7 +251,7 @@ public static class MimeTypeMap
             { ".m2v", new("video/mpeg") },
             { ".m3u", new("audio/x-mpegurl") },
             { ".m3u8", new("audio/x-mpegurl") },
-            { ".m4a", new("audio/m4a") },
+            { ".m4a", new("audio/m4a", "audio/x-m4a") },
             { ".m4b", new("audio/m4b") },
             { ".m4p", new("audio/m4p") },
             { ".m4r", new("audio/x-m4r") },
