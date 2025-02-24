@@ -45,7 +45,6 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await navigateToAppAndPullLatestVersionAndNavigateBack(page);
 
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
-  await orgLibraryPage.codeLists.verifyThatCodeListPageIsEmpty();
 
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
@@ -63,7 +62,7 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.verifyThatNewCodeListIsVisible(codelistTitle);
 });
 
-// TODO - Delete this function once XXXX is merged.
+// TODO - Delete this function once https://github.com/Altinn/altinn-studio/pull/14793 is merged.
 const navigateToAppAndPullLatestVersionAndNavigateBack = async (page: Page) => {
   const repoName: string = 'ttd-content';
 

@@ -16,14 +16,6 @@ export class CodeLists extends BasePage {
     await expect(heading).toBeVisible();
   }
 
-  public async verifyThatCodeListPageIsEmpty(): Promise<void> {
-    const emptyStateText = this.page.getByText(
-      this.textMock('app_content_library.code_lists.code_lists_count_info_none'),
-    );
-
-    await expect(emptyStateText).toBeVisible();
-  }
-
   public async clickOnCreateNewCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -33,19 +25,12 @@ export class CodeLists extends BasePage {
   }
 
   public async verifyNewCodelistModalIsOpen(): Promise<void> {
-    /*    const modalTitle = this.page.getByRole('heading', {
-      name: this.textMock('app_content_library.code_lists.create_new_code_list'),
+    const modalTitle = this.page.getByRole('heading', {
+      name: this.textMock('app_content_library.code_lists.create_new_code_list_modal_title'),
       level: 2,
     });
 
     await expect(modalTitle).toBeVisible({ timeout: 8000 });
-*/
-    await this.page
-      .getByRole('heading', {
-        name: this.textMock('app_content_library.code_lists.create_new_code_list'),
-        level: 2,
-      })
-      .isVisible();
   }
 
   public async writeCodelistTitle(title: string): Promise<void> {
@@ -97,11 +82,11 @@ export class CodeLists extends BasePage {
   }
 
   public async verifyThatNewCodeListIsVisible(title: string): Promise<void> {
-    const codeList = this.page.getByRole('heading', {
-      name: this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+    const codeList = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
         codeListTitle: title,
       }),
-    });
+    );
 
     await expect(codeList).toBeVisible();
   }

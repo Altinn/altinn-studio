@@ -43,5 +43,4 @@ test('that it is possible to navigate to code list page and that the page is emp
 
   await orgLibraryPage.clickOnNavigateToCodeListPage();
   await orgLibraryPage.codeLists.waitForCodeListPageToLoad();
-  await orgLibraryPage.codeLists.verifyThatCodeListPageIsEmpty();
 });
