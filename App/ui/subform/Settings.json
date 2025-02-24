@@ -1,11 +1,10 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.16.1-pr.543.navigation.148ab6d3/schemas/json/layout/layoutSettings.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.1-pr.605.navigation.b716a1c3/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "showLanguageSelector": true,
     "showExpandWidthButton": true,
     "groups": [
       {
-        "name": "subgroup.reg",
         "markWhenCompleted": true,
         "order": ["reg"]
       },
