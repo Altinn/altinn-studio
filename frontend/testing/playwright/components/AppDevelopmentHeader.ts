@@ -63,6 +63,19 @@ export class AppDevelopmentHeader extends BasePage {
       .click();
   }
 
+  public async clickOnPullFromGitea(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('sync_header.fetch_changes') })
+      .click();
+  }
+
+  public async waitForFetchingToComplete(): Promise<void> {
+    const confirmationText = this.page.getByRole('heading', {
+      name: this.textMock('sync_header.service_updated_to_latest'),
+    });
+    await expect(confirmationText).toBeVisible();
+  }
+
   public async checkThatUploadSuccessMessageIsVisible(): Promise<void> {
     const heading = this.page.getByText(this.textMock('sync_header.sharing_changes_completed'));
     await expect(heading).toBeVisible({ timeout: TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH });
