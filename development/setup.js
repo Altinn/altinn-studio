@@ -160,7 +160,6 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
-// const createContentRepo = async (user, pass) => {
 const createContentRepo = async (user, pass, org) => {
   const repo = 'ttd-content';
   const filePathCodeList = 'Codelists/exampleCodeList.json';
@@ -212,7 +211,6 @@ const setupEnvironment = async (env) => {
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
   await createContentRepo(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, env.GITEA_ORG_USER);
-  // await createContentRepo(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS);
 
   const envWithRunnerToken = await setupRunnersToken(env);
   const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
