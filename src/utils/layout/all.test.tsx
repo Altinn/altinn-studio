@@ -9,12 +9,11 @@ import type { JSONSchema7 } from 'json-schema';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { quirks } from 'src/features/form/layout/quirks';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
-import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config();
@@ -59,14 +58,16 @@ function RenderAllComponents() {
   if (!nodes) {
     throw new Error('No nodes found');
   }
-  const all = nodes.allNodes(new TraversalTask(state, nodes, undefined, undefined));
+  const all = Object.values(state.nodeData)
+    .filter((nodeData) => nodeData.isValid)
+    .map((nodeData) => nodeData.layout.id);
 
   return (
     <>
-      {all.map((node) => (
-        <GenericComponent
-          node={node}
-          key={node.id}
+      {all.map((id) => (
+        <GenericComponentById
+          id={id}
+          key={id}
         />
       ))}
       <TestApp />

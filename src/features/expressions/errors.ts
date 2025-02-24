@@ -40,14 +40,6 @@ export class NodeNotFound extends Error {
   }
 }
 
-export class NodeNotFoundWithoutContext {
-  public constructor(private nodeId: string | undefined) {}
-
-  public getId() {
-    return this.nodeId;
-  }
-}
-
 export interface PrettyErrorsOptions {
   config?: ExprConfig;
   introText?: string;

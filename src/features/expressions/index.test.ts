@@ -1,4 +1,3 @@
-import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { evalExpr } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
@@ -16,7 +15,7 @@ describe('Expressions', () => {
     expect(
       evalExpr(
         ['frontendSettings', 'whatever'],
-        new NodeNotFoundWithoutContext('test'),
+        { type: 'none' },
         {
           applicationSettings: {},
         } as ExpressionDataSources,

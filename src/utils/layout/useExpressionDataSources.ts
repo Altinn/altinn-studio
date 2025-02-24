@@ -42,7 +42,7 @@ export interface ExpressionDataSources {
   formDataRowsSelector: FormDataRowsSelector;
   attachmentsSelector: AttachmentsSelector;
   optionsSelector: NodeOptionsSelector;
-  langToolsSelector: (node: LayoutNode | undefined) => IUseLanguage;
+  langToolsSelector: (node: LayoutNode | string | undefined) => IUseLanguage;
   currentLanguage: string;
   currentLayoutSet: ILayoutSet | null;
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;

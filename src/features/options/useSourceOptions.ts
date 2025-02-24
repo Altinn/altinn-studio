@@ -3,7 +3,7 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprVal, ExprValToActualOrExpr, NodeReference } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -27,6 +27,7 @@ export const useSourceOptions = ({
       return undefined;
     }
 
+    const nodeReference: NodeReference = { type: 'node', id: node.id };
     const { formDataRowsSelector, formDataSelector, langToolsSelector, nodeTraversal } = dataSources;
     const output: IOptionInternal[] = [];
     const langTools = langToolsSelector(node);
@@ -103,9 +104,9 @@ export const useSourceOptions = ({
 
       output.push({
         value: String(formDataSelector(transposed)),
-        label: resolveText(label, node, modifiedDataSources, nonTransposed) as string,
-        description: resolveText(description, node, modifiedDataSources, nonTransposed),
-        helpText: resolveText(helpText, node, modifiedDataSources, nonTransposed),
+        label: resolveText(label, nodeReference, modifiedDataSources, nonTransposed) as string,
+        description: resolveText(description, nodeReference, modifiedDataSources, nonTransposed),
+        helpText: resolveText(helpText, nodeReference, modifiedDataSources, nonTransposed),
         rowNode,
         dataModelLocation: addRowInfo ? transposed : undefined,
       });
@@ -116,15 +117,15 @@ export const useSourceOptions = ({
 
 function resolveText(
   text: ExprValToActualOrExpr<ExprVal.String> | undefined,
-  node: LayoutNode,
+  nodeReference: NodeReference,
   dataSources: ExpressionDataSources,
   reference: IDataModelReference,
 ): string | undefined {
   if (text && ExprValidation.isValid(text)) {
-    return evalExpr(text, node, dataSources);
+    return evalExpr(text, nodeReference, dataSources);
   }
   if (text) {
-    return dataSources.langToolsSelector(node).langAsStringUsingPathInDataModel(text as string, reference);
+    return dataSources.langToolsSelector(nodeReference.id).langAsStringUsingPathInDataModel(text as string, reference);
   }
   return undefined;
 }

@@ -14,10 +14,7 @@ import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
-import type { ExprConfig, Expression, ExprFunctionName } from 'src/features/expressions/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { ExprConfig, Expression, ExprFunctionName, LayoutReference } from 'src/features/expressions/types';
 
 interface ExpressionResult {
   value: string;
@@ -74,8 +71,6 @@ export const ExpressionPlayground = () => {
   // populating the output history with a fresh value.
   const resetOutputHistory = () => setOutputs([]);
 
-  const traversalSelector = useNodeTraversalSelector();
-
   const componentOptions = NodesInternal.useMemoSelector((state) =>
     Object.values(state.nodeData).map((nodeData) => ({
       label: nodeData.layout.id,
@@ -109,27 +104,9 @@ export const ExpressionPlayground = () => {
 
       ExprValidation.throwIfInvalid(maybeExpression);
 
-      let evalContext: LayoutPage | LayoutNode | undefined = traversalSelector(
-        (t) => t.findPage(currentPageId),
-        [currentPageId],
-      );
-      if (!evalContext) {
-        throw new Error('Fant ikke nåværende side/layout');
-      }
-
+      let evalContext: LayoutReference = currentPageId ? { type: 'page', id: currentPageId } : { type: 'none' };
       if (forPage && forComponentId) {
-        const foundNode = traversalSelector(
-          (t) => {
-            const page = t.findPage(forPage);
-            return page
-              ? t.with(page).children((i) => i.type === 'node' && i.item?.id === forComponentId)[0]
-              : undefined;
-          },
-          [forPage, forComponentId],
-        );
-        if (foundNode) {
-          evalContext = foundNode;
-        }
+        evalContext = { type: 'node', id: forComponentId };
       }
 
       const calls: string[] = [];
@@ -151,18 +128,7 @@ export const ExpressionPlayground = () => {
         setOutputs([{ value: e.message, isError: true }]);
       }
     }
-  }, [
-    input,
-    forPage,
-    forComponentId,
-    dataSources,
-    nodes,
-    showAllSteps,
-    outputs,
-    setOutputWithHistory,
-    currentPageId,
-    traversalSelector,
-  ]);
+  }, [input, forPage, forComponentId, dataSources, nodes, showAllSteps, outputs, setOutputWithHistory, currentPageId]);
 
   return (
     <div className={classes.container}>

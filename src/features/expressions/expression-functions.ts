@@ -3,7 +3,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { exprCastValue } from 'src/features/expressions';
-import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
+import { ExprRuntimeError, NodeNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { CodeListPending } from 'src/features/options/CodeListsProvider';
@@ -377,7 +377,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
 
-    const node = ensureNode(this.node);
+    const node = ensureNode(this);
     const closest = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
     const dataModelBindings = closest
@@ -424,7 +424,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return pickSimpleValue(newReference, this);
     }
 
-    const node = ensureNode(this.node);
+    const node = ensureNode(this);
     if (node instanceof BaseLayoutNode) {
       const newReference = this.dataSources.transposeSelector(node as LayoutNode, reference);
       return pickSimpleValue(newReference, this);
@@ -480,7 +480,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
 
-    const node = ensureNode(this.node);
+    const node = ensureNode(this);
     const targetNode = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
     if (!targetNode) {
@@ -527,8 +527,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const option = options.find((o) => o.value == value);
 
     if (option) {
-      const node = this.node instanceof BaseLayoutNode ? this.node : undefined;
-      return this.dataSources.langToolsSelector(node).langAsNonProcessedString(option.label);
+      const nodeId = this.reference.type === 'node' ? this.reference.id : undefined;
+      return this.dataSources.langToolsSelector(nodeId).langAsNonProcessedString(option.label);
     }
 
     return null;
@@ -559,8 +559,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const node = this.node instanceof BaseLayoutNode ? this.node : undefined;
-    return this.dataSources.langToolsSelector(node).langAsNonProcessedString(key);
+    const nodeId = this.reference.type === 'node' ? this.reference.id : undefined;
+    return this.dataSources.langToolsSelector(nodeId).langAsNonProcessedString(key);
   },
   linkToComponent(linkText, id) {
     if (id == null) {
@@ -572,7 +572,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const node = ensureNode(this.node);
+    const node = ensureNode(this);
     const closest = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
     if (!closest) {
@@ -796,12 +796,19 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
   return null;
 }
 
-export function ensureNode(
-  node: LayoutNode | LayoutPage | BaseLayoutNode | NodeNotFoundWithoutContext,
-): LayoutNode | BaseLayoutNode | LayoutPage {
-  if (node instanceof NodeNotFoundWithoutContext) {
-    throw new NodeNotFound(node.getId());
+export function ensureNode(ctx: EvaluateExpressionParams): LayoutNode | LayoutPage {
+  const reference = ctx.reference;
+  let node: LayoutNode | LayoutPage | undefined = undefined;
+  if (reference.type === 'node') {
+    node = ctx.dataSources.nodeTraversal((t) => t.findById(reference.id), [reference.id]);
+  } else if (reference.type === 'page') {
+    node = ctx.dataSources.nodeTraversal((t) => t.findPage(reference.id), [reference.id]);
   }
+
+  if (!node) {
+    throw new NodeNotFound(reference.type === 'none' ? undefined : reference.id);
+  }
+
   return node;
 }
 

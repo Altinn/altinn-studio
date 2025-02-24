@@ -132,3 +132,27 @@ export interface ExprDateExtensions {
 }
 
 export type ExprDate = Date & { exprDateExtensions: ExprDateExtensions };
+
+export interface PageReference {
+  type: 'page';
+  id: string;
+}
+
+export interface NodeReference {
+  type: 'node';
+  id: string;
+}
+
+interface NoReference {
+  type: 'none';
+}
+
+export type LayoutReference = PageReference | NodeReference | NoReference;
+
+export function refAsSuffix(reference: LayoutReference) {
+  return reference.type === 'page'
+    ? ` for page '${reference.id}'`
+    : reference.type === 'node'
+      ? ` for component '${reference.id}'`
+      : '';
+}

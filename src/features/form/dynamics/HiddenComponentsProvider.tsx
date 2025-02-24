@@ -3,16 +3,12 @@ import { useEffect } from 'react';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useDynamics } from 'src/features/form/dynamics/DynamicsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
-import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
-import { splitDashedKey } from 'src/utils/splitDashedKey';
-import { typedBoolean } from 'src/utils/typing';
-import type { IConditionalRenderingRule } from 'src/features/form/dynamics/index';
+import type { IConditionalRenderingRule, IConditionalRenderingRules } from 'src/features/form/dynamics/index';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
+import type { NodeData } from 'src/utils/layout/types';
 
 /**
  * This replaces checkIfConditionalRulesShouldRunSaga(), and fixes a problem that was hard to solve in sagas;
@@ -33,79 +29,114 @@ export function HiddenComponentsProvider() {
   return null;
 }
 
+interface RepeatingGroup {
+  numRows: number;
+  binding: IDataModelReference | undefined;
+}
+
+interface TopLevelRepeatingGroup extends RepeatingGroup {
+  nestedGroups: { [groupId: string]: RepeatingGroup | undefined };
+}
+
+type RepeatingGroupMap = { [groupId: string]: TopLevelRepeatingGroup | undefined };
+
+function useAllReferencedGroups(rules: IConditionalRenderingRules | null) {
+  return NodesInternal.useMemoSelector((state) => {
+    if (!window.conditionalRuleHandlerObject || !rules || Object.keys(rules).length === 0) {
+      return {};
+    }
+
+    const out: RepeatingGroupMap = {};
+    for (const key of Object.keys(rules)) {
+      const rule: IConditionalRenderingRule | undefined = key ? rules[key] : undefined;
+      if (rule?.repeatingGroup) {
+        const nodeData = state.nodeData[rule.repeatingGroup.groupId];
+        if (nodeData && isRepeatedGroup(nodeData)) {
+          const numRows = nodeData.item?.rows?.length ?? 0;
+          const topLevel: TopLevelRepeatingGroup = {
+            numRows,
+            binding: nodeData.layout.dataModelBindings?.group,
+            nestedGroups: {},
+          };
+          if (rule.repeatingGroup.childGroupId) {
+            for (const rowIndex of Array.from({ length: numRows }, (_, i) => i)) {
+              const childId = `${rule.repeatingGroup.childGroupId}-${rowIndex}`;
+              const childNodeData = state.nodeData[childId];
+              if (childNodeData && isRepeatedGroup(childNodeData)) {
+                topLevel.nestedGroups[childId] = {
+                  numRows: childNodeData.item?.rows?.length ?? 0,
+                  binding: childNodeData.layout.dataModelBindings?.group,
+                };
+              }
+            }
+          }
+
+          out[nodeData.layout.id] = topLevel;
+        }
+      }
+    }
+
+    return out;
+  });
+}
+
 function useLegacyHiddenComponents() {
   const rules = useDynamics()?.conditionalRendering ?? null;
-  const transposeSelector = useDataModelBindingTranspose();
   const formDataSelector = FD.useDebouncedSelector();
-  const nodeDataSelector = NodesInternal.useNodeDataSelector();
-  const traversalSelector = useNodeTraversalSelector();
   const hiddenNodes: { [nodeId: string]: true } = {};
   const defaultDataType = useCurrentDataModelName() ?? '';
+  const topLevelGroups = useAllReferencedGroups(rules);
 
   if (!window.conditionalRuleHandlerObject || !rules || Object.keys(rules).length === 0) {
     // Rules have not been initialized
     return hiddenNodes;
   }
 
-  const props = [defaultDataType, hiddenNodes, formDataSelector, transposeSelector] as const;
+  const props = [defaultDataType, hiddenNodes, formDataSelector] as const;
   for (const key of Object.keys(rules)) {
-    if (!key) {
+    const rule: IConditionalRenderingRule | undefined = key ? rules[key] : undefined;
+    if (!rule) {
       continue;
     }
 
-    const rule: IConditionalRenderingRule = rules[key];
     if (rule.repeatingGroup) {
       const groupId = rule.repeatingGroup.groupId;
-      const node = traversalSelector((t) => t.findById(groupId), [groupId]);
-      if (node?.isType('RepeatingGroup')) {
-        const firstChildren = pickFirstNodes(nodeDataSelector, traversalSelector, node);
-        for (const firstChild of firstChildren) {
-          if (rule.repeatingGroup.childGroupId && firstChild) {
-            const rowIndex = firstChild.rowIndex!;
-            const childId = `${rule.repeatingGroup.childGroupId}-${rowIndex}`;
-            const childNode = traversalSelector((t) => t.findById(childId), [childId]);
-            if (childNode && childNode.isType('RepeatingGroup')) {
-              const nestedChildren = pickFirstNodes(nodeDataSelector, traversalSelector, childNode);
-              for (const firstNestedChild of nestedChildren) {
-                runConditionalRenderingRule(rule, firstNestedChild, ...props);
-              }
-            }
-          } else if (firstChild) {
-            runConditionalRenderingRule(rule, firstChild, ...props);
+      const group = topLevelGroups[groupId];
+      if (!group) {
+        continue;
+      }
+      for (const rowIndex of Array.from({ length: group.numRows }, (_, i) => i)) {
+        if (rule.repeatingGroup.childGroupId) {
+          const nestedGroup = group.nestedGroups[`${rule.repeatingGroup.childGroupId}-${rowIndex}`];
+          if (!nestedGroup) {
+            continue;
           }
+          for (const nestedRowIndex of Array.from({ length: nestedGroup.numRows }, (_, i) => i)) {
+            runConditionalRenderingRule(rule, nestedGroup.binding, [rowIndex, nestedRowIndex], ...props);
+          }
+        } else {
+          runConditionalRenderingRule(rule, group.binding, [rowIndex], ...props);
         }
       }
     } else {
-      runConditionalRenderingRule(rule, undefined, ...props);
+      runConditionalRenderingRule(rule, undefined, undefined, ...props);
     }
   }
 
   return hiddenNodes;
 }
 
-function pickFirstNodes(
-  nodeDataSelector: ReturnType<typeof NodesInternal.useNodeDataSelector>,
-  traversalSelector: ReturnType<typeof useNodeTraversalSelector>,
-  node: LayoutNode<'RepeatingGroup'>,
-) {
-  const targets = nodeDataSelector(
-    (picker) =>
-      picker(node)
-        ?.item?.rows.filter(typedBoolean)
-        .map((row) => row && row.itemIds && row.itemIds[0]) ?? [],
-    [node],
-  );
-
-  return traversalSelector((t) => targets.map((id) => t.findById(id)).filter(typedBoolean), [node, targets]);
+function isRepeatedGroup(nodeData: NodeData): nodeData is NodeData<'RepeatingGroup'> {
+  return nodeData.layout.type === 'RepeatingGroup';
 }
 
 function runConditionalRenderingRule(
   rule: IConditionalRenderingRule,
-  node: LayoutNode | undefined,
+  currentLocation: IDataModelReference | undefined,
+  rowIndexes: number[] | undefined,
   defaultDataType: string,
   hiddenNodes: { [nodeId: string]: true },
   formDataSelector: FormDataSelector,
-  transposeSelector: DataModelTransposeSelector,
 ) {
   const functionToRun = rule.selectedFunction;
   const inputKeys = Object.keys(rule.inputParams);
@@ -113,8 +144,16 @@ function runConditionalRenderingRule(
   const inputObj = {} as Record<string, string | number | boolean | null>;
   for (const key of inputKeys) {
     const param = rule.inputParams[key].replace(/{\d+}/g, '');
-    const binding: IDataModelReference = { dataType: defaultDataType, field: param };
-    const transposed = (node ? transposeSelector(node, binding) : undefined) ?? binding;
+    const subject: IDataModelReference = { dataType: defaultDataType, field: param };
+    const transposed =
+      currentLocation && rowIndexes
+        ? transposeDataBinding({
+            subject,
+            currentLocation,
+            rowIndex: rowIndexes.at(-1),
+            currentLocationIsRepGroup: true,
+          })
+        : subject;
     const value = formDataSelector(transposed);
 
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -136,13 +175,14 @@ function runConditionalRenderingRule(
   const action = rule.selectedAction;
   const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
 
-  const splitId = splitDashedKey(node?.id ?? '');
   for (const elementToPerformActionOn of Object.keys(rule.selectedFields)) {
     if (elementToPerformActionOn && hide) {
-      const elementId = rule.selectedFields[elementToPerformActionOn].replace(/{\d+}/g, (match) => {
-        const index = match.replace(/[{}]/g, '');
-        return `-${splitId.depth[index]}`;
-      });
+      const elementId = rowIndexes
+        ? rule.selectedFields[elementToPerformActionOn].replace(/{\d+}/g, (match) => {
+            const index = match.replace(/[{}]/g, '');
+            return `-${rowIndexes[index]}`;
+          })
+        : rule.selectedFields[elementToPerformActionOn];
 
       hiddenNodes[elementId] = true;
     }

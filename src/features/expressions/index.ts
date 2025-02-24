@@ -11,7 +11,6 @@ import {
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
-import type { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import type {
   ExprConfig,
   ExprDate,
@@ -22,9 +21,8 @@ import type {
   ExprValToActual,
   ExprValToActualOrExpr,
   ExprValueArgs,
+  LayoutReference,
 } from 'src/features/expressions/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type BeforeFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[]) => void;
@@ -49,7 +47,7 @@ export type EvaluateExpressionParams = {
   expr: Expression;
   path: string[];
   callbacks: { onBeforeFunctionCall?: BeforeFuncCallback; onAfterFunctionCall?: AfterFuncCallback };
-  node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext;
+  reference: LayoutReference;
   dataSources: ExpressionDataSources;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
@@ -74,7 +72,7 @@ function isExpression(input: unknown): input is Expression {
  */
 export function evalExpr<V extends ExprVal = ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
-  node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
+  reference: LayoutReference,
   dataSources: ExpressionDataSources,
   options?: EvalExprOptions,
 ) {
@@ -90,7 +88,7 @@ export function evalExpr<V extends ExprVal = ExprVal>(
     expr,
     path: [],
     callbacks,
-    node,
+    reference,
     dataSources,
     positionalArguments: options?.positionalArguments,
     valueArguments: options?.valueArguments,

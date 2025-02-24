@@ -62,7 +62,7 @@ export interface IUseLanguage {
 }
 
 export interface TextResourceVariablesDataSources {
-  node: LayoutNode | undefined;
+  node: LayoutNode | string | undefined;
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
   dataModelPath?: IDataModelReference;
@@ -150,7 +150,7 @@ export function useInnerLanguageWithForcedNodeSelector(
   const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
 
   return useCallback(
-    (node: LayoutNode | undefined) => {
+    (node: LayoutNode | string | undefined) => {
       const { textResources, language, selectedLanguage, ...dataSources } = sources || ({} as LangDataSources);
       if (!textResources || !language || !selectedLanguage) {
         throw new Error('useLanguage must be used inside a LangToolsStoreProvider');

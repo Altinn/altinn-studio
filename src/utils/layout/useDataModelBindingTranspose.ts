@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -31,7 +30,7 @@ export function useDataModelBindingTranspose() {
 }
 export function useInnerDataModelBindingTranspose(nodeSelector: LaxNodeDataSelector) {
   return useCallback(
-    (node: LayoutNode, subject: IDataModelReference, _rowIndex?: number) => {
+    (node: LayoutNode | string, subject: IDataModelReference, _rowIndex?: number) => {
       const { currentLocation, currentLocationIsRepGroup, foundRowIndex } = firstDataModelBinding(node, nodeSelector);
       const rowIndex = _rowIndex ?? foundRowIndex;
       return currentLocation
@@ -47,7 +46,7 @@ export function useInnerDataModelBindingTranspose(nodeSelector: LaxNodeDataSelec
  * Starts at a node and then moves up the hierarchy until it finds a node with a data model binding.
  */
 function firstDataModelBinding(
-  node: LayoutNode,
+  node: LayoutNode | string,
   nodeSelector: LaxNodeDataSelector,
   rowIndex?: number,
 ): {
@@ -55,31 +54,47 @@ function firstDataModelBinding(
   currentLocationIsRepGroup: boolean;
   foundRowIndex: number | undefined;
 } {
-  const dataModelBindings = nodeSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-  if (dataModelBindings === ContextNotProvided) {
+  const data = nodeSelector(
+    (picker) => {
+      const nodeData = picker(node);
+      if (!nodeData) {
+        return undefined;
+      }
+
+      return {
+        type: nodeData.layout.type,
+        dataModelBindings: nodeData.layout.dataModelBindings,
+        parentId: nodeData.parentId,
+        nodeRowIndex: nodeData.rowIndex,
+      };
+    },
+    [node],
+  );
+  if (!data || data === ContextNotProvided) {
     return {
       currentLocation: undefined,
       foundRowIndex: undefined,
       currentLocationIsRepGroup: false,
     };
   }
+  const { type, dataModelBindings, parentId, nodeRowIndex } = data;
 
   const firstBinding = Object.keys(dataModelBindings || {}).shift();
   if (firstBinding && dataModelBindings) {
     return {
       currentLocation: dataModelBindings[firstBinding],
       foundRowIndex: rowIndex,
-      currentLocationIsRepGroup: node.isType('RepeatingGroup'),
+      currentLocationIsRepGroup: type === 'RepeatingGroup',
     };
   }
 
-  const parent = node.parent;
-  if (!parent || !(parent instanceof BaseLayoutNode)) {
+  if (!parentId) {
     return {
       currentLocation: undefined,
       currentLocationIsRepGroup: false,
       foundRowIndex: undefined,
     };
   }
-  return firstDataModelBinding(parent, nodeSelector, node.rowIndex);
+
+  return firstDataModelBinding(parentId, nodeSelector, nodeRowIndex);
 }

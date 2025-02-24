@@ -18,7 +18,12 @@ import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
+import type {
+  ExprPositionalArgs,
+  ExprValToActualOrExpr,
+  ExprValueArgs,
+  LayoutReference,
+} from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { RoleResult } from 'src/features/useCurrentPartyRoles';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -30,15 +35,15 @@ jest.mock('src/features/externalApi/useExternalApi');
 jest.mock('src/features/useCurrentPartyRoles');
 
 interface Props {
-  node: LayoutNode;
+  reference: LayoutReference;
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
 }
 
-function ExpressionRunner({ node, expression, positionalArguments, valueArguments }: Props) {
+function ExpressionRunner({ reference, expression, positionalArguments, valueArguments }: Props) {
   const dataSources = useExpressionDataSources();
-  const result = useEvalExpression(ExprVal.Any, node, expression, null, dataSources, {
+  const result = useEvalExpression(ExprVal.Any, reference, expression, null, dataSources, {
     positionalArguments,
     valueArguments,
   });
@@ -276,7 +281,7 @@ describe('Expressions shared function tests', () => {
           node = _node;
           return (
             <ExpressionRunner
-              node={node}
+              reference={{ type: 'node', id: _node.id }}
               expression={expression}
               positionalArguments={positionalArguments}
               valueArguments={valueArguments}
@@ -314,7 +319,7 @@ describe('Expressions shared function tests', () => {
         for (const testCase of testCases) {
           rerender(
             <ExpressionRunner
-              node={node!}
+              reference={{ type: 'node', id: node!.id }}
               expression={testCase.expression}
               positionalArguments={positionalArguments}
               valueArguments={valueArguments}

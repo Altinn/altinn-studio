@@ -1,13 +1,13 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
-import { NodesInternal, NodesReadiness, useNodesLax } from 'src/utils/layout/NodesContext';
+import { NodesReadiness } from 'src/utils/layout/NodesContext';
 import type { ParentNode } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodesContext, PageData, PagesData } from 'src/utils/layout/NodesContext';
+import type { NodesContext, NodesInternal, PageData, PagesData, useNodesLax } from 'src/utils/layout/NodesContext';
 import type { NodeData } from 'src/utils/layout/types';
 
 type AnyData = PagesData | PageData | NodeData;
@@ -222,7 +222,6 @@ export type NodeTraversalFrom<N extends Node> = N extends LayoutPages
       ? NodeTraversalFromNode<N>
       : never;
 
-export type NodeTraversalFromAny = NodeTraversalFromRoot | NodeTraversalFromPage | NodeTraversalFromNode<LayoutNode>;
 export type NodeTraversalFromRoot = Omit<NodeTraversal, 'parents'>;
 export type NodeTraversalFromPage = Omit<NodeTraversal<LayoutPage>, 'allNodes' | 'findPage'>;
 export type NodeTraversalFromNode<N extends LayoutNode> = Omit<NodeTraversal<N>, 'allNodes' | 'findPage' | 'findById'>;
@@ -239,72 +238,6 @@ type InnerSelectorReturns<Strict extends Strictness, U> = Strict extends Strictn
   ? U | typeof ContextNotProvided
   : U;
 
-function useNodeTraversalProto<Out>(selector: (traverser: never) => Out, node?: never, strictness?: Strictness): Out {
-  const nodes = useNodesLax();
-  const isReady = NodesInternal.useIsReady();
-  const dataSelector = NodesInternal.useDataSelectorForTraversal();
-
-  // We use the selector here, but we need it to re-render and re-select whenever we re-render. Otherwise the hook
-  // would be treated as the same hook that was used in the previous render, and with the only deps being
-  // 'nodes' and 'node', the previous value would be selected. We bust that caching by including a counter as
-  // a dependency.
-  const counterRef = useRef(0);
-  if (isReady) {
-    counterRef.current++;
-  }
-
-  const out = dataSelector(
-    (state) => {
-      if (!nodes) {
-        return ContextNotProvided;
-      }
-
-      return node === undefined
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (selector as any)(new NodeTraversal(state, nodes, nodes))
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (selector as any)(new NodeTraversal(state, nodes, node));
-    },
-    [counterRef.current],
-  );
-
-  if (out === ContextNotProvided) {
-    if (strictness === Strictness.throwError) {
-      throw new Error('useNodeTraversal() must be used inside a NodesProvider');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (selector as any)(ContextNotProvided);
-  }
-
-  return out;
-}
-
-export function useNodeTraversal<Out>(selector: (traverser: NodeTraversalFromRoot) => Out): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversal<N extends LayoutPage, Out>(
-  selector: (traverser: NodeTraversalFromPage) => Out,
-  node: N,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversal<N extends LayoutPage, Out>(
-  selector: (traverser: NodeTraversalFromPage | NodeTraversalFromRoot) => Out,
-  node: N | undefined,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversal<N extends LayoutNode, Out>(
-  selector: (traverser: NodeTraversalFromNode<N>) => Out,
-  node: N,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversal<N extends LayoutNode, Out>(
-  selector: (traverser: NodeTraversalFromNode<N> | NodeTraversalFromRoot) => Out,
-  node: N | undefined,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversal<Out>(selector: (traverser: never) => Out, node?: never): Out {
-  return useNodeTraversalProto(selector, node, Strictness.throwError);
-}
-
 function throwOrReturn<R>(value: R, strictness: Strictness) {
   if (value === ContextNotProvided) {
     if (strictness === Strictness.throwError) {
@@ -317,16 +250,6 @@ function throwOrReturn<R>(value: R, strictness: Strictness) {
   }
 
   return value;
-}
-
-/**
- * Hook that returns a selector that lets you traverse the hierarchy at a later time. Will re-render your
- * component when any of the traversals you did would return a different result.
- */
-function useNodeTraversalSelectorProto<Strict extends Strictness>(strictness: Strict) {
-  const nodes = useNodesLax();
-  const nodeDataSelectorForTraversal = NodesInternal.useDataSelectorForTraversal();
-  return useInnerNodeTraversalSelectorProto(strictness, nodes, nodeDataSelectorForTraversal);
 }
 
 function useInnerNodeTraversalSelectorProto<Strict extends Strictness>(
@@ -354,10 +277,6 @@ function useInnerNodeTraversalSelectorProto<Strict extends Strictness>(
   );
 }
 
-export function useNodeTraversalSelector() {
-  return useNodeTraversalSelectorProto(Strictness.throwError);
-}
-
 export function useInnerNodeTraversalSelector(
   nodes: ReturnType<typeof useNodesLax>,
   nodeDataSelectorForTraversal: ReturnType<typeof NodesInternal.useDataSelectorForTraversal>,
@@ -365,4 +284,4 @@ export function useInnerNodeTraversalSelector(
   return useInnerNodeTraversalSelectorProto(Strictness.throwError, nodes, nodeDataSelectorForTraversal);
 }
 
-export type NodeTraversalSelector = ReturnType<typeof useNodeTraversalSelector>;
+export type NodeTraversalSelector = <U>(selector: (t: NodeTraversalFromRoot) => U, deps?: unknown[]) => U;

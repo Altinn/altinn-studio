@@ -9,8 +9,7 @@ import { Validation } from 'src/features/validation/validationContext';
 import { getKeyWithoutIndex } from 'src/utils/databindings';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
-import type { Expression, ExprValueArgs } from 'src/features/expressions/types';
+import type { Expression, ExprValueArgs, NodeReference } from 'src/features/expressions/types';
 import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -29,25 +28,37 @@ export function ExpressionValidation() {
   );
 }
 
+interface NodeWithBindings {
+  nodeReference: NodeReference;
+  dmb: Record<string, IDataModelReference>;
+}
+
 function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
   const formData = FD.useDebounced(dataType);
   const expressionValidationConfig = DataModels.useExpressionValidationConfig(dataType);
   const dataSources = useExpressionDataSources();
-  const allNodes = useNodeTraversal((t) => t.allNodes());
-  const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+  const allBindings = NodesInternal.useMemoSelector((state) => {
+    const out: NodeWithBindings[] = [];
+
+    for (const nodeData of Object.values(state.nodeData)) {
+      if (nodeData.layout.dataModelBindings) {
+        out.push({
+          nodeReference: { type: 'node', id: nodeData.layout.id },
+          dmb: nodeData.layout.dataModelBindings as Record<string, IDataModelReference>,
+        });
+      }
+    }
+
+    return out;
+  });
 
   useEffect(() => {
-    if (expressionValidationConfig && Object.keys(expressionValidationConfig).length > 0 && formData && allNodes) {
+    if (expressionValidationConfig && Object.keys(expressionValidationConfig).length > 0 && formData) {
       const validations = {};
 
-      for (const node of allNodes) {
-        const dmb = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-        if (!dmb) {
-          continue;
-        }
-
+      for (const { nodeReference, dmb } of allBindings) {
         // Modify the hierarchy data sources to make the current dataModel the default one when running expression validations
         const currentLayoutSet = dataSources.currentLayoutSet;
         const modifiedCurrentLayoutSet: ILayoutSet | null = currentLayoutSet
@@ -83,7 +94,7 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
 
           for (const validationDef of validationDefs) {
             const valueArguments: ExprValueArgs<{ field: string }> = { data: { field }, defaultKey: 'field' };
-            const isInvalid = evalExpr(validationDef.condition as Expression, node, modifiedDataSources, {
+            const isInvalid = evalExpr(validationDef.condition as Expression, nodeReference, modifiedDataSources, {
               positionalArguments: [field],
               valueArguments,
             });
@@ -111,10 +122,9 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
     formData,
     dataElementId,
     updateDataModelValidations,
-    allNodes,
-    nodeDataSelector,
     dataSources,
     dataType,
+    allBindings,
   ]);
 
   return null;
