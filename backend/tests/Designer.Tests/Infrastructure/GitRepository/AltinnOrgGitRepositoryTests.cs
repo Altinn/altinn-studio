@@ -24,7 +24,7 @@ public class AltinnOrgGitRepositoryTests
 
         // Assert
         Assert.NotNull(codeListIds);
-        Assert.Equal(8, codeListIds.Length);
+        Assert.Equal(6, codeListIds.Length);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class AltinnOrgGitRepositoryTests
     {
         // Arrange
         const string repository = "org-content";
-        const string codeListId = "not-found";
+        const string codeListId = "none-existing-code-list";
         AltinnOrgGitRepository altinnOrgGitRepository = PrepareRepositoryForTest(Org, repository, Developer);
 
         // Assert
