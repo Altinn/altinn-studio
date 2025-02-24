@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
@@ -30,18 +31,28 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
 
+        string codeListLabelWithObject = @"[{ ""value"": ""someValue"", ""label"": {}}]";
+        string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
+        string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
+        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
+        string filePath = Path.Combine(repoPath, "Codelists/");
+        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
+
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
-        // Arc
+        // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(8, responseList.Count);
+        Assert.Equal(9, responseList.Count);
         Assert.Single(responseList, e => e.Title == "codeListNumber" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListString" && e.HasError == false);
+        Assert.Single(responseList, e => e.Title == "codeListBoolean" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListMissingValue" && e.HasError == true);
         Assert.Single(responseList, e => e.Title == "codeListMissingLabel" && e.HasError == true);
         Assert.Single(responseList, e => e.Title == "codeListTrailingComma" && e.HasError == true);
