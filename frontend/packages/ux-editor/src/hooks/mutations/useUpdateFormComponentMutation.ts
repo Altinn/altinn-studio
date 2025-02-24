@@ -37,7 +37,7 @@ export const useUpdateFormComponentMutation = (
 
       const currentId = id;
       const newId = updatedComponent.id;
-      let componentIdsChange;
+      let componentIdsChange: Array<{ oldComponentId: string; newComponentId: string }> | undefined;
 
       if (currentId !== newId) {
         componentIdsChange = [{ oldComponentId: currentId, newComponentId: newId }];
