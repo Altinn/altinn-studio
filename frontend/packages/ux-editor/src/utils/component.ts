@@ -6,7 +6,7 @@ import type {
   FormRadioButtonsComponent,
   SelectionComponentType,
 } from '../types/FormComponent';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -207,4 +207,9 @@ export const isPropertyTypeSupported = (property: KeyValuePairs) => {
   }
 
   return supportedPropertyTypes.includes(property?.type);
+};
+
+export const isComponentDeprecated = (type: ComponentType) => {
+  const deprecatedComponents = [ComponentType.Summary];
+  return deprecatedComponents.includes(type);
 };
