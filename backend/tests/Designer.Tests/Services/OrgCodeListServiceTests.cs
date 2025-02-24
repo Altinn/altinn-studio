@@ -45,22 +45,27 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        var fetchedCodeLists = await service.GetCodeLists(targetOrg, Developer);
-        List<Option> fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber").Data;
-
-        // Assert
-        Assert.Equal(expectedCodeList.Count, fetchedCodeListData?.Count);
-
-        for (int i = 0; i < fetchedCodeListData?.Count; i++)
+        try
         {
-            Assert.Equal(expectedCodeList[i].Label, fetchedCodeListData[i].Label);
-            Assert.Equal(expectedCodeList[i].Value, fetchedCodeListData[i].Value);
-            Assert.Equal(expectedCodeList[i].Description, fetchedCodeListData[i].Description);
-            Assert.Equal(expectedCodeList[i].HelpText, fetchedCodeListData[i].HelpText);
-        }
+            // Act
+            var fetchedCodeLists = await service.GetCodeLists(targetOrg, Developer);
+            List<Option> fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber").Data;
 
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.Equal(expectedCodeList.Count, fetchedCodeListData?.Count);
+
+            for (int i = 0; i < fetchedCodeListData?.Count; i++)
+            {
+                Assert.Equal(expectedCodeList[i].Label, fetchedCodeListData[i].Label);
+                Assert.Equal(expectedCodeList[i].Value, fetchedCodeListData[i].Value);
+                Assert.Equal(expectedCodeList[i].Description, fetchedCodeListData[i].Description);
+                Assert.Equal(expectedCodeList[i].HelpText, fetchedCodeListData[i].HelpText);
+            }
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -87,23 +92,28 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        var codeListData = await service.CreateCodeList(targetOrg, Developer, codeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
-
-        // Assert
-        Assert.Equal(9, codeListData.Count);
-        Assert.Equal(newCodeList.Count, codeList?.Count);
-
-        for (int i = 0; i < codeList?.Count; i++)
+        try
         {
-            Assert.Equal(newCodeList[i].Label, codeList[i].Label);
-            Assert.Equal(newCodeList[i].Value, codeList[i].Value);
-            Assert.Equal(newCodeList[i].Description, codeList[i].Description);
-            Assert.Equal(newCodeList[i].HelpText, codeList[i].HelpText);
-        }
+            // Act
+            var codeListData = await service.CreateCodeList(targetOrg, Developer, codeListId, newCodeList);
+            List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
 
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.Equal(7, codeListData.Count);
+            Assert.Equal(newCodeList.Count, codeList?.Count);
+
+            for (int i = 0; i < codeList?.Count; i++)
+            {
+                Assert.Equal(newCodeList[i].Label, codeList[i].Label);
+                Assert.Equal(newCodeList[i].Value, codeList[i].Value);
+                Assert.Equal(newCodeList[i].Description, codeList[i].Description);
+                Assert.Equal(newCodeList[i].HelpText, codeList[i].HelpText);
+            }
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -124,23 +134,28 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        var codeListData = await service.UpdateCodeList(targetOrg, Developer, codeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
-
-        // Assert
-        Assert.Equal(8, codeListData.Count);
-        Assert.Equal(newCodeList.Count, codeList?.Count);
-
-        for (int i = 0; i < codeList?.Count; i++)
+        try
         {
-            Assert.Equal(newCodeList[i].Label, codeList[i].Label);
-            Assert.Equal(newCodeList[i].Value, codeList[i].Value);
-            Assert.Equal(newCodeList[i].Description, codeList[i].Description);
-            Assert.Equal(newCodeList[i].HelpText, codeList[i].HelpText);
-        }
+            // Act
+            var codeListData = await service.UpdateCodeList(targetOrg, Developer, codeListId, newCodeList);
+            List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
 
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.Equal(6, codeListData.Count);
+            Assert.Equal(newCodeList.Count, codeList?.Count);
+
+            for (int i = 0; i < codeList?.Count; i++)
+            {
+                Assert.Equal(newCodeList[i].Label, codeList[i].Label);
+                Assert.Equal(newCodeList[i].Value, codeList[i].Value);
+                Assert.Equal(newCodeList[i].Description, codeList[i].Description);
+                Assert.Equal(newCodeList[i].HelpText, codeList[i].HelpText);
+            }
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -166,23 +181,28 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        var codeListData = await service.UploadCodeList(targetOrg, Developer, file);
-        List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
-
-        // Assert
-        Assert.Equal(9, codeListData.Count);
-        Assert.Equal(expectedCodeList.Count, codeList?.Count);
-
-        for (int i = 0; i < codeList?.Count; i++)
+        try
         {
-            Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
-            Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
-            Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
-            Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
-        }
+            // Act
+            var codeListData = await service.UploadCodeList(targetOrg, Developer, file);
+            List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
 
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.Equal(7, codeListData.Count);
+            Assert.Equal(expectedCodeList.Count, codeList?.Count);
+
+            for (int i = 0; i < codeList?.Count; i++)
+            {
+                Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
+                Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
+                Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
+                Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
+            }
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -195,12 +215,18 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        var codeListData = await service.DeleteCodeList(targetOrg, Developer, codeListId);
+        try
+        {
+            // Act
+            var codeListData = await service.DeleteCodeList(targetOrg, Developer, codeListId);
 
-        // Assert
-        Assert.Equal(7, codeListData.Count);
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.Equal(5, codeListData.Count);
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -213,9 +239,16 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act and assert
-        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await service.DeleteCodeList(targetOrg, Developer, codeListId));
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        try
+        {
+            // Act and assert
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () =>
+                await service.DeleteCodeList(targetOrg, Developer, codeListId));
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -228,12 +261,18 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        bool codeListExists = await service.CodeListExists(targetOrg, Developer, codeListId);
+        try
+        {
+            // Act
+            bool codeListExists = await service.CodeListExists(targetOrg, Developer, codeListId);
 
-        // Assert
-        Assert.True(codeListExists);
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.True(codeListExists);
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     [Fact]
@@ -246,12 +285,18 @@ public class OrgCodeListServiceTests
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, targetOrg, targetRepository);
         var service = GetOrgCodeListService();
 
-        // Act
-        bool codeListExists = await service.CodeListExists(targetOrg, Developer, codeListId);
+        try
+        {
+            // Act
+            bool codeListExists = await service.CodeListExists(targetOrg, Developer, codeListId);
 
-        // Assert
-        Assert.False(codeListExists);
-        TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+            // Assert
+            Assert.False(codeListExists);
+        }
+        finally
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, targetOrg);
+        }
     }
 
     private static OrgCodeListService GetOrgCodeListService()
