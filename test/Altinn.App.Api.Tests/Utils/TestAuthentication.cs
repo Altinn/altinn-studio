@@ -10,7 +10,6 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
-using Authorization.Platform.Authorization.Models;
 using static Altinn.App.Core.Features.Auth.Authenticated;
 
 namespace Altinn.App.Api.Tests.Utils;
@@ -189,12 +188,6 @@ public static class TestAuthentication
                 Assert.Equal(userId, uid);
                 Assert.Equal(userPartyId, pid);
                 return Task.FromResult<bool?>(true);
-            },
-            getUserRoles: (uid, pid) =>
-            {
-                Assert.Equal(userId, uid);
-                Assert.Equal(userPartyId, pid);
-                return Task.FromResult<IEnumerable<Role>>([]);
             },
             appMetadata: NewApplicationMetadata()
         );

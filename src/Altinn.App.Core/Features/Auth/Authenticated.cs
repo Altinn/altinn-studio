@@ -12,7 +12,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Constants;
-using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.App.Core.Features.Auth;
 
@@ -125,7 +124,6 @@ public abstract class Authenticated
         private readonly Func<int, Task<Party?>> _lookupParty;
         private readonly Func<int, Task<List<Party>?>> _getPartyList;
         private readonly Func<int, int, Task<bool?>> _validateSelectedParty;
-        private readonly Func<int, int, Task<IEnumerable<Role>>> _getUserRoles;
         private readonly ApplicationMetadata _appMetadata;
 
         internal User(
@@ -143,7 +141,6 @@ public abstract class Authenticated
             Func<int, Task<Party?>> lookupParty,
             Func<int, Task<List<Party>?>> getPartyList,
             Func<int, int, Task<bool?>> validateSelectedParty,
-            Func<int, int, Task<IEnumerable<Role>>> getUserRoles,
             ApplicationMetadata appMetadata
         )
             : base(tokenIssuer, tokenIsExchanged, scopes, token)
@@ -158,7 +155,6 @@ public abstract class Authenticated
             _lookupParty = lookupParty;
             _getPartyList = getPartyList;
             _validateSelectedParty = validateSelectedParty;
-            _getUserRoles = getUserRoles;
             _appMetadata = appMetadata;
         }
 
@@ -174,7 +170,6 @@ public abstract class Authenticated
         /// <param name="RepresentsSelf">True if the user represents itself (user party will equal selected party)</param>
         /// <param name="Parties">List of parties the user can represent</param>
         /// <param name="PartiesAllowedToInstantiate">List of parties the user can instantiate as</param>
-        /// <param name="Roles">List of roles the user has</param>
         /// <param name="CanRepresent">True if the user can represent the selected party. Only set if details were loaded with validateSelectedParty set to true</param>
         public sealed record Details(
             Party UserParty,
@@ -183,7 +178,6 @@ public abstract class Authenticated
             bool RepresentsSelf,
             IReadOnlyList<Party> Parties,
             IReadOnlyList<Party> PartiesAllowedToInstantiate,
-            IReadOnlyList<Role> Roles,
             bool? CanRepresent = null
         )
         {
@@ -305,8 +299,6 @@ public abstract class Authenticated
                 canRepresent = await _validateSelectedParty(UserId, SelectedPartyId);
             }
 
-            var roles = await _getUserRoles(UserId, SelectedPartyId);
-
             var partiesAllowedToInstantiate = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
                 parties,
                 _appMetadata.PartyTypesAllowed
@@ -319,7 +311,6 @@ public abstract class Authenticated
                 representsSelf,
                 parties,
                 partiesAllowedToInstantiate,
-                roles.ToArray(),
                 canRepresent
             );
             return _extra;
@@ -706,8 +697,7 @@ public abstract class Authenticated
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
         Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty,
-        Func<int, int, Task<IEnumerable<Role>>> getUserRoles
+        Func<int, int, Task<bool?>> validateSelectedParty
     )
     {
         if (string.IsNullOrWhiteSpace(tokenStr))
@@ -828,7 +818,6 @@ public abstract class Authenticated
             lookupUserParty,
             getPartyList,
             validateSelectedParty,
-            getUserRoles,
             appMetadata
         );
     }
@@ -842,8 +831,7 @@ public abstract class Authenticated
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
         Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty,
-        Func<int, int, Task<IEnumerable<Role>>> getUserRoles
+        Func<int, int, Task<bool?>> validateSelectedParty
     )
     {
         if (string.IsNullOrWhiteSpace(tokenStr))
@@ -1056,7 +1044,6 @@ public abstract class Authenticated
             lookupUserParty,
             getPartyList,
             validateSelectedParty,
-            getUserRoles,
             appMetadata
         );
     }

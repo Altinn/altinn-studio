@@ -2,7 +2,6 @@ using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
-using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -150,70 +149,6 @@ public class AuthorizationController : Controller
         else
         {
             return StatusCode(500, $"Something went wrong when trying to validate party {partyId} for user {userId}");
-        }
-    }
-
-    /// <summary>
-    /// Fetches roles for current party.
-    /// </summary>
-    /// <returns>List of roles for the current user and party.</returns>
-    // [Authorize]
-    // [HttpGet("{org}/{app}/api/authorization/roles")]
-    // [ProducesResponseType(typeof(IEnumerable<Role), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [Authorize]
-    [HttpGet("{org}/{app}/api/authorization/roles")]
-    [ProducesResponseType(typeof(IEnumerable<Role>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetRolesForCurrentParty()
-    {
-        var context = _authenticationContext.Current;
-        switch (context)
-        {
-            case Authenticated.None:
-                return Unauthorized();
-            case Authenticated.User user:
-            {
-                var details = await user.LoadDetails(validateSelectedParty: true);
-                if (details.CanRepresent is not bool canRepresent)
-                    throw new Exception("Couldn't validate selected party");
-                if (!canRepresent)
-                {
-                    // automatically switch to the user's own party
-                    var reportee = details.Profile.Party;
-                    if (user.SelectedPartyId != reportee.PartyId)
-                    {
-                        // Setting cookie to partyID of logged in user if it varies from previus value.
-                        Response.Cookies.Append(
-                            _settings.GetAltinnPartyCookieName,
-                            reportee.PartyId.ToString(CultureInfo.InvariantCulture),
-                            new CookieOptions { Domain = _settings.HostName }
-                        );
-                    }
-                    return Unauthorized();
-                }
-
-                return Ok(details.Roles);
-            }
-            case Authenticated.SelfIdentifiedUser:
-            {
-                return Ok(Array.Empty<Role>());
-            }
-            case Authenticated.Org:
-            {
-                return Ok(Array.Empty<Role>());
-            }
-            case Authenticated.ServiceOwner:
-            {
-                return Ok(Array.Empty<Role>());
-            }
-            case Authenticated.SystemUser:
-            {
-                // NOTE: system users can't have Altinn 2 roles, but they will get support for tilgangspakker, as of 26.01.2025
-                return Ok(Array.Empty<Role>());
-            }
-            default:
-                throw new Exception($"Unknown authentication context: {context.GetType().Name}");
         }
     }
 }

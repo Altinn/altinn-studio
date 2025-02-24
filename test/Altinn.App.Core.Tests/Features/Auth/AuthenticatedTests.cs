@@ -8,7 +8,6 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Constants;
-using global::Authorization.Platform.Authorization.Models;
 
 public class AuthenticatedTests
 {
@@ -145,8 +144,7 @@ public class AuthenticatedTests
                     lookupUserParty: _ => Task.FromResult<Party?>(party),
                     lookupOrgParty: _ => null!,
                     getPartyList: _ => Task.FromResult<List<Party>?>([party]),
-                    validateSelectedParty: (_, _) => Task.FromResult<bool?>(true),
-                    getUserRoles: (_, _) => Task.FromResult<IEnumerable<Role>>([])
+                    validateSelectedParty: (_, _) => Task.FromResult<bool?>(true)
                 );
                 break;
             default:
@@ -159,8 +157,7 @@ public class AuthenticatedTests
                     lookupUserParty: _ => null!,
                     lookupOrgParty: _ => null!,
                     getPartyList: _ => null!,
-                    validateSelectedParty: (_, _) => null!,
-                    getUserRoles: (_, _) => null!
+                    validateSelectedParty: (_, _) => null!
                 );
                 break;
         }

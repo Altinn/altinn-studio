@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.App.Core.Internal.Auth;
 
@@ -51,12 +50,4 @@ public interface IAuthorizationClient
     /// <param name="actions"></param>
     /// <returns></returns>
     Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions);
-
-    /// <summary>
-    /// Retrieves roles for a user on a specified party.
-    /// </summary>
-    /// <param name="userId">The user id.</param>
-    /// <param name="userPartyId">The user party id.</param>
-    /// <returns>A list of roles for the user on the specified party.</returns>
-    Task<IEnumerable<Role>> GetUserRoles(int userId, int userPartyId);
 }
