@@ -160,26 +160,26 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
-const createContentRepo = async (env) => {
+const createContentRepo = async (user, pass) => {
   const repo = 'ttd-content';
   const filePathCodeList = 'Codelists/exampleCodeList.json';
   const filePathTexts = 'Texts/exampleText.json';
 
   await giteaApi({
-    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/repos`,
+    path: `/api/v1/orgs/${user}/repos`,
     method: 'POST',
-    user: env.GITEA_ADMIN_USER,
-    pass: env.GITEA_ADMIN_PASS,
+    user,
+    pass,
     body: {
       name: repo,
     },
   });
 
   await giteaApi({
-    path: `/api/v1/repos/${env.GITEA_ORG_USER}/${repo}/contents/${filePathCodeList}`,
+    path: `/api/v1/repos/${user}/${repo}/contents/${filePathCodeList}`,
     method: 'POST',
-    user: env.GITEA_ADMIN_USER,
-    pass: env.GITEA_ADMIN_PASS,
+    user,
+    pass,
     body: {
       content: Buffer.from(
         `[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`,
@@ -188,10 +188,10 @@ const createContentRepo = async (env) => {
   });
 
   await giteaApi({
-    path: `/api/v1/repos/${env.GITEA_ORG_USER}/${repo}/contents/${filePathTexts}`,
+    path: `/api/v1/repos/${user}/${repo}/contents/${filePathTexts}`,
     method: 'POST',
-    user: env.GITEA_ADMIN_USER,
-    pass: env.GITEA_ADMIN_PASS,
+    user,
+    pass,
     body: {
       content: Buffer.from(
         `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
@@ -210,7 +210,8 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
-  await createContentRepo(env);
+  await createContentRepo(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
+  await createContentRepo(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS);
 
   const envWithRunnerToken = await setupRunnersToken(env);
   const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
