@@ -24,7 +24,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-const setupAndVerifyOrgLibraryPage = async (
+const setupAndVerifyCodeListPage = async (
   page: Page,
   testAppName: string,
 ): Promise<OrgLibraryPage> => {
@@ -32,15 +32,27 @@ const setupAndVerifyOrgLibraryPage = async (
   await orgLibraryPage.loadOrgLibraryPage();
   await orgLibraryPage.verifyOrgLibraryPage();
   await orgLibraryPage.waitForPageHeaderToBeVisible();
+  await orgLibraryPage.clickOnNavigateToCodeListPage();
+  await orgLibraryPage.codeLists.waitForCodeListPageToLoad();
+
   return orgLibraryPage;
 };
 
-test('that it is possible to navigate to code list page and that the page is empty', async ({
-  page,
-  testAppName,
-}) => {
-  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyOrgLibraryPage(page, testAppName);
+test('that it is possible to create a new codelist', async ({ page, testAppName }) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
-  await orgLibraryPage.clickOnNavigateToCodeListPage();
-  await orgLibraryPage.codeLists.waitForCodeListPageToLoad();
+  await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
+  await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
+  const codelistTitle: string = 'Test_codelist';
+  await orgLibraryPage.codeLists.writeCodelistTitle(codelistTitle);
+  await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
+  const firstRow: number = 1;
+  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(firstRow);
+  const firstRowValue: string = 'First value';
+  await orgLibraryPage.codeLists.writeCodelistValue(firstRow, firstRowValue);
+  const firstRowLabel: string = 'First label';
+  await orgLibraryPage.codeLists.writeCodelistLabel(firstRow, firstRowLabel);
+
+  await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
 });
