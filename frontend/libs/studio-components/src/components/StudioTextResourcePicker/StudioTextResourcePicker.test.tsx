@@ -10,7 +10,6 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import userEvent from '@testing-library/user-event';
 import type { TextResource } from '../../types/TextResource';
-import { get } from 'app-shared/utils/networking';
 
 // Test data:
 const textResources = textResourcesMock;
