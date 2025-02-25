@@ -3,27 +3,27 @@ import type { CodeListEditorTexts, ValueErrorMessages } from '../types/CodeListE
 import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 
 const valueErrors: ValueErrorMessages = {
-  duplicateValue: 'The value must be unique.',
-  multipleTypes: 'All values must be of the same type.',
-  nullValue: 'The value cannot be empty.',
+  duplicateValue: 'The code must be unique.',
+  multipleTypes: 'All codes must be of the same type.',
+  nullValue: 'The code cannot be empty.',
 };
 
 export const texts: CodeListEditorTexts = {
   add: 'Add',
   codeList: 'Code list',
   delete: 'Delete',
-  deleteItem: (number) => `Delete item number ${number}`,
+  deleteItem: (number) => `Delete code number ${number}`,
   description: 'Description',
   emptyCodeList: 'The code list is empty.',
   generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',
-  itemDescription: (number) => `Description for item number ${number}`,
-  itemHelpText: (number) => `Help text for item number ${number}`,
-  itemLabel: (number) => `Label for item number ${number}`,
-  itemValue: (number) => `Value for item number ${number}`,
+  itemDescription: (number) => `Description for code number ${number}`,
+  itemHelpText: (number) => `Help text for code number ${number}`,
+  itemLabel: (number) => `Label for code number ${number}`,
+  itemValue: (number) => `Code number ${number}`,
   label: 'Label',
   textResourceTexts,
-  value: 'Value',
+  value: 'Code',
   valueErrors,
 };
 
@@ -47,11 +47,11 @@ function createTextResourceEditButtonTitle(
 ): string {
   switch (property) {
     case CodeListItemTextProperty.Label:
-      return `Label edit mode for value number ${rowNumber}`;
+      return `Label edit mode for code number ${rowNumber}`;
     case CodeListItemTextProperty.Description:
-      return `Description edit mode for value number ${rowNumber}`;
+      return `Description edit mode for code number ${rowNumber}`;
     case CodeListItemTextProperty.HelpText:
-      return `Help text edit mode for value number ${rowNumber}`;
+      return `Help text edit mode for code number ${rowNumber}`;
   }
 }
 
@@ -61,11 +61,11 @@ function createTextResourceSearchButtonTitle(
 ): string {
   switch (property) {
     case CodeListItemTextProperty.Label:
-      return `Label search mode for value number ${rowNumber}`;
+      return `Label search mode for code number ${rowNumber}`;
     case CodeListItemTextProperty.Description:
-      return `Description search mode for value number ${rowNumber}`;
+      return `Description search mode for code number ${rowNumber}`;
     case CodeListItemTextProperty.HelpText:
-      return `Help text search mode for value number ${rowNumber}`;
+      return `Help text search mode for code number ${rowNumber}`;
   }
 }
 
@@ -75,11 +75,11 @@ function createTextResourcePickerLabel(
 ): string {
   switch (property) {
     case CodeListItemTextProperty.Label:
-      return `Choose label for value number ${rowNumber}`;
+      return `Choose label for code number ${rowNumber}`;
     case CodeListItemTextProperty.Description:
-      return `Choose description for value number ${rowNumber}`;
+      return `Choose description for code number ${rowNumber}`;
     case CodeListItemTextProperty.HelpText:
-      return `Choose help text for value number ${rowNumber}`;
+      return `Choose help text for code number ${rowNumber}`;
   }
 }
 
@@ -89,10 +89,10 @@ function createTextResourceValueLabel(
 ): string {
   switch (property) {
     case CodeListItemTextProperty.Label:
-      return `Label for value number ${rowNumber}`;
+      return `Label for code number ${rowNumber}`;
     case CodeListItemTextProperty.Description:
-      return `Description for value number ${rowNumber}`;
+      return `Description for code number ${rowNumber}`;
     case CodeListItemTextProperty.HelpText:
-      return `Help text for value number ${rowNumber}`;
+      return `Help text for code number ${rowNumber}`;
   }
 }
