@@ -1,0 +1,30 @@
+.wrapper {
+  background-color: #e6eff8;
+}
+
+.container {
+  margin: auto;
+  padding: var(--fds-spacing-6);
+
+  position: relative;
+}
+
+.panel {
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+  padding: var(--fds-spacing-10);
+  position: relative;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-10);
+}
+
+.footer {
+  border-top: 2px solid #efefef;
+  margin-top: var(--fds-spacing-10);
+  padding-top: var(--fds-spacing-8);
+}
