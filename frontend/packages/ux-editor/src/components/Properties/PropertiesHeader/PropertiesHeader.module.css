@@ -1,7 +1,6 @@
-.content {
+.headerContent {
   display: flex;
   flex-direction: column;
   background-color: var(--fds-semantic-surface-neutral-default);
   gap: var(--fds-spacing-2);
-  align-items: flex-start;
 }

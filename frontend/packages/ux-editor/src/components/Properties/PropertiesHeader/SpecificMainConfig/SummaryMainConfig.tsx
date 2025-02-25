@@ -9,7 +9,6 @@ import type {
   Summary2TargetConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
 import { Summary2Target } from '../../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
-import { HeaderMainConfig } from '../HeaderMainConfig';
 
 export type SummaryMainConfigProps = {
   component: FormItem<ComponentType.Summary2>;
@@ -35,9 +34,7 @@ export const SummaryMainConfig = ({ component, handleComponentChange }: SummaryM
 
   return (
     <>
-      <HeaderMainConfig>
-        <Summary2Target target={component.target} onChange={handleTargetChange} />
-      </HeaderMainConfig>
+      <Summary2Target target={component.target} onChange={handleTargetChange} />
       <Accordion color='subtle'>
         <Accordion.Item open={accordionOpen['summary2overrides'] === true}>
           <Accordion.Header

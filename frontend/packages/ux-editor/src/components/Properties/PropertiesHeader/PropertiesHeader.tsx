@@ -11,7 +11,7 @@ import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { HeaderMainConfig } from './HeaderMainConfig';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -45,7 +45,8 @@ export const PropertiesHeader = ({
           title: t('ux_editor.component_help_text_general_title'),
         }}
       />
-      <div className={classes.content}>
+      <div className={classes.headerContent}>
+        {!hideContentWhenSubformGuide && <HeaderMainConfig />}
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
@@ -58,13 +59,12 @@ export const PropertiesHeader = ({
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            {(formItem.type === ComponentType.Summary2 ||
-              shouldDisplayFeature(FeatureFlag.MainConfig)) && (
+            {
               <ComponentMainConfig
                 component={formItem}
                 handleComponentChange={handleComponentUpdate}
               />
-            )}
+            }
           </>
         )}
       </div>
