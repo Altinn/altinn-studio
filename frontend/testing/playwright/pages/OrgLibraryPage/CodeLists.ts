@@ -52,6 +52,7 @@ export class CodeLists extends BasePage {
   public async verifyAlternativeRowIsVisible(row: number): Promise<void> {
     const alternativeRow = this.page.getByRole('textbox', {
       name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
     });
 
     await expect(alternativeRow).toBeVisible();
@@ -61,6 +62,7 @@ export class CodeLists extends BasePage {
     await this.page
       .getByRole('textbox', {
         name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+        exact: true,
       })
       .fill(value);
   }
@@ -89,5 +91,74 @@ export class CodeLists extends BasePage {
     );
 
     await expect(codeList).toBeVisible();
+  }
+
+  public async clickOnCodeListAccordion(title: string): Promise<void> {
+    await this.page
+      .getByTitle(
+        this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+          codeListTitle: title,
+        }),
+      )
+      .click();
+  }
+
+  public async verifyNumberOfRowsInTheCodelist(numberOfRows: number): Promise<void> {
+    for (let i = 1; i <= numberOfRows; i++) {
+      const valueRow = this.page.getByRole('textbox', {
+        name: this.textMock('code_list_editor.value_item', { number: i.toString() }),
+        exact: true,
+      });
+
+      await expect(valueRow).toBeVisible();
+    }
+  }
+
+  public async clickOnAddRowButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('code_list_editor.add_option'),
+      })
+      .click();
+  }
+
+  public async verifyEmptyValueTextfield(row: number): Promise<void> {
+    const textfield = this.page.getByRole('textbox', {
+      name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
+    });
+
+    await expect(textfield).toHaveValue('');
+  }
+
+  public async verifyEmptyLabelTextfield(row: number): Promise<void> {
+    const textfield = this.page.getByRole('textbox', {
+      name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
+    });
+
+    await expect(textfield).toHaveValue('');
+  }
+
+  public async verifyTextfieldValue(row: number, value: string): Promise<void> {
+    const textfield = this.page.getByRole('textbox', {
+      name: this.textMock(`code_list_editor.value_item`, { number: row.toString() }),
+      exact: true,
+    });
+
+    await expect(textfield).toHaveValue(value);
+  }
+
+  public async verifyTextfieldLabel(row: number, value: string): Promise<void> {
+    const textfield = this.page.getByRole('textbox', {
+      name: this.textMock(`code_list_editor.label_item`, { number: row.toString() }),
+      exact: true,
+    });
+
+    await expect(textfield).toHaveValue(value);
+  }
+
+  public async tabOut(): Promise<void> {
+    await this.page.keyboard.press('Tab');
   }
 }
