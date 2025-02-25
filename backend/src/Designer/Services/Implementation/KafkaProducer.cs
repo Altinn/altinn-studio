@@ -40,12 +40,22 @@ public class KafkaProducer : IKafkaProducer
 
     private ProducerConfig GetProducerConfig()
     {
-        return new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = _kafkaSettings.BootstrapServers,
             SaslUsername = _kafkaSettings.KafkaUserName,
             SaslPassword = _kafkaSettings.KafkaPassword
         };
+
+        if (!_kafkaSettings.UseSaslSsl)
+        {
+            return producerConfig;
+        }
+
+        producerConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
+        producerConfig.SaslMechanism = SaslMechanism.ScramSha512;
+
+        return producerConfig;
     }
 
     private CachedSchemaRegistryClient GetSchemaRegistryClient()
