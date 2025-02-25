@@ -49,9 +49,9 @@ const optionList2: OptionList = [
   },
 ];
 const optionList2Name = 'optionList2';
-export const codeList2Data: OptionListData = {
+export const optionList2Data: OptionListData = {
   title: optionList2Name,
   data: optionList2,
 };
 
-export const optionListDataList = [optionList1Data, codeList2Data];
+export const optionListDataList = [optionList1Data, optionList2Data];
