@@ -101,7 +101,6 @@ const renderEditPageId = (queries?: Partial<ServicesContextProps>) => {
     [QueryKey.FormLayoutSettings, org, app, layoutSetName],
     formLayoutSettingsMock,
   );
-  // queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], externalLayoutsMock);
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesModelMock);
   return renderWithProviders(<EditPageId layoutName={selectedLayout} />, { queries, queryClient });
 };
