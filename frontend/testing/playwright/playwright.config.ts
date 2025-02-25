@@ -142,7 +142,6 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.ORG_LIBRARY,
-
         headless: true,
       },
     },
