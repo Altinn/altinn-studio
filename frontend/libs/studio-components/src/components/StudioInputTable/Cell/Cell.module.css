@@ -1,7 +1,7 @@
 .textfieldCell,
 .textareaCell,
 .textResourceCell,
-.numberCell {
+.numberfieldCell {
   padding-block: var(--fds-spacing-1);
   padding-inline-end: var(--fds-spacing-2);
   padding-inline-start: 0;
