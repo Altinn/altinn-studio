@@ -7,16 +7,18 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import type { CodeList } from '@studio/components';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { OptionListData } from 'app-shared/types/OptionList';
 import type { QueryClient } from '@tanstack/react-query';
 import type {
   CodeListData,
   CodeListWithMetadata,
   PagesConfig,
   ResourceContentLibraryImpl,
+  TextResourceWithLanguage,
 } from '@studio/content-library';
+import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
+import { label1ResourceNb, textResources } from './test-data/textResources';
+import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -32,23 +34,17 @@ function mockContentLibrary(
 }
 
 const mockConstructor = jest.fn();
-const getContentResourceLibrary = jest.fn();
-
-// Test data:
-const codeListName = 'codeListNameMock';
-const codeList: CodeList = [{ value: '', label: '' }];
-const codeListWithMetadata: CodeListWithMetadata = {
-  codeList,
-  title: codeListName,
-};
-const optionListData: OptionListData = { title: codeListName, data: codeList };
+const getContentResourceLibrary = jest
+  .fn()
+  .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
+const resourceLibraryTestId = 'resource-library';
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders the content library', async () => {
-    renderAppContentLibraryWithOptionLists();
-    expect(getContentResourceLibrary).toHaveBeenCalledTimes(1);
+    renderAppContentLibraryWithData();
+    expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
   it('renders a spinner when waiting for option lists', () => {
@@ -66,16 +62,22 @@ describe('AppContentLibrary', () => {
   });
 
   it('Renders with the given code lists', () => {
-    renderAppContentLibraryWithOptionLists();
+    renderAppContentLibraryWithData();
     const codeListDataList = retrieveConfig().codeList.props.codeListsData;
-    const expectedData: CodeListData[] = [{ title: codeListName, data: codeList }];
+    const expectedData: CodeListData[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
+  });
+
+  it('Renders with the given text resources', () => {
+    renderAppContentLibraryWithData();
+    const textResourcesData = retrieveConfig().codeList.props.textResources;
+    expect(textResourcesData).toEqual(textResources);
   });
 
   it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
     const uploadOptionList = jest.fn();
     const file = new File([''], 'list.json');
-    renderAppContentLibraryWithOptionLists({ queries: { uploadOptionList } });
+    renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
@@ -87,7 +89,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders success toast when onUploadOptionList is called successfully', async () => {
-    renderAppContentLibraryWithOptionLists();
+    renderAppContentLibraryWithData();
     const file = new File([''], 'list.json');
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
@@ -100,7 +102,7 @@ describe('AppContentLibrary', () => {
   it('renders error toast when onUploadOptionList is rejected with unknown error code', async () => {
     const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
-    renderAppContentLibraryWithOptionLists({ queries: { uploadOptionList } });
+    renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
@@ -110,34 +112,58 @@ describe('AppContentLibrary', () => {
   });
 
   it('calls updateOptionList with correct data when onUpdateCodeList is triggered', async () => {
-    renderAppContentLibraryWithOptionLists();
+    const { title, data: codeList } = optionList1Data;
+    const codeListWithMetadata: CodeListWithMetadata = { title, codeList };
+    renderAppContentLibraryWithData();
 
     retrieveConfig().codeList.props.onUpdateCodeList(codeListWithMetadata);
     await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, codeListName, codeList);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
   });
 
   it('calls updateOptionListId with correct data when onUpdateCodeListId is triggered', async () => {
+    const { title: currentName } = optionList1Data;
     const newName = 'newName';
-    renderAppContentLibraryWithOptionLists();
+    renderAppContentLibraryWithData();
 
-    retrieveConfig().codeList.props.onUpdateCodeListId(codeListName, newName);
+    retrieveConfig().codeList.props.onUpdateCodeListId(currentName, newName);
     await waitFor(expect(queriesMock.updateOptionListId).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, codeListName, newName);
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, currentName, newName);
   });
 
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
-    renderAppContentLibraryWithOptionLists();
+    renderAppContentLibraryWithData();
 
-    retrieveConfig().codeList.props.onDeleteCodeList(codeListName);
+    retrieveConfig().codeList.props.onDeleteCodeList(optionList1Data.title);
     await waitFor(expect(queriesMock.deleteOptionList).toHaveBeenCalled);
 
     expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(org, app, codeListName);
+    expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(org, app, optionList1Data.title);
+  });
+
+  it('Calls upsertTextResource with correct data when onUpdateTextResource is triggered', async () => {
+    const language = 'nb';
+    const textResource = label1ResourceNb;
+    const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
+    await waitFor(expect(queriesMock.upsertTextResources).toHaveBeenCalled);
+
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
+    const expectedPayload: ITextResourcesObjectFormat = {
+      [textResource.id]: textResource.value,
+    };
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(
+      org,
+      app,
+      language,
+      expectedPayload,
+    );
   });
 });
 
@@ -153,19 +179,18 @@ const renderAppContentLibrary = ({
   renderWithProviders(queries, queryClient)(<AppContentLibrary />);
 };
 
-function renderAppContentLibraryWithOptionLists(
+function renderAppContentLibraryWithData(
   props?: Omit<RenderAppContentLibraryProps, 'queryClient'>,
 ): void {
-  const queryClient = createQueryClientWithOptionsDataList([optionListData]);
+  const queryClient = createQueryClientWithData();
   renderAppContentLibrary({ ...props, queryClient });
 }
 
-function createQueryClientWithOptionsDataList(
-  optionListDataList: OptionListData[] | undefined,
-): QueryClient {
+function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }
 
