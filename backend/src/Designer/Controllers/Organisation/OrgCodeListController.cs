@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -22,14 +23,17 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
+    private readonly ISourceControl _sourceControl;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The CodeList service for organisation level</param>
-    public OrgCodeListController(IOrgCodeListService orgCodeListService)
+    /// <param name="sourceControl">The source control service.</param>
+    public OrgCodeListController(IOrgCodeListService orgCodeListService, ISourceControl sourceControl)
     {
         _orgCodeListService = orgCodeListService;
+        _sourceControl = sourceControl;
     }
 
     /// <summary>
@@ -44,6 +48,7 @@ public class OrgCodeListController : ControllerBase
     {
         try
         {
+            await _sourceControl.VerifyCloneExists(org, $"{org}-content");
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             List<OptionListData> codeLists = await _orgCodeListService.GetCodeLists(org, developer, cancellationToken);
