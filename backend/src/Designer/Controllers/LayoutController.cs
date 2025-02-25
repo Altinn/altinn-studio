@@ -80,8 +80,8 @@ namespace Altinn.Studio.Designer.Controllers
         [EndpointSummary("Modify page")]
         [ProducesResponseType<Page>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpPost("pages/{pageId}")]
-        public async Task<ActionResult<Page>> ModifyPageAsync(
+        [HttpPut("pages/{pageId}")]
+        public async Task<ActionResult<Page>> ModifyPage(
                 [FromRoute] string org,
                 [FromRoute] string app,
                 [FromRoute] string layoutSetId,

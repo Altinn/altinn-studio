@@ -41,7 +41,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
           const validationResult = getPageNameErrorKey(
             value,
             pageName,
-            pagesModel?.pages?.flatMap((pageModel) => pageModel.id),
+            pagesModel?.pages?.map(({ id }) => id),
           );
           return validationResult && t(validationResult);
         }}
