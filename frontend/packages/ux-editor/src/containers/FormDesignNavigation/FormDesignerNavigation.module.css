@@ -5,7 +5,6 @@
 .container {
   margin: auto;
   padding: var(--fds-spacing-6);
-
   position: relative;
 }
 
