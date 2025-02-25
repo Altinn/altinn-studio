@@ -1,0 +1,94 @@
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.9.3
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+
+  kafka:
+    image: bitnami/kafka:3.9.0
+    ports:
+      - "9092:9092"
+    restart: always
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,SASL_PLAINTEXT://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:9092,SASL_PLAINTEXT://host.docker.internal:9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_CFG_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="admin"
+        password="Test1234$"
+        user_admin="Test1234$"
+        user_user="Test1234$";
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      interval: 2s
+      timeout: 10s
+      retries: 10
+
+  init-kafka:
+    image: bitnami/kafka:3.9.0
+    container_name: init-kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    environment:
+      KAFKA_CLIENT_USERNAME: admin
+      KAFKA_CLIENT_PASSWORD: Test1234$
+    command: |
+      "
+      # blocks until kafka is reachable
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic altinn-app --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+      "
+
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:7.8.1
+    restart: always
+    hostname: schemaregistry
+    container_name: schemaregistry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_BASIC_AUTH_CREDENTIALS_SOURCE: USER_INFO
+      SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO: schemauser:Test1234$
+    depends_on:
+      - kafka
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:4.1.0
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      SCHEMAREGISTRY_CONNECT: schemaregistry:8081
+      SCHEMAREGISTRY_AUTH: schemauser:Test1234$
+      JVM_OPTS: "-Xms32M -Xmx64M"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafdrop_jaas.conf"
+      KAFKA_CLIENT_JAAS_CONF: |
+        KafkaClient {
+          org.apache.kafka.common.security.plain.PlainLoginModule required
+          username="admin"
+          password="Test1234$";
+        };
+    depends_on:
+      - kafka
+      - schemaregistry
+
