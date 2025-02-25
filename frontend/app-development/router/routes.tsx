@@ -9,15 +9,16 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
-import { StudioPageSpinner, useLocalStorage } from '@studio/components';
+import { StudioPageSpinner, StudioSpinner, useLocalStorage } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
+import { toast } from 'react-toastify';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -50,7 +51,24 @@ const UiEditor = () => {
   const { setSelectedLayoutSetName } = useLayoutContext();
   const [selectedFormLayoutSetName] = useLocalStorage<string>('layoutSet/' + app);
   const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
-  const { data: appConfigData } = useAppConfigQuery(org, app);
+
+  const {
+    data: appConfigData,
+    isPending,
+    isError,
+  } = useAppConfigQuery(org, app, {
+    hideDefaultError: true,
+  });
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(t('overview.fetch_title_error_message'));
+    }
+  }, [isError, t]);
+
+  if (isPending) {
+    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
+  }
 
   if (fetchingVersionIsPending) {
     return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
@@ -60,7 +78,7 @@ const UiEditor = () => {
 
   return isLatestFrontendVersion(version) ? (
     isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
-      <FormDesignerNavigation appConfig={appConfigData.serviceName} />
+      <FormDesignerNavigation appConfig={appConfigData?.serviceName} />
     ) : (
       <UiEditorLatest
         shouldReloadPreview={shouldReloadPreview}
