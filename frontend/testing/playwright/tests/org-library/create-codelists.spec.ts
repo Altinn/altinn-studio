@@ -56,3 +56,17 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
   await orgLibraryPage.codeLists.verifyThatNewCodeListIsVisible(codelistTitle);
 });
+
+test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  const codelistFileTitle: string = 'testCodelist';
+  const codelistFileName: string = `${codelistFileTitle}.json`;
+  await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
+  await orgLibraryPage.codeLists.waitForCodelistToBeUploaded();
+  await orgLibraryPage.codeLists.verifyThatNewCodeListIsVisible(codelistFileTitle);
+
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(codelistFileTitle);
+  const numberOfRowsInCodelist: number = 3;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(numberOfRowsInCodelist);
+});
