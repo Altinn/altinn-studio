@@ -52,6 +52,7 @@ export class CodeLists extends BasePage {
   public async verifyAlternativeRowIsVisible(row: number): Promise<void> {
     const alternativeRow = this.page.getByRole('textbox', {
       name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
     });
 
     await expect(alternativeRow).toBeVisible();
@@ -61,6 +62,7 @@ export class CodeLists extends BasePage {
     await this.page
       .getByRole('textbox', {
         name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+        exact: true,
       })
       .fill(value);
   }
@@ -105,15 +107,46 @@ export class CodeLists extends BasePage {
     for (let i = 1; i <= numberOfRows; i++) {
       const valueRow = this.page.getByRole('textbox', {
         name: this.textMock('code_list_editor.value_item', { number: i.toString() }),
+        exact: true,
       });
 
       await expect(valueRow).toBeVisible();
     }
   }
 
-  public async typeInSearchBox(searchTerm: string): Promise<void> {}
+  public async typeInSearchBox(searchTerm: string): Promise<void> {
+    await this.page
+      .getByRole('searchbox', {
+        name: this.textMock('app_content_library.code_lists.search_label'),
+      })
+      .fill(searchTerm);
+  }
 
   public async clickOnDeleteCodelistButton(): Promise<void> {
-    // app_content_library.code_lists.code_list_delete
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.code_list_delete'),
+      })
+      .click();
+  }
+
+  public async listeToAndWaitForConfirmDeleteCodeList(codeListTitle: string): Promise<void> {
+    this.page.once('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      expect(dialog.message()).toContain(
+        this.textMock('app_content_library.code_lists.code_list_delete_confirm', { codeListTitle }),
+      );
+      await dialog.accept();
+    });
+  }
+
+  public async verifyThatCodeListIsNotVisible(title: string): Promise<void> {
+    const codeList = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: title,
+      }),
+    );
+
+    await expect(codeList).toBeHidden();
   }
 }

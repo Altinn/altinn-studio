@@ -70,5 +70,8 @@ test('that it is possible to search for and delete the new codelist', async ({
   const numberOfRowsInCodelist: number = 1;
   await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(numberOfRowsInCodelist);
 
+  await orgLibraryPage.codeLists.listeToAndWaitForConfirmDeleteCodeList(CODELIST_TITLE);
   await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
+
+  await orgLibraryPage.codeLists.verifyThatCodeListIsNotVisible(CODELIST_TITLE);
 });
