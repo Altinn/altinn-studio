@@ -64,6 +64,7 @@
   "resourceadm.about_resource_resource_title_text": "Sluttbrukerne vil se navnet. Det må være lett å kjenne igjen og må beskrive hva tjenesten handler om. Pass på å skille tjenester som har like eller nesten like navn, slik at det blir lettere for sluttbrukerne å forstå forskjellen på dem.",
   "resourceadm.about_resource_resource_type": "Ressurstype",
   "resourceadm.about_resource_resource_type_brokerservice": "Formidlingstjeneste",
+  "resourceadm.about_resource_resource_type_correspondenceservice": "Meldingstjeneste",
   "resourceadm.about_resource_resource_type_error": "Du må velge en ressurstype.",
   "resourceadm.about_resource_resource_type_generic_access_resource": "Generisk tilgangsressurs",
   "resourceadm.about_resource_resource_type_label": "Velg en ressurstype fra listen under.",
