@@ -75,6 +75,7 @@ export function EditCodeList({
         codeListHasUsages={codeListHasUsages}
         codeListSources={codeListSources}
         onDeleteCodeList={handleDeleteCodeList}
+        codeListTitle={codeListTitle}
       />
     </div>
   );
@@ -138,12 +139,14 @@ type CodeListButtonsProps = {
   codeListHasUsages: boolean;
   codeListSources: CodeListIdSource[];
   onDeleteCodeList: (codeListId: string) => void;
+  codeListTitle: string;
 };
 
 function CodeListButtons({
   codeListHasUsages,
   codeListSources,
   onDeleteCodeList,
+  codeListTitle,
 }: CodeListButtonsProps): React.ReactElement {
   const { t } = useTranslation();
   const deleteButtonTitle = codeListHasUsages
@@ -156,6 +159,9 @@ function CodeListButtons({
         onDelete={onDeleteCodeList}
         title={deleteButtonTitle}
         disabled={codeListHasUsages}
+        confirmMessage={t('app_content_library.code_lists.code_list_delete_confirm', {
+          codeListTitle,
+        })}
       >
         {t('app_content_library.code_lists.code_list_delete')}
       </StudioDeleteButton>
