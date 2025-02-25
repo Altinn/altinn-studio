@@ -183,7 +183,7 @@
   "code_list_editor.text_resource.no_text_resource_option_label": "Ikke oppgitt",
   "code_list_editor.type_selector_description": "Kodenes datatype. Du kan bare endre denne når kodelisten er tom.",
   "code_list_editor.type_selector_label": "Type",
-  "code_list_editor.type_selector_option_boolean": "Ja/nei",
+  "code_list_editor.type_selector_option_boolean": "Boolsk",
   "code_list_editor.type_selector_option_number": "Tall",
   "code_list_editor.type_selector_option_string": "Tekst",
   "code_list_editor.value_item": "Verdi for alternativ {{number}}",
