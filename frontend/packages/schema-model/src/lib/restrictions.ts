@@ -1,4 +1,4 @@
-import { valueExists } from '@altinn/schema-editor/utils/value';
+import { ValidationUtils } from '@studio/pure-functions';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   ArrRestrictionKey,
@@ -25,7 +25,7 @@ export const findRestrictionsOnNode = (schemaNode: KeyValuePairs): KeyValuePairs
 };
 
 export const castRestrictionType = (key: string, value?: string | boolean) => {
-  if (!valueExists(value)) {
+  if (!ValidationUtils.valueExists(value)) {
     return undefined;
   } else if (
     [
