@@ -33,6 +33,9 @@ export const PropertiesHeader = ({
   const hideContentWhenSubformGuide =
     formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 
+  const displayMainConfigHeader =
+    shouldDisplayFeature(FeatureFlag.MainConfig) || ComponentType.Summary === formItem.type;
+
   return (
     <>
       <StudioSectionHeader
@@ -52,8 +55,7 @@ export const PropertiesHeader = ({
         </StudioAlert>
       )}
       <div className={classes.mainContent}>
-        {!hideContentWhenSubformGuide && <HeaderMainConfig />}
-        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
+        {!hideContentWhenSubformGuide && displayMainConfigHeader && <HeaderMainConfig />}
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}

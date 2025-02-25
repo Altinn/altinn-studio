@@ -1,4 +1,4 @@
-.headerContent {
+.mainContent {
   display: flex;
   flex-direction: column;
   background-color: var(--fds-semantic-surface-neutral-default);
