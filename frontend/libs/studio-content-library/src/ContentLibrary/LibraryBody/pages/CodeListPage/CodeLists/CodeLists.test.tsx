@@ -244,8 +244,10 @@ describe('CodeLists', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('calls onDeleteCodeList when clicking delete button', async () => {
+  it('calls onDeleteCodeList when the user clicks the delete button and confirms', async () => {
     const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+
     renderCodeLists();
     const deleteCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.code_list_delete'),
@@ -256,6 +258,21 @@ describe('CodeLists', () => {
     await user.click(deleteCodeListButton);
     expect(onDeleteCodeListMock).toHaveBeenCalledTimes(1);
     expect(onDeleteCodeListMock).toHaveBeenLastCalledWith(codeListName);
+  });
+
+  it('does not call onDeleteCodeList when it is not confirmed', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+
+    renderCodeLists();
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
+    );
+    await user.click(deleteCodeListButton);
+    expect(onDeleteCodeListMock).toHaveBeenCalledTimes(0);
   });
 });
 
