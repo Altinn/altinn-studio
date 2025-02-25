@@ -81,7 +81,7 @@ export class CodeLists extends BasePage {
       .click();
   }
 
-  public async verifyThatNewCodeListIsVisible(title: string): Promise<void> {
+  public async verifyThatCodeListIsVisible(title: string): Promise<void> {
     const codeList = this.page.getByTitle(
       this.textMock('app_content_library.code_lists.code_list_accordion_title', {
         codeListTitle: title,
@@ -89,9 +89,5 @@ export class CodeLists extends BasePage {
     );
 
     await expect(codeList).toBeVisible();
-  }
-
-  public async tabOut(): Promise<void> {
-    await this.page.keyboard.press('Tab');
   }
 }

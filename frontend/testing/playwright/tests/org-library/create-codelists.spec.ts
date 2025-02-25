@@ -54,5 +54,5 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.writeCodelistLabel(firstRow, firstRowLabel);
 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
-  await orgLibraryPage.codeLists.verifyThatNewCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
 });
