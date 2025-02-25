@@ -78,7 +78,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
           property={label}
           onClick={toggleViewMode}
           title={title}
-          value={value || defaultValue}
+          value={value ?? defaultValue}
           className={classes.propertyButton}
         />
       );
