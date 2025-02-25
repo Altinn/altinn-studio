@@ -1,6 +1,7 @@
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import { applyPatch } from 'fast-json-patch';
+import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -58,6 +59,11 @@ export interface DataModelState {
   isDefault: boolean;
 }
 
+interface LockRequest {
+  key: string;
+  whenAcquired: (uuid: string) => void;
+}
+
 type FormDataState = {
   // Data model state
   dataModels: { [dataType: string]: DataModelState };
@@ -86,6 +92,7 @@ type FormDataState = {
   // respond. The server might read the data model, change it, and return changes back to the client, which could
   // cause data loss if we were to auto-save the data model while the server is still processing the request.
   lockedBy: string | undefined;
+  lockQueue: LockRequest[];
 };
 
 export interface FDChange {
@@ -178,8 +185,9 @@ export interface FormDataMethods {
   cancelSave: () => void;
   saveFinished: (props: FDSaveFinished) => void;
   requestManualSave: (setTo?: boolean) => void;
-  lock: (lockName: string) => void;
-  unlock: (saveResult?: FDActionResult) => void;
+  lock: (request: LockRequest) => void;
+  nextLock: () => void;
+  unlock: (key: string, uuid: string, saveResult?: FDActionResult) => void;
 }
 
 export type FormDataContext = FormDataState & FormDataMethods;
@@ -481,13 +489,34 @@ function makeActions(
       set((state) => {
         state.manualSaveRequested = setTo;
       }),
-    lock: (lockName) =>
+    lock: (request) =>
       set((state) => {
-        state.lockedBy = lockName;
+        if (state.lockedBy) {
+          state.lockQueue.push(request);
+          return;
+        }
+        const uuid = uuidv4();
+        state.lockedBy = `${request.key} (${uuid})`;
+        request.whenAcquired(uuid);
       }),
-    unlock: (actionResult) =>
+    nextLock: () =>
       set((state) => {
-        state.lockedBy = undefined;
+        const next = state.lockQueue.shift();
+        if (next) {
+          const uuid = uuidv4();
+          state.lockedBy = `${next.key} (${uuid})`;
+          next.whenAcquired(uuid);
+        }
+      }),
+    unlock: (key, uuid, actionResult) =>
+      set((state) => {
+        const expected = `${key} (${uuid})`;
+        if (state.lockedBy !== expected) {
+          throw new Error(
+            `Tried to unlock with an invalid UUID (state is locked by ${state.lockedBy}, but ${expected} tried to unlock)`,
+          );
+        }
+
         // Update form data
         if (actionResult?.updatedDataModels) {
           const newDataModels: UpdatedDataModel[] = [];
@@ -511,6 +540,11 @@ function makeActions(
             validationIssues: actionResult.updatedValidationIssues,
           });
         }
+
+        /** Unlock. If there are more locks in the queue, the next one will be processed by
+         * @see FormDataEffects
+         */
+        state.lockedBy = undefined;
       }),
   };
 }
@@ -542,6 +576,7 @@ export const createFormDataWriteStore = (
         dataModels: initialDataModels,
         autoSaving,
         lockedBy: undefined,
+        lockQueue: [],
         debounceTimeout: DEFAULT_DEBOUNCE_TIMEOUT,
         manualSaveRequested: false,
         validationIssues: undefined,

@@ -203,6 +203,7 @@ export const makeFormDataMethodProxies = (
     appendToList: makeProxy('appendToList', ref),
     unlock: makeProxy('unlock', ref),
     lock: makeProxy('lock', ref),
+    nextLock: makeProxy('nextLock', ref),
     requestManualSave: makeProxy('requestManualSave', ref),
   };
 

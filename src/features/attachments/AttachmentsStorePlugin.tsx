@@ -289,7 +289,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const supportsNewAttachmentAPI = appSupportsNewAttachmentAPI(applicationMetadata);
 
         const setAttachmentsInDataModel = useSetAttachmentInDataModel();
-        const { lock, unlock } = FD.useLocking('__attachment__upload__');
+        const lock = FD.useLocking('__attachment__upload__');
 
         return useCallback(
           async (action) => {
@@ -300,33 +300,32 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
             upload(fullAction);
 
             if (supportsNewAttachmentAPI) {
-              await lock();
+              const { unlock } = await lock();
               const results: AttachmentUploadResult[] = [];
 
               const updatedData: FDActionResult = { updatedDataModels: {}, updatedValidationIssues: {} };
 
               for (const { file, temporaryId } of fullAction.files) {
                 const { baseComponentId } = splitDashedKey(action.nodeId);
-                await uploadAttachment({
-                  dataTypeId: baseComponentId,
-                  file,
-                })
-                  .then((reply) => {
-                    results.push({ temporaryId, newDataElementId: reply.newDataElementId });
-
-                    updatedData.instance = reply.instance;
-                    updatedData.updatedDataModels = {
-                      ...updatedData.updatedDataModels,
-                      ...dataModelPairsToObject(reply.newDataModels),
-                    };
-                    updatedData.updatedValidationIssues = {
-                      ...updatedData.updatedValidationIssues,
-                      ...backendValidationIssueGroupListToObject(reply.validationIssues),
-                    };
-                  })
-                  .catch((error) => {
-                    results.push({ temporaryId, error });
+                try {
+                  const reply = await uploadAttachment({
+                    dataTypeId: baseComponentId,
+                    file,
                   });
+                  results.push({ temporaryId, newDataElementId: reply.newDataElementId });
+
+                  updatedData.instance = reply.instance;
+                  updatedData.updatedDataModels = {
+                    ...updatedData.updatedDataModels,
+                    ...dataModelPairsToObject(reply.newDataModels),
+                  };
+                  updatedData.updatedValidationIssues = {
+                    ...updatedData.updatedValidationIssues,
+                    ...backendValidationIssueGroupListToObject(reply.validationIssues),
+                  };
+                } catch (error) {
+                  results.push({ temporaryId, error });
+                }
               }
               setAttachmentsInDataModel(
                 results.filter(isAttachmentUploadSuccess).map(({ newDataElementId }) => newDataElementId),
@@ -365,7 +364,6 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
             lock,
             setAttachmentsInDataModel,
             uploadFinished,
-            unlock,
             uploadAttachment,
             appendDataElements,
             uploadAttachmentOld,

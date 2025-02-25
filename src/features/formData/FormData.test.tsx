@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
@@ -333,27 +333,49 @@ describe('FormData', () => {
   }
 
   describe('Locking', () => {
-    function LockActionButton() {
-      const { lock, unlock, isLocked } = FD.useLocking('myLockId');
+    beforeEach(() => {
+      jest
+        .spyOn(window, 'logWarn')
+        .mockImplementation(() => {})
+        .mockName(`window.logWarn`);
+      jest
+        .spyOn(window, 'logError')
+        .mockImplementation(() => {})
+        .mockName(`window.logError`);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    function LockActionButton({ lockId, renderInfo }: { lockId: string; renderInfo: boolean }) {
+      const lock = FD.useLocking(lockId);
+      const { isLocked, lockedBy } = FD.useLockStatus();
+      const [currentLock, setCurrentLock] = useState<Awaited<ReturnType<typeof lock>> | undefined>();
 
       return (
         <>
-          <div data-testid='isLocked'>{isLocked ? 'true' : 'false'}</div>
-          <button
-            onClick={async () => {
-              if (isLocked) {
+          {renderInfo && (
+            <>
+              <div data-testid='isLocked'>{isLocked ? 'true' : 'false'}</div>
+              <div data-testid='lockedBy'>{lockedBy === undefined ? 'undefined' : lockedBy}</div>
+            </>
+          )}
+          <button onClick={async () => setCurrentLock(await lock())}>Lock {lockId}</button>
+          {currentLock && (
+            <button
+              onClick={() => {
                 // Unlock with some pretend updated form data
-                unlock({
+                currentLock?.unlock({
                   updatedDataModels: { [defaultMockDataElementId]: { obj1: { prop1: 'new value' } } },
                   updatedValidationIssues: { obj1: [] },
                 });
-              } else {
-                await lock();
-              }
-            }}
-          >
-            {isLocked ? 'Unlock' : 'Lock'} form data
-          </button>
+                setCurrentLock(undefined);
+              }}
+            >
+              Unlock {lockId}
+            </button>
+          )}
         </>
       );
     }
@@ -374,7 +396,14 @@ describe('FormData', () => {
               path='obj2.prop1'
               dataType={defaultDataTypeMock}
             />
-            <LockActionButton />
+            <LockActionButton
+              lockId='myLockId'
+              renderInfo={true}
+            />
+            <LockActionButton
+              lockId='myOtherLockId'
+              renderInfo={false}
+            />
             <HasUnsavedChanges />
           </>
         ),
@@ -405,7 +434,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj1.prop1')).toHaveValue('value1');
 
       // Lock the form
-      await user.click(screen.getByRole('button', { name: 'Lock form data' }));
+      await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
       // Change another value (this will be preserved)
@@ -418,7 +447,7 @@ describe('FormData', () => {
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
 
       // Unlock the form
-      await user.click(screen.getByRole('button', { name: 'Unlock form data' }));
+      await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('false'));
       await waitFor(() => expect(screen.getByTestId('obj1.prop1')).toHaveValue('new value'));
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('b');
@@ -431,6 +460,8 @@ describe('FormData', () => {
 
       const patchReq = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0][1] as IDataModelPatchRequest;
       expect(patchReq.patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
+      expect(window.logError).toHaveBeenCalledTimes(0);
+      expect(window.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Locking will not trigger a save if no values have changed', async () => {
@@ -438,14 +469,14 @@ describe('FormData', () => {
       const { mutations } = await render();
       expect(screen.getAllByTestId(/^obj\d+.prop\d+$/).length).toBe(3);
 
-      await user.click(screen.getByRole('button', { name: 'Lock form data' }));
+      await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
       act(() => jest.advanceTimersByTime(5000));
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
 
-      await user.click(screen.getByRole('button', { name: 'Unlock form data' }));
+      await user.click(await screen.findByRole('button', { name: 'Unlock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('false'));
       await waitFor(() => expect(screen.getByTestId('obj1.prop1')).toHaveValue('new value'));
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('');
@@ -454,6 +485,8 @@ describe('FormData', () => {
       act(() => jest.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(window.logError).toHaveBeenCalledTimes(0);
+      expect(window.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Unsaved changes should be saved before locking', async () => {
@@ -466,7 +499,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
-      await user.click(screen.getByRole('button', { name: 'Lock form data' }));
+      await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
@@ -481,6 +514,73 @@ describe('FormData', () => {
       };
       mutations.doPatchFormData.resolve(response);
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
+      expect(window.logError).toHaveBeenCalledTimes(0);
+      expect(window.logWarn).toHaveBeenCalledTimes(0);
+    });
+
+    it('Locking should queue up when requested multiple times', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { mutations } = await render();
+
+      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
+      await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
+      expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
+      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+      expect(window.logError).toHaveBeenCalledTimes(0);
+      expect(window.logWarn).toHaveBeenCalledTimes(0);
+
+      // Try to lock another lock id (will wait for the first lock to finish)
+      await user.click(screen.getByRole('button', { name: 'Lock myOtherLockId' }));
+      await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
+      await screen.findByRole('button', { name: 'Unlock myLockId' });
+      expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
+
+      // The other lock id will be locked after the first one is unlocked, so it is still not acquired
+      act(() => jest.advanceTimersByTime(5000));
+      expect(screen.queryByRole('button', { name: 'Unlock myOtherLockId' })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
+      await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
+
+      await screen.findByRole('button', { name: 'Unlock myOtherLockId' });
+      await user.click(screen.getByRole('button', { name: 'Unlock myOtherLockId' }));
+      await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('undefined'));
+      expect(screen.getByTestId('isLocked')).toHaveTextContent('false');
+    });
+
+    it('When multiple locks are scheduled, form data should be saved in between locks', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { mutations } = await render();
+
+      await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
+      await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
+      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(0);
+
+      // Schedule another lock that will be scheduled after the first one
+      await user.click(screen.getByRole('button', { name: 'Lock myOtherLockId' }));
+      expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
+
+      // Change a value
+      await user.type(screen.getByTestId('obj2.prop1'), 'a');
+
+      // Unlock the first lock
+      await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
+      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+
+      const response: IDataModelPatchResponse = {
+        newDataModel: {
+          obj2: { prop1: 'a' },
+        },
+        validationIssues: {},
+      };
+      mutations.doPatchFormData.resolve(response);
+
+      await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
+      await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
+      await user.click(screen.getByRole('button', { name: 'Unlock myOtherLockId' }));
+      await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('undefined'));
+      expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -43,6 +43,7 @@ const { Provider, useCtx } = createContext<FormDataWriteProxies>({
     setMultiLeafValues: defaultProxy as Proxy<'setMultiLeafValues'>,
     unlock: defaultProxy as Proxy<'unlock'>,
     lock: defaultProxy as Proxy<'lock'>,
+    nextLock: defaultProxy as Proxy<'nextLock'>,
     requestManualSave: defaultProxy as Proxy<'requestManualSave'>,
   },
 });
