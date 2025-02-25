@@ -1,5 +1,5 @@
-import { ReactElement, useMemo } from 'react';
-import React, { forwardRef, useCallback } from 'react';
+import type { ReactElement } from 'react';
+import React, { useMemo, forwardRef, useCallback } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
