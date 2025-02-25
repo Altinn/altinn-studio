@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { routerRoutes } from './routes';
 import { RoutePaths } from '../enums/RoutePaths';
 import React from 'react';
@@ -36,7 +36,7 @@ describe('routes', () => {
 
     it.each(testCases)(
       'Renders the %s schema editor page when the app frontend version is %s',
-      (expectedPackage, frontendVersion) => {
+      async (expectedPackage, frontendVersion) => {
         const appVersion: AppVersion = {
           frontendVersion,
           backendVersion: '7.0.0',
@@ -44,13 +44,20 @@ describe('routes', () => {
         const queryClient = createQueryClientMock();
         queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
         renderUiEditor(queryClient);
-        expect(screen.getByTestId(expectedPackage)).toBeInTheDocument();
+        expect(await screen.findByTestId(expectedPackage)).toBeInTheDocument();
       },
     );
 
-    it('renders a loading spinner while fetching frontend version', () => {
+    it('renders a loading spinner while fetching frontend version', async () => {
       renderUiEditor();
-      expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();
+      });
+    });
+
+    it('renders a loading spinner while pending', () => {
+      renderUiEditor();
+      expect(screen.getByText(textMock('overview.header_loading'))).toBeInTheDocument();
     });
 
     const renderUiEditor = (queryClient: QueryClient = createQueryClientMock()) =>
