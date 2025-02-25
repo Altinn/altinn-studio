@@ -34,7 +34,7 @@ export const PropertiesHeader = ({
     formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 
   const displayMainConfigHeader =
-    shouldDisplayFeature(FeatureFlag.MainConfig) || ComponentType.Summary === formItem.type;
+    shouldDisplayFeature(FeatureFlag.MainConfig) || ComponentType.Summary2 === formItem.type;
 
   return (
     <>
