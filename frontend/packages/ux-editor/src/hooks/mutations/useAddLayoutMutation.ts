@@ -17,6 +17,7 @@ export interface AddLayoutMutationArgs {
   layoutName: string;
 }
 
+// Deprecated: use useAddPageMutation if possible
 export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { saveFormLayout } = useServicesContext();
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
