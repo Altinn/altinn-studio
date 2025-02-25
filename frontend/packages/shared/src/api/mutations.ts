@@ -136,8 +136,9 @@ export const updateOptionListId = (org: string, app: string, optionsListId: stri
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
-export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName, pageName), payload);
+export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
 export const changePageOrder = (org: string, app: string, layoutSetName: string, pages: PagesModel) => put(layoutPagesPath(org, app, layoutSetName), pages);
+
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
