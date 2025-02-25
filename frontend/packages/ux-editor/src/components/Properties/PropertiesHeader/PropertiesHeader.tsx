@@ -68,12 +68,10 @@ export const PropertiesHeader = ({
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            {
-              <ComponentMainConfig
-                component={formItem}
-                handleComponentChange={handleComponentUpdate}
-              />
-            }
+            <ComponentMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+            />
           </>
         )}
       </div>
