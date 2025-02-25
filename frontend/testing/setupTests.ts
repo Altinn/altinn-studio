@@ -8,6 +8,7 @@ import { SignalR } from './mocks/signalr';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
+import { configure } from '@testing-library/dom';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -94,3 +95,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.setTimeout(3000000);
+
+const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;
+
+configure({ asyncUtilTimeout: TESTING_LIBRARY_TIMEOUT_MILLISECONDS });
