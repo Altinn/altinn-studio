@@ -90,4 +90,30 @@ export class CodeLists extends BasePage {
 
     await expect(codeList).toBeVisible();
   }
+
+  public async clickOnCodeListAccordion(title: string): Promise<void> {
+    await this.page
+      .getByTitle(
+        this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+          codeListTitle: title,
+        }),
+      )
+      .click();
+  }
+
+  public async verifyNumberOfRowsInTheCodelist(numberOfRows: number): Promise<void> {
+    for (let i = 1; i <= numberOfRows; i++) {
+      const valueRow = this.page.getByRole('textbox', {
+        name: this.textMock('code_list_editor.value_item', { number: i.toString() }),
+      });
+
+      await expect(valueRow).toBeVisible();
+    }
+  }
+
+  public async typeInSearchBox(searchTerm: string): Promise<void> {}
+
+  public async clickOnDeleteCodelistButton(): Promise<void> {
+    // app_content_library.code_lists.code_list_delete
+  }
 }

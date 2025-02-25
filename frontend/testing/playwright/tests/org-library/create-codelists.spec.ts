@@ -7,6 +7,7 @@ import { Gitea } from '../../helpers/Gitea';
 import { OrgLibraryPage } from '../../pages/OrgLibraryPage';
 
 const TEST_ORG: string = 'ttd';
+const CODELIST_TITLE: string = 'Test_codelist';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -43,8 +44,7 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
 
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
-  const codelistTitle: string = 'Test_codelist';
-  await orgLibraryPage.codeLists.writeCodelistTitle(codelistTitle);
+  await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE);
   await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
   const firstRow: number = 1;
   await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(firstRow);
@@ -54,5 +54,21 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.writeCodelistLabel(firstRow, firstRowLabel);
 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE);
+});
+
+test('that it is possible to search for and delete the new codelist', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await orgLibraryPage.codeLists.typeInSearchBox(CODELIST_TITLE);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE);
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE);
+
+  const numberOfRowsInCodelist: number = 1;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(numberOfRowsInCodelist);
+
+  await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
 });
