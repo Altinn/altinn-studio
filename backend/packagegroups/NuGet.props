@@ -10,6 +10,9 @@
   <ItemGroup Label="Shared nuget packages">
     <PackageReference Update="JsonSchema.Net" Version="5.5.1" />
     <PackageReference Update="CompilerAttributes" Version="1.1.2" />
+    <PackageReference Update="Confluent.Kafka" Version="2.8.0" />
+    <PackageReference Update="Confluent.SchemaRegistry" Version="2.8.0" />
+    <PackageReference Update="Confluent.SchemaRegistry.Serdes.Json" Version="2.8.0" />
     <PackageReference Update="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Update="JWTCookieAuthentication" Version="4.0.4" />
     <PackageReference Update="LibGit2Sharp" Version="0.31.0" />
