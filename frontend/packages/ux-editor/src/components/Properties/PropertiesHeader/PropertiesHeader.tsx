@@ -2,8 +2,7 @@ import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { StudioSectionHeader } from '@studio/components';
-
+import { StudioAlert, StudioSectionHeader } from '@studio/components';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -12,6 +11,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -45,8 +46,14 @@ export const PropertiesHeader = ({
           title: t('ux_editor.component_help_text_general_title'),
         }}
       />
-      <div className={classes.headerContent}>
+      {isComponentDeprecated(formItem.type) && (
+        <StudioAlert size='sm' className={classes.alertWrapper} severity='warning'>
+          {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
+        </StudioAlert>
+      )}
+      <div className={classes.mainContent}>
         {!hideContentWhenSubformGuide && <HeaderMainConfig />}
+        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
