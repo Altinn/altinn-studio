@@ -9,6 +9,5 @@ public class KafkaSettings
     public string SchemaRegistryUserName { get; set; }
     public string SchemaRegistryPassword { get; set; }
     public bool UseSaslSsl { get; set; }
-    public string SaslMechanism { get; set; }
     public string StatisticsTopic { get; set; }
 }
