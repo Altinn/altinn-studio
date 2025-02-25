@@ -139,7 +139,6 @@ export const deletePage = (org: string, app: string, layoutSetName: string, page
 export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
 export const changePageOrder = (org: string, app: string, layoutSetName: string, pages: PagesModel) => put(layoutPagesPath(org, app, layoutSetName), pages);
 
-
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
