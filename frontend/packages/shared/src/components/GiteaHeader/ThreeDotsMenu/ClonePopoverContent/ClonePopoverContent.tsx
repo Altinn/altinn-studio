@@ -58,7 +58,7 @@ export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
           </Paragraph>
         </>
       )}
-      <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} size='small' />
+      <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} />
       {canCopy && (
         <div className={classes.buttonWrapper}>
           <StudioButton fullWidth onClick={copyGitUrl} className={classes.button}>

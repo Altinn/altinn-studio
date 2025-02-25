@@ -81,7 +81,6 @@ export const RightTranslationBar = ({
           label={<ResourceFieldHeader label={label} required={required} />}
           error={errorMessagesToDisplay}
           onBlur={onBlur}
-          size='sm'
           required={required}
         />
       );
@@ -93,7 +92,6 @@ export const RightTranslationBar = ({
         label={<ResourceFieldHeader label={label} required={required} />}
         error={errorMessagesToDisplay}
         onBlur={onBlur}
-        size='sm'
         required={required}
       />
     );

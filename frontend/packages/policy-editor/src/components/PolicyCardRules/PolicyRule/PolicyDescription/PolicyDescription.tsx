@@ -25,7 +25,6 @@ export const PolicyDescription = (): React.ReactElement => {
     <div className={classes.textAreaWrapper}>
       <StudioTextarea
         label={t('policy_editor.rule_card_description_title')}
-        size='small'
         value={policyRule.description}
         onChange={handleChangeDescription}
         rows={5}

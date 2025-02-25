@@ -250,7 +250,6 @@ export const DeployResourcePage = ({
                 <StudioTextfield
                   label={t('resourceadm.deploy_version_label')}
                   description={t('resourceadm.deploy_version_text')}
-                  size='sm'
                   value={newVersionText}
                   onChange={(e) => onVersionFieldChanged(e.target.value)}
                   error={resourceVersionText === ''}

@@ -1,1 +1,0 @@
-export { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';

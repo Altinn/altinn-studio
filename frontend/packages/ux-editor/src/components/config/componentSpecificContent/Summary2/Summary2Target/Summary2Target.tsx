@@ -122,7 +122,6 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
       {target.type === 'layoutSet' && (
         <StudioTextfield
           key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-          size='sm'
           label={t('ux_editor.component_properties.target_unit_layout_set')}
           value={selectedLayoutSetTargetName}
           disabled={true}

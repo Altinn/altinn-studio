@@ -34,7 +34,7 @@ export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfield
 
     return (
       <StudioTable.Cell className={className}>
-        <StudioTextfield hideLabel ref={ref} size='small' {...rest} {...eventProps} />
+        <StudioTextfield hideLabel ref={ref} {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }
