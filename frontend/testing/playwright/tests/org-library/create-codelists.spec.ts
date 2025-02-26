@@ -66,7 +66,9 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.waitForCodelistToBeUploaded();
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistFileTitle);
 
-  await orgLibraryPage.codeLists.clickOnCodeListAccordion(codelistFileTitle);
-  const numberOfRowsInCodelist: number = 3;
-  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(numberOfRowsInCodelist);
+  const expectedNumberOfRows: number = 3;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    expectedNumberOfRows,
+    codelistFileTitle,
+  );
 });

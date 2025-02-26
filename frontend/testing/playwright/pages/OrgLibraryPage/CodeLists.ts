@@ -2,6 +2,8 @@ import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
 import path from 'path';
 
+const TIMEOUT_FOR_TOAST_TO_DISAPPEAR: number = 8000;
+
 export class CodeLists extends BasePage {
   constructor(public page: Page) {
     super(page);
@@ -53,6 +55,7 @@ export class CodeLists extends BasePage {
   public async verifyAlternativeRowIsVisible(row: number): Promise<void> {
     const alternativeRow = this.page.getByRole('textbox', {
       name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
     });
 
     await expect(alternativeRow).toBeVisible();
@@ -62,6 +65,7 @@ export class CodeLists extends BasePage {
     await this.page
       .getByRole('textbox', {
         name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+        exact: true,
       })
       .fill(value);
   }
@@ -113,26 +117,32 @@ export class CodeLists extends BasePage {
     const toast = this.page.getByText(
       this.textMock('dashboard.org_library.code_list_upload_success'),
     );
-    await expect(toast).toBeHidden({ timeout: 8000 });
+    await expect(toast).toBeHidden({ timeout: TIMEOUT_FOR_TOAST_TO_DISAPPEAR });
   }
 
   public async clickOnCodeListAccordion(title: string): Promise<void> {
     await this.page
-      .getByTitle(
-        this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.code_list_accordion_title', {
           codeListTitle: title,
         }),
-      )
+      })
       .click();
   }
 
-  public async verifyNumberOfRowsInTheCodelist(numberOfRows: number): Promise<void> {
-    for (let i = 1; i <= numberOfRows; i++) {
-      const valueRow = this.page.getByRole('textbox', {
-        name: this.textMock('code_list_editor.value_item', { number: i.toString() }),
-      });
+  public async verifyNumberOfRowsInTheCodelist(
+    numberOfRows: number,
+    codeListTitle: string,
+  ): Promise<void> {
+    const accordionTitle = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle,
+      }),
+    );
+    const accordion = accordionTitle.locator('xpath=..');
+    const table = accordion.locator('fieldset table');
+    const rows = table.locator('tbody tr');
 
-      await expect(valueRow).toBeVisible();
-    }
+    await expect(rows).toHaveCount(numberOfRows);
   }
 }
