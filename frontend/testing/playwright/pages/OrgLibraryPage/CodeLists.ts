@@ -1,5 +1,8 @@
 import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
+import path from 'path';
+
+const TIMEOUT_TO_WAIT_FOR_TEXT_TO_APPEAR: number = 10000;
 
 export class CodeLists extends BasePage {
   constructor(public page: Page) {
@@ -93,27 +96,6 @@ export class CodeLists extends BasePage {
     await expect(codeList).toBeVisible();
   }
 
-  public async clickOnCodeListAccordion(title: string): Promise<void> {
-    await this.page
-      .getByTitle(
-        this.textMock('app_content_library.code_lists.code_list_accordion_title', {
-          codeListTitle: title,
-        }),
-      )
-      .click();
-  }
-
-  public async verifyNumberOfRowsInTheCodelist(numberOfRows: number): Promise<void> {
-    for (let i = 1; i <= numberOfRows; i++) {
-      const valueRow = this.page.getByRole('textbox', {
-        name: this.textMock('code_list_editor.value_item', { number: i.toString() }),
-        exact: true,
-      });
-
-      await expect(valueRow).toBeVisible();
-    }
-  }
-
   public async clickOnAddRowButton(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -155,10 +137,45 @@ export class CodeLists extends BasePage {
       exact: true,
     });
 
-    await expect(textfield).toHaveValue(value);
+    await expect(textfield).toHaveValue(value, { timeout: TIMEOUT_TO_WAIT_FOR_TEXT_TO_APPEAR });
   }
 
   public async tabOut(): Promise<void> {
     await this.page.keyboard.press('Tab');
+  }
+
+  public async clickOnUploadButtonAndSelectFileToUpload(fileName: string): Promise<void> {
+    const fileChooserPromise = this.page.waitForEvent('filechooser');
+
+    await this.clickOnUploadCodelistButton();
+
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(path.join(__dirname, fileName));
+  }
+  public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
+    await this.page.getByRole('heading', { name: codeListTitle }).click();
+  }
+
+  public async verifyNumberOfRowsInTheCodelist(
+    numberOfRows: number,
+    codeListTitle: string,
+  ): Promise<void> {
+    const accordionTitle = this.page.getByRole('heading', { name: codeListTitle });
+    const accordion = accordionTitle.locator('xpath=..');
+    const table = accordion.getByRole('table');
+    const rows = table.getByRole('row');
+
+    const headerRow: number = 1;
+    const totalNumberOfRows: number = numberOfRows + headerRow;
+
+    await expect(rows).toHaveCount(totalNumberOfRows);
+  }
+
+  private async clickOnUploadCodelistButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.upload_code_list'),
+      })
+      .click();
   }
 }
