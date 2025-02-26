@@ -134,11 +134,7 @@ export class CodeLists extends BasePage {
     numberOfRows: number,
     codeListTitle: string,
   ): Promise<void> {
-    const accordionTitle = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle,
-      }),
-    );
+    const accordionTitle = this.page.getByRole('heading', { name: codeListTitle, level: 1 });
     const accordion = accordionTitle.locator('xpath=..');
     const table = accordion.locator('fieldset table');
     const rows = table.locator('tbody tr');
