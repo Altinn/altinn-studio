@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -27,10 +27,10 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         // Arrange
         const string codeListId = "codeListNumber";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string apiUrl = $"/designer/api/{targetOrg}/code-lists/{codeListId}";
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
+        string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -39,7 +39,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(5, responseList.Count);
         Assert.DoesNotContain(responseList, e => e.Title == codeListId);
     }
@@ -50,10 +50,10 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         // Arrange
         const string codeListId = "non-existing-code-list";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string apiUrl = $"/designer/api/{targetOrg}/code-lists/{codeListId}";
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
+        string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -62,7 +62,9 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal($"The code list file {codeListId}.json does not exist.", responseDocument.RootElement.ToString());
     }
+
+    private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/{codeListId}";
 }

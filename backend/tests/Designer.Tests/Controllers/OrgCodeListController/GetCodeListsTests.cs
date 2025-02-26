@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -27,7 +27,6 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         // Arrange
         const string repo = "org-content";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string apiUrl = $"designer/api/{targetOrg}/code-lists";
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
 
@@ -40,6 +39,7 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
         await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
 
+        string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -48,7 +48,7 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(9, responseList.Count);
         Assert.Single(responseList, e => e.Title == "codeListNumber" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListString" && e.HasError == false);
@@ -67,10 +67,10 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         // Arrange
         const string repo = "org-content-empty";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string apiUrl = $"designer/api/{targetOrg}/code-lists";
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
 
+        string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -79,8 +79,10 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Empty(responseList);
         Assert.IsType<List<OptionListData>>(responseList);
     }
+
+    private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists";
 }

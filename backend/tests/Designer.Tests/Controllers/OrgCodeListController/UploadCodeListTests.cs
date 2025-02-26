@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -7,7 +8,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -44,7 +44,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotEmpty(responseList);
         Assert.Equal(2, responseList[0].Data?.Count);
     }
@@ -66,7 +66,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private static HttpRequestMessage CreateTestFile(string jsonCodeList, string targetOrg)
