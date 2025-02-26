@@ -59,8 +59,14 @@ describe('routes', () => {
           </SettingsModalContextProvider>
         </ServicesContextProvider>,
       );
+
+      await waitFor(() => {
+        expect(setSelectedLayoutSetName).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(setSelectedLayoutSetName).toHaveBeenCalledWith('test-layout');
+      });
       expect(await screen.findByTestId('latest version')).toBeInTheDocument();
-      expect(setSelectedLayoutSetName).toHaveBeenCalledWith('test-layout');
     });
 
     it('Returns null when there is no AppVersion', async () => {
