@@ -34,9 +34,11 @@ public class CreateResourceTests : DesignerEndpointsTestsBase<CreateResourceTest
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(TestDataHelper.FileExistsInRepo(targetOrg, targetRepository, developer, $"Texts/resource.{lang}.json"));
-        Assert.True(JsonUtils.DeepEquals(payload, TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, $"Texts/resource.{lang}.json")));
+        Assert.True(TestDataHelper.FileExistsInRepo(targetOrg, targetRepository, developer, RelativePath(lang)));
+        Assert.True(JsonUtils.DeepEquals(payload, TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang))));
     }
 
     private static string ApiUrl(string org, string languageCode) => $"/designer/api/{org}/text/language/{languageCode}";
+
+    private static string RelativePath(string language) => $"Texts/resource.{language}.json";
 }

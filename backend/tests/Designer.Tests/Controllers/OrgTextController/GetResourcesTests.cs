@@ -24,7 +24,7 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
-        string expectedContent = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, $"Texts/resource.{lang}.json");
+        string expectedContent = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
 
         string apiUrl = ApiUrl(targetOrg, lang);
         using HttpRequestMessage requestMessage = new(HttpMethod.Get, apiUrl);
@@ -58,4 +58,6 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
     }
 
     private static string ApiUrl(string org, string languageCode) => $"/designer/api/{org}/text/language/{languageCode}";
+
+    private static string RelativePath(string language) => $"Texts/resource.{language}.json";
 }
