@@ -55,9 +55,9 @@ describe('routes', () => {
       });
     });
 
-    it('renders a loading spinner message while pending', () => {
+    it('renders a loading spinner while fetching frontend version', () => {
       renderUiEditor();
-      expect(screen.getByText(textMock('overview.header_loading'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
     });
 
     const renderUiEditor = (queryClient: QueryClient = createQueryClientMock()) =>

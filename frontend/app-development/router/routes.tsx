@@ -12,7 +12,7 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
-import { StudioPageSpinner, StudioSpinner, useLocalStorage } from '@studio/components';
+import { StudioPageSpinner, useLocalStorage } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
@@ -51,13 +51,9 @@ const UiEditor = () => {
   const [selectedFormLayoutSetName] = useLocalStorage<string>('layoutSet/' + app);
   const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
 
-  const { data: appConfigData, isPending } = useAppConfigQuery(org, app, {
+  const { data: appConfigData } = useAppConfigQuery(org, app, {
     hideDefaultError: true,
   });
-
-  if (isPending) {
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
-  }
 
   if (fetchingVersionIsPending) {
     return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
