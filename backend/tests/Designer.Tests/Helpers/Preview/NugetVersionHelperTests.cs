@@ -1,10 +1,11 @@
-using Xunit;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Preview;
+using Xunit;
 
-namespace Designer.Tests.Helpers.Preview {
+namespace Designer.Tests.Helpers.Preview
+{
 
-    public class NugetVersionHelperTests {
+    public class NugetVersionHelperTests
+    {
         [Fact]
         public void GetMockedAltinnNugetBuildFromVersion_ShouldReturnEmptyStringForVersionsBelowBreakpoint()
         {
