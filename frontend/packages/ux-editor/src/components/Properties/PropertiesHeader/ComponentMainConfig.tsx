@@ -1,7 +1,6 @@
 import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
-import { HeaderMainConfig } from './HeaderMainConfig';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import type { FormContainer } from '@altinn/ux-editor/types/FormContainer';
 
@@ -20,8 +19,6 @@ export const ComponentMainConfig = ({
         <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
-      return (
-        <HeaderMainConfig component={component} handleComponentChange={handleComponentChange} />
-      );
+      return null;
   }
 };

@@ -74,6 +74,14 @@ describe('StudioTextResourcePicker', () => {
     expect(screen.getByRole('option', { name: noTextResourceOptionLabel })).toBeInTheDocument();
   });
 
+  it('Does not display the no text resource option when the user clicks and the text resource is required', async () => {
+    const user = userEvent.setup();
+    renderTextResourcePicker({ required: true });
+    await user.click(getCombobox());
+    const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
+    expect(noTextResourceOption).not.toBeInTheDocument();
+  });
+
   it('Renders with the no text resource option selected by default', () => {
     renderTextResourcePicker();
     expect(getCombobox()).toHaveValue('');
@@ -98,6 +106,11 @@ describe('StudioTextResourcePicker', () => {
     await user.type(combobox, '{backspace}');
     const newExpectedValue = chosenTextResource.value.slice(0, -1);
     expect(combobox).toHaveValue(newExpectedValue);
+  });
+
+  it('Renders without error when the text props are undefined', () => {
+    renderTextResourcePicker({ emptyLabel: undefined, noTextResourceOptionLabel: undefined });
+    expect(getCombobox()).toBeInTheDocument();
   });
 
   it('Forwards the ref', () => {
