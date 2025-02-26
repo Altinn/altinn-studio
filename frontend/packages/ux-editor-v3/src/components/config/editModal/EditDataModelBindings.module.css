@@ -12,7 +12,6 @@
 }
 
 .linkedDataModelContainer {
-  margin-top: 25px;
   display: flex;
   align-items: center;
   gap: var(--fds-spacing-1);
