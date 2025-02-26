@@ -250,27 +250,27 @@
       "value": "Tilbake"
     },
     {
-      "id": "signing.receipt_title",
+      "id": "signing.correspondence_receipt_title",
       "value": "Kvittering: Signering av stiftelsesdokumenter"
     },
     {
-      "id": "signing.receipt_summary",
+      "id": "signing.correspondence_receipt_summary",
       "value": "Du har signert stiftelsesdokumentene"
     },
     {
-      "id": "signing.receipt_body",
+      "id": "signing.correspondence_receipt_body",
       "value": "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
-      "id": "signing.cta_title",
+      "id": "signing.correspondence_cta_title",
       "value": "Oppgave: Signer stiftelsesdokumenter"
     },
     {
-      "id": "signing.cta_summary",
+      "id": "signing.correspondence_cta_summary",
       "value": "Du har blitt lagt til som signatar."
     },
     {
-      "id": "signing.cta_body",
+      "id": "signing.correspondence_cta_body",
       "value": "Du har blitt lagt til som signatar. Klikk på lenken for å gå til skjema <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
