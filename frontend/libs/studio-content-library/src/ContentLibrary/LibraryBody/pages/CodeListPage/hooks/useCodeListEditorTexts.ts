@@ -8,6 +8,7 @@ import type {
 export function useCodeListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();
   const textResourceTexts = useTextResourceTexts();
+  const typeSelectorOptions = useTypeSelectorOptions();
 
   return {
     add: t('code_list_editor.add_option'),
@@ -24,6 +25,9 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
     itemValue: (number: number) => t('code_list_editor.value_item', { number }),
     label: t('code_list_editor.column_title_label'),
     textResourceTexts,
+    typeSelectorDescription: t('code_list_editor.type_selector_description'),
+    typeSelectorLabel: t('code_list_editor.type_selector_label'),
+    typeSelectorOptions,
     value: t('code_list_editor.column_title_value'),
     valueErrors: {
       duplicateValue: t('code_list_editor.error_duplicate_values'),
@@ -47,4 +51,13 @@ function useTextResourceTexts(): (
     noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });
+}
+
+function useTypeSelectorOptions(): CodeListEditorTexts['typeSelectorOptions'] {
+  const { t } = useTranslation();
+  return {
+    string: t('code_list_editor.type_selector_option_string'),
+    number: t('code_list_editor.type_selector_option_number'),
+    boolean: t('code_list_editor.type_selector_option_boolean'),
+  };
 }

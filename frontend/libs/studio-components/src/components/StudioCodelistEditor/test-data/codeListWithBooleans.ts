@@ -15,4 +15,4 @@ const item2: CodeListItem = {
   value: false,
 };
 
-export const codeListWithBooleanValues: CodeList = [item1, item2];
+export const codeListWithBooleans: CodeList = [item1, item2];

@@ -1,12 +1,12 @@
 .createNewCodeListModal[open] {
   max-width: unset;
-  width: min(80vw, 64rem);
+  width: 80vw;
 }
 
 .createNewCodeList {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+  gap: var(--fds-spacing-3);
   align-items: flex-start;
   height: 30rem;
 }

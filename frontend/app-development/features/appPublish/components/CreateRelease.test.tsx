@@ -118,7 +118,7 @@ describe('CreateRelease', () => {
       textMock('app_create_release.release_version_number'),
     );
     await user.type(inputVersionNumber, existingTagName);
-    await inputVersionNumber.blur();
+    await waitFor(() => inputVersionNumber.blur());
 
     await waitFor(() => {
       expect(

@@ -1,11 +1,21 @@
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
-import type { CodeListEditorTexts, ValueErrorMessages } from '../types/CodeListEditorTexts';
+import type {
+  CodeListEditorTexts,
+  TypeSelectorOptionTexts,
+  ValueErrorMessages,
+} from '../types/CodeListEditorTexts';
 import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 
 const valueErrors: ValueErrorMessages = {
   duplicateValue: 'The code must be unique.',
   multipleTypes: 'All codes must be of the same type.',
   nullValue: 'The code cannot be empty.',
+};
+
+const typeSelectorOptions: TypeSelectorOptionTexts = {
+  string: 'String',
+  number: 'Number',
+  boolean: 'Boolean',
 };
 
 export const texts: CodeListEditorTexts = {
@@ -23,6 +33,9 @@ export const texts: CodeListEditorTexts = {
   itemValue: (number) => `Code number ${number}`,
   label: 'Label',
   textResourceTexts,
+  typeSelectorDescription: 'Choose the type of the codes.',
+  typeSelectorLabel: 'Type',
+  typeSelectorOptions,
   value: 'Code',
   valueErrors,
 };

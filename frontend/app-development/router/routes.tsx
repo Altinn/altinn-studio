@@ -17,7 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -51,10 +50,6 @@ export const UiEditor = () => {
   const [selectedFormLayoutSetName] = useLocalStorage<string>('layoutSet/' + app);
   const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
 
-  const { data: appConfigData } = useAppConfigQuery(org, app, {
-    hideDefaultError: true,
-  });
-
   if (fetchingVersionIsPending) {
     return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
   }
@@ -62,8 +57,8 @@ export const UiEditor = () => {
   if (!version) return null;
 
   const renderUiEditorContent = () => {
-    if (isTaskNavigationEnabled && !selectedFormLayoutSetName && appConfigData) {
-      return <FormDesignerNavigation appConfig={appConfigData.serviceName} />;
+    if (isTaskNavigationEnabled && !selectedFormLayoutSetName) {
+      return <FormDesignerNavigation />;
     }
 
     const handleLayoutSetNameChange = (layoutSetName: string) => {

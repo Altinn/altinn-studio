@@ -43,7 +43,7 @@ export const ManualEditor = ({
   return (
     <StudioTextarea
       className={classes.manualEditor}
-      errorAfterBlur={errorMessage}
+      error={errorMessage}
       hideLabel
       label={texts.expression}
       onChange={handleChange}
