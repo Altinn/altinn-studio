@@ -2,8 +2,6 @@ import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
 import path from 'path';
 
-const TIMEOUT_FOR_TOAST_TO_DISAPPEAR: number = 8000;
-
 export class CodeLists extends BasePage {
   constructor(public page: Page) {
     super(page);
@@ -111,13 +109,6 @@ export class CodeLists extends BasePage {
 
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(path.join(__dirname, fileName));
-  }
-
-  public async waitForCodelistToBeUploaded(): Promise<void> {
-    const toast = this.page.getByText(
-      this.textMock('dashboard.org_library.code_list_upload_success'),
-    );
-    await expect(toast).toBeHidden({ timeout: TIMEOUT_FOR_TOAST_TO_DISAPPEAR });
   }
 
   public async clickOnCodeListAccordion(title: string): Promise<void> {
