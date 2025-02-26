@@ -13,6 +13,7 @@ import { PreviewContextProvider } from '../contexts/PreviewContext';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
+import { LayoutContext } from 'app-development/contexts/LayoutContext/LayoutContext';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -22,8 +23,45 @@ jest.mock('@altinn/ux-editor/SubApp', () => ({
   SubApp: () => <div data-testid='latest version' />,
 }));
 
+jest.mock('@altinn/ux-editor/SubApp', () => ({
+  SubApp: ({ onLayoutSetNameChange }: { onLayoutSetNameChange: (name: string) => void }) => {
+    React.useEffect(() => {
+      onLayoutSetNameChange('test-layout');
+    }, [onLayoutSetNameChange]);
+    return <div data-testid='latest version' />;
+  },
+}));
+
 describe('routes', () => {
   describe(RoutePaths.UIEditor, () => {
+    it('calls setSelectedLayoutSetName when layout set changes', async () => {
+      const setSelectedLayoutSetName = jest.fn();
+
+      const appVersion: AppVersion = {
+        frontendVersion: '4.0.0',
+        backendVersion: '7.0.0',
+      };
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
+
+      render(
+        <ServicesContextProvider {...queriesMock} client={queryClient}>
+          <SettingsModalContextProvider>
+            <PreviewContextProvider>
+              <AppDevelopmentContextProvider>
+                <LayoutContext.Provider value={{ setSelectedLayoutSetName }}>
+                  {React.createElement(
+                    routerRoutes.find((route) => route.path === RoutePaths.UIEditor)!.subapp,
+                  )}
+                </LayoutContext.Provider>
+              </AppDevelopmentContextProvider>
+            </PreviewContextProvider>
+          </SettingsModalContextProvider>
+        </ServicesContextProvider>,
+      );
+      expect(await screen.findByTestId('latest version')).toBeInTheDocument();
+      expect(setSelectedLayoutSetName).toHaveBeenCalledWith('test-layout');
+    });
     type FrontendVersion = null | '3.0.0' | '4.0.0';
     type PackageVersion = 'version 3' | 'latest version';
     type TestCase = [PackageVersion, FrontendVersion];
