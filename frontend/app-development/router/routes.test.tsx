@@ -63,12 +63,12 @@ describe('routes', () => {
       expect(setSelectedLayoutSetName).toHaveBeenCalledWith('test-layout');
     });
 
-    it('renders nothing when version is undefined', () => {
+    it('Returns null when there is no AppVersion', async () => {
       const queryClient = createQueryClientMock();
-      queryClient.setQueryData([QueryKey.AppVersion, org, app], undefined);
-      renderSubapp(RoutePaths.UIEditor, queryClient);
-      expect(screen.queryByTestId('latest version')).not.toBeInTheDocument();
+      queryClient.setQueryData([QueryKey.AppVersion, org, app], null);
+      renderUiEditor(queryClient);
       expect(screen.queryByTestId('version 3')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('latest version')).not.toBeInTheDocument();
     });
 
     type FrontendVersion = null | '3.0.0' | '4.0.0';
