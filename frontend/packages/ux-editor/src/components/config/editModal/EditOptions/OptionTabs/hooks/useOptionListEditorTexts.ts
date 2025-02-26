@@ -41,6 +41,7 @@ function useTextResourceTexts(): (
   const prefix = 'code_list_editor.text_resource';
   return (number: number, property: CodeListItemTextProperty) => ({
     editValue: t(`${prefix}.${property}.edit_mode`, { number }),
+    emptyTextResourceList: t(`${prefix}.empty_list`),
     emptyResourceList: t(`${prefix}.empty_list`),
     idLabel: t(`${prefix}.id_label`),
     search: t(`${prefix}.${property}.search_mode`, { number }),
