@@ -1,5 +1,4 @@
 import React from 'react';
-import { Textfield } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -8,6 +7,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
+import { StudioTextfield } from '@studio/components';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();
@@ -42,7 +42,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       onChange={handlePreselectedOptionChange}
       propertyPath={`${component.propertyPath}/properties/preselectedOptionIndex`}
       renderField={({ fieldProps }) => (
-        <Textfield
+        <StudioTextfield
           {...fieldProps}
           type='number'
           placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}

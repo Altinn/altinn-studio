@@ -27,3 +27,10 @@ export const WithoutTextResources: Story = {
     texts,
   },
 };
+
+export const Empty: Story = {
+  args: {
+    codeList: [],
+    texts,
+  },
+};

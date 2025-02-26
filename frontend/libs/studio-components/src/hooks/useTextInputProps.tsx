@@ -9,7 +9,8 @@ export function useTextInputProps<E extends ElementType>(
   props: SharedTextInputProps<E>,
 ): Omit<SharedTextInputProps<E>, keyof AdditionalProps> {
   const {
-    value = '',
+    value,
+    defaultValue,
     onChange,
     onBlur,
     error,
@@ -20,16 +21,17 @@ export function useTextInputProps<E extends ElementType>(
     ...rest
   } = props;
 
-  const [valueState, setValueState] = useState(value);
+  const initialValue = value ?? defaultValue ?? '';
+  const [valueState, setValueState] = useState(initialValue);
   const [showError, setShowError] = useState(false);
 
   const disableError = () => setShowError(false);
   const enableError = () => setShowError(true);
 
   useEffect(() => {
-    if (!value) disableError();
-    setValueState(value);
-  }, [value]);
+    if (!initialValue) disableError();
+    setValueState(initialValue);
+  }, [initialValue]);
 
   const handleChange = (event: ChangeEvent<E>) => {
     setValueState(event.target.value);
