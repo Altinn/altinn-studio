@@ -1,0 +1,61 @@
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
+using Xunit;
+
+namespace Designer.Tests.Controllers.OrgTextController;
+
+public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, IClassFixture<WebApplicationFactory<Program>>
+{
+    public GetResourcesTests(WebApplicationFactory<Program> factory) : base(factory)
+    {
+    }
+
+    [Theory]
+    [InlineData("ttd", "testUser", "org-content", "nb")]
+    public async Task GetResources_Returns200OK_WithValidInput(string org, string developer, string repo, string lang)
+    {
+        // Arrange
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
+
+        string expectedContent = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, $"Texts/resource.{lang}.json");
+
+        string apiUrl = ApiUrl(targetOrg, lang);
+        using HttpRequestMessage requestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(requestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(JsonUtils.DeepEquals(expectedContent, await response.Content.ReadAsStringAsync()));
+    }
+
+    [Theory]
+    [InlineData("ttd", "testUser", "org-content-empty", "sr")]
+    public async Task GetResources_Returns404NotFound_WithNonExistingLang(string org, string developer, string repo, string languageCode)
+    {
+        // Arrange
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
+
+        string apiUrl = ApiUrl(targetOrg, languageCode);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal($"Text resource, resource.{languageCode}.json, could not be found.", await response.Content.ReadAsStringAsync());
+    }
+
+    private static string ApiUrl(string org, string languageCode) => $"/designer/api/{org}/text/language/{languageCode}";
+}
