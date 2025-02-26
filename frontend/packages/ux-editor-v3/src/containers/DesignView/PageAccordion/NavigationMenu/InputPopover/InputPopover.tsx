@@ -1,11 +1,11 @@
 import type { ReactNode, ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState, useRef } from 'react';
 import classes from './InputPopover.module.css';
-import { DropdownMenu, ErrorMessage, Textfield } from '@digdir/designsystemet-react';
+import { DropdownMenu, ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 
 export type InputPopoverProps = {
   disabled: boolean;
@@ -48,7 +48,7 @@ export const InputPopover = ({
    * Handles the change of the new page name. If the name exists, is empty, is too
    * long, or has a wrong format, an error is set, otherwise the value displayed is changed.
    */
-  const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newNameCandidate = event.target.value;
     const nameError: string = getPageNameErrorKey(newNameCandidate, oldName, layoutOrder);
     setErrorMessage(nameError === null ? null : t(nameError));
@@ -80,9 +80,8 @@ export const InputPopover = ({
         {t('ux_editor.page_menu_edit')}
       </DropdownMenu.Item>
       <StudioPopover.Content>
-        <Textfield
+        <StudioTextfield
           label={t('ux_editor.input_popover_label')}
-          size='small'
           onChange={handleOnChange}
           onKeyDown={handleKeyPress}
           value={newName}

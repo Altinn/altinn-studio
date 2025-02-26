@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
-import { Textfield, Textarea } from '@digdir/designsystemet-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -54,11 +53,10 @@ export function CreateRelease() {
         customValidationMessages={(errorCode) => errorCode}
         renderField={({ fieldProps }) => (
           <div className={classes.releaseVersionInput}>
-            <Textfield
+            <StudioTextfield
               {...fieldProps}
               label={t('app_create_release.release_version_number')}
               onChange={handleTagNameChange}
-              size='small'
             />
           </div>
         )}
@@ -66,13 +64,12 @@ export function CreateRelease() {
       <FormField
         value={body}
         renderField={({ fieldProps }) => (
-          <Textarea
+          <StudioTextarea
             {...fieldProps}
             label={t('app_create_release.release_description')}
             value={body}
             onChange={handleBodyChange}
             rows={4}
-            size='small'
           />
         )}
       />

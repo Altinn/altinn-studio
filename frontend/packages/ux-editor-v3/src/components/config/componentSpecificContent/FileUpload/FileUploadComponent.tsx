@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, Radio, Textfield } from '@digdir/designsystemet-react';
+import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -95,7 +95,7 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.validFileEndings}
           propertyPath={`${component.propertyPath}/properties/validFileEndings`}
           renderField={({ fieldProps }) => (
-            <Textfield
+            <StudioTextfield
               {...fieldProps}
               name='modal-properties-valid-file-endings'
               onChange={(e) => fieldProps.onChange(e.target.value, e)}
