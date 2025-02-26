@@ -136,9 +136,12 @@ export class CodeLists extends BasePage {
   ): Promise<void> {
     const accordionTitle = this.page.getByRole('heading', { name: codeListTitle });
     const accordion = accordionTitle.locator('xpath=..');
-    const table = accordion.locator('fieldset table');
-    const rows = table.locator('tbody tr');
+    const table = accordion.getByRole('table');
+    const rows = table.getByRole('row');
 
-    await expect(rows).toHaveCount(numberOfRows);
+    const headerRow: number = 1;
+    const totalNumberOfRows: number = numberOfRows + headerRow;
+
+    await expect(rows).toHaveCount(totalNumberOfRows);
   }
 }
