@@ -1,0 +1,99 @@
+.card {
+  height: 247.5px;
+  width: 244px;
+  min-width: 244px;
+
+  transition:
+    0.2s transform,
+    0.2s box-shadow;
+
+  background-color: var(--fds-semantic-background-default);
+  box-shadow: none;
+}
+
+.card:hover {
+  box-shadow: var(--fds-shadow-medium);
+  transform: translateY(-2px);
+  background-color: var(--fds-semantic-surface-info-subtle-hover);
+  border: var(--fds-border_radius-small);
+  border-style: solid;
+  border-color: var(--fds-semantic-surface-action-checked);
+}
+
+.link {
+  padding: 0px;
+  display: block;
+  height: 100%;
+}
+
+.card:not(:hover) .editIcon {
+  display: none;
+}
+
+.editIcon {
+  position: absolute;
+  font-size: 18pt;
+  right: var(--fds-spacing-2);
+  top: var(--fds-spacing-2);
+}
+
+.iconContainer {
+  height: 136px;
+  display: flex;
+  align-items: center;
+}
+
+.iconBackground {
+  height: var(--fds-sizing-12);
+  width: var(--fds-sizing-12);
+  transform: rotate(45deg);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBackground svg,
+.iconBackground img {
+  transform: rotate(-45deg);
+  font-size: var(--fds-sizing-9);
+  color: #4b5563;
+}
+
+.blue {
+  background-color: var(--fds-colors-blue-100);
+  color: #23262a;
+}
+
+.red {
+  background-color: var(--fds-colors-red-100);
+  color: #23262a;
+  /* color: #fcebee; */
+}
+
+.green {
+  background-color: var(--fds-colors-green-200);
+  color: #23262a;
+}
+
+.grey {
+  background-color: var(--fds-colors-grey-200);
+  color: #23262a;
+}
+
+.yellow {
+  background-color: var(--fds-colors-yellow-200);
+  color: #23262a;
+}
+
+.title {
+  padding-bottom: var(--fds-spacing-2);
+  letter-spacing: 0px;
+}
+
+.content {
+  padding-top: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-4);
+  text-align: center;
+  font-weight: normal;
+}
