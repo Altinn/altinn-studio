@@ -57,6 +57,21 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE);
 });
 
+test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  const codelistFileTitle: string = 'testCodelist';
+  const codelistFileName: string = `${codelistFileTitle}.json`;
+  await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistFileTitle);
+
+  const expectedNumberOfRows: number = 3;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    expectedNumberOfRows,
+    codelistFileTitle,
+  );
+});
+
 test('that it is possible to search for and delete the new codelist', async ({
   page,
   testAppName,
@@ -67,10 +82,13 @@ test('that it is possible to search for and delete the new codelist', async ({
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE);
   await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE);
 
-  const numberOfRowsInCodelist: number = 1;
-  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(numberOfRowsInCodelist);
+  const expectedNumberOfRows: number = 1;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    expectedNumberOfRows,
+    CODELIST_TITLE,
+  );
 
-  await orgLibraryPage.codeLists.listeToAndWaitForConfirmDeleteCodeList(CODELIST_TITLE);
+  await orgLibraryPage.codeLists.listenToAndWaitForConfirmDeleteCodeList(CODELIST_TITLE);
   await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
 
   await orgLibraryPage.codeLists.verifyThatCodeListIsNotVisible(CODELIST_TITLE);
