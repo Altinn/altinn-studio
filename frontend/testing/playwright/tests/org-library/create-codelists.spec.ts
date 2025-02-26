@@ -7,6 +7,11 @@ import { Gitea } from '../../helpers/Gitea';
 import { OrgLibraryPage } from '../../pages/OrgLibraryPage';
 
 const TEST_ORG: string = 'ttd';
+const CODELIST_TITLE_MANUALLY: string = 'Test_codelist';
+const CODELIST_TITLE_UPLOADED: string = 'testCodelist';
+
+const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST: number = 1;
+const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST: number = 3;
 
 test.describe.configure({ mode: 'serial' });
 
@@ -43,31 +48,72 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
 
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
-  const codelistTitle: string = 'Test_codelist';
-  await orgLibraryPage.codeLists.writeCodelistTitle(codelistTitle);
+  await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
   await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
-  const firstRow: number = 1;
-  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(firstRow);
+
+  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+  );
   const firstRowValue: string = 'First value';
-  await orgLibraryPage.codeLists.writeCodelistValue(firstRow, firstRowValue);
+  await orgLibraryPage.codeLists.writeCodelistValue(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    firstRowValue,
+  );
   const firstRowLabel: string = 'First label';
-  await orgLibraryPage.codeLists.writeCodelistLabel(firstRow, firstRowLabel);
+  await orgLibraryPage.codeLists.writeCodelistLabel(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    firstRowLabel,
+  );
 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
+});
+
+test('that it is possible to add a new row to an existing codelist and modify the fields in the row', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_MANUALLY);
+
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    CODELIST_TITLE_MANUALLY,
+  );
+
+  await orgLibraryPage.codeLists.clickOnAddRowButton();
+  const numberOfRowsAfterAddingRow: number = EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST + 1;
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    numberOfRowsAfterAddingRow,
+    CODELIST_TITLE_MANUALLY,
+  );
+
+  const newlyAddedRow: number = numberOfRowsAfterAddingRow;
+  await orgLibraryPage.codeLists.verifyEmptyValueTextfield(newlyAddedRow);
+  await orgLibraryPage.codeLists.verifyEmptyLabelTextfield(newlyAddedRow);
+
+  const value: string = 'value';
+  await orgLibraryPage.codeLists.writeCodelistValue(newlyAddedRow, value);
+  await orgLibraryPage.codeLists.verifyTextfieldValue(newlyAddedRow, value);
+
+  const label: string = 'label';
+  await orgLibraryPage.codeLists.writeCodelistLabel(newlyAddedRow, label);
+  await orgLibraryPage.codeLists.verifyTextfieldLabel(newlyAddedRow, label);
+
+  await orgLibraryPage.codeLists.tabOut();
 });
 
 test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
-  const codelistFileTitle: string = 'testCodelist';
-  const codelistFileName: string = `${codelistFileTitle}.json`;
+  const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistFileTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
 
-  const expectedNumberOfRows: number = 3;
   await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
-    expectedNumberOfRows,
-    codelistFileTitle,
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+    CODELIST_TITLE_UPLOADED,
   );
 });
