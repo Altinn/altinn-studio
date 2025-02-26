@@ -4,6 +4,8 @@ import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
+import { TaskCardBar } from '../TaskCardBar';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
@@ -13,8 +15,12 @@ export const FormDesignerNavigation = () => {
     <div className={classes.wrapper}>
       <main className={classes.container}>
         <div className={classes.panel}>
+          <StudioHeading size='sm'>Appnavn</StudioHeading>
+          <StudioParagraph size='sm'>Velg en oppgave du vil utforme</StudioParagraph>
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>
+            <TaskCardBar />
+            <Paragraph>{appConfig}</Paragraph>
           </div>
           <footer className={classes.footer}>
             <Link href='/contact'>{t('general.contact')}</Link>

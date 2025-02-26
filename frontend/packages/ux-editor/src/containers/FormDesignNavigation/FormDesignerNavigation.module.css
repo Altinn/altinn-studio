@@ -1,5 +1,6 @@
 .wrapper {
   background-color: #e6eff8;
+  overflow-x: hidden;
 }
 
 .container {
