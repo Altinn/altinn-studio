@@ -5,7 +5,7 @@ import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
 import type { Override } from '../../types/Override';
 import classes from './StudioTextResourcePicker.module.css';
-import { doesTextResourceExist } from './utils';
+import { retrieveSelectedValues } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
@@ -25,7 +25,7 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
     );
 
     const selectedValues: string[] = useMemo(
-      () => (doesTextResourceExist(textResources, value) ? [value] : []),
+      () => retrieveSelectedValues(textResources, value),
       [textResources, value],
     );
 
