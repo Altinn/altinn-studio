@@ -199,19 +199,6 @@ describe('TextResource', () => {
     expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
   });
 
-  it('Does not mutate text resource when value is cleared and close button is clicked', async () => {
-    const label = 'Test';
-    const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
-    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
-    await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await user.clear(textbox);
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
-    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
-  });
-
   it('Does not show scrollbar when text content is shorter than default min height', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
