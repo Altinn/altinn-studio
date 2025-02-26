@@ -9,16 +9,30 @@ import { retrieveSelectedValues } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
+    emptyLabel?: string;
+    noTextResourceOptionLabel?: string;
     onValueChange: (id: string | null) => void;
+    required?: boolean;
     textResources: TextResource[];
-    noTextResourceOptionLabel: string;
     value?: string;
   },
   StudioComboboxProps
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  ({ textResources, onSelect, onValueChange, noTextResourceOptionLabel, value, ...rest }, ref) => {
+  (
+    {
+      emptyLabel = '',
+      noTextResourceOptionLabel = '',
+      onSelect,
+      onValueChange,
+      required,
+      textResources,
+      value,
+      ...rest
+    },
+    ref,
+  ) => {
     const handleValueChange = useCallback(
       ([id]: string[]) => onValueChange(id || null),
       [onValueChange],
@@ -37,7 +51,8 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
         {...rest}
         ref={ref}
       >
-        {renderNoTextResourceOption(noTextResourceOptionLabel)}
+        <StudioCombobox.Empty>{emptyLabel}</StudioCombobox.Empty>
+        {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
       </StudioCombobox>
     );
