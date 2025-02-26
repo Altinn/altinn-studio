@@ -824,7 +824,7 @@
   "process_editor.sync_error_layout_sets_task_id": "Det oppsto en feil da oppgave-ID skulle synkroniseres i filen 'layoutsets.json'. Kontroller at 'layoutsets.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "process_editor.sync_error_policy_file_task_id": "Det oppsto en feil da oppgave-ID skulle synkroniseres i filen 'policy.json'. Kontroller at 'policy.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "process_editor.task_type.confirmation": "Bekreftelse",
-  "process_editor.task_type.data": "Utfylling",
+  "process_editor.task_type.data": "Oppgave: Utfylling",
   "process_editor.task_type.feedback": "Tilbakemelding",
   "process_editor.task_type.payment": "Betaling",
   "process_editor.task_type.signing": "Signering",
