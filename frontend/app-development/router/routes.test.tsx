@@ -48,14 +48,14 @@ describe('routes', () => {
       },
     );
 
-    it('renders a loading spinner while fetching frontend version', async () => {
+    it('renders a loading spinner', async () => {
       renderUiEditor();
       await waitFor(() => {
         expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();
       });
     });
 
-    it('renders a loading spinner while pending', () => {
+    it('renders a loading spinner message while pending', () => {
       renderUiEditor();
       expect(screen.getByText(textMock('overview.header_loading'))).toBeInTheDocument();
     });
