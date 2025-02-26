@@ -101,10 +101,10 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string stringBoolNumbersCodeList = @"[
+        const string emptyStringCodeList = @"[
             { ""label"": """", ""value"": """" },
         ]";
-        httpRequestMessage.Content = new StringContent(stringBoolNumbersCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(emptyStringCodeList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
