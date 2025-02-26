@@ -41,11 +41,8 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
                     Email = new Email
                     {
                         EmailAddress = revisor.Epost,
-                        Subject = "Revisjonsoppdrag mottatt for signering i Altinn",
-                        Body =
-                            "Nytt revisjonsoppdrag for "
-                            + revisor.Navn
-                            + " er mottatt for signering i Altinn. Logg inn på Altinn for å signere.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                        SubjectTextResourceKey = "signing.revisor_email_subject",
+                        BodyTextResourceKey = "signing.revisor_notification_content".Replace("{0}", revisor.Navn),
                     }
                 }
             }

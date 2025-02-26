@@ -248,6 +248,46 @@
     {
       "id": "back",
       "value": "Tilbake"
+    },
+    {
+      "id": "signing.receipt_title",
+      "value": "Kvittering: Signering av stiftelsesdokumenter"
+    },
+    {
+      "id": "signing.receipt_summary",
+      "value": "Du har signert stiftelsesdokumentene"
+    },
+    {
+      "id": "signing.receipt_body",
+      "value": "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.cta_title",
+      "value": "Oppgave: Signer stiftelsesdokumenter"
+    },
+    {
+      "id": "signing.cta_summary",
+      "value": "Du har blitt lagt til som signatar."
+    },
+    {
+      "id": "signing.cta_body",
+      "value": "Du har blitt lagt til som signatar. Klikk på lenken for å gå til skjema <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.notification_content",
+      "value": "Hei {0},\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+    },
+    {
+      "id": "signing.email_subject",
+      "value": "Stiftelsesdokumenter mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
+    },
+    {
+      "id": "signing.revisor_notification_content",
+      "value": "Nytt revisjonsoppdrag for {0} er mottatt for signering i Altinn. Logg inn på Altinn for å signere.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+    },
+    {
+      "id": "signing.revisor_email_subject",
+      "value": "Revisjonsoppdrag mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
     }
   ]
 }

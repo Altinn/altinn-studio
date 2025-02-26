@@ -44,19 +44,13 @@ public class FounderSigneesProvider : ISigneeProvider
                         Email = new Email
                         {
                             EmailAddress = stifterPerson.Epost,
-                            Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
-                            Body =
-                                "Hei "
-                                + stifterPerson.Fornavn
-                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            SubjectTextResourceKey = "signing.email_subject",
+                            BodyTextResourceKey = "signing.notification_content".Replace("{0}", stifterPerson.Fornavn),
                         },
                         Sms = new Sms
                         {
                             MobileNumber = stifterPerson.Mobiltelefon,
-                            Body =
-                                "Hei "
-                                + stifterPerson.Fornavn
-                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            TextResourceKey = "signing.notification_content".Replace("{0}", stifterPerson.Fornavn),
                         }
                     }
                 }
@@ -82,19 +76,13 @@ public class FounderSigneesProvider : ISigneeProvider
                         Email = new Email
                         {
                             EmailAddress = stifterVirksomhet.Epost,
-                            Subject = "Stiftelsesdokumenter mottatt for signering i Altinn",
-                            Body =
-                                "Hei "
-                                + stifterVirksomhet.Navn
-                                + ",\n\nNye stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            SubjectTextResourceKey = "signing.email_subject",
+                            BodyTextResourceKey = "signing.notification_content".Replace("{0}", stifterVirksomhet.Navn),
                         },
                         Sms = new Sms
                         {
                             MobileNumber = stifterVirksomhet.Mobiltelefon,
-                            Body =
-                                "Hei "
-                                + stifterVirksomhet.Navn
-                                + ",\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+                            TextResourceKey = "signing.notification_content".Replace("{0}", stifterVirksomhet.Navn),
                         }
                     }
                 }
