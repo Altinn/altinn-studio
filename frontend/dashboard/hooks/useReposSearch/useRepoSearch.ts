@@ -56,7 +56,6 @@ export const useReposSearch = ({
   const toggleSortDirection = () => {
     setSortDirection((prevDirection) => {
       const newDirection = prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc;
-      // Save the updated sort preference
       typedLocalStorage.setItem('dashboard-app-sort-order', {
         sortKey: selectedColumn,
         direction: newDirection,
@@ -72,7 +71,6 @@ export const useReposSearch = ({
       setSelectedColumn(columnKey);
       const newDirection = Direction.Asc;
       setSortDirection(newDirection);
-      // Save the updated sort preference
       typedLocalStorage.setItem('dashboard-app-sort-order', {
         sortKey: columnKey,
         direction: newDirection,
@@ -102,7 +100,6 @@ export const useReposSearch = ({
     return nextPageNumber <= numberOfPages ? nextPageNumber : pageNumber;
   };
 
-  // Prefetch and cache the next page, if it exists
   useSearchReposQuery({ ...cleanFilter, page: getNextExistingPageNumber() });
 
   return {
