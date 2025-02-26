@@ -8,4 +8,5 @@
 .navigateSubformButton {
   margin-left: var(--fds-spacing-5);
   margin-top: var(--fds-spacing-1);
+  margin-bottom: var(--fds-spacing-2);
 }
