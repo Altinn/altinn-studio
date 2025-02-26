@@ -63,6 +63,9 @@ jobs:
       - name: 'Doing the typecheck'
         run: yarn typecheck
 
+      - name: 'Strict null checks'
+        run: yarn strict-null-checks
+
       - name: 'Running Eslint'
         run: yarn lint --cache
 
