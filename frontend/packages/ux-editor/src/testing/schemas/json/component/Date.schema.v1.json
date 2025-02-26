@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/NavigationBar.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Date.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,41 +47,33 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "NavigationBar" },
-    "compact": {
-      "title": "Compact",
-      "description": "Change appearance of navbar as compact in desktop view",
-      "type": "boolean"
-    },
-    "validateOnForward": {
-      "title": "PageValidation",
+    "type": { "const": "Date" },
+    "textResourceBindings": {
+      "title": "TRBLabel",
       "type": "object",
       "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
     },
-    "validateOnBackward": {
-      "title": "PageValidation",
-      "type": "object",
-      "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
-        },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
-    }
+    "format": { "examples": ["dd.MM.yyyy"], "type": "string" },
+    "value": { "$ref": "expression.schema.v1.json#/definitions/string" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
-  "required": ["id", "type"],
-  "title": "NavigationBar component schema"
+  "required": ["id", "type", "value"],
+  "title": "Date component schema"
 }
