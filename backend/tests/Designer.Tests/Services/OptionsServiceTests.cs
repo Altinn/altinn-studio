@@ -268,19 +268,19 @@ public class OptionsServiceTests
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
-                        LayoutName = "layoutWithOneOptionListIdRef.json",
+                        LayoutName = "layoutWithOneOptionListIdRef",
                         LayoutSetId = "layoutSet1"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-same-options-id-in-another-set"],
-                        LayoutName = "layoutWithTwoOptionListIdRefs.json",
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
                         LayoutSetId = "layoutSet2"
                     }
                 ]
@@ -292,7 +292,7 @@ public class OptionsServiceTests
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-other-options-id"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1"
                     }
                 ]
