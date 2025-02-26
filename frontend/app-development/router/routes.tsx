@@ -12,9 +12,12 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner, useLocalStorage } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
+import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useAppConfigQuery } from 'app-development/hooks/queries';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -39,12 +42,18 @@ const latestFrontendVersion = '4';
 const isLatestFrontendVersion = (version: AppVersion): boolean =>
   version?.frontendVersion?.startsWith(latestFrontendVersion);
 
-const UiEditor = () => {
+export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: version, isPending: fetchingVersionIsPending } = useAppVersionQuery(org, app);
   const { shouldReloadPreview, previewHasLoaded } = usePreviewContext();
   const { setSelectedLayoutSetName } = useLayoutContext();
+  const [selectedFormLayoutSetName] = useLocalStorage<string>('layoutSet/' + app);
+  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
+
+  const { data: appConfigData } = useAppConfigQuery(org, app, {
+    hideDefaultError: true,
+  });
 
   if (fetchingVersionIsPending) {
     return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
@@ -52,15 +61,25 @@ const UiEditor = () => {
 
   if (!version) return null;
 
-  return isLatestFrontendVersion(version) ? (
-    <UiEditorLatest
-      shouldReloadPreview={shouldReloadPreview}
-      previewHasLoaded={previewHasLoaded}
-      onLayoutSetNameChange={(layoutSetName) => setSelectedLayoutSetName(layoutSetName)}
-    />
-  ) : (
-    <UiEditorV3 />
-  );
+  const renderUiEditorContent = () => {
+    if (isTaskNavigationEnabled && !selectedFormLayoutSetName && appConfigData) {
+      return <FormDesignerNavigation appConfig={appConfigData.serviceName} />;
+    }
+
+    const handleLayoutSetNameChange = (layoutSetName: string) => {
+      setSelectedLayoutSetName(layoutSetName);
+    };
+
+    return (
+      <UiEditorLatest
+        shouldReloadPreview={shouldReloadPreview}
+        previewHasLoaded={previewHasLoaded}
+        onLayoutSetNameChange={handleLayoutSetNameChange}
+      />
+    );
+  };
+
+  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <UiEditorV3 />;
 };
 
 export const routerRoutes: RouterRoute[] = [
