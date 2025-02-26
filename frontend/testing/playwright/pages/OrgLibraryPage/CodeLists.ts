@@ -94,7 +94,27 @@ export class CodeLists extends BasePage {
     await expect(codeList).toBeVisible();
   }
 
-  public async clickOnUploadCodelistButton(): Promise<void> {
+  public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
+    await this.page.getByRole('heading', { name: codeListTitle }).click();
+  }
+
+  public async typeInSearchBox(searchTerm: string): Promise<void> {
+    await this.page
+      .getByRole('searchbox', {
+        name: this.textMock('app_content_library.code_lists.search_label'),
+      })
+      .fill(searchTerm);
+  }
+
+  public async clickOnDeleteCodelistButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.code_list_delete'),
+      })
+      .click();
+  }
+
+  private async clickOnUploadCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
         name: this.textMock('app_content_library.code_lists.upload_code_list'),
@@ -111,14 +131,24 @@ export class CodeLists extends BasePage {
     await fileChooser.setFiles(path.join(__dirname, fileName));
   }
 
-  public async clickOnCodeListAccordion(title: string): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.code_list_accordion_title', {
-          codeListTitle: title,
-        }),
-      })
-      .click();
+  public async listenToAndWaitForConfirmDeleteCodeList(codeListTitle: string): Promise<void> {
+    this.page.once('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      expect(dialog.message()).toContain(
+        this.textMock('app_content_library.code_lists.code_list_delete_confirm', { codeListTitle }),
+      );
+      await dialog.accept();
+    });
+  }
+
+  public async verifyThatCodeListIsNotVisible(title: string): Promise<void> {
+    const codeList = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: title,
+      }),
+    );
+
+    await expect(codeList).toBeHidden();
   }
 
   public async verifyNumberOfRowsInTheCodelist(

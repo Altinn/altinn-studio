@@ -7,6 +7,11 @@ import { Gitea } from '../../helpers/Gitea';
 import { OrgLibraryPage } from '../../pages/OrgLibraryPage';
 
 const TEST_ORG: string = 'ttd';
+const CODELIST_TITLE_MANUALLY: string = 'Test_codelist';
+const CODELIST_TITLE_UPLOADED: string = 'testCodelist';
+
+const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST: number = 1;
+const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST: number = 3;
 
 test.describe.configure({ mode: 'serial' });
 
@@ -43,31 +48,79 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
 
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
-  const codelistTitle: string = 'Test_codelist';
-  await orgLibraryPage.codeLists.writeCodelistTitle(codelistTitle);
+  await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
   await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
-  const firstRow: number = 1;
-  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(firstRow);
+
+  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+  );
   const firstRowValue: string = 'First value';
-  await orgLibraryPage.codeLists.writeCodelistValue(firstRow, firstRowValue);
+  await orgLibraryPage.codeLists.writeCodelistValue(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    firstRowValue,
+  );
   const firstRowLabel: string = 'First label';
-  await orgLibraryPage.codeLists.writeCodelistLabel(firstRow, firstRowLabel);
+  await orgLibraryPage.codeLists.writeCodelistLabel(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    firstRowLabel,
+  );
 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
 });
 
 test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
-  const codelistFileTitle: string = 'testCodelist';
-  const codelistFileName: string = `${codelistFileTitle}.json`;
+  const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistFileTitle);
-
-  const expectedNumberOfRows: number = 3;
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
   await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
-    expectedNumberOfRows,
-    codelistFileTitle,
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+    CODELIST_TITLE_UPLOADED,
   );
 });
+
+test('that it is possible to search for and delete the new codelists', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+  await deleteAndVerifyDeletionOfCodeList(
+    orgLibraryPage,
+    CODELIST_TITLE_MANUALLY,
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+  );
+
+  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  await deleteAndVerifyDeletionOfCodeList(
+    orgLibraryPage,
+    CODELIST_TITLE_UPLOADED,
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+  );
+});
+
+const searchForAndOpenCodeList = async (
+  orgLibraryPage: OrgLibraryPage,
+  codelistTitle: string,
+): Promise<void> => {
+  await orgLibraryPage.codeLists.typeInSearchBox(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(codelistTitle);
+};
+
+const deleteAndVerifyDeletionOfCodeList = async (
+  orgLibraryPage: OrgLibraryPage,
+  codelistTitle: string,
+  expectedNumberOfRowsInCodeList: number,
+): Promise<void> => {
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    expectedNumberOfRowsInCodeList,
+    codelistTitle,
+  );
+  await orgLibraryPage.codeLists.listenToAndWaitForConfirmDeleteCodeList(codelistTitle);
+  await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
+  await orgLibraryPage.codeLists.verifyThatCodeListIsNotVisible(codelistTitle);
+};
