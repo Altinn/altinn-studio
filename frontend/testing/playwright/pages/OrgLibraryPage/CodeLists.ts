@@ -1,5 +1,6 @@
 import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
+import path from 'path';
 
 export class CodeLists extends BasePage {
   constructor(public page: Page) {
@@ -52,6 +53,7 @@ export class CodeLists extends BasePage {
   public async verifyAlternativeRowIsVisible(row: number): Promise<void> {
     const alternativeRow = this.page.getByRole('textbox', {
       name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+      exact: true,
     });
 
     await expect(alternativeRow).toBeVisible();
@@ -61,6 +63,7 @@ export class CodeLists extends BasePage {
     await this.page
       .getByRole('textbox', {
         name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+        exact: true,
       })
       .fill(value);
   }
@@ -89,5 +92,47 @@ export class CodeLists extends BasePage {
     );
 
     await expect(codeList).toBeVisible();
+  }
+
+  public async clickOnUploadCodelistButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.upload_code_list'),
+      })
+      .click();
+  }
+
+  public async clickOnUploadButtonAndSelectFileToUpload(fileName: string): Promise<void> {
+    const fileChooserPromise = this.page.waitForEvent('filechooser');
+
+    await this.clickOnUploadCodelistButton();
+
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(path.join(__dirname, fileName));
+  }
+
+  public async clickOnCodeListAccordion(title: string): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+          codeListTitle: title,
+        }),
+      })
+      .click();
+  }
+
+  public async verifyNumberOfRowsInTheCodelist(
+    numberOfRows: number,
+    codeListTitle: string,
+  ): Promise<void> {
+    const accordionTitle = this.page.getByRole('heading', { name: codeListTitle });
+    const accordion = accordionTitle.locator('xpath=..');
+    const table = accordion.getByRole('table');
+    const rows = table.getByRole('row');
+
+    const headerRow: number = 1;
+    const totalNumberOfRows: number = numberOfRows + headerRow;
+
+    await expect(rows).toHaveCount(totalNumberOfRows);
   }
 }
