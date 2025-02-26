@@ -9,7 +9,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
 import { StudioPageSpinner, StudioSpinner, useLocalStorage } from '@studio/components';
@@ -18,7 +18,6 @@ import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { toast } from 'react-toastify';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -52,19 +51,9 @@ const UiEditor = () => {
   const [selectedFormLayoutSetName] = useLocalStorage<string>('layoutSet/' + app);
   const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
 
-  const {
-    data: appConfigData,
-    isPending,
-    isError,
-  } = useAppConfigQuery(org, app, {
+  const { data: appConfigData, isPending } = useAppConfigQuery(org, app, {
     hideDefaultError: true,
   });
-
-  useEffect(() => {
-    if (isError) {
-      toast.error(t('overview.fetch_title_error_message'));
-    }
-  }, [isError, t]);
 
   if (isPending) {
     return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
