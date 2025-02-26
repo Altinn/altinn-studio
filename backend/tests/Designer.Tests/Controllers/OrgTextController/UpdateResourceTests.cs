@@ -93,8 +93,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
             var textResourceContainsKey = resource.Resources.Find(textResourceElement => textResourceElement.Id == key);
             if (textResourceContainsKey is null)
             {
-                resource.Resources.Insert(0, new TextResourceElement
-                    { Id = key, Value = value });
+                resource.Resources.Insert(0, new TextResourceElement { Id = key, Value = value });
                 continue;
             }
 

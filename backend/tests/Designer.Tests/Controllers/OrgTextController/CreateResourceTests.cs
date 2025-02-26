@@ -26,7 +26,7 @@ public class CreateResourceTests : DesignerEndpointsTestsBase<CreateResourceTest
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
         string apiUrl = ApiUrl(targetOrg, lang);
-        using HttpRequestMessage httpRequestMessage = new (HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         // Act
