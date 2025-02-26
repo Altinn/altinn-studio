@@ -29,12 +29,14 @@ describe('CreateNewCodeListModal', () => {
     expect(codeListNameInput).toHaveTextContent('');
   });
 
-  it('renders the code list editor without content', async () => {
+  it('renders the code list editor without code list', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
     await openDialog(user);
-    const codeListIsEmptyMessage = screen.getByText(textMock('code_list_editor.empty'));
-    expect(codeListIsEmptyMessage).toBeInTheDocument();
+    const typeSelector = screen.getByRole('combobox', {
+      name: textMock('code_list_editor.type_selector_label'),
+    });
+    expect(typeSelector).toBeInTheDocument();
   });
 
   it('renders a disabled button by default', async () => {
