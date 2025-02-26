@@ -13,7 +13,7 @@ describe('Stateless', () => {
 
   it('Prefill from Register and data processing', () => {
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
-    cy.findByRole('button', { name: /lukk skjema/i }).should('not.exist');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('not.exist');
     cy.get(appFrontend.stateless.name).invoke('val').should('not.be.empty');
     cy.get(appFrontend.stateless.number).should('have.value', '1364');
     cy.get(appFrontend.stateless.name).clear();
@@ -37,8 +37,8 @@ describe('Stateless', () => {
 
   it('Logout from appfrontend', () => {
     cy.findByRole('button', { name: 'Profil ikon knapp' }).click();
-    cy.findByRole('dialog', { name: 'Profil ikon knapp' }).should('exist');
-    cy.findByRole('link', { name: 'Logg ut' }).should('be.visible');
+    cy.findByRole('dialog').should('be.visible');
+    cy.findByRole('menuitem', { name: 'Logg ut' }).should('be.visible');
   });
 
   it('is possible to start app instance from stateless app', () => {

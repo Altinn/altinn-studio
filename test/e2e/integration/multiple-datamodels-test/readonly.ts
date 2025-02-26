@@ -114,7 +114,7 @@ describe('readonly data models', () => {
 
     cy.then(() => expect(formDataRequests.length).to.be.eq(0));
 
-    cy.findByRole('button', { name: /neste/i }).click();
+    cy.findByRole('button', { name: 'Neste' }).click();
 
     cy.findByRole('heading', { name: /tittel/i }).should('be.visible');
     cy.waitUntilSaved();
@@ -122,8 +122,8 @@ describe('readonly data models', () => {
     cy.then(() => expect(formDataRequests.length).to.be.eq(1));
     cy.findByText(errorReportTitle).should('not.exist');
 
-    cy.findByRole('button', { name: /tilbake/i }).click();
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: 'Forrige' }).click();
+    cy.findByRole('button', { name: 'Send inn' }).click();
 
     cy.findByRole('heading', { name: /kvittering/i }).should('be.visible');
     cy.get(appFrontend.multipleDatamodelsTest.textField1Summary).should('contain.text', 'første');

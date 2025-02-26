@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -12,7 +13,6 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
-import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
@@ -243,7 +243,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const { handleClientActions } = useHandleClientActions();
   const { handleServerAction } = useHandleServerActionMutation(acquireLock);
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const [isProcessing, processing] = useIsProcessing<'action'>();
+  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
@@ -254,7 +254,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const isPermittedToPerformActions = actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const disabled = !isPermittedToPerformActions || !!isProcessing;
+  const disabled = !isPermittedToPerformActions || isAnyProcessing;
 
   const isSubformCloseButton = actions.filter((action) => action.id === 'closeSubform').length > 0;
   let interceptedButtonStyle = buttonStyle ?? 'secondary';
@@ -269,7 +269,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   }
 
   const onClick = () =>
-    processing('action', async () => {
+    performProcess(async () => {
       for (const action of actions) {
         if (action.validation) {
           const prevScrollPosition = getScrollPosition();
@@ -299,7 +299,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
         size={toShorthandSize(buttonSize)}
         color={buttonColor ?? style.color}
         variant={style.variant}
-        isLoading={!!isProcessing}
+        isLoading={isThisProcessing}
       >
         <Lang id={buttonText} />
       </Button>

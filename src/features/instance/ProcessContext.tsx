@@ -127,3 +127,11 @@ export function useGetTaskTypeById() {
     return ProcessTaskType.Unknown;
   };
 }
+
+/**
+ * Returns the actual raw task type of a given taskId.
+ */
+export function useGetAltinnTaskType() {
+  const processData = useLaxProcessData();
+  return (taskId: string | undefined) => processData?.processTasks?.find((t) => t.elementId === taskId)?.altinnTaskType;
+}

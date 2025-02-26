@@ -4,9 +4,8 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useCurrentLanguage, useIsProfileLanguageLoaded } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -20,9 +19,7 @@ const useTextResourcesQuery = () => {
   const selectedLanguage = useCurrentLanguage();
 
   // This makes sure to await potential profile fetching before fetching text resources
-  const profileLanguageLoaded = useIsProfileLanguageLoaded();
-  const isAnonymous = useAllowAnonymousIs(true);
-  const enabled = isAnonymous || profileLanguageLoaded;
+  const enabled = useIsCurrentLanguageResolved();
 
   const utils = {
     ...useQueryWithStaleData<ITextResourceResult, HttpClientError>({

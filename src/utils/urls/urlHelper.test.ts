@@ -4,69 +4,93 @@ import {
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
   returnBaseUrlToAltinn,
-  returnUrlToAllSchemas,
+  returnUrlToAllForms,
+  returnUrlToArchive,
   returnUrlToMessagebox,
   returnUrlToProfile,
 } from 'src/utils/urls/urlHelper';
 
+const hostTT = 'ttd.apps.tt02.altinn.no';
+const hostAT = 'ttd.apps.at21.altinn.cloud';
+const hostYT = 'ttd.apps.yt01.altinn.cloud';
+const hostProd = 'ttd.apps.altinn.no';
+const hostDocker = 'local.altinn.cloud';
+const hostPodman = 'local.altinn.cloud:8000';
+const hostStudio = 'altinn.studio';
+const hostStudioDev = 'dev.altinn.studio';
+const hostUnknown = 'www.vg.no';
+
 describe('Shared urlHelper.ts', () => {
-  test('returnUrlToMessagebox() returning production messagebox', () => {
-    const origin = 'https://tdd.apps.altinn.no/tdd/myappname';
-    expect(returnUrlToMessagebox(origin)).toContain('altinn.no');
-  });
-
-  test('returnUrlToMessagebox() returning at21 messagebox', () => {
-    const origin = 'https://tdd.apps.at21.altinn.cloud/tdd/myappname';
-    expect(returnUrlToMessagebox(origin)).toContain('at21.altinn.cloud');
-  });
-
-  test('returnUrlToMessagebox() returning tt02 messagebox', () => {
-    const origin = 'https://tdd.apps.tt02.altinn.no/tdd/myappname';
-    expect(returnUrlToMessagebox(origin)).toContain('tt02.altinn.no');
-  });
-
-  test('returnUrlToMessagebox() returning null when unknown origin', () => {
-    const origin = 'https://www.vg.no';
-    expect(returnUrlToMessagebox(origin)).toBe(null);
+  test('returnUrlToMessagebox() returning correct environemnts', () => {
+    expect(returnUrlToMessagebox(hostTT)).toBe('https://tt02.altinn.no/ui/messagebox');
+    expect(returnUrlToMessagebox(hostAT)).toBe('https://at21.altinn.cloud/ui/messagebox');
+    expect(returnUrlToMessagebox(hostYT)).toBe('https://yt01.altinn.cloud/ui/messagebox');
+    expect(returnUrlToMessagebox(hostProd)).toBe('https://altinn.no/ui/messagebox');
+    expect(returnUrlToMessagebox(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToMessagebox(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToMessagebox(hostStudio)).toBe(undefined);
+    expect(returnUrlToMessagebox(hostStudioDev)).toBe(undefined);
+    expect(returnUrlToMessagebox(hostUnknown)).toBe(undefined);
   });
 
   test('returnBaseUrlToAltinn() returning correct environemnts', () => {
-    const originTT = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
-    const originAT = 'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originYT = 'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'https://www.vg.no';
-    expect(returnBaseUrlToAltinn(originTT)).toContain('tt02.altinn.no');
-    expect(returnBaseUrlToAltinn(originAT)).toContain('at21.altinn.cloud');
-    expect(returnBaseUrlToAltinn(originYT)).toContain('yt01.altinn.cloud');
-    expect(returnBaseUrlToAltinn(originProd)).toContain('altinn.no');
-    expect(returnBaseUrlToAltinn(originUnknown)).toBe(null);
+    expect(returnBaseUrlToAltinn(hostTT)).toBe('https://tt02.altinn.no/');
+    expect(returnBaseUrlToAltinn(hostAT)).toBe('https://at21.altinn.cloud/');
+    expect(returnBaseUrlToAltinn(hostYT)).toBe('https://yt01.altinn.cloud/');
+    expect(returnBaseUrlToAltinn(hostProd)).toBe('https://altinn.no/');
+    expect(returnBaseUrlToAltinn(hostDocker)).toBe(undefined);
+    expect(returnBaseUrlToAltinn(hostPodman)).toBe(undefined);
+    expect(returnBaseUrlToAltinn(hostStudio)).toBe(undefined);
+    expect(returnBaseUrlToAltinn(hostStudioDev)).toBe(undefined);
+    expect(returnBaseUrlToAltinn(hostUnknown)).toBe(undefined);
   });
 
   test('returnUrlTProfile() returning correct environments', () => {
-    const originTT = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
-    const originAT = 'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originYT = 'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'https://www.vg.no';
-    expect(returnUrlToProfile(originTT)).toContain('tt02.altinn.no/ui/profile');
-    expect(returnUrlToProfile(originAT)).toContain('at21.altinn.cloud/ui/profile');
-    expect(returnUrlToProfile(originYT)).toContain('yt01.altinn.cloud/ui/profile');
-    expect(returnUrlToProfile(originProd)).toContain('altinn.no/ui/profile');
-    expect(returnUrlToProfile(originUnknown)).toBe(null);
+    expect(returnUrlToProfile(hostTT)).toBe('https://tt02.altinn.no/ui/profile');
+    expect(returnUrlToProfile(hostAT)).toBe('https://at21.altinn.cloud/ui/profile');
+    expect(returnUrlToProfile(hostYT)).toBe('https://yt01.altinn.cloud/ui/profile');
+    expect(returnUrlToProfile(hostProd)).toBe('https://altinn.no/ui/profile');
+    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToProfile(hostStudio)).toBe(undefined);
+    expect(returnUrlToProfile(hostStudioDev)).toBe(undefined);
+    expect(returnUrlToProfile(hostUnknown)).toBe(undefined);
   });
 
-  test('returnUrlAllSchemas() returning correct environments', () => {
-    const originTT = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
-    const originAT = 'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originYT = 'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'https://www.vg.no';
-    expect(returnUrlToAllSchemas(originTT)).toContain('tt02.altinn.no/skjemaoversikt');
-    expect(returnUrlToAllSchemas(originAT)).toContain('at21.altinn.cloud/skjemaoversikt');
-    expect(returnUrlToAllSchemas(originYT)).toContain('yt01.altinn.cloud/skjemaoversikt');
-    expect(returnUrlToAllSchemas(originProd)).toContain('altinn.no/skjemaoversikt');
-    expect(returnUrlToAllSchemas(originUnknown)).toBe(null);
+  test('returnUrlAllForms() returning correct environments', () => {
+    expect(returnUrlToAllForms(hostTT)).toBe('https://tt02.altinn.no/skjemaoversikt');
+    expect(returnUrlToAllForms(hostAT)).toBe('https://at21.altinn.cloud/skjemaoversikt');
+    expect(returnUrlToAllForms(hostYT)).toBe('https://yt01.altinn.cloud/skjemaoversikt');
+    expect(returnUrlToAllForms(hostProd)).toBe('https://altinn.no/skjemaoversikt');
+    expect(returnUrlToAllForms(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToAllForms(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToAllForms(hostStudio)).toBe(undefined);
+    expect(returnUrlToAllForms(hostStudioDev)).toBe(undefined);
+    expect(returnUrlToAllForms(hostUnknown)).toBe(undefined);
+  });
+
+  test('returnUrlToArchive() returning correct environments', () => {
+    expect(returnUrlToArchive(hostTT)).toBe('https://tt02.altinn.no/ui/messagebox/archive');
+    expect(returnUrlToArchive(hostAT)).toBe('https://at21.altinn.cloud/ui/messagebox/archive');
+    expect(returnUrlToArchive(hostYT)).toBe('https://yt01.altinn.cloud/ui/messagebox/archive');
+    expect(returnUrlToArchive(hostProd)).toBe('https://altinn.no/ui/messagebox/archive');
+    expect(returnUrlToArchive(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToArchive(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToArchive(hostStudio)).toBe(undefined);
+    expect(returnUrlToArchive(hostStudioDev)).toBe(undefined);
+    expect(returnUrlToArchive(hostUnknown)).toBe(undefined);
+  });
+
+  test('logoutUrlAltinn() returning correct environments', () => {
+    expect(logoutUrlAltinn(hostTT)).toBe('https://tt02.altinn.no/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostAT)).toBe('https://at21.altinn.cloud/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostYT)).toBe('https://yt01.altinn.cloud/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostProd)).toBe('https://altinn.no/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
+    expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(logoutUrlAltinn(hostStudio)).toBe(undefined);
+    expect(logoutUrlAltinn(hostStudioDev)).toBe(undefined);
+    expect(logoutUrlAltinn(hostUnknown)).toBe(undefined);
   });
 
   test('customEncodeURI() returning correct encoding', () => {
@@ -78,17 +102,6 @@ describe('Shared urlHelper.ts', () => {
     expect(customEncodeURI(uri2)).toBe('attachment%20%5Bexample%5D.png');
     expect(customEncodeURI(uri3)).toBe('attachment%20%28example%29.gif');
     expect(customEncodeURI(uri4)).toBe('attachment%20%28example%29%20%281%29%20%282%29.gif');
-  });
-
-  test('logoutUrlAltinn() should return correct url for each env.', () => {
-    const originTT = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
-    const originAT = 'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originYT = 'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    expect(logoutUrlAltinn(originTT)).toContain('tt02.altinn.no/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(originAT)).toContain('at21.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(originYT)).toContain('yt01.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(originProd)).toContain('altinn.no/ui/authentication/LogOut');
   });
 
   test('makeUrlRelativeIfSameDomain()', () => {

@@ -11,7 +11,6 @@ import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutS
 import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
-import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
@@ -47,11 +46,9 @@ export function FormProvider({ children }: React.PropsWithChildren) {
   return (
     <Outer>
       {hasProcess ? (
-        <ProcessNavigationProvider>
-          <PaymentProvider>
-            <Inner>{children}</Inner>
-          </PaymentProvider>
-        </ProcessNavigationProvider>
+        <PaymentProvider>
+          <Inner>{children}</Inner>
+        </PaymentProvider>
       ) : (
         <Inner>{children}</Inner>
       )}

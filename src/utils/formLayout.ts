@@ -1,5 +1,5 @@
 import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
-import type { ILayoutSets } from 'src/layout/common.generated';
+import type { ILayoutSet } from 'src/layout/common.generated';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
 
 export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
@@ -26,10 +26,10 @@ export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilte
  * @param task the task
  * @param layoutSets the layout sets
  */
-export function behavesLikeDataTask(task: string | null | undefined, layoutSets: ILayoutSets | null): boolean {
+export function behavesLikeDataTask(task: string | null | undefined, layoutSets: ILayoutSet[] | null): boolean {
   if (!task) {
     return false;
   }
 
-  return !!layoutSets?.sets.some((set) => layoutSetIsDefault(set) && set.tasks?.includes(task));
+  return !!layoutSets?.some((set) => layoutSetIsDefault(set) && set.tasks?.includes(task));
 }

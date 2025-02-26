@@ -398,7 +398,8 @@ export class ExternalAppLayoutSet {
 
   simulateValidUrlHash(): string {
     const instance = getInstanceDataMock();
-    const firstPage = this.getSettings().pages.order[0];
+    const pageSettings = this.getSettings().pages;
+    const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
     return `#/instance/${instance.instanceOwner.partyId}/${instance.id}/Task_1/${firstPage}`;
   }
 }

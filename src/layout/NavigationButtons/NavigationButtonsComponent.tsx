@@ -1,11 +1,11 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
-import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
@@ -21,7 +21,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const hasPrevious = !!usePreviousPageKey();
   const returnToView = useReturnToView();
   const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
-  const [isProcessing, processing] = useIsProcessing<'next' | 'previous' | 'backToSummary'>();
+  const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'previous' | 'backToSummary'>();
   const parentIsPage = node.parent instanceof LayoutPage;
 
   const nextTextKey = textResourceBindings?.next || 'next';
@@ -47,13 +47,13 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
   const onClickPrevious = () =>
-    processing('previous', async () => {
+    performProcess('previous', async () => {
       await maybeSaveOnPageChange();
 
       const prevScrollPosition = getScrollPosition();
       if (validateOnPrevious) {
-        const hasError = await onPageNavigationValidation(node.page, validateOnPrevious);
-        if (hasError) {
+        const hasErrors = await onPageNavigationValidation(node.page, validateOnPrevious);
+        if (hasErrors) {
           // Block navigation if validation fails
           resetScrollPosition(prevScrollPosition);
           return;
@@ -64,7 +64,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     });
 
   const onClickNext = () =>
-    processing('next', async () => {
+    performProcess('next', async () => {
       await maybeSaveOnPageChange();
 
       const prevScrollPosition = getScrollPosition();
@@ -81,7 +81,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     });
 
   const onClickBackToSummary = () =>
-    processing('backToSummary', async () => {
+    performProcess('backToSummary', async () => {
       await maybeSaveOnPageChange();
       await navigateToPage(returnToView, { skipAutoSave: true });
     });
@@ -100,8 +100,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       >
         {showBackToSummaryButton && (
           <Button
-            disabled={!!isProcessing}
-            isLoading={isProcessing === 'backToSummary'}
+            disabled={isAnyProcessing}
+            isLoading={process === 'backToSummary'}
             onClick={onClickBackToSummary}
           >
             <Lang id={returnToViewText} />
@@ -109,8 +109,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         )}
         {showNextButton && (
           <Button
-            disabled={!!isProcessing}
-            isLoading={isProcessing === 'next'}
+            disabled={isAnyProcessing}
+            isLoading={process === 'next'}
             onClick={onClickNext}
             // If we are showing a back to summary button, we want the "next" button to be secondary
             variant={showBackToSummaryButton ? 'secondary' : 'primary'}
@@ -120,8 +120,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         )}
         {hasPrevious && showBackButton && (
           <Button
-            disabled={!!isProcessing}
-            isLoading={isProcessing === 'previous'}
+            disabled={isAnyProcessing}
+            isLoading={process === 'previous'}
             variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
             onClick={onClickPrevious}
           >

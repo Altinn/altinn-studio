@@ -1,11 +1,12 @@
 .container {
   --page-max-width: 1056px;
-  --page-padding-x: 12px;
+  --page-padding-x: 24px;
+  --footer-padding: var(--page-padding-x);
 
   background-color: white;
   width: 100%;
   max-width: var(--page-max-width);
-  padding: var(--page-padding-x);
+  padding: 0 var(--page-padding-x);
   margin: 0 auto;
   display: flex;
   flex-direction: column;

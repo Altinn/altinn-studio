@@ -53,12 +53,6 @@
 
   --table-input-margin: 15px; /* From design-system, move to figma-tokens? */
 
-  --modal-padding-x: 24px;
-  --modal-padding-y: 24px;
-
-  --page-max-width: none;
-  --page-padding-x: 24px;
-
   --repeating-group-edit-surface-color: #f1fbff;
   --repeating-group-edit-border-color: var(--colors-blue-400);
   --repeating-group-edit-divider-color: var(--colors-blue-200);
@@ -89,26 +83,6 @@
 .Toastify__toast {
   line-height: 1.5rem;
   padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-4) var(--fds-spacing-3);
-}
-
-@media only screen and (min-width: 768px) {
-  :root {
-    --modal-padding-x: 84px;
-    --modal-padding-y: 36px;
-  }
-}
-
-@media only screen and (min-width: 992px) {
-  :root {
-    --modal-padding-x: 96px;
-  }
-}
-
-@media only screen and (min-width: 1200px) {
-  :root {
-    --page-max-width: 1056px;
-    --page-padding-x: 0;
-  }
 }
 
 /* Custom CSS for all app */
@@ -177,6 +151,14 @@ ul,
 dl {
   padding-left: 1.5rem;
   margin-top: 0;
+}
+
+/* Workaround: The above style affects DropdownMenu from the design system */
+ul.fds-dropdownmenu {
+  padding: 8px;
+}
+ul.fds-dropdownmenu__section {
+  padding: 0;
 }
 
 /* Align text in table when right to left languages*/

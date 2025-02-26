@@ -8,6 +8,7 @@ import dot from 'dot-object';
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
@@ -54,24 +55,23 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const dataElements = useStrictDataElements(dataType);
   const navigate = useNavigate();
   const lock = FD.useLocking(id);
-  const [isAdding, setIsAdding] = useState(false);
+  const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
   const [subformEntries, updateSubformEntries] = useState(dataElements);
 
   const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
 
-  const addEntry = async () => {
-    setIsAdding(true);
-    const currentLock = await lock();
-    try {
-      const result = await addEntryMutation.mutateAsync({});
-      navigate(`${node.id}/${result.id}`);
-    } catch {
-      // NOTE: Handled by useAddEntryMutation
-    } finally {
-      currentLock.unlock();
-      setIsAdding(false);
-    }
-  };
+  const addEntry = () =>
+    performProcess(async () => {
+      const currentLock = await lock();
+      try {
+        const result = await addEntryMutation.mutateAsync({});
+        navigate(`${node.id}/${result.id}`);
+      } catch {
+        // NOTE: Handled by useAddEntryMutation
+      } finally {
+        currentLock.unlock();
+      }
+    });
 
   return (
     <ComponentStructureWrapper node={node}>
@@ -148,7 +148,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
             <Button
               id={`subform-${id}-add-button`}
               size='md'
-              disabled={isAdding}
+              disabled={isAddingDisabled}
               isLoading={isAdding}
               onClick={async () => await addEntry()}
               onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -160,10 +160,12 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
               variant='secondary'
               fullWidth
             >
-              <AddIcon
-                fontSize='1.5rem'
-                aria-hidden='true'
-              />
+              {!isAdding && (
+                <AddIcon
+                  fontSize='1.5rem'
+                  aria-hidden='true'
+                />
+              )}
               {langAsString(textResourceBindings?.addButton)}
             </Button>
           </div>

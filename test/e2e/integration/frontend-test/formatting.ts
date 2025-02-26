@@ -13,7 +13,7 @@ describe('Formatting', () => {
     cy.get(appFrontend.changeOfName.mobilenummer).type('44444444');
     cy.get(appFrontend.changeOfName.mobilenummer).should('have.value', '+47 444 44 444');
     cy.fillOut('changename');
-    cy.findByRole('button', { name: /Tilbake/ }).should('be.visible');
+    cy.findByRole('button', { name: 'Forrige' }).should('be.visible');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');

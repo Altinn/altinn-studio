@@ -34,6 +34,7 @@ export type ButtonProps = {
   | 'aria-labelledby'
   | 'aria-describedby'
   | 'onKeyUp'
+  | 'asChild'
 >;
 
 export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProps>>(function Button(
@@ -54,6 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     tabIndex,
     onMouseDown,
     onKeyUp,
+    asChild,
     'aria-label': ariaLabel,
     'aria-busy': ariaBusy,
     'aria-controls': ariaControls,
@@ -82,6 +84,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       tabIndex={tabIndex}
       onMouseDown={onMouseDown}
       onKeyUp={onKeyUp}
+      asChild={asChild}
       aria-label={ariaLabel}
       aria-busy={ariaBusy}
       aria-controls={ariaControls}
@@ -90,15 +93,19 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
     >
-      {isLoading && (
-        <Spinner
-          aria-hidden='true'
-          color={color}
-          size={size === 'lg' ? 'sm' : 'xs'}
-          title={langAsString('general.loading')}
-        />
+      {isLoading ? (
+        <>
+          <Spinner
+            aria-hidden='true'
+            color={color}
+            size={size === 'lg' ? 'sm' : 'xs'}
+            title={langAsString('general.loading')}
+          />
+          {children}
+        </>
+      ) : (
+        children
       )}
-      {children}
     </DesignSystemButton>
   );
 });

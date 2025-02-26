@@ -48,7 +48,7 @@ describe('On Entry', () => {
 
   it('is possible to select an existing instance', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);
     cy.get(appFrontend.selectInstance.description).should('contain.text', texts.continueOrStartNew);
@@ -85,7 +85,7 @@ describe('On Entry', () => {
   it('is possible to paginate the instances and select default rows per page', () => {
     interceptAppMetadata(1);
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 2);
 
@@ -121,12 +121,12 @@ describe('On Entry', () => {
     interceptAppMetadata(5);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   });
 
   it('is possible to create a new instance', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
     cy.get(appFrontend.selectInstance.newInstance).click();
@@ -152,15 +152,15 @@ describe('On Entry', () => {
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('not.exist');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('not.exist');
 
-    cy.findByRole('combobox', { name: 'Språk' }).click();
-    cy.findByRole('option', { name: 'Engelsk' }).click();
+    cy.findByRole('button', { name: 'Språkvalg' }).click();
+    cy.findByRole('menuitemradio', { name: 'Engelsk' }).click();
     cy.get(appFrontend.selectInstance.header).should('contain.text', 'You have already started filling out this form');
     cy.get(appFrontend.header).should('contain.text', `${appFrontend.apps.frontendTest} ENGLISH`);
 
     cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'false');
-    cy.findByRole('button', { name: 'Expand form' }).click();
+    cy.findByRole('button', { name: 'Expand width' }).click();
     cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'true');
 
     cy.snapshot('wide-instance-selection');

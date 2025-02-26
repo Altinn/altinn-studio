@@ -257,7 +257,7 @@ describe('Group', () => {
     expectRows();
 
     function checkPrefills(items: { [key in keyof typeof appFrontend.group.prefill]?: boolean }) {
-      cy.findByRole('button', { name: /Tilbake/ }).click();
+      cy.findByRole('button', { name: 'Forrige' }).click();
       for (const item of Object.keys(items)) {
         if (items[item] === true) {
           cy.get(appFrontend.group.prefill[item]).check();

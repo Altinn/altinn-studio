@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
+import cn from 'classnames';
 
 import classes from 'src/components/logo/AltinnLogo.module.css';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -13,6 +14,7 @@ export enum LogoColor {
 
 export interface IAltinnLogoProps {
   color: LogoColor;
+  className?: string;
 }
 
 function useLogoSvg() {
@@ -47,7 +49,7 @@ function reColorSvg(svg: string, color: string) {
   return svgElement.outerHTML;
 }
 
-export const AltinnLogo = ({ color }: IAltinnLogoProps) => {
+export const AltinnLogo = ({ color, className }: IAltinnLogoProps) => {
   const { data } = useLogoSvg();
 
   if (!data) {
@@ -56,7 +58,7 @@ export const AltinnLogo = ({ color }: IAltinnLogoProps) => {
 
   return (
     <img
-      className={classes.logo}
+      className={cn(classes.logo, className)}
       alt='Altinn logo'
       id='logo'
       src={`data:image/svg+xml;utf8,${encodeURIComponent(reColorSvg(data, color))}`}

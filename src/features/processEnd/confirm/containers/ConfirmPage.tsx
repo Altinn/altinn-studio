@@ -4,9 +4,10 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from 'src/app-components/Button/Button';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
+import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
@@ -75,30 +76,25 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
         titleSubmitted={<Lang id='confirm.answers' />}
         pdf={filterDisplayPdfAttachments(instance?.data ?? [])}
       />
-      <ConfirmButton nodeId='confirm-button' />
+      <ConfirmButton />
       <ReadyForPrint type='load' />
     </>
   );
 };
 
-const ConfirmButton = (props: { nodeId: string }) => {
+const ConfirmButton = () => {
   const { actions } = useLaxProcessData()?.currentTask || {};
-  const { nodeId } = props;
-  const disabled = !actions?.confirm;
-  const { next, busyWithId: processNextBusyId } = useProcessNavigation() || {};
+  const processNext = useProcessNext();
+  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
 
-  const handleConfirmClick = () => {
-    if (!disabled && nodeId) {
-      next?.({ action: 'confirm', nodeId });
-    }
-  };
+  const disabled = !actions?.confirm || isAnyProcessing;
 
   return (
     <div style={{ marginTop: 'var(--button-margin-top)' }}>
       <Button
-        id={nodeId}
-        isLoading={!!processNextBusyId}
-        onClick={handleConfirmClick}
+        id='confirm-button'
+        isLoading={isThisProcessing}
+        onClick={() => performProcess(() => processNext({ action: 'confirm' }))}
         disabled={disabled}
         color='success'
       >

@@ -1,13 +1,3 @@
-.appBar {
-  box-shadow: none;
-  z-index: 800;
-}
-
-.appBarText {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
 .container {
   width: 100%;
   display: flex;
@@ -18,14 +8,8 @@
 
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 12px var(--page-padding-x);
+  padding: var(--header-padding-y) var(--header-padding-x);
   box-sizing: border-box;
-}
-
-@media only screen and (min-width: 576px) {
-  .container {
-    padding: 24px var(--page-padding-x);
-  }
 }
 
 .wrapper {
@@ -33,4 +17,15 @@
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+}
+
+.partyName {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .partyName {
+    display: none;
+  }
 }

@@ -2,6 +2,7 @@ import path from 'path';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
+import { changeToLang } from 'test/e2e/support/lang';
 
 import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
@@ -18,7 +19,7 @@ describe('UI Components', () => {
   it('Image component with help text', () => {
     cy.goto('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
-    cy.findByRole('button', { name: /Lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.header).should('contain.text', appFrontend.apps.frontendTest).and('contain.text', texts.ttd);
     cy.get(appFrontend.message.logo).then((image) => {
       cy.wrap(image).find('img').should('have.attr', 'alt', 'Altinn logo').should('exist');
@@ -623,17 +624,12 @@ describe('UI Components', () => {
   it('should be possible to change language back and forth and reflect the change in the UI', () => {
     cy.goto('changename');
 
-    const changeLang = (lang: string, elName: string) => {
-      cy.findByRole('combobox', { name: elName }).click();
-      cy.findByRole('option', { name: lang }).click();
-    };
-
     cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
-    changeLang('Engelsk', 'Språk');
+    changeToLang('en');
     cy.findByRole('textbox', { name: newFirstNameNb }).should('not.exist');
     cy.findByRole('textbox', { name: /new first name/i }).should('exist');
-    changeLang('Norwegian bokmål', 'Language');
+    changeToLang('nb');
     cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
   });

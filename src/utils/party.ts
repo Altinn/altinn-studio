@@ -1,21 +1,11 @@
 import type { IInstance, IInstanceOwner, IParty, IProfile } from 'src/types/shared';
 
-export function renderPartyName(party: IParty) {
-  if (!party) {
-    return null;
+export function getPartyDisplayName(party?: IParty, user?: IProfile) {
+  if (party && user?.party && party.partyId === user.party.partyId) {
+    return user.party.name;
   }
-  return party.name;
-}
-
-export function renderParty(profile: IProfile) {
-  const party = profile?.party;
-  if (party?.person) {
-    const user = party.person.firstName.concat(
-      ' ',
-      party.person.middleName !== null ? party.person.middleName.concat(' ') : '',
-      party.person.lastName,
-    );
-    return user.toUpperCase();
+  if (party && user?.party && party.partyId !== user.party.partyId) {
+    return `${user.party.name} for ${party.name}`;
   }
   return null;
 }

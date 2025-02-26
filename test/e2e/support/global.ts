@@ -1,3 +1,4 @@
+import type JQuery from 'cypress/types/jquery';
 import type { RouteMatcher } from 'cypress/types/net-stubbing';
 
 import type { CyUser } from 'test/e2e/support/auth';
@@ -295,6 +296,14 @@ declare global {
       enableResponseFuzzing(options?: ResponseFuzzingOptions): Chainable<ResponseFuzzing>;
 
       getCurrentViewportSize(): Chainable<Size>;
+
+      showNavGroups(open: boolean): Chainable<null>;
+
+      navGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<JQuery<Element>>;
+
+      gotoNavGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<null>;
+
+      openNavGroup(groupName: string | RegExp): Chainable<null>;
     }
   }
 }

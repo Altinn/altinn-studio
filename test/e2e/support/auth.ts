@@ -48,7 +48,7 @@ export const getDisplayName = (user: CyUser) => cyUserCredentials[user].displayN
 export const getLocalPartyId = (user: CyUser) => cyUserCredentials[user].localPartyId;
 
 Cypress.Commands.add('assertUser', (user: CyUser) => {
-  cy.get('[data-testid=AltinnAppHeader]').should('contain.text', getDisplayName(user));
+  cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
 });
 
 type MinimalTask = Pick<ITask, 'read' | 'write' | 'actions'>;

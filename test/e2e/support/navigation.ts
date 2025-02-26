@@ -84,7 +84,7 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?
       throw new Error('Extra not supported for message navigator');
     }
     cy.startAppInstance(appFrontend.apps.frontendTest, startOptions);
-    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+    cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   },
   changename: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {

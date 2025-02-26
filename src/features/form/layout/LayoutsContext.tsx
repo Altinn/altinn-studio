@@ -78,7 +78,7 @@ export function useLayoutSetId() {
 
   const layoutSetId =
     taskId != null
-      ? layoutSets?.sets.find((set) => {
+      ? layoutSets.find((set) => {
           if (layoutSetIsDefault(set) && set.tasks?.length) {
             return set.tasks.includes(taskId);
           }
@@ -91,7 +91,7 @@ export function useLayoutSetId() {
 
 export function useDataTypeFromLayoutSet(layoutSetName: string) {
   const layoutSets = useLayoutSets();
-  return layoutSets.sets.find((set) => set.id === layoutSetName)?.dataType;
+  return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
 }
 
 export const LayoutsProvider = Provider;

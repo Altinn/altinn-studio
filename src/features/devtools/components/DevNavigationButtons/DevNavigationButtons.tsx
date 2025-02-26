@@ -6,7 +6,7 @@ import cn from 'classnames';
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
@@ -25,8 +25,7 @@ const InnerDevNavigationButtons = () => {
   const pageKey = useNavigationParam('pageKey');
   const { navigateToPage } = useNavigatePage();
   const isHiddenPage = Hidden.useIsHiddenPageSelector();
-  const orderWithHidden = useLayoutSettings().pages.order;
-  const order = orderWithHidden ?? [];
+  const rawOrder = useRawPageOrder();
   const allPages = Object.keys(useLayouts() ?? {});
 
   function handleChange(values: string[]) {
@@ -37,13 +36,13 @@ const InnerDevNavigationButtons = () => {
   }
 
   function isHidden(page: string) {
-    return isHiddenPage(page) || !orderWithHidden.includes(page);
+    return isHiddenPage(page) || !rawOrder.includes(page);
   }
 
   function hiddenText(page: string) {
     if (isHiddenPage(page)) {
       return 'Denne siden er skjult for brukeren (via dynamikk)';
-    } else if (!orderWithHidden.includes(page)) {
+    } else if (!rawOrder.includes(page)) {
       return 'Denne siden er ikke med i siderekkefølgen';
     }
     return '';
@@ -55,8 +54,8 @@ const InnerDevNavigationButtons = () => {
 
   // Order allPages by order
   const orderedPages = allPages.sort((a, b) => {
-    const aIndex = order.indexOf(a);
-    const bIndex = order.indexOf(b);
+    const aIndex = rawOrder.indexOf(a);
+    const bIndex = rawOrder.indexOf(b);
     if (aIndex === -1 && bIndex === -1) {
       return 0;
     }
@@ -100,7 +99,7 @@ const InnerDevNavigationButtons = () => {
           onValueChange={handleChange}
           className={comboboxClasses.container}
         >
-          {order?.map((page) => (
+          {rawOrder.map((page) => (
             <Combobox.Option
               key={page}
               value={page}

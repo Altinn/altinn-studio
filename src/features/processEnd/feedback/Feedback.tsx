@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 
-import { Paragraph } from '@digdir/designsystemet-react';
-
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useLaxProcessData, useReFetchProcessData } from 'src/features/instance/ProcessContext';
-import { Lang } from 'src/features/language/Lang';
+import { LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
@@ -28,12 +26,8 @@ export function Feedback() {
       <Helmet>
         <title>{`${getPageTitle(appName, langAsString('feedback.title'), appOwner)}`}</title>
       </Helmet>
-      <Paragraph>
-        <Lang id='feedback.title' />
-      </Paragraph>
-      <Paragraph>
-        <Lang id='feedback.body' />
-      </Paragraph>
+      <LangAsParagraph id='feedback.title' />
+      <LangAsParagraph id='feedback.body' />
       <ReadyForPrint type='load' />
     </div>
   );

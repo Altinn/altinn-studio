@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import type { MouseEventHandler } from 'react';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
@@ -9,6 +10,7 @@ import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -67,6 +69,7 @@ function InstanceSelection() {
   const instantiate = useInstantiation().instantiate;
   const currentParty = useCurrentParty();
   const storeCallback = useSetNavigationEffect();
+  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -105,7 +108,7 @@ function InstanceSelection() {
       >
         <Table.Body>
           {paginatedInstances.map((instance) => {
-            const handleOpenInstance = (ev) => {
+            const handleOpenInstance: MouseEventHandler<HTMLButtonElement> = (ev) => {
               storeCallback(focusMainContent);
               openInstance(instance.id, ev);
             };
@@ -269,13 +272,17 @@ function InstanceSelection() {
         {!mobileView && renderTable()}
         <div className={classes.startNewButtonContainer}>
           <Button
+            disabled={isAnyProcessing}
+            isLoading={isLoading}
             size='md'
-            onClick={() => {
-              if (currentParty) {
-                storeCallback(focusMainContent);
-                instantiate(undefined, currentParty.partyId);
-              }
-            }}
+            onClick={() =>
+              performProcess(async () => {
+                if (currentParty) {
+                  storeCallback(focusMainContent);
+                  await instantiate(currentParty.partyId);
+                }
+              })
+            }
             id='new-instance-button'
           >
             <Lang id='instance_selection.new_instance' />

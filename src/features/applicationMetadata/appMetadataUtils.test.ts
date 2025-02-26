@@ -6,7 +6,7 @@ import {
   getCurrentTaskDataElementId,
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-import type { ILayoutSets } from 'src/layout/common.generated';
+import type { ILayoutSet } from 'src/layout/common.generated';
 import type { IData } from 'src/types/shared';
 
 describe('appMetadata.ts', () => {
@@ -86,20 +86,18 @@ describe('appMetadata.ts', () => {
     } as unknown as IData,
   ];
 
-  const layoutSets: ILayoutSets = {
-    sets: [
-      {
-        id: 'datamodel',
-        tasks: ['Task_1'],
-        dataType: 'Datamodel',
-      },
-      {
-        id: 'stateless',
-        dataType: 'Stateless',
-        tasks: [],
-      },
-    ],
-  };
+  const layoutSets: ILayoutSet[] = [
+    {
+      id: 'datamodel',
+      tasks: ['Task_1'],
+      dataType: 'Datamodel',
+    },
+    {
+      id: 'stateless',
+      dataType: 'Stateless',
+      tasks: [],
+    },
+  ];
 
   describe('getCurrentDataTypeForApplication', () => {
     it('should return correct data type if we have an instance', () => {
@@ -152,7 +150,7 @@ describe('appMetadata.ts', () => {
   });
 
   describe('getCurrentTaskDataElementId', () => {
-    const layoutSets: ILayoutSets = { sets: [] };
+    const layoutSets: ILayoutSet[] = [];
     it('should return current task data element id', () => {
       const result = getCurrentTaskDataElementId({
         application: appMetadata,
@@ -166,7 +164,7 @@ describe('appMetadata.ts', () => {
 
   describe('getCurrentDataTypeId', () => {
     it('should return connected dataTypeId in app metadata if no layout set is configured', () => {
-      const layoutSets: ILayoutSets = { sets: [] };
+      const layoutSets: ILayoutSet[] = [];
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
         layoutSets,
@@ -177,15 +175,13 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return connected dataTypeId based on data type defined in layout sets if the current task has this configured', () => {
-      const layoutSets: ILayoutSets = {
-        sets: [
-          {
-            id: 'confirm',
-            dataType: 'Datamodel-for-confirm',
-            tasks: ['Task_2'],
-          },
-        ],
-      };
+      const layoutSets: ILayoutSet[] = [
+        {
+          id: 'confirm',
+          dataType: 'Datamodel-for-confirm',
+          tasks: ['Task_2'],
+        },
+      ];
 
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,
@@ -197,20 +193,18 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return datatype of custom receipt if the taskId points to custom receipt', () => {
-      const layoutSets: ILayoutSets = {
-        sets: [
-          {
-            id: 'confirm',
-            dataType: 'Datamodel-for-confirm',
-            tasks: ['Task_2'],
-          },
-          {
-            id: 'custom-receipt',
-            dataType: 'Datamodel-for-custom-receipt',
-            tasks: ['CustomReceipt'],
-          },
-        ],
-      };
+      const layoutSets: ILayoutSet[] = [
+        {
+          id: 'confirm',
+          dataType: 'Datamodel-for-confirm',
+          tasks: ['Task_2'],
+        },
+        {
+          id: 'custom-receipt',
+          dataType: 'Datamodel-for-custom-receipt',
+          tasks: ['CustomReceipt'],
+        },
+      ];
 
       const result = getCurrentDataTypeForApplication({
         application: appMetadata,

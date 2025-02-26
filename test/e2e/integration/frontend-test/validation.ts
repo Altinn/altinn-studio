@@ -407,9 +407,9 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).should('be.focused');
     cy.get(appFrontend.group.sendersName).type('hello world');
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /Tilbake/ }).click();
+    cy.findByRole('button', { name: 'Forrige' }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.findByRole('button', { name: /Tilbake/ }).click();
+    cy.findByRole('button', { name: 'Forrige' }).click();
 
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {

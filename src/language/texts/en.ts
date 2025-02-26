@@ -132,6 +132,12 @@ export function en() {
       form: 'Form navigation',
       to_main_content: 'Go to main content',
       go_to_task: 'Navigate to {0}',
+      form_pages: 'Form pages',
+      back_to_inbox: 'Back to inbox',
+      inbox: 'Inbox',
+      back_to_main_form: 'Back to {0}',
+      main_form: '{0}',
+      back: 'Back',
     },
     general: {
       action: 'Action',
@@ -145,7 +151,6 @@ export function en() {
       choose_label: 'Choose label',
       choose_method: 'Choose method',
       choose: 'Choose',
-      close_schema: 'Close schema',
       close: 'Close',
       contains: 'Contains{0}',
       control_submit: 'Control and submit',
@@ -164,7 +169,8 @@ export function en() {
       empty_summary: 'You have not entered any information here',
       enabled: 'Enabled',
       error_message_with_colon: 'Error message:',
-      expand_form: 'Expand form',
+      full_width: 'Expand width',
+      standard_width: 'Reduce width',
       for: 'for',
       header_profile_icon_label: 'Profile icon button',
       label: 'Label',
@@ -246,6 +252,7 @@ export function en() {
       starting: 'Just a minute, we’ll get the information you need',
     },
     language: {
+      language_selection: 'Language',
       full_name: {
         nb: 'Norwegian bokmål',
         en: 'English',
@@ -454,6 +461,13 @@ export function en() {
     pdfPreview: {
       error: 'Could not show PDF preview',
       defaultButtonText: 'Preview PDF',
+    },
+    taskTypes: {
+      data: 'Fill out',
+      signing: 'Signing',
+      confirmation: 'Confirmation',
+      payment: 'Payment',
+      receipt: 'Receipt',
     },
   } satisfies NestedTexts;
 }

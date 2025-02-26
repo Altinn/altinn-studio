@@ -31,7 +31,7 @@ function testSelfIdentifiedUser() {
   cy.intercept('**/active', []).as('noActiveInstances');
   cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'selfIdentified', authenticationLevel: '0' });
 
-  cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
+  cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
 
   cy.assertUser('selfIdentified');

@@ -1,80 +1,95 @@
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
 export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
-export const baseHostnameAltinnProd = 'altinn.no';
-export const baseHostnameAltinnTest = 'altinn.cloud';
-export const baseHostnameAltinnLocal = 'altinn3local.no';
-export const pathToMessageBox = 'ui/messagebox';
-export const pathToArchive = 'ui/messagebox/archive';
-export const pathToProfile = 'ui/profile';
-export const pathToAllSchemas = 'skjemaoversikt';
 
-const prodRegex = new RegExp(baseHostnameAltinnProd);
-const testRegex = new RegExp(baseHostnameAltinnTest);
-const localRegex = new RegExp(baseHostnameAltinnLocal);
+const redirectAndChangeParty = (goTo: string, partyId: number) =>
+  `ui/Reportee/ChangeReporteeAndRedirect?goTo=${encodeURIComponent(goTo)}&R=${partyId}`;
 
-export const returnUrlToMessagebox = (url: string, partyId?: number | undefined): string | null => {
-  const baseUrl = returnBaseUrlToAltinn(url);
-  if (!baseUrl) {
-    return null;
+const prodStagingRegex = /^\w+\.apps\.((\w+\.)?altinn\.(no|cloud))$/;
+const localRegex = /^local\.altinn\.cloud(:\d+)?$/;
+
+export const returnBaseUrlToAltinn = (host: string): string | undefined => {
+  const prodStagingMatch = host.match(prodStagingRegex);
+  if (prodStagingMatch) {
+    const altinnHost = prodStagingMatch[1];
+
+    return `https://${altinnHost}/`;
   }
+};
+
+export const returnUrlToMessagebox = (host: string, partyId?: number | undefined): string | undefined => {
+  if (host.match(localRegex)) {
+    return `http://${host}/`;
+  }
+
+  const baseUrl = returnBaseUrlToAltinn(host);
+  if (!baseUrl) {
+    return;
+  }
+
+  const messageBoxUrl = `${baseUrl}ui/messagebox`;
 
   if (partyId === undefined) {
-    return baseUrl + pathToMessageBox;
+    return messageBoxUrl;
   }
 
-  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
+  return `${baseUrl}${redirectAndChangeParty(messageBoxUrl, partyId)}`;
 };
 
-export const returnUrlToArchive = (url: string): string | null => {
-  const baseUrl = returnBaseUrlToAltinn(url);
-  if (!baseUrl) {
-    return null;
+export const returnUrlToArchive = (host: string): string | undefined => {
+  if (host.match(localRegex)) {
+    return `http://${host}/`;
   }
 
-  return baseUrl + pathToArchive;
+  const baseUrl = returnBaseUrlToAltinn(host);
+  if (!baseUrl) {
+    return;
+  }
+
+  return `${baseUrl}ui/messagebox/archive`;
 };
 
-export const returnUrlToProfile = (url: string, partyId?: number | undefined): string | null => {
-  const baseUrl = returnBaseUrlToAltinn(url);
-  if (!baseUrl) {
-    return null;
+export const returnUrlToProfile = (host: string, partyId?: number | undefined): string | undefined => {
+  if (host.match(localRegex)) {
+    return `http://${host}/`;
   }
+
+  const baseUrl = returnBaseUrlToAltinn(host);
+  if (!baseUrl) {
+    return;
+  }
+
+  const profileUrl = `${baseUrl}ui/profile`;
 
   if (partyId === undefined) {
-    return baseUrl + pathToProfile;
+    return profileUrl;
   }
 
-  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToProfile}&R=${partyId}`;
+  return `${baseUrl}${redirectAndChangeParty(profileUrl, partyId)}`;
 };
 
-export const returnUrlToAllSchemas = (url: string): string | null => {
-  const baseUrl = returnBaseUrlToAltinn(url);
+export const returnUrlToAllForms = (host: string): string | undefined => {
+  if (host.match(localRegex)) {
+    return `http://${host}/`;
+  }
+
+  const baseUrl = returnBaseUrlToAltinn(host);
   if (!baseUrl) {
-    return null;
+    return;
   }
-  return baseUrl + pathToAllSchemas;
+  return `${baseUrl}skjemaoversikt`;
 };
 
-export const returnBaseUrlToAltinn = (url: string): string | null => {
-  const sanitizedUrl = url.replace('http://', '').replace('https://', '');
-
-  const isProd = sanitizedUrl.search(prodRegex) >= 0;
-  if (isProd) {
-    const split = sanitizedUrl.split('.');
-    const env = split[split.length - 3];
-
-    return env === 'tt02' ? `https://${env}.${baseHostnameAltinnProd}/` : `https://${baseHostnameAltinnProd}/`;
+export function logoutUrlAltinn(host: string): string | undefined {
+  if (host.match(localRegex)) {
+    return `http://${host}/`;
   }
 
-  const isTest = sanitizedUrl.search(testRegex) >= 0;
-  if (isTest) {
-    const env = sanitizedUrl.split('.').at(-3);
-    return `https://${env}.${baseHostnameAltinnTest}/`;
+  const baseUrl = returnBaseUrlToAltinn(host);
+  if (!baseUrl) {
+    return;
   }
-
-  const isLocal = sanitizedUrl.search(localRegex) >= 0;
-  return isLocal ? `https://${baseHostnameAltinnLocal}/` : null;
-};
+  return `${baseUrl}ui/authentication/LogOut`;
+}
 
 export function customEncodeURI(uri: string): string {
   let result: string;
@@ -82,8 +97,6 @@ export function customEncodeURI(uri: string): string {
   result = result.replace(/[/(]/gi, '%28').replace(/[/)]/gi, '%29');
   return result;
 }
-
-export const logoutUrlAltinn = (url: string): string => `${returnBaseUrlToAltinn(url)}ui/authentication/LogOut`;
 
 // Storage is always returning https:// links for attachments.
 // on localhost (without https) this is a problem, so we make links

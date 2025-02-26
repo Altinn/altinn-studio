@@ -2,6 +2,7 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/presentation/Header.module.css';
@@ -34,6 +35,7 @@ const InnerHeader = ({ header, aboveHeader, children }: IInnerHeaderProps) => (
           <Heading
             level={1}
             size='medium'
+            className={cn({ [classes.noAboveHeader]: !aboveHeader })}
             data-testid='presentation-heading'
           >
             {header}

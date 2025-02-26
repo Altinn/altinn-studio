@@ -197,7 +197,7 @@ export interface IProcess {
   currentTask?: ITask;
   ended?: string | null;
   endEvent?: string | null;
-  processTasks?: ITask[];
+  processTasks?: Pick<ITask, 'altinnTaskType' | 'elementId'>[];
 }
 
 export interface Role {

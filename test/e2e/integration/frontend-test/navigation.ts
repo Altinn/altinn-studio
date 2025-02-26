@@ -135,8 +135,8 @@ describe('Navigation', () => {
 
     cy.findByRole('button', { name: /Endre/ }).click();
 
-    cy.findByRole('button', { name: /Neste/ }).should('exist');
-    cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('exist');
+    cy.findByRole('button', { name: 'Neste' }).should('exist');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('exist');
   });
 
   function mockLinkTo(type: 'component' | 'page', target: string) {

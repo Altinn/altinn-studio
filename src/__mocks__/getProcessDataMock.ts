@@ -15,6 +15,12 @@ export function getProcessDataMock(mutate?: (process: IProcess) => void): IProce
       ended: null,
       validated: null,
     },
+    processTasks: [
+      {
+        altinnTaskType: 'data',
+        elementId: 'Task_1',
+      },
+    ],
     ended: null,
     endEvent: null,
   };

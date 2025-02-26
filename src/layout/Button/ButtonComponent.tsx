@@ -1,11 +1,14 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
-import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
+import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ProcessTaskType } from 'src/types';
@@ -27,12 +30,18 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
 
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useLaxProcessData()?.currentTask || {};
-  const { next, canSubmit, busyWithId, attachmentsPending } = useProcessNavigation() || {};
+  const attachmentsPending = useHasPendingAttachments();
+  const processNext = useProcessNext();
+  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
   const setReturnToView = useSetReturnToView();
 
+  if (useIsSubformPage()) {
+    throw new Error('Cannot use process navigation in a subform');
+  }
+
   const disabled =
-    !canSubmit ||
-    !next ||
+    isAnyProcessing ||
+    attachmentsPending ||
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
@@ -53,25 +62,24 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     );
   }
 
-  const submitTask = async () => {
-    if (disabled) {
-      return;
-    }
-    setReturnToView?.(undefined);
-    if (currentTaskType === ProcessTaskType.Data) {
-      next({ nodeId: node.id });
-    } else if (currentTaskType === ProcessTaskType.Confirm) {
-      next({ nodeId: node.id, action: 'confirm' });
-    }
-  };
+  const submitTask = () =>
+    performProcess(async () => {
+      setReturnToView?.(undefined);
+      if (currentTaskType === ProcessTaskType.Data) {
+        await processNext();
+      } else if (currentTaskType === ProcessTaskType.Confirm) {
+        await processNext({ action: 'confirm' });
+      }
+    });
+
   return (
     <ComponentStructureWrapper node={node}>
       <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
         <Button
           id={node.id}
           onClick={submitTask}
-          isLoading={busyWithId === node.id}
-          disabled={disabled || !!busyWithId}
+          isLoading={isThisProcessing}
+          disabled={disabled}
           color='success'
         >
           <Lang id={item.textResourceBindings?.title} />

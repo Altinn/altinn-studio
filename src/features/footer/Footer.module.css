@@ -1,6 +1,6 @@
 .footer {
   max-width: var(--page-max-width);
-  padding: 60px var(--page-padding-x);
+  padding: 60px var(--footer-padding);
   margin: 0 auto;
 }
 

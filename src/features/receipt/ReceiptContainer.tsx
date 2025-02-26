@@ -149,8 +149,6 @@ export const ReceiptContainer = () => {
   const langTools = useLanguage();
   const receiver = useAppReceiver();
 
-  const origin = window.location.origin;
-
   const instanceGuid = useNavigationParam('instanceGuid');
 
   const appName = useAppName();
@@ -235,7 +233,7 @@ export const ReceiptContainer = () => {
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={<Lang id='receipt.subtitle' />}
-          subtitleurl={returnUrlToArchive(origin) || undefined}
+          subtitleurl={returnUrlToArchive(window.location.host)}
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdf}

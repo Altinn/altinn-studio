@@ -132,6 +132,12 @@ export function nn(): FixedLanguageList {
       form: 'Skjemanavigasjon',
       to_main_content: 'Hopp til hovedinnholdet',
       go_to_task: 'Gå til {0}',
+      form_pages: 'Skjemasider',
+      back_to_inbox: 'Tilbake til innboks',
+      inbox: 'Innboks',
+      back_to_main_form: 'Tilbake til {0}',
+      main_form: '{0}',
+      back: 'Tilbake',
     },
     general: {
       action: 'Handling',
@@ -145,7 +151,6 @@ export function nn(): FixedLanguageList {
       choose_label: 'Vel namn',
       choose_method: 'Vel metode',
       choose: 'Vel',
-      close_schema: 'Lukk skjema',
       close: 'Lukk',
       contains: 'Inneheld',
       control_submit: 'Kontroller og send inn',
@@ -164,7 +169,8 @@ export function nn(): FixedLanguageList {
       empty_summary: 'Du har ikkje lagt inn informasjon her',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
-      expand_form: 'Utvid skjema',
+      full_width: 'Utvid breidden',
+      standard_width: 'Reduser breidden',
       for: 'for',
       header_profile_icon_label: 'Profil ikon knapp',
       label: 'Namn',
@@ -246,6 +252,7 @@ export function nn(): FixedLanguageList {
       starting: 'Vent litt, vi hentar det du treng',
     },
     language: {
+      language_selection: 'Språkval',
       full_name: {
         nb: 'Norsk bokmål',
         en: 'Engelsk',
@@ -455,6 +462,13 @@ export function nn(): FixedLanguageList {
     pdfPreview: {
       error: 'Kunne ikkje førehandsvise PDF',
       defaultButtonText: 'Førehandsvis PDF',
+    },
+    taskTypes: {
+      data: 'Utfylling',
+      signing: 'Signering',
+      confirmation: 'Bekreftelse',
+      payment: 'Betaling',
+      receipt: 'Kvittering',
     },
   } satisfies NestedTexts;
 }

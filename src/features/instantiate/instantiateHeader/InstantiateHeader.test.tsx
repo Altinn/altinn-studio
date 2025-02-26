@@ -4,11 +4,11 @@ import { screen } from '@testing-library/react';
 
 import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { AltinnAppHeader } from 'src/components/altinnAppHeader';
+import { InstantiateHeader } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IHeaderProps } from 'src/components/altinnAppHeader';
+import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 
-describe('AltinnAppHeader', () => {
+describe('InstantiateHeader', () => {
   it('should not show organisation name when profile has party, and party has organisation with name', async () => {
     const profile = getProfileMock();
     const org = getOrganisationMock();
@@ -45,7 +45,7 @@ describe('AltinnAppHeader', () => {
   });
 });
 
-const render = async (props: Partial<IHeaderProps> = {}) => {
+const render = async (props: Partial<InstantiateHeaderProps> = {}) => {
   const profile = getProfileMock();
 
   const allProps = {
@@ -54,6 +54,6 @@ const render = async (props: Partial<IHeaderProps> = {}) => {
   };
 
   await renderWithoutInstanceAndLayout({
-    renderer: () => <AltinnAppHeader {...allProps} />,
+    renderer: () => <InstantiateHeader {...allProps} />,
   });
 };

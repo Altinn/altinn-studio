@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
@@ -11,20 +12,12 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
-  const { instantiateWithPrefill, error, isLoading } = useInstantiation();
+  const { instantiateWithPrefill, error } = useInstantiation();
+  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useCurrentParty();
 
-  const onClick = () => {
-    instantiateWithPrefill(props.node, {
-      prefill,
-      instanceOwner: {
-        partyId: party?.partyId.toString(),
-      },
-    });
-  };
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       throw error;
     }
@@ -34,7 +27,17 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
     <Button
       {...props}
       id={props.node.id}
-      onClick={onClick}
+      onClick={() =>
+        performProcess(() =>
+          instantiateWithPrefill({
+            prefill,
+            instanceOwner: {
+              partyId: party?.partyId.toString(),
+            },
+          }),
+        )
+      }
+      disabled={isAnyProcessing}
       isLoading={isLoading}
       variant='secondary'
       color='first'

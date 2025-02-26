@@ -1,0 +1,21 @@
+.button {
+  margin-left: -12px;
+}
+
+.button svg {
+  margin-right: 4px;
+}
+
+.spinner {
+  margin-left: 0;
+  padding: 8px 0;
+}
+
+@media only screen and (min-width: 768px) {
+  .spinner {
+    margin-left: 8px;
+  }
+  .button {
+    margin-left: 0;
+  }
+}

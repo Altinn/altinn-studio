@@ -4,12 +4,12 @@ import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvide
 import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
-import type { ILayoutSets } from 'src/layout/common.generated';
+import type { ILayoutSet } from 'src/layout/common.generated';
 import type { IData } from 'src/types/shared';
 
 interface CommonProps {
   application: ApplicationMetadata;
-  layoutSets: ILayoutSets;
+  layoutSets: ILayoutSet[];
   taskId: string | undefined;
 }
 
@@ -19,12 +19,12 @@ interface GetCurrentTaskDataElementIdProps extends CommonProps {
 
 interface GetDataTypeByLayoutSetIdProps {
   layoutSetId: string | undefined;
-  layoutSets: Omit<ILayoutSets, 'uiSettings'>;
+  layoutSets: ILayoutSet[];
   appMetaData: ApplicationMetadata;
 }
 
 export function getDataTypeByLayoutSetId({ layoutSetId, layoutSets, appMetaData }: GetDataTypeByLayoutSetIdProps) {
-  const typeFromLayoutSet = layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
+  const typeFromLayoutSet = layoutSets.find((set) => set.id === layoutSetId)?.dataType;
   if (typeFromLayoutSet && appMetaData?.dataTypes.find((element) => element.id === typeFromLayoutSet)) {
     return typeFromLayoutSet;
   }
@@ -46,7 +46,7 @@ export function useDataTypeByLayoutSetId(layoutSetId: string | undefined) {
 interface GetDataTypeByTaskIdProps {
   taskId: string | undefined;
   application: ApplicationMetadata;
-  layoutSets: ILayoutSets;
+  layoutSets: ILayoutSet[];
 }
 
 export function getDataTypeByTaskId({ taskId, application, layoutSets }: GetDataTypeByTaskIdProps) {
@@ -54,7 +54,7 @@ export function getDataTypeByTaskId({ taskId, application, layoutSets }: GetData
     return undefined;
   }
 
-  const typeFromLayoutSet = layoutSets.sets.find((set) => {
+  const typeFromLayoutSet = layoutSets.find((set) => {
     if (layoutSetIsDefault(set) && set.tasks?.length) {
       return set.tasks.includes(taskId);
     }
@@ -92,7 +92,7 @@ export const onEntryValuesThatHaveState: ShowTypes[] = ['new-instance', 'select-
 export function getCurrentLayoutSet({ application, layoutSets, taskId }: CommonProps) {
   if (application.isStatelessApp) {
     // We have a stateless app with a layout set
-    return layoutSets.sets.find((set) => set.id === application.onEntry.show);
+    return layoutSets.find((set) => set.id === application.onEntry.show);
   }
 
   const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId });

@@ -34,7 +34,7 @@ export function useIsMobileOrTablet() {
   return useBrowserWidth(conditionIsMobileOrTablet);
 }
 
-function useBrowserWidth(condition: Condition) {
+export function useBrowserWidth(condition: Condition) {
   const [state, setState] = useState(condition(window.innerWidth));
 
   useEffect(() => {

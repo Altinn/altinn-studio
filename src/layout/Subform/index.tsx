@@ -83,7 +83,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     if (!layoutSetName) {
       throw new Error(`Layoutset not found for node with id ${node.id}.`);
     }
-    const targetType = layoutSets.sets.find((set) => set.id === layoutSetName)?.dataType;
+    const targetType = layoutSets.find((set) => set.id === layoutSetName)?.dataType;
     if (!targetType) {
       throw new Error(`Data type not found for layout with name ${layoutSetName}`);
     }

@@ -1,4 +1,5 @@
-const devHostNames = [/^local\.altinn\.cloud$/, /^\S+\.apps\.tt02\.altinn\.no$/];
+const localtestHostName = /^local\.altinn\.cloud$/;
+const devHostNames = [localtestHostName, /^\S+\.apps\.tt02\.altinn\.no$/];
 const studioHostNames = [/^dev\.altinn\.studio$/, /^altinn\.studio$/, /^studio\.localhost$/];
 
 let isDevCache: boolean | null = null;
@@ -13,6 +14,10 @@ export function isDev(): boolean {
   }
   isDevCache = isLocalOrStaging() || isStudioPreview();
   return isDevCache;
+}
+
+export function isLocalTest(): boolean {
+  return localtestHostName.test(window.location.hostname);
 }
 
 /**

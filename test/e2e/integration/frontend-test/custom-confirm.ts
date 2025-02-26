@@ -11,7 +11,7 @@ describe('Custom confirm page', () => {
     cy.get(dataListPage.tableBody).contains('Johanne').closest('tr').click();
     cy.findByRole('button', { name: 'Neste' }).click();
     cy.get('[data-componentid="useCustomConfirm"]').findByText('Ja, bruk egendefinert').click();
-    cy.findByRole('button', { name: /Tilbake/ }).click();
+    cy.findByRole('button', { name: 'Forrige' }).click();
 
     for (const name of ['Caroline', 'Kåre', 'Petter']) {
       cy.get(dataListPage.tableBody).contains(name).closest('tr').click();

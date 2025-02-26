@@ -1,0 +1,26 @@
+import React from 'react';
+
+import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
+import classes from 'src/features/navigation/SidebarNavigation.module.css';
+import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
+import { useIsReceiptPage } from 'src/features/routing/AppRoutingContext';
+import { useBrowserWidth } from 'src/hooks/useDeviceWidths';
+
+export function SideBarNavigation() {
+  const hasGroupedNavigation = useHasGroupedNavigation();
+  const { expandedWidth } = useUiConfigContext();
+  const isScreenLarge = useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) && !expandedWidth;
+  const isReceiptPage = useIsReceiptPage();
+
+  if (!hasGroupedNavigation || !isScreenLarge || isReceiptPage) {
+    return null;
+  }
+
+  return (
+    <aside className={classes.sidebarContainer}>
+      <AppNavigationHeading />
+      <AppNavigation />
+    </aside>
+  );
+}

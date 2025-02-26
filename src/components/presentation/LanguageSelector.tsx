@@ -1,57 +1,83 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Combobox } from '@digdir/designsystemet-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
+import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';
+import cn from 'classnames';
 
-import { AltinnSpinner } from 'src/components/AltinnSpinner';
+import classes from 'src/components/presentation/LanguageSelector.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage, useSetCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
+import {
+  useAppLanguages,
+  useCurrentLanguage,
+  useSetLanguageWithSelector,
+} from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import comboboxClasses from 'src/styles/combobox.module.css';
+import { useIsMobile } from 'src/hooks/useDeviceWidths';
 
-export const LanguageSelector = ({ hideLabel }: { hideLabel?: boolean }) => {
-  const { langAsString } = useLanguage();
+export const LanguageSelector = () => {
+  const isMobile = useIsMobile();
   const currentLanguage = useCurrentLanguage();
-  const { setWithLanguageSelector } = useSetCurrentLanguage();
+  const appLanguages = useAppLanguages();
+  const setWithLanguageSelector = useSetLanguageWithSelector();
+  const { langAsString } = useLanguage();
 
-  const { data: appLanguages, isError: appLanguageError } = useGetAppLanguageQuery();
-  // Combobox crashes if the value is not present in the options
-  const selectedLanguage = appLanguages?.filter((lang) => lang === currentLanguage) ?? [];
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleAppLanguageChange = (values: string[]) => {
-    const lang = values.at(0);
-    if (lang) {
-      setWithLanguageSelector(lang);
-    }
-  };
+  function updateLanguage(lang: string) {
+    setIsOpen(false);
+    setWithLanguageSelector(lang);
+  }
 
-  if (appLanguageError) {
-    console.error('Failed to load app languages.');
+  if (!appLanguages?.length) {
     return null;
   }
 
-  if (appLanguages) {
-    return (
-      <Combobox
+  return (
+    <DropdownMenu
+      size='sm'
+      open={isOpen}
+      onClose={() => setIsOpen(false)}
+    >
+      <DropdownMenu.Trigger
         size='sm'
-        hideLabel={hideLabel}
-        label={langAsString('language.selector.label')}
-        onValueChange={handleAppLanguageChange}
-        value={selectedLanguage}
-        className={comboboxClasses.container}
+        variant='tertiary'
+        onClick={() => setIsOpen((o) => !o)}
+        aria-label={langAsString('language.language_selection')}
+        className={cn(classes.button, { [classes.buttonActive]: isOpen })}
       >
-        {appLanguages?.map((lang) => (
-          <Combobox.Option
-            key={lang}
-            value={lang}
-            displayValue={langAsString(`language.full_name.${lang}`)}
-          >
-            <Lang id={`language.full_name.${lang}`} />
-          </Combobox.Option>
-        ))}
-      </Combobox>
-    );
-  }
+        <GlobeIcon
+          className={classes.icon}
+          aria-hidden
+        />
+        {!isMobile && <Lang id='language.language_selection' />}
+        <ChevronDownIcon
+          className={cn(classes.icon, { [classes.flipVertical]: isOpen })}
+          aria-hidden
+        />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content role='menu'>
+        <DropdownMenu.Group heading={isMobile ? <Lang id='language.language_selection' /> : undefined}>
+          {appLanguages?.map((lang) => {
+            const selected = currentLanguage === lang;
 
-  return <AltinnSpinner />;
+            return (
+              <DropdownMenu.Item
+                role='menuitemradio'
+                aria-checked={selected}
+                key={lang}
+                onClick={() => updateLanguage(lang)}
+              >
+                <CheckmarkIcon
+                  style={{ opacity: selected ? 1 : 0 }}
+                  className={cn(classes.icon, classes.checkmark)}
+                  aria-hidden
+                />
+                <Lang id={`language.full_name.${lang}`} />
+              </DropdownMenu.Item>
+            );
+          })}
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  );
 };

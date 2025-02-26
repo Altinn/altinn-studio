@@ -3,8 +3,10 @@ import React from 'react';
 import type { PropsFromGenericComponent } from '..';
 
 import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';
-import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useActionAuthorization } from 'src/layout/CustomButton/CustomButtonComponent';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -18,17 +20,15 @@ export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor;
 export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
 
 export function ActionButtonComponent({ node }: IActionButton) {
-  const { busyWithId, busy, next } = useProcessNavigation() || {};
+  const processNext = useProcessNext();
+  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
   const { isAuthorized } = useActionAuthorization();
 
   const { action, buttonStyle, id, textResourceBindings } = useNodeItem(node);
-  const disabled = !isAuthorized(action);
-  const isLoadingHere = busyWithId === id;
+  const disabled = !isAuthorized(action) || isAnyProcessing;
 
-  function handleClick() {
-    if (!disabled && !busy) {
-      next && next({ action, nodeId: id });
-    }
+  if (useIsSubformPage()) {
+    throw new Error('Cannot use process navigation in a subform');
   }
 
   // FIXME: app crashes hard if buttonStyle is configured incorrectly
@@ -40,9 +40,9 @@ export function ActionButtonComponent({ node }: IActionButton) {
         id={`action-button-${id}`}
         variant={variant}
         color={color}
-        disabled={disabled || isLoadingHere || busy}
-        isLoading={!!isLoadingHere}
-        onClick={handleClick}
+        disabled={disabled}
+        isLoading={isThisProcessing}
+        onClick={() => performProcess(() => processNext({ action }))}
       >
         <Lang id={textResourceBindings?.title ?? `actions.${action}`} />
       </Button>

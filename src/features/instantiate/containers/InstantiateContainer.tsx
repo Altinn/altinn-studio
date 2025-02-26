@@ -26,7 +26,7 @@ export const InstantiateContainer = () => {
   useEffect(() => {
     const shouldCreateInstance = !!party;
     if (shouldCreateInstance) {
-      instantiation.instantiate(undefined, party.partyId);
+      instantiation.instantiate(party.partyId);
     }
   }, [instantiation, party]);
 

@@ -44,6 +44,8 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 - [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
 - [ttd/component-library](https://altinn.studio/repos/ttd/component-library.git)
 - [ttd/multiple-datamodels-test](https://dev.altinn.studio/repos/ttd/multiple-datamodels-test)
+- [ttd/subform-test](https://dev.altinn.studio/repos/ttd/subform-test)
+- [ttd/navigation-test](https://dev.altinn.studio/repos/ttd/navigation-test)
 
 3. Start the app you want to test:
 

@@ -5,12 +5,12 @@ import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useIsProcessing } from 'src/hooks/useIsProcessing';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
@@ -57,12 +57,12 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const [isProcessing, processing] = useIsProcessing<string>();
+  const { performProcess, isAnyProcessing, process } = useIsProcessing<string>();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
   const handleNavigationClick = (pageId: string) =>
-    processing(pageId, async () => {
+    performProcess(pageId, async () => {
       const currentIndex = order.indexOf(currentPageId);
       const newIndex = order.indexOf(pageId);
 
@@ -151,13 +151,13 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
                   className={classes.containerBase}
                 >
                   <NavigationButton
-                    disabled={!!isProcessing}
+                    disabled={isAnyProcessing}
                     current={currentPageId === pageId}
                     onClick={() => handleNavigationClick(pageId)}
                     ref={index === 0 ? firstPageLink : null}
                   >
                     <div className={classes.buttonContent}>
-                      {isProcessing === pageId && (
+                      {process === pageId && (
                         <Spinner
                           className={classes.spinner}
                           title={langAsString('general.loading')}

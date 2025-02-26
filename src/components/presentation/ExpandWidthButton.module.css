@@ -1,0 +1,8 @@
+.expand-width-button {
+  display: var(--expand-width-button-display);
+}
+
+.expand-width-icon {
+  margin-right: 6px;
+  transform: rotate(45deg);
+}

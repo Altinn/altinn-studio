@@ -22,21 +22,14 @@ export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren
 
   useEffect(() => {
     if (taskId) {
-      const layoutSetForTask = layoutSets.sets.find((set) => layoutSetIsDefault(set) && set.tasks?.includes(taskId));
+      const layoutSetForTask = layoutSets.find((set) => layoutSetIsDefault(set) && set.tasks?.includes(taskId));
       setTaskId && setTaskId(taskId);
       if (layoutSetForTask) {
         setOverriddenDataModelType && setOverriddenDataModelType(layoutSetForTask.dataType);
         setOverriddenLayoutSetId && setOverriddenLayoutSetId(layoutSetForTask.id);
       }
     }
-  }, [
-    layoutSets.sets,
-    setOverriddenDataModelType,
-    setOverriddenDataModelUuid,
-    setOverriddenLayoutSetId,
-    setTaskId,
-    taskId,
-  ]);
+  }, [layoutSets, setOverriddenDataModelType, setOverriddenDataModelUuid, setOverriddenLayoutSetId, setTaskId, taskId]);
 
   if (overriddenTaskId) {
     return <FormProvider>{children}</FormProvider>;

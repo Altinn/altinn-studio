@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { Paragraph } from '@digdir/designsystemet-react';
-
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Paragraph/ParagraphComponent.module.css';
@@ -14,12 +12,7 @@ export type IParagraphProps = PropsFromGenericComponent<'Paragraph'>;
 
 export function ParagraphComponent({ node }: IParagraphProps) {
   const { id, textResourceBindings } = useNodeItem(node);
-  const { lang, elementAsString } = useLanguage();
-  const text = lang(textResourceBindings?.title);
-
-  // The lang() function returns an object with a type property set to 'span'
-  // if text contains inline-element(s) or just a string.
-  const hasInlineContent = text && typeof text === 'object' && 'type' in text && text.type === 'span';
+  const { langAsString } = useLanguage();
 
   return (
     <ComponentStructureWrapper node={node}>
@@ -28,21 +21,10 @@ export function ParagraphComponent({ node }: IParagraphProps) {
           id={id}
           data-testid={`paragraph-component-${id}`}
         >
-          <Paragraph asChild={!hasInlineContent}>
-            {!hasInlineContent ? (
-              <div>
-                <Lang
-                  id={textResourceBindings?.title}
-                  node={node}
-                />
-              </div>
-            ) : (
-              <Lang
-                id={textResourceBindings?.title}
-                node={node}
-              />
-            )}
-          </Paragraph>
+          <LangAsParagraph
+            id={textResourceBindings?.title}
+            node={node}
+          />
         </div>
         {textResourceBindings?.help && (
           <HelpTextContainer
@@ -53,7 +35,7 @@ export function ParagraphComponent({ node }: IParagraphProps) {
                 node={node}
               />
             }
-            title={elementAsString(text)}
+            title={langAsString(textResourceBindings?.title)}
           />
         )}
       </div>

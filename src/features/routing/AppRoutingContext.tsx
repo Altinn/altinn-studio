@@ -146,6 +146,14 @@ export const useIsSubformPage = () =>
     return !!(mainPageKey && subformPageKey);
   });
 
+export const useIsReceiptPage = () =>
+  useSelector((s) => {
+    const path = getPath(s.hash);
+    const matches = matchers.map((matcher) => matchPath(matcher, path));
+    const taskId = paramFrom(matches, 'taskId');
+    return taskId === 'ProcessEnd' || taskId === 'CustomReceipt';
+  });
+
 // Use this instead of the native one to avoid re-rendering whenever the route changes
 export const useNavigate = () => useStaticSelector((ctx) => ctx.navigateRef).current!;
 

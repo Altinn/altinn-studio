@@ -12,7 +12,7 @@ import { DataLoadingState, useDataLoadingStore } from 'src/core/contexts/dataLoa
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePdfLayoutName } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
@@ -27,7 +27,7 @@ import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSumm
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
-import { Hidden, isHidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { isHidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompTypes } from 'src/layout/layout';
@@ -37,8 +37,7 @@ import type { NodeData } from 'src/utils/layout/types';
 export const PDFView2 = () => {
   const order = usePageOrder();
   const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
-  const pdfLayoutName = useLayoutSettings().pages.pdfLayoutName;
-  const isHiddenPage = Hidden.useIsHiddenPageSelector();
+  const pdfLayoutName = usePdfLayoutName();
 
   if (pdfFormatIsLoading) {
     return null;
@@ -70,7 +69,6 @@ export const PDFView2 = () => {
             />
           </div>
           {order
-            ?.filter((pageKey) => !isHiddenPage(pageKey))
             .filter((pageKey) => !pdfSettings?.excludedPages.includes(pageKey))
             .map((pageKey) => (
               <PdfForPage

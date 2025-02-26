@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
@@ -9,7 +9,6 @@ import { createContext } from 'src/core/contexts/context';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigate } from 'src/features/routing/AppRoutingContext';
 import type { IInstance } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface Prefill {
@@ -27,12 +26,10 @@ export interface Instantiation {
 }
 
 interface InstantiationContext {
-  instantiate: (node: LayoutNode | undefined, instanceOwnerPartyId: number) => void;
-  instantiateWithPrefill: (node: LayoutNode | undefined, instantiation: Instantiation) => void;
+  instantiate: (instanceOwnerPartyId: number) => Promise<void>;
+  instantiateWithPrefill: (instantiation: Instantiation) => Promise<void>;
 
-  busyWithId: string | undefined;
   error: AxiosError | undefined | null;
-  isLoading: boolean;
   lastResult: IInstance | undefined;
   clear: () => void;
 }
@@ -81,40 +78,25 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
   const queryClient = useQueryClient();
   const instantiate = useInstantiateMutation();
   const instantiateWithPrefill = useInstantiateWithPrefillMutation();
-  const [busyWithId, setBusyWithId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (instantiate.data?.id) {
-      setBusyWithId(undefined);
-    }
-    if (instantiateWithPrefill.data?.id) {
-      setBusyWithId(undefined);
-    }
-  }, [instantiate.data?.id, instantiateWithPrefill.data?.id]);
 
   return (
     <Provider
       value={{
-        instantiate: (node, instanceOwnerPartyId) => {
+        instantiate: async (instanceOwnerPartyId) => {
           if (!mutationHasBeenFired(queryClient)) {
-            setBusyWithId(node ? node.id : 'unknown');
-            instantiate.mutate(instanceOwnerPartyId);
+            await instantiate.mutateAsync(instanceOwnerPartyId).catch(() => {});
           }
         },
-        instantiateWithPrefill: (node, value) => {
+        instantiateWithPrefill: async (value) => {
           if (!mutationHasBeenFired(queryClient)) {
-            setBusyWithId(node ? node.id : 'unknown');
-            instantiateWithPrefill.mutate(value);
+            await instantiateWithPrefill.mutateAsync(value).catch(() => {});
           }
         },
         clear: () => {
           removeMutations(queryClient);
-          setBusyWithId(undefined);
         },
 
-        busyWithId,
         error: instantiate.error || instantiateWithPrefill.error,
-        isLoading: instantiate.isPending || instantiateWithPrefill.isPending,
         lastResult: instantiate.data ?? instantiateWithPrefill.data,
       }}
     >

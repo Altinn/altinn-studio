@@ -125,9 +125,9 @@ describe('Party selection', () => {
         doNotPromptForParty,
       });
       cy.startAppInstance(appFrontend.apps.frontendTest);
-      cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
 
       if (!doNotPromptForParty) {
+        cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
         cy.get('[id^="party-"]').should('be.visible');
         cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
         cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
@@ -144,6 +144,7 @@ describe('Party selection', () => {
         cy.get('[id^="party-"]').eq(0).click();
       }
 
+      cy.get(appFrontend.appHeader).should('be.visible');
       cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
       cy.get('[id^="party-"]').should('not.exist');
 
@@ -205,7 +206,7 @@ describe('Party selection', () => {
       );
 
       cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'default' });
-      cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
+      cy.get(appFrontend.appHeader).should('be.visible');
       cy.get('[id^="party-"]').should('not.exist');
 
       cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
@@ -223,9 +224,9 @@ describe('Party selection', () => {
         allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
       });
       cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'default' });
-      cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
 
       if (appPromptForPartyOverride === 'always') {
+        cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
         cy.get('[id^="party-"]').should('be.visible');
         cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
         cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
@@ -237,6 +238,7 @@ describe('Party selection', () => {
         cy.get('[id^="party-"]').eq(0).click();
       }
 
+      cy.get(appFrontend.appHeader).should('be.visible');
       cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
       cy.get('[id^="party-"]').should('not.exist');
       cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('not.exist');

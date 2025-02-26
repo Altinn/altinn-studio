@@ -21,7 +21,7 @@ export function useCurrentLayoutSet() {
   }
 
   if (overriddenLayoutSetId) {
-    return layoutSets.sets.find((set) => set.id === overriddenLayoutSetId);
+    return layoutSets.find((set) => set.id === overriddenLayoutSetId);
   }
 
   return getCurrentLayoutSet({ application, layoutSets, taskId });
@@ -33,5 +33,5 @@ export function useGetLayoutSetById(layoutSetId: string): ILayoutSet | undefined
     return undefined;
   }
 
-  return layoutSets.sets.find((layoutSet) => layoutSet.id === layoutSetId);
+  return layoutSets.find((layoutSet) => layoutSet.id === layoutSetId);
 }
