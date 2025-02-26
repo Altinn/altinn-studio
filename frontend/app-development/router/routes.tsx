@@ -76,19 +76,21 @@ const UiEditor = () => {
 
   if (!version) return null;
 
-  return isLatestFrontendVersion(version) ? (
-    isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
-      <FormDesignerNavigation appConfig={appConfigData?.serviceName} />
-    ) : (
+  const renderUiEditorContent = () => {
+    if (isTaskNavigationEnabled && !selectedFormLayoutSetName && appConfigData) {
+      return <FormDesignerNavigation appConfig={appConfigData.serviceName} />;
+    }
+
+    return (
       <UiEditorLatest
         shouldReloadPreview={shouldReloadPreview}
         previewHasLoaded={previewHasLoaded}
         onLayoutSetNameChange={(layoutSetName) => setSelectedLayoutSetName(layoutSetName)}
       />
-    )
-  ) : (
-    <UiEditorV3 />
-  );
+    );
+  };
+
+  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <UiEditorV3 />;
 };
 
 export const routerRoutes: RouterRoute[] = [
