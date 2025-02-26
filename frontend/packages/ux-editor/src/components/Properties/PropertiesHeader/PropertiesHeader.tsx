@@ -55,13 +55,13 @@ export const PropertiesHeader = ({
         </StudioAlert>
       )}
       <div className={classes.mainContent}>
-        {!hideContentWhenSubformGuide && displayMainConfigHeader && <HeaderMainConfig />}
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
             handleComponentChange={handleComponentUpdate}
           />
         )}
+        {!hideContentWhenSubformGuide && displayMainConfigHeader && <HeaderMainConfig />}
         {!hideContentWhenSubformGuide && (
           <>
             <EditComponentIdRow

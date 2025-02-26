@@ -3,7 +3,7 @@ import { EditLayoutSet } from './EditLayoutSet';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDivider } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
 import { useAppContext } from '@altinn/ux-editor/hooks';
@@ -30,6 +30,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
         >
           {t('ux_editor.component_properties.navigate_to_subform_button')}
         </StudioButton>
+        <StudioDivider color='subtle' />
       </div>
     );
   }
