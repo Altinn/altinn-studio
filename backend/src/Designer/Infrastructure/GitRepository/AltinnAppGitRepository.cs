@@ -359,14 +359,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
-        public async Task CreatePageLayoutFile(string layoutSetId, string pageId)
+        public async Task CreatePageLayoutFile(
+            string layoutSetId,
+            string pageId,
+            AltinnPageLayout altinnPageLayout
+        )
         {
-            AltinnPageLayout defaultPageLayout = new AltinnPageLayout().WithNavigationButtons();
             await WriteObjectByRelativePathAsync(
                 Path.Combine(
                     [LayoutsFolderName, layoutSetId, LayoutsInSetFolderName, $"{pageId}.json"]
                 ),
-                defaultPageLayout.Structure
+                altinnPageLayout.Structure
             );
         }
 

@@ -49,12 +49,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task CreatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId)
         {
             AltinnAppGitRepository appRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+            JsonNode layoutSettings = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetId);
+            Pages pages = GetPagesFromSettings(layoutSettings);
 
-            await appRepository.CreatePageLayoutFile(layoutSetId, pageId);
+            AltinnPageLayout pageLayout = new();
+            if (pages.pages.Count > 0) {
+                pageLayout = pageLayout.WithNavigationButtons();
+            }
 
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetId);
-            (jsonNode["pages"]["order"] as JsonArray).Add(pageId);
-            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+            await appRepository.CreatePageLayoutFile(layoutSetId, pageId, pageLayout);
+
+            (layoutSettings["pages"]["order"] as JsonArray).Add(pageId);
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
             await mediatr.Publish(new LayoutPageAddedEvent {
