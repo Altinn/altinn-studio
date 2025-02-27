@@ -260,6 +260,7 @@ export const queriesMock: ServicesContextProps = {
   deletePage: jest.fn().mockImplementation(() => Promise.resolve()),
   modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),
   createPage: jest.fn().mockImplementation(() => Promise.resolve()),
+  changePageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),

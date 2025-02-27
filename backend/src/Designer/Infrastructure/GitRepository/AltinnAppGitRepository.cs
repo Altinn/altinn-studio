@@ -359,14 +359,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
-        public async Task CreatePageLayoutFile(string layoutSetId, string pageId)
+        public async Task CreatePageLayoutFile(
+            string layoutSetId,
+            string pageId,
+            AltinnPageLayout altinnPageLayout
+        )
         {
-            JsonObject defaultPageLayout = new()
-            {
-                ["$schema"] = LayoutSchemaUrl,
-                ["data"] = new JsonObject { ["layout"] = new JsonArray([]) }
-            };
-            await WriteObjectByRelativePathAsync(Path.Combine([LayoutsFolderName, layoutSetId, LayoutsInSetFolderName, $"{pageId}.json"]), defaultPageLayout);
+            await WriteObjectByRelativePathAsync(
+                Path.Combine(
+                    [LayoutsFolderName, layoutSetId, LayoutsInSetFolderName, $"{pageId}.json"]
+                ),
+                altinnPageLayout.Structure
+            );
         }
 
         /// <summary>
