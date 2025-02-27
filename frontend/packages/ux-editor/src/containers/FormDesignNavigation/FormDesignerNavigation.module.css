@@ -8,6 +8,10 @@
   position: relative;
 }
 
+.header {
+  font-size: x-large;
+}
+
 .panel {
   background-color: white;
   border-radius: var(--fds-border_radius-medium);

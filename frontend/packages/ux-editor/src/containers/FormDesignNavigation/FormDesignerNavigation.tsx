@@ -1,4 +1,4 @@
-import { Link, Paragraph } from '@digdir/designsystemet-react';
+import { Link } from '@digdir/designsystemet-react';
 import React from 'react';
 import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,7 @@ export const FormDesignerNavigation = ({ appConfig }: FormDesignerNavigationProp
       <main className={classes.container}>
         <div className={classes.panel}>
           <div className={classes.content}>
-            <Paragraph>{appConfig}</Paragraph>
+            <div className={classes.header}>{appConfig}</div>
           </div>
           <footer className={classes.footer}>
             <Link href='/contact'>{t('general.contact')}</Link>
