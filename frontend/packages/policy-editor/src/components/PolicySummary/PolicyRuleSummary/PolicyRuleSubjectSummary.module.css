@@ -1,0 +1,5 @@
+.limitationsCell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fds-spacing-1);
+}
