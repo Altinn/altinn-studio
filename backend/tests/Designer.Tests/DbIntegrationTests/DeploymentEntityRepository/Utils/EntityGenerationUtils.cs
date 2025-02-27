@@ -27,12 +27,12 @@ public static partial class EntityGenerationUtils
             };
         }
 
-        public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count) =>
+        public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count, string envName = null) =>
             Enumerable.Range(0, count)
                 .Select(x =>
                 {
                     Thread.Sleep(1); // To ensure unique timestamps
-                    return GenerateDeploymentEntity(org, app);
+                    return GenerateDeploymentEntity(org, app, envName: envName);
                 }).ToList();
     }
 

@@ -1,4 +1,4 @@
-name: Run gitea integration tests
+name: Run gitea and db integration tests
 on:
   push:
     branches: [ main ]
@@ -16,7 +16,7 @@ on:
 
 jobs:
   gitea-and-db-integration-tests:
-    name: Run integration tests against actual gitea and db
+    name: Run integration tests against actual gitea and dbs
     runs-on: ubuntu-latest
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -32,6 +32,6 @@ jobs:
         run: |
            dotnet build backend/Designer.sln -v m
 
-      - name: Test gitea tests
+      - name: Run integration tests
         run: |
            dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
