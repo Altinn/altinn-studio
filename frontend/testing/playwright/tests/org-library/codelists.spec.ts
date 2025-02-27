@@ -11,6 +11,8 @@ const CODELIST_TITLE_MANUALLY: string = 'Test_codelist';
 const CODELIST_TITLE_UPLOADED: string = 'testCodelist';
 
 const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST: number = 1;
+const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST_AFTER_ADDING_ROW: number =
+  EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST + 1;
 const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST: number = 3;
 
 test.describe.configure({ mode: 'serial' });
@@ -84,13 +86,12 @@ test('that it is possible to add a new row to an existing codelist and modify th
   );
 
   await orgLibraryPage.codeLists.clickOnAddRowButton();
-  const numberOfRowsAfterAddingRow: number = EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST + 1;
   await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
-    numberOfRowsAfterAddingRow,
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST_AFTER_ADDING_ROW,
     CODELIST_TITLE_MANUALLY,
   );
 
-  const newlyAddedRow: number = numberOfRowsAfterAddingRow;
+  const newlyAddedRow: number = EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST_AFTER_ADDING_ROW;
   await orgLibraryPage.codeLists.verifyEmptyValueTextfield(newlyAddedRow);
   await orgLibraryPage.codeLists.verifyEmptyLabelTextfield(newlyAddedRow);
 
@@ -127,7 +128,7 @@ test('that it is possible to search for and delete the new codelists', async ({
   await deleteAndVerifyDeletionOfCodeList(
     orgLibraryPage,
     CODELIST_TITLE_MANUALLY,
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST_AFTER_ADDING_ROW,
   );
 
   await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
