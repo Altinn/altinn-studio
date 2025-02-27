@@ -111,9 +111,52 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
-
   await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
     EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
     CODELIST_TITLE_UPLOADED,
   );
 });
+
+test('that it is possible to search for and delete the new codelists', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+  await deleteAndVerifyDeletionOfCodeList(
+    orgLibraryPage,
+    CODELIST_TITLE_MANUALLY,
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+  );
+
+  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  await deleteAndVerifyDeletionOfCodeList(
+    orgLibraryPage,
+    CODELIST_TITLE_UPLOADED,
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+  );
+});
+
+const searchForAndOpenCodeList = async (
+  orgLibraryPage: OrgLibraryPage,
+  codelistTitle: string,
+): Promise<void> => {
+  await orgLibraryPage.codeLists.typeInSearchBox(codelistTitle);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(codelistTitle);
+};
+
+const deleteAndVerifyDeletionOfCodeList = async (
+  orgLibraryPage: OrgLibraryPage,
+  codelistTitle: string,
+  expectedNumberOfRowsInCodeList: number,
+): Promise<void> => {
+  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+    expectedNumberOfRowsInCodeList,
+    codelistTitle,
+  );
+  await orgLibraryPage.codeLists.listenToAndWaitForConfirmDeleteCodeList(codelistTitle);
+  await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
+  await orgLibraryPage.codeLists.verifyThatCodeListIsNotVisible(codelistTitle);
+};

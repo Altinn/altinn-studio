@@ -104,6 +104,26 @@ export class CodeLists extends BasePage {
       .click();
   }
 
+  public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
+    await this.page.getByRole('heading', { name: codeListTitle }).click();
+  }
+
+  public async typeInSearchBox(searchTerm: string): Promise<void> {
+    await this.page
+      .getByRole('searchbox', {
+        name: this.textMock('app_content_library.code_lists.search_label'),
+      })
+      .fill(searchTerm);
+  }
+
+  public async clickOnDeleteCodelistButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.code_list_delete'),
+      })
+      .click();
+  }
+
   public async verifyEmptyValueTextfield(row: number): Promise<void> {
     const textfield = this.page.getByRole('textbox', {
       name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
@@ -152,8 +172,25 @@ export class CodeLists extends BasePage {
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(path.join(__dirname, fileName));
   }
-  public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
-    await this.page.getByRole('heading', { name: codeListTitle }).click();
+
+  public async listenToAndWaitForConfirmDeleteCodeList(codeListTitle: string): Promise<void> {
+    this.page.once('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      expect(dialog.message()).toContain(
+        this.textMock('app_content_library.code_lists.code_list_delete_confirm', { codeListTitle }),
+      );
+      await dialog.accept();
+    });
+  }
+
+  public async verifyThatCodeListIsNotVisible(title: string): Promise<void> {
+    const codeList = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: title,
+      }),
+    );
+
+    await expect(codeList).toBeHidden();
   }
 
   public async verifyNumberOfRowsInTheCodelist(
