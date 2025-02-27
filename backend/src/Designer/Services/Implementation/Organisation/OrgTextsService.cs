@@ -13,7 +13,6 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgTextsService : IOrgTextsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private const string Repo = "content";
 
     /// <summary>
     /// Constructor
@@ -91,6 +90,6 @@ public class OrgTextsService : IOrgTextsService
 
     private static string GetStaticContentRepo(string org)
     {
-        return $"{org}-{Repo}";
+        return $"{org}-content";
     }
 }
