@@ -263,7 +263,7 @@
     },
     {
       "id": "signing.correspondence_cta_title",
-      "value": "Oppgave: Signer stiftelsesdokumenter"
+      "value": "Oppgave - Signer stiftelsesdokumenter"
     },
     {
       "id": "signing.correspondence_cta_summary",
@@ -271,7 +271,7 @@
     },
     {
       "id": "signing.correspondence_cta_body",
-      "value": "Du har blitt lagt til som signatar. Klikk på lenken for å gå til skjema <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+      "value": "Du har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
       "id": "signing.notification_content",
