@@ -91,6 +91,23 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             services.TryAddScoped(typeof(TOption), svc => ((IOptionsSnapshot<object>)svc.GetService(typeof(IOptionsSnapshot<TOption>)))!.Value);
         }
 
+        public static IServiceCollection RegisterSettingsSingleton<TOption>(this IServiceCollection services, IConfiguration configuration, string section = null)
+            where TOption : class, new()
+        {
+            string sectionName = string.IsNullOrWhiteSpace(section) ? typeof(TOption).Name : section;
+            ConfigureSettingsTypeBySectionSingleton<TOption>(services, configuration, sectionName);
+
+            return services;
+        }
+
+        private static void ConfigureSettingsTypeBySectionSingleton<TOption>(this IServiceCollection services, IConfiguration configuration, string sectionName)
+            where TOption : class, new()
+        {
+            var options = new TOption();
+            configuration.GetSection(sectionName).Bind(options);
+            services.TryAddSingleton(typeof(TOption), _ => options);
+        }
+
         /// <summary>
         /// Register all the services that implement or inherit from the marker interface.
         /// </summary>
