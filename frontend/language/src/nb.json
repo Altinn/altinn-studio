@@ -172,6 +172,7 @@
   "code_list_editor.text_resource.description.search_mode": "Søkemodus for beskrivelse til kode nummer {{number}}",
   "code_list_editor.text_resource.description.select": "Finn beskrivelse for kode nummer {{number}}",
   "code_list_editor.text_resource.description.value": "Oppgi beskrivelse for kode nummer {{number}}",
+  "code_list_editor.text_resource.empty_list": "Ingen tekstressurser er tilgjengelige",
   "code_list_editor.text_resource.helpText.edit_mode": "Redigeringsmodus for hjelpetekst til kode nummer {{number}}",
   "code_list_editor.text_resource.helpText.search_mode": "Søkemodus for hjelpetekst til kode nummer {{number}}",
   "code_list_editor.text_resource.helpText.select": "Finn hjelpetekst for kode nummer {{number}}",

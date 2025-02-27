@@ -17,6 +17,7 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 // Test data:
 const textResources: TextResource[] = textResourcesMock;
 const texts: TextResourceInputTexts = {
+  emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
   search: 'Søk',

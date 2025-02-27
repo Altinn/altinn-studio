@@ -35,6 +35,7 @@ export const textResourceProps = (rowNumber: number): CellTextResourceInputProps
 
 export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => ({
   editValue: textResourceEditLabel(rowNumber),
+  emptyTextResourceList: 'No text resources available',
   idLabel: 'ID:',
   search: textResourceSearchLabel(rowNumber),
   textResourcePickerLabel: textResourcePickerLabel(rowNumber),
