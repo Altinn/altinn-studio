@@ -25,11 +25,13 @@ const texts: TextResourceInputTexts = {
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
+const onBlurTextResource = jest.fn();
 const onChangeCurrentId = jest.fn();
 const onChangeTextResource = jest.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
   texts,
+  onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
   currentId,
@@ -65,6 +67,17 @@ describe('StudioTextResourceInput', () => {
     await user.type(getValueField(), additionalText);
     expect(onChangeTextResource).toHaveBeenCalledTimes(1);
     expect(onChangeTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
+  });
+
+  it('Calls the onBlurTextResource callback with the updated text resource when the field is blurred', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput();
+    const additionalText = 'abc';
+    const newValue = currentTextResource.value + additionalText;
+    await user.type(getValueField(), additionalText);
+    await user.tab();
+    expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+    expect(onBlurTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
   });
 
   it('Renders the text resource picker when the search button is clicked', async () => {
