@@ -70,6 +70,6 @@ describe('SyncSuccessQueriesInvalidator', () => {
         queryKey: [QueryKey.FormLayouts, org, app],
       }),
     );
-    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
   });
 });
