@@ -123,16 +123,11 @@ export class CodeLists extends BasePage {
   }
 
   public async verifyEmptyValueTextfield(itemNumber: number): Promise<void> {
-    this.verifyValueTextfield(itemNumber, '');
+    await this.verifyValueTextfield(itemNumber, '');
   }
 
   public async verifyEmptyLabelTextfield(itemNumber: number): Promise<void> {
-    const textfield = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: itemNumber.toString() }),
-      exact: true,
-    });
-
-    await expect(textfield).toHaveValue('');
+    await this.verifyLabelTextfield(itemNumber, '');
   }
 
   public async verifyValueTextfield(itemNumber: number, value: string): Promise<void> {
