@@ -238,10 +238,6 @@ describe('StudioCodeListEditor', () => {
   });
 
   describe('onChangeTextResource', () => {
-    const propsWithTextResources: Partial<StudioCodeListEditorProps> = {
-      textResources,
-      codeList: codeListWithTextResources,
-    };
     const testRowNumber = 1;
 
     it('Calls the onChangeTextResource callback with the new text resource when a label is changed', async () => {
