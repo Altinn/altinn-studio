@@ -85,6 +85,7 @@ export const DesignView = (): ReactNode => {
     };
     addPageMutation(page, {
       onSuccess: async () => {
+        setSelectedFormLayoutName(page.id);
         await updateLayoutsForPreview(selectedFormLayoutSetName);
       },
     });
@@ -110,9 +111,9 @@ export const DesignView = (): ReactNode => {
     return (
       <PageAccordion
         key={pageModel.id}
-        pageName={layout.page}
-        isOpen={layout.page === selectedFormLayoutName}
-        onClick={() => handleClickAccordion(layout.page)}
+        pageName={pageModel.id}
+        isOpen={pageModel.id === selectedFormLayoutName}
+        onClick={() => handleClickAccordion(pageModel.id)}
         isInvalid={isInvalidLayout}
         hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
       >

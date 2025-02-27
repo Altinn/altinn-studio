@@ -12,6 +12,9 @@ export const useAddPageMutation = (org: string, app: string, layoutSetName: stri
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+      });
     },
   });
 };
