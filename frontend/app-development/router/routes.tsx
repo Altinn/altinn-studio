@@ -42,7 +42,7 @@ const latestFrontendVersion = '4';
 const isLatestFrontendVersion = (version: AppVersion): boolean =>
   version?.frontendVersion?.startsWith(latestFrontendVersion);
 
-const UiEditor = () => {
+export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: version, isPending: fetchingVersionIsPending } = useAppVersionQuery(org, app);
@@ -66,11 +66,15 @@ const UiEditor = () => {
       return <FormDesignerNavigation appConfig={appConfigData.serviceName} />;
     }
 
+    const handleLayoutSetNameChange = (layoutSetName: string) => {
+      setSelectedLayoutSetName(layoutSetName);
+    };
+
     return (
       <UiEditorLatest
         shouldReloadPreview={shouldReloadPreview}
         previewHasLoaded={previewHasLoaded}
-        onLayoutSetNameChange={(layoutSetName) => setSelectedLayoutSetName(layoutSetName)}
+        onLayoutSetNameChange={handleLayoutSetNameChange}
       />
     );
   };

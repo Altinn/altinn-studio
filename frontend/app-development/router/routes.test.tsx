@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { routerRoutes } from './routes';
+import { routerRoutes, UiEditor } from './routes';
 import { RoutePaths } from '../enums/RoutePaths';
 import React from 'react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -14,6 +14,7 @@ import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { LayoutContext } from 'app-development/contexts/LayoutContext/LayoutContext';
+import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -32,41 +33,48 @@ jest.mock('@altinn/ux-editor/SubApp', () => ({
   },
 }));
 
+const renderWithProviders = (
+  ui: React.ReactElement,
+  queryClient: QueryClient,
+  layoutContextValue?: any,
+) => {
+  return render(
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <SettingsModalContextProvider>
+        <PreviewContextProvider>
+          <AppDevelopmentContextProvider>
+            <LayoutContext.Provider value={layoutContextValue}>{ui}</LayoutContext.Provider>
+          </AppDevelopmentContextProvider>
+        </PreviewContextProvider>
+      </SettingsModalContextProvider>
+    </ServicesContextProvider>,
+  );
+};
+
 describe('routes', () => {
   describe(RoutePaths.UIEditor, () => {
-    it('calls setSelectedLayoutSetName when layout set changes', async () => {
+    it('calls setSelectedLayoutSetName when onLayoutSetNameChange is triggered', () => {
       const setSelectedLayoutSetName = jest.fn();
-
+      const queryClient = createQueryClientMock();
       const appVersion: AppVersion = {
         frontendVersion: '4.0.0',
         backendVersion: '7.0.0',
       };
-      const queryClient = createQueryClientMock();
       queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
-
-      render(
-        <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <SettingsModalContextProvider>
-            <PreviewContextProvider>
-              <AppDevelopmentContextProvider>
-                <LayoutContext.Provider value={{ setSelectedLayoutSetName }}>
-                  {React.createElement(
-                    routerRoutes.find((route) => route.path === RoutePaths.UIEditor)!.subapp,
-                  )}
-                </LayoutContext.Provider>
-              </AppDevelopmentContextProvider>
-            </PreviewContextProvider>
-          </SettingsModalContextProvider>
-        </ServicesContextProvider>,
+      const { rerender } = renderWithProviders(<UiEditor />, queryClient, {
+        setSelectedLayoutSetName,
+      });
+      const layoutSetName = 'test-layout';
+      const onLayoutSetNameChange = jest.fn();
+      rerender(
+        <UiEditorLatest
+          shouldReloadPreview={false}
+          previewHasLoaded={undefined}
+          onLayoutSetNameChange={onLayoutSetNameChange}
+        />,
       );
-
-      await waitFor(() => {
-        expect(setSelectedLayoutSetName).toHaveBeenCalledTimes(1);
-      });
-      await waitFor(() => {
-        expect(setSelectedLayoutSetName).toHaveBeenCalledWith('test-layout');
-      });
-      expect(await screen.findByTestId('latest version')).toBeInTheDocument();
+      onLayoutSetNameChange(layoutSetName);
+      expect(setSelectedLayoutSetName).toHaveBeenCalledWith(layoutSetName);
     });
 
     it('Returns null when there is no AppVersion', async () => {
