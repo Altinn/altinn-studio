@@ -28,6 +28,19 @@ export const Config = new CG.component({
   .addDataModelBinding(
     new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForList'),
   )
+  .addDataModelBinding(
+    new CG.obj(
+      new CG.prop(
+        'saveToList',
+        new CG.dataModelBinding()
+          .setTitle('SaveToList')
+          .setDescription(
+            'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
+          )
+          .optional(),
+      ),
+    ).exportAs('IDataModelBindingsForSaveTolist'),
+  )
   .addProperty(
     new CG.prop(
       'tableHeaders',

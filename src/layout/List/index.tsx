@@ -1,6 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import type { JSONSchema7Definition } from 'json-schema';
+
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { ListDef } from 'src/layout/List/config.def.generated';
@@ -42,8 +44,8 @@ export class List extends ListDef {
     return '';
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'List'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+  renderSummary(props: SummaryRendererProps<'List'>): JSX.Element | null {
+    const displayData = this.useDisplayData(props.targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
@@ -112,15 +114,45 @@ export class List extends ListDef {
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'List'>): string[] {
     const errors: string[] = [];
+    const allowedTypes = ['string', 'boolean', 'number', 'integer'];
 
-    for (const binding of Object.keys(ctx.item.dataModelBindings ?? {})) {
-      const [newErrors] = this.validateDataModelBindingsAny(
-        ctx,
-        binding,
-        ['string', 'number', 'integer', 'boolean'],
-        false,
-      );
+    const dataModelBindings = ctx.item.dataModelBindings ?? {};
+
+    if (!dataModelBindings?.saveToList) {
+      for (const [binding] of Object.entries(dataModelBindings ?? {})) {
+        const [newErrors] = this.validateDataModelBindingsAny(ctx, binding, allowedTypes, false);
+        errors.push(...(newErrors || []));
+      }
+    }
+
+    const [newErrors] = this.validateDataModelBindingsAny(ctx, 'saveToList', ['array'], false);
+    if (newErrors) {
       errors.push(...(newErrors || []));
+    }
+
+    if (dataModelBindings?.saveToList) {
+      const saveToListBinding = ctx.lookupBinding(dataModelBindings?.saveToList);
+      const items = saveToListBinding[0]?.items;
+      const properties =
+        items && !Array.isArray(items) && typeof items === 'object' && 'properties' in items
+          ? items.properties
+          : undefined;
+
+      for (const [binding] of Object.entries(dataModelBindings ?? {})) {
+        let selectedBinding: JSONSchema7Definition | undefined;
+        if (properties) {
+          selectedBinding = properties[binding];
+        }
+        if (binding !== 'saveToList' && items && typeof items === 'object' && 'properties' in items) {
+          if (!selectedBinding) {
+            errors.push(`saveToList must contain a field with the same name as the field ${binding}`);
+          } else if (typeof selectedBinding !== 'object' || typeof selectedBinding.type !== 'string') {
+            errors.push(`Field ${binding} in saveToList must be one of types ${allowedTypes.join(', ')}`);
+          } else if (!allowedTypes.includes(selectedBinding.type)) {
+            errors.push(`Field ${binding} in saveToList must be one of types ${allowedTypes.join(', ')}`);
+          }
+        }
+      }
     }
 
     return errors;

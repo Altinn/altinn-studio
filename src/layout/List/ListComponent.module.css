@@ -20,7 +20,7 @@
   height: 60px;
 }
 
-.radio {
+.toggleControl {
   align-content: center;
   justify-content: center;
 }
@@ -46,37 +46,59 @@
   justify-content: center;
 }
 
-.mobileRadioGroup > div {
+.mobileGroup > div {
   display: flex;
   flex-direction: column;
 }
 
-.mobileRadioGroup > div :hover {
+.mobileGroup > div :hover {
   background-color: var(--fds-colors-grey-100);
 }
 
-.mobileRadio {
+.mobile {
   border-top: 1px solid var(--fds-colors-grey-200);
   padding: var(--fds-spacing-4);
   gap: var(--fds-spacing-8);
 }
 
-.mobileRadio input:checked:hover {
+.mobile input:checked:hover {
   background-color: var(--fds-radio-border-color);
 }
 
-.mobileRadio label {
+.mobile label {
   width: 100%;
 }
 
-.mobileRadio span {
+.mobile span {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-4);
 }
 
-.mobileRadio label div {
+.mobile label div {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-2);
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tableCaption {
+  text-align: left;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
 }
