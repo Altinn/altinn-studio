@@ -27,13 +27,11 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
         {
             return new SigneesResult { Signees = [] };
         }
-        var organisationSignee = new SigneeParty
+
+        var organisationSignee = new OrganisationSignee
         {
-            OnBehalfOfOrganisation = new SigneePartyOrganisation
-            {
-                Name = revisor.Navn,
-                OrganisationNumber = revisor?.Organisasjonsnummer
-            },
+            Name = revisor.Navn,
+            OrganisationNumber = revisor.Organisasjonsnummer,
             Notifications = new Notifications
             {
                 OnSignatureAccessRightsDelegated = new Notification
@@ -42,7 +40,10 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
                     {
                         EmailAddress = revisor.Epost,
                         SubjectTextResourceKey = "signing.revisor_email_subject",
-                        BodyTextResourceKey = "signing.revisor_notification_content".Replace("{0}", revisor.Navn),
+                        BodyTextResourceKey = "signing.revisor_notification_content".Replace(
+                            "{0}",
+                            revisor.Navn
+                        ),
                     }
                 }
             }

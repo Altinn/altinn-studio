@@ -27,10 +27,10 @@ public class FounderSigneesProvider : ISigneeProvider
     {
         Skjemadata formData = await GetFormData(instance);
 
-        List<SigneeParty> signeeParties = [];
+        List<ProvidedSignee> signeeParties = [];
         foreach (StifterPerson stifterPerson in formData.StifterPerson)
         {
-            var personSignee = new SigneeParty
+            var personSignee = new PersonSignee
             {
                 FullName = string.Join(
                     " ",
@@ -67,14 +67,11 @@ public class FounderSigneesProvider : ISigneeProvider
 
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
         {
-            var organisationSignee = new SigneeParty
+            var organisationSignee = new OrganisationSignee
             {
-                OnBehalfOfOrganisation = new SigneePartyOrganisation
-                {
-                    Name = stifterVirksomhet.Navn,
-                    OrganisationNumber =
-                        stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty
-                },
+                Name = stifterVirksomhet.Navn,
+                OrganisationNumber =
+                    stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
                 Notifications = new Notifications
                 {
                     OnSignatureAccessRightsDelegated = new Notification
