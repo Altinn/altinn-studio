@@ -9,7 +9,7 @@
 }
 
 .header {
-  font-size: x-large;
+  font-size: var(--fds-sizing-6);
 }
 
 .panel {
