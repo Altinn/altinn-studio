@@ -5,7 +5,7 @@
       {
         "id": "headerSigningFounders",
         "type": "Header",
-        "size": "L",
+        "size": "M",
         "textResourceBindings": {
           "title": "Her kan man ha en overskrift"
         }
