@@ -132,17 +132,17 @@ test('that it is possible to delete a row in an uploaded codelist', async ({
     CODELIST_TITLE_UPLOADED,
   );
 
-  const firstRow: number = 1;
-  const firstRowValue: string = 'test1';
-  const secondRowValue: string = 'test2';
-  await orgLibraryPage.codeLists.verifyValueInRow(firstRow, firstRowValue);
-  await orgLibraryPage.codeLists.clickOnDeleteRowButton(firstRow);
+  const itemNumberOne: number = 1;
+  const firstItemValue: string = 'test1';
+  const secondItemValue: string = 'test2';
+  await orgLibraryPage.codeLists.verifyValueTextfield(itemNumberOne, firstItemValue);
+  await orgLibraryPage.codeLists.clickOnDeleteItemButton(itemNumberOne);
 
   await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
     EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE,
     CODELIST_TITLE_UPLOADED,
   );
-  await orgLibraryPage.codeLists.verifyValueInRow(firstRow, secondRowValue);
+  await orgLibraryPage.codeLists.verifyValueTextfield(itemNumberOne, secondItemValue);
 });
 
 test('that it is possible to search for and delete the new codelists', async ({

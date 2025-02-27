@@ -22,7 +22,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    /*   {
+    {
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -131,7 +131,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.PROCESS_EDITOR_APP,
         headless: true,
       },
-    },*/
+    },
     {
       name: TestNames.ORG_LIBRARY,
       dependencies: [TestNames.SETUP],
@@ -144,7 +144,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.ORG_LIBRARY,
         headless: true,
       },
-    } /*
+    },
     {
       name: TestNames.LOGOUT,
       dependencies: [
@@ -177,6 +177,6 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         headless: true,
       },
-    },*/,
+    },
   ],
 });
