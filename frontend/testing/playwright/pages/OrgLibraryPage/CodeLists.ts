@@ -2,8 +2,6 @@ import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
 import path from 'path';
 
-const TIMEOUT_TO_WAIT_FOR_TEXT_TO_APPEAR: number = 10000;
-
 export class CodeLists extends BasePage {
   constructor(public page: Page) {
     super(page);
@@ -52,28 +50,28 @@ export class CodeLists extends BasePage {
       .click();
   }
 
-  public async verifyAlternativeRowIsVisible(row: number): Promise<void> {
-    const alternativeRow = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+  public async verifyNewItemValueFieldIsVisible(itemNumber: number): Promise<void> {
+    const newItemValueField = this.page.getByRole('textbox', {
+      name: this.textMock('code_list_editor.value_item', { number: itemNumber.toString() }),
       exact: true,
     });
 
-    await expect(alternativeRow).toBeVisible();
+    await expect(newItemValueField).toBeVisible();
   }
 
-  public async writeCodelistValue(row: number, value: string): Promise<void> {
+  public async writeCodelistValue(itemNumber: number, value: string): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
+        name: this.textMock('code_list_editor.value_item', { number: itemNumber.toString() }),
         exact: true,
       })
       .fill(value);
   }
 
-  public async writeCodelistLabel(row: number, label: string): Promise<void> {
+  public async writeCodelistLabel(itemNumber: number, label: string): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('code_list_editor.label_item', { number: row.toString() }),
+        name: this.textMock('code_list_editor.label_item', { number: itemNumber.toString() }),
       })
       .fill(label);
   }
@@ -96,7 +94,7 @@ export class CodeLists extends BasePage {
     await expect(codeList).toBeVisible();
   }
 
-  public async clickOnAddRowButton(): Promise<void> {
+  public async clickOnAddItemButton(): Promise<void> {
     await this.page
       .getByRole('button', {
         name: this.textMock('code_list_editor.add_option'),
@@ -124,44 +122,30 @@ export class CodeLists extends BasePage {
       .click();
   }
 
-  public async verifyEmptyValueTextfield(row: number): Promise<void> {
-    const textfield = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
-      exact: true,
-    });
-
-    await expect(textfield).toHaveValue('');
+  public async verifyEmptyValueTextfield(itemNumber: number): Promise<void> {
+    await this.verifyValueTextfield(itemNumber, '');
   }
 
-  public async verifyEmptyLabelTextfield(row: number): Promise<void> {
-    const textfield = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: row.toString() }),
-      exact: true,
-    });
-
-    await expect(textfield).toHaveValue('');
+  public async verifyEmptyLabelTextfield(itemNumber: number): Promise<void> {
+    await this.verifyLabelTextfield(itemNumber, '');
   }
 
-  public async verifyTextfieldValue(row: number, value: string): Promise<void> {
+  public async verifyValueTextfield(itemNumber: number, value: string): Promise<void> {
     const textfield = this.page.getByRole('textbox', {
-      name: this.textMock(`code_list_editor.value_item`, { number: row.toString() }),
+      name: this.textMock(`code_list_editor.value_item`, { number: itemNumber.toString() }),
       exact: true,
     });
 
     await expect(textfield).toHaveValue(value);
   }
 
-  public async verifyTextfieldLabel(row: number, value: string): Promise<void> {
+  public async verifyLabelTextfield(itemNumber: number, value: string): Promise<void> {
     const textfield = this.page.getByRole('textbox', {
-      name: this.textMock(`code_list_editor.label_item`, { number: row.toString() }),
+      name: this.textMock(`code_list_editor.label_item`, { number: itemNumber.toString() }),
       exact: true,
     });
 
-    await expect(textfield).toHaveValue(value, { timeout: TIMEOUT_TO_WAIT_FOR_TEXT_TO_APPEAR });
-  }
-
-  public async tabOut(): Promise<void> {
-    await this.page.keyboard.press('Tab');
+    await expect(textfield).toHaveValue(value);
   }
 
   public async clickOnUploadButtonAndSelectFileToUpload(fileName: string): Promise<void> {
@@ -193,8 +177,8 @@ export class CodeLists extends BasePage {
     await expect(codeList).toBeHidden();
   }
 
-  public async verifyNumberOfRowsInTheCodelist(
-    numberOfRows: number,
+  public async verifyNumberOfItemsInTheCodelist(
+    numberOfItems: number,
     codeListTitle: string,
   ): Promise<void> {
     const accordionTitle = this.page.getByRole('heading', { name: codeListTitle });
@@ -203,7 +187,7 @@ export class CodeLists extends BasePage {
     const rows = table.getByRole('row');
 
     const headerRow: number = 1;
-    const totalNumberOfRows: number = numberOfRows + headerRow;
+    const totalNumberOfRows: number = numberOfItems + headerRow;
 
     await expect(rows).toHaveCount(totalNumberOfRows);
   }
