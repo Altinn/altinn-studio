@@ -194,6 +194,21 @@ public class OrgTextsServiceTests : IDisposable
         await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang));
     }
 
+    private static TextResource GetInitialTextResources(string language = "nb")
+    {
+        string fileContents = TestDataHelper.GetFileFromRepo(Org, "org-content", Developer, RelativePath(language));
+        return JsonSerializer.Deserialize<TextResource>(fileContents, _jsonOptions);
+    }
+
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
     private static OrgTextsService GetOrgTextsService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory =
@@ -212,19 +227,4 @@ public class OrgTextsServiceTests : IDisposable
             TestDataHelper.DeleteOrgDirectory(Developer, TargetOrg);
         }
     }
-
-    private static TextResource GetInitialTextResources(string language = "nb")
-    {
-        string fileContents = TestDataHelper.GetFileFromRepo(Org, "org-content", Developer, RelativePath(language));
-        return JsonSerializer.Deserialize<TextResource>(fileContents, _jsonOptions);
-    }
-
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
-    };
 }
