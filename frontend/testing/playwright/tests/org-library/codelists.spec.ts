@@ -10,7 +10,9 @@ const TEST_ORG: string = 'ttd';
 const CODELIST_TITLE_MANUALLY: string = 'Test_codelist';
 const CODELIST_TITLE_UPLOADED: string = 'testCodelist';
 
-const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST: number = 1;
+const EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST: number = 1;
+const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW: number =
+  EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST + 1;
 const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST: number = 3;
 
 test.describe.configure({ mode: 'serial' });
@@ -51,22 +53,56 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
   await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
 
-  await orgLibraryPage.codeLists.verifyAlternativeRowIsVisible(
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+  await orgLibraryPage.codeLists.verifyNewItemValueFieldIsVisible(
+    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
   );
   const firstRowValue: string = 'First value';
   await orgLibraryPage.codeLists.writeCodelistValue(
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
     firstRowValue,
   );
   const firstRowLabel: string = 'First label';
   await orgLibraryPage.codeLists.writeCodelistLabel(
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
     firstRowLabel,
   );
 
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
+});
+
+test('that it is possible to add a new row to an existing codelist and modify the fields in the row', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_MANUALLY);
+
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
+    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
+    CODELIST_TITLE_MANUALLY,
+  );
+
+  await orgLibraryPage.codeLists.clickOnAddItemButton();
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW,
+    CODELIST_TITLE_MANUALLY,
+  );
+
+  const lastlyAddedItemNumber: number =
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW;
+  await orgLibraryPage.codeLists.verifyEmptyValueTextfield(lastlyAddedItemNumber);
+  await orgLibraryPage.codeLists.verifyEmptyLabelTextfield(lastlyAddedItemNumber);
+
+  const value: string = 'value';
+  await orgLibraryPage.codeLists.writeCodelistValue(lastlyAddedItemNumber, value);
+  await orgLibraryPage.codeLists.verifyValueTextfield(lastlyAddedItemNumber, value);
+
+  const label: string = 'label';
+  await orgLibraryPage.codeLists.writeCodelistLabel(lastlyAddedItemNumber, label);
+  await orgLibraryPage.codeLists.verifyLabelTextfield(lastlyAddedItemNumber, label);
 });
 
 test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
@@ -75,7 +111,7 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
-  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
     EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
     CODELIST_TITLE_UPLOADED,
   );
@@ -91,7 +127,7 @@ test('that it is possible to search for and delete the new codelists', async ({
   await deleteAndVerifyDeletionOfCodeList(
     orgLibraryPage,
     CODELIST_TITLE_MANUALLY,
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CODELIST,
+    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW,
   );
 
   await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
@@ -116,7 +152,7 @@ const deleteAndVerifyDeletionOfCodeList = async (
   codelistTitle: string,
   expectedNumberOfRowsInCodeList: number,
 ): Promise<void> => {
-  await orgLibraryPage.codeLists.verifyNumberOfRowsInTheCodelist(
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
     expectedNumberOfRowsInCodeList,
     codelistTitle,
   );
