@@ -48,13 +48,15 @@ export const ExpressionContent = ({
           {heading}
         </Paragraph>
       </legend>
-      <StudioDeleteButton
-        className={classes.deleteButton}
-        confirmMessage={t('right_menu.expressions_delete_confirm')}
-        onDelete={onDelete}
-        size='small'
-        title={t('right_menu.expression_delete')}
-      />
+      {expression && (
+        <StudioDeleteButton
+          className={classes.deleteButton}
+          confirmMessage={t('right_menu.expressions_delete_confirm')}
+          onDelete={onDelete}
+          size='small'
+          title={t('right_menu.expression_delete')}
+        />
+      )}
       <div className={classes.expressionWrapper}>
         <ExpressionWithTexts
           expression={expression}

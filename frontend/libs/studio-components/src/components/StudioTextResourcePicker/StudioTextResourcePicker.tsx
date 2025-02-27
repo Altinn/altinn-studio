@@ -1,37 +1,58 @@
 import type { ReactElement } from 'react';
-import React, { forwardRef, useCallback } from 'react';
+import React, { useMemo, forwardRef, useCallback } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
 import type { Override } from '../../types/Override';
 import classes from './StudioTextResourcePicker.module.css';
+import { retrieveSelectedValues } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
+    emptyLabel?: string;
+    noTextResourceOptionLabel?: string;
     onValueChange: (id: string | null) => void;
+    required?: boolean;
     textResources: TextResource[];
-    noTextResourceOptionLabel: string;
     value?: string;
   },
   StudioComboboxProps
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  ({ textResources, onSelect, onValueChange, noTextResourceOptionLabel, value, ...rest }, ref) => {
+  (
+    {
+      emptyLabel = '',
+      noTextResourceOptionLabel = '',
+      onSelect,
+      onValueChange,
+      required,
+      textResources,
+      value,
+      ...rest
+    },
+    ref,
+  ) => {
     const handleValueChange = useCallback(
       ([id]: string[]) => onValueChange(id || null),
       [onValueChange],
+    );
+
+    const selectedValues: string[] = useMemo(
+      () => retrieveSelectedValues(textResources, value),
+      [textResources, value],
     );
 
     return (
       <StudioCombobox
         hideLabel
         onValueChange={handleValueChange}
-        value={value ? [value] : []}
+        value={selectedValues}
         {...rest}
         ref={ref}
       >
-        {renderNoTextResourceOption(noTextResourceOptionLabel)}
+        <StudioCombobox.Empty>{emptyLabel}</StudioCombobox.Empty>
+        {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
       </StudioCombobox>
     );
