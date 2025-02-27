@@ -45,12 +45,18 @@ public class FounderSigneesProvider : ISigneeProvider
                         {
                             EmailAddress = stifterPerson.Epost,
                             SubjectTextResourceKey = "signing.email_subject",
-                            BodyTextResourceKey = "signing.notification_content".Replace("{0}", stifterPerson.Fornavn),
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterPerson.Fornavn
+                            ),
                         },
                         Sms = new Sms
                         {
                             MobileNumber = stifterPerson.Mobiltelefon,
-                            TextResourceKey = "signing.notification_content".Replace("{0}", stifterPerson.Fornavn),
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterPerson.Fornavn
+                            ),
                         }
                     }
                 }
@@ -77,12 +83,18 @@ public class FounderSigneesProvider : ISigneeProvider
                         {
                             EmailAddress = stifterVirksomhet.Epost,
                             SubjectTextResourceKey = "signing.email_subject",
-                            BodyTextResourceKey = "signing.notification_content".Replace("{0}", stifterVirksomhet.Navn),
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterVirksomhet.Navn
+                            ),
                         },
                         Sms = new Sms
                         {
                             MobileNumber = stifterVirksomhet.Mobiltelefon,
-                            TextResourceKey = "signing.notification_content".Replace("{0}", stifterVirksomhet.Navn),
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterVirksomhet.Navn
+                            ),
                         }
                     }
                 }
