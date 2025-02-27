@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, Textfield, ErrorMessage } from '@digdir/designsystemet-react';
+import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -13,7 +13,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export interface ISelectionEditComponentProvidedProps
   extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
@@ -152,7 +152,7 @@ export function EditOptions({
                             textResourceId={option.label}
                           />
                           <div>
-                            <Textfield
+                            <StudioTextfield
                               label={t('general.value')}
                               onChange={updateValue}
                               placeholder={t('general.value')}
