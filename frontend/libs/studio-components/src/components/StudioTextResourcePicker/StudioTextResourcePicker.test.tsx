@@ -87,6 +87,12 @@ describe('StudioTextResourcePicker', () => {
     expect(getCombobox()).toHaveValue('');
   });
 
+  it('Renders with no text resource option as selected when the given id does not exist', () => {
+    const nonExistentId = 'non-existent-id';
+    renderTextResourcePicker({ value: nonExistentId });
+    expect(getCombobox()).toHaveValue('');
+  });
+
   it('Calls the onValueChange callback with null when the user selects the unset option', async () => {
     const user = userEvent.setup();
     const value = textResources[arbitraryTextResourceIndex].id;
