@@ -15,6 +15,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { LayoutContext } from 'app-development/contexts/LayoutContext/LayoutContext';
 import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -31,6 +32,15 @@ jest.mock('@altinn/ux-editor/SubApp', () => ({
     }, [onLayoutSetNameChange]);
     return <div data-testid='latest version' />;
   },
+}));
+
+jest.mock('@altinn/ux-editor/containers/FormDesignNavigation', () => ({
+  FormDesignerNavigation: () => <div>Form Designer Navigation</div>,
+}));
+
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  ...jest.requireActual('app-shared/utils/featureToggleUtils'),
+  shouldDisplayFeature: jest.fn(),
 }));
 
 const renderWithProviders = (
@@ -53,6 +63,9 @@ const renderWithProviders = (
 
 describe('routes', () => {
   describe(RoutePaths.UIEditor, () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
     it('calls setSelectedLayoutSetName when onLayoutSetNameChange is triggered', () => {
       const setSelectedLayoutSetName = jest.fn();
       const queryClient = createQueryClientMock();
@@ -119,6 +132,22 @@ describe('routes', () => {
     it('renders a loading spinner while fetching frontend version', () => {
       renderUiEditor();
       expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+    });
+
+    it('renders FormDesignerNavigation when task navigation is enabled and no layout set is selected', () => {
+      (shouldDisplayFeature as jest.Mock).mockImplementation(
+        (feature) => feature === FeatureFlag.TaskNavigation,
+      );
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.AppVersion, org, app], {
+        frontendVersion: '4.0.0',
+        backendVersion: '7.0.0',
+      });
+      renderWithProviders(<UiEditor />, queryClient, {
+        setSelectedLayoutSetName: jest.fn(),
+        selectedFormLayoutSetName: undefined,
+      });
+      expect(screen.getByText('Form Designer Navigation')).toBeInTheDocument();
     });
 
     const renderUiEditor = (queryClient: QueryClient = createQueryClientMock()) =>
