@@ -9,15 +9,19 @@
 }
 
 .header {
-  font-size: var(--fds-sizing-6);
+  color: #022f51;
+  font-family: var(--studio-font-family);
+  font-size: var(--fds-sizing-9);
+  font-weight: 500;
 }
 
 .panel {
   background-color: white;
   border-radius: var(--fds-border_radius-medium);
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
-  padding: var(--fds-spacing-10);
+  padding: var(--fds-spacing-5);
   position: relative;
+  margin: var(--fds-spacing-5);
 }
 
 .content {
