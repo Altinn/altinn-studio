@@ -11,6 +11,8 @@ import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -158,9 +160,8 @@ describe('CreateService', () => {
 
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
-    const addRepoMock = jest
-      .fn()
-      .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
+    const axiosError = createApiErrorMock(ServerCodes.Conflict);
+    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
 
     renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
@@ -179,14 +180,15 @@ describe('CreateService', () => {
     });
     await user.click(createBtn);
 
-    expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
+    expect(addRepoMock).rejects.toEqual(axiosError);
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });
 
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
-    const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
+    const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
+    const addRepoMock = jest.fn(() => Promise.reject(axiosError));
     renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
@@ -199,7 +201,7 @@ describe('CreateService', () => {
     const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
     await user.click(createButton);
 
-    await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
+    await expect(addRepoMock).rejects.toEqual(axiosError);
 
     const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
     expect(emptyFieldErrors.length).toBe(1);
@@ -242,9 +244,8 @@ describe('CreateService', () => {
 
   it('should not display loading if process form fails, should display create and cancel button', async () => {
     const user = userEvent.setup();
-    const addRepoMock = jest
-      .fn()
-      .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
+    const axiosError = createApiErrorMock(ServerCodes.Conflict);
+    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
 
     renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
@@ -265,7 +266,7 @@ describe('CreateService', () => {
     });
     user.click(createBtn);
 
-    expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
+    expect(addRepoMock).rejects.toEqual(axiosError);
 
     expect(screen.queryByText(textMock('dashboard.creating_your_service'))).not.toBeInTheDocument();
     expect(createBtn).toBeInTheDocument();

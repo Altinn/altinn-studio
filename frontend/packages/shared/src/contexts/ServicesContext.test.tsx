@@ -175,7 +175,12 @@ describe('ServicesContext', () => {
 
   it('displays a default error message if an API call fails', async () => {
     const { result } = renderHook(
-      () => useQuery({ queryKey: ['fetchData'], queryFn: () => Promise.reject(), retry: false }),
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock()),
+          retry: false,
+        }),
       { wrapper },
     );
 
