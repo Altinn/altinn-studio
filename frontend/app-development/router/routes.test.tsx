@@ -143,6 +143,7 @@ describe('routes', () => {
         frontendVersion: '4.0.0',
         backendVersion: '7.0.0',
       });
+
       renderWithProviders(<UiEditor />, queryClient, {
         setSelectedLayoutSetName: jest.fn(),
         selectedFormLayoutSetName: undefined,
