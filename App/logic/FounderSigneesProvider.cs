@@ -27,7 +27,7 @@ public class FounderSigneesProvider : ISigneeProvider
     {
         Skjemadata formData = await GetFormData(instance);
 
-        List<ProvidedSignee> signeeParties = [];
+        List<ProvidedSignee> providedSignees = [];
         foreach (StifterPerson stifterPerson in formData.StifterPerson)
         {
             var personSignee = new PersonSignee
@@ -62,7 +62,7 @@ public class FounderSigneesProvider : ISigneeProvider
                 }
             };
 
-            signeeParties.Add(personSignee);
+            providedSignees.Add(personSignee);
         }
 
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
@@ -97,10 +97,10 @@ public class FounderSigneesProvider : ISigneeProvider
                 }
             };
 
-            signeeParties.Add(organisationSignee);
+            providedSignees.Add(organisationSignee);
         }
 
-        return new SigneesResult { Signees = signeeParties };
+        return new SigneesResult { Signees = providedSignees };
     }
 
     private async Task<Skjemadata> GetFormData(Instance instance)
