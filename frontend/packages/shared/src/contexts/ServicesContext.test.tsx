@@ -38,6 +38,26 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
+  it('logs non-Axios errors to the console', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children });
+        },
+      },
+    );
+
+    await waitFor(() => expect(mockConsoleError).toHaveBeenCalled());
+    mockConsoleError.mockRestore();
+  });
+
   it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     jest.spyOn(global, 'setTimeout');
