@@ -1,5 +1,6 @@
 import type JQuery from 'cypress/types/jquery';
 import type { RouteMatcher } from 'cypress/types/net-stubbing';
+import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import type { CyUser } from 'test/e2e/support/auth';
 
@@ -304,6 +305,8 @@ declare global {
       gotoNavGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<null>;
 
       openNavGroup(groupName: string | RegExp): Chainable<null>;
+
+      ignoreConsoleMessages(consoleMessages: ConsoleMessage[]): Chainable<null>;
     }
   }
 }

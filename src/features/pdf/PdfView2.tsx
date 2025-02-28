@@ -195,11 +195,20 @@ function PdfWrapping({ children }: PropsWithChildren) {
 }
 
 function PlainPage({ pageKey }: { pageKey: string }) {
+  const pageExists = NodesInternal.useSelector((state) =>
+    Object.values(state.pagesData.pages).some((data) => data.pageKey === pageKey),
+  );
   const children = NodesInternal.useShallowSelector((state) =>
     Object.values(state.nodeData)
       .filter((data) => data.pageKey === pageKey && data.parentId === undefined) // Find top-level nodes
       .map((data) => data.layout.id),
   );
+
+  if (!pageExists) {
+    const message = `Error using: "pdfLayoutName": ${JSON.stringify(pageKey)}, could not find a layout with that name.`;
+    window.logErrorOnce(message);
+    throw new Error(message);
+  }
 
   return (
     <div className={classes.page}>
