@@ -14,6 +14,7 @@ import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 // Test data:
 const pageConfigPanelTestId = 'pageConfigPanel';
@@ -297,6 +298,10 @@ const renderProperties = (
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
+  queryClientMock.setQueryData(
+    [QueryKey.FormComponent, formItemContextProps.formItem?.type],
+    componentSchemaMocks[formItemContextProps.formItem?.type],
+  );
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
