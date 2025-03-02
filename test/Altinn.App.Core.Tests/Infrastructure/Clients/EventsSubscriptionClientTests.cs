@@ -1,83 +1,72 @@
-#nullable disable
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Moq.Protected;
-using Xunit.Abstractions;
 
 namespace Altinn.App.PlatformServices.Tests.Infrastructure.Clients;
 
 public class EventsSubscriptionClientTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
-    public EventsSubscriptionClientTests(ITestOutputHelper testOutputHelper)
+    private sealed record Fixture(IServiceProvider ServiceProvider) : IDisposable
     {
-        _testOutputHelper = testOutputHelper;
+        public EventsSubscriptionClient Client =>
+            (EventsSubscriptionClient)ServiceProvider.GetRequiredService<IEventsSubscription>();
+
+        public static Fixture Create()
+        {
+            var services = new ServiceCollection();
+            services.AddAppImplementationFactory();
+            services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
+            services.Configure<GeneralSettings>(s => s.HostName = "at22.altinn.cloud");
+            services.Configure<PlatformSettings>(s =>
+            {
+                s.ApiEventsEndpoint = "http://localhost:5101/events/api/v1/";
+                s.SubscriptionKey = "key";
+            });
+
+            Subscription subscriptionContent = new() { Id = 123 };
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(subscriptionContent)),
+            };
+            Mock<HttpMessageHandler> handlerMock = new();
+            handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(httpResponseMessage);
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+            services.AddSingleton(_ => httpClient);
+
+            services.AddTransient<IEventSecretCodeProvider, TestSecretCodeProvider>();
+            services.AddTransient<IEventsSubscription, EventsSubscriptionClient>();
+            return new Fixture(services.BuildStrictServiceProvider());
+        }
+
+        public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
     }
 
     [Fact]
     public async Task AddSubscription_ShouldReturnOk()
     {
-        EventsSubscriptionClient client = GetEventSubscriptonClient();
+        using var fixture = Fixture.Create();
+        EventsSubscriptionClient client = fixture.Client;
 
         Subscription subscription = await client.AddSubscription("ttd", "test-app", "app.events.type");
 
         subscription.Should().NotBeNull();
-    }
-
-    private static EventsSubscriptionClient GetEventSubscriptonClient()
-    {
-        IEventSecretCodeProvider secretCodeProvider = new TestSecretCodeProvider();
-        Mock<ILogger<EventsSubscriptionClient>> loggerMock = new();
-
-        IOptions<PlatformSettings> platformSettings = Microsoft.Extensions.Options.Options.Create(
-            new PlatformSettings()
-            {
-                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                SubscriptionKey = "key",
-            }
-        );
-
-        IOptions<GeneralSettings> generalSettings = Microsoft.Extensions.Options.Options.Create(
-            new GeneralSettings { HostName = "at22.altinn.cloud" }
-        );
-
-        Subscription subscriptionContent = new() { Id = 123 };
-
-        HttpResponseMessage httpResponseMessage = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(JsonSerializer.Serialize(subscriptionContent)),
-        };
-
-        Mock<HttpMessageHandler> handlerMock = new();
-        handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(httpResponseMessage);
-
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
-
-        var client = new EventsSubscriptionClient(
-            platformSettings,
-            httpClient,
-            generalSettings,
-            secretCodeProvider,
-            loggerMock.Object
-        );
-
-        return client;
     }
 
     public class TestSecretCodeProvider : IEventSecretCodeProvider

@@ -30,28 +30,42 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class StatelessDataControllerTests
 {
+    private sealed record SimpleFixture(IServiceProvider ServiceProvider) : IDisposable
+    {
+        public StatelessDataController Controller => ServiceProvider.GetRequiredService<StatelessDataController>();
+
+        public Mock<T> Mock<T>()
+            where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
+
+        public static SimpleFixture Create()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging(builder => builder.AddProvider(NullLoggerProvider.Instance));
+            services.AddAppImplementationFactory();
+
+            services.AddSingleton(new Mock<IAppModel>().Object);
+            services.AddSingleton(new Mock<IAppResources>().Object);
+            services.AddSingleton(new Mock<IDataProcessor>().Object);
+            services.AddSingleton(new Mock<IPrefill>().Object);
+            services.AddSingleton(new Mock<IAltinnPartyClient>().Object);
+            services.AddSingleton(new Mock<IPDP>().Object);
+            services.AddSingleton(new Mock<IAuthenticationContext>().Object);
+
+            services.AddTransient<StatelessDataController>();
+
+            var sp = services.BuildStrictServiceProvider();
+            return new SimpleFixture(sp);
+        }
+
+        public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
+    }
+
     [Fact]
     public async Task Get_Returns_BadRequest_when_dataType_is_null()
     {
         // Arrange
-        var altinnAppModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            altinnAppModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
 
         string dataType = null!; // this is what we're testing
 
@@ -64,39 +78,23 @@ public class StatelessDataControllerTests
             .BeOfType<BadRequestObjectResult>()
             .Which.Value.Should()
             .Be($"Invalid dataType {string.Empty} provided. Please provide a valid dataType as query parameter.");
-        dataProcessorMock.VerifyNoOtherCalls();
-        appResourcesMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
-        pdpMock.VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Get_Returns_BadRequest_when_appResource_classRef_is_null()
     {
         // Arrange
-        var appModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
         var dataType = "some-value";
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            appModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(string.Empty);
+        fixture.Mock<IAppResources>().Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(string.Empty);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, "partyId:123");
 
         // Assert
@@ -105,12 +103,12 @@ public class StatelessDataControllerTests
             .BeOfType<BadRequestObjectResult>()
             .Which.Value.Should()
             .Be($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
-        appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        appResourcesMock.VerifyNoOtherCalls();
-        dataProcessorMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
-        pdpMock.VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
     }
 
     // WebApplicationFactory that allows testing how things work when the user has two
@@ -145,7 +143,7 @@ public class StatelessDataControllerTests
     public async Task Get_Returns_BadRequest_when_party_header_count_greater_than_one()
     {
         // Arrange
-        var factory = new StatelessDataControllerWebApplicationFactory();
+        using var factory = new StatelessDataControllerWebApplicationFactory();
 
         var client = factory.CreateClient();
         string token = TestAuthentication.GetUserToken(1337);
@@ -173,7 +171,7 @@ public class StatelessDataControllerTests
     public async Task Get_Returns_Forbidden_when_party_has_no_rights()
     {
         // Arrange
-        var factory = new StatelessDataControllerWebApplicationFactory();
+        using var factory = new StatelessDataControllerWebApplicationFactory();
 
         var client = factory.CreateClient();
         string token = TestAuthentication.GetUserToken(1337);
@@ -199,65 +197,37 @@ public class StatelessDataControllerTests
     public async Task Get_Returns_BadRequest_when_instance_owner_is_empty_party_header()
     {
         // Arrange
-        var appModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
         var dataType = "some-value";
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            appModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
+        fixture
+            .Mock<IAppResources>()
+            .Setup(x => x.GetClassRefForLogicDataType(dataType))
+            .Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, string.Empty);
 
         // Assert
         var response = result.Should().BeOfType<BadRequestObjectResult>().Which;
         response.StatusCode.Should().Be(400);
         response.Value.Should().BeOfType<string>().Which.Should().Contain("Invalid party header.");
-        appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        appResourcesMock.VerifyNoOtherCalls();
-        dataProcessorMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
-        pdpMock.VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Get_Returns_BadRequest_when_instance_owner_is_empty_user_in_context()
     {
         // Arrange
-        var appModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
         var dataType = "some-value";
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            appModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
+
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
@@ -268,47 +238,39 @@ public class StatelessDataControllerTests
         );
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
+        fixture
+            .Mock<IAppResources>()
+            .Setup(x => x.GetClassRefForLogicDataType(dataType))
+            .Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!);
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>().Which.StatusCode.Should().Be(400);
-        appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        appResourcesMock.VerifyNoOtherCalls();
-        dataProcessorMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
-        pdpMock.VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Get_Returns_Forbidden_when_returned_descision_is_Deny()
     {
         // Arrange
-        var appModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
         var dataType = "some-value";
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            appModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
+
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         statelessDataController.ControllerContext.HttpContext.User = TestAuthentication.GetUserPrincipal();
-        authContextMock.Setup(c => c.Current).Returns(TestAuthentication.GetUserAuthentication());
-        pdpMock
+        fixture
+            .Mock<IAuthenticationContext>()
+            .Setup(c => c.Current)
+            .Returns(TestAuthentication.GetUserAuthentication());
+        fixture
+            .Mock<IPDP>()
             .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
@@ -321,50 +283,39 @@ public class StatelessDataControllerTests
             );
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
+        fixture
+            .Mock<IAppResources>()
+            .Setup(x => x.GetClassRefForLogicDataType(dataType))
+            .Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!);
 
         // Assert
         result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(403);
-        appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        appResourcesMock.VerifyNoOtherCalls();
-        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
-        pdpMock.VerifyNoOtherCalls();
-        dataProcessorMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Get_Returns_OK_with_appModel()
     {
         // Arrange
-        var appModelMock = new Mock<IAppModel>();
-        var appResourcesMock = new Mock<IAppResources>();
-        var dataProcessorMock = new Mock<IDataProcessor>();
-        var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IAltinnPartyClient>();
-        var pdpMock = new Mock<IPDP>();
-        var authContextMock = new Mock<IAuthenticationContext>();
+        using var fixture = SimpleFixture.Create();
+        var statelessDataController = fixture.Controller;
         var dataType = "some-value";
         var classRef = typeof(DummyModel).FullName!;
-        ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(
-            logger,
-            appModelMock.Object,
-            appResourcesMock.Object,
-            prefillMock.Object,
-            registerMock.Object,
-            pdpMock.Object,
-            new IDataProcessor[] { dataProcessorMock.Object },
-            authContextMock.Object
-        );
+
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         var auth = TestAuthentication.GetUserAuthentication();
         statelessDataController.ControllerContext.HttpContext.User = TestAuthentication.GetUserPrincipal();
-        authContextMock.Setup(c => c.Current).Returns(auth);
-        pdpMock
+        fixture.Mock<IAuthenticationContext>().Setup(c => c.Current).Returns(auth);
+        fixture
+            .Mock<IPDP>()
             .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
@@ -375,31 +326,35 @@ public class StatelessDataControllerTests
                     },
                 }
             );
-        appModelMock.Setup(a => a.Create(classRef)).Returns(new DummyModel());
+        fixture.Mock<IAppModel>().Setup(a => a.Create(classRef)).Returns(new DummyModel());
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(classRef);
+        fixture.Mock<IAppResources>().Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(classRef);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>().Which.StatusCode.Should().Be(200);
         result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeOfType<DummyModel>();
-        appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
-        appModelMock.Verify(a => a.Create(classRef), Times.Once);
-        prefillMock.Verify(p =>
-            p.PrefillDataModel(
-                auth.SelectedPartyId.ToString(CultureInfo.InvariantCulture),
-                dataType,
-                It.IsAny<DummyModel>(),
-                null
-            )
-        );
-        dataProcessorMock.Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>(), null));
-        appResourcesMock.VerifyNoOtherCalls();
-        pdpMock.VerifyNoOtherCalls();
-        dataProcessorMock.VerifyNoOtherCalls();
-        prefillMock.VerifyNoOtherCalls();
-        registerMock.VerifyNoOtherCalls();
+        fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
+        fixture.Mock<IPDP>().Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
+        fixture.Mock<IAppModel>().Verify(a => a.Create(classRef), Times.Once);
+        fixture
+            .Mock<IPrefill>()
+            .Verify(p =>
+                p.PrefillDataModel(
+                    auth.SelectedPartyId.ToString(CultureInfo.InvariantCulture),
+                    dataType,
+                    It.IsAny<DummyModel>(),
+                    null
+                )
+            );
+        fixture
+            .Mock<IDataProcessor>()
+            .Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>(), null));
+        fixture.Mock<IAppResources>().VerifyNoOtherCalls();
+        fixture.Mock<IPDP>().VerifyNoOtherCalls();
+        fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IPrefill>().VerifyNoOtherCalls();
+        fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
     }
 }

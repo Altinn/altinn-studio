@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Class handling a dedicated type of event from the Event system ie. an external event.
 /// </summary>
+[ImplementableByApps]
 public interface IEventHandler
 {
     /// <summary>

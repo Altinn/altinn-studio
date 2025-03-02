@@ -1,5 +1,7 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Validation;
 
@@ -8,14 +10,14 @@ namespace Altinn.App.Core.Internal.Validation;
 /// </summary>
 public class FileValidatorFactory : IFileValidatorFactory
 {
-    private readonly IEnumerable<IFileValidator> _fileValidators;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileValidatorFactory"/> class.
     /// </summary>
-    public FileValidatorFactory(IEnumerable<IFileValidator> fileValidators)
+    public FileValidatorFactory(IServiceProvider serviceProvider)
     {
-        _fileValidators = fileValidators;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -23,6 +25,7 @@ public class FileValidatorFactory : IFileValidatorFactory
     /// </summary>
     public IEnumerable<IFileValidator> GetFileValidators(IEnumerable<string> validatorIds)
     {
-        return _fileValidators.Where(x => validatorIds.Contains(x.Id)).ToList();
+        var validators = _appImplementationFactory.GetAll<IFileValidator>();
+        return validators.Where(x => validatorIds.Contains(x.Id)).ToArray();
     }
 }

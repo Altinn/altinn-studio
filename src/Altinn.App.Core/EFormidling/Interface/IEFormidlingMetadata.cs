@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.EFormidling.Interface;
@@ -6,6 +7,7 @@ namespace Altinn.App.Core.EFormidling.Interface;
 /// Interface for implementing app specific eFormidling metadata to be sendt.
 /// Required when enabling eFormidling for an app.
 /// </summary>
+[ImplementableByApps]
 public interface IEFormidlingMetadata
 {
     /// <summary>

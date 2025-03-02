@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ServiceTasks;
@@ -5,6 +6,7 @@ namespace Altinn.App.Core.Internal.Process.ServiceTasks;
 /// <summary>
 /// Interface for service tasks that can be executed during a process.
 /// </summary>
+[ImplementableByApps]
 public interface IServiceTask
 {
     /// <summary>

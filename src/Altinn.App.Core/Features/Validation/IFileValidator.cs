@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Features.Validation;
 /// <summary>
 /// Interface for handling validation of files added to an instance.
 /// </summary>
+[ImplementableByApps]
 public interface IFileValidator
 {
     /// <summary>

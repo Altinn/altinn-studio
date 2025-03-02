@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for defining custom decision logic for exclusive gateways
 /// </summary>
+[ImplementableByApps]
 public interface IProcessExclusiveGateway
 {
     /// <summary>

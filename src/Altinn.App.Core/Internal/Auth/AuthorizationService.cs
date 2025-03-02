@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Auth;
 
@@ -17,27 +18,27 @@ namespace Altinn.App.Core.Internal.Auth;
 public class AuthorizationService : IAuthorizationService
 {
     private readonly IAuthorizationClient _authorizationClient;
-    private readonly IEnumerable<IUserActionAuthorizerProvider> _userActionAuthorizers;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthorizationService"/> class
     /// </summary>
     /// <param name="authorizationClient">The authorization client</param>
-    /// <param name="userActionAuthorizers">The user action authorizers</param>
     /// <param name="authenticationContext">The authentication context</param>
+    /// <param name="serviceProvider">The service provider</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AuthorizationService(
         IAuthorizationClient authorizationClient,
-        IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers,
         IAuthenticationContext authenticationContext,
+        IServiceProvider serviceProvider,
         Telemetry? telemetry = null
     )
     {
         _authorizationClient = authorizationClient;
-        _userActionAuthorizers = userActionAuthorizers;
         _authenticationContext = authenticationContext;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _telemetry = telemetry;
     }
 
@@ -70,11 +71,8 @@ public class AuthorizationService : IAuthorizationService
             return false;
         }
 
-        foreach (
-            var authorizerRegistrator in _userActionAuthorizers.Where(a =>
-                IsAuthorizerForTaskAndAction(a, taskId, action)
-            )
-        )
+        var authorizers = _appImplementationFactory.GetAll<IUserActionAuthorizerProvider>();
+        foreach (var authorizerRegistrator in authorizers.Where(a => IsAuthorizerForTaskAndAction(a, taskId, action)))
         {
             var context = new UserActionAuthorizerContext(
                 user,

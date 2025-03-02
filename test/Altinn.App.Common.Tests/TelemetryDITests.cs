@@ -15,9 +15,7 @@ public class TelemetryDITests
 
         var services = new ServiceCollection();
         services.AddTelemetrySink();
-        var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
-        );
+        var sp = services.BuildStrictServiceProvider();
 
         if (materialize)
         {

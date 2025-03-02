@@ -30,11 +30,11 @@ public class StatelessDataController : ControllerBase
     private readonly ILogger<DataController> _logger;
     private readonly IAppModel _appModel;
     private readonly IAppResources _appResourcesService;
-    private readonly IEnumerable<IDataProcessor> _dataProcessors;
     private readonly IPrefill _prefillService;
     private readonly IAltinnPartyClient _altinnPartyClientClient;
     private readonly IPDP _pdp;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
     private const string PartyPrefix = "partyid";
@@ -51,18 +51,18 @@ public class StatelessDataController : ControllerBase
         IPrefill prefillService,
         IAltinnPartyClient altinnPartyClientClient,
         IPDP pdp,
-        IEnumerable<IDataProcessor> dataProcessors,
-        IAuthenticationContext authenticationContext
+        IAuthenticationContext authenticationContext,
+        IServiceProvider serviceProvider
     )
     {
         _logger = logger;
         _appModel = appModel;
         _appResourcesService = appResourcesService;
-        _dataProcessors = dataProcessors;
         _prefillService = prefillService;
         _altinnPartyClientClient = altinnPartyClientClient;
         _pdp = pdp;
         _authenticationContext = authenticationContext;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -137,7 +137,8 @@ public class StatelessDataController : ControllerBase
 
     private async Task ProcessAllDataRead(Instance virtualInstance, object appModel, string? language)
     {
-        foreach (var dataProcessor in _dataProcessors)
+        var dataProcessors = _appImplementationFactory.GetAll<IDataProcessor>();
+        foreach (var dataProcessor in dataProcessors)
         {
             _logger.LogInformation(
                 "ProcessDataRead for {modelType} using {dataProcesor}",

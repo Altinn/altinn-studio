@@ -89,7 +89,7 @@ public class ProfileClientTests
         services.AddMemoryCache();
         services.AddSingleton(_ => httpClient);
         services.AddProfileClient();
-        return new(services.BuildServiceProvider(), handler);
+        return new(services.BuildStrictServiceProvider(), handler);
     }
 
     [Fact]

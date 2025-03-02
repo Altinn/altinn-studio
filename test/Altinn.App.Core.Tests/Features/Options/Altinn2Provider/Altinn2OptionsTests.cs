@@ -38,7 +38,7 @@ public class Altinn2OptionsTests
         var services = GetServiceCollection();
 
         // no custom api registrerd here
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
         using (var scope = sp.CreateScope())
         {
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
@@ -57,7 +57,7 @@ public class Altinn2OptionsTests
             metadataApiId: "ASF_land"
         );
 
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
         using (var scope = sp.CreateScope())
         {
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
@@ -83,7 +83,7 @@ public class Altinn2OptionsTests
             metadataApiId: "ASF_land"
         );
 
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
         using (var scope = sp.CreateScope())
         {
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
@@ -110,7 +110,7 @@ public class Altinn2OptionsTests
             metadataApiId: "ASF_land"
         );
 
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
         using (var scope = sp.CreateScope())
         {
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
@@ -137,7 +137,7 @@ public class Altinn2OptionsTests
             metadataApiId: "ASF_land"
         );
 
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
         using (var scope = sp.CreateScope())
         {
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();

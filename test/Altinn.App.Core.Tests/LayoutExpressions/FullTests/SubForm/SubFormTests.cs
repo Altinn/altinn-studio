@@ -277,6 +277,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
     public SubFormTests(ITestOutputHelper output, DataAnnotationsTestFixture fixture)
     {
         _output = output;
+        _services.AddAppImplementationFactory();
         _services.AddSingleton(_appResourcesMock.Object);
         _services.AddSingleton(_appMetadataMock.Object);
         _services.AddSingleton(_httpContextAccessorMock.Object);
@@ -318,7 +319,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         _services.AddTransient<IValidator, RequiredLayoutValidator>();
         _services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
         _services.AddTransient<IValidator, ExpressionValidator>();
-        using var serviceProvider = _services.BuildServiceProvider();
+        using var serviceProvider = _services.BuildStrictServiceProvider();
 
         var validationService = serviceProvider.GetRequiredService<IValidationService>();
         var dataAccessor = new InstanceDataAccessorFake(_instance, _applicationMetadata)

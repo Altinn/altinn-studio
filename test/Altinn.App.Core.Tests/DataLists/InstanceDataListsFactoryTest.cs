@@ -1,8 +1,8 @@
-#nullable disable
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.PlatformServices.Tests.DataLists;
 
@@ -11,9 +11,13 @@ public class InstanceDataListsFactoryTest
     [Fact]
     public void GetInstanceDataListProvider_CustomInstanceDataListProvider_ShouldReturnCustomType()
     {
-        var factory = new InstanceDataListsFactory(
-            new List<IInstanceDataListProvider>() { new CountryDataListProvider() }
-        );
+        var services = new ServiceCollection();
+        services.AddAppImplementationFactory();
+        services.AddSingleton<IInstanceDataListProvider, CountryDataListProvider>();
+        services.AddSingleton<InstanceDataListsFactory>();
+        using var serviceProvider = services.BuildStrictServiceProvider();
+
+        var factory = serviceProvider.GetRequiredService<InstanceDataListsFactory>();
 
         IInstanceDataListProvider dataListProvider = factory.GetDataListProvider("country");
 
@@ -24,7 +28,12 @@ public class InstanceDataListsFactoryTest
     [Fact]
     public void GetInstanceDataListProvider_NoInstanceDataListProvider_ShouldReturnNullDataListProvider()
     {
-        var factory = new InstanceDataListsFactory(new List<IInstanceDataListProvider>() { });
+        var services = new ServiceCollection();
+        services.AddAppImplementationFactory();
+        services.AddSingleton<InstanceDataListsFactory>();
+        using var serviceProvider = services.BuildStrictServiceProvider();
+
+        var factory = serviceProvider.GetRequiredService<InstanceDataListsFactory>();
 
         IInstanceDataListProvider dataListProvider = factory.GetDataListProvider("country");
 
@@ -38,7 +47,7 @@ public class InstanceDataListsFactoryTest
 
         public Task<DataList> GetInstanceDataListAsync(
             InstanceIdentifier instanceId,
-            string language,
+            string? language,
             Dictionary<string, string> keyValuePairs
         )
         {

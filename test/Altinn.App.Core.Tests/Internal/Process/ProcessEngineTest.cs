@@ -21,28 +21,22 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 
-public sealed class ProcessEngineTest : IDisposable
+public sealed class ProcessEngineTest
 {
     private readonly ITestOutputHelper _output;
     private static readonly int _instanceOwnerPartyId = 1337;
     private static readonly Guid _instanceGuid = new("00000000-DEAD-BABE-0000-001230000000");
     private static readonly string _instanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}";
-    private readonly Mock<IProcessReader> _processReaderMock = new();
-    private readonly Mock<IAuthenticationContext> _authenticationContextMock = new();
-    private readonly Mock<IProcessNavigator> _processNavigatorMock = new(MockBehavior.Strict);
-    private readonly Mock<IProcessEventHandlerDelegator> _processEventHandlingDelegatorMock = new();
-    private readonly Mock<IProcessEventDispatcher> _processEventDispatcherMock = new();
-    private readonly Mock<IProcessTaskCleaner> _processTaskCleanerMock = new();
-    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
 
     public ProcessEngineTest(ITestOutputHelper output)
     {
@@ -52,7 +46,8 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_returns_unsuccessful_when_process_already_started()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        using var fixture = Fixture.Create();
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -69,8 +64,12 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_returns_unsuccessful_when_no_matching_startevent_found()
     {
-        _processReaderMock.Setup(r => r.GetStartEventIds()).Returns(new List<string>() { "StartEvent_1" });
-        ProcessEngine processEngine = GetProcessEngine(setupProcessReaderMock: false);
+        Mock<IProcessReader> processReaderMock = new();
+        processReaderMock.Setup(r => r.GetStartEventIds()).Returns(new List<string>() { "StartEvent_1" });
+        var services = new ServiceCollection();
+        services.AddSingleton(processReaderMock.Object);
+        using var fixture = Fixture.Create(services);
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance() { Id = _instanceId, AppId = "org/app" };
         ProcessStartRequest processStartRequest = new ProcessStartRequest()
         {
@@ -78,7 +77,7 @@ public sealed class ProcessEngineTest : IDisposable
             StartEventId = "NotTheStartEventYouAreLookingFor",
         };
         ProcessChangeResult result = await processEngine.GenerateProcessStartEvents(processStartRequest);
-        _processReaderMock.Verify(r => r.GetStartEventIds(), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.GetStartEventIds(), Times.Once);
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Be("No matching startevent");
         result.ErrorType.Should().Be(ProcessErrorType.Conflict);
@@ -87,7 +86,8 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task_without_event_dispatch_when_dryrun()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        using var fixture = Fixture.Create();
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -106,11 +106,13 @@ public sealed class ProcessEngineTest : IDisposable
         );
         ProcessStartRequest processStartRequest = new ProcessStartRequest() { Instance = instance, User = user };
         ProcessChangeResult result = await processEngine.GenerateProcessStartEvents(processStartRequest);
-        _processReaderMock.Verify(r => r.GetStartEventIds(), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("Task_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.GetStartEventIds(), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
         result.Success.Should().BeTrue();
     }
 
@@ -118,8 +120,7 @@ public sealed class ProcessEngineTest : IDisposable
     [ClassData(typeof(TestAuthentication.AllTokens))]
     public async Task StartProcess_starts_process_and_moves_to_first_task(TestJwtToken token)
     {
-        TelemetrySink telemetrySink = new();
-        ProcessEngine processEngine = GetProcessEngine(telemetrySink: telemetrySink, token: token);
+        using var fixture = Fixture.Create(withTelemetry: true, token: token);
         var instanceOwnerPartyId = token.Auth switch
         {
             Authenticated.User auth when await auth.LoadDetails() is { } details => details.SelectedParty.PartyId,
@@ -129,6 +130,7 @@ public sealed class ProcessEngineTest : IDisposable
             _ => throw new NotImplementedException(),
         };
         var instanceOwnerPartyIdStr = instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture);
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = $"{instanceOwnerPartyIdStr}/{_instanceGuid}",
@@ -139,11 +141,13 @@ public sealed class ProcessEngineTest : IDisposable
         ProcessStartRequest processStartRequest = new ProcessStartRequest() { Instance = instance, User = null };
         ProcessChangeResult result = await processEngine.GenerateProcessStartEvents(processStartRequest);
         await processEngine.HandleEventsAndUpdateStorage(instance, null, result.ProcessStateChange?.Events);
-        _processReaderMock.Verify(r => r.GetStartEventIds(), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("Task_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.GetStartEventIds(), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
         var expectedInstance = new Instance()
         {
             Id = $"{instanceOwnerPartyIdStr}/{_instanceGuid}",
@@ -229,30 +233,35 @@ public sealed class ProcessEngineTest : IDisposable
             },
         };
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
         result.Success.Should().BeTrue();
 
-        await Verify(telemetrySink.GetSnapshot()).UseTextForParameters(token.Type.ToString());
+        await Verify(fixture.TelemetrySink.GetSnapshot()).UseTextForParameters(token.Type.ToString());
     }
 
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task_with_prefill()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        using var fixture = Fixture.Create();
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -279,11 +288,13 @@ public sealed class ProcessEngineTest : IDisposable
         };
         ProcessChangeResult result = await processEngine.GenerateProcessStartEvents(processStartRequest);
         await processEngine.HandleEventsAndUpdateStorage(instance, prefill, result.ProcessStateChange?.Events);
-        _processReaderMock.Verify(r => r.GetStartEventIds(), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("Task_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.GetStartEventIds(), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("StartEvent_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", null), Times.Once);
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -353,20 +364,24 @@ public sealed class ProcessEngineTest : IDisposable
             },
         };
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(l, expectedInstanceEvents))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(l, expectedInstanceEvents))
+                )
+            );
 
         result.Success.Should().BeTrue();
     }
@@ -374,7 +389,8 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_returns_unsuccessful_when_process_null()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        using var fixture = Fixture.Create();
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -397,7 +413,8 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_returns_unsuccessful_when_process_currenttask_null()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        using var fixture = Fixture.Create();
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -433,7 +450,6 @@ public sealed class ProcessEngineTest : IDisposable
                 EndEvent = "EndEvent_1",
             },
         };
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
         userActionMock.Setup(u => u.Id).Returns("sign");
         userActionMock
@@ -444,10 +460,12 @@ public sealed class ProcessEngineTest : IDisposable
                     errorType: ProcessErrorType.Unauthorized
                 )
             );
-        ProcessEngine processEngine = GetProcessEngine(
-            updatedInstance: expectedInstance,
-            userActions: [userActionMock.Object]
-        );
+        using var fixture = Fixture.Create(updatedInstance: expectedInstance, userActions: [userActionMock.Object]);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app"));
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -485,7 +503,6 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_next_task_and_produces_instanceevents()
     {
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -505,7 +522,12 @@ public sealed class ProcessEngineTest : IDisposable
                 StartEvent = "StartEvent_1",
             },
         };
-        ProcessEngine processEngine = GetProcessEngine(updatedInstance: expectedInstance);
+        using var fixture = Fixture.Create(updatedInstance: expectedInstance);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app"));
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -543,14 +565,16 @@ public sealed class ProcessEngineTest : IDisposable
             Language = null,
         };
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("Task_2"), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_2"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", null), Times.Once);
-        _processTaskCleanerMock.Verify(
-            x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()),
-            Times.Once
-        );
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_2"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
+        fixture.Mock<IProcessNavigator>().Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", null), Times.Once);
+        fixture
+            .Mock<IProcessTaskCleaner>()
+            .Verify(
+                x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()),
+                Times.Once
+            );
 
         var expectedInstanceEvents = new List<InstanceEvent>()
         {
@@ -603,24 +627,30 @@ public sealed class ProcessEngineTest : IDisposable
             },
         };
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
+            );
 
         result.Success.Should().BeTrue();
         result
@@ -638,7 +668,6 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_next_task_and_produces_abandon_instanceevent_when_action_reject()
     {
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -658,7 +687,12 @@ public sealed class ProcessEngineTest : IDisposable
                 StartEvent = "StartEvent_1",
             },
         };
-        ProcessEngine processEngine = GetProcessEngine(updatedInstance: expectedInstance);
+        using var fixture = Fixture.Create(updatedInstance: expectedInstance);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app"));
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -696,10 +730,12 @@ public sealed class ProcessEngineTest : IDisposable
             Language = null,
         };
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("Task_2"), Times.Once);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_2"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", "reject"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_2"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", "reject"), Times.Once);
 
         var expectedInstanceEvents = new List<InstanceEvent>()
         {
@@ -752,24 +788,30 @@ public sealed class ProcessEngineTest : IDisposable
             },
         };
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
+            );
 
         result.Success.Should().BeTrue();
         result
@@ -787,7 +829,6 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_end_event_and_ends_proces()
     {
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -801,7 +842,12 @@ public sealed class ProcessEngineTest : IDisposable
                 EndEvent = "EndEvent_1",
             },
         };
-        ProcessEngine processEngine = GetProcessEngine(updatedInstance: expectedInstance);
+        using var fixture = Fixture.Create(updatedInstance: expectedInstance);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app"));
+        ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
             Id = _instanceId,
@@ -838,9 +884,9 @@ public sealed class ProcessEngineTest : IDisposable
             Language = null,
         };
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        _processReaderMock.Verify(r => r.IsProcessTask("Task_2"), Times.Once);
-        _processReaderMock.Verify(r => r.IsEndEvent("EndEvent_1"), Times.Once);
-        _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_2", null), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
+        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("EndEvent_1"), Times.Once);
+        fixture.Mock<IProcessNavigator>().Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_2", null), Times.Once);
 
         var expectedInstanceEvents = new List<InstanceEvent>()
         {
@@ -905,24 +951,30 @@ public sealed class ProcessEngineTest : IDisposable
             },
         };
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
+            );
 
         result.Success.Should().BeTrue();
         result
@@ -1004,7 +1056,8 @@ public sealed class ProcessEngineTest : IDisposable
                 },
             },
         };
-        ProcessEngine processEngine = GetProcessEngine(updatedInstance: updatedInstance);
+        using var fixture = Fixture.Create(updatedInstance: updatedInstance);
+        ProcessEngine processEngine = fixture.ProcessEngine;
         ProcessStartRequest processStartRequest = new ProcessStartRequest() { Instance = instance, Prefill = prefill };
         Instance result = await processEngine.HandleEventsAndUpdateStorage(
             processStartRequest.Instance,
@@ -1012,119 +1065,148 @@ public sealed class ProcessEngineTest : IDisposable
             events
         );
 
-        _processEventHandlingDelegatorMock.Verify(d =>
-            d.HandleEvents(
-                It.Is<Instance>(i => CompareInstance(instance, i)),
-                It.IsAny<Dictionary<string, string>>(),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(events, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventHandlerDelegator>()
+            .Verify(d =>
+                d.HandleEvents(
+                    It.Is<Instance>(i => CompareInstance(instance, i)),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(events, l))
+                )
+            );
 
-        _processEventDispatcherMock.Verify(d =>
-            d.DispatchToStorage(
-                It.Is<Instance>(i => CompareInstance(instance, i)),
-                It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(events, l))
-            )
-        );
+        fixture
+            .Mock<IProcessEventDispatcher>()
+            .Verify(d =>
+                d.DispatchToStorage(
+                    It.Is<Instance>(i => CompareInstance(instance, i)),
+                    It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(events, l))
+                )
+            );
 
         result.Should().Be(updatedInstance);
     }
 
-    private ProcessEngine GetProcessEngine(
-        bool setupProcessReaderMock = true,
-        Instance? updatedInstance = null,
-        List<IUserAction>? userActions = null,
-        TelemetrySink? telemetrySink = null,
-        TestJwtToken? token = null
-    )
+    private sealed record Fixture(IServiceProvider ServiceProvider) : IDisposable
     {
-        if (setupProcessReaderMock)
+        public ProcessEngine ProcessEngine => (ProcessEngine)ServiceProvider.GetRequiredService<IProcessEngine>();
+
+        public TelemetrySink TelemetrySink => ServiceProvider.GetRequiredService<TelemetrySink>();
+
+        public Mock<T> Mock<T>()
+            where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
+
+        public static Fixture Create(
+            ServiceCollection? services = null,
+            Instance? updatedInstance = null,
+            IEnumerable<IUserAction>? userActions = null,
+            bool withTelemetry = false,
+            TestJwtToken? token = null
+        )
         {
-            _processReaderMock.Setup(r => r.GetStartEventIds()).Returns(new List<string>() { "StartEvent_1" });
-            _processReaderMock.Setup(r => r.IsProcessTask("StartEvent_1")).Returns(false);
-            _processReaderMock.Setup(r => r.IsEndEvent("Task_1")).Returns(false);
-            _processReaderMock.Setup(r => r.IsProcessTask("Task_1")).Returns(true);
-            _processReaderMock.Setup(r => r.IsProcessTask("Task_2")).Returns(true);
-            _processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
-            _processReaderMock.Setup(r => r.IsEndEvent("EndEvent_1")).Returns(true);
-            _processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
+            services ??= new ServiceCollection();
+
+            services.AddLogging(builder => builder.AddProvider(NullLoggerProvider.Instance));
+            services.AddAppImplementationFactory();
+            if (withTelemetry)
+                services.AddTelemetrySink();
+
+            services.TryAddTransient<IProcessEngine, ProcessEngine>();
+            services.TryAddTransient<UserActionService>();
+
+            Mock<IProcessReader> processReaderMock = new();
+            processReaderMock.Setup(r => r.GetStartEventIds()).Returns(new List<string>() { "StartEvent_1" });
+            processReaderMock.Setup(r => r.IsProcessTask("StartEvent_1")).Returns(false);
+            processReaderMock.Setup(r => r.IsEndEvent("Task_1")).Returns(false);
+            processReaderMock.Setup(r => r.IsProcessTask("Task_1")).Returns(true);
+            processReaderMock.Setup(r => r.IsProcessTask("Task_2")).Returns(true);
+            processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
+            processReaderMock.Setup(r => r.IsEndEvent("EndEvent_1")).Returns(true);
+            processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
+            services.TryAddSingleton<IProcessReader>(_ => processReaderMock.Object);
+
+            Mock<IAuthenticationContext> authenticationContextMock = new(MockBehavior.Strict);
+            Mock<IProcessNavigator> processNavigatorMock = new(MockBehavior.Strict);
+            Mock<IProcessEventHandlerDelegator> processEventHandlingDelegatorMock = new();
+            Mock<IProcessEventDispatcher> processEventDispatcherMock = new();
+            Mock<IProcessTaskCleaner> processTaskCleanerMock = new();
+            Mock<IDataClient> dataClientMock = new(MockBehavior.Strict);
+            Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+            Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
+            Mock<IAppMetadata> appMetadataMock = new(MockBehavior.Strict);
+            appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+
+            authenticationContextMock
+                .Setup(a => a.Current)
+                .Returns(
+                    token?.Auth
+                        ?? TestAuthentication.GetUserAuthentication(
+                            userId: 1337,
+                            email: "test@example.com",
+                            ssn: "22927774937"
+                        )
+                );
+            processNavigatorMock
+                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
+                .ReturnsAsync(
+                    () =>
+                        new ProcessTask()
+                        {
+                            Id = "Task_1",
+                            Incoming = new List<string> { "Flow_1" },
+                            Outgoing = new List<string> { "Flow_2" },
+                            Name = "Utfylling",
+                            ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+                        }
+                );
+            processNavigatorMock
+                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+                .ReturnsAsync(
+                    () =>
+                        new ProcessTask()
+                        {
+                            Id = "Task_2",
+                            Incoming = new List<string> { "Flow_2" },
+                            Outgoing = new List<string> { "Flow_3" },
+                            Name = "Bekreft",
+                            ExtensionElements = new() { TaskExtension = new() { TaskType = "confirmation" } },
+                        }
+                );
+            processNavigatorMock
+                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
+                .ReturnsAsync(
+                    () =>
+                        new EndEvent()
+                        {
+                            Id = "EndEvent_1",
+                            Incoming = new List<string> { "Flow_3" },
+                        }
+                );
+            if (updatedInstance is not null)
+            {
+                processEventDispatcherMock
+                    .Setup(d => d.DispatchToStorage(It.IsAny<Instance>(), It.IsAny<List<InstanceEvent>>()))
+                    .ReturnsAsync(() => updatedInstance);
+            }
+
+            services.TryAddTransient<IAuthenticationContext>(_ => authenticationContextMock.Object);
+            services.TryAddTransient<IProcessNavigator>(_ => processNavigatorMock.Object);
+            services.TryAddTransient<IProcessEventHandlerDelegator>(_ => processEventHandlingDelegatorMock.Object);
+            services.TryAddTransient<IProcessEventDispatcher>(_ => processEventDispatcherMock.Object);
+            services.TryAddTransient<IProcessTaskCleaner>(_ => processTaskCleanerMock.Object);
+            services.TryAddTransient<IDataClient>(_ => dataClientMock.Object);
+            services.TryAddTransient<IInstanceClient>(_ => instanceClientMock.Object);
+            services.TryAddTransient<IAppModel>(_ => appModelMock.Object);
+            services.TryAddTransient<IAppMetadata>(_ => appMetadataMock.Object);
+            services.TryAddTransient<ModelSerializationService>();
+
+            foreach (var userAction in userActions ?? [])
+                services.TryAddTransient(_ => userAction);
+
+            return new Fixture(services.BuildStrictServiceProvider());
         }
 
-        _authenticationContextMock
-            .Setup(a => a.Current)
-            .Returns(
-                token?.Auth
-                    ?? TestAuthentication.GetUserAuthentication(
-                        userId: 1337,
-                        email: "test@example.com",
-                        ssn: "22927774937"
-                    )
-            );
-        _processNavigatorMock
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
-            .ReturnsAsync(
-                () =>
-                    new ProcessTask()
-                    {
-                        Id = "Task_1",
-                        Incoming = new List<string> { "Flow_1" },
-                        Outgoing = new List<string> { "Flow_2" },
-                        Name = "Utfylling",
-                        ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
-                    }
-            );
-        _processNavigatorMock
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
-            .ReturnsAsync(
-                () =>
-                    new ProcessTask()
-                    {
-                        Id = "Task_2",
-                        Incoming = new List<string> { "Flow_2" },
-                        Outgoing = new List<string> { "Flow_3" },
-                        Name = "Bekreft",
-                        ExtensionElements = new() { TaskExtension = new() { TaskType = "confirmation" } },
-                    }
-            );
-        _processNavigatorMock
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
-            .ReturnsAsync(
-                () =>
-                    new EndEvent()
-                    {
-                        Id = "EndEvent_1",
-                        Incoming = new List<string> { "Flow_3" },
-                    }
-            );
-        if (updatedInstance is not null)
-        {
-            _processEventDispatcherMock
-                .Setup(d => d.DispatchToStorage(It.IsAny<Instance>(), It.IsAny<List<InstanceEvent>>()))
-                .ReturnsAsync(() => updatedInstance);
-        }
-
-        return new ProcessEngine(
-            _processReaderMock.Object,
-            _processNavigatorMock.Object,
-            _processEventHandlingDelegatorMock.Object,
-            _processEventDispatcherMock.Object,
-            _processTaskCleanerMock.Object,
-            new UserActionService(userActions ?? []),
-            _dataClientMock.Object,
-            _instanceClientMock.Object,
-            new ModelSerializationService(_appModelMock.Object, telemetrySink?.Object),
-            _appMetadataMock.Object,
-            _authenticationContextMock.Object,
-            telemetrySink?.Object
-        );
-    }
-
-    public void Dispose()
-    {
-        _processReaderMock.VerifyNoOtherCalls();
-        _processNavigatorMock.VerifyNoOtherCalls();
-        _processEventHandlingDelegatorMock.VerifyNoOtherCalls();
-        _processEventDispatcherMock.VerifyNoOtherCalls();
+        public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
     }
 
     private bool CompareInstance(Instance expected, Instance actual)

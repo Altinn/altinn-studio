@@ -72,7 +72,7 @@ public class MaskinportenClientIntegrationTests
         });
 
         // Assert
-        var serviceProvider = services.BuildServiceProvider();
+        var serviceProvider = services.BuildStrictServiceProvider();
         var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
         Assert.NotNull(optionsMonitor);
 

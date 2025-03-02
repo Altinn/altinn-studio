@@ -6,7 +6,6 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -154,6 +153,8 @@ public class TelemetryConfigurationTests
         Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
         services.AddApplicationInsightsTelemetryProcessor<TelemetryProcessor>();
 
+        // Don't use BuildStrictServiceProvider here since we only want to test parts of the container that
+        // `AddAltinnAppServices` brings in
         await using (var sp = services.BuildServiceProvider())
         {
             var telemetryConfig = sp.GetRequiredService<TelemetryConfiguration>();
@@ -208,6 +209,8 @@ public class TelemetryConfigurationTests
 
         Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
 
+        // Don't use BuildStrictServiceProvider here since we only want to test parts of the container that
+        // `AddAltinnAppServices` brings in
         await using (var sp = services.BuildServiceProvider())
         {
             var client = sp.GetService<TelemetryClient>();

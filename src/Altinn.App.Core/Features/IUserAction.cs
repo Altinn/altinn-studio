@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for implementing custom code for user actions
 /// </summary>
+[ImplementableByApps]
 public interface IUserAction
 {
     /// <summary>

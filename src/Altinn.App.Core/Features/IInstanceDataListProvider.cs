@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for providing <see cref="DataList"/> related to an instance/instance owner.
 /// </summary>
+[ImplementableByApps]
 public interface IInstanceDataListProvider
 {
     /// <summary>

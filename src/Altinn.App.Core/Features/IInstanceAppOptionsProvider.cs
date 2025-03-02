@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for providing <see cref="AppOptions"/> related to an instance/instance owner.
 /// </summary>
+[ImplementableByApps]
 public interface IInstanceAppOptionsProvider
 {
     /// <summary>

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// IProcessTaskAbandon defines a implementation for running logic when a task is abandoned in the apps process
 /// </summary>
+[ImplementableByApps]
 public interface IProcessTaskAbandon
 {
     /// <summary>

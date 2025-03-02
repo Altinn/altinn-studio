@@ -35,7 +35,7 @@ public class TextClientTest
 
         var services = new ServiceCollection();
         services.AddMemoryCache();
-        var serviceProvider = services.BuildServiceProvider();
+        var serviceProvider = services.BuildStrictServiceProvider();
 
         _memoryCache = serviceProvider.GetService<IMemoryCache>();
     }

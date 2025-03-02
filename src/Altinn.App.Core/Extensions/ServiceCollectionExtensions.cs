@@ -154,6 +154,9 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment env
     )
     {
+        services.AddAppImplementationFactory();
+
+        // Services for Altinn App
         services.TryAddTransient<IPDP, PDPAppSI>();
         services.TryAddTransient<IPrefill, PrefillSI>();
         services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();

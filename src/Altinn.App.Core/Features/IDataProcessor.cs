@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// This interface defines all the methods that are required for overriding DataProcessing calls.
 /// </summary>
+[ImplementableByApps]
 public interface IDataProcessor
 {
     /// <summary>

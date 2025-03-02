@@ -22,6 +22,7 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     /// </summary>
     public LegacyIInstanceValidatorFormDataValidator(
         IOptions<GeneralSettings> generalSettings,
+        /* altinn:injection:ignore */
         IInstanceValidator instanceValidator
     )
     {

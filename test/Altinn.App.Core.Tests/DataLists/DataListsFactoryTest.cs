@@ -1,8 +1,8 @@
-#nullable disable
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.PlatformServices.Tests.DataLists;
 
@@ -11,7 +11,13 @@ public class DataListsFactoryTest
     [Fact]
     public void GetDataListProvider_CustomDataListProvider_ShouldReturnCustomType()
     {
-        var factory = new DataListsFactory(new List<IDataListProvider>() { new CountryDataListProvider() });
+        var services = new ServiceCollection();
+        services.AddAppImplementationFactory();
+        services.AddSingleton<DataListsFactory>();
+        services.AddSingleton<IDataListProvider, CountryDataListProvider>();
+        using var serviceProvider = services.BuildStrictServiceProvider();
+
+        var factory = serviceProvider.GetRequiredService<DataListsFactory>();
 
         IDataListProvider dataListProvider = factory.GetDataListProvider("country");
 
@@ -22,7 +28,12 @@ public class DataListsFactoryTest
     [Fact]
     public void GetDataListProvider_NoDataListProvider_ShouldReturnNullDataListProvider()
     {
-        var factory = new DataListsFactory(new List<IDataListProvider>() { });
+        var services = new ServiceCollection();
+        services.AddAppImplementationFactory();
+        services.AddSingleton<DataListsFactory>();
+        using var serviceProvider = services.BuildStrictServiceProvider();
+
+        var factory = serviceProvider.GetRequiredService<DataListsFactory>();
 
         IDataListProvider dataListProvider = factory.GetDataListProvider("country");
 
@@ -34,7 +45,7 @@ public class DataListsFactoryTest
     {
         public string Id { get; set; } = "country";
 
-        public Task<DataList> GetDataListAsync(string language, Dictionary<string, string> keyValuePairs)
+        public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             var dataList = new DataList
             {

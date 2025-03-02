@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for providing <see cref="AppOptions"/>
 /// </summary>
+[ImplementableByApps]
 public interface IAppOptionsProvider
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using Altinn.App.Api.Infrastructure.Filters;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
@@ -23,7 +24,7 @@ public class PaymentController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
-    private readonly IOrderDetailsCalculator? _orderDetailsCalculator;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentController"/> class.
@@ -31,14 +32,13 @@ public class PaymentController : ControllerBase
     public PaymentController(
         IServiceProvider serviceProvider,
         IInstanceClient instanceClient,
-        IProcessReader processReader,
-        IOrderDetailsCalculator? orderDetailsCalculator = null
+        IProcessReader processReader
     )
     {
         _instanceClient = instanceClient;
         _processReader = processReader;
         _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
-        _orderDetailsCalculator = orderDetailsCalculator;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -102,7 +102,8 @@ public class PaymentController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        if (_orderDetailsCalculator == null)
+        var orderDetailsCalculator = _appImplementationFactory.Get<IOrderDetailsCalculator>();
+        if (orderDetailsCalculator == null)
         {
             throw new PaymentException(
                 "You must add an implementation of the IOrderDetailsCalculator interface to the DI container. See payment related documentation."
@@ -110,7 +111,7 @@ public class PaymentController : ControllerBase
         }
 
         Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-        OrderDetails orderDetails = await _orderDetailsCalculator.CalculateOrderDetails(instance, language);
+        OrderDetails orderDetails = await orderDetailsCalculator.CalculateOrderDetails(instance, language);
 
         return Ok(orderDetails);
     }

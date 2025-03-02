@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features.ExternalApi;
 /// <summary>
 /// Interface for providing external api data
 /// </summary>
+[ImplementableByApps]
 public interface IExternalApiClient
 {
     /// <summary>

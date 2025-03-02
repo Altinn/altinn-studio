@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Altinn.App.Core.Features.Action;
 
 /// <summary>
@@ -6,15 +8,15 @@ namespace Altinn.App.Core.Features.Action;
 /// </summary>
 public class UserActionService
 {
-    private readonly IEnumerable<IUserAction> _actionHandlers;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserActionService"/> class.
     /// </summary>
-    /// <param name="actionHandlers">The list of action handlers to choose from.</param>
-    public UserActionService(IEnumerable<IUserAction> actionHandlers)
+    /// <param name="serviceProvider">Service provider.</param>
+    public UserActionService(IServiceProvider serviceProvider)
     {
-        _actionHandlers = actionHandlers;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -26,7 +28,8 @@ public class UserActionService
     {
         if (actionId != null)
         {
-            return _actionHandlers.FirstOrDefault(ah => ah.Id.Equals(actionId, StringComparison.OrdinalIgnoreCase));
+            var handlers = _appImplementationFactory.GetAll<IUserAction>();
+            return handlers.FirstOrDefault(ah => ah.Id.Equals(actionId, StringComparison.OrdinalIgnoreCase));
         }
 
         return null;

@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Main interface for validation of instances
 /// </summary>
+[ImplementableByApps]
 public interface IValidator
 {
     /// <summary>

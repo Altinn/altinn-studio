@@ -244,10 +244,10 @@ public class ApiTestBase
             var clientFactoryMock = new Mock<IHttpClientFactory>(MockBehavior.Strict);
             clientFactoryMock
                 .Setup(f => f.CreateClient(It.IsAny<string>()))
-                .Returns(sp.GetRequiredService<HttpClient>());
+                .Returns(() => sp.GetRequiredService<HttpClient>());
             return clientFactoryMock.Object;
         });
-        services.AddSingleton<HttpClient>(sp => new HttpClient(
+        services.AddTransient<HttpClient>(sp => new HttpClient(
             new MockHttpMessageHandler(SendAsync, sp.GetRequiredService<ILogger<MockHttpMessageHandler>>())
         ));
     }

@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Features;
 /// IInstanceValidator defines the methods that are used to validate data and tasks
 /// </summary>
 [Obsolete($"Use {nameof(ITaskValidator)}, {nameof(IDataElementValidator)} or {nameof(IFormDataValidator)} instead")]
+[ImplementableByApps]
 public interface IInstanceValidator
 {
     /// <summary>

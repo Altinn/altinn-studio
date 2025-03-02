@@ -3,6 +3,7 @@ using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
@@ -12,6 +13,7 @@ using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -28,11 +30,10 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly AppSettings? _appSettings;
     private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
-    private readonly IEFormidlingMetadata? _eFormidlingMetadata;
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
-    private readonly IEFormidlingReceivers _eFormidlingReceivers;
     private readonly IEventsClient _eventClient;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -42,13 +43,12 @@ public class DefaultEFormidlingService : IEFormidlingService
         IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
         IDataClient dataClient,
-        IEFormidlingReceivers eFormidlingReceivers,
         IEventsClient eventClient,
+        IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
-        IAccessTokenGenerator? tokenGenerator = null,
-        IEFormidlingMetadata? eFormidlingMetadata = null
+        IAccessTokenGenerator? tokenGenerator = null
     )
     {
         _logger = logger;
@@ -57,20 +57,20 @@ public class DefaultEFormidlingService : IEFormidlingService
         _platformSettings = platformSettings?.Value;
         _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
-        _eFormidlingMetadata = eFormidlingMetadata;
         _appMetadata = appMetadata;
         _dataClient = dataClient;
-        _eFormidlingReceivers = eFormidlingReceivers;
         _eventClient = eventClient;
+        _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <inheritdoc />
     public async Task SendEFormidlingShipment(Instance instance)
     {
+        var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
         if (
             _eFormidlingClient == null
             || _tokenGenerator == null
-            || _eFormidlingMetadata == null
+            || metadata == null
             || _appSettings == null
             || _platformSettings == null
         )
@@ -101,7 +101,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
         await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
 
-        (string metadataFilename, Stream stream) = await _eFormidlingMetadata.GenerateEFormidlingMetadata(instance);
+        (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
 
         using (stream)
         {
@@ -144,7 +144,8 @@ public class DefaultEFormidlingService : IEFormidlingService
             },
         };
 
-        List<Receiver> receivers = await _eFormidlingReceivers.GetEFormidlingReceivers(instance);
+        var eFormidlingReceivers = _appImplementationFactory.GetRequired<IEFormidlingReceivers>();
+        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
         Scope scope = new Scope

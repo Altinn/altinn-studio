@@ -3,8 +3,10 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,7 +21,7 @@ public class EventsSubscriptionClient : IEventsSubscription
 
     private readonly GeneralSettings _generalSettings;
     private readonly HttpClient _client;
-    private readonly IEventSecretCodeProvider _secretCodeProvider;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<EventsSubscriptionClient> _logger;
 
     /// <summary>
@@ -29,7 +31,7 @@ public class EventsSubscriptionClient : IEventsSubscription
         IOptions<PlatformSettings> platformSettings,
         HttpClient httpClient,
         IOptions<GeneralSettings> generalSettings,
-        IEventSecretCodeProvider secretCodeProvider,
+        IServiceProvider serviceProvider,
         ILogger<EventsSubscriptionClient> logger
     )
     {
@@ -38,7 +40,7 @@ public class EventsSubscriptionClient : IEventsSubscription
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
-        _secretCodeProvider = secretCodeProvider;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _logger = logger;
     }
 
@@ -54,10 +56,11 @@ public class EventsSubscriptionClient : IEventsSubscription
     {
         var appBaseUrl = _generalSettings.FormattedExternalAppBaseUrl(new Models.AppIdentifier(org, app));
 
+        var secretCodeProvider = _appImplementationFactory.GetRequired<IEventSecretCodeProvider>();
         var subscriptionRequest = new SubscriptionRequest()
         {
             TypeFilter = eventType,
-            EndPoint = new Uri($"{appBaseUrl}api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}"),
+            EndPoint = new Uri($"{appBaseUrl}api/v1/eventsreceiver?code={await secretCodeProvider.GetSecretCode()}"),
             SourceFilter = new Uri(appBaseUrl.TrimEnd('/')), // The event system is requireing the source filter to be without trailing slash
         };
 

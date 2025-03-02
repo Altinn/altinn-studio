@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// IInstantiation defines the methods that must be implemented by a class that handles custom logic during instantiation of a new instance.
 /// </summary>
+[ImplementableByApps]
 public interface IInstantiationProcessor
 {
     /// <summary>

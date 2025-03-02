@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Altinn.App.Core.Features.DataLists;
 
 /// <summary>
@@ -6,15 +8,15 @@ namespace Altinn.App.Core.Features.DataLists;
 /// </summary>
 public class DataListsFactory
 {
+    private readonly AppImplementationFactory _appImplementationFactory;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DataListsFactory"/> class.
     /// </summary>
-    public DataListsFactory(IEnumerable<IDataListProvider> dataListProviders)
+    public DataListsFactory(IServiceProvider serviceProvider)
     {
-        _dataListProviders = dataListProviders;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
-
-    private IEnumerable<IDataListProvider> _dataListProviders { get; }
 
     /// <summary>
     /// Finds the implementation of IDataListsProvider based on the options id
@@ -23,7 +25,8 @@ public class DataListsFactory
     /// <param name="listId">Id matching the options requested.</param>
     public IDataListProvider GetDataListProvider(string listId)
     {
-        foreach (var dataListProvider in _dataListProviders)
+        var dataListProviders = _appImplementationFactory.GetAll<IDataListProvider>();
+        foreach (var dataListProvider in dataListProviders)
         {
             if (dataListProvider.Id.Equals(listId, StringComparison.OrdinalIgnoreCase))
             {

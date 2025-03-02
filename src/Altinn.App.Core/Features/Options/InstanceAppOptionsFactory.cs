@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Altinn.App.Core.Features.Options;
 
 /// <summary>
@@ -6,15 +8,15 @@ namespace Altinn.App.Core.Features.Options;
 /// </summary>
 public class InstanceAppOptionsFactory
 {
+    private readonly AppImplementationFactory _appImplementationFactory;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AppOptionsFactory"/> class.
     /// </summary>
-    public InstanceAppOptionsFactory(IEnumerable<IInstanceAppOptionsProvider> instanceAppOptionsProviders)
+    public InstanceAppOptionsFactory(IServiceProvider serviceProvider)
     {
-        _instanceAppOptionsProviders = instanceAppOptionsProviders;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
-
-    private IEnumerable<IInstanceAppOptionsProvider> _instanceAppOptionsProviders { get; }
 
     /// <summary>
     /// Finds the implementation of IInstanceAppOptionsProvider based on the options id
@@ -23,7 +25,8 @@ public class InstanceAppOptionsFactory
     /// <param name="optionsId">Id matching the options requested.</param>
     public IInstanceAppOptionsProvider GetOptionsProvider(string optionsId)
     {
-        foreach (var instanceAppOptionProvider in _instanceAppOptionsProviders)
+        var instanceAppOptionsProviders = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>();
+        foreach (var instanceAppOptionProvider in instanceAppOptionsProviders)
         {
             if (!instanceAppOptionProvider.Id.Equals(optionsId, StringComparison.OrdinalIgnoreCase))
             {

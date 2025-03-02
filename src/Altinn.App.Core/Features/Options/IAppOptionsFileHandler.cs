@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features.Options;
 /// <summary>
 /// Interface for handling option files on disk
 /// </summary>
+[ImplementableByApps]
 public interface IAppOptionsFileHandler
 {
     /// <summary>

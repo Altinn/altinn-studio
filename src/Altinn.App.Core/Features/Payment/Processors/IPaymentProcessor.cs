@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features.Payment.Processors;
 /// <summary>
 /// Represents a payment processor that handles payment-related operations.
 /// </summary>
+[ImplementableByApps]
 public interface IPaymentProcessor
 {
     /// <summary>

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Internal.Process.Authorization;
 /// <summary>
 /// Register a user action authorizer for a given action and/or task
 /// </summary>
+[ImplementableByApps]
 public interface IUserActionAuthorizerProvider
 {
     /// <summary>

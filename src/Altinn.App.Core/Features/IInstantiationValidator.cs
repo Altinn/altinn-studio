@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// IInstantiationValidator defines the methods that must be implemented by a class that handles custom validation logic during instantiation of a new instance.
 /// </summary>
+[ImplementableByApps]
 public interface IInstantiationValidator
 {
     /// <summary>

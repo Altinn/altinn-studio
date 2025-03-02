@@ -13,7 +13,11 @@ internal class FormDataValidatorWrapper : IValidator
     private readonly IFormDataValidator _formDataValidator;
     private readonly string _taskId;
 
-    public FormDataValidatorWrapper(IFormDataValidator formDataValidator, string taskId)
+    public FormDataValidatorWrapper(
+        /* altinn:injection:ignore */
+        IFormDataValidator formDataValidator,
+        string taskId
+    )
     {
         _formDataValidator = formDataValidator;
         _taskId = taskId;

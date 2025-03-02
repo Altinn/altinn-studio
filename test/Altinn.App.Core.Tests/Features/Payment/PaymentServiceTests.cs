@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
@@ -9,27 +10,40 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Payment;
 
 public class PaymentServiceTests
 {
-    private readonly PaymentService _paymentService;
-    private readonly Mock<IPaymentProcessor> _paymentProcessor = new(MockBehavior.Strict);
-    private readonly Mock<IOrderDetailsCalculator> _orderDetailsCalculator = new(MockBehavior.Strict);
-    private readonly Mock<IDataService> _dataService = new(MockBehavior.Strict);
-    private readonly Mock<ILogger<PaymentService>> _logger = new();
-
-    public PaymentServiceTests()
+    private sealed record Fixture(IServiceProvider ServiceProvider) : IDisposable
     {
-        _paymentService = new PaymentService(
-            [_paymentProcessor.Object],
-            _dataService.Object,
-            _logger.Object,
-            _orderDetailsCalculator.Object
-        );
+        public PaymentService Service => (PaymentService)ServiceProvider.GetRequiredService<IPaymentService>();
+
+        public Mock<T> Mock<T>()
+            where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
+
+        public static Fixture Create(bool addProcessor = true, bool addOrderDetailsCalculator = true)
+        {
+            var services = new ServiceCollection();
+            services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
+            services.AddAppImplementationFactory();
+            services.AddSingleton(new Mock<IDataService>(MockBehavior.Strict).Object);
+
+            if (addOrderDetailsCalculator)
+                services.AddSingleton(new Mock<IOrderDetailsCalculator>(MockBehavior.Strict).Object);
+            if (addProcessor)
+                services.AddSingleton(new Mock<IPaymentProcessor>(MockBehavior.Strict).Object);
+
+            services.AddSingleton<IPaymentService, PaymentService>();
+
+            return new Fixture(services.BuildStrictServiceProvider());
+        }
+
+        public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
     }
 
     [Fact]
@@ -43,18 +57,28 @@ public class PaymentServiceTests
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
-        _dataService
+        using var fixture = Fixture.Create();
+
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.Empty, null));
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.InsertJsonObject(It.IsAny<InstanceIdentifier>(), It.IsAny<string>(), It.IsAny<object>()))
             .ReturnsAsync(new DataElement());
-        _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-        _paymentProcessor.Setup(p => p.StartPayment(instance, orderDetails, language)).ReturnsAsync(paymentDetails);
+        fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(p => p.StartPayment(instance, orderDetails, language))
+            .ReturnsAsync(paymentDetails);
 
         // Act
-        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await _paymentService.StartPayment(
+        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await fixture.Service.StartPayment(
             instance,
             paymentConfiguration,
             language
@@ -72,15 +96,19 @@ public class PaymentServiceTests
         alreadyPaid.Should().BeFalse();
 
         // Verify calls
-        _orderDetailsCalculator.Verify(odc => odc.CalculateOrderDetails(instance, language), Times.Once);
-        _paymentProcessor.Verify(pp => pp.StartPayment(instance, orderDetails, language), Times.Once);
-        _dataService.Verify(ds =>
-            ds.InsertJsonObject(
-                It.IsAny<InstanceIdentifier>(),
-                paymentConfiguration.PaymentDataType!,
-                It.IsAny<object>()
-            )
-        );
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Verify(odc => odc.CalculateOrderDetails(instance, language), Times.Once);
+        fixture.Mock<IPaymentProcessor>().Verify(pp => pp.StartPayment(instance, orderDetails, language), Times.Once);
+        fixture
+            .Mock<IDataService>()
+            .Verify(ds =>
+                ds.InsertJsonObject(
+                    It.IsAny<InstanceIdentifier>(),
+                    paymentConfiguration.PaymentDataType!,
+                    It.IsAny<object>()
+                )
+            );
     }
 
     [Fact]
@@ -91,9 +119,12 @@ public class PaymentServiceTests
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         string language = LanguageConst.Nb;
 
-        _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        using var fixture = Fixture.Create();
 
-        _dataService
+        fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync(
                 (
@@ -109,7 +140,7 @@ public class PaymentServiceTests
             );
 
         // Act
-        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await _paymentService.StartPayment(
+        (PaymentInformation paymentInformationResult, bool alreadyPaid) = await fixture.Service.StartPayment(
             instance,
             paymentConfiguration,
             language
@@ -127,19 +158,23 @@ public class PaymentServiceTests
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         string language = LanguageConst.Nb;
 
-        _dataService
+        using var fixture = Fixture.Create();
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.Empty, null));
 
-        _orderDetailsCalculator
+        fixture
+            .Mock<IOrderDetailsCalculator>()
             .Setup(odc => odc.CalculateOrderDetails(instance, language))
             .ThrowsAsync(new Exception());
 
-        _paymentProcessor.Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
+        fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
 
         // Act & Assert
         await Assert.ThrowsAsync<Exception>(
-            () => _paymentService.StartPayment(instance, paymentConfiguration, language)
+            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -151,17 +186,26 @@ public class PaymentServiceTests
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         string language = LanguageConst.Nb;
 
-        _dataService
+        using var fixture = Fixture.Create();
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.Empty, null));
-        _orderDetailsCalculator.Setup(pp => pp.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(pp => pp.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
 
-        _paymentProcessor.Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-        _paymentProcessor.Setup(pp => pp.StartPayment(instance, orderDetails, language)).ThrowsAsync(new Exception());
+        fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(pp => pp.StartPayment(instance, orderDetails, language))
+            .ThrowsAsync(new Exception());
 
         // Act & Assert
         await Assert.ThrowsAsync<Exception>(
-            () => _paymentService.StartPayment(instance, paymentConfiguration, language)
+            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -176,19 +220,29 @@ public class PaymentServiceTests
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
-        _dataService
+        using var fixture = Fixture.Create();
+
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.Empty, null));
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.InsertJsonObject(It.IsAny<InstanceIdentifier>(), It.IsAny<string>(), It.IsAny<object>()))
             .ThrowsAsync(new Exception());
-        _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-        _paymentProcessor.Setup(pp => pp.StartPayment(instance, orderDetails, language)).ReturnsAsync(paymentDetails);
+        fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(pp => pp.StartPayment(instance, orderDetails, language))
+            .ReturnsAsync(paymentDetails);
 
         // Act & Assert
         await Assert.ThrowsAsync<Exception>(
-            () => _paymentService.StartPayment(instance, paymentConfiguration, language)
+            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -200,14 +254,20 @@ public class PaymentServiceTests
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
+        using var fixture = Fixture.Create();
 
-        _dataService
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.Empty, null));
 
         // Act
-        PaymentInformation? result = await _paymentService.CheckAndStorePaymentStatus(
+        PaymentInformation? result = await fixture.Service.CheckAndStorePaymentStatus(
             instance,
             paymentConfiguration,
             language
@@ -229,28 +289,28 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(odc => odc.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
+        using var fixture = Fixture.Create();
 
-        _dataService
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(odc => odc.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
-        _paymentProcessor.Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
 
-        _paymentProcessor
+        fixture
+            .Mock<IPaymentProcessor>()
             .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), language))
             .ThrowsAsync(new PaymentException("Some exception"));
 
-        var paymentService = new PaymentService(
-            [_paymentProcessor.Object],
-            _dataService.Object,
-            _logger.Object,
-            _orderDetailsCalculator.Object
-        );
-
         // Act & Assert
         await Assert.ThrowsAsync<PaymentException>(
-            () => paymentService.CheckAndStorePaymentStatus(instance, paymentConfiguration, language)
+            () => fixture.Service.CheckAndStorePaymentStatus(instance, paymentConfiguration, language)
         );
     }
 
@@ -263,13 +323,20 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
+        using var fixture = Fixture.Create();
 
-        _dataService
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds =>
                 ds.UpdateJsonObject(
                     It.IsAny<InstanceIdentifier>(),
@@ -280,23 +347,17 @@ public class PaymentServiceTests
             )
             .ReturnsAsync(new DataElement());
 
-        _paymentProcessor.Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
 
-        _paymentProcessor
+        fixture
+            .Mock<IPaymentProcessor>()
             .Setup(pp => pp.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), language))
             .ReturnsAsync(
                 (PaymentStatus.Paid, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "redirect url" })
             );
 
-        var paymentService = new PaymentService(
-            [_paymentProcessor.Object],
-            _dataService.Object,
-            _logger.Object,
-            _orderDetailsCalculator.Object
-        );
-
         // Act
-        PaymentInformation? result = await paymentService.CheckAndStorePaymentStatus(
+        PaymentInformation? result = await fixture.Service.CheckAndStorePaymentStatus(
             instance,
             paymentConfiguration,
             language
@@ -320,15 +381,22 @@ public class PaymentServiceTests
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
         string language = LanguageConst.Nb;
 
+        using var fixture = Fixture.Create();
+
         paymentInformation.Status = PaymentStatus.Cancelled;
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
-        _dataService.Setup(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>())).ReturnsAsync(true);
+        fixture
+            .Mock<IDataService>()
+            .Setup(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()))
+            .ReturnsAsync(true);
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(x =>
                 x.InsertJsonObject(
                     It.IsAny<InstanceIdentifier>(),
@@ -338,25 +406,33 @@ public class PaymentServiceTests
             )
             .ReturnsAsync(new DataElement());
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
 
-        _paymentProcessor.Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
 
-        _paymentProcessor
+        fixture
+            .Mock<IPaymentProcessor>()
             .Setup(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()))
             .ReturnsAsync(true);
 
-        _paymentProcessor.Setup(x => x.StartPayment(instance, orderDetails, language)).ReturnsAsync(paymentDetails);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(x => x.StartPayment(instance, orderDetails, language))
+            .ReturnsAsync(paymentDetails);
 
         // Act
-        await _paymentService.StartPayment(instance, paymentConfiguration, language);
+        await fixture.Service.StartPayment(instance, paymentConfiguration, language);
 
         // Assert
-        _paymentProcessor.Verify(
-            pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
-            Times.Once
-        );
-        _dataService.Verify(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Verify(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()), Times.Once);
+        fixture
+            .Mock<IDataService>()
+            .Verify(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
     }
 
     [Fact]
@@ -371,31 +447,43 @@ public class PaymentServiceTests
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
         string language = LanguageConst.Nb;
 
-        _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
-        _dataService
+        using var fixture = Fixture.Create();
+
+        fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(p => p.CalculateOrderDetails(instance, language))
+            .ReturnsAsync(orderDetails);
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.InsertJsonObject(It.IsAny<InstanceIdentifier>(), It.IsAny<string>(), It.IsAny<object>()))
             .ReturnsAsync(new DataElement());
-        _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
-        _paymentProcessor.Setup(p => p.StartPayment(instance, orderDetails, language)).ReturnsAsync(paymentDetails);
+        fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(p => p.StartPayment(instance, orderDetails, language))
+            .ReturnsAsync(paymentDetails);
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
-        _paymentProcessor
+        fixture
+            .Mock<IPaymentProcessor>()
             .Setup(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()))
             .ReturnsAsync(false);
 
         await Assert.ThrowsAsync<PaymentException>(
-            async () => await _paymentService.StartPayment(instance, paymentConfiguration, language)
+            async () => await fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
 
         // Act & Assert
-        _paymentProcessor.Verify(
-            pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
-            Times.Once
-        );
-        _dataService.Verify(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Never);
+        fixture
+            .Mock<IPaymentProcessor>()
+            .Verify(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()), Times.Once);
+        fixture
+            .Mock<IDataService>()
+            .Verify(ds => ds.DeleteById(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
@@ -405,8 +493,9 @@ public class PaymentServiceTests
         Instance instance = CreateInstance();
         ValidAltinnPaymentConfiguration paymentConfiguration = new() { PaymentDataType = "paymentDataType" };
 
-        IPaymentProcessor[] paymentProcessors = []; //No payment processor added.
-        var paymentService = new PaymentService(paymentProcessors, _dataService.Object, _logger.Object);
+        using var fixture = Fixture.Create(addProcessor: false, addOrderDetailsCalculator: false);
+
+        var paymentService = fixture.Service;
 
         // Act
         Func<Task> act = async () =>
@@ -424,8 +513,10 @@ public class PaymentServiceTests
     public async Task CheckAndStorePaymentStatus_ShouldThrowPaymentException_WhenOrderDetailsCalculatorIsNull()
     {
         // Arrange
-        IPaymentProcessor[] paymentProcessors = [];
-        var paymentService = new PaymentService(paymentProcessors, _dataService.Object, _logger.Object);
+        using var fixture = Fixture.Create(addProcessor: false, addOrderDetailsCalculator: false);
+
+        var paymentService = fixture.Service;
+
         Instance instance = CreateInstance();
         var paymentConfiguration = new AltinnPaymentConfiguration
         {
@@ -455,17 +546,19 @@ public class PaymentServiceTests
         // Arrange
         Instance instance = CreateInstance();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        using var fixture = Fixture.Create();
 
         string paymentDataType =
             paymentConfiguration.PaymentDataType
             ?? throw new Exception("PaymentDataType should not be null. Fix test.");
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(instance, paymentDataType))
             .ReturnsAsync((Guid.NewGuid(), null));
 
         // Act
-        Func<Task> act = async () => await _paymentService.GetPaymentStatus(instance, paymentConfiguration);
+        Func<Task> act = async () => await fixture.Service.GetPaymentStatus(instance, paymentConfiguration);
 
         // Assert
         await act.Should().ThrowAsync<PaymentException>().WithMessage("Payment information not found.");
@@ -480,16 +573,19 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         paymentInformation.Status = PaymentStatus.Paid;
 
+        using var fixture = Fixture.Create();
+
         string paymentDataType =
             paymentConfiguration.PaymentDataType
             ?? throw new Exception("PaymentDataType should not be null. Fix test.");
 
-        _dataService
+        fixture
+            .Mock<IDataService>()
             .Setup(ds => ds.GetByType<PaymentInformation>(instance, paymentDataType))
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
         // Act
-        PaymentStatus result = await _paymentService.GetPaymentStatus(instance, paymentConfiguration);
+        PaymentStatus result = await fixture.Service.GetPaymentStatus(instance, paymentConfiguration);
 
         // Assert
         result.Should().Be(PaymentStatus.Paid);

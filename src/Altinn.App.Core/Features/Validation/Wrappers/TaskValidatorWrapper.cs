@@ -13,7 +13,10 @@ internal class TaskValidatorWrapper : IValidator
     /// <summary>
     /// Constructor that wraps an <see cref="ITaskValidator"/>
     /// </summary>
-    public TaskValidatorWrapper(ITaskValidator taskValidator)
+    public TaskValidatorWrapper(
+        /* altinn:injection:ignore */
+        ITaskValidator taskValidator
+    )
     {
         _taskValidator = taskValidator;
     }

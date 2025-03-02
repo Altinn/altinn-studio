@@ -38,14 +38,15 @@ public class ValidationServiceTests : IAsyncLifetime
     public ValidationServiceTests(ITestOutputHelper output)
     {
         _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _appMetadata, TaskId);
-        _services.AddScoped<IValidationService, ValidationService>();
+        _services.AddTransient<IValidationService, ValidationService>();
         _services.AddTelemetrySink();
         _services.AddFakeLoggingWithXunit(output);
-        _services.AddScoped<IValidatorFactory, ValidatorFactory>();
+        _services.AddTransient<IValidatorFactory, ValidatorFactory>();
         _services.AddSingleton(_appMetadataMock.Object);
+        _services.AddAppImplementationFactory();
 
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
-        _serviceProvider = new(() => _services.BuildServiceProvider());
+        _serviceProvider = new(() => _services.BuildStrictServiceProvider());
     }
 
     public Task InitializeAsync()

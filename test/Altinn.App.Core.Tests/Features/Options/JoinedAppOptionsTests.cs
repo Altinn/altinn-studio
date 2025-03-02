@@ -27,6 +27,7 @@ public class JoinedAppOptionsTests
 
     public JoinedAppOptionsTests()
     {
+        _serviceCollection.AddAppImplementationFactory();
         _countryAppOptionsMock.Setup(p => p.Id).Returns("country-no-sentinel");
         _countryAppOptionsMock
             .Setup(p => p.GetAppOptionsAsync(_language, It.IsAny<Dictionary<string, string>>()))
@@ -63,7 +64,7 @@ public class JoinedAppOptionsTests
     {
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
-        using var sp = _serviceCollection.BuildServiceProvider();
+        using var sp = _serviceCollection.BuildStrictServiceProvider();
         var factory = sp.GetRequiredService<AppOptionsFactory>();
         IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
@@ -83,7 +84,7 @@ public class JoinedAppOptionsTests
     {
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
-        using var sp = _serviceCollection.BuildServiceProvider();
+        using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
         var options = await appOptionsService.GetOptionsAsync("country", _language, new());
@@ -101,7 +102,7 @@ public class JoinedAppOptionsTests
         // Test the edge case where only a single list is joined
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel");
 
-        using var sp = _serviceCollection.BuildServiceProvider();
+        using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
         // Fetch the country options (now without sentinel)
@@ -123,7 +124,7 @@ public class JoinedAppOptionsTests
         // Test the edge case where only a single list is joined
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
-        using var sp = _serviceCollection.BuildServiceProvider();
+        using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
         var parameters = new Dictionary<string, string> { { "key", "value" } };
@@ -147,7 +148,7 @@ public class JoinedAppOptionsTests
         _fileHandlerMock.Setup(p => p.ReadOptionsFromFileAsync("missing")).ReturnsAsync((List<AppOption>)null!);
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "missing");
 
-        using var sp = _serviceCollection.BuildServiceProvider();
+        using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
         var action = new Func<Task>(async () => await appOptionsService.GetOptionsAsync("country", _language, new()));

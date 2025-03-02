@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features.FileAnalyzis;
 
@@ -8,14 +9,14 @@ namespace Altinn.App.Core.Features.FileAnalyzis;
 /// </summary>
 public class FileAnalyserFactory : IFileAnalyserFactory
 {
-    private readonly IEnumerable<IFileAnalyser> _fileAnalysers;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileAnalyserFactory"/> class.
     /// </summary>
-    public FileAnalyserFactory(IEnumerable<IFileAnalyser> fileAnalysers)
+    public FileAnalyserFactory(IServiceProvider serviceProvider)
     {
-        _fileAnalysers = fileAnalysers;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -23,6 +24,7 @@ public class FileAnalyserFactory : IFileAnalyserFactory
     /// </summary>
     public IEnumerable<IFileAnalyser> GetFileAnalysers(IEnumerable<string> analyserIds)
     {
-        return _fileAnalysers.Where(x => analyserIds.Contains(x.Id)).ToList();
+        var analysers = _appImplementationFactory.GetAll<IFileAnalyser>();
+        return analysers.Where(x => analyserIds.Contains(x.Id)).ToArray();
     }
 }

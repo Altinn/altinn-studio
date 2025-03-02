@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for handling validation of tasks.
 /// </summary>
+[ImplementableByApps]
 public interface ITaskValidator
 {
     /// <summary>

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// This interface defines how you can make changes to the data model on every write operation from frontend.
 /// </summary>
+[ImplementableByApps]
 public interface IDataWriteProcessor
 {
     /// <summary>

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for providing <see cref="DataList"/>
 /// </summary>
+[ImplementableByApps]
 public interface IDataListProvider
 {
     /// <summary>

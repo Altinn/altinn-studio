@@ -1,18 +1,21 @@
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features.Options;
 
 /// <inheritdoc/>
 public class DefaultAppOptionsProvider : IAppOptionsProvider
 {
-    private readonly IAppOptionsFileHandler _appOptionsFileHandler;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultAppOptionsProvider"/> class.
     /// </summary>
-    public DefaultAppOptionsProvider(IAppOptionsFileHandler appOptionsFileHandler)
+    public DefaultAppOptionsProvider(IServiceProvider serviceProvider)
     {
-        _appOptionsFileHandler = appOptionsFileHandler;
+        _serviceProvider = serviceProvider;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -27,7 +30,8 @@ public class DefaultAppOptionsProvider : IAppOptionsProvider
     public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
     {
         // This will get static options if it exists
-        var appOptions = new AppOptions { Options = await _appOptionsFileHandler.ReadOptionsFromFileAsync(Id) };
+        var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
+        var appOptions = new AppOptions { Options = await appOptionsFileHandler.ReadOptionsFromFileAsync(Id) };
 
         return appOptions;
     }
@@ -40,7 +44,7 @@ public class DefaultAppOptionsProvider : IAppOptionsProvider
     /// <returns></returns>
     internal IAppOptionsProvider CloneDefaultTo(string cloneToOptionId)
     {
-        var clone = new DefaultAppOptionsProvider(_appOptionsFileHandler) { Id = cloneToOptionId };
+        var clone = new DefaultAppOptionsProvider(_serviceProvider) { Id = cloneToOptionId };
         return clone;
     }
 }

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -6,6 +7,7 @@ namespace Altinn.App.Core.EFormidling.Interface;
 /// <summary>
 /// Interface for implementing custom logic for retreiving the receivers of eFormidling shipments.
 /// </summary>
+[ImplementableByApps]
 public interface IEFormidlingReceivers
 {
     /// <summary>

@@ -1,16 +1,17 @@
 using Altinn.App.Core.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Events;
 
 /// <inheritdoc/>
 public class EventHandlerResolver : IEventHandlerResolver
 {
-    private readonly IEnumerable<IEventHandler> _eventHandlers;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <inheritdoc/>
-    public EventHandlerResolver(IEnumerable<IEventHandler> eventHandlers)
+    public EventHandlerResolver(IServiceProvider serviceProvider)
     {
-        _eventHandlers = eventHandlers;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <inheritdoc/>
@@ -21,7 +22,8 @@ public class EventHandlerResolver : IEventHandlerResolver
             return new UnhandledEventHandler();
         }
 
-        foreach (var handler in _eventHandlers)
+        var handlers = _appImplementationFactory.GetAll<IEventHandler>();
+        foreach (var handler in handlers)
         {
             if (!handler.EventType.Equals(eventType, StringComparison.OrdinalIgnoreCase))
             {

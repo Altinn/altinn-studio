@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Process;
 
@@ -11,15 +12,15 @@ public class ExclusiveGatewayFactory
     /// Name of the default logic for exclusive gateways
     /// </summary>
     public const string DefaultImplName = "altinn_default_gateway";
-    private readonly IEnumerable<IProcessExclusiveGateway> _gateways;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initialize new instance of <see cref="ExclusiveGatewayFactory"/>
     /// </summary>
-    /// <param name="gateways">IEnumerable of <see cref="IProcessExclusiveGateway"/> that defines gateway logic</param>
-    public ExclusiveGatewayFactory(IEnumerable<IProcessExclusiveGateway> gateways)
+    /// <param name="serviceProvider">Service provider</param>
+    public ExclusiveGatewayFactory(IServiceProvider serviceProvider)
     {
-        _gateways = gateways;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -29,7 +30,8 @@ public class ExclusiveGatewayFactory
     /// <returns><see cref="IProcessExclusiveGateway"/> if found, null if not</returns>
     public IProcessExclusiveGateway? GetProcessExclusiveGateway(string gatewayId)
     {
-        return _gateways.FirstOrDefault(gateway =>
+        var gateways = _appImplementationFactory.GetAll<IProcessExclusiveGateway>();
+        return gateways.FirstOrDefault(gateway =>
             string.Equals(gateway.GatewayId, gatewayId, StringComparison.OrdinalIgnoreCase)
         );
     }

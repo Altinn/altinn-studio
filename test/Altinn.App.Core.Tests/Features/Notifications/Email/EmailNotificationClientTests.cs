@@ -278,9 +278,7 @@ public class EmailNotificationClientTests
 
         services.AddTransient<IEmailNotificationClient, EmailNotificationClient>();
 
-        var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
-        );
+        var sp = services.BuildStrictServiceProvider();
 
         var client = (EmailNotificationClient)sp.GetRequiredService<IEmailNotificationClient>();
         var telemetrySink = sp.GetService<TelemetrySink>();

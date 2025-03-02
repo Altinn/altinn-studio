@@ -27,6 +27,17 @@ public static class UserActionAuthorizerServiceCollectionExtension
         return services.RegisterUserActionAuthorizer<T>(taskId, action);
     }
 
+    internal static IServiceCollection AddUserActionAuthorizerForActionInTask<T>(
+        this IServiceCollection services,
+        string taskId,
+        string action,
+        ServiceLifetime lifetime
+    )
+        where T : class, IUserActionAuthorizer
+    {
+        return services.RegisterUserActionAuthorizer<T>(taskId, action, lifetime);
+    }
+
     /// <summary>
     /// Adds a transient user action authorizer to the service collection connected to a action in all tasks
     /// </summary>
@@ -76,15 +87,17 @@ public static class UserActionAuthorizerServiceCollectionExtension
     private static IServiceCollection RegisterUserActionAuthorizer<T>(
         this IServiceCollection services,
         string? taskId,
-        string? action
+        string? action,
+        ServiceLifetime lifetime = ServiceLifetime.Transient
     )
         where T : class, IUserActionAuthorizer
     {
-        services.TryAddTransient<T>();
+        services.TryAdd(new ServiceDescriptor(typeof(T), typeof(T), lifetime));
         services.AddTransient<IUserActionAuthorizerProvider>(sp => new UserActionAuthorizerProvider(
             taskId,
             action,
-            sp.GetRequiredService<T>()
+            // TODO: analyzer when there is a generic T?
+            () => sp.GetRequiredService<AppImplementationFactory>().GetRequired<T>()
         ));
         return services;
     }

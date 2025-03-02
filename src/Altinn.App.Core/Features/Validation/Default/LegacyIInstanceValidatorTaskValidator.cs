@@ -23,11 +23,12 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
     /// </summary>
     public LegacyIInstanceValidatorTaskValidator(
         IOptions<GeneralSettings> generalSettings,
+        /* altinn:injection:ignore */
         IInstanceValidator instanceValidator
     )
     {
-        _instanceValidator = instanceValidator;
         _generalSettings = generalSettings.Value;
+        _instanceValidator = instanceValidator;
     }
 
     /// <summary>

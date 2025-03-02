@@ -12,7 +12,11 @@ internal class DataElementValidatorWrapper : IValidator
     private readonly IDataElementValidator _dataElementValidator;
     private readonly string _taskId;
 
-    public DataElementValidatorWrapper(IDataElementValidator dataElementValidator, string taskId)
+    public DataElementValidatorWrapper(
+        /* altinn:injection:ignore */
+        IDataElementValidator dataElementValidator,
+        string taskId
+    )
     {
         _dataElementValidator = dataElementValidator;
         _taskId = taskId;

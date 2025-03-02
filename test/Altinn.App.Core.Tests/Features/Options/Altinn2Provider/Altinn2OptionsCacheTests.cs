@@ -48,7 +48,7 @@ public class Altinn2OptionsCacheTests
             metadataApiId: "ASF_Fylker"
         );
 
-        var sp = services.BuildServiceProvider(validateScopes: true);
+        var sp = services.BuildStrictServiceProvider();
 
         // Do two fetches of ASF_Land and see that only one call gets passed to the messageHandler
         using (var scope = sp.CreateScope())

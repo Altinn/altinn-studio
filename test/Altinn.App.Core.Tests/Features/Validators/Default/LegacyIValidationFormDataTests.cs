@@ -143,7 +143,8 @@ public class LegacyIValidationFormDataTests
         // Arrange
         var data = new TestModel();
 
-        _instanceValidator
+        var instanceValidator = _instanceValidator;
+        instanceValidator
             .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
             .Returns(
                 (object _, ModelStateDictionary modelState) =>

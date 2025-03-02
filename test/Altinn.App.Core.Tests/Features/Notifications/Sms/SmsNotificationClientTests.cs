@@ -280,9 +280,7 @@ public class SmsNotificationClientTests
 
         services.AddTransient<ISmsNotificationClient, SmsNotificationClient>();
 
-        var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
-        );
+        var sp = services.BuildStrictServiceProvider();
 
         var client = (SmsNotificationClient)sp.GetRequiredService<ISmsNotificationClient>();
         var telemetryFake = sp.GetService<TelemetrySink>();

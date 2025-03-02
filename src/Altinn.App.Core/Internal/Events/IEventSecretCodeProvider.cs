@@ -1,3 +1,5 @@
+using Altinn.App.Core.Features;
+
 namespace Altinn.App.Core.Internal.Events;
 
 /// <summary>
@@ -6,6 +8,7 @@ namespace Altinn.App.Core.Internal.Events;
 /// the subscription to the Event system and returned back when posting
 /// the event to the app. If the code is the same the event is accepted.
 /// </summary>
+[ImplementableByApps]
 public interface IEventSecretCodeProvider
 {
     /// <summary>

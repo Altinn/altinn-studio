@@ -310,7 +310,7 @@ public class AppResourcesSITests
         var featureManagerMock = new Mock<IFeatureManager>();
         var serviceProvider = new ServiceCollection()
             .AddSingleton(Mock.Of<IExternalApiFactory>())
-            .BuildServiceProvider();
+            .BuildStrictServiceProvider();
 
         if (frontendFeatures == null)
         {

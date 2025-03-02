@@ -89,11 +89,11 @@ public static class LayoutTestUtils
         services.AddSingleton(resources.Object);
         services.AddSingleton(appMetadata.Object);
         // services.AddSingleton(appModel.Object);
-        services.AddScoped<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
+        services.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
 
         services.AddOptions<FrontEndSettings>().Configure(fes => fes.Add("test", "value"));
 
-        var serviceProvider = services.BuildServiceProvider(validateScopes: true);
+        var serviceProvider = services.BuildStrictServiceProvider();
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 

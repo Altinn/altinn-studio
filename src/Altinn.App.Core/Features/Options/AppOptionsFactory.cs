@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Altinn.App.Core.Features.Options;
 
 /// <summary>
@@ -7,16 +9,15 @@ namespace Altinn.App.Core.Features.Options;
 public class AppOptionsFactory
 {
     private const string DEFAULT_PROVIDER_NAME = "default";
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppOptionsFactory"/> class.
     /// </summary>
-    public AppOptionsFactory(IEnumerable<IAppOptionsProvider> appOptionsProviders)
+    public AppOptionsFactory(IServiceProvider serviceProvider)
     {
-        _appOptionsProviders = appOptionsProviders;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
-
-    private IEnumerable<IAppOptionsProvider> _appOptionsProviders { get; }
 
     /// <summary>
     /// Finds the implementation of IAppOptionsProvider based on the options id
@@ -27,7 +28,8 @@ public class AppOptionsFactory
     {
         bool isDefault = optionsId == DEFAULT_PROVIDER_NAME;
 
-        foreach (var appOptionProvider in _appOptionsProviders)
+        var appOptionsProviders = _appImplementationFactory.GetAll<IAppOptionsProvider>();
+        foreach (var appOptionProvider in appOptionsProviders)
         {
             if (!appOptionProvider.Id.Equals(optionsId, StringComparison.OrdinalIgnoreCase))
             {

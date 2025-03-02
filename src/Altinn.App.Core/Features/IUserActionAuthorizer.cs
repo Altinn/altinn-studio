@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features;
 /// <summary>
 /// Interface for writing custom authorization logic for actions in the app that cannot be handled by the default authorization policies
 /// </summary>
+[ImplementableByApps]
 public interface IUserActionAuthorizer
 {
     /// <summary>

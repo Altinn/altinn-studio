@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 
@@ -9,14 +10,14 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 /// </summary>
 public class AbandonTaskEventHandler : IAbandonTaskEventHandler
 {
-    private readonly IEnumerable<IProcessTaskAbandon> _processTaskAbondons;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
     /// This event handler is responsible for handling the abandon event for a process task.
     /// </summary>
-    public AbandonTaskEventHandler(IEnumerable<IProcessTaskAbandon> processTaskAbondons)
+    public AbandonTaskEventHandler(IServiceProvider serviceProvider)
     {
-        _processTaskAbondons = processTaskAbondons;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
     /// <summary>
@@ -33,9 +34,10 @@ public class AbandonTaskEventHandler : IAbandonTaskEventHandler
     /// </summary>
     private async Task RunAppDefinedProcessTaskAbandonHandlers(string taskId, Instance instance)
     {
-        foreach (IProcessTaskAbandon taskAbandon in _processTaskAbondons)
+        var handlers = _appImplementationFactory.GetAll<IProcessTaskAbandon>();
+        foreach (IProcessTaskAbandon handler in handlers)
         {
-            await taskAbandon.Abandon(taskId, instance);
+            await handler.Abandon(taskId, instance);
         }
     }
 }

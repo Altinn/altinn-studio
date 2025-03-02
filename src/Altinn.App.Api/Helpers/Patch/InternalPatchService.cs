@@ -28,10 +28,9 @@ public class InternalPatchService
     private readonly IInstanceClient _instanceClient;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IHostEnvironment _hostingEnvironment;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
-    private readonly IEnumerable<IDataProcessor> _dataProcessors;
-    private readonly IEnumerable<IDataWriteProcessor> _dataWriteProcessors;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -47,10 +46,9 @@ public class InternalPatchService
         IDataClient dataClient,
         IInstanceClient instanceClient,
         IValidationService validationService,
-        IEnumerable<IDataProcessor> dataProcessors,
-        IEnumerable<IDataWriteProcessor> dataWriteProcessors,
         ModelSerializationService modelSerializationService,
         IHostEnvironment hostingEnvironment,
+        IServiceProvider serviceProvider,
         Telemetry? telemetry = null
     )
     {
@@ -58,10 +56,9 @@ public class InternalPatchService
         _dataClient = dataClient;
         _instanceClient = instanceClient;
         _validationService = validationService;
-        _dataProcessors = dataProcessors;
-        _dataWriteProcessors = dataWriteProcessors;
         _modelSerializationService = modelSerializationService;
         _hostingEnvironment = hostingEnvironment;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _telemetry = telemetry;
     }
 
@@ -262,7 +259,8 @@ public class InternalPatchService
         string? language
     )
     {
-        foreach (var dataProcessor in _dataProcessors)
+        var dataProcessors = _appImplementationFactory.GetAll<IDataProcessor>();
+        foreach (var dataProcessor in dataProcessors)
         {
             foreach (var change in changes.FormDataChanges)
             {
@@ -290,7 +288,8 @@ public class InternalPatchService
             }
         }
 
-        foreach (var dataWriteProcessor in _dataWriteProcessors)
+        var dataWriteProcessors = _appImplementationFactory.GetAll<IDataWriteProcessor>();
+        foreach (var dataWriteProcessor in dataWriteProcessors)
         {
             using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
             try

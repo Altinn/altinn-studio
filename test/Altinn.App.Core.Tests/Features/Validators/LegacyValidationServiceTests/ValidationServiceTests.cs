@@ -137,6 +137,7 @@ public sealed class ValidationServiceTests : IDisposable
             _defaultAppMetadata,
             _modelSerialization
         );
+        _serviceCollection.AddAppImplementationFactory();
         _serviceCollection.AddSingleton(_loggerMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
         _serviceCollection.AddSingleton<IValidationService, ValidationService>();
@@ -286,7 +287,7 @@ public sealed class ValidationServiceTests : IDisposable
         _serviceCollection.RemoveAll(typeof(IFormDataValidator));
 
         // Don't call setup as they are removed from the service collection
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
+        await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
 
@@ -327,7 +328,7 @@ public sealed class ValidationServiceTests : IDisposable
             model => throw new Exception("Should not be called")
         );
 
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
+        await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Ola" };
@@ -381,7 +382,7 @@ public sealed class ValidationServiceTests : IDisposable
             }
         );
 
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
+        await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Kari" };
@@ -476,7 +477,7 @@ public sealed class ValidationServiceTests : IDisposable
         var data = new MyModel();
         SetupDataClient(data);
 
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
+        await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
         var validationService = serviceProvider.GetRequiredService<IValidationService>();
 
         var dataAccessor = new InstanceDataUnitOfWork(
@@ -547,7 +548,7 @@ public sealed class ValidationServiceTests : IDisposable
         var data = new MyModel();
         SetupDataClient(data);
 
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
+        await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
         var validationService = serviceProvider.GetRequiredService<IValidationService>();
 
         var result = await validationService.ValidateInstanceAtTask(

@@ -6,6 +6,7 @@ using Models;
 /// <summary>
 /// Interface that app developers need to implement in order to use the payment feature
 /// </summary>
+[ImplementableByApps]
 public interface IOrderDetailsCalculator
 {
     /// <summary>

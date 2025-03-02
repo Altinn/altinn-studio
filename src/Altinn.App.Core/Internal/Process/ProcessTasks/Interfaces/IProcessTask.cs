@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -5,6 +6,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <summary>
 /// Implement this interface to create a new type of task for the process engine.
 /// </summary>
+[ImplementableByApps]
 public interface IProcessTask
 {
     /// <summary>
