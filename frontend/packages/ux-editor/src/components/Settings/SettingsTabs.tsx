@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import React from 'react';
 import { StudioHeading, StudioTabs } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import classes from './Settings.module.css';
+import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
 
 const tabs = [
