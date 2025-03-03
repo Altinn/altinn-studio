@@ -514,8 +514,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
-            if (resource.HasCompetentAuthority.Orgcode != org)
+            if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
+                _logger.LogWarning("Org mismatch for resource {repo} for org {org}.", id, org);
                 return new StatusCodeResult(400);
             }
 
