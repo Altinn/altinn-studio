@@ -1,11 +1,9 @@
 :root {
   --icon-font-color: #23262a;
-  --icon-card-height: 250px;
   --icon-card-width: 250px;
 }
 
 .card {
-  height: var(--icon-card-height);
   width: var(--icon-card-width);
   min-width: var(--icon-card-width);
   background-color: var(--fds-semantic-background-default);
@@ -93,7 +91,6 @@
 }
 
 .title {
-  padding-bottom: var(--fds-spacing-2);
   letter-spacing: var(--fds-spacing-0);
 }
 
@@ -101,7 +98,6 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  row-gap: var(--fds-spacing-1);
   padding: var(--fds-spacing-2);
   text-align: center;
   font-weight: normal;
