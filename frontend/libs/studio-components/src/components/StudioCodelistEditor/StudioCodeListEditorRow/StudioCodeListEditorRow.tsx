@@ -80,6 +80,7 @@ export function StudioCodeListEditorRow({
         onChangeCurrentId={handleLabelChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.Label}
+        required={true}
         textResources={textResources}
       />
       <TextResourceIdCell
@@ -89,6 +90,7 @@ export function StudioCodeListEditorRow({
         onChangeCurrentId={handleDescriptionChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.Description}
+        required={false}
         textResources={textResources}
       />
       <TextResourceIdCell
@@ -98,6 +100,7 @@ export function StudioCodeListEditorRow({
         onChangeCurrentId={handleHelpTextChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.HelpText}
+        required={false}
         textResources={textResources}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
@@ -213,6 +216,7 @@ type TextResourceIdCellProps = {
   onChangeCurrentId: (newId: string) => void;
   onChangeTextResource: (newTextResource: TextResource) => void;
   property: CodeListItemTextProperty;
+  required: boolean;
   textResources?: TextResource[];
 };
 
@@ -231,6 +235,7 @@ function TextResourceSelectorCell({
   onChangeCurrentId,
   onChangeTextResource,
   property,
+  required,
   textResources,
 }: Required<TextResourceIdCellProps>) {
   const {
@@ -241,6 +246,7 @@ function TextResourceSelectorCell({
       currentId={currentId}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={onChangeTextResource}
+      required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
     />
