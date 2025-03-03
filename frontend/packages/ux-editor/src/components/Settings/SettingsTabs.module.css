@@ -1,4 +1,7 @@
 .heading {
+  color: #1e2b3c;
+  font-family: var(--studio-font-family);
+  letter-spacing: 1px;
   margin-bottom: var(--fds-spacing-7);
 }
 
