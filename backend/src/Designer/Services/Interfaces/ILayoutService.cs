@@ -13,5 +13,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task CreatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId);
         public Task DeletePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId);
         public Task UpdatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId, Page page);
+        public Task UpdatePageOrder(AltinnRepoEditingContext editingContext, string layoutSetId, Pages pages);
     }
 }
