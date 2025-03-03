@@ -1,0 +1,8 @@
+.heading {
+  margin-bottom: var(--fds-spacing-7);
+}
+
+.icon {
+  font-size: var(--fds-sizing-6);
+  margin-right: var(--fds-spacing-1);
+}
