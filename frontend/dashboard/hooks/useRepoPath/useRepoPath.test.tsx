@@ -4,14 +4,14 @@ import { HeaderContext, type HeaderContextType } from 'dashboard/context/HeaderC
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
 import { repositoryOwnerPath, repositoryBasePath } from 'app-shared/api/paths';
-import { mockOrg1 } from 'dashboard/testing/organizationMock';
+import { mockOrg1, mockOrganizations } from 'dashboard/testing/organizationMock';
 import { userMock } from 'dashboard/testing/userMock';
 import { renderHookWithProviders } from 'dashboard/testing/mocks';
 
 jest.mock('dashboard/hooks/useSelectedContext');
 
 const renderUseRepoPathHook = (headerContextValueProps: Partial<HeaderContextType> = {}) => {
-  return renderHookWithProviders(useRepoPath, {
+  return renderHookWithProviders(() => useRepoPath(userMock, mockOrganizations), {
     externalWrapper: (children) => (
       <HeaderContext.Provider value={{ ...headerContextValueMock, ...headerContextValueProps }}>
         {children}

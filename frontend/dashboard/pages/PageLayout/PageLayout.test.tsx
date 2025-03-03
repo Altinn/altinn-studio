@@ -7,8 +7,9 @@ import { PageLayout } from './PageLayout';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useParams } from 'react-router-dom';
-import { SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { StringUtils } from '@studio/pure-functions';
+import { Subroute } from 'dashboard/enums/SubRoute';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

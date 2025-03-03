@@ -2,15 +2,16 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType, Subroute } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { type User } from 'app-shared/types/Repository';
-import { type Organization } from 'app-shared/types/Organization';
-import { type HeaderContextType } from 'dashboard/context/HeaderContext';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { MockServicesContextWrapper } from '../../../dashboardTestUtils';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { Subroute } from '../../../enums/SubRoute';
+import { HeaderContextProvider } from '../../../context/HeaderContext/HeaderContext';
+import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
+import { userMock } from '../../../testing/userMock';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -18,29 +19,6 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
 }));
-
-const userMock: User = {
-  id: 1,
-  avatar_url: '',
-  email: 'tester@tester.test',
-  full_name: 'Tester Testersen',
-  login: 'tester',
-  userType: 0,
-};
-
-const mockOrg1: Organization = {
-  avatar_url: '',
-  id: 12,
-  username: 'ttd',
-  full_name: 'Test',
-};
-const mockOrg2: Organization = {
-  avatar_url: '',
-  id: 23,
-  username: 'unit-test-2',
-  full_name: 'unit-test-2',
-};
-const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
 
 describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -222,17 +200,12 @@ describe('DashboardHeader', () => {
   });
 });
 
-const headerContextValue: HeaderContextType = {
-  user: userMock,
-  selectableOrgs: mockOrganizations,
-};
-
 const renderDashboardHeader = () => {
   return render(
     <MockServicesContextWrapper>
-      <HeaderContext.Provider value={headerContextValue}>
+      <HeaderContextProvider user={userMock} selectableOrgs={mockOrganizations}>
         <DashboardHeader />
-      </HeaderContext.Provider>
+      </HeaderContextProvider>
     </MockServicesContextWrapper>,
   );
 };
