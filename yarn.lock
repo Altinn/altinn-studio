@@ -2082,10 +2082,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-theme@npm:0.15.3":
-  version: 0.15.3
-  resolution: "@digdir/designsystemet-theme@npm:0.15.3"
-  checksum: 10/0c9760ffbc42ed736ebcd1ee9069b2a8dd9312de08263d8beee74438933df736280c07fba2568d05f202ea88687b3309c40bf55be3d7d8e57f54cf84cc33af96
+"@digdir/designsystemet-theme@npm:0.100.52":
+  version: 0.100.52
+  resolution: "@digdir/designsystemet-theme@npm:0.100.52"
+  checksum: 10/43431fb6b99c18d02e2735398106656d4624c31077833530a1ff6ec1ef6b2caa09692c4c5d0d65c7cc41ca1bdf0bd612396a6de1b125a75a256b99141a11e3c3
   languageName: node
   linkType: hard
 
@@ -6339,7 +6339,7 @@ __metadata:
     "@digdir/design-system-tokens": "npm:0.13.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
     "@digdir/designsystemet-react": "npm:0.63.1"
-    "@digdir/designsystemet-theme": "npm:0.15.3"
+    "@digdir/designsystemet-theme": "npm:0.100.52"
     "@microsoft/applicationinsights-react-js": "npm:17.3.4"
     "@microsoft/applicationinsights-web": "npm:3.3.4"
     "@microsoft/signalr": "npm:8.0.7"
