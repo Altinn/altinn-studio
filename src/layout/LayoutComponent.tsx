@@ -6,7 +6,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
-import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { runEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
@@ -14,7 +14,6 @@ import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayData, DisplayDataProps } from 'src/features/displayData';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
@@ -214,21 +213,7 @@ export interface SummaryRendererProps<Type extends CompTypes> {
   overrides?: ISummaryComponent['overrides'];
 }
 
-abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type> implements DisplayData<Type> {
-  /**
-   * Given a node (with group-index-aware data model bindings), this method should return a proper 'value' for the
-   * current component/node. This value will be used to display form data in a repeating group table, and when rendering
-   * a Summary for the node inside a repeating group. It will probably also be useful when implementing renderSummary().
-   * @see renderSummary
-   * @see renderCompactSummary
-   */
-  abstract getDisplayData(node: LayoutNode<Type>, displayDataProps: DisplayDataProps): string;
-
-  useDisplayData(node: LayoutNode<Type>): string {
-    const displayDataProps = useDisplayDataProps();
-    return this.getDisplayData(node, displayDataProps);
-  }
-
+abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type> {
   /**
    * Render a summary for this component. For most components, this will return a:
    * <SingleInputSummary formDataAsString={displayData} />
@@ -248,7 +233,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
    * rendered in a compact way. The default
    */
   public renderCompactSummary({ targetNode }: SummaryRendererProps<Type>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+    const displayData = useDisplayData(targetNode);
     return (
       <SummaryItemCompact
         targetNode={targetNode}

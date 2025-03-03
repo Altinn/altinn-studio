@@ -28,8 +28,8 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     return false;
   }
 
-  getDisplayData(node: LayoutNode<'FileUploadWithTag'>, { attachmentsSelector }: DisplayDataProps): string {
-    return attachmentsSelector(node.id)
+  getDisplayData({ attachmentsSelector, nodeId }: DisplayDataProps<'FileUploadWithTag'>): string {
+    return attachmentsSelector(nodeId)
       .map((a) => a.data.filename)
       .join(', ');
   }
@@ -56,7 +56,10 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     { attachmentsSelector, nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
     const validations: ComponentValidation[] = [];
-    const minNumberOfAttachments = nodeDataSelector((picker) => picker(node)?.item?.minNumberOfAttachments, [node]);
+    const minNumberOfAttachments = nodeDataSelector(
+      (picker) => picker(node.id, 'FileUploadWithTag')?.item?.minNumberOfAttachments,
+      [node.id],
+    );
 
     // Validate minNumberOfAttachments
     const attachments = attachmentsSelector(node.id);
@@ -83,7 +86,10 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
         isAttachmentUploaded(attachment) &&
         (attachment.data.tags === undefined || attachment.data.tags.length === 0)
       ) {
-        const tagKey = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings?.tagTitle, [node]);
+        const tagKey = nodeDataSelector(
+          (picker) => picker(node.id, 'FileUploadWithTag')?.item?.textResourceBindings?.tagTitle,
+          [node.id],
+        );
         const tagReference = tagKey
           ? {
               key: tagKey,

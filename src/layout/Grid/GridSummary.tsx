@@ -5,7 +5,7 @@ import { ErrorMessage, Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { LabelContent } from 'src/components/label/LabelContent';
-import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -23,7 +23,6 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type {
   GridCellLabelFrom,
   GridCellText,
@@ -350,7 +349,7 @@ function CellWithComponent({
 }: CellWithComponentProps) {
   const node = useNode(cell.nodeId);
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
-  const displayDataProps = useDisplayDataProps();
+  const displayData = useDisplayData(node);
   const validations = useUnifiedValidationsForNode(node);
   const errors = validationsOfSeverity(validations, 'error');
   const isHidden = Hidden.useIsHidden(node);
@@ -368,7 +367,7 @@ function CellWithComponent({
       data-header-title={isSmall ? headerTitle : ''}
     >
       <div className={cn(classes.contentWrapper, { [classes.validationError]: errors.length > 0 })}>
-        {getComponentCellData(node, displayDataProps, textResourceBindings)}
+        {getComponentCellData(node, displayData, textResourceBindings)}
         {isSmall && !rowReadOnly && (
           <EditButton
             className={classes.mobileEditButton}
@@ -446,16 +445,11 @@ function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle
   );
 }
 
-function getComponentCellData(
-  node: LayoutNode,
-  displayDataProps: DisplayDataProps,
-  textResourceBindings?: ITextResourceBindings,
-) {
+function getComponentCellData(node: LayoutNode, displayData: string, textResourceBindings?: ITextResourceBindings) {
   if (node?.type === 'Custom') {
     return <ComponentSummary componentNode={node} />;
-  } else if (node && 'getDisplayData' in node.def && node.type) {
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    return node.def.getDisplayData(node as LayoutNode<any>, displayDataProps) || '-';
+  } else if (displayData) {
+    return displayData;
   } else if (textResourceBindings && 'title' in textResourceBindings) {
     return <Lang id={textResourceBindings.title} />;
   } else {

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { MultipleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -17,7 +18,7 @@ export function CheckboxesSummary({
   isCompact?: boolean;
   emptyFieldText?: string;
 }) {
-  const displayData = componentNode.def.useDisplayData(componentNode);
+  const displayData = useDisplayData(componentNode);
   const maxStringLength = 75;
   const showAsList =
     summaryOverride?.displayType === 'list' ||

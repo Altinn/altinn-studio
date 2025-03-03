@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import type { JSONSchema7Definition } from 'json-schema';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { ListDef } from 'src/layout/List/config.def.generated';
@@ -25,18 +26,20 @@ export class List extends ListDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'List'>, { nodeFormDataSelector, nodeDataSelector }: DisplayDataProps): string {
-    const formData = nodeFormDataSelector(node);
-    const dmBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-    const summaryBinding = nodeDataSelector((picker) => picker(node)?.item?.summaryBinding, [node]);
-    const legacySummaryBinding = nodeDataSelector((picker) => picker(node)?.item?.bindingToShowInSummary, [node]);
+  getDisplayData({ formData, nodeId, nodeDataSelector }: DisplayDataProps<'List'>): string {
+    const dmBindings = nodeDataSelector((picker) => picker(nodeId, 'List')?.layout.dataModelBindings, [nodeId]);
+    const summaryBinding = nodeDataSelector((picker) => picker(nodeId, 'List')?.item?.summaryBinding, [nodeId]);
+    const legacySummaryBinding = nodeDataSelector(
+      (picker) => picker(nodeId, 'List')?.item?.bindingToShowInSummary,
+      [nodeId],
+    );
 
     if (summaryBinding && dmBindings) {
-      return formData[summaryBinding] ?? '';
+      return formData?.[summaryBinding] ?? '';
     } else if (legacySummaryBinding && dmBindings) {
       for (const [key, binding] of Object.entries(dmBindings)) {
         if (binding.field === legacySummaryBinding) {
-          return formData[key] ?? '';
+          return formData?.[key] ?? '';
         }
       }
     }
@@ -45,7 +48,7 @@ export class List extends ListDef {
   }
 
   renderSummary(props: SummaryRendererProps<'List'>): JSX.Element | null {
-    const displayData = this.useDisplayData(props.targetNode);
+    const displayData = useDisplayData(props.targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
@@ -65,19 +68,25 @@ export class List extends ListDef {
   ): ComponentValidation[] {
     const required = nodeDataSelector(
       (picker) => {
-        const item = picker(node)?.item;
+        const item = picker(node.id, 'List')?.item;
         return item && 'required' in item ? item.required : false;
       },
-      [node],
+      [node.id],
     );
-    const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+    const dataModelBindings = nodeDataSelector(
+      (picker) => picker(node.id, 'List')?.layout.dataModelBindings,
+      [node.id],
+    );
     if (!required || !dataModelBindings) {
       return [];
     }
 
     const references = Object.values(dataModelBindings);
     const validations: ComponentValidation[] = [];
-    const textResourceBindings = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
+    const textResourceBindings = nodeDataSelector(
+      (picker) => picker(node.id, 'List')?.item?.textResourceBindings,
+      [node.id],
+    );
 
     let listHasErrors = false;
     for (const reference of references) {

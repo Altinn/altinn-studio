@@ -10,10 +10,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { Location } from 'src/layout/Map/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeFormDataSelector } from 'src/utils/layout/useNodeItem';
 
 export class Map extends MapDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Map'>>(
@@ -22,13 +19,9 @@ export class Map extends MapDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Map'>, { nodeFormDataSelector }: DisplayDataProps): string {
-    const location = this.getMarkerLocation(node, nodeFormDataSelector);
+  getDisplayData({ formData }: DisplayDataProps<'Map'>): string {
+    const location = parseLocation(formData?.simpleBinding);
     return location ? `${location.latitude}, ${location.longitude}` : '';
-  }
-
-  getMarkerLocation(node: LayoutNode<'Map'>, nodeFormDataSelector: NodeFormDataSelector): Location | undefined {
-    return parseLocation(nodeFormDataSelector(node).simpleBinding);
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {

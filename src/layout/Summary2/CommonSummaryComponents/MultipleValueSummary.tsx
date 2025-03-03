@@ -4,37 +4,25 @@ import { ErrorMessage, Label, List, Paragraph } from '@digdir/designsystemet-rea
 import cn from 'classnames';
 
 import { Lang } from 'src/features/language/Lang';
-import { type IUseLanguage, useLanguage } from 'src/features/language/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
-import { useNodeFormDataSelector } from 'src/utils/layout/useNodeItem';
-import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { CompWithBehavior } from 'src/layout/layout';
-import type { IComponentFormData } from 'src/utils/formComponentUtils';
+import { useNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeFormDataSelector } from 'src/utils/layout/useNodeItem';
+
+type ValidTypes = 'MultipleSelect' | 'Checkboxes';
+type ValidNodes = LayoutNode<ValidTypes>;
 
 interface MultipleValueSummaryProps {
   title: React.ReactNode;
-  componentNode: LayoutNode;
+  componentNode: ValidNodes;
   showAsList?: boolean;
   isCompact?: boolean;
   emptyFieldText?: string;
-}
-
-function getSummaryData(
-  node: LayoutNode,
-  langTools: IUseLanguage,
-  options: IOptionInternal[],
-  nodeFormDataSelector: NodeFormDataSelector,
-): { [key: string]: string } {
-  const formData = nodeFormDataSelector(node) as IComponentFormData<'MultipleSelect'>;
-  const value = String(formData?.simpleBinding ?? '');
-  return getCommaSeparatedOptionsToText(value, options, langTools);
 }
 
 function getDisplayType(
@@ -58,12 +46,10 @@ export const MultipleValueSummary = ({
   isCompact,
   emptyFieldText,
 }: MultipleValueSummaryProps) => {
-  const nodeFormDataSelector = useNodeFormDataSelector();
-
-  const langTools = useLanguage();
-  const options = useNodeOptions(componentNode as LayoutNode<CompWithBehavior<'canHaveOptions'>>).options;
-  const summaryData = getSummaryData(componentNode, langTools, options, nodeFormDataSelector);
-  const displayValues = Object.values(summaryData);
+  const options = useNodeOptions(componentNode).options;
+  const rawFormData = useNodeFormData(componentNode);
+  const { langAsString } = useLanguage();
+  const displayValues = Object.values(getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString));
 
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');

@@ -7,7 +7,7 @@ import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { NodeData } from 'src/utils/layout/types';
 
-export type NodeOptionsSelector = (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | undefined) => {
+export type NodeOptionsSelector = (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | string | undefined) => {
   isFetching: boolean;
   options: IOptionInternal[];
 };
@@ -42,7 +42,8 @@ export class OptionsStorePlugin extends NodeDataPlugin<OptionsStorePluginConfig>
     return {
       useNodeOptions: (node) =>
         store.useShallowSelector((state) => {
-          const s = node ? state.nodeData[node.id] : undefined;
+          const id = typeof node === 'string' ? node : node?.id;
+          const s = id ? state.nodeData[id] : undefined;
           return { isFetching: nodeDataToIsFetching(s), options: nodeDataToOptions(s) };
         }),
       useNodeOptionsSelector: () =>
@@ -61,7 +62,8 @@ export class OptionsStorePlugin extends NodeDataPlugin<OptionsStorePluginConfig>
 }
 
 const nodeOptionsSelector =
-  (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | undefined) => (state: NodesContext) => {
-    const store = node ? state.nodeData[node.id] : undefined;
+  (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | string | undefined) => (state: NodesContext) => {
+    const id = typeof node === 'string' ? node : node?.id;
+    const store = id ? state.nodeData[id] : undefined;
     return { isFetching: nodeDataToIsFetching(store), options: nodeDataToOptions(store) };
   };

@@ -305,6 +305,16 @@ export class ComponentConfig {
       from: 'src/utils/layout/NodesContext',
     });
 
+    const DisplayData = new CG.import({
+      import: 'DisplayData',
+      from: 'src/features/displayData/index',
+    });
+
+    const DisplayDataProps = new CG.import({
+      import: 'DisplayDataProps',
+      from: 'src/features/displayData/index',
+    });
+
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
 
@@ -314,6 +324,7 @@ export class ComponentConfig {
       { base: CG.common('SummarizableComponentProps'), condition: isSummarizable, evaluator: 'evalSummarizable' },
     ];
 
+    const implementsInterfaces: string[] = [];
     const evalLines: string[] = [];
     const itemLine: string[] = [];
     for (const { base, condition, evaluator } of evalCommonProps) {
@@ -374,11 +385,18 @@ export class ComponentConfig {
         `// You must implement this because the component has data model bindings defined
         abstract validateDataModelBindings(ctx: ${LayoutValidationCtx}<'${this.type}'>): string[];`,
       );
-    } else if (this.isFormLike()) {
+    }
+
+    if (
+      this.hasDataModelBindings() &&
+      this.config.category === CompCategory.Form &&
+      this.config.functionality.displayData !== false
+    ) {
       additionalMethods.push(
-        `// This component could have, but does not have any data model bindings defined
-        getDisplayData() { return ''; }`,
+        `// This component has data model bindings, so it should be able to produce a display string
+        abstract getDisplayData(displayDataProps: ${DisplayDataProps}<'${this.type}'>): string;`,
       );
+      implementsInterfaces.push(`${DisplayData}<'${this.type}'>`);
     }
 
     const readyCheckers: string[] = [];
@@ -444,7 +462,8 @@ export class ComponentConfig {
       );
     }
 
-    return `export abstract class ${symbol}Def extends ${categorySymbol}<'${this.type}'> {
+    const implementing = implementsInterfaces.length ? ` implements ${implementsInterfaces.join(', ')}` : '';
+    return `export abstract class ${symbol}Def extends ${categorySymbol}<'${this.type}'>${implementing} {
       protected readonly type = '${this.type}';
       ${pluginMap}
 

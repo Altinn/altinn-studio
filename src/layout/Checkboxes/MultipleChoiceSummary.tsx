@@ -1,18 +1,23 @@
 import React from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
+import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
+import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
-import type { DisplayDataProps } from 'src/features/displayData';
+import { useNodeFormData } from 'src/utils/layout/useNodeItem';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IMultipleChoiceSummaryProps {
-  getFormData: (displayDataProps: DisplayDataProps) => { [key: string]: string };
+  targetNode: LayoutNode<'Checkboxes' | 'MultipleSelect'>;
 }
 
-export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryProps) {
-  const props = useDisplayDataProps();
-  const formData = getFormData(props);
+export function MultipleChoiceSummary({ targetNode }: IMultipleChoiceSummaryProps) {
+  const rawFormData = useNodeFormData(targetNode);
+  const options = useNodeOptions(targetNode).options;
+  const { langAsString } = useLanguage();
+  const data = getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString);
 
   return (
     <Flex
@@ -20,18 +25,18 @@ export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryPro
       size={{ xs: 12 }}
       data-testid='multiple-choice-summary'
     >
-      {Object.keys(formData).length === 0 ? (
+      {Object.keys(data).length === 0 ? (
         <span className={classes.emptyField}>
           <Lang id='general.empty_summary' />
         </span>
       ) : (
         <ul className={classes.list}>
-          {Object.keys(formData).map((key) => (
+          {Object.keys(data).map((key) => (
             <li
               key={key}
               className={classes.listItem}
             >
-              <div className={classes.data}>{formData[key]}</div>
+              <div className={classes.data}>{data[key]}</div>
             </li>
           ))}
         </ul>

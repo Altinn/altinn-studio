@@ -19,10 +19,6 @@ export class Likert extends LikertDef {
     },
   );
 
-  getDisplayData(): string {
-    return '';
-  }
-
   renderSummaryBoilerplate(): boolean {
     return false;
   }

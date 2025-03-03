@@ -33,6 +33,7 @@ export const Config = new CG.component({
   },
   functionality: {
     customExpressions: true,
+    displayData: false,
   },
 })
   .addPlugin(

@@ -24,6 +24,7 @@ export const Config = new CG.component({
   },
   functionality: {
     customExpressions: false,
+    displayData: false,
   },
 })
   .addPlugin(new LikertRowsPlugin())

@@ -10,7 +10,6 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class OrganisationLookup extends OrganisationLookupDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganisationLookup'>>(
@@ -19,9 +18,8 @@ export class OrganisationLookup extends OrganisationLookupDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'OrganisationLookup'>, { nodeFormDataSelector }: DisplayDataProps): string {
-    const data = nodeFormDataSelector(node);
-    return Object.values(data).join(', ');
+  getDisplayData({ formData }: DisplayDataProps<'OrganisationLookup'>): string {
+    return Object.values(formData ?? {}).join(', ');
   }
 
   renderSummary2(props: Summary2Props<'OrganisationLookup'>): JSX.Element | null {

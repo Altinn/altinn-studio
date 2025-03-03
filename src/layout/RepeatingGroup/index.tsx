@@ -96,25 +96,25 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return false;
   }
 
-  getDisplayData(): string {
-    return '';
-  }
-
   runComponentValidation(
     node: LayoutNode<'RepeatingGroup'>,
     { nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
-    const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+    const dataModelBindings = nodeDataSelector(
+      (picker) => picker(node.id, 'RepeatingGroup')?.layout.dataModelBindings,
+      [node.id],
+    );
     if (!dataModelBindings) {
       return [];
     }
 
     const validations: ComponentValidation[] = [];
     // check if minCount is less than visible rows
-    const minCount = nodeDataSelector((picker) => picker(node)?.item?.minCount, [node]) ?? 0;
+    const minCount = nodeDataSelector((picker) => picker(node.id, 'RepeatingGroup')?.item?.minCount, [node.id]) ?? 0;
     const visibleRows = nodeDataSelector(
-      (picker) => picker(node)?.item?.rows?.filter((row) => row && !row.groupExpressions?.hiddenRow).length,
-      [node],
+      (picker) =>
+        picker(node.id, 'RepeatingGroup')?.item?.rows?.filter((row) => row && !row.groupExpressions?.hiddenRow).length,
+      [node.id],
     );
 
     // Validate minCount
@@ -141,7 +141,7 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   }
 
   getValidationFilters(node: LayoutNode<'RepeatingGroup'>, selector: NodeDataSelector): ValidationFilterFunction[] {
-    if (selector((picker) => picker(node)?.item?.minCount ?? 0, [node]) > 0) {
+    if (selector((picker) => picker(node.id, 'RepeatingGroup')?.item?.minCount ?? 0, [node.id]) > 0) {
       return [this.schemaMinItemsFilter];
     }
     return [];

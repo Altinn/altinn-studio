@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -91,31 +91,13 @@ export function useNodeFormData<N extends LayoutNode | undefined>(node: N): Node
   const formDataSelector = FD.useDebouncedSelector();
 
   return useMemo(
-    () => (dataModelBindings ? getNodeFormData(dataModelBindings, formDataSelector) : emptyObject) as NodeFormData<N>,
+    () =>
+      (dataModelBindings ? getNodeFormDataInner(dataModelBindings, formDataSelector) : emptyObject) as NodeFormData<N>,
     [dataModelBindings, formDataSelector],
   );
 }
 
-export type NodeFormDataSelector = ReturnType<typeof useNodeFormDataSelector>;
-export function useNodeFormDataSelector() {
-  const nodeSelector = NodesInternal.useNodeDataSelector();
-  const formDataSelector = FD.useDebouncedSelector();
-
-  return useInnerNodeFormDataSelector(nodeSelector, formDataSelector);
-}
-export function useInnerNodeFormDataSelector(nodeSelector: NodeDataSelector, formDataSelector: FormDataSelector) {
-  return useCallback(
-    <N extends LayoutNode | undefined>(node: N): NodeFormData<N> => {
-      const dataModelBindings = nodeSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-      return dataModelBindings
-        ? (getNodeFormData(dataModelBindings, formDataSelector) as NodeFormData<N>)
-        : (emptyObject as NodeFormData<N>);
-    },
-    [nodeSelector, formDataSelector],
-  );
-}
-
-function getNodeFormData<N extends LayoutNode>(
+function getNodeFormDataInner<N extends LayoutNode>(
   dataModelBindings: IDataModelBindings<TypeFromNode<N>>,
   formDataSelector: FormDataSelector,
 ): NodeFormData<N> {
@@ -138,4 +120,15 @@ function getNodeFormData<N extends LayoutNode>(
   }
 
   return formDataObj as NodeFormData<N>;
+}
+
+export function getNodeFormData<Type extends CompTypes = CompTypes>(
+  nodeId: string,
+  nodeDataSelector: NodeDataSelector,
+  formDataSelector: FormDataSelector,
+): IComponentFormData<Type> | undefined {
+  const dataModelBindings = nodeDataSelector((picker) => picker(nodeId)?.layout.dataModelBindings, [nodeId]);
+  return dataModelBindings
+    ? (getNodeFormDataInner(dataModelBindings, formDataSelector) as IComponentFormData<Type>)
+    : undefined;
 }

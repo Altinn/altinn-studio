@@ -19,12 +19,12 @@ export function runEmptyFieldValidationAllBindings<Type extends CompTypes>(
 ): ComponentValidation[] {
   const required = nodeDataSelector(
     (picker) => {
-      const item = picker(node)?.item;
+      const item = picker(node.id, node.type)?.item;
       return item && 'required' in item ? item.required : false;
     },
     [node],
   );
-  const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+  const dataModelBindings = nodeDataSelector((picker) => picker(node.id, node.type)?.layout.dataModelBindings, [node]);
   if (!required || !dataModelBindings) {
     return [];
   }
@@ -35,7 +35,7 @@ export function runEmptyFieldValidationAllBindings<Type extends CompTypes>(
     const data = formDataSelector(reference) ?? invalidDataSelector(reference);
     const asString =
       typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-    const trb = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
+    const trb = nodeDataSelector((picker) => picker(node.id, node.type)?.item?.textResourceBindings, [node]);
 
     if (asString.length === 0) {
       const key =
@@ -67,12 +67,15 @@ export function runEmptyFieldValidationOnlySimpleBinding<Type extends CompWithBi
 ): ComponentValidation[] {
   const required = nodeDataSelector(
     (picker) => {
-      const item = picker(node)?.item;
+      const item = picker(node.id, node.type)?.item;
       return item && 'required' in item ? item.required : false;
     },
     [node],
   );
-  const reference = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings.simpleBinding, [node]);
+  const reference = nodeDataSelector(
+    (picker) => picker(node.id, node.type)?.layout.dataModelBindings.simpleBinding,
+    [node],
+  );
   if (!required || !reference) {
     return [];
   }
@@ -82,7 +85,7 @@ export function runEmptyFieldValidationOnlySimpleBinding<Type extends CompWithBi
   const data = formDataSelector(reference) ?? invalidDataSelector(reference);
   const asString =
     typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-  const trb = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
+  const trb = nodeDataSelector((picker) => picker(node.id, node.type)?.item?.textResourceBindings, [node]);
 
   if (asString.length === 0) {
     const key =

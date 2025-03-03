@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Heading, Table } from '@digdir/designsystemet-react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
@@ -21,7 +22,7 @@ type ListComponentSummaryProps = {
 type Row = Record<string, string | number | boolean>;
 
 export const ListSummary = ({ componentNode, isCompact, emptyFieldText }: ListComponentSummaryProps) => {
-  const displayData = componentNode.def.useDisplayData(componentNode);
+  const displayData = useDisplayData(componentNode);
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(

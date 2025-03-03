@@ -9,6 +9,7 @@ import {
   getDateFormat,
   strictParseISO,
 } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
@@ -36,22 +37,19 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     },
   );
 
-  getDisplayData(
-    node: LayoutNode<'Datepicker'>,
-    { currentLanguage, nodeFormDataSelector, nodeDataSelector }: DisplayDataProps,
-  ): string {
-    const data = nodeFormDataSelector(node).simpleBinding ?? '';
+  getDisplayData({ currentLanguage, formData, nodeId, nodeDataSelector }: DisplayDataProps<'Datepicker'>): string {
+    const data = formData?.simpleBinding ?? '';
     if (!data) {
       return '';
     }
 
-    const format = nodeDataSelector((picker) => picker(node)?.item?.format, [node]);
+    const format = nodeDataSelector((picker) => picker(nodeId, 'Datepicker')?.item?.format, [nodeId]);
     const dateFormat = getDateFormat(format, currentLanguage);
     return formatISOString(data, dateFormat) ?? data;
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Datepicker'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+    const displayData = useDisplayData(targetNode);
     return (
       <SummaryItemSimple
         formDataAsString={displayData}
@@ -74,7 +72,10 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     node: LayoutNode<'Datepicker'>,
     { formDataSelector, currentLanguage, nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
-    const field = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings?.simpleBinding, [node]);
+    const field = nodeDataSelector(
+      (picker) => picker(node.id, 'Datepicker')?.layout.dataModelBindings?.simpleBinding,
+      [node.id],
+    );
     const data = field ? formDataSelector(field) : undefined;
     const dataAsString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;
     if (!dataAsString) {
@@ -82,15 +83,15 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     }
 
     const minDate = getDateConstraint(
-      nodeDataSelector((picker) => picker(node)?.item?.minDate, [node]),
+      nodeDataSelector((picker) => picker(node.id, 'Datepicker')?.item?.minDate, [node.id]),
       'min',
     );
     const maxDate = getDateConstraint(
-      nodeDataSelector((picker) => picker(node)?.item?.maxDate, [node]),
+      nodeDataSelector((picker) => picker(node.id, 'Datepicker')?.item?.maxDate, [node.id]),
       'max',
     );
     const format = getDateFormat(
-      nodeDataSelector((picker) => picker(node)?.item?.format, [node]),
+      nodeDataSelector((picker) => picker(node.id, 'Datepicker')?.item?.format, [node.id]),
       currentLanguage,
     );
     const datePickerFormat = getDatepickerFormat(format).toUpperCase();
@@ -158,11 +159,11 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   getValidationFilters(node: LayoutNode<'Datepicker'>, selector: NodeDataSelector): ValidationFilterFunction[] {
     const filters = [Datepicker.schemaFormatFilter];
 
-    if (selector((picker) => picker(node)?.item?.minDate, [node])) {
+    if (selector((picker) => picker(node.id, 'Datepicker')?.item?.minDate, [node.id])) {
       filters.push(Datepicker.schemaFormatMinimumFilter);
     }
 
-    if (selector((picker) => picker(node)?.item?.maxDate, [node])) {
+    if (selector((picker) => picker(node.id, 'Datepicker')?.item?.maxDate, [node.id])) {
       filters.push(Datepicker.schemaFormatMaximumFilter);
     }
 

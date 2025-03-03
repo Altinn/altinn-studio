@@ -5,7 +5,7 @@ import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -138,22 +138,18 @@ type DataRowProps = {
 
 function DataRow({ row, node, index, pdfModeActive, columnSettings }: DataRowProps) {
   const cellNodes = useTableNodes(node, index);
-  const displayDataProps = useDisplayDataProps();
 
   return (
     <Table.Row>
-      {cellNodes.map((node) =>
-        node.type === 'Custom' ? (
-          <Table.Cell key={node.id}>
-            <ComponentSummary componentNode={node} />
+      {cellNodes.map((cellNode) =>
+        cellNode.type === 'Custom' ? (
+          <Table.Cell key={cellNode.id}>
+            <ComponentSummary componentNode={cellNode} />
           </Table.Cell>
         ) : (
           <DataCell
-            key={node.id}
-            node={node}
-            displayData={
-              ('getDisplayData' in node.def && node.def.getDisplayData(node as never, displayDataProps)) ?? ''
-            }
+            key={cellNode.id}
+            node={cellNode}
             columnSettings={columnSettings}
           />
         ),
@@ -172,14 +168,14 @@ function DataRow({ row, node, index, pdfModeActive, columnSettings }: DataRowPro
 
 type DataCellProps = {
   node: LayoutNode;
-  displayData: string | false;
   columnSettings: ITableColumnFormatting;
 };
 
-function DataCell({ node, displayData, columnSettings }: DataCellProps) {
+function DataCell({ node, columnSettings }: DataCellProps) {
   const { langAsString } = useLanguage();
   const headerTitle = langAsString(useTableTitle(node));
   const style = useColumnStylesRepeatingGroups(node, columnSettings);
+  const displayData = useDisplayData(node);
 
   return (
     <Table.Cell

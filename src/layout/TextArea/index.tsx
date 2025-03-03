@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
@@ -10,7 +11,6 @@ import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class TextArea extends TextAreaDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'TextArea'>>(
@@ -19,12 +19,12 @@ export class TextArea extends TextAreaDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'TextArea'>, { nodeFormDataSelector }: DisplayDataProps): string {
-    return nodeFormDataSelector(node).simpleBinding ?? '';
+  getDisplayData({ formData }: DisplayDataProps<'TextArea'>): string {
+    return formData?.simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'TextArea'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+    const displayData = useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 

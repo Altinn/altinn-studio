@@ -14,7 +14,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { CheckboxSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Checkboxes extends CheckboxesDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Checkboxes'>>(
@@ -23,21 +23,17 @@ export class Checkboxes extends CheckboxesDef {
     },
   );
 
-  private getSummaryData(
-    node: LayoutNode<'Checkboxes'>,
-    { nodeFormDataSelector, optionsSelector, langTools }: DisplayDataProps,
-  ): { [key: string]: string } {
-    const value = nodeFormDataSelector(node).simpleBinding ?? '';
-    const { options } = optionsSelector(node);
-    return getCommaSeparatedOptionsToText(value, options, langTools);
-  }
-
-  getDisplayData(node: LayoutNode<'Checkboxes'>, props: DisplayDataProps): string {
-    return Object.values(this.getSummaryData(node, props)).join(', ');
+  getDisplayData(props: DisplayDataProps<'Checkboxes'>): string {
+    const data = getCommaSeparatedOptionsToText(
+      props.formData?.simpleBinding,
+      props.optionsSelector(props.nodeId).options,
+      props.langTools.langAsString,
+    );
+    return Object.values(data).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Checkboxes'>): JSX.Element | null {
-    return <MultipleChoiceSummary getFormData={(props) => this.getSummaryData(targetNode, props)} />;
+    return <MultipleChoiceSummary targetNode={targetNode} />;
   }
 
   renderSummary2(props: Summary2Props<'Checkboxes'>): JSX.Element | null {

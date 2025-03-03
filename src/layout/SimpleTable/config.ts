@@ -14,6 +14,7 @@ export const Config = new CG.component({
   },
   functionality: {
     customExpressions: false,
+    displayData: false,
   },
 })
   .extends(CG.common('LabeledComponentProps'))

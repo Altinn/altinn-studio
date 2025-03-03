@@ -79,7 +79,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
       dataElementHasErrorsSelector,
     }: ValidationDataSources,
   ): ComponentValidation[] {
-    const layoutSetName = nodeDataSelector((picker) => picker(node)?.layout.layoutSet, [node]);
+    const layoutSetName = nodeDataSelector((picker) => picker(node.id, 'Subform')?.layout.layoutSet, [node]);
     if (!layoutSetName) {
       throw new Error(`Layoutset not found for node with id ${node.id}.`);
     }

@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { formatNumericText } from '@digdir/design-system-react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { evalFormatting } from 'src/layout/Input/formatting';
@@ -14,7 +15,6 @@ import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Input extends InputDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Input'>>(
@@ -23,16 +23,13 @@ export class Input extends InputDef {
     },
   );
 
-  getDisplayData(
-    node: LayoutNode<'Input'>,
-    { currentLanguage, nodeFormDataSelector, nodeDataSelector }: DisplayDataProps,
-  ): string {
-    const text = nodeFormDataSelector(node).simpleBinding || '';
+  getDisplayData({ currentLanguage, formData, nodeId, nodeDataSelector }: DisplayDataProps<'Input'>): string {
+    const text = formData?.simpleBinding || '';
     if (!text) {
       return '';
     }
 
-    const formatting = nodeDataSelector((picker) => picker(node)?.item?.formatting, [node]);
+    const formatting = nodeDataSelector((picker) => picker(nodeId, 'Input')?.item?.formatting, [nodeId]);
     const numberFormatting = getMapToReactNumberConfig(formatting, text, currentLanguage);
 
     if (numberFormatting?.number) {
@@ -43,7 +40,7 @@ export class Input extends InputDef {
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Input'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+    const displayData = useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 

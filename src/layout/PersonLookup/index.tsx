@@ -9,12 +9,10 @@ import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class PersonLookup extends PersonLookupDef {
-  getDisplayData(node: LayoutNode<'PersonLookup'>, { nodeFormDataSelector }: DisplayDataProps): string {
-    const data = nodeFormDataSelector(node);
-    return Object.values(data).join(', ');
+  getDisplayData({ formData }: DisplayDataProps<'PersonLookup'>): string {
+    return Object.values(formData ?? {}).join(', ');
   }
 
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'PersonLookup'>>(

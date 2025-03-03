@@ -122,5 +122,5 @@ export type FormDataSelector = (reference: IDataModelReference) => unknown;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData<TypeFromDef<Def>> {
-  return 'getDisplayData' in def && 'useDisplayData' in def;
+  return 'getDisplayData' in def;
 }

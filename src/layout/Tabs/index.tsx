@@ -34,10 +34,6 @@ export class Tabs extends TabsDef {
     return false;
   }
 
-  getDisplayData(): string {
-    return '';
-  }
-
   public validateDataModelBindings(): string[] {
     return [];
   }

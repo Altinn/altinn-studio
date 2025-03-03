@@ -12,8 +12,7 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
-interface SummaryContentProps
-  extends Omit<SummaryRendererProps<CompTypes>, 'formDataSelector' | 'nodeFormDataSelector'> {
+interface SummaryContentProps extends SummaryRendererProps<CompTypes> {
   RenderSummary: React.ElementType<SummaryRendererProps<CompTypes>>;
 }
 

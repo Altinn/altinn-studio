@@ -13,7 +13,7 @@ import type { ComponentValidation, ValidationDataSources } from 'src/features/va
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class MultipleSelect extends MultipleSelectDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'MultipleSelect'>>(
@@ -22,26 +22,17 @@ export class MultipleSelect extends MultipleSelectDef {
     },
   );
 
-  private getSummaryData(
-    node: LayoutNode<'MultipleSelect'>,
-    { nodeFormDataSelector, optionsSelector, langTools }: DisplayDataProps,
-  ): { [key: string]: string } {
-    const data = nodeFormDataSelector(node);
-    if (!data.simpleBinding) {
-      return {};
-    }
-
-    const value = String(data.simpleBinding ?? '');
-    const { options } = optionsSelector(node);
-    return getCommaSeparatedOptionsToText(value, options, langTools);
-  }
-
-  getDisplayData(node: LayoutNode<'MultipleSelect'>, props: DisplayDataProps): string {
-    return Object.values(this.getSummaryData(node, props)).join(', ');
+  getDisplayData(props: DisplayDataProps<'MultipleSelect'>): string {
+    const data = getCommaSeparatedOptionsToText(
+      props.formData?.simpleBinding,
+      props.optionsSelector(props.nodeId).options,
+      props.langTools.langAsString,
+    );
+    return Object.values(data).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {
-    return <MultipleChoiceSummary getFormData={(props) => this.getSummaryData(targetNode, props)} />;
+    return <MultipleChoiceSummary targetNode={targetNode} />;
   }
 
   renderSummary2(props: Summary2Props<'MultipleSelect'>): JSX.Element | null {

@@ -38,10 +38,6 @@ export class SimpleTable extends SimpleTableDef {
   isDataModelBindingsRequired() {
     return false;
   }
-
-  getDisplayData(): string {
-    return '';
-  }
   renderSummary2(props: Summary2Props<'SimpleTable'>): React.JSX.Element | null {
     return <SimpleTableSummary componentNode={props.target} />;
   }

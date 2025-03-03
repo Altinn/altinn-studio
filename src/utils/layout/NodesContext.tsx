@@ -984,40 +984,44 @@ export const Hidden = {
 export type NodeDataSelector = ReturnType<typeof NodesInternal.useNodeDataSelector>;
 export type LaxNodeDataSelector = ReturnType<typeof NodesInternal.useLaxNodeDataSelector>;
 
-export type NodePicker = <N extends LayoutNode | undefined = LayoutNode | undefined>(
-  node: N | string,
-) => NodePickerReturns<N>;
-type NodePickerReturns<N extends LayoutNode | undefined> = NodeDataFromNode<N> | undefined;
+export type NodeIdPicker = <T extends CompTypes = CompTypes>(
+  id: string | undefined,
+  type: T | undefined,
+) => NodeData<T> | undefined;
 
-function selectNodeData<N extends LayoutNode | undefined>(
-  node: N | string,
+function selectNodeData<T extends CompTypes = CompTypes>(
+  id: string | undefined,
+  type: T | undefined,
   state: NodesContext,
   preferFreshData = false,
-): NodePickerReturns<N> {
-  const nodeId = typeof node === 'string' ? node : node?.id;
-  if (!nodeId) {
+): NodeData<T> | undefined {
+  if (!id) {
     return undefined;
   }
 
   const data =
     state.readiness === NodesReadiness.Ready
-      ? state.nodeData[nodeId] // Always use fresh data when ready
-      : preferFreshData && state.nodeData[nodeId]?.item?.id // Only allow getting fresh data when not ready if item is set
-        ? state.nodeData[nodeId]
-        : state.prevNodeData?.[nodeId]
-          ? state.prevNodeData[nodeId]
-          : state.nodeData[nodeId]; // Fall back to fresh data if prevNodeData is not set
+      ? state.nodeData[id] // Always use fresh data when ready
+      : preferFreshData && state.nodeData[id]?.item?.id // Only allow getting fresh data when not ready if item is set
+        ? state.nodeData[id]
+        : state.prevNodeData?.[id]
+          ? state.prevNodeData[id]
+          : state.nodeData[id]; // Fall back to fresh data if prevNodeData is not set
 
-  return data as NodePickerReturns<N>;
+  if (data && type && data.layout.type !== type) {
+    return undefined;
+  }
+
+  return data as NodeData<T>;
 }
 
 function getNodeData<N extends LayoutNode | undefined, Out>(
-  node: N | string,
+  node: N,
   state: NodesContext,
   selector: (nodeData: NodeDataFromNode<N>) => Out,
   preferFreshData = false,
 ) {
-  return node ? selector(selectNodeData(node, state, preferFreshData) as NodeDataFromNode<N>) : undefined;
+  return node ? selector(selectNodeData(node.id, node.type, state, preferFreshData) as NodeDataFromNode<N>) : undefined;
 }
 
 /**
@@ -1234,21 +1238,27 @@ export const NodesInternal = {
     const insideGenerator = GeneratorInternal.useIsInsideGenerator();
     return Store.useDelayedSelector({
       mode: 'innerSelector',
-      makeArgs: (state) => [((node) => selectNodeData(node, state, insideGenerator)) satisfies NodePicker],
+      makeArgs: (state) => [
+        ((id, type = undefined) => selectNodeData(id, type, state, insideGenerator)) satisfies NodeIdPicker,
+      ],
     });
   },
   useLaxNodeDataSelector: () => {
     const insideGenerator = GeneratorInternal.useIsInsideGenerator();
     return Store.useLaxDelayedSelector({
       mode: 'innerSelector',
-      makeArgs: (state) => [((node) => selectNodeData(node, state, insideGenerator)) satisfies NodePicker],
+      makeArgs: (state) => [
+        ((id, type = undefined) => selectNodeData(id, type, state, insideGenerator)) satisfies NodeIdPicker,
+      ],
     });
   },
   useNodeDataSelectorProps: () => {
     const insideGenerator = GeneratorInternal.useIsInsideGenerator();
     return Store.useDelayedSelectorProps({
       mode: 'innerSelector',
-      makeArgs: (state) => [((node) => selectNodeData(node, state, insideGenerator)) satisfies NodePicker],
+      makeArgs: (state) => [
+        ((id, type = undefined) => selectNodeData(id, type, state, insideGenerator)) satisfies NodeIdPicker,
+      ],
     });
   },
   useTypeFromId: (id: string) => Store.useSelector((s) => s.nodeData[id]?.layout.type),

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { runEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
@@ -13,7 +14,7 @@ import type { ComponentValidation, ValidationDataSources } from 'src/features/va
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Dropdown'>>(
@@ -22,21 +23,18 @@ export class Dropdown extends DropdownDef {
     },
   );
 
-  getDisplayData(
-    node: LayoutNode<'Dropdown'>,
-    { langTools, optionsSelector, nodeFormDataSelector }: DisplayDataProps,
-  ): string {
-    const value = String(nodeFormDataSelector(node).simpleBinding ?? '');
+  getDisplayData({ langTools, optionsSelector, formData, nodeId }: DisplayDataProps<'Dropdown'>): string {
+    const value = String(formData?.simpleBinding ?? '');
     if (!value) {
       return '';
     }
 
-    const { options } = optionsSelector(node);
+    const { options } = optionsSelector(nodeId);
     return getSelectedValueToText(value, langTools, options) || '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Dropdown'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
+    const displayData = useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 

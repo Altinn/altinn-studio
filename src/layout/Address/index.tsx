@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary';
@@ -21,13 +22,12 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     },
   );
 
-  getDisplayData(node: LayoutNode<'Address'>, { nodeFormDataSelector }: DisplayDataProps): string {
-    const data = nodeFormDataSelector(node);
-    return Object.values(data).join(' ');
+  getDisplayData({ formData }: DisplayDataProps<'Address'>): string {
+    return Object.values(formData ?? {}).join(' ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Address'>): JSX.Element | null {
-    const data = this.useDisplayData(targetNode);
+    const data = useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={data} />;
   }
 
@@ -43,7 +43,10 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     node: LayoutNode<'Address'>,
     { formDataSelector, nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
-    const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+    const dataModelBindings = nodeDataSelector(
+      (picker) => picker(node.id, 'Address')?.layout.dataModelBindings,
+      [node.id],
+    );
     if (!dataModelBindings) {
       return [];
     }

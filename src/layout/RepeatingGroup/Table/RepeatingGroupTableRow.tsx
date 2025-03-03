@@ -24,12 +24,11 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { getNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import type { DisplayData } from 'src/features/displayData';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
-import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
+import type { CompInternal, CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -105,14 +104,18 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const tableNodes = useTableNodes(node, index);
   const displayDataProps = useDisplayDataProps();
-  const displayData = tableNodes.map((node) => {
+  const formDataSelector = FD.useDebouncedSelector();
+  const displayData = tableNodes.map(<T extends CompTypes>(node: LayoutNode<T>) => {
     const def = node.def;
     if (!implementsDisplayData(def)) {
       return '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (def as DisplayData<any>).getDisplayData(node, displayDataProps);
+    return def.getDisplayData({
+      ...displayDataProps,
+      nodeId: node.id,
+      formData: getNodeFormData(node.id, nodeDataSelector, formDataSelector),
+    });
   });
   const firstCellData = displayData.find((c) => !!c);
   const isEditingRow = isEditing(uuid);
@@ -213,7 +216,7 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
                       <Lang
                         id={getTableTitle(
-                          nodeDataSelector((picker) => picker(n)?.item?.textResourceBindings ?? {}, [n]),
+                          nodeDataSelector((picker) => picker(n.id, n.type)?.item?.textResourceBindings ?? {}, [n]),
                         )}
                       />
                       :
