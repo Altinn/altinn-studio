@@ -2,10 +2,10 @@ import type { ReactElement } from 'react';
 import React from 'react';
 import { StudioHeading, StudioTabs } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import classes from './Tabs.module.css';
+import classes from './Settings.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
 
-const SettingTabs = [
+const tabs = [
   {
     icon: CompassIcon,
     title: 'ux_editor.settings.navigation_tab',
@@ -16,7 +16,7 @@ const SettingTabs = [
   },
 ];
 
-export const Tabs = (): ReactElement => {
+export const SettingsTabs = (): ReactElement => {
   const { t } = useTranslation();
 
   return (
@@ -24,9 +24,9 @@ export const Tabs = (): ReactElement => {
       <StudioHeading level={2} size='xsmall' className={classes.heading}>
         {t('ux_editor.settings.other_settings')}
       </StudioHeading>
-      <StudioTabs defaultValue={SettingTabs[0].title}>
+      <StudioTabs defaultValue={tabs[0].title}>
         <StudioTabs.List>
-          {SettingTabs.map((tab) => {
+          {tabs.map((tab) => {
             const TabIcon = tab.icon;
             return (
               <StudioTabs.Tab key={tab.title} value={tab.title}>
