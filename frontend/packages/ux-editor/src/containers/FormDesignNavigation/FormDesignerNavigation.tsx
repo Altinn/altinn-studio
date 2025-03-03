@@ -16,9 +16,7 @@ export const FormDesignerNavigation = () => {
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>
-            <div>
-              <Tabs />
-            </div>
+            <Tabs />
           </div>
           <footer className={classes.footer}>
             <Link href='/contact'>{t('general.contact')}</Link>

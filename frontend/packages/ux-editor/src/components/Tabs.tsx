@@ -20,7 +20,7 @@ export const Tabs = (): ReactElement => {
   const { t } = useTranslation();
 
   return (
-    <>
+    <div>
       <StudioHeading level={2} size='xsmall' className={classes.heading}>
         {t('ux_editor.settings.other_settings')}
       </StudioHeading>
@@ -37,6 +37,6 @@ export const Tabs = (): ReactElement => {
           })}
         </StudioTabs.List>
       </StudioTabs>
-    </>
+    </div>
   );
 };
