@@ -46,6 +46,7 @@ function textResourceTexts(
 ): TextResourceInputTexts {
   return {
     editValue: createTextResourceEditButtonTitle(rowNumber, property),
+    emptyTextResourceList: 'No text resources available',
     idLabel: 'ID:',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
