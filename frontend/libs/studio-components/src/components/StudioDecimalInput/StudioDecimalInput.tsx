@@ -51,7 +51,7 @@ export const StudioDecimalInput = forwardRef(
         description={description}
         value={inputValue}
         onChange={handleInputChange}
-        errorAfterBlur={errorMessage}
+        error={errorMessage}
         inputMode='decimal'
         ref={ref}
         {...rest}

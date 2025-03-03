@@ -15,6 +15,9 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMoc
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -29,7 +32,10 @@ const defaultProps: PropertiesHeaderProps = {
 };
 
 describe('PropertiesHeader', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    typedLocalStorage.removeItem('featureFlags');
+  });
 
   it('renders the header name for the component', () => {
     renderPropertiesHeader();
@@ -149,7 +155,36 @@ describe('PropertiesHeader', () => {
     });
     expect(setLayoutSetButton).not.toBeInTheDocument();
   });
+
+  it('should show warning when component is deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Summary] });
+    const alert = screen.getByText(textMock('ux_editor.component_properties.deprecated.Summary'));
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('should not show warning when component is not deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+    const alert = screen.queryByText(textMock('ux_editor.component_properties.deprecated.Input'));
+    expect(alert).not.toBeInTheDocument();
+  });
+
+  it('should render main configuration header when feature flag is set', () => {
+    addFeatureFlagToLocalStorage(FeatureFlag.MainConfig);
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+
+    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
+    const headerMainConfig = screen.getByText(sectionHeader);
+    expect(headerMainConfig).toBeInTheDocument();
+  });
+
+  it('should not render main configuration header when feature flag is not set', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
+    const headerMainConfig = screen.queryByText(sectionHeader);
+    expect(headerMainConfig).not.toBeInTheDocument();
+  });
 });
+
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
   queryClientMock.setQueryData(

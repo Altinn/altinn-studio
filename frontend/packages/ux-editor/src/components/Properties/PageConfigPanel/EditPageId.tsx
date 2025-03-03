@@ -6,7 +6,7 @@ import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 
 export interface EditPageIdProps {
   layoutName: string;
@@ -20,14 +20,8 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const t = useText();
-
-  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
@@ -46,8 +40,8 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
     <div className={classes.changePageId}>
       <StudioToggleableTextfield
         customValidation={(value: string) => {
-          const validationResult = getPageNameErrorKey(value, layoutName, layoutOrder);
-          return validationResult ? t(validationResult) : undefined;
+          const validationResult = getPageNameErrorKey(value, layoutName, Object.keys(formLayouts));
+          return validationResult && t(validationResult);
         }}
         label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
         onBlur={(event) => handleSaveNewName(event.target.value)}

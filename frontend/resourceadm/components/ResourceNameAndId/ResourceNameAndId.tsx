@@ -1,10 +1,8 @@
-import { Paragraph, Textfield } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './ResourceNameAndId.module.css';
-import { FieldWrapper } from '../../components/FieldWrapper';
 import { formatIdString } from '../../utils/stringUtils';
 
 export type ResourceNameAndIdProps = {
@@ -98,15 +96,14 @@ export const ResourceNameAndId = ({
    */
   const displayIdTextOrInput = () => {
     return (
-      <FieldWrapper label={idLabel} fieldId='resourceIdInputId'>
+      <>
         {editIdFieldOpen ? (
           <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
-              <Textfield
+              <StudioTextfield
                 value={id}
-                size='small'
                 onChange={(e) => handleEditId(e.target.value)}
-                id='resourceIdInputId'
+                label={idLabel}
                 error={conflictErrorMessage}
               />
             </div>
@@ -135,9 +132,9 @@ export const ResourceNameAndId = ({
             <div>
               <p className={classes.idText}>id</p>
             </div>
-            <Paragraph size='small'>
+            <StudioParagraph size='sm'>
               <strong>{formatIdString(id)}</strong>
-            </Paragraph>
+            </StudioParagraph>
             <div className={classes.editButtonWrapper}>
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
@@ -154,21 +151,18 @@ export const ResourceNameAndId = ({
             </div>
           </div>
         )}
-      </FieldWrapper>
+      </>
     );
   };
 
   return (
     <div className={classes.resourceNameAndId}>
       <div className={classes.textfieldWrapper}>
-        <FieldWrapper label={titleLabel} fieldId='resourceNameInputId'>
-          <Textfield
-            value={title}
-            onChange={(e) => handleEditTitle(e.target.value)}
-            id='resourceNameInputId'
-            size='small'
-          />
-        </FieldWrapper>
+        <StudioTextfield
+          value={title}
+          onChange={(e) => handleEditTitle(e.target.value)}
+          label={titleLabel}
+        />
       </div>
       {displayIdTextOrInput()}
     </div>

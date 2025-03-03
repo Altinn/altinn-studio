@@ -11,6 +11,11 @@ public static class AltinnStudioRepositoryScanner
         return Path.Combine(FindRootDirectoryPath(), ".env");
     }
 
+    public static string FindKafkaComposerFilePath()
+    {
+        return Path.Combine(FindRootDirectoryPath(), "development", "kafka", "compose.yaml");
+    }
+
     public static string FindRootDirectoryPath([CallerFilePath] string filePath = "")
     {
         return GetDirectoryPathBySearchPattern(Path.GetDirectoryName(filePath), ".github");

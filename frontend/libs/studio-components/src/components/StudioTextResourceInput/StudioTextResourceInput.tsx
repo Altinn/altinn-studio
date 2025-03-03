@@ -1,4 +1,4 @@
-import type { ChangeEvent, HTMLAttributes, ReactElement } from 'react';
+import type { ChangeEvent, FocusEvent, HTMLAttributes, ReactElement } from 'react';
 import React, { forwardRef, useState } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
@@ -26,8 +26,10 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;
@@ -40,6 +42,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       currentId: givenCurrentId,
       currentIdClass,
       inputClass,
+      onBlurTextResource,
       onChangeTextResource,
       onChangeCurrentId,
       onKeyDown,
@@ -59,6 +62,10 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeCurrentId(id);
     };
 
+    const handleTextResourceBlur = (textResource: TextResource): void => {
+      onBlurTextResource?.(textResource);
+    };
+
     const handleTextResourceChange = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
@@ -73,6 +80,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           currentId={currentId}
           inputClass={inputClass}
           mode={mode}
+          onBlurTextResource={handleTextResourceBlur}
           onChangeCurrentId={handleChangeCurrentId}
           onChangeTextResource={handleTextResourceChange}
           onKeyDown={onKeyDown}
@@ -100,9 +108,11 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       currentId,
       inputClass,
       mode,
+      onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onKeyDown,
+      required,
       textResources,
       texts,
       ...rest
@@ -118,6 +128,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
           <ValueField
             className={className}
             label={texts.valueLabel}
+            onBlurTextResource={onBlurTextResource}
             onChangeTextResource={onChangeTextResource}
             onKeyDown={onKeyDown}
             ref={ref}
@@ -133,6 +144,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             onValueChange={onChangeCurrentId}
             onKeyDown={onKeyDown}
             ref={ref}
+            required={required}
             textResources={textResources}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             value={currentId}
@@ -147,14 +159,14 @@ InputBox.displayName = 'InputBox';
 
 type ValueFieldProps = StudioTextfieldProps & {
   textResource?: TextResource;
+  onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
 };
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
-  ({ textResource, onChangeTextResource, ...rest }, ref): ReactElement => {
+  ({ textResource, onBlurTextResource, onChangeTextResource, ...rest }, ref): ReactElement => {
     const generalProps: StudioTextfieldProps = {
       hideLabel: true,
-      size: 'sm',
       ...rest,
     };
 
@@ -162,6 +174,7 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       return (
         <EnabledValueField
           ref={ref}
+          onBlurTextResource={onBlurTextResource}
           onChangeTextResource={onChangeTextResource}
           textResource={textResource}
           {...generalProps}
@@ -176,7 +189,17 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
 ValueField.displayName = 'ValueField';
 
 const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
-  ({ textResource, onChange, onChangeTextResource, ...rest }, ref): ReactElement => {
+  (
+    { textResource, onBlur, onChange, onBlurTextResource, onChangeTextResource, ...rest },
+    ref,
+  ): ReactElement => {
+    const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {
+      const { value } = event.target;
+      const newTextResource = editTextResourceValue(textResource, value);
+      onBlurTextResource(newTextResource);
+      onBlur?.(event);
+    };
+
     const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
       const { value } = event.target;
       const newTextResource = editTextResourceValue(textResource, value);
@@ -185,7 +208,13 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     };
 
     return (
-      <StudioTextfield onChange={handleChange} ref={ref} value={textResource.value} {...rest} />
+      <StudioTextfield
+        onBlur={handleBlur}
+        onChange={handleChange}
+        ref={ref}
+        value={textResource.value}
+        {...rest}
+      />
     );
   },
 );
