@@ -605,6 +605,12 @@ namespace Altinn.Studio.Designer.Controllers
         {
             if (repository == $"{org}-resources")
             {
+                ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+                if (resource.HasCompetentAuthority.Orgcode != org)
+                {
+                    return new StatusCodeResult(400);
+                }
+
                 string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
                 ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
                 _memoryCache.Remove($"resourcelist_${env}");
