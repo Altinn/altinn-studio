@@ -514,6 +514,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
+            if (resource.HasCompetentAuthority.Orgcode != org)
+            {
+                return new StatusCodeResult(400);
+            }
+
             return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
