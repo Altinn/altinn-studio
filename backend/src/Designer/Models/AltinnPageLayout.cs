@@ -21,12 +21,23 @@ namespace Altinn.Studio.Designer.Models
             };
         }
 
-        private string generateRandomId(int length = 6)
+        public AltinnPageLayout(JsonObject structure)
+        {
+            Structure = structure;
+        }
+
+        public string generateRandomId(int length = 6)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
             return new string(
                 [.. Enumerable.Repeat(chars, length).Select(s => s[_random.Next(s.Length)])]
             );
+        }
+
+        public bool HasComponentOfType(string type)
+        {
+            JsonArray components = Structure["data"]["layout"] as JsonArray;
+            return components.Any((component) => component["type"].GetValue<string>().Equals(type));
         }
 
         public AltinnPageLayout WithNavigationButtons()
