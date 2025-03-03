@@ -147,6 +147,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             orderArray.Remove(orderPage);
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
 
+            if (orderArray.Count == 1)
+            {
+                string lastLayoutName = orderArray.First().GetValue<string>();
+                JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
+                AltinnPageLayout lastPage = new(lastLayout.AsObject());
+                lastPage.RemoveAllComponentsOfType("NavigationButtons");
+                await appRepository.SaveLayout(layoutSetId, lastLayoutName, lastPage.Structure);
+            }
+
             await mediatr.Publish(
                 new LayoutPageDeletedEvent
                 {

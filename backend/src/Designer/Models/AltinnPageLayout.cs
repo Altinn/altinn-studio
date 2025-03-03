@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text.Json.Nodes;
+using Altinn.App.Core.Helpers;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -26,7 +27,7 @@ namespace Altinn.Studio.Designer.Models
             Structure = structure;
         }
 
-        public string generateRandomId(int length = 6)
+        string generateRandomId(int length = 6)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
             return new string(
@@ -51,6 +52,13 @@ namespace Altinn.Studio.Designer.Models
                     ["type"] = "NavigationButtons",
                 }
             );
+            return this;
+        }
+
+        public AltinnPageLayout RemoveAllComponentsOfType(string type)
+        {
+            JsonArray components = Structure["data"]["layout"] as JsonArray;
+            components.RemoveAll((component) => component["type"].GetValue<string>().Equals(type));
             return this;
         }
     }
