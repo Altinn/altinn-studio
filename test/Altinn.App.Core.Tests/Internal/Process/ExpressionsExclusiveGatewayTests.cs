@@ -277,7 +277,11 @@ public class ExpressionsExclusiveGatewayTests
             _dataClient.Object,
             _instanceClient.Object,
             appMetadata,
-            modelSerializationService
+            modelSerializationService,
+            null!,
+            null!,
+            TaskId,
+            null
         );
 
         var layoutStateInit = new LayoutEvaluatorStateInitializer(

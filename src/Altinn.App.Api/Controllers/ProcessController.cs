@@ -4,8 +4,6 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -41,9 +39,7 @@ public class ProcessController : ControllerBase
     private readonly IAuthorizationService _authorization;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
-    private readonly IDataClient _dataClient;
-    private readonly IAppMetadata _appMetadata;
-    private readonly ModelSerializationService _modelSerialization;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -56,9 +52,7 @@ public class ProcessController : ControllerBase
         IAuthorizationService authorization,
         IProcessReader processReader,
         IProcessEngine processEngine,
-        IDataClient dataClient,
-        IAppMetadata appMetadata,
-        ModelSerializationService modelSerialization
+        IServiceProvider serviceProvider
     )
     {
         _logger = logger;
@@ -68,9 +62,7 @@ public class ProcessController : ControllerBase
         _authorization = authorization;
         _processReader = processReader;
         _processEngine = processEngine;
-        _dataClient = dataClient;
-        _appMetadata = appMetadata;
-        _modelSerialization = modelSerialization;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <summary>
@@ -249,13 +241,8 @@ public class ProcessController : ControllerBase
         string? language
     )
     {
-        var dataAccessor = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            await _appMetadata.GetApplicationMetadata(),
-            _modelSerialization
-        );
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
+
         var validationIssues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,
             currentTaskId, // run full validation

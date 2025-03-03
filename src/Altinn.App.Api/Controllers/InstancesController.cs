@@ -70,6 +70,7 @@ public class InstancesController : ControllerBase
     private readonly IHostEnvironment _env;
     private readonly ModelSerializationService _serializationService;
     private readonly InternalPatchService _patchService;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -113,6 +114,7 @@ public class InstancesController : ControllerBase
         _env = env;
         _serializationService = serializationService;
         _patchService = patchService;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <summary>
@@ -1131,13 +1133,7 @@ public class InstancesController : ControllerBase
         string? language
     )
     {
-        var dataMutator = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            appInfo,
-            _serializationService
-        );
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId: null, language);
 
         for (int partIndex = 0; partIndex < parts.Count; partIndex++)
         {

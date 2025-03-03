@@ -135,7 +135,11 @@ public sealed class ValidationServiceTests : IDisposable
             _dataClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
-            _modelSerialization
+            _modelSerialization,
+            null!,
+            null!,
+            DefaultTaskId,
+            DefaultLanguage
         );
         _serviceCollection.AddAppImplementationFactory();
         _serviceCollection.AddSingleton(_loggerMock.Object);
@@ -407,7 +411,11 @@ public sealed class ValidationServiceTests : IDisposable
             _dataClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
-            _modelSerialization
+            _modelSerialization,
+            null!,
+            null!,
+            DefaultTaskId,
+            DefaultLanguage
         );
         var resultData = await validatorService.ValidateIncrementalFormData(
             dataAccessor,
@@ -485,7 +493,11 @@ public sealed class ValidationServiceTests : IDisposable
             _dataClientMock.Object,
             _instanceClientMock.Object,
             _defaultAppMetadata,
-            _modelSerialization
+            _modelSerialization,
+            null!,
+            null!,
+            DefaultTaskId,
+            DefaultLanguage
         );
 
         var taskResult = await validationService.ValidateInstanceAtTask(

@@ -54,6 +54,7 @@ public class DataController : ControllerBase
     private readonly IFeatureManager _featureManager;
     private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
 
@@ -62,19 +63,6 @@ public class DataController : ControllerBase
     /// <summary>
     /// The data controller is responsible for adding business logic to the data elements.
     /// </summary>
-    /// <param name="logger">logger</param>
-    /// <param name="instanceClient">instance service to store instances</param>
-    /// <param name="dataClient">A service with access to data storage.</param>
-    /// <param name="appModel">Service for generating app model</param>
-    /// <param name="appMetadata">The app metadata service</param>
-    /// <param name="featureManager">The feature manager controlling enabled features.</param>
-    /// <param name="prefillService">A service with prefill related logic.</param>
-    /// <param name="fileAnalyserService">Service used to analyse files uploaded.</param>
-    /// <param name="fileValidationService">Service used to validate files uploaded.</param>
-    /// <param name="patchService">Service for applying a json patch to a json serializable object</param>
-    /// <param name="modelDeserializer">Service for serializing and deserializing models</param>
-    /// <param name="authenticationContext">The authentication context service</param>
-    /// <param name="serviceProvider">Service provider</param>
     public DataController(
         ILogger<DataController> logger,
         IInstanceClient instanceClient,
@@ -103,6 +91,7 @@ public class DataController : ControllerBase
         _featureManager = featureManager;
         _patchService = patchService;
         _modelDeserializer = modelDeserializer;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
@@ -246,7 +235,7 @@ public class DataController : ControllerBase
                 return instanceResult.Error;
             }
 
-            var (instance, dataType, applicationMetadata) = instanceResult.Ok;
+            var (instance, dataType, _) = instanceResult.Ok;
 
             if (
                 DataElementAccessChecker.GetCreateProblem(instance, dataType, _authenticationContext.Current) is
@@ -256,13 +245,17 @@ public class DataController : ControllerBase
                 return accessProblem;
             }
 
-            var dataMutator = new InstanceDataUnitOfWork(
-                instance,
-                _dataClient,
-                _instanceClient,
-                applicationMetadata,
-                _modelDeserializer
-            );
+            var taskId = instance.Process?.CurrentTask?.ElementId;
+            if (taskId is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "No current task",
+                    Detail = "Cannot create data element without a current task",
+                    Status = StatusCodes.Status409Conflict,
+                };
+            }
+            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
 
             // Save data elements with form data
             if (dataType.AppLogic?.ClassRef is { } classRef)
@@ -365,12 +358,7 @@ public class DataController : ControllerBase
                 throw new InvalidOperationException("Expected exactly one change in initialChanges");
             }
 
-            await _patchService.RunDataProcessors(
-                dataMutator,
-                initialChanges,
-                instance.Process.CurrentTask.ElementId,
-                language
-            );
+            await _patchService.RunDataProcessors(dataMutator, initialChanges, taskId, language);
 
             if (dataMutator.GetAbandonResponse() is { } abandonResponse)
             {
@@ -389,7 +377,7 @@ public class DataController : ControllerBase
                     .ToList();
                 validationIssues = await _patchService.RunIncrementalValidation(
                     dataMutator,
-                    instance.Process.CurrentTask.ElementId,
+                    taskId,
                     finalChanges,
                     ignoredValidators,
                     language
@@ -804,13 +792,7 @@ public class DataController : ControllerBase
                 instance.Process?.CurrentTask?.ElementId
                 ?? throw new InvalidOperationException("Instance have no process");
 
-            var dataMutator = new InstanceDataUnitOfWork(
-                instance,
-                _dataClient,
-                _instanceClient,
-                await _appMetadata.GetApplicationMetadata(),
-                _modelDeserializer
-            );
+            var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
 
             dataMutator.RemoveDataElement(dataElement);
 
@@ -1083,13 +1065,21 @@ public class DataController : ControllerBase
 
         var serviceModel = deserializationResult.Ok;
 
-        var dataMutator = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            await _appMetadata.GetApplicationMetadata(),
-            _modelDeserializer
-        );
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+        if (taskId is null)
+        {
+            return Problem(
+                new ProblemDetails()
+                {
+                    Title = "No current task",
+                    Detail = "Cannot update data element without a current task",
+                    Status = StatusCodes.Status409Conflict,
+                }
+            );
+        }
+
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
         // Set the new service model so that dataAccessors see the new state
@@ -1109,12 +1099,7 @@ public class DataController : ControllerBase
 
         // Run data processors keeping track of changes for diff return
         var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
-        await _patchService.RunDataProcessors(
-            dataMutator,
-            new DataElementChanges([requestedChange]),
-            instance.Process.CurrentTask.ElementId,
-            language
-        );
+        await _patchService.RunDataProcessors(dataMutator, new DataElementChanges([requestedChange]), taskId, language);
         var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 
         if (dataMutator.GetAbandonResponse() is { } abandonResponse)

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -15,6 +16,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
@@ -291,7 +293,9 @@ public class ProcessNavigatorTests
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton<ModelSerializationService>();
+        services.AddTransient<InstanceDataUnitOfWorkInitializer>();
 
         var sp = services.BuildStrictServiceProvider();
         return new(sp);

@@ -77,12 +77,14 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IOrganizationClient>().Object);
         services.AddSingleton(new Mock<IHostEnvironment>().Object);
         services.AddSingleton(new Mock<IValidationService>().Object);
+        services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
 
         var httpContextMock = new Mock<HttpContext>();
         services.AddTransient(_ => httpContextMock.Object);
 
         services.AddTransient<InternalPatchService>();
         services.AddTransient<ModelSerializationService>();
+        services.AddTransient<InstanceDataUnitOfWorkInitializer>();
 
         services.AddTransient(sp =>
         {

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Common.Tests;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -25,6 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
@@ -1134,6 +1136,7 @@ public sealed class ProcessEngineTest
             Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
             Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
             Mock<IAppMetadata> appMetadataMock = new(MockBehavior.Strict);
+            Mock<IAppResources> appResourcesMock = new(MockBehavior.Strict);
             appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
 
             authenticationContextMock
@@ -1198,6 +1201,8 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IInstanceClient>(_ => instanceClientMock.Object);
             services.TryAddTransient<IAppModel>(_ => appModelMock.Object);
             services.TryAddTransient<IAppMetadata>(_ => appMetadataMock.Object);
+            services.TryAddTransient<IAppResources>(_ => appResourcesMock.Object);
+            services.TryAddTransient<InstanceDataUnitOfWorkInitializer>();
             services.TryAddTransient<ModelSerializationService>();
 
             foreach (var userAction in userActions ?? [])

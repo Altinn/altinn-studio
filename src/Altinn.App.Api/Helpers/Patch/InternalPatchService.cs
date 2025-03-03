@@ -4,10 +4,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
@@ -23,11 +20,8 @@ namespace Altinn.App.Api.Helpers.Patch;
 /// </summary>
 public class InternalPatchService
 {
-    private readonly IAppMetadata _appMetadata;
-    private readonly IDataClient _dataClient;
-    private readonly IInstanceClient _instanceClient;
-    private readonly ModelSerializationService _modelSerializationService;
     private readonly IHostEnvironment _hostingEnvironment;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
@@ -42,22 +36,15 @@ public class InternalPatchService
     /// Creates a new instance of the <see cref="InternalPatchService"/> class
     /// </summary>
     public InternalPatchService(
-        IAppMetadata appMetadata,
-        IDataClient dataClient,
-        IInstanceClient instanceClient,
         IValidationService validationService,
-        ModelSerializationService modelSerializationService,
         IHostEnvironment hostingEnvironment,
         IServiceProvider serviceProvider,
         Telemetry? telemetry = null
     )
     {
-        _appMetadata = appMetadata;
-        _dataClient = dataClient;
-        _instanceClient = instanceClient;
         _validationService = validationService;
-        _modelSerializationService = modelSerializationService;
         _hostingEnvironment = hostingEnvironment;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _telemetry = telemetry;
     }
@@ -73,14 +60,9 @@ public class InternalPatchService
     )
     {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
+        var taskId = instance.Process.CurrentTask.ElementId;
 
-        var dataAccessor = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            await _appMetadata.GetApplicationMetadata(),
-            _modelSerializationService
-        );
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
 
         List<FormDataChange> changesAfterPatch = [];
 

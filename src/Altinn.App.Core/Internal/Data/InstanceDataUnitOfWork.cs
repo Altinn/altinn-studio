@@ -1,14 +1,16 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -29,12 +31,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly ApplicationMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerializationService;
 
-    // Caches
     // Cache for the most up to date form data (can be mutated or replaced with SetFormData(dataElementId, data))
-    private readonly LazyCache<object> _formDataCache = new();
+    private readonly DataElementCache<object> _formDataCache = new();
 
     // Cache for the binary content of the file as currently in storage (updated on save)
-    private readonly LazyCache<ReadOnlyMemory<byte>> _binaryCache = new();
+    private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementChange> _changesForDeletion = [];
@@ -51,7 +52,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         IDataClient dataClient,
         IInstanceClient instanceClient,
         ApplicationMetadata appMetadata,
-        ModelSerializationService modelSerializationService
+        ModelSerializationService modelSerializationService,
+        IAppResources appResources,
+        IOptions<FrontEndSettings> frontEndSettings,
+        string? taskId,
+        string? language
     )
     {
         if (instance.Id is not null)
@@ -411,7 +416,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         var tasks = new List<Task>();
         ConcurrentDictionary<DataElementChange, DataElement> createdDataElements = [];
         // We need to create data elements here, so that we can set them correctly on the instance
-        // Updating and deleting is done in SaveChanges and happen in parallel with validation.
+        // Updating is done in SaveChanges and happen in parallel with validation.
 
         // Upload added data elements
         foreach (var change in _changesForCreation)
@@ -523,53 +528,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
         _formDataCache.Set(dataElementIdentifier, data);
-    }
-
-    /// <summary>
-    /// Simple wrapper around a Dictionary using Lazy to ensure that the valueFactory is only called once
-    /// </summary>
-    private sealed class LazyCache<T>
-    {
-        private readonly Dictionary<Guid, Lazy<Task<T>>> _cache = [];
-
-        public async Task<T> GetOrCreate(DataElementIdentifier key, Func<Task<T>> valueFactory)
-        {
-            Lazy<Task<T>>? lazyTask;
-            lock (_cache)
-            {
-                if (!_cache.TryGetValue(key.Guid, out lazyTask))
-                {
-                    lazyTask = new Lazy<Task<T>>(valueFactory);
-                    _cache.Add(key.Guid, lazyTask);
-                }
-            }
-            return await lazyTask.Value;
-        }
-
-        public void Set(DataElementIdentifier key, T data)
-        {
-            lock (_cache)
-            {
-                _cache[key.Guid] = new Lazy<Task<T>>(Task.FromResult(data));
-            }
-        }
-
-        public bool TryGetCachedValue(DataElementIdentifier identifier, [NotNullWhen(true)] out T? value)
-        {
-            lock (_cache)
-            {
-                if (
-                    _cache.TryGetValue(identifier.Guid, out var lazyTask)
-                    && lazyTask is { IsValueCreated: true, Value.IsCompletedSuccessfully: true }
-                )
-                {
-                    value = lazyTask.Value.Result ?? throw new InvalidOperationException("Value in cache is null");
-                    return true;
-                }
-            }
-            value = default;
-            return false;
-        }
     }
 
     private DataType GetDataTypeByString(string dataTypeString)

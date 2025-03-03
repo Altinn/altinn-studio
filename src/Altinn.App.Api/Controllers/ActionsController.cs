@@ -4,8 +4,6 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
@@ -32,9 +30,7 @@ public class ActionsController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly UserActionService _userActionService;
     private readonly IValidationService _validationService;
-    private readonly IDataClient _dataClient;
-    private readonly IAppMetadata _appMetadata;
-    private readonly ModelSerializationService _modelSerialization;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
@@ -45,9 +41,7 @@ public class ActionsController : ControllerBase
         IInstanceClient instanceClient,
         UserActionService userActionService,
         IValidationService validationService,
-        IDataClient dataClient,
-        IAppMetadata appMetadata,
-        ModelSerializationService modelSerialization,
+        IServiceProvider serviceProvider,
         IAuthenticationContext authenticationContext
     )
     {
@@ -55,9 +49,7 @@ public class ActionsController : ControllerBase
         _instanceClient = instanceClient;
         _userActionService = userActionService;
         _validationService = validationService;
-        _dataClient = dataClient;
-        _appMetadata = appMetadata;
-        _modelSerialization = modelSerialization;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
     }
 
@@ -127,14 +119,9 @@ public class ActionsController : ControllerBase
         {
             return Forbid();
         }
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
 
-        var dataMutator = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            await _appMetadata.GetApplicationMetadata(),
-            _modelSerialization
-        );
         UserActionContext userActionContext = new(
             dataMutator,
             user.UserId,

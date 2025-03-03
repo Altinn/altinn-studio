@@ -1,12 +1,10 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -19,10 +17,7 @@ public class ProcessNavigator : IProcessNavigator
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
-    private readonly IDataClient _dataClient;
-    private readonly IInstanceClient _instanceClient;
-    private readonly IAppMetadata _appMetadata;
-    private readonly ModelSerializationService _modelSerialization;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
@@ -31,19 +26,13 @@ public class ProcessNavigator : IProcessNavigator
         IProcessReader processReader,
         ExclusiveGatewayFactory gatewayFactory,
         ILogger<ProcessNavigator> logger,
-        IDataClient dataClient,
-        IInstanceClient instanceClient,
-        IAppMetadata appMetadata,
-        ModelSerializationService modelSerialization
+        IServiceProvider serviceProvider
     )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
-        _dataClient = dataClient;
-        _appMetadata = appMetadata;
-        _modelSerialization = modelSerialization;
-        _instanceClient = instanceClient;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <inheritdoc/>
@@ -113,13 +102,13 @@ public class ProcessNavigator : IProcessNavigator
                     Action = action,
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
-                IInstanceDataAccessor dataAccessor = new InstanceDataUnitOfWork(
+
+                IInstanceDataAccessor dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
                     instance,
-                    _dataClient,
-                    _instanceClient,
-                    await _appMetadata.GetApplicationMetadata(),
-                    _modelSerialization
+                    taskId: null,
+                    language: null
                 );
+
                 filteredList = await gatewayFilter.FilterAsync(
                     outgoingFlows,
                     instance,

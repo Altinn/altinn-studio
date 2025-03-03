@@ -48,6 +48,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly TelemetrySink _telemetrySink = new();
     private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
+    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -94,21 +95,22 @@ public sealed class PatchServiceTests : IDisposable
         services.AddSingleton<IDataElementValidator>(_dataElementValidator.Object);
         services.AddSingleton<IFormDataValidator>(_formDataValidator.Object);
         services.AddSingleton<IValidatorFactory, ValidatorFactory>();
+        services.AddTransient<InstanceDataUnitOfWorkInitializer>();
         services.AddSingleton(_appMetadataMock.Object);
         services.AddSingleton(_dataProcessorMock.Object);
+        services.AddSingleton(_appResourcesMock.Object);
+        services.AddSingleton(_dataClientMock.Object);
+        services.AddSingleton(_instanceClientMock.Object);
+        _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
+        services.AddSingleton(_modelSerializationService);
         services.Configure<GeneralSettings>(_ => { });
+
         _serviceProvider = services.BuildStrictServiceProvider();
         var validatorFactory = _serviceProvider.GetRequiredService<IValidatorFactory>();
         var validationService = new ValidationService(validatorFactory, _vLoggerMock.Object);
 
-        _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
-
         _patchService = new InternalPatchService(
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _instanceClientMock.Object,
             validationService,
-            _modelSerializationService,
             _webHostEnvironment.Object,
             _serviceProvider,
             _telemetrySink.Object

@@ -1,5 +1,4 @@
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
@@ -20,8 +19,7 @@ namespace Altinn.App.Api.Controllers;
 public class ValidateController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
-    private readonly IDataClient _dataClient;
-    private readonly ModelSerializationService _modelSerialization;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAppMetadata _appMetadata;
     private readonly IValidationService _validationService;
 
@@ -32,15 +30,13 @@ public class ValidateController : ControllerBase
         IInstanceClient instanceClient,
         IValidationService validationService,
         IAppMetadata appMetadata,
-        IDataClient dataClient,
-        ModelSerializationService modelSerialization
+        IServiceProvider serviceProvider
     )
     {
         _instanceClient = instanceClient;
         _validationService = validationService;
         _appMetadata = appMetadata;
-        _dataClient = dataClient;
-        _modelSerialization = modelSerialization;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <summary>
@@ -81,13 +77,8 @@ public class ValidateController : ControllerBase
 
         try
         {
-            var dataAccessor = new InstanceDataUnitOfWork(
-                instance,
-                _dataClient,
-                _instanceClient,
-                await _appMetadata.GetApplicationMetadata(),
-                _modelSerialization
-            );
+            var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+
             var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 dataAccessor,
@@ -161,24 +152,6 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        var dataAccessor = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient,
-            _instanceClient,
-            application,
-            _modelSerialization
-        );
-
-        // Run validations for all data elements, but only return the issues for the specific data element
-        var issues = await _validationService.ValidateInstanceAtTask(
-            dataAccessor,
-            dataType.TaskId,
-            ignoredValidators: null,
-            onlyIncrementalValidators: true,
-            language: language
-        );
-        messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
-
         string taskId = instance.Process.CurrentTask.ElementId;
 
         // Should this be a BadRequest instead?
@@ -197,6 +170,18 @@ public class ValidateController : ControllerBase
             };
             messages.Add(message);
         }
+
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, dataType.TaskId, language);
+
+        // Run validations for all data elements, but only return the issues for the specific data element
+        var issues = await _validationService.ValidateInstanceAtTask(
+            dataAccessor,
+            dataType.TaskId,
+            ignoredValidators: null,
+            onlyIncrementalValidators: true,
+            language: language
+        );
+        messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
 
         return Ok(messages);
     }
