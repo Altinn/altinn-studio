@@ -516,7 +516,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ServiceResource resource = GetServiceResourceById(org, repository, id);
             if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
-                _logger.LogWarning("Org mismatch for resource {repo} for org {org}.", id, org);
+                _logger.LogWarning("Org mismatch for resource");
                 return new StatusCodeResult(400);
             }
 
