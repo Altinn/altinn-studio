@@ -42,8 +42,10 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                 {
                     bool hasChanges = false;
                     string[] layoutNames = repository.GetLayoutNames(notification.LayoutSetName);
-                    foreach (var layoutName in layoutNames)
+                    foreach (var layoutFileName in layoutNames)
                     {
+
+                        string layoutName = layoutFileName.Replace(".json", "");
                         var layout = await repository.GetLayout(notification.LayoutSetName, layoutName, cancellationToken);
                         if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
                         {
