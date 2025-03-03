@@ -29,6 +29,7 @@ type TextResourceInputPropsBase = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;
@@ -111,6 +112,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       onChangeCurrentId,
       onChangeTextResource,
       onKeyDown,
+      required,
       textResources,
       texts,
       ...rest
@@ -142,6 +144,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             onValueChange={onChangeCurrentId}
             onKeyDown={onKeyDown}
             ref={ref}
+            required={required}
             textResources={textResources}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             value={currentId}
