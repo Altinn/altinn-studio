@@ -11,6 +11,7 @@ export const useChangePageOrderMutation = (org: string, app: string, layoutSetNa
     mutationFn: (pages: PagesModel) => changePageOrder(org, app, layoutSetName, pages),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
       queryClient.invalidateQueries({
         queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
       });

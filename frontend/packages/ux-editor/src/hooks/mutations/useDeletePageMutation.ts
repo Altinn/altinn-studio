@@ -10,6 +10,10 @@ export const useDeletePageMutation = (org: string, app: string, layoutSetName: s
     mutationFn: (pageName: string) => deletePage(org, app, layoutSetName, pageName),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+      });
     },
   });
 };
