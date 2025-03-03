@@ -4,53 +4,52 @@
 }
 <div class="container">
     <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
-    <p>Create tokens for accessing the localtest apis.</p>
+    <p>Use this page to generate tokens used for accessing the LocalTest APIs.</p>
 
-    <div class="alert alert-warning">Note that LocalTest is not an exact replica of the production systems, and that there are differences</div>
+    <div class="alert alert-warning">Note that LocalTest is not an exact replica of the production environment.</div>
 
     <div class="flex flex-column">
 
-        <h2>Generate end users token (like from idporten)</h2>
+        <h2 class="mt-4">User tokens (e.g. ID-porten)</h2>
         @using (Html.BeginForm("GetTestUserToken", "Home", FormMethod.Get, new { Class = "form" }))
         {
-            <div class="form-group">
-                <label>Select user</label>
+            <div class="form-group mt-1">
+                <label>User</label>
                 @Html.DropDownList("userId", Model.TestUsers, new { Class = "form-control" })
             </div>
-            <div class="form-group">
-                <label>Select your authentication level</label>
+            <div class="form-group mt-1">
+                <label>Authentication level</label>
                 @Html.DropDownList("authenticationLevel", Model.AuthenticationLevels, new { Class = "form-control" })
             </div>
 
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Get User token</button>
+            <div class="form-group mt-1">
+                <button type="submit" class="btn btn-primary">Generate user token</button>
             </div>
         }
         </div>
         <div class="flex flex-column">
-        <h2>Service owner tokens</h2>
+        <h2 class="mt-4">Service owner tokens (e.g. Maskinporten)</h2>
         @using (Html.BeginForm("GetTestOrgToken", "Home", FormMethod.Get, new { Class = "form-signin" }))
         {
-            <div class="form-group">
-                <label>Select service owner org</label>
+            <div class="form-group mt-1">
+                <label>Service owner org code</label>
                 @Html.TextBox("org", Model.DefaultOrg, new { Class = "form-control" })
             </div>
-            <div class="form-group">
-                <label>Select your authentication level</label>
+            <div class="form-group mt-1">
+                <label>Authentication level</label>
                 @Html.DropDownList("authenticationLevel", Model.AuthenticationLevels, new { Class = "form-control" })
             </div>
-            <div class="form-group">
-                <label>optional org number for the token</label>
-                @Html.TextBox("orgNumber", "", new { Class = "form-control", Placeholder = "For official orgs this is fetch from altinncdn.no" })
+            <div class="form-group mt-1">
+                <label>Service owner org number (optional)</label>
+                @Html.TextBox("orgNumber", "", new { Class = "form-control", Placeholder = "For official orgs this is fetched from altinncdn.no" })
             </div>
-            <div class="form-group">
-                <label>Scopes for the token separated by space " " (scopes does not seem to be verified by localtest storage)</label>
-
-                @Html.TextBox("scopes", "", new { Class = "form-control", Id = "scopes", PlaceHolder = "altinn:serviceowner/instances.read" })
+            <div class="form-group mt-1">
+                <label>Token scopes (space-separated list)</label>
+                @Html.TextBox("scopes", "", new { Class = "form-control", Id = "scopes", PlaceHolder = "altinn:serviceowner/instances.read altinn:serviceowner/instances.write" })
             </div>
 
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Get Org token</button>
+            <div class="form-group mt-1">
+                <button type="submit" class="btn btn-primary">Generate service owner token</button>
             </div>
         }
     </div>
