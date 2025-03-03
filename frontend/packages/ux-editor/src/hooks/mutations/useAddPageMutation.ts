@@ -9,12 +9,16 @@ export const useAddPageMutation = (org: string, app: string, layoutSetName: stri
 
   return useMutation({
     mutationFn: (page: PageModel) => createPage(org, app, layoutSetName, page),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
-      queryClient.invalidateQueries({
-        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] }),
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.FormLayouts, org, app, layoutSetName],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+        }),
+      ]);
     },
   });
 };
