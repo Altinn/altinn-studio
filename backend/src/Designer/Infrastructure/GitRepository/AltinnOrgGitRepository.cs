@@ -76,11 +76,6 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);
     }
 
-    private static string GetPathToJsonTextsFile(string fileName)
-    {
-        return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
-    }
-
     /// <summary>
     /// Gets all code list Ids
     /// </summary>
@@ -169,5 +164,10 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         }
 
         DeleteFileByRelativePath(codeListFilePath);
+    }
+
+    private static string GetPathToJsonTextsFile(string fileName)
+    {
+        return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
     }
 }
