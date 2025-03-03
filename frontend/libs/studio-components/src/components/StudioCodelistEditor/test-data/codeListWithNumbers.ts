@@ -22,4 +22,4 @@ const item3: CodeListItem = {
   value: -1,
 };
 
-export const codeListWithNumberValues: CodeList = [item1, item2, item3];
+export const codeListWithNumbers: CodeList = [item1, item2, item3];
