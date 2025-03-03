@@ -14,9 +14,9 @@ export interface EditPageIdProps {
 }
 export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, setSelectedFormLayoutName } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutate: modifyPageMutation } = useModifyPageMutation(
+  const { mutateAsync: modifyPageMutation, isPending } = useModifyPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -25,13 +25,14 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
   const t = useText();
 
-  const handleSaveNewName = (newName: string) => {
+  const handleSaveNewName = async (newName: string) => {
     if (newName === pageName) return;
     const newPage: PageModel = {
       id: newName,
     };
-    modifyPageMutation(newPage);
     mutateTextId([{ oldId: pageName, newId: newName }]);
+    await modifyPageMutation(newPage);
+    setSelectedFormLayoutName(newName);
   };
 
   return (
@@ -45,6 +46,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
           );
           return validationResult && t(validationResult);
         }}
+        disabled={isPending}
         label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
         onBlur={(event) => handleSaveNewName(event.target.value)}
         title={t('ux_editor.modal_properties_textResourceBindings_page_id')}
