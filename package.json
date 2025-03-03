@@ -4,7 +4,7 @@
     "@altinn/altinn-design-system": "0.30.2",
     "@altinn/figma-design-tokens": "6.0.1",
     "@digdir/design-system-tokens": "0.13.0",
-    "@digdir/designsystemet-css": "0.10.0",
+    "@digdir/designsystemet-css": "0.100.52",
     "@digdir/designsystemet-react": "0.63.1",
     "@digdir/designsystemet-theme": "0.15.3",
     "@microsoft/applicationinsights-react-js": "17.3.4",
