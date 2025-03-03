@@ -192,6 +192,16 @@ export class CodeLists extends BasePage {
     await expect(rows).toHaveCount(totalNumberOfRows);
   }
 
+  public async clickOnDeleteItemButton(itemNumber: number): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('code_list_editor.delete_code_list_item', {
+          number: itemNumber.toString(),
+        }),
+      })
+      .click();
+  }
+
   private async clickOnUploadCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {

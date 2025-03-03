@@ -14,6 +14,8 @@ const EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST: number = 1;
 const EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW: number =
   EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST + 1;
 const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST: number = 3;
+const EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE: number =
+  EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST - 1;
 
 test.describe.configure({ mode: 'serial' });
 
@@ -117,6 +119,32 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   );
 });
 
+test('that it is possible to delete a row in an uploaded codelist', async ({
+  page,
+  testAppName,
+}) => {
+  const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
+
+  await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_UPLOADED);
+  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+    CODELIST_TITLE_UPLOADED,
+  );
+
+  const itemNumberOne: number = 1;
+  const firstItemValue: string = 'test1';
+  const secondItemValue: string = 'test2';
+  await orgLibraryPage.codeLists.verifyValueTextfield(itemNumberOne, firstItemValue);
+  await orgLibraryPage.codeLists.clickOnDeleteItemButton(itemNumberOne);
+
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE,
+    CODELIST_TITLE_UPLOADED,
+  );
+  await orgLibraryPage.codeLists.verifyValueTextfield(itemNumberOne, secondItemValue);
+});
+
 test('that it is possible to search for and delete the new codelists', async ({
   page,
   testAppName,
@@ -134,7 +162,7 @@ test('that it is possible to search for and delete the new codelists', async ({
   await deleteAndVerifyDeletionOfCodeList(
     orgLibraryPage,
     CODELIST_TITLE_UPLOADED,
-    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST,
+    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE,
   );
 });
 
