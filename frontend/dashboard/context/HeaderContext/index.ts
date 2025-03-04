@@ -1,1 +1,1 @@
-export { HeaderContext, type HeaderContextType, Subroute } from './HeaderContext';
+export { HeaderContext, type HeaderContextType } from './HeaderContext';
