@@ -1920,6 +1920,7 @@
   "ux_editor.success": "Vellykket",
   "ux_editor.sync_error_layout_set_component_id": "En feil oppsto under synkronisering av komponentID i en av layoutfilene. Vennligst forsikre deg om at layoutfilene kun inneholder gyldig JSON-struktur og prøv igjen.",
   "ux_editor.sync_error_settings_component_id": "En feil oppsto under synkronisering av komponentID i filen 'Settings.json'. Vennligst forsikre deg om at 'Settings.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
+  "ux_editor.task_card_add_new_task": "Legg til ny oppgave",
   "ux_editor.text_resource_binding_add_description": "Legg til beskrivelse",
   "ux_editor.text_resource_binding_add_help": "Legg til hjelpetekst",
   "ux_editor.text_resource_binding_add_title": "Legg til ledetekst",
