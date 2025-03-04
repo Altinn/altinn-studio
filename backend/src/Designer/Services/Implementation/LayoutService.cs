@@ -57,7 +57,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
 
             LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
-            await mediatr.Publish(new LayoutPageAddedEvent {
+            await mediatr.Publish(new LayoutPageAddedEvent
+            {
                 EditingContext = editingContext,
                 LayoutName = pageId,
                 LayoutSetConfig = layoutSetConfig,
@@ -76,10 +77,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             orderArray.Remove(orderPage);
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
 
-            await mediatr.Publish(new LayoutPageDeletedEvent {
-                    EditingContext = editingContext,
-                    LayoutName = pageId,
-                    LayoutSetName = layoutSetId,
+            await mediatr.Publish(new LayoutPageDeletedEvent
+            {
+                EditingContext = editingContext,
+                LayoutName = pageId,
+                LayoutSetName = layoutSetId,
             });
         }
 
@@ -96,11 +98,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             orderArray[pageIndex] = page.id;
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
 
-            await mediatr.Publish(new LayoutPageIdChangedEvent {
-                    EditingContext = editingContext,
-                    LayoutName = pageId,
-                    NewLayoutName = page.id,
-                    LayoutSetName = layoutSetId,
+            await mediatr.Publish(new LayoutPageIdChangedEvent
+            {
+                EditingContext = editingContext,
+                LayoutName = pageId,
+                NewLayoutName = page.id,
+                LayoutSetName = layoutSetId,
             });
         }
     }
