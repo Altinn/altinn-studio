@@ -108,7 +108,7 @@ export const getSubjectCategoryTextKey = (
     (sub) => sub.subjectId.toLowerCase() === subject.toLowerCase(),
   )?.subjectSource;
   if (!source) {
-    return undefined;
+    return 'policy_editor.role_category.unknown';
   }
   return `policy_editor.role_category.${source.replace(':', '_')}`;
 };

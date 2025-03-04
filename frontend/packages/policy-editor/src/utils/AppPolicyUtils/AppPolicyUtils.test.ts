@@ -284,7 +284,7 @@ describe('AppPolicyUtils', () => {
       expect(textKey).toEqual('policy_editor.role_category.altinn_role');
     });
 
-    it('should return undefined if the subject is not found', () => {
+    it('should return unknown key if the subject is not found', () => {
       const subjects = [
         {
           subjectId: 'subject1',
@@ -300,7 +300,7 @@ describe('AppPolicyUtils', () => {
         },
       ];
       const textKey = getSubjectCategoryTextKey('subject3', subjects);
-      expect(textKey).toBeUndefined();
+      expect(textKey).toEqual('policy_editor.role_category.unknown');
     });
   });
 
