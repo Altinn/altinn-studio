@@ -1,10 +1,6 @@
-import { Subroute } from '../../../enums/Subroute';
-import { HeaderMenuItemKey } from '../../../enums/HeaderMenuItemKey';
-export interface HeaderMenuItem {
-  key: HeaderMenuItemKey;
-  link: string;
-  name: string;
-}
+import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
+import { Subroute } from '../../enums/Subroute';
+import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {

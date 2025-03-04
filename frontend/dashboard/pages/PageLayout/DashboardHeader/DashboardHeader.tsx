@@ -20,8 +20,8 @@ import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuT
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 import { useSubroute } from '../../../hooks/useSubRoute';
-import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
-import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { dashboardHeaderMenuItems } from '../../../utils/headerUtils/headerUtils';
 import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
