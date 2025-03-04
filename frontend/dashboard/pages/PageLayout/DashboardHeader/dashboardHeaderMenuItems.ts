@@ -1,6 +1,5 @@
+import { Subroute } from '../../../enums/Subroute';
 import { HeaderMenuItemKey } from '../../../enums/HeaderMenuItemKey';
-import { Subroute } from '../../../context/HeaderContext';
-
 export interface HeaderMenuItem {
   key: HeaderMenuItemKey;
   link: string;

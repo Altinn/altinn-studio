@@ -9,7 +9,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { useParams } from 'react-router-dom';
-import { Subroute } from 'dashboard/context/HeaderContext';
+import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 
 const orgMock: Organization = {
