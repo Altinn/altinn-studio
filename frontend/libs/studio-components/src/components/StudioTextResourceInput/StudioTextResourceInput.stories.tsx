@@ -37,6 +37,7 @@ export const WithId: Story = {
     textResources: textResourcesMock,
     texts: {
       editValue: 'Rediger verdi',
+      emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
       idLabel: 'ID:',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
