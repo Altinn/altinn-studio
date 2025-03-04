@@ -63,6 +63,7 @@ import {
   userOrgPermissionsPath,
   dataTypePath,
   layoutPagesPath,
+  orgTemplatesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -101,6 +102,7 @@ import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { PagesModel } from '../types/api/dto/PagesModel';
+import type { OrgTemplates } from 'app-shared/types/OrgTemplates';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -132,6 +134,7 @@ export const getOptionListsReferences = (owner: string, app: string) => get<Opti
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
+export const getOrgTemplates = (org: string) => get<OrgTemplates>(orgTemplatesPath(org));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));

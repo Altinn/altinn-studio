@@ -32,6 +32,7 @@ export enum QueryKey {
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
+  OrgTemplates = 'OrgTemplates',
   ProcessTaskDataType = 'ProcessTaskDataType',
   RepoMetadata = 'RepoMetadata',
   RepoPullData = 'RepoPullData',

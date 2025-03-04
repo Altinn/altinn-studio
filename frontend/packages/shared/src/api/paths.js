@@ -89,6 +89,7 @@ export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/im
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
+export const orgTemplatesPath = (org) => `${basePath}/orgmetadata/${org}/templates`; // Get
 
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
