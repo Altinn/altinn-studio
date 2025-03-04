@@ -1,4 +1,4 @@
-import { Subroute } from '../../../context/HeaderContext';
+import { Subroute } from '../../../enums/Subroute';
 
 enum HeaderMenuItemKey {
   OrgLibrary = 'org-library',
