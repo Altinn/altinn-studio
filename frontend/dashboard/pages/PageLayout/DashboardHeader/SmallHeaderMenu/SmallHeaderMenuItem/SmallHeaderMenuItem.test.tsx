@@ -4,17 +4,14 @@ import { SmallHeaderMenuItem, type SmallHeaderMenuItemProps } from './SmallHeade
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
-import {
-  HeaderContext,
-  type HeaderContextProps,
-} from 'dashboard/context/HeaderContext/HeaderContext';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
-import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
+import { HeaderContext, type HeaderContextProps } from '../../../../../context/HeaderContext';
+import { MockServicesContextWrapper } from '../../../../../dashboardTestUtils';
+import { headerContextValueMock } from '../../../../../testing/headerContextMock';
 
 const menuItemName: string = 'testMenuItem';
 const menuItemLink: string = '/test-path';
 const mockMenuItem: NavigationMenuItem = {
-  name: menuItemName,
+  itemName: menuItemName,
   action: {
     type: 'link',
     href: menuItemLink,

@@ -45,7 +45,7 @@ export const mapHeaderMenuGroupToNavigationMenu = (
       type: 'link',
       href: menuItem.link,
     },
-    name: menuItem.name,
+    itemName: menuItem.name,
   })),
 });
 
@@ -63,7 +63,7 @@ function mapNavigationGroup(group: NavigationMenuGroup): StudioProfileMenuGroup 
 
 function mapNavigationItem(item: NavigationMenuItem): StudioProfileMenuItem {
   return {
-    itemName: item.name,
+    itemName: item.itemName,
     action: mapNavigationAction(item.action),
   };
 }

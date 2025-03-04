@@ -1,16 +1,3 @@
-type NavigationMenuItemButton = {
-  type: 'button';
-  onClick: () => void;
-};
+import type { StudioProfileMenuItem } from '@studio/components';
 
-type NavigationMenuItemLink = {
-  type: 'link';
-  href: string;
-  openInNewTab?: boolean;
-};
-
-export type NavigationMenuItem = {
-  name: string;
-  action: NavigationMenuItemButton | NavigationMenuItemLink;
-  isActive?: boolean;
-};
+export type NavigationMenuItem = StudioProfileMenuItem;

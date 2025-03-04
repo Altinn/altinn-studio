@@ -35,33 +35,33 @@ describe('headerMenuUtils', () => {
       const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);
       expect(mappedGroup.items.length).toBe(1);
-      expect(mappedGroup.items[0].name).toBe('dashboard.header_item_dashboard');
+      expect(mappedGroup.items[0].itemName).toBe('dashboard.header_item_dashboard');
     });
   });
 
   describe('mapNavigationMenuToProfileMenu', () => {
     const buttonItem: NavigationMenuItem = {
-      name: 'Button Item',
+      itemName: 'Button Item',
       action: { type: 'button', onClick: jest.fn() },
     };
     const linkItem: NavigationMenuItem = {
-      name: 'Link Item',
+      itemName: 'Link Item',
       action: { type: 'link', href: 'https://example.com', openInNewTab: true },
     };
     const linkItem2: NavigationMenuItem = {
-      name: 'Link Item 2',
+      itemName: 'Link Item 2',
       action: { type: 'link', href: 'https://example.com', openInNewTab: false },
     };
     const profileMenuButtonItem: StudioProfileMenuItem = {
-      itemName: buttonItem.name,
+      itemName: buttonItem.itemName,
       action: buttonItem.action,
     };
     const profileMenuLinkItem: StudioProfileMenuItem = {
-      itemName: linkItem.name,
+      itemName: linkItem.itemName,
       action: linkItem.action,
     };
     const profileMenuLinkItem2: StudioProfileMenuItem = {
-      itemName: linkItem2.name,
+      itemName: linkItem2.itemName,
       action: linkItem2.action,
     };
 
@@ -100,7 +100,7 @@ describe('headerMenuUtils', () => {
       const navigationGroups: NavigationMenuGroup[] = [
         {
           name: 'Group 1',
-          items: [{ name: 'Link Item', action: { type: 'link', href: 'https://example.com' } }],
+          items: [{ itemName: 'Link Item', action: { type: 'link', href: 'https://example.com' } }],
         },
       ];
       const result: StudioProfileMenuGroup[] = mapNavigationMenuToProfileMenu(navigationGroups);

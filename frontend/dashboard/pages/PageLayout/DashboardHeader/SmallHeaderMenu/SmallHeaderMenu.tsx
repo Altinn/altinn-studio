@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioAvatar, StudioButton, StudioParagraph } from '@studio/components';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { useHeaderContext } from '../../../../context/HeaderContext/HeaderContext';
+import { useHeaderContext } from '../../../../context/HeaderContext';
 import type { HeaderMenuGroup } from '../../../../types/HeaderMenuGroup';
 import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
 import type { NavigationMenuItem } from '../../../../types/NavigationMenuItem';
@@ -94,7 +94,11 @@ const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): React
       key={menuGroup.name}
     >
       {menuGroup.items.map((menuItem: NavigationMenuItem) => (
-        <SmallHeaderMenuItem key={menuItem.name} menuItem={menuItem} onClick={onClickMenuItem} />
+        <SmallHeaderMenuItem
+          key={menuItem.itemName}
+          menuItem={menuItem}
+          onClick={onClickMenuItem}
+        />
       ))}
     </DropdownMenu.Group>
   ));

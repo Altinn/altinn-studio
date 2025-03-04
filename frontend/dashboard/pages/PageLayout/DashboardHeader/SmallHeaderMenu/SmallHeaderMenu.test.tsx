@@ -3,13 +3,10 @@ import { screen } from '@testing-library/react';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
-import { HeaderMenuGroupKey } from 'dashboard/enums/HeaderMenuGroupKey';
-import {
-  HeaderContext,
-  type HeaderContextProps,
-} from 'dashboard/context/HeaderContext/HeaderContext';
-import { renderWithProviders } from 'dashboard/testing/mocks';
+import { headerContextValueMock } from '../../../../testing/headerContextMock';
+import { HeaderMenuGroupKey } from '../../../../enums/HeaderMenuGroupKey';
+import { HeaderContext, type HeaderContextProps } from '../../../../context/HeaderContext';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('SmallHeaderMenu', () => {
@@ -94,7 +91,7 @@ describe('SmallHeaderMenu', () => {
     });
 
     headerContextValueMock.profileMenuItems.forEach((profileMenuItem) => {
-      expect(screen.getByRole('menuitem', { name: profileMenuItem.name })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: profileMenuItem.itemName })).toBeInTheDocument();
     });
   });
 

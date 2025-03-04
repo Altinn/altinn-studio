@@ -9,7 +9,7 @@ import { MockServicesContextWrapper } from '../../../dashboardTestUtils';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { Subroute } from '../../../enums/Subroute';
-import { HeaderContextProvider } from '../../../context/HeaderContext/HeaderContext';
+import { HeaderContextProvider } from '../../../context/HeaderContext';
 import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 

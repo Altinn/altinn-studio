@@ -12,7 +12,7 @@ import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils/headerUtils';
-import { useHeaderContext } from '../../../context/HeaderContext/HeaderContext';
+import { useHeaderContext } from '../../../context/HeaderContext';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { extractSecondLastRouterParam } from '../../../utils/urlUtils';
 

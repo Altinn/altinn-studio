@@ -1,4 +1,4 @@
-import { type HeaderContextType } from '../context/HeaderContext';
+import { type HeaderContextProps } from '../context/HeaderContext';
 import { userMock } from './userMock';
 import { mockOrganizations } from './organizationMock';
 import type { HeaderMenuItem } from '../types/HeaderMenuItem';
@@ -24,7 +24,7 @@ const menuItemsMock: HeaderMenuItem[] = [
 
 const navigationMenuItem1: NavigationMenuItem = {
   action: { type: 'button', onClick: () => {} },
-  name: 'test',
+  itemName: 'test',
 };
 export const profileMenuItemsMock: NavigationMenuItem[] = [navigationMenuItem1];
 
@@ -32,7 +32,7 @@ export const profileMenuGroupsMock: NavigationMenuGroup[] = [
   { name: 'testGroup', showName: true, items: [navigationMenuItem1] },
 ];
 
-export const headerContextValueMock: HeaderContextType = {
+export const headerContextValueMock: HeaderContextProps = {
   user: userMock,
   selectableOrgs: mockOrganizations,
   menuItems: menuItemsMock,

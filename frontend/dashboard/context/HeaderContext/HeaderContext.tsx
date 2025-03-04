@@ -47,31 +47,31 @@ export const HeaderContextProvider = ({
 
   const allMenuItem: NavigationMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
-    name: t('shared.header_all'),
+    itemName: t('shared.header_all'),
     isActive: selectedContext === SelectedContextType.All,
   };
 
   const selectableOrgMenuItems: NavigationMenuItem[] =
     selectableOrgs?.map((selectableOrg: Organization) => ({
       action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
-      name: selectableOrg?.full_name || selectableOrg.username,
+      itemName: selectableOrg?.full_name || selectableOrg.username,
       isActive: selectedContext === selectableOrg.username,
     })) ?? [];
 
   const selfMenuItem: NavigationMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
-    name: user?.full_name || user?.login,
+    itemName: user?.full_name || user?.login,
     isActive: selectedContext === SelectedContextType.Self,
   };
 
   const giteaMenuItem: NavigationMenuItem = {
     action: { type: 'link', href: repoPath, openInNewTab: true },
-    name: t('shared.header_go_to_gitea'),
+    itemName: t('shared.header_go_to_gitea'),
   };
 
   const logOutMenuItem: NavigationMenuItem = {
     action: { type: 'button', onClick: logout },
-    name: t('shared.header_logout'),
+    itemName: t('shared.header_logout'),
   };
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
