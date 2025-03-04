@@ -74,7 +74,7 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
                 continue;
             }
 
-            dynamic data = _appModel.Create(dataType.AppLogic.ClassRef);
+            var data = _appModel.Create(dataType.AppLogic.ClassRef);
 
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data, prefill);
@@ -97,10 +97,10 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
         }
     }
 
-    private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, dynamic data)
+    private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object data)
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-        dynamic? updatedValues = DataHelper.GetUpdatedDataValues(
+        Dictionary<string, string?> updatedValues = DataHelper.GetUpdatedDataValues(
             applicationMetadata?.PresentationFields,
             instance.PresentationTexts,
             dataType,
