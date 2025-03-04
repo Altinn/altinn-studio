@@ -123,5 +123,21 @@ namespace Altinn.Studio.Designer.Controllers
             await layoutService.DeletePage(editingContext, layoutSetId, pageId);
             return Ok();
         }
+
+        [EndpointSummary("Modify pages")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPut("pages")]
+        public async Task<ActionResult> ModifyPages(
+                [FromRoute] string org,
+                [FromRoute] string app,
+                [FromRoute] string layoutSetId,
+                [FromBody] Pages pages
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages);
+            return Ok();
+        }
     }
 }
