@@ -8,6 +8,7 @@ import {
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type PolicyRuleSubjectSummaryProps = {
   subject: string;
@@ -33,10 +34,10 @@ export const PolicyRuleSubjectSummary = ({
           <StudioTable.Cell key={action}>
             <div className={classes.limitationsCell}>
               {actionsForRole[action]
-                ? actionsForRole[action].split(', ').map((r) => {
+                ? ArrayUtils.getArrayFromString(actionsForRole[action]).map((subResource) => {
                     return (
-                      <StudioTag size='small' key={`${action}-${r}`} color='info'>
-                        {r}
+                      <StudioTag size='small' key={`${action}-${subResource}`} color='info'>
+                        {subResource}
                       </StudioTag>
                     );
                   })

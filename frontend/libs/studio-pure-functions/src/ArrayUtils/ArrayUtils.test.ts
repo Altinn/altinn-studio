@@ -347,5 +347,9 @@ describe('ArrayUtils', () => {
     it('returns an empty array when the input string is empty', () => {
       expect(ArrayUtils.getArrayFromString('')).toEqual([]);
     });
+
+    it('trims any whitespace around the elements', () => {
+      expect(ArrayUtils.getArrayFromString(' a, b, c ')).toEqual(['a', 'b', 'c']);
+    });
   });
 });
