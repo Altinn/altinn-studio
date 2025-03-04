@@ -1,6 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useModifyPageMutation = (
   org: string,
@@ -9,8 +10,12 @@ export const useModifyPageMutation = (
   pageName: string,
 ) => {
   const { modifyPage } = useServicesContext();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: PageModel) => modifyPage(org, app, layoutSetName, pageName, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
+    },
   });
 };
