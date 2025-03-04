@@ -36,6 +36,7 @@ export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onAddOrDeleteItem?: (codeList: CodeList) => void;
   onBlurAny?: (codeList: CodeList) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
@@ -57,6 +58,7 @@ function StatefulCodeListEditor({
   codeList: defaultCodeList,
   onAddOrDeleteItem,
   onBlurAny,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   onInvalid,
@@ -88,6 +90,7 @@ function StatefulCodeListEditor({
       codeList={codeList}
       onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
+      onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
       textResources={textResources}
@@ -104,6 +107,7 @@ function ControlledCodeListEditor({
   codeList,
   onAddOrDeleteItem,
   onBlurAny,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   textResources,
@@ -127,6 +131,7 @@ function ControlledCodeListEditor({
         errorMap={errorMap}
         onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
+        onBlurTextResource={onBlurTextResource}
         onChange={onChange}
         onChangeCodeType={setCodeType}
         onChangeTextResource={onChangeTextResource}
@@ -200,6 +205,7 @@ function TableHeadings(): ReactElement {
 function TableBody({
   codeList,
   onAddOrDeleteItem,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   errorMap,
@@ -230,6 +236,7 @@ function TableBody({
           item={item}
           key={index}
           number={index + 1}
+          onBlurTextResource={onBlurTextResource}
           onChange={(newItem) => handleChange(index, newItem)}
           onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
