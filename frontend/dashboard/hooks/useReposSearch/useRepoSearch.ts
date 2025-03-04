@@ -4,11 +4,17 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 export enum Direction {
   Asc = 'asc',
   Desc = 'desc',
 }
+
+type SortPreference = {
+  sortKey: string;
+  direction: Direction;
+};
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
@@ -25,6 +31,7 @@ type UseReposSearchProps = {
   uid?: number;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
 };
+
 export const useReposSearch = ({
   keyword,
   uid,
@@ -41,13 +48,20 @@ export const useReposSearch = ({
         : defaultPageSize;
     },
   );
-  const [selectedColumn, setSelectedColumn] = useState('name');
-  const [sortDirection, setSortDirection] = useState(Direction.Asc);
+
+  const savedPreference = typedLocalStorage.getItem<SortPreference>('dashboard-app-sort-order');
+  const [selectedColumn, setSelectedColumn] = useState(savedPreference?.sortKey || 'name');
+  const [sortDirection, setSortDirection] = useState(savedPreference?.direction || Direction.Asc);
 
   const toggleSortDirection = () => {
-    setSortDirection((prevDirection) =>
-      prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc,
-    );
+    setSortDirection((prevDirection) => {
+      const newDirection = prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc;
+      typedLocalStorage.setItem('dashboard-app-sort-order', {
+        sortKey: selectedColumn,
+        direction: newDirection,
+      });
+      return newDirection;
+    });
   };
 
   const onSortClick = (columnKey: string) => {
@@ -55,7 +69,12 @@ export const useReposSearch = ({
       toggleSortDirection();
     } else {
       setSelectedColumn(columnKey);
-      setSortDirection(Direction.Asc);
+      const newDirection = Direction.Asc;
+      setSortDirection(newDirection);
+      typedLocalStorage.setItem('dashboard-app-sort-order', {
+        sortKey: columnKey,
+        direction: newDirection,
+      });
     }
   };
 
@@ -81,7 +100,6 @@ export const useReposSearch = ({
     return nextPageNumber <= numberOfPages ? nextPageNumber : pageNumber;
   };
 
-  // Prefetch and cache the next page, if it exists
   useSearchReposQuery({ ...cleanFilter, page: getNextExistingPageNumber() });
 
   return {
