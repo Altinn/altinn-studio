@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage } from '@studio/components';
+import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
@@ -8,6 +8,7 @@ import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
+import classes from './OptionListEditor.module.css';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -56,9 +57,18 @@ function OptionListResolver({
       );
     case 'error':
       return (
-        <StudioErrorMessage>
-          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
-        </StudioErrorMessage>
+        <>
+          <StudioErrorMessage>
+            {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+          </StudioErrorMessage>
+          <StudioDeleteButton
+            className={classes.deleteButton}
+            onDelete={handleDelete}
+            title={t('ux_editor.options.option_remove_text')}
+          >
+            {t('general.delete')}
+          </StudioDeleteButton>
+        </>
       );
     case 'success': {
       return <LibraryOptionsEditor handleDelete={handleDelete} optionListId={optionsId} />;
