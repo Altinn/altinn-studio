@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -123,6 +124,60 @@ namespace Altinn.Studio.Designer.Services.Implementation
         #endregion
 
         /// <summary>
+        /// Method that creates service metadata for a new app
+        /// </summary>
+        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/></param>
+        /// <param name="templateName">The name of the template</param>
+        /// <returns>A boolean indicating if creation of service metadata went ok</returns>
+        #region Service metadata
+        public async Task<bool> CreateAppFromCustomTemplate(ModelMetadata serviceMetadata, string templateName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            string orgPath = _settings.GetOrgPath(serviceMetadata.Org, developer);
+            string appPath = Path.Combine(orgPath, serviceMetadata.RepositoryName);
+
+            try
+            {
+                string tmpTemplateCloneName = $"tmp_{templateName}_{Guid.NewGuid()}";
+                await _sourceControl.CloneRemoteRepository(serviceMetadata.Org, templateName, _settings.GetServicePath(serviceMetadata.Org, tmpTemplateCloneName, developer));
+                AltinnAppGitRepository tmpTemplateDirectory = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(serviceMetadata.Org, tmpTemplateCloneName, developer);
+                string templateLocation = _settings.GetServicePath(serviceMetadata.Org, templateName, developer);
+
+                Directory.CreateDirectory(orgPath);
+                Directory.CreateDirectory(appPath);
+
+                // Creates all the files
+                CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, templateLocation, string.Empty, false);
+                UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
+                AltinnAppGitRepository targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(serviceMetadata.Org, serviceMetadata.RepositoryName, developer);
+
+                // Update application metadata for newly created app
+                ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
+                appMetadata.Id = $"{serviceMetadata.Org}/{serviceMetadata.RepositoryName}";
+                appMetadata.CreatedBy = developer;
+                appMetadata.LastChangedBy = developer;
+                appMetadata.Created = DateTime.UtcNow;
+                appMetadata.LastChanged = appMetadata.Created;
+                await targetAppRepository.SaveApplicationMetadata(appMetadata);
+
+                // After copying, delete the temporary template folder
+                DirectoryHelper.DeleteFilesAndDirectory(tmpTemplateDirectory.RepositoryDirectory);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating app from custom template");
+                return false;
+            }
+        }
+
+        #endregion
+
+        /// <summary>
         /// Returns the path to the app folder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -212,7 +267,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
-        /// given <paramref name="serviceConfig"/>
+        /// given <paramref name="serviceConfig"/>. Uses the default template.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
@@ -244,6 +299,61 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
+                await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
+
+                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+
+                await _sourceControl.PushChangesForRepository(commitInfo);
+            }
+
+            return repository;
+        }
+
+        /// <summary>
+        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
+        /// given <paramref name="serviceConfig"/>. Uses the given <paramref name="templateName"/> as template for the app.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
+        /// <param name="templateName">The name of the template to use for the app</param>
+        /// <returns>The repository created in gitea</returns>
+        public async Task<RepositoryClient.Model.Repository> CreateServiceFromTemplate(string org, ServiceConfiguration serviceConfig, string templateName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
+            var options = new CreateRepoOption(serviceConfig.RepositoryName);
+
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+
+            if (repository != null && repository.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                if (Directory.Exists(repoPath))
+                {
+                    FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
+                }
+
+                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
+
+                ModelMetadata metadata = new()
+                {
+                    Org = org,
+                    ServiceName = serviceConfig.ServiceName,
+                    RepositoryName = serviceConfig.RepositoryName,
+                };
+
+                if (!string.IsNullOrEmpty(templateName) && templateName != "default")
+                {
+                    // This copies all files from the template to the new app
+                    await CreateAppFromCustomTemplate(metadata, templateName);
+                }
+                else
+                {
+                    // This creates all files using the default template
+                    CreateServiceMetadata(metadata);
+                }
+
+                // await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
@@ -354,12 +464,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
-        private void CopyFolderToApp(string org, string app, string sourcePath, string path)
+        private void CopyFolderToApp(string org, string app, string sourcePath, string path, bool createDir = true)
         {
             string targetPath = Path.Combine(_settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), path);
 
             // Create the app deployment folder
-            Directory.CreateDirectory(targetPath);
+            if (createDir == true)
+            {
+                Directory.CreateDirectory(targetPath);
+            }
 
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
@@ -515,6 +628,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
             return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
+        }
+
+        public async Task<List<OrgTemplate>> GetTemplatesForOrg(AltinnRepoEditingContext altinnRepoEditingContext)
+        {
+            await _sourceControl.VerifyCloneExists(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+            string filePath = _settings.GetOrgTemplatesPath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            List<OrgTemplate> templates = new List<OrgTemplate>();
+
+            if (File.Exists(filePath))
+            {
+                string fileData = File.ReadAllText(filePath, Encoding.UTF8);
+                templates = System.Text.Json.JsonSerializer.Deserialize<List<OrgTemplate>>(fileData);
+            }
+
+            return templates;
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")

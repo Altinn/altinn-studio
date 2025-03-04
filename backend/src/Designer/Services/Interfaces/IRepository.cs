@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -28,6 +29,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
         Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
+
+         /// <summary>
+        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
+        /// given <paramref name="serviceConfig"/>. Uses a custom template to create the app.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="serviceConfig">The ServiceConfiguration to save</param>
+        /// <param name="templateName">The name of the template to use</param>
+        /// <returns>The repository created in gitea</returns>
+        Task<RepositoryClient.Model.Repository> CreateServiceFromTemplate(string org, ServiceConfiguration serviceConfig, string templateName);
 
         /// <summary>
         /// Copies a repository within an organisation
@@ -143,5 +154,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The repository owner id.</param>
         /// <param name="repository">The repository name.</param>
         Task DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Gets a list of all the templates for an organisation
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">The editing context</param>
+        /// <returns>A list of the organisations templates</returns>
+        Task<List<OrgTemplate>> GetTemplatesForOrg(AltinnRepoEditingContext altinnRepoEditingContext);
     }
 }

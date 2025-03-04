@@ -196,6 +196,39 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action used to create a new app under the current org.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="templateRepository">The name of repository to use as template.</param>
+        /// <returns>
+        /// An indication if app was created successful or not.
+        /// </returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-app-from-template")]
+        public async Task<ActionResult<RepositoryModel>> CreateAppFromTemplate([FromQuery] string org, [FromQuery] string repository, [FromQuery] string templateRepository)
+        {
+            try
+            {
+                Guard.AssertValidAppRepoName(repository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{repository} is an invalid repository name.");
+            }
+
+            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+
+            var repositoryResult = await _repository.CreateServiceFromTemplate(org, config, templateRepository);
+            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                return Created(repositoryResult.CloneUrl, repositoryResult);
+            }
+            return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+        }
+
+        /// <summary>
         /// Returns a given app repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
