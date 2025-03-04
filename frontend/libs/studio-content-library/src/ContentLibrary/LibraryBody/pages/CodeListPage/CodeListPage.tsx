@@ -34,7 +34,7 @@ export type CodeListPageProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
-  codeListsUsages: CodeListReference[];
+  codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
 };
 

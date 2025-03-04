@@ -50,6 +50,11 @@ describe('utils', () => {
       const codeListSources = getCodeListSourcesById([], codeListId1);
       expect(codeListSources).toEqual([]);
     });
+
+    it('returns an empty array if codeListUsages and codeListTitle are undefined', () => {
+      const codeListSources = getCodeListSourcesById(undefined, undefined);
+      expect(codeListSources).toEqual([]);
+    });
   });
 
   describe('getCodeListUsageCount', () => {

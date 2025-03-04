@@ -11,8 +11,18 @@ export class DashboardPage extends BasePage {
     await this.page.goto(this.getRoute('dashboard'));
   }
 
+  public async loadDashboardPageAsOrg(featureFlag?: string): Promise<void> {
+    const featureFlagParam: string = featureFlag ?? '';
+    await this.page.goto(this.getRoute('dashboardAsOrg') + featureFlagParam);
+  }
+
   public async verifyDashboardPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('dashboard'));
+  }
+
+  public async verifyDashboardPageAsOrg(featureFlag?: string): Promise<void> {
+    const featureFlagParam: string = featureFlag ?? '';
+    await this.page.waitForURL(this.getRoute('dashboardAsOrg') + featureFlagParam);
   }
 
   public async clickOnCreateAppLink(): Promise<void> {

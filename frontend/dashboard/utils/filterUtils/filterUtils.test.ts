@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { getUidFilter } from './filterUtils';
 
 describe('getUidFilter', () => {

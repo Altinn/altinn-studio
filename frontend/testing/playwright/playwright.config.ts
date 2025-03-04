@@ -133,6 +133,19 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.ORG_LIBRARY,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/org-library/',
+      testMatch: '*.spec.ts',
+      timeout: 60000,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.ORG_LIBRARY,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.LOGOUT,
       dependencies: [
         TestNames.SETUP,
@@ -145,6 +158,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.SETTINGS_MODAL,
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
+        TestNames.ORG_LIBRARY,
       ],
       testDir: './tests/logout/',
       testMatch: '*.spec.ts',

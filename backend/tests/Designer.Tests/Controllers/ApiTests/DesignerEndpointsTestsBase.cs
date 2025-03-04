@@ -30,6 +30,8 @@ namespace Designer.Tests.Controllers.ApiTests
 
         protected string RemoteTestRepoPath { get; private set; }
 
+        protected string TestOrgPath { get; private set; }
+
         // Most common tests configuration used. If needed override this method in the test class.
         protected override void ConfigureTestServices(IServiceCollection services)
         {
@@ -95,6 +97,27 @@ namespace Designer.Tests.Controllers.ApiTests
             RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
         }
 
+        /// <summary>
+        /// Copies a organization and repository from the test repositories to a temporary location for testing.
+        /// Ensures that created Folder is deleted after test.
+        /// Value of created org path is stored in <see cref="TestOrgPath"/> property.
+        /// Limitation is that only one org can be cloned.
+        /// </summary>
+        /// <param name="developer"></param>
+        /// <param name="org"></param>
+        /// <param name="repo"></param>
+        /// <param name="targetOrg"></param>
+        /// <param name="targetRepository"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected async Task CopyOrgRepositoryForTest(string developer, string org, string repo, string targetOrg, string targetRepository)
+        {
+            if (TestOrgPath is not null)
+            {
+                throw new InvalidOperationException("Organization already created for test.");
+            }
+            TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -109,6 +132,10 @@ namespace Designer.Tests.Controllers.ApiTests
             if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
             {
                 Directory.Delete(RemoteTestRepoPath, true);
+            }
+            if (!string.IsNullOrWhiteSpace(TestOrgPath))
+            {
+                Directory.Delete(TestOrgPath, true);
             }
         }
     }

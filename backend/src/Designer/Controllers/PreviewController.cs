@@ -62,6 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         // This value will be overridden to act as the task number for apps that use layout sets
         private const int PartyId = 51001;
+        private const string OptionsFolderPath = "App/options/";
 
         /// <summary>
         /// Default action for the preview.
@@ -627,7 +628,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, OptionsFolderPath, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)

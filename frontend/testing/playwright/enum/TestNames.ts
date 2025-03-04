@@ -11,4 +11,5 @@ export enum TestNames {
   SETTINGS_MODAL = 'settings-modal',
   TEXT_EDITOR = 'text-editor',
   PROCESS_EDITOR = 'process-editor',
+  ORG_LIBRARY = 'org-library',
 }

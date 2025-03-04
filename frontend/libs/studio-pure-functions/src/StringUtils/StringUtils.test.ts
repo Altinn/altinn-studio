@@ -137,4 +137,28 @@ describe('StringUtils', () => {
       expect(StringUtils.areCaseInsensitiveEqual('', 'abc')).toBe(false);
     });
   });
+
+  describe('removeLeadingSlash', () => {
+    it('Removes leading slash from string', () => {
+      expect(StringUtils.removeLeadingSlash('/abc')).toBe('abc');
+    });
+
+    it('Does not remove anything if there is no leading slash', () => {
+      expect(StringUtils.removeLeadingSlash('abc')).toBe('abc');
+    });
+
+    it('Does not remove anything when there are slashes in other places than the start', () => {
+      expect(StringUtils.removeLeadingSlash('a/b/c/')).toBe('a/b/c/');
+    });
+
+    it('Removes the first slash only when there are multiple', () => {
+      expect(StringUtils.removeLeadingSlash('//a/b/c/')).toBe('/a/b/c/');
+    });
+
+    it('Does not change the input string object', () => {
+      const input = '/abc';
+      StringUtils.removeLeadingSlash(input);
+      expect(input).toBe('/abc');
+    });
+  });
 });

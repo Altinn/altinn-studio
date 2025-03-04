@@ -85,4 +85,6 @@ export class StringUtils {
 
   static areCaseInsensitiveEqual = (string: string, stringToCompare: string): boolean =>
     string.localeCompare(stringToCompare, 'nb', { sensitivity: 'base' }) === 0;
+
+  static removeLeadingSlash = (str: string): string => str.replace(/^\//g, '');
 }

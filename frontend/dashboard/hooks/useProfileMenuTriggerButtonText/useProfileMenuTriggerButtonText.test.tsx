@@ -1,10 +1,7 @@
 import React from 'react';
 import { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';
-import {
-  HeaderContext,
-  type HeaderContextType,
-  SelectedContextType,
-} from 'dashboard/context/HeaderContext';
+import { HeaderContext, type HeaderContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useSelectedContext } from '../useSelectedContext';
 import { userMock } from 'dashboard/testing/userMock';
 import { headerContextValueMock } from 'dashboard/testing/headerContextMock';

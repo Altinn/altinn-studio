@@ -62,6 +62,7 @@ import {
   optionListReferencesPath,
   userOrgPermissionsPath,
   dataTypePath,
+  orgCodeListsPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -99,6 +100,8 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
+import type { CodeListsResponse } from '../types/api/CodeListsResponse';
+import { textResourcesMock } from '../mocks/textResourcesMock';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -176,3 +179,7 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
+
+// Organisation library
+export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
