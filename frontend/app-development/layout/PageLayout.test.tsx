@@ -11,6 +11,8 @@ import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { useWebSocket } from 'app-development/hooks/useWebSocket';
 import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
@@ -29,7 +31,7 @@ describe('PageLayout', () => {
 
   it('renders "StudioNotFoundPage" when repoStatus has error', async () => {
     render({
-      getRepoStatus: () => Promise.reject({ message: 'Not found', response: { status: 404 } }),
+      getRepoStatus: () => Promise.reject(createApiErrorMock(ServerCodes.NotFound)),
     });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 

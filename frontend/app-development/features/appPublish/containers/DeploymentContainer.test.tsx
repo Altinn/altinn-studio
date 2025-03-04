@@ -7,6 +7,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { environment } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import { org } from '@studio/testing/testids';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('DeploymentContainer', () => {
   it('renders a spinner while loading data', () => {
@@ -17,7 +18,7 @@ describe('DeploymentContainer', () => {
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.reject()),
+      getEnvironments: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 

@@ -6,6 +6,7 @@ import { renderWithProviders } from '../../../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const render = (queries = {}) => {
   return renderWithProviders(<DeploymentContainer />, {
@@ -23,7 +24,7 @@ describe('DeploymentContainer', () => {
 
   it('shows an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
+      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('overview.deployments_loading')),

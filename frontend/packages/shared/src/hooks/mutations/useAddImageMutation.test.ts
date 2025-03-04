@@ -5,6 +5,7 @@ import { useAddImageMutation } from './useAddImageMutation';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('useAddImageMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -23,7 +24,7 @@ describe('useAddImageMutation', () => {
 
   it('Shows toast error when file size upload triggers 413 error', async () => {
     const addImageMock = jest.fn().mockImplementation(() => {
-      return Promise.reject({ response: { status: ServerCodes.TooLargeContent } });
+      return Promise.reject(createApiErrorMock(ServerCodes.TooLargeContent));
     });
 
     const result = renderHookWithProviders({ addImage: addImageMock })(() =>

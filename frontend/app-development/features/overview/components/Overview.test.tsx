@@ -6,6 +6,7 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 // Test data
 const title = 'test';
@@ -30,8 +31,8 @@ describe('Overview', () => {
 
   it('should display error message if fetching goes wrong', async () => {
     render({
-      getAppConfig: () => Promise.reject(),
-      getOrgList: () => Promise.reject(),
+      getAppConfig: () => Promise.reject(createApiErrorMock()),
+      getOrgList: () => Promise.reject(createApiErrorMock()),
     });
     expect(await screen.findByText(textMock('overview.fetch_title_error_message')));
   });
