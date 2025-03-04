@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { StudioAlert, StudioSectionHeader } from '@studio/components';
+import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -13,6 +13,9 @@ import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
+import { TextMainconfig } from './TextMainConfig';
+import { DataModelMainConfig } from './DataModelMainConfig';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -24,17 +27,25 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { data: schema } = useComponentSchemaQuery(formItem.type);
+
+  if (!schema) {
+    return (
+      <StudioSpinner
+        showSpinnerTitle
+        spinnerTitle={t('ux_editor.properties_panel.texts.loading')}
+      />
+    );
+  }
+
+  const { dataModelBindings, textResourceBindings } = schema.properties;
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
     : formItemConfigs[formItem.type]?.icon;
 
-  const hideContentWhenSubformGuide =
-    formItem.type === ComponentType.Subform && !formItem['layoutSet'];
-
-  const displayMainConfigHeader =
-    shouldDisplayFeature(FeatureFlag.MainConfig) || ComponentType.Summary2 === formItem.type;
+  const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 
   return (
     <>
@@ -61,17 +72,31 @@ export const PropertiesHeader = ({
             handleComponentChange={handleComponentUpdate}
           />
         )}
-        {!hideContentWhenSubformGuide && displayMainConfigHeader && <HeaderMainConfig />}
-        {!hideContentWhenSubformGuide && (
+        {!hideMainConfig && shouldDisplayFeature(FeatureFlag.MainConfig) && <HeaderMainConfig />}
+        {!hideMainConfig && (
           <>
             <EditComponentIdRow
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
+            {shouldDisplayFeature(FeatureFlag.MainConfig) && (
+              <TextMainconfig
+                component={formItem}
+                handleComponentChange={handleComponentUpdate}
+                title={textResourceBindings?.properties?.title}
+              />
+            )}
             <ComponentMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />
+            {shouldDisplayFeature(FeatureFlag.MainConfig) && (
+              <DataModelMainConfig
+                component={formItem}
+                handleComponentChange={handleComponentUpdate}
+                dataModelBindings={dataModelBindings?.properties}
+              />
+            )}
           </>
         )}
       </div>
