@@ -1,0 +1,117 @@
+.card {
+  height: 244px;
+  width: 244px;
+  min-width: 244px;
+
+  transition:
+    0.2s transform,
+    0.2s box-shadow;
+
+  background-color: var(--fds-semantic-background-default);
+  box-shadow: none;
+}
+
+/* .card:hover { */
+/*   box-shadow: var(--fds-shadow-medium); */
+/*   transform: translateY(-2px); */
+/*   background-color: var(--fds-semantic-surface-info-subtle-hover); */
+/*   border: var(--fds-border_radius-small); */
+/*   border-style: solid; */
+/*   border-color: var(--fds-semantic-surface-action-checked); */
+/* } */
+
+.popoverContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.popoverContent button {
+  width: 100%;
+  justify-content: left;
+}
+
+.link {
+  padding: 0px;
+  display: block;
+  height: 100%;
+}
+
+.card:not(:hover) .editIcon {
+  display: none;
+}
+
+.editIcon {
+  padding: 0px;
+  position: absolute;
+  border-radius: var(--fds-border_radius-full);
+  right: var(--fds-spacing-1);
+  top: var(--fds-spacing-1);
+}
+
+.iconContainer {
+  height: var(--fds-spacing-26);
+  display: flex;
+  align-items: center;
+}
+
+.iconBackground {
+  height: var(--fds-sizing-12);
+  width: var(--fds-sizing-12);
+  transform: rotate(45deg);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBackground svg,
+.iconBackground img {
+  transform: rotate(-45deg);
+  font-size: var(--fds-sizing-9);
+  color: #4b5563;
+}
+
+.blue {
+  background-color: var(--fds-colors-blue-100);
+  color: #23262a;
+}
+
+.red {
+  background-color: var(--fds-colors-red-100);
+  color: #23262a;
+}
+
+.green {
+  background-color: var(--fds-colors-green-200);
+  color: #23262a;
+}
+
+.grey {
+  background-color: var(--fds-colors-grey-200);
+  color: #23262a;
+}
+
+.yellow {
+  background-color: var(--fds-colors-yellow-200);
+  color: #23262a;
+}
+
+.title {
+  padding-bottom: var(--fds-spacing-2);
+  letter-spacing: 0px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  row-gap: var(--fds-spacing-1);
+  padding: var(--fds-spacing-2);
+  text-align: center;
+  font-weight: normal;
+}
+
+.content button {
+  width: 100%;
+}

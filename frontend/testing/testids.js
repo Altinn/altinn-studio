@@ -16,3 +16,4 @@ export const resetRepoContainerId = 'reset-repo-container';
 export const selectedLayoutSet = 'layout-set-test';
 export const typeItemId = (pointer) => `type-item-${pointer}`;
 export const userMenuItemId = 'user-menu-item';
+export const studioIconCardPopoverTrigger = 'studio-icon-card-popover-trigger';
