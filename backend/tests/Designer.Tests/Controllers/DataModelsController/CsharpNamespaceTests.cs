@@ -45,7 +45,7 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
 
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, expectedModelPath);
-        Assert.True(Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."),
+        Assert.True(Regex.Match(csharpModel.ReplaceLineEndings("\n"), $"^namespace {expectedNamespace}$".Replace(".", "\\."),
             RegexOptions.Multiline).Success);
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
@@ -107,7 +107,7 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
-        Assert.True(Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."),
+        Assert.True(Regex.Match(csharpModel.ReplaceLineEndings("\n"), $"^namespace {expectedNamespace}$".Replace(".", "\\."),
             RegexOptions.Multiline).Success);
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, "App/config/applicationmetadata.json");
