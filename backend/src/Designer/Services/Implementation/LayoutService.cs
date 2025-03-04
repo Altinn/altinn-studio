@@ -1,14 +1,16 @@
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
-    public class LayoutService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : ILayoutService
+    public class LayoutService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IPublisher mediatr, IAppDevelopmentService appDevelopmentService) : ILayoutService
     {
         private static Pages GetPagesFromSettings(JsonNode settings)
         {
@@ -53,6 +55,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetId);
             (jsonNode["pages"]["order"] as JsonArray).Add(pageId);
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+
+            LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
+            await mediatr.Publish(new LayoutPageAddedEvent
+            {
+                EditingContext = editingContext,
+                LayoutName = pageId,
+                LayoutSetConfig = layoutSetConfig,
+            });
         }
 
         public async Task DeletePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId)
@@ -66,6 +76,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             JsonNode orderPage = orderArray.First(node => node.GetValue<string>().Equals(pageId));
             orderArray.Remove(orderPage);
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+
+            await mediatr.Publish(new LayoutPageDeletedEvent
+            {
+                EditingContext = editingContext,
+                LayoutName = pageId,
+                LayoutSetName = layoutSetId,
+            });
         }
 
         public async Task UpdatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId, Page page)
@@ -80,6 +97,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             int pageIndex = orderArray.IndexOf(orderPage);
             orderArray[pageIndex] = page.id;
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+
+            await mediatr.Publish(new LayoutPageIdChangedEvent
+            {
+                EditingContext = editingContext,
+                LayoutName = pageId,
+                NewLayoutName = page.id,
+                LayoutSetName = layoutSetId,
+            });
         }
     }
 }
