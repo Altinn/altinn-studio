@@ -699,6 +699,7 @@
   "policy_editor.policy_rule_missing_subjects": "roller",
   "policy_editor.role_category.altinn_org": "Organisasjon",
   "policy_editor.role_category.altinn_rolecode": "Rolle",
+  "policy_editor.role_category.unknown": "Ukjent",
   "policy_editor.rule": "Regel",
   "policy_editor.rule_card_actions_error": "Du må velge minimum en rettighet.",
   "policy_editor.rule_card_actions_select_add": "Legg til rettighet",
