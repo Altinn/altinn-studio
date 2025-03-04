@@ -8,7 +8,6 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
@@ -175,9 +174,6 @@ const layout2Mock: ExternalFormLayout = {
   data: {
     layout: [],
   },
-};
-export const pagesModelMock: PagesModel = {
-  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,
