@@ -1,5 +1,5 @@
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
-import { Subroute } from '../../enums/SubRoute';
+import { Subroute } from '../../enums/Subroute';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';

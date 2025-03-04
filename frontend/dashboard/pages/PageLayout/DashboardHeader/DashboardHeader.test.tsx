@@ -8,7 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { MockServicesContextWrapper } from '../../../dashboardTestUtils';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { Subroute } from '../../../enums/SubRoute';
+import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext/HeaderContext';
 import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
