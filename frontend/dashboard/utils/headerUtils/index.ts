@@ -1,7 +1,6 @@
 export {
-  extractSecondLastRouterParam,
-  extractLastRouterParam,
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
   dashboardHeaderMenuItems,
+  mapNavigationMenuToProfileMenu,
 } from './headerUtils';

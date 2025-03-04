@@ -2,11 +2,9 @@ import React, { createContext, useContext } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
 import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
@@ -77,7 +75,7 @@ export const HeaderContextProvider = ({
   };
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
-    name: 'Organizations - TODO',
+    name: t('dashboard.header_menu_all_orgs'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
@@ -85,7 +83,11 @@ export const HeaderContextProvider = ({
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    { name: 'other - todo', showName: false, items: [giteaMenuItem, logOutMenuItem] },
+    {
+      name: t('dashboard.header_menu_other'),
+      showName: false,
+      items: [giteaMenuItem, logOutMenuItem],
+    },
   ];
 
   return (
@@ -93,7 +95,7 @@ export const HeaderContextProvider = ({
       value={{
         user,
         selectableOrgs,
-        menuItems: dashboardHeaderMenuItems,
+        menuItems: dashboardHeaderMenuItems.map((item) => ({ name: t(item.name), ...item })),
         profileMenuItems,
         profileMenuGroups,
       }}

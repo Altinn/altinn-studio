@@ -2,12 +2,13 @@ import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
   dashboardHeaderMenuItems,
-  extractSecondLastRouterParam,
+  mapNavigationMenuToProfileMenu,
 } from './headerUtils';
-import { HeaderMenuGroupKey } from 'dashboard/enums/HeaderMenuGroupKey';
-import { HeaderMenuItemKey } from 'dashboard/enums/HeaderMenuItemKey';
-
-jest.mock('app-shared/utils/featureToggleUtils');
+import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
+import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
+import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
+import type { StudioProfileMenuGroup, StudioProfileMenuItem } from '@studio/components';
+import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
 
 describe('headerMenuUtils', () => {
   describe('groupMenuItemsByGroup', () => {
@@ -23,26 +24,6 @@ describe('headerMenuUtils', () => {
     });
   });
 
-  describe('extractSecondLastRouterParam', () => {
-    it('should return the second last part of the pathname', () => {
-      const pathname = '/home/user/profile';
-      const result = extractSecondLastRouterParam(pathname);
-      expect(result).toBe('user');
-    });
-
-    it('should handle a single segment pathname', () => {
-      const pathname = '/profile';
-      const result = extractSecondLastRouterParam(pathname);
-      expect(result).toBe('');
-    });
-
-    it('should return an empty string for an empty pathname', () => {
-      const pathname = '';
-      const result = extractSecondLastRouterParam(pathname);
-      expect(result).toBe('');
-    });
-  });
-
   describe('mapHeaderMenuGroupToNavigationMenu', () => {
     it('should correctly map header menu group to navigation menu group', () => {
       const group = {
@@ -54,7 +35,76 @@ describe('headerMenuUtils', () => {
       const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);
       expect(mappedGroup.items.length).toBe(1);
-      expect(mappedGroup.items[0].name).toBe(HeaderMenuItemKey.AppDashboard);
+      expect(mappedGroup.items[0].name).toBe('dashboard.header_item_dashboard');
+    });
+  });
+
+  describe('mapNavigationMenuToProfileMenu', () => {
+    const buttonItem: NavigationMenuItem = {
+      name: 'Button Item',
+      action: { type: 'button', onClick: jest.fn() },
+    };
+    const linkItem: NavigationMenuItem = {
+      name: 'Link Item',
+      action: { type: 'link', href: 'https://example.com', openInNewTab: true },
+    };
+    const linkItem2: NavigationMenuItem = {
+      name: 'Link Item 2',
+      action: { type: 'link', href: 'https://example.com', openInNewTab: false },
+    };
+    const profileMenuButtonItem: StudioProfileMenuItem = {
+      itemName: buttonItem.name,
+      action: buttonItem.action,
+    };
+    const profileMenuLinkItem: StudioProfileMenuItem = {
+      itemName: linkItem.name,
+      action: linkItem.action,
+    };
+    const profileMenuLinkItem2: StudioProfileMenuItem = {
+      itemName: linkItem2.name,
+      action: linkItem2.action,
+    };
+
+    it('should map an empty array to an empty array', () => {
+      expect(mapNavigationMenuToProfileMenu([])).toEqual([]);
+    });
+
+    it('should correctly map a single group with a single button item', () => {
+      const navigationGroups: NavigationMenuGroup[] = [{ name: 'Group 1', items: [buttonItem] }];
+
+      const result: StudioProfileMenuGroup[] = [{ items: [profileMenuButtonItem] }];
+      expect(mapNavigationMenuToProfileMenu(navigationGroups)).toEqual(result);
+    });
+
+    it('should correctly map a single group with a single link item', () => {
+      const navigationGroups: NavigationMenuGroup[] = [{ name: 'Group 1', items: [linkItem] }];
+      const result: StudioProfileMenuGroup[] = [{ items: [profileMenuLinkItem] }];
+
+      expect(mapNavigationMenuToProfileMenu(navigationGroups)).toEqual(result);
+    });
+
+    it('should handle multiple groups and items correctly', () => {
+      const navigationGroups: NavigationMenuGroup[] = [
+        { name: 'Group 1', items: [buttonItem, linkItem] },
+        { name: 'Group 2', items: [linkItem2] },
+      ];
+      const result: StudioProfileMenuGroup[] = [
+        { items: [profileMenuButtonItem, profileMenuLinkItem] },
+        { items: [profileMenuLinkItem2] },
+      ];
+
+      expect(mapNavigationMenuToProfileMenu(navigationGroups)).toEqual(result);
+    });
+
+    it('should handle missing optional properties (openInNewTab)', () => {
+      const navigationGroups: NavigationMenuGroup[] = [
+        {
+          name: 'Group 1',
+          items: [{ name: 'Link Item', action: { type: 'link', href: 'https://example.com' } }],
+        },
+      ];
+      const result: StudioProfileMenuGroup[] = mapNavigationMenuToProfileMenu(navigationGroups);
+      expect(result[0].items[0].action).not.toBeUndefined();
     });
   });
 });

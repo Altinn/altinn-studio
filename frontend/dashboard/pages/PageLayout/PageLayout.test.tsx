@@ -9,7 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { StringUtils } from '@studio/pure-functions';
-import { Subroute } from 'dashboard/enums/SubRoute';
+import { Subroute } from '../../enums/SubRoute';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

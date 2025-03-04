@@ -10,8 +10,12 @@ import {
   type HeaderContextProps,
 } from 'dashboard/context/HeaderContext/HeaderContext';
 import { renderWithProviders } from 'dashboard/testing/mocks';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('SmallHeaderMenu', () => {
+  beforeAll(() => {
+    addFeatureFlagToLocalStorage(FeatureFlag.OrgLibrary);
+  });
   afterEach(() => {
     jest.clearAllMocks();
   });

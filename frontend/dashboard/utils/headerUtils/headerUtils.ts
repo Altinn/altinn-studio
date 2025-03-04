@@ -4,6 +4,8 @@ import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
+import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components';
+import { type NavigationMenuItem } from '../../types/NavigationMenuItem';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
@@ -43,20 +45,33 @@ export const mapHeaderMenuGroupToNavigationMenu = (
       type: 'link',
       href: menuItem.link,
     },
-    name: menuItem.key,
+    name: menuItem.name,
   })),
 });
 
-export function extractLastRouterParam(pathname: string): string {
-  const pathnameArray = pathname.split('/');
-  const lastParam: string = pathnameArray[pathnameArray.length - 1];
-  return lastParam;
+export function mapNavigationMenuToProfileMenu(
+  navigationGroups: NavigationMenuGroup[],
+): StudioProfileMenuGroup[] {
+  return navigationGroups.map(mapNavigationGroup);
 }
 
-export function extractSecondLastRouterParam(pathname: string): string {
-  const pathnameArray = pathname.split('/');
-  const secondLastParam: string | undefined = pathnameArray[pathnameArray.length - 2];
+function mapNavigationGroup(group: NavigationMenuGroup): StudioProfileMenuGroup {
+  return {
+    items: group.items.map(mapNavigationItem),
+  };
+}
 
-  if (secondLastParam) return secondLastParam;
-  return '';
+function mapNavigationItem(item: NavigationMenuItem): StudioProfileMenuItem {
+  return {
+    itemName: item.name,
+    action: mapNavigationAction(item.action),
+  };
+}
+
+function mapNavigationAction(
+  action: NavigationMenuItem['action'],
+): StudioProfileMenuItem['action'] {
+  return action.type === 'button'
+    ? { type: 'button', onClick: action.onClick }
+    : { type: 'link', href: action.href, openInNewTab: action.openInNewTab };
 }

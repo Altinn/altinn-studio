@@ -3,13 +3,7 @@ import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAvatar,
-  StudioPageHeader,
-  type StudioProfileMenuGroup,
-  type StudioProfileMenuItem,
-  useMediaQuery,
-} from '@studio/components';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
 import { StringUtils } from '@studio/pure-functions';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
@@ -17,14 +11,10 @@ import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTr
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
-import {
-  dashboardHeaderMenuItems,
-  extractSecondLastRouterParam,
-} from '../../../utils/headerUtils/headerUtils';
+import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils/headerUtils';
 import { useHeaderContext } from '../../../context/HeaderContext/HeaderContext';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
-import { type NavigationMenuGroup } from 'dashboard/types/NavigationMenuGroup';
-import { type NavigationMenuItem } from 'dashboard/types/NavigationMenuItem';
+import { extractSecondLastRouterParam } from '../../../utils/urlUtils';
 
 export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -45,10 +35,11 @@ export const DashboardHeader = (): ReactElement => {
 };
 
 function CenterContent(): ReactElement {
+  const { menuItems } = useHeaderContext();
   return (
     <StudioPageHeader.Center>
       {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
-        dashboardHeaderMenuItems.map((menuItem: HeaderMenuItem) => (
+        menuItems.map((menuItem: HeaderMenuItem) => (
           <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
         ))}
     </StudioPageHeader.Center>
@@ -110,31 +101,4 @@ function RightContent(): ReactElement {
       profileMenuGroups={mapNavigationMenuToProfileMenu(profileMenuGroups)}
     />
   );
-}
-
-export function mapNavigationMenuToProfileMenu(
-  navigationGroups: NavigationMenuGroup[],
-): StudioProfileMenuGroup[] {
-  return navigationGroups.map(mapNavigationGroup);
-}
-
-function mapNavigationGroup(group: NavigationMenuGroup): StudioProfileMenuGroup {
-  return {
-    items: group.items.map(mapNavigationItem),
-  };
-}
-
-function mapNavigationItem(item: NavigationMenuItem): StudioProfileMenuItem {
-  return {
-    itemName: item.name,
-    action: mapNavigationAction(item.action),
-  };
-}
-
-function mapNavigationAction(
-  action: NavigationMenuItem['action'],
-): StudioProfileMenuItem['action'] {
-  return action.type === 'button'
-    ? { type: 'button', onClick: action.onClick }
-    : { type: 'link', href: action.href, openInNewTab: action.openInNewTab };
 }

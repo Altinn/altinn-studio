@@ -10,7 +10,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { Subroute } from 'dashboard/enums/SubRoute';
+import { Subroute } from '../../enums/SubRoute';
 
 const orgMock: Organization = {
   avatar_url: '',

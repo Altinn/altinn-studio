@@ -14,7 +14,8 @@ import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
 } from '../../../../utils/headerUtils/headerUtils';
-import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
+import { useProfileMenuTriggerButtonText } from '../../../../hooks/useProfileMenuTriggerButtonText';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function SmallHeaderMenu(): ReactElement {
   const { t } = useTranslation();
@@ -82,7 +83,11 @@ const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): React
     ...profileMenuGroups,
   ];
 
-  return menuGroups.map((menuGroup: NavigationMenuGroup) => (
+  const menuGroupsToUse: NavigationMenuGroup[] = shouldDisplayFeature(FeatureFlag.OrgLibrary)
+    ? menuGroups
+    : profileMenuGroups;
+
+  return menuGroupsToUse.map((menuGroup: NavigationMenuGroup) => (
     <DropdownMenu.Group
       heading={menuGroup.showName && t(menuGroup.name)}
       className={classes.dropDownMenuGroup}

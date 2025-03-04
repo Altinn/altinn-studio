@@ -1,11 +1,11 @@
-import { type HeaderContextType } from 'dashboard/context/HeaderContext';
+import { type HeaderContextType } from '../context/HeaderContext';
 import { userMock } from './userMock';
 import { mockOrganizations } from './organizationMock';
-import type { HeaderMenuItem } from 'dashboard/types/HeaderMenuItem';
-import { HeaderMenuItemKey } from 'dashboard/enums/HeaderMenuItemKey';
-import { HeaderMenuGroupKey } from 'dashboard/enums/HeaderMenuGroupKey';
-import { type NavigationMenuItem } from 'dashboard/types/NavigationMenuItem';
-import { type NavigationMenuGroup } from 'dashboard/types/NavigationMenuGroup';
+import type { HeaderMenuItem } from '../types/HeaderMenuItem';
+import { HeaderMenuItemKey } from '../enums/HeaderMenuItemKey';
+import { HeaderMenuGroupKey } from '../enums/HeaderMenuGroupKey';
+import { type NavigationMenuItem } from '../types/NavigationMenuItem';
+import { type NavigationMenuGroup } from '../types/NavigationMenuGroup';
 
 const menuItemsMock: HeaderMenuItem[] = [
   {
