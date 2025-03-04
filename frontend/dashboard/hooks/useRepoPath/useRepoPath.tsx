@@ -1,12 +1,10 @@
-import { useContext } from 'react';
 import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
 import { getOrgUsernameByUsername } from 'dashboard/utils/userUtils';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { HeaderContext } from 'dashboard/context/HeaderContext';
+import type { User } from 'app-shared/types/Repository';
+import type { Organization } from 'app-shared/types/Organization';
 
-export const useRepoPath = () => {
-  const { user, selectableOrgs } = useContext(HeaderContext);
-
+export const useRepoPath = (user: User, selectableOrgs: Organization[]) => {
   const selectedContext = useSelectedContext();
   const org = getOrgUsernameByUsername(selectedContext, selectableOrgs);
 
