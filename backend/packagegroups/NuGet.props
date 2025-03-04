@@ -44,9 +44,9 @@
     <PackageReference Update="NuGet.Versioning" Version="6.13.1" />
     <PackageReference Update="DistributedLock.Postgres" Version="1.3.0" />
     <PackageReference Include="System.Text.Json" Version="[9.0.2]" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="[4.8.0, 4.12.0)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[4.12.0]" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[4.12.0]" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="[4.8.0, 4.13.0)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[4.13.0]" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[4.13.0]" />
     <PackageReference Update="Azure.Security.KeyVault.Secrets" Version="[4.7.0]" />
     <PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
     <PackageReference Include="System.Net.Http" Version="[4.3.4]" />
@@ -69,8 +69,8 @@
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.8" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.13.0" />
     <PackageReference Update="Microsoft.Extensions.TimeProvider.Testing" Version="9.2.0" />
     <PackageReference Update="Testcontainers" Version="4.3.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
