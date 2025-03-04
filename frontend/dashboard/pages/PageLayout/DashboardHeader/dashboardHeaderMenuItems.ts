@@ -1,10 +1,5 @@
 import { Subroute } from '../../../enums/Subroute';
-
-enum HeaderMenuItemKey {
-  OrgLibrary = 'org-library',
-  AppDashboard = 'app-dashboard',
-}
-
+import { HeaderMenuItemKey } from '../../../enums/HeaderMenuItemKey';
 export interface HeaderMenuItem {
   key: HeaderMenuItemKey;
   link: string;
