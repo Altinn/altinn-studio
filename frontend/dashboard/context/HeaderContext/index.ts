@@ -1,1 +1,1 @@
-export { HeaderContext, type HeaderContextType } from './HeaderContext';
+export { HeaderContext, type HeaderContextProps as HeaderContextType } from './HeaderContext';

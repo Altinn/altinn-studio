@@ -1,56 +1,56 @@
-import React, { useContext } from 'react';
+import React, { type ReactElement } from 'react';
 import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAvatar,
-  StudioPageHeader,
-  type StudioProfileMenuGroup,
-  useMediaQuery,
-  type StudioProfileMenuItem,
-} from '@studio/components';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { type Organization } from 'app-shared/types/Organization';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { HeaderContext } from 'dashboard/context/HeaderContext';
-import { SelectedContextType } from '../../../enums/SelectedContextType';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
-import { useRepoPath } from 'dashboard/hooks/useRepoPath';
-import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
-import { useSubroute } from '../../../hooks/useSubRoute';
-import type { HeaderMenuItem } from './dashboardHeaderMenuItems';
-import { dashboardHeaderMenuItems } from './dashboardHeaderMenuItems';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
 import { StringUtils } from '@studio/pure-functions';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
+import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils/headerUtils';
+import { useHeaderContext } from '../../../context/HeaderContext/HeaderContext';
+import { SmallHeaderMenu } from './SmallHeaderMenu';
+import { extractSecondLastRouterParam } from '../../../utils/urlUtils';
 
-export const DashboardHeader = () => {
+export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
+
+  const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
-        <StudioPageHeader.Center>
-          {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
-            dashboardHeaderMenuItems.map((menuItem: HeaderMenuItem) => (
-              <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
-            ))}
-        </StudioPageHeader.Center>
+        <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
+        {shouldDisplayDesktopMenu && <CenterContent />}
         <StudioPageHeader.Right>
-          <DashboardHeaderMenu />
+          <RightContent />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
     </StudioPageHeader>
   );
 };
 
+function CenterContent(): ReactElement {
+  const { menuItems } = useHeaderContext();
+  return (
+    <StudioPageHeader.Center>
+      {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
+        menuItems.map((menuItem: HeaderMenuItem) => (
+          <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+        ))}
+    </StudioPageHeader.Center>
+  );
+}
+
 type TopNavigationMenuProps = {
   menuItem: HeaderMenuItem;
 };
 
-function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
+function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactElement {
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
   const path: string = `${menuItem.link}/${selectedContext}`;
@@ -75,64 +75,19 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.Reac
   );
 }
 
-function extractSecondLastRouterParam(pathname: string): string {
-  const pathnameArray = pathname.split('/');
-  return pathnameArray[pathnameArray.length - 2];
-}
-
-const DashboardHeaderMenu = () => {
+function RightContent(): ReactElement {
   const { t } = useTranslation();
-  const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const selectedContext = useSelectedContext();
-  const subroute = useSubroute();
-  const { mutate: logout } = useLogoutMutation();
-  const { user, selectableOrgs } = useContext(HeaderContext);
-  const navigate = useNavigate();
+  const { user, profileMenuGroups } = useHeaderContext();
 
+  const isSmallScreen = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const triggerButtonText = useProfileMenuTriggerButtonText();
-  const repoPath = useRepoPath();
 
-  const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate(`${subroute}/${context}${location.search}`);
-  };
-
-  const allMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
-    itemName: t('shared.header_all'),
-    isActive: selectedContext === SelectedContextType.All,
-  };
-
-  const selectableOrgMenuItems: StudioProfileMenuItem[] =
-    selectableOrgs?.map((selectableOrg: Organization) => ({
-      action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
-      itemName: selectableOrg?.full_name || selectableOrg.username,
-      isActive: selectedContext === selectableOrg.username,
-    })) ?? [];
-
-  const selfMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
-    itemName: user?.full_name || user?.login,
-    isActive: selectedContext === SelectedContextType.Self,
-  };
-
-  const giteaMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: repoPath },
-    itemName: t('shared.header_go_to_gitea'),
-  };
-
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
-
-  const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem] },
-    { items: [giteaMenuItem, logOutMenuItem] },
-  ];
-
+  if (isSmallScreen) {
+    return <SmallHeaderMenu />;
+  }
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={showButtonText ? triggerButtonText : undefined}
+      triggerButtonText={!isSmallScreen ? triggerButtonText : undefined}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
@@ -143,7 +98,7 @@ const DashboardHeaderMenu = () => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      profileMenuGroups={profileMenuGroups}
+      profileMenuGroups={mapNavigationMenuToProfileMenu(profileMenuGroups)}
     />
   );
-};
+}
