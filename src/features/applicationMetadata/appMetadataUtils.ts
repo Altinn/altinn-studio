@@ -1,7 +1,6 @@
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ILayoutSet } from 'src/layout/common.generated';
@@ -55,7 +54,7 @@ export function getDataTypeByTaskId({ taskId, application, layoutSets }: GetData
   }
 
   const typeFromLayoutSet = layoutSets.find((set) => {
-    if (layoutSetIsDefault(set) && set.tasks?.length) {
+    if (set.tasks?.length) {
       return set.tasks.includes(taskId);
     }
     return false;

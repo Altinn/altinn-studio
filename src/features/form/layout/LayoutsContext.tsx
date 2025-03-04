@@ -10,7 +10,6 @@ import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -79,7 +78,7 @@ export function useLayoutSetId() {
   const layoutSetId =
     taskId != null
       ? layoutSets.find((set) => {
-          if (layoutSetIsDefault(set) && set.tasks?.length) {
+          if (set.tasks?.length) {
             return set.tasks.includes(taskId);
           }
           return false;

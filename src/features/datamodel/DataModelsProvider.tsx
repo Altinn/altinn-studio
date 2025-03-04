@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -74,9 +75,9 @@ function initialCreateStore() {
     error: null,
 
     setDataTypes: (allDataTypes, writableDataTypes, defaultDataType, layoutSetId) => {
-      set(() => ({
-        allDataTypes,
-        writableDataTypes,
+      set((s) => ({
+        allDataTypes: deepEqual(allDataTypes, s.allDataTypes) ? s.allDataTypes : allDataTypes,
+        writableDataTypes: deepEqual(writableDataTypes, s.writableDataTypes) ? s.writableDataTypes : writableDataTypes,
         defaultDataType,
         layoutSetId,
       }));

@@ -34,7 +34,7 @@ export type InputProps = {
 >;
 
 export function Input(props: InputProps) {
-  const { size = 'sm', readOnly, ...rest } = props;
+  const { size = 'sm', readOnly, textonly, ...rest } = props;
 
   const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
     if (readOnly) {
@@ -42,7 +42,7 @@ export function Input(props: InputProps) {
     }
   };
 
-  if (props.textonly) {
+  if (textonly) {
     const { value, id, className } = props;
     if (value === null || (typeof value === 'string' && value.length === 0)) {
       return null;

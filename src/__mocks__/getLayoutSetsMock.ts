@@ -27,6 +27,5 @@ export function getSubFormLayoutSetMock(): ILayoutSet {
   return {
     id: 'subform-layout',
     dataType: 'subform-data',
-    type: 'subform',
   };
 }

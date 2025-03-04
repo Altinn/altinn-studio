@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -12,21 +13,24 @@ import { ProcessTaskType } from 'src/types';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function SubformWrapper({ node }: { node: LayoutNode<'Subform'> }) {
+export function SubformWrapper({ node, children }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) {
   const isDone = useDoOverride(node);
 
   if (!isDone) {
     return <Loader reason='subform-taskstore' />;
   }
 
+  return <FormProvider>{children}</FormProvider>;
+}
+
+export function SubformForm() {
   return (
-    <FormProvider>
-      <PresentationComponent type={ProcessTaskType.Data}>
-        <Form />
-      </PresentationComponent>
-    </FormProvider>
+    <PresentationComponent type={ProcessTaskType.Data}>
+      <Form />
+    </PresentationComponent>
   );
 }
+
 export const RedirectBackToMainForm = () => {
   const mainPageKey = useNavigationParam('mainPageKey');
   const { navigateToPage } = useNavigatePage();

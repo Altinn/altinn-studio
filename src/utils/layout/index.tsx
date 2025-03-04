@@ -1,4 +1,3 @@
-import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { LayoutStyle } from 'src/layout/common.generated';
 import type { ILayoutSet } from 'src/layout/common.generated';
 
@@ -11,10 +10,7 @@ export function getLayoutSetForDataElement(
     if (layoutSet.dataType !== datatype) {
       return false;
     }
-    if (layoutSetIsDefault(layoutSet)) {
-      return layoutSet.tasks?.some((taskId: string) => taskId === currentTaskId);
-    }
-    return false;
+    return layoutSet.tasks?.some((taskId: string) => taskId === currentTaskId);
   });
 }
 

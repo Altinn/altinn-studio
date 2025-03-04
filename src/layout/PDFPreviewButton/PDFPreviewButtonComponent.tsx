@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -14,29 +14,28 @@ export type IActionButton = PropsFromGenericComponent<'PDFPreviewButton'>;
 
 export function PDFPreviewButtonRenderLayoutValidator({ node }: NodeValidationProps<'PDFPreviewButton'>) {
   const instanceId = useStrictInstanceId();
-
   const addError = NodesInternal.useAddError();
-
   const applicationMetadata = useApplicationMetadata();
-
   const minimumBackendVersion = '8.5.0.157';
-
   const backendVersionOK = isAtLeastVersion({
     actualVersion: applicationMetadata.altinnNugetVersion ?? '',
     minimumVersion: minimumBackendVersion,
   });
 
-  if (!backendVersionOK) {
-    const error = `Need to be on at least backend version: ${minimumBackendVersion} to user this component`;
-    addError(error, node);
-    window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
-  }
+  useEffect(() => {
+    if (!backendVersionOK) {
+      const error = `Need to be on at least backend version: ${minimumBackendVersion} to user this component`;
+      addError(error, node);
+      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+    }
 
-  if (!instanceId) {
-    const error = `Cannot use PDF preview button in a stateless app`;
-    addError(error, node);
-    window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
-  }
+    if (!instanceId) {
+      const error = `Cannot use PDF preview button in a stateless app`;
+      addError(error, node);
+      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+    }
+  }, [addError, backendVersionOK, instanceId, node]);
+
   return null;
 }
 

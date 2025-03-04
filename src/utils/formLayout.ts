@@ -1,4 +1,3 @@
-import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import type { ILayoutSet } from 'src/layout/common.generated';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
 
@@ -31,5 +30,5 @@ export function behavesLikeDataTask(task: string | null | undefined, layoutSets:
     return false;
   }
 
-  return !!layoutSets?.some((set) => layoutSetIsDefault(set) && set.tasks?.includes(task));
+  return !!layoutSets?.some((set) => set.tasks?.includes(task));
 }

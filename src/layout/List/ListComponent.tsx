@@ -84,7 +84,8 @@ export const ListComponent = ({ node }: IListProps) => {
   }
 
   function isRowChecked(row: Row): boolean {
-    return (formData?.saveToList as Row[]).some((selectedRow) =>
+    const rows = (formData?.saveToList as Row[] | undefined) ?? [];
+    return rows.some((selectedRow) =>
       Object.keys(row).every((key) => Object.hasOwn(selectedRow, key) && row[key] === selectedRow[key]),
     );
   }

@@ -193,12 +193,22 @@ function MaintainListDataModelBinding({ bindings, attachments }: MaintainListDat
       .filter(isAttachmentUploaded)
       .map((attachment) => attachment.data.id);
 
-    if (!deepEqual(formData.list, newList)) {
+    if (!deepEqual(formData.list, newList) && !empty(formData.list, newList)) {
       setValue('list', newList);
     }
   }, [attachments, formData.list, setValue]);
 
   return null;
+}
+
+/**
+ * Checks if two items are practically empty. In that case, we consider them equal. There is no point in setting an
+ * empty array in the data model, that just increases the amount of times we have to save the data model.
+ */
+function empty(a: unknown, b: unknown): boolean {
+  const aEmpty = a === undefined || a === null || (Array.isArray(a) && a.length === 0);
+  const bEmpty = b === undefined || b === null || (Array.isArray(b) && b.length === 0);
+  return aEmpty && bEmpty;
 }
 
 /**

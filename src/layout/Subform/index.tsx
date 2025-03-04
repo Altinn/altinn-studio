@@ -10,15 +10,15 @@ import {
   type ValidationDataSources,
   ValidationMask,
 } from 'src/features/validation';
+import { type SummaryRendererProps } from 'src/layout/LayoutComponent';
 import { SubformDef } from 'src/layout/Subform/config.def.generated';
 import { SubformComponent } from 'src/layout/Subform/SubformComponent';
 import { SubformValidator } from 'src/layout/Subform/SubformValidator';
-import { RedirectBackToMainForm, SubformWrapper } from 'src/layout/Subform/SubformWrapper';
+import { RedirectBackToMainForm, SubformForm, SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { SubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSummaryComponent';
 import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import type { PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { SubformSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -36,7 +36,11 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
         <Routes>
           <Route
             path=':dataElementId/:subformPage?'
-            element={<SubformWrapper node={node} />}
+            element={
+              <SubformWrapper node={node}>
+                <SubformForm />
+              </SubformWrapper>
+            }
           />
           <Route
             path='*'
