@@ -12,7 +12,6 @@ import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
 import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
-import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { Validation } from 'src/features/validation/validationContext';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -32,7 +31,6 @@ const { Provider, hooks } = createHookContext({
   useIsForcedVisibleByDevTools: () => useDevToolsStore((state) => state.isOpen && state.hiddenComponents !== 'hide'),
   useGetDataElementIdForDataType: () => DataModels.useGetDataElementIdForDataType(),
   useCommitWhenFinished: () => useCommitWhenFinished(),
-  useCurrentPartyRoles: () => useCurrentPartyRoles(),
 });
 
 export const GeneratorData = {
@@ -76,7 +74,6 @@ function useExpressionDataSources(): ExpressionDataSources {
   const currentLayoutSet = hooks.useCurrentLayoutSet() ?? null;
   const dataModelNames = hooks.useReadableDataTypes();
   const externalApis = hooks.useExternalApis();
-  const roles = hooks.useCurrentPartyRoles();
   const nodeTraversal = useInnerNodeTraversalSelector(useNodes(), dataSelectorForTraversal);
   const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
   const langToolsSelector = useInnerLanguageWithForcedNodeSelector(
@@ -87,7 +84,6 @@ function useExpressionDataSources(): ExpressionDataSources {
   );
 
   return useShallowMemo({
-    roles,
     formDataSelector,
     formDataRowsSelector,
     attachmentsSelector,

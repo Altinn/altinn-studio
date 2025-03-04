@@ -13,7 +13,6 @@ import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext }
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
@@ -25,14 +24,12 @@ import type {
   LayoutReference,
 } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
-import type { RoleResult } from 'src/features/useCurrentPartyRoles';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 jest.mock('src/features/externalApi/useExternalApi');
-jest.mock('src/features/useCurrentPartyRoles');
 
 interface Props {
   reference: LayoutReference;
@@ -125,7 +122,6 @@ describe('Expressions shared function tests', () => {
         externalApis,
         positionalArguments,
         valueArguments,
-        roles,
         testCases,
         codeLists,
       } = test;
@@ -271,7 +267,6 @@ describe('Expressions shared function tests', () => {
       jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
-      jest.mocked(useCurrentPartyRoles).mockReturnValue(roles as RoleResult);
 
       let node: LayoutNode | undefined;
       const nodeId = nodeIdFromContext(context);
