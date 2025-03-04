@@ -13,7 +13,7 @@ import { org } from '@studio/testing/testids';
 import type { CodeListData } from '@studio/content-library';
 import type { CodeList } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { SelectedContextType } from '../../context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 
 const updateCodeListButtonTextMock: string = 'Update Code List';

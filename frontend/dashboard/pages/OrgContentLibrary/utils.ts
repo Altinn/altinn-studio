@@ -1,4 +1,4 @@
-import { SelectedContextType } from '../../context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 
 export function isOrg(contextType: string): boolean {
   const notOrgContexts: string[] = [
