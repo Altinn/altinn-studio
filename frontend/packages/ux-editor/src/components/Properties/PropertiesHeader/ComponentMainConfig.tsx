@@ -2,7 +2,6 @@ import React from 'react';
 import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
-import { HeaderMainConfig } from './HeaderMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -19,6 +18,6 @@ export const ComponentMainConfig = ({
         <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
-      return <HeaderMainConfig />;
+      return null;
   }
 };

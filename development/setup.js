@@ -160,6 +160,46 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
+const createContentRepo = async (user, pass, org) => {
+  const repo = 'ttd-content';
+  const filePathCodeList = 'Codelists/exampleCodeList.json';
+  const filePathTexts = 'Texts/exampleText.json';
+
+  await giteaApi({
+    path: `/api/v1/orgs/${org}/repos`,
+    method: 'POST',
+    user,
+    pass,
+    body: {
+      name: repo,
+    },
+  });
+
+  await giteaApi({
+    path: `/api/v1/repos/${org}/${repo}/contents/${filePathCodeList}`,
+    method: 'POST',
+    user,
+    pass,
+    body: {
+      content: Buffer.from(
+        `[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`,
+      ).toString('base64'),
+    },
+  });
+
+  await giteaApi({
+    path: `/api/v1/repos/${org}/${repo}/contents/${filePathTexts}`,
+    method: 'POST',
+    user,
+    pass,
+    body: {
+      content: Buffer.from(
+        `{\n  "language": "nb",\n  "resources": [\n    {\n      "id": "test",\n      "value": "test"\n    }\n  ]\n}`,
+      ).toString('base64'),
+    },
+  });
+};
+
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
@@ -170,10 +210,13 @@ const setupEnvironment = async (env) => {
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
+  await createContentRepo(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, env.GITEA_ORG_USER);
+
   const envWithRunnerToken = await setupRunnersToken(env);
   const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
 
   await createCypressEnvFile(env);
+
   return newEnv;
 };
 

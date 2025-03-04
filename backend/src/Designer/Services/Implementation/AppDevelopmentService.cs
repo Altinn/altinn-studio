@@ -68,7 +68,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutName, JsonNode formLayout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -79,14 +78,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout, cancellationToken);
+            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayout, cancellationToken);
         }
 
         /// <inheritdoc />
         public void DeleteFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
             string layoutName)
         {
-            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -97,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
+            altinnAppGitRepository.DeleteLayout(layoutSetName, layoutName);
         }
 
         /// <inheritdoc />
@@ -114,7 +112,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
+            altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, layoutName, newName);
         }
 
         /// <inheritdoc />
@@ -224,7 +222,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // Fallback to first model in app metadata if no layout set is provided
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
                 ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))?.Id ?? string.Empty;
             }
 
             LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
@@ -586,7 +584,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 editingContext.Repo,
                 editingContext.Developer
             );
-            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, $"{layoutName}.json", cancellationToken);
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
             if (formLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
             {
                 throw new InvalidOperationException("Invalid form layout structure");
@@ -802,7 +800,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     if (hasLayoutChanges)
                     {
-                        await altinnAppGitRepository.SaveLayout(layoutSet.Id, $"{layout.Key}.json", layout.Value, cancellationToken);
+                        await altinnAppGitRepository.SaveLayout(layoutSet.Id, layout.Key, layout.Value, cancellationToken);
                         hasChanges = true;
                     }
                 }
