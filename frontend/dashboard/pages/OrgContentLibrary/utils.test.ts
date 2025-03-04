@@ -1,5 +1,5 @@
 import { isOrg } from './utils';
-import { SelectedContextType } from '../../context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 
 describe('utils', () => {
   describe('isOrg', () => {

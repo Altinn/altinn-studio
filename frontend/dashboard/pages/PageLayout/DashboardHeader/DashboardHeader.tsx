@@ -13,7 +13,8 @@ import {
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';

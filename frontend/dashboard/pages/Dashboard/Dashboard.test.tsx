@@ -3,7 +3,7 @@ import { screen, waitForElementToBeRemoved, within } from '@testing-library/reac
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { User } from 'app-shared/types/Repository';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import type { SearchRepositoryResponse } from 'app-shared/types/api';

@@ -17,7 +17,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { SafeErrorView } from '../../components/SafeErrorView';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
 import { useSubroute } from '../../hooks/useSubRoute';

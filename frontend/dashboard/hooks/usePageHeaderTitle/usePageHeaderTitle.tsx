@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { getOrgNameByUsername } from 'dashboard/utils/userUtils';
 import { useSelectedContext } from '../useSelectedContext';
 
