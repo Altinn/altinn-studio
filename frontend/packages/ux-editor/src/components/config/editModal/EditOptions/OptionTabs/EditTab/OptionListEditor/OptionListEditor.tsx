@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage, StudioButton } from '@studio/components';
-import { TrashIcon } from '@studio/icons';
+import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
@@ -62,16 +61,13 @@ function OptionListResolver({
           <StudioErrorMessage>
             {t('ux_editor.modal_properties_fetch_option_list_error_message')}
           </StudioErrorMessage>
-          <StudioButton
+          <StudioDeleteButton
             className={classes.deleteButton}
-            color='danger'
-            variant='secondary'
-            icon={<TrashIcon />}
-            onClick={handleDelete}
+            onDelete={handleDelete}
             title={t('ux_editor.options.option_remove_text')}
           >
             {t('general.delete')}
-          </StudioButton>
+          </StudioDeleteButton>
         </>
       );
     case 'success': {
