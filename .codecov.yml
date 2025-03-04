@@ -1,0 +1,2 @@
+ignore:
+  - "frontend/packages/shared/src/mocks/"
