@@ -11,10 +11,12 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layout1NameMock, pagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -130,6 +132,9 @@ const waitForData = async () => {
 };
 
 const render = async (props: Partial<PageAccordionProps> = {}) => {
+  const queryClient = createQueryClientMock();
+  queryClient.invalidateQueries = jest.fn();
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
   await waitForData();
-  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />);
+  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />, { queryClient });
 };

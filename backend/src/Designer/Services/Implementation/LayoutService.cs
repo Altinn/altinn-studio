@@ -80,14 +80,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Repo,
                     editingContext.Developer
                 );
-
-            await appRepository.CreatePageLayoutFile(layoutSetId, pageId);
-
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+            JsonNode layoutSettings = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
                 layoutSetId
             );
-            (jsonNode["pages"]["order"] as JsonArray).Add(pageId);
-            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+            Pages pages = GetPagesFromSettings(layoutSettings);
+
+            AltinnPageLayout pageLayout = new();
+            if (pages.pages.Count > 0)
+            {
+                pageLayout = pageLayout.WithNavigationButtons();
+            }
+            if (pages.pages.Count == 1)
+            {
+                JsonNode jsonNode = await appRepository.GetLayout(layoutSetId, pages.pages[0].id);
+                AltinnPageLayout existingPage = new(jsonNode.AsObject());
+                if (!existingPage.HasComponentOfType("NavigationButtons"))
+                {
+                    existingPage.WithNavigationButtons();
+                    await appRepository.SaveLayout(
+                        layoutSetId,
+                        pages.pages[0].id,
+                        existingPage.Structure
+                    );
+                }
+            }
+
+            await appRepository.CreatePageLayoutFile(layoutSetId, pageId, pageLayout);
+
+            (layoutSettings["pages"]["order"] as JsonArray).Add(pageId);
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
                 editingContext,
@@ -125,6 +146,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             JsonNode orderPage = orderArray.First(node => node.GetValue<string>().Equals(pageId));
             orderArray.Remove(orderPage);
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+
+            if (orderArray.Count == 1)
+            {
+                string lastLayoutName = orderArray.First().GetValue<string>();
+                JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
+                AltinnPageLayout lastPage = new(lastLayout.AsObject());
+                lastPage.RemoveAllComponentsOfType("NavigationButtons");
+                await appRepository.SaveLayout(layoutSetId, lastLayoutName, lastPage.Structure);
+            }
 
             await mediatr.Publish(
                 new LayoutPageDeletedEvent
