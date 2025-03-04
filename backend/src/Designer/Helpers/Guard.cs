@@ -127,6 +127,11 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="repoName">The repository name.</param>
         public static void AssertValidAppRepoName(string repoName)
         {
+            // .altinnstudio is the metadata repository for an organisation
+            if (repoName == ".altinnstudio") {
+                return;
+            }
+
             if (string.IsNullOrEmpty(repoName) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(repoName))
             {
                 throw new ArgumentException($"The repository name {repoName} is invalid.");

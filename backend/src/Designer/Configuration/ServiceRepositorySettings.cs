@@ -180,5 +180,10 @@ namespace Altinn.Studio.Designer.Configuration
         {
             return Path.Combine(GetServicePath(org, app, developer), WIDGETS_FOLDER_NAME, WidgetSettingsFileName);
         }
+
+        public string GetOrgTemplatesPath(string org, string repo, string developer)
+        {
+            return Path.Combine(GetServicePath(org, repo, developer), "templates.json");
+        }
     }
 }
