@@ -85,7 +85,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
                     Authenticated.User a => a.UserId.ToString(CultureInfo.InvariantCulture) == signee?.UserId,
                     Authenticated.SelfIdentifiedUser a => a.UserId.ToString(CultureInfo.InvariantCulture)
                         == signee?.UserId,
-                    Authenticated.SystemUser a => a.SystemUserId[0].ToString() == signee?.UserId, // TODO: wait for systemuserid
+                    Authenticated.SystemUser a => a.SystemUserId[0] == signee?.SystemUserId,
                     _ => false,
                 };
                 if (unauthorized)

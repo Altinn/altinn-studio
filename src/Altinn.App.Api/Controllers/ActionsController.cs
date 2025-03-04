@@ -80,7 +80,7 @@ public class ActionsController : ControllerBase
     )
     {
         string? action = actionRequest.Action;
-        if (action == null)
+        if (action is null)
         {
             return new BadRequestObjectResult(
                 new ProblemDetails()
@@ -94,7 +94,7 @@ public class ActionsController : ControllerBase
         }
 
         Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-        if (instance?.Process == null)
+        if (instance?.Process is null)
         {
             return Conflict($"Process is not started.");
         }
@@ -105,8 +105,16 @@ public class ActionsController : ControllerBase
         }
 
         var currentAuth = _authenticationContext.Current;
-        if (currentAuth is not Authenticated.User user)
-            return Unauthorized();
+
+        switch (currentAuth)
+        {
+            case Authenticated.User:
+            case Authenticated.SystemUser:
+            case Authenticated.SelfIdentifiedUser:
+                break;
+            default:
+                return Unauthorized();
+        }
 
         bool authorized = await _authorization.AuthorizeAction(
             new AppIdentifier(org, app),
@@ -124,14 +132,14 @@ public class ActionsController : ControllerBase
 
         UserActionContext userActionContext = new(
             dataMutator,
-            user.UserId,
+            null, // let userId be derived from currentAuth
             actionRequest.ButtonId,
             actionRequest.Metadata,
             language,
             currentAuth
         );
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
-        if (actionHandler == null)
+        if (actionHandler is null)
         {
             return new NotFoundObjectResult(
                 new UserActionResponse()
@@ -148,7 +156,7 @@ public class ActionsController : ControllerBase
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
 
-        if (result.ResultType == ResultType.Failure)
+        if (result.ResultType is ResultType.Failure)
         {
             return StatusCode(
                 statusCode: result.ErrorType switch
