@@ -111,8 +111,7 @@ describe('OptionListEditor', () => {
       expectedResult.options = undefined;
       expectedResult.optionsId = undefined;
 
-      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await user.click(deleteButton);
+      await user.click(getDeleteButton());
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
       expect(handleComponentChange).toHaveBeenCalledWith(expectedResult);
@@ -133,7 +132,7 @@ describe('OptionListEditor', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render an error message when getOptionLists throws an error', async () => {
+    it('should render an error message when getOptionList throws an error', async () => {
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         queries: {
           getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
@@ -143,6 +142,19 @@ describe('OptionListEditor', () => {
       expect(
         screen.getByText(textMock('ux_editor.modal_properties_fetch_option_list_error_message')),
       ).toBeInTheDocument();
+    });
+
+    it('should be able to remove binding to optionList if getOptionList throws an error', async () => {
+      const user = userEvent.setup();
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+        queries: {
+          getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
+        },
+      });
+
+      expect(getDeleteButton()).toBeInTheDocument();
+      await user.click(getDeleteButton());
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
     });
 
     it('should render the open Dialog button', async () => {
@@ -226,8 +238,7 @@ describe('OptionListEditor', () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
-      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await user.click(deleteButton);
+      await user.click(getDeleteButton());
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
       expect(handleComponentChange).toHaveBeenCalledWith({
@@ -248,6 +259,12 @@ function getOptionModalButton() {
 function getDescriptionInput(number: number) {
   return screen.getByRole('textbox', {
     name: textMock('code_list_editor.description_item', { number }),
+  });
+}
+
+function getDeleteButton() {
+  return screen.getByRole('button', {
+    name: textMock('general.delete'),
   });
 }
 
