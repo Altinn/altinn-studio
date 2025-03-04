@@ -60,11 +60,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string SchemaFilePatternJson = "*.schema.json";
         private const string SchemaFilePatternXsd = "*.xsd";
 
-        public static readonly string InitialLayoutFileName = "Side1.json";
+        public static readonly string InitialLayoutFileName = "Side1";
 
         public readonly JsonNode InitialLayout = new JsonObject { ["$schema"] = LayoutSchemaUrl, ["data"] = new JsonObject { ["layout"] = new JsonArray([]) } };
 
-        public readonly JsonNode InitialLayoutSettings = new JsonObject { ["$schema"] = LayoutSettingsSchemaUrl, ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName.Replace(".json", "")]) } };
+        public readonly JsonNode InitialLayoutSettings = new JsonObject { ["$schema"] = LayoutSettingsSchemaUrl, ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) } };
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -370,10 +370,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, JsonNode> formLayouts = new();
             string[] layoutNames = GetLayoutNames(layoutSetName);
-            foreach (string layoutName in layoutNames)
+            foreach (string layoutFileName in layoutNames)
             {
+                string layoutName = layoutFileName.Replace(".json", "");
                 JsonNode layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
-                formLayouts[layoutName.Replace(".json", "")] = layout;
+                formLayouts[layoutName] = layout;
             }
 
             return formLayouts;
@@ -479,7 +480,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
                 {
-                    layoutNames.Add(Path.GetFileName(layoutPath));
+                    layoutNames.Add(Path.GetFileNameWithoutExtension(layoutPath));
                 }
             }
 
@@ -652,11 +653,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
         }
 
-        public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
+        public void UpdateFormLayoutName(string layoutSetName, string layoutName, string newLayoutName)
         {
-            string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string newFilePath = GetPathToLayoutFile(layoutSetName, newFileName);
-            MoveFileByRelativePath(currentFilePath, newFilePath, newFileName);
+            string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            string newFilePath = GetPathToLayoutFile(layoutSetName, newLayoutName);
+            MoveFileByRelativePath(currentFilePath, newFilePath, newLayoutName);
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile(CancellationToken cancellationToken = default)
@@ -1067,11 +1068,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layout set
-        private static string GetPathToLayoutFile(string layoutSetName, string fileName)
+        private static string GetPathToLayoutFile(string layoutSetName, string layoutName)
         {
             return string.IsNullOrEmpty(layoutSetName) ?
-                Path.Combine(LayoutsFolderName, LayoutsInSetFolderName, fileName) :
-                Path.Combine(LayoutsFolderName, layoutSetName, LayoutsInSetFolderName, fileName);
+                Path.Combine(LayoutsFolderName, LayoutsInSetFolderName, $"{layoutName}.json") :
+                Path.Combine(LayoutsFolderName, layoutSetName, LayoutsInSetFolderName, $"{layoutName}.json");
         }
 
         // can be null if app does not use layout set
