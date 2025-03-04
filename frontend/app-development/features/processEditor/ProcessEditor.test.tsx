@@ -9,7 +9,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { app, org } from '@studio/testing/testids';
-import { pagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
 
 // test data
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
@@ -86,7 +85,6 @@ describe('ProcessEditor', () => {
 
 const renderProcessEditor = ({ bpmnFile = null, queryClient = createQueryClientMock() } = {}) => {
   queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnFile);
-  queryClient.setQueryData([QueryKey.Pages, org, app], pagesModelMock);
   return renderWithProviders(<ProcessEditor />, {
     queryClient,
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
-import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
+import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -47,9 +47,9 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
 
-  const { mutate: deletePage, isPending } = useDeletePageMutation(
+  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -57,7 +57,14 @@ export const PageAccordion = ({
 
   const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deletePage(pageName);
+      deleteLayout(pageName, {
+        onSuccess: async ({ layouts }) => {
+          await updateLayoutsForPreview(
+            selectedFormLayoutSetName,
+            Object.keys(layouts).length === 1,
+          );
+        },
+      });
     }
   };
 
