@@ -157,7 +157,10 @@ public class OrgCodeListServiceTests : IDisposable
                 Value = "someValue"
             }
         };
-        IFormFile file = CreateTestFile(jsonCodeList, fileName);
+        byte[] codeListBytes = Encoding.UTF8.GetBytes(jsonCodeList);
+        var stream = new MemoryStream(codeListBytes);
+        IFormFile file = new FormFile(stream, 0, codeListBytes.Length, fileName, fileName);
+
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
@@ -165,6 +168,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
+        stream.Close();
         List<Option> codeList = codeListData.Find(e => e.Title == codeListId).Data;
 
         // Assert
@@ -252,14 +256,6 @@ public class OrgCodeListServiceTests : IDisposable
         OrgCodeListService service = new(altinnGitRepositoryFactory);
 
         return service;
-    }
-
-    private static IFormFile CreateTestFile(string stringContent, string fileName)
-    {
-        byte[] codeListBytes = Encoding.UTF8.GetBytes(stringContent);
-        var stream = new MemoryStream(codeListBytes);
-        IFormFile file = new FormFile(stream, 0, codeListBytes.Length, fileName, fileName);
-        return file;
     }
 
     public void Dispose()
