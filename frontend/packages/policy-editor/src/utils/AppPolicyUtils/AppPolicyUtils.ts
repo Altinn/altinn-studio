@@ -54,7 +54,7 @@ export const filterDefaultAppLimitations = (
 ): PolicyRuleResource[] => {
   const subResourceDefaultTypes = Object.keys(APP_SUBRESOURCE_DEFAULT_LIMITATIONS);
   if (!appResources.find((r) => subResourceDefaultTypes.includes(r.type))) {
-    return undefined;
+    return [];
   }
 
   return appResources.filter((r) => !subResourceDefaultTypes.includes(r.type));

@@ -110,7 +110,7 @@ describe('AppPolicyUtils', () => {
       ]);
     });
 
-    it('should return undefined if no default app limitations are present', () => {
+    it('should return empty array if no default app limitations are present', () => {
       const appResources = [
         {
           type: 'urn:altinn:appresource',
@@ -118,7 +118,7 @@ describe('AppPolicyUtils', () => {
         },
       ];
       const filteredResources = filterDefaultAppLimitations(appResources);
-      expect(filteredResources).toBeUndefined();
+      expect(filteredResources).toEqual([]);
     });
 
     it('should return an empty list if only default app limitations are present', () => {
