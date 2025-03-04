@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/designsystemet-react';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
@@ -17,9 +18,6 @@ import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfL
 import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
 import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
-import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
-import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -39,8 +37,7 @@ export const DesignView = (): ReactNode => {
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
+  const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -48,8 +45,14 @@ export const DesignView = (): ReactNode => {
   // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
   // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
   useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const layouts = useFormLayouts();
   const { getPdfLayoutName } = usePdf();
+  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
 
@@ -70,24 +73,21 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    let newNum = pagesModel?.pages?.length + 1;
+    let newNum = layoutOrder.length + 1;
     let newLayoutName = `${t('ux_editor.page')}${newNum}`;
 
-    while (
-      pagesModel?.pages?.find((page) => page.id === newLayoutName) ||
-      getPdfLayoutName() === newLayoutName
-    ) {
+    while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
-    const page: PageModel = {
-      id: newLayoutName,
-    };
-    addPageMutation(page, {
-      onSuccess: async () => {
-        await updateLayoutsForPreview(selectedFormLayoutSetName);
+    addLayoutMutation(
+      { layoutName: newLayoutName },
+      {
+        onSuccess: async () => {
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
+        },
       },
-    });
+    );
   };
 
   const layoutsWithDuplicateComponents = useMemo(
@@ -98,8 +98,8 @@ export const DesignView = (): ReactNode => {
   /**
    * Displays the pages as an ordered list
    */
-  const displayPageAccordions = pagesModel?.pages?.map((pageName, i) => {
-    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName.id);
+  const displayPageAccordions = layoutOrder.map((pageName, i) => {
+    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName);
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;
@@ -139,7 +139,7 @@ export const DesignView = (): ReactNode => {
           icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPage()}
           className={classes.button}
-          disabled={isAddPageMutationPending}
+          disabled={isAddLayoutMutationPending}
         >
           {t('ux_editor.pages_add')}
         </StudioButton>

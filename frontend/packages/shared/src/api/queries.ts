@@ -62,7 +62,6 @@ import {
   optionListReferencesPath,
   userOrgPermissionsPath,
   dataTypePath,
-  layoutPagesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -100,7 +99,6 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
-import type { PagesModel } from '../types/api/dto/PagesModel';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -146,9 +144,6 @@ export const getWidgetSettings = (owner: string, app: string) => get<WidgetSetti
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
-
-// Layout
-export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
 
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));

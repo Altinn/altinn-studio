@@ -15,7 +15,6 @@ import {
   layout1Mock,
   layout1NameMock,
   layout2NameMock,
-  pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -50,9 +49,13 @@ describe('DesignView', () => {
     });
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      id: `${textMock('ux_editor.page')}${3}`,
-    });
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      `${textMock('ux_editor.page')}${3}`,
+      mockSelectedLayoutSet,
+      expect.any(Object),
+    );
   });
 
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
@@ -70,9 +73,13 @@ describe('DesignView', () => {
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      id: `${textMock('ux_editor.page')}${4}`,
-    });
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      `${textMock('ux_editor.page')}${4}`,
+      mockSelectedLayoutSet,
+      expect.any(Object),
+    );
   });
 
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
@@ -104,7 +111,7 @@ describe('DesignView', () => {
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
 
-    expect(queriesMock.createPage).toHaveBeenCalled();
+    expect(queriesMock.saveFormLayout).toHaveBeenCalled();
   });
 
   it('Displays the tree view version of the layout', () => {
@@ -131,7 +138,6 @@ const renderDesignView = (
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayout),
   );
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     layoutSettings,

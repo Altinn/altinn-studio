@@ -14,19 +14,21 @@ import {
 import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { appContextMock } from '../../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('../../../hooks/mutations/useDeletePageMutation', () => ({
+jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../hooks/mutations/useDeletePageMutation'),
+  ...jest.requireActual('../../../hooks/mutations/useDeleteLayoutMutation'),
 }));
-const useDeletePageMutationSpy = jest.spyOn(
-  require('../../../hooks/mutations/useDeletePageMutation'),
-  'useDeletePageMutation',
+const useDeleteLayoutMutationSpy = jest.spyOn(
+  require('../../../hooks/mutations/useDeleteLayoutMutation'),
+  'useDeleteLayoutMutation',
 );
+
 const mockChildren: ReactNode = (
   <div>
     <button>Test</button>
@@ -78,19 +80,25 @@ describe('PageAccordion', () => {
     });
     await user.click(deleteButton);
 
-    expect(queriesMock.deletePage).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deletePage).toHaveBeenCalledWith(
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
       org,
       app,
-      mockSelectedLayoutSet,
       mockPageName1,
+      mockSelectedLayoutSet,
+    );
+
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith(
+      mockSelectedLayoutSet,
+      false,
     );
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    useDeletePageMutationSpy.mockImplementation(() => ({
+    useDeleteLayoutMutationSpy.mockImplementation(() => ({
       mutate: queriesMock.deleteFormLayout,
       isPending: true,
     }));
