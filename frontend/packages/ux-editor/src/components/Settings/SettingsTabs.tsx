@@ -30,10 +30,14 @@ export const SettingsTabs = (): ReactElement => {
           </StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Content value={Tabs.Navigation}>
-          <StudioAlert severity='info'>{t('ux_editor.settings.wip_message')}</StudioAlert>
+          <StudioAlert severity='info' className={classes.wipMessage}>
+            {t('ux_editor.settings.wip_message')}
+          </StudioAlert>
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Database}>
-          <StudioAlert severity='info'>{t('ux_editor.settings.wip_message')}</StudioAlert>
+          <StudioAlert severity='info' className={classes.wipMessage}>
+            {t('ux_editor.settings.wip_message')}
+          </StudioAlert>
         </StudioTabs.Content>
       </StudioTabs>
     </div>
