@@ -175,6 +175,7 @@
     { "id": "brand.audi", "value": "Audi" },
     { "id": "brand.lamborghini", "value": "Lamborghini" },
     { "id": "cool", "value": "En fet " },
-    { "id": "from", "value": " fra " }
+    { "id": "from", "value": " fra " },
+    { "id": "no-name", "value": "Uten navn" }
   ]
 }

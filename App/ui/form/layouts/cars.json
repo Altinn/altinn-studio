@@ -10,7 +10,13 @@
           "addButton": "subform.add"
         },
         "layoutSet": "subform",
-        "entryName": ["concat", ["text", "cool"], ["optionLabel", "brands", ["dataModel", "brand"]], ["text", "from"], ["dataModel", "modelyear"]],
+        "entryName": [
+          "if",
+          ["and", ["compare", ["stringLength", ["dataModel", "brand"]], "greaterThan", 0], ["compare", ["stringLength", ["dataModel", "modelyear"]], "greaterThan", 0]],
+          ["concat", ["text", "cool"], ["optionLabel", "brands", ["dataModel", "brand"]], ["text", "from"], ["dataModel", "modelyear"]],
+          "else",
+          ["text", "no-name"]
+        ],
         "tableColumns": [
           {
             "headerContent": "reg.title",
