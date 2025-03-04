@@ -7,7 +7,7 @@ import { PageLayout } from './PageLayout';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useParams } from 'react-router-dom';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../context/HeaderContext';
 import { Subroute } from '../../enums/Subroute';
 import { StringUtils } from '@studio/pure-functions';
 
