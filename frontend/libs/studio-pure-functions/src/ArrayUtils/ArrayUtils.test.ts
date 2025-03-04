@@ -320,4 +320,32 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.hasSingleType([])).toBe(false);
     });
   });
+
+  describe('toString', () => {
+    it('returns a string with all elements separated by comma when no delimiter is provided', () => {
+      expect(ArrayUtils.toString(['a', 'b', 'c'])).toBe('a,b,c');
+    });
+
+    it('returns an empty string for an empty array', () => {
+      expect(ArrayUtils.toString([])).toBe('');
+    });
+
+    it('returns a string with all elements separated by the given separator', () => {
+      expect(ArrayUtils.toString(['a', 'b', 'c'], '|')).toBe('a|b|c');
+    });
+  });
+
+  describe('getArrayFromString', () => {
+    it('returns an array of strings when the input string is comma-separated', () => {
+      expect(ArrayUtils.getArrayFromString('a,b,c')).toEqual(['a', 'b', 'c']);
+    });
+
+    it('returns an array with the input string as the only element when no separator is found', () => {
+      expect(ArrayUtils.getArrayFromString('abc')).toEqual(['abc']);
+    });
+
+    it('returns an empty array when the input string is empty', () => {
+      expect(ArrayUtils.getArrayFromString('')).toEqual([]);
+    });
+  });
 });

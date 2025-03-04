@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { StudioTable, StudioTag } from '@studio/components';
 import { getSubjectDisplayName, getSubResourceDisplayText } from '../../../utils/AppPolicyUtils';
+import { ArrayUtils } from '@studio/pure-functions';
+import classes from './PolicyRuleSummary.module.css';
 
 export type PolicyRuleSummaryProps = {
   policyRule: PolicyRuleCard;
@@ -16,25 +18,22 @@ export const PolicyRuleSummary = ({ policyRule }: PolicyRuleSummaryProps): React
   const { usageType, subjects } = usePolicyEditorContext();
 
   const getActionsDisplayNames = (actionList: string[]): string => {
-    return actionList
-      .map((a) => {
-        return t(`policy_editor.action_${a}`);
-      })
-      .join(', ');
+    const translations = actionList.map((a) => {
+      return t(`policy_editor.action_${a}`);
+    });
+    return ArrayUtils.toString(translations);
   };
 
   return (
     <StudioTable.Row>
       <StudioTable.Cell>{policyRule.ruleId}</StudioTable.Cell>
       <StudioTable.Cell>
-        {policyRule.resources
-          .map((r) => {
-            return getSubResourceDisplayText(r, usageType, t);
-          })
-          .join(', ')}
+        {ArrayUtils.toString(
+          policyRule.resources.map((r) => getSubResourceDisplayText(r, usageType, t)),
+        )}
       </StudioTable.Cell>
       <StudioTable.Cell>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        <div className={classes.subjectsCell}>
           {policyRule.subject.map((s) => {
             return (
               <StudioTag size='small' key={s} color='info'>
