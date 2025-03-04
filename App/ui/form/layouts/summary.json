@@ -29,6 +29,37 @@
         "type": "Summary"
       },
       {
+        "id": "Summary-subform-full",
+        "type": "Summary2",
+        "target": {
+          "id": "subform"
+        },
+        "overrides": [
+          {
+            "componentId": "subform",
+            "display": "full"
+          }
+        ]
+      },
+      {
+        "id": "Summary-subform-table",
+        "type": "Summary2",
+        "target": {
+          "id": "subform"
+        },
+        "overrides": [
+          {
+            "componentId": "subform",
+            "display": "table"
+          }
+        ]
+      },
+      {
+        "id": "Summary-subform",
+        "type": "Summary",
+        "componentRef": "subform"
+      },
+      {
         "id": "ButtonGroup-uyAk1H",
         "type": "ButtonGroup",
         "children": ["NavigationButtons-AftsFv", "Button-sPjiD2"]
@@ -49,4 +80,3 @@
     ]
   }
 }
-

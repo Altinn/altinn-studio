@@ -8,7 +8,8 @@
           "simpleBinding": "brand"
         },
         "id": "brand",
-        "type": "Input",
+        "type": "Dropdown",
+        "optionsId": "brands",
         "required": true,
         "textResourceBindings": {
           "title": "brand.title"

@@ -172,6 +172,13 @@
     {
       "id": "important.body",
       "value": "Here is a lot of very important information you need to read before proceeding!!!"
-    }
+    },
+    { "id": "brand.toyota", "value": "Toyota" },
+    { "id": "brand.volkswagen", "value": "Volkswagen" },
+    { "id": "brand.mercedes", "value": "Mercedes" },
+    { "id": "brand.audi", "value": "Audi" },
+    { "id": "brand.lamborghini", "value": "Lamborghini" },
+    { "id": "cool", "value": "A sweet " },
+    { "id": "from", "value": " from " }
   ]
 }

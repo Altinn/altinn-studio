@@ -168,6 +168,13 @@
     {
       "id": "important.body",
       "value": "Her kommer det masse viktig informasjon som du må få med deg før du går videre!!!"
-    }
+    },
+    { "id": "brand.toyota", "value": "Toyota" },
+    { "id": "brand.volkswagen", "value": "Volkswagen" },
+    { "id": "brand.mercedes", "value": "Mercedes" },
+    { "id": "brand.audi", "value": "Audi" },
+    { "id": "brand.lamborghini", "value": "Lamborghini" },
+    { "id": "cool", "value": "En fet " },
+    { "id": "from", "value": " fra " }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.2-pr.671.subform-table-expressions-v3.ec40d0bb/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -10,18 +10,32 @@
           "addButton": "subform.add"
         },
         "layoutSet": "subform",
+        "entryName": ["concat", ["text", "cool"], ["optionLabel", "brands", ["dataModel", "brand"]], ["text", "from"], ["dataModel", "modelyear"]],
         "tableColumns": [
           {
             "headerContent": "reg.title",
-            "cellContent": { "query": "registrationnumber" }
+            "cellContent": {
+              "value": [
+                "if",
+                ["compare", ["stringLength", ["dataModel", "registrationnumber"]], "greaterThan", 0],
+                ["concat", "⟦", ["dataModel", "registrationnumber"], "⟧"]
+              ],
+              "default": "N/A"
+            }
           },
           {
             "headerContent": "brand.title",
-            "cellContent": { "query": "brand" }
+            "cellContent": {
+              "value": ["optionLabel", "brands", ["dataModel", "brand"]],
+              "default": "N/A"
+            }
           },
           {
             "headerContent": "year.title",
-            "cellContent": { "query": "modelyear" }
+            "cellContent": {
+              "value": ["dataModel", "modelyear"],
+              "default": "N/A"
+            }
           }
         ]
       },
