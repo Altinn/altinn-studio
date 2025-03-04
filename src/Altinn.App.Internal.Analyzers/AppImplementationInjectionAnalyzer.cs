@@ -70,7 +70,7 @@ public sealed class AppImplementationInjectionAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-        context.RegisterSyntaxNodeAction(AnalyzeConstructors, SyntaxKind.ConstructorDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeConstructors, SyntaxKind.ParameterList);
         context.RegisterSyntaxNodeAction(AnalyzeDIServiceCalls, SyntaxKind.InvocationExpression);
     }
 
@@ -169,10 +169,17 @@ public sealed class AppImplementationInjectionAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeConstructors(SyntaxNodeAnalysisContext context)
     {
-        var node = (ConstructorDeclarationSyntax)context.Node;
-        var constructorComments = node.GetLeadingTrivia().ToFullString();
+        SyntaxToken? typeIdentifier = context.Node.Parent switch
+        {
+            // When the parent is a class declaration, this parameterlist is a primary constructor
+            ClassDeclarationSyntax @class => @class.Identifier,
+            // When the parent is a constructor declaration, it's a normal constructor
+            ConstructorDeclarationSyntax constructor => constructor.Identifier,
+            _ => null,
+        };
 
-        // This code ensures that classes dont inject app implementable interfaces eagerly
+        if (typeIdentifier is null)
+            return;
 
         var enumerableType = context
             .SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1")
@@ -180,11 +187,57 @@ public sealed class AppImplementationInjectionAnalyzer : DiagnosticAnalyzer
         if (enumerableType is null)
             return;
 
-        var appImplementableTypesReferenced = new Dictionary<ITypeSymbol, CSharpSyntaxNode>(4, _symbolComparer);
+        var appImplementableTypesReferenced = new Dictionary<Location, (ITypeSymbol Symbol, CSharpSyntaxNode Syntax)>(
+            4
+        );
+        var node = (ParameterListSyntax)context.Node;
+
+        var constructorComments = node.GetLeadingTrivia().ToFullString();
+
+        foreach (var parameter in node.Parameters)
+        {
+            var identifier = parameter.Type;
+            if (identifier is null)
+                continue;
+
+            Process(context, identifier, appImplementableTypesReferenced, enumerableType);
+        }
+
+        if (context.Node.Parent is ConstructorDeclarationSyntax constructorDeclaration)
+        {
+            if (constructorDeclaration.Body is not null)
+            {
+                var identifiers = constructorDeclaration.Body.DescendantNodes().OfType<IdentifierNameSyntax>();
+                foreach (var identifier in identifiers)
+                {
+                    Process(context, identifier, appImplementableTypesReferenced, enumerableType);
+                }
+            }
+        }
+
+        foreach (var reference in appImplementableTypesReferenced)
+        {
+            var diagnostic = Diagnostic.Create(
+                Diagnostics.DangerousConstructorInjection,
+                reference.Key,
+                reference.Value.Symbol.Name,
+                typeIdentifier.Value.ValueText
+            );
+            var referenceComments = reference.Value.Syntax.GetLeadingTrivia().ToFullString();
+
+            if (
+                constructorComments.IndexOf("altinn:injection:ignore", StringComparison.Ordinal) != -1
+                || referenceComments.IndexOf("altinn:injection:ignore", StringComparison.Ordinal) != -1
+            )
+                return;
+
+            context.ReportDiagnostic(diagnostic);
+        }
+
         static void Process(
             SyntaxNodeAnalysisContext context,
             ExpressionSyntax syntax,
-            Dictionary<ITypeSymbol, CSharpSyntaxNode> typesReferenced,
+            Dictionary<Location, (ITypeSymbol Symbol, CSharpSyntaxNode Syntax)> typesReferenced,
             INamedTypeSymbol enumerableType
         )
         {
@@ -205,49 +258,13 @@ public sealed class AppImplementationInjectionAnalyzer : DiagnosticAnalyzer
             }
             if (typeInfo.TypeKind != TypeKind.Interface)
                 return;
-            if (typesReferenced.ContainsKey(typeInfo))
+            var key = syntax.GetLocation();
+            if (typesReferenced.ContainsKey(key))
                 return;
             if (!typeInfo.GetAttributes().Any(attr => attr.AttributeClass?.Name == MarkerAttributeName))
                 return;
 
-            typesReferenced.Add(typeInfo, syntax);
-        }
-
-        foreach (var parameter in node.ParameterList.Parameters)
-        {
-            var identifier = parameter.Type;
-            if (identifier is null)
-                continue;
-
-            Process(context, identifier, appImplementableTypesReferenced, enumerableType);
-        }
-
-        if (node.Body is not null)
-        {
-            var identifiers = node.Body.DescendantNodes().OfType<IdentifierNameSyntax>();
-            foreach (var identifier in identifiers)
-            {
-                Process(context, identifier, appImplementableTypesReferenced, enumerableType);
-            }
-        }
-
-        foreach (var reference in appImplementableTypesReferenced)
-        {
-            var diagnostic = Diagnostic.Create(
-                Diagnostics.DangerousConstructorInjection,
-                reference.Value.GetLocation(),
-                reference.Key.Name,
-                node.Identifier.ValueText
-            );
-            var referenceComments = reference.Value.GetLeadingTrivia().ToFullString();
-
-            if (
-                constructorComments.IndexOf("altinn:injection:ignore", StringComparison.Ordinal) != -1
-                || referenceComments.IndexOf("altinn:injection:ignore", StringComparison.Ordinal) != -1
-            )
-                return;
-
-            context.ReportDiagnostic(diagnostic);
+            typesReferenced.Add(key, (typeInfo, syntax));
         }
     }
 }
