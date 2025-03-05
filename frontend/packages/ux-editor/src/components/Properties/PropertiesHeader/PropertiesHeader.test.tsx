@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -193,13 +191,5 @@ const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   );
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  return renderWithProviders(
-    <FormItemContext.Provider
-      value={{
-        ...formItemContextProviderMock,
-      }}
-    >
-      <PropertiesHeader {...defaultProps} {...props} />
-    </FormItemContext.Provider>,
-  );
+  return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);
 };
