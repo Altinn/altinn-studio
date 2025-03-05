@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRepoPath } from './useRepoPath';
-import { HeaderContext, type HeaderContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext, type HeaderContextProps } from 'dashboard/context/HeaderContext';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
 import { repositoryOwnerPath, repositoryBasePath } from 'app-shared/api/paths';
@@ -12,7 +12,7 @@ import type { User } from 'app-shared/types/Repository';
 jest.mock('dashboard/hooks/useSelectedContext');
 
 type Props = {
-  headerContextValueProps: Partial<HeaderContextType>;
+  headerContextValueProps: Partial<HeaderContextProps>;
   user: User;
 };
 const renderUseRepoPathHook = (props: Partial<Props> = {}) => {

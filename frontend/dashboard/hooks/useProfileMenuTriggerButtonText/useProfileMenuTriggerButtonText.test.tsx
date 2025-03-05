@@ -1,6 +1,6 @@
 import React from 'react';
 import { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';
-import { HeaderContext, type HeaderContextType } from '../../context/HeaderContext';
+import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useSelectedContext } from '../useSelectedContext';
 import { userMock } from '../../testing/userMock';
@@ -12,7 +12,7 @@ import { renderHookWithProviders } from '../../testing/mocks';
 jest.mock('../useSelectedContext');
 
 const renderUseProfileMenuTriggerButtonTextHook = (
-  headerContextValueProps: Partial<HeaderContextType> = {},
+  headerContextValueProps: Partial<HeaderContextProps> = {},
 ) => {
   return renderHookWithProviders(useProfileMenuTriggerButtonText, {
     externalWrapper: (children) => (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePageHeaderTitle } from './usePageHeaderTitle';
-import { HeaderContext, type HeaderContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext, type HeaderContextProps } from 'dashboard/context/HeaderContext';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
 import { SelectedContextType } from '../../enums/SelectedContextType';
@@ -9,7 +9,9 @@ import { renderHookWithProviders } from 'dashboard/testing/mocks';
 
 jest.mock('dashboard/hooks/useSelectedContext');
 
-const renderUsePageHeaderTitleHook = (headerContextValueProps: Partial<HeaderContextType> = {}) => {
+const renderUsePageHeaderTitleHook = (
+  headerContextValueProps: Partial<HeaderContextProps> = {},
+) => {
   return renderHookWithProviders(usePageHeaderTitle, {
     externalWrapper: (children) => (
       <HeaderContext.Provider value={{ ...headerContextValueMock, ...headerContextValueProps }}>

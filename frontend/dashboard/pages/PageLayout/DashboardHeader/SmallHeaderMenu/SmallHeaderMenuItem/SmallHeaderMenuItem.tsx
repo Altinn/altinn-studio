@@ -31,8 +31,12 @@ export const SmallHeaderMenuItem = ({
     const buttonItemClassName: string = menuItem.isActive ? classes.active : '';
 
     return (
-      <DropdownMenu.Item key={menuItem.name} onClick={handleClick} className={buttonItemClassName}>
-        {menuItem.name}
+      <DropdownMenu.Item
+        key={menuItem.itemName}
+        onClick={handleClick}
+        className={buttonItemClassName}
+      >
+        {menuItem.itemName}
       </DropdownMenu.Item>
     );
   }
@@ -41,14 +45,14 @@ export const SmallHeaderMenuItem = ({
     extractLastRouterParam(menuItem.action.href) === currentRoutePath ? classes.active : '';
 
   return (
-    <DropdownMenu.Item key={menuItem.name} asChild className={linkItemClassName}>
+    <DropdownMenu.Item key={menuItem.itemName} asChild className={linkItemClassName}>
       <NavLink
         to={menuItem.action.href}
         onClick={onClick}
         target={menuItem.action.openInNewTab ? '_blank' : ''}
         rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
       >
-        {t(menuItem.name)}
+        {t(menuItem.itemName)}
       </NavLink>
     </DropdownMenu.Item>
   );
