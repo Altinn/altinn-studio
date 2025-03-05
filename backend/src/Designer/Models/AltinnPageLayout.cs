@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Models
         public AltinnPageLayout RemoveAllComponentsOfType(string type)
         {
             JsonArray components = Structure["data"]["layout"] as JsonArray;
-            components.RemoveAll((component) => component["type"].GetValue<string>().Equals(type));
+            components?.RemoveAll((component) => component["type"].GetValue<string>().Equals(type));
             return this;
         }
     }

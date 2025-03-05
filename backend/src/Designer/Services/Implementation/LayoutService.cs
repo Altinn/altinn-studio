@@ -218,7 +218,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
                 layoutSetId
             );
-            JsonArray pageOrder = jsonNode["pages"]["order"] as JsonArray;
+            if (jsonNode["pages"]["order"] is not JsonArray pageOrder)
+            {
+                pageOrder = [];
+                jsonNode["pages"]["order"] = pageOrder;
+            }
             pageOrder.Clear();
             pages.pages.ForEach((page) => pageOrder.Add(page.id));
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
