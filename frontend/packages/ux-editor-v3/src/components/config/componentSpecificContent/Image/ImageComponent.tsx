@@ -1,11 +1,11 @@
 import React from 'react';
-import { Textfield, Fieldset } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
@@ -74,7 +74,7 @@ export const ImageComponent = ({
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
         renderField={({ fieldProps }) => (
-          <Textfield
+          <StudioTextfield
             {...fieldProps}
             name={`image_src-input-${component.id}`}
             onChange={(e) => fieldProps.onChange({ nb: e.target.value }, e)}
@@ -103,7 +103,7 @@ export const ImageComponent = ({
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
           renderField={({ fieldProps }) => (
-            <Textfield
+            <StudioTextfield
               {...fieldProps}
               name={`image_width-input-${component.id}`}
               onChange={(e) => fieldProps.onChange(e.target.value, e)}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { Textfield } from '@digdir/designsystemet-react';
+import { StudioTextfield } from '@studio/components';
 
 type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
 
@@ -39,25 +39,22 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
 
   return (
     <form className={classes.wrapper} onBlur={handleAppConfigFormBlur}>
-      <Textfield
+      <StudioTextfield
         label={t('settings_modal.about_tab_repo_label')}
         description={t('settings_modal.about_tab_repo_description')}
-        size='small'
         defaultValue={appConfig.repositoryName}
         readOnly
       />
-      <Textfield
+      <StudioTextfield
         label={t('settings_modal.about_tab_name_label')}
         description={t('settings_modal.about_tab_name_description')}
-        size='small'
         name='serviceName'
         error={appConfigFormErrors.serviceName}
         defaultValue={appConfig.serviceName}
       />
-      <Textfield
+      <StudioTextfield
         label={t('settings_modal.about_tab_alt_id_label')}
         description={t('settings_modal.about_tab_alt_id_description')}
-        size='small'
         name='serviceId'
         defaultValue={appConfig.serviceId}
       />

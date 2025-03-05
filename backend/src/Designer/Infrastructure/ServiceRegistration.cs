@@ -79,6 +79,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IInstanceService, InstanceService>();
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
+            services.AddTransient<ILayoutService, LayoutService>();
             services.AddTransient<IOrgTextsService, OrgTextsService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterSettingsSingleton<KafkaSettings>(configuration);
