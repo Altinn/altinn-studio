@@ -1,3 +1,8 @@
+.appName {
+  font-size: var(--fds-sizing-4);
+  color: var(--fds-semantic-text-neutral-default);
+}
+
 .breadcrumbWrapper ol {
   display: flex !important;
   list-style-type: none !important;

@@ -29,7 +29,7 @@ export const BreadcrumbsTaskNavigation = () => {
         <StudioBreadcrumbs className={classes.breadcrumbWrapper}>
           <StudioBreadcrumbsList>
             <StudioBreadcrumbsItem>
-              <StudioBreadcrumbsLink onClick={handleClick}>
+              <StudioBreadcrumbsLink className={classes.appName} onClick={handleClick}>
                 {appConfigData?.serviceName}
               </StudioBreadcrumbsLink>
             </StudioBreadcrumbsItem>
