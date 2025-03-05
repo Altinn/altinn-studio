@@ -14,13 +14,13 @@ import {
   mapPolicyRuleToPolicyRuleBackendObject,
 } from './utils';
 import classes from './PolicyEditor.module.css';
-import { AddPolicyRuleButton } from './components/AddPolicyRuleButton';
 import { PolicyEditorAlert } from './components/PolicyEditorAlert';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
-import { PolicyCardRules } from './components/PolicyCardRules';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
+import { PolicyRulesEditor } from './components/PolicyRulesEditor/PolicyRulesEditor';
+import { PolicyEditorTabs } from './components/PolicyEditorTabs/PolicyEditorTabs';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -51,8 +51,6 @@ export const PolicyEditor = ({
     mapPolicyRulesBackendObjectToPolicyRuleCard(policy?.rules ?? []),
   );
 
-  const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
-
   const handleSavePolicy = (rules: PolicyRuleCard[]) => {
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
@@ -66,10 +64,6 @@ export const PolicyEditor = ({
 
   const handleSavePolicyAuthLevel = (authLevel: RequiredAuthLevel) => {
     onSave({ ...policy, requiredAuthenticationLevelEndUser: authLevel });
-  };
-
-  const handleClickAddButton = () => {
-    setShowErrorsOnAllRulesAboveNew(true);
   };
 
   return (
@@ -96,10 +90,7 @@ export const PolicyEditor = ({
         <div className={classes.alertWrapper}>
           <PolicyEditorAlert />
         </div>
-        <PolicyCardRules showErrorsOnAllRulesAboveNew={showErrorsOnAllRulesAboveNew} />
-        <div className={classes.addCardButtonWrapper}>
-          <AddPolicyRuleButton onClick={handleClickAddButton} />
-        </div>
+        {usageType === 'app' ? <PolicyEditorTabs /> : <PolicyRulesEditor />}
       </div>
     </PolicyEditorContextProvider>
   );
