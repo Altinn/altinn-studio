@@ -1,8 +1,8 @@
 {
   "partyId": "510004",
   "partyTypeName": 3,
-  "orgNumber": null,
-  "ssn": null,
+  "orgNumber": "",
+  "ssn": "",
   "unitType": null,
   "name": "Selvregistrert Bruker",
   "isDeleted": false,

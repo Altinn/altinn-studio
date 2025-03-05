@@ -2,7 +2,7 @@
   "partyId": "500002",
   "partyTypeName": 2,
   "orgNumber": "897069652",
-  "ssn": null,
+  "ssn": "",
   "unitType": "BEDR",
   "name": "DDG Fitness Bergen",
   "isDeleted": false,

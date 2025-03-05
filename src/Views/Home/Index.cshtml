@@ -7,17 +7,17 @@
   if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
-      An exception occured while fetching applicationData
+      An exception occurred while fetching applicationData
       @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
         <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
         <p>
           You are currently running LocalTest in "http" mode, and this requires
-          apps created before December 2021 to update to nuget pacakges to fix
-          an access controll issue.
+          apps created before December 2021 to update to nuget packages to fix
+          an access control issue.
         </p>
         <p>
           You can either change the setting "LocalPlatformSettings.LocalAppMode"
-          to "file", or update the altinn nuget pacakges in your app to at least
+          to "file", or update the altinn nuget packages in your app to at least
           4.21.0
         </p>
         <p>
@@ -27,12 +27,12 @@
         @if(string.IsNullOrWhiteSpace(Model.LocalAppUrl)){
           <p>
             LocalTest is running in "LocalPlatformSettings.LocalAppMode" == "http" mode, but
-            "LocalPlatformSettings.LocalAppUrl" is not set to a valid adress.
+            "LocalPlatformSettings.LocalAppUrl" is not set to a valid address.
           </p>
         } else {
           <pre>No application running on @Model.LocalAppUrl</pre>
           <p>
-            Please start your an app on this adress. Typically run the following command in an app directory.
+            Please start your an app on this address. Typically run the following command in an app directory.
           </p>
           <pre>dotnet run</pre>
         }
@@ -54,7 +54,7 @@
   else if (Model.InvalidTestDataPath)
   {
     <div class="alert alert-dark" role="alert">
-      Check your configurred path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
+      Check your configured path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
     </div>
   }
   else

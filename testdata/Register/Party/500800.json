@@ -2,7 +2,7 @@
   "partyId": "500800",
   "partyTypeName": 2,
   "orgNumber": "910457292",
-  "ssn": null,
+  "ssn": "",
   "unitType": "AS",
   "name": "EAS Health Consulting Sortland",
   "isDeleted": false,

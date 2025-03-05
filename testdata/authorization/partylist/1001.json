@@ -1,25 +1,25 @@
 [
-    {
-      "partyId": "510001",
-      "partyTypeName": 1,
-      "ssn": "01899699552",
-      "name": "Pengelens Partner",
-      "isDeleted": false,
-      "onlyHierarchyElementWithNoAccess": false,
-      "person": null,
-      "organisation": null,
-      "childParties": null
-    },
-    {
-      "partyId": "500000",
-      "partyTypeName": 2,
-      "OrgNumber": "897069650",
-      "unitType": "AS",
-      "name": "DDG Fitness AS",
-      "isDeleted": false,
-      "onlyHierarchyElementWithNoAccess": false,
-      "person": null,
-      "organisation": null,
-      "childParties": null
-    }
-  ]
+  {
+    "partyId": "510001",
+    "partyTypeName": 1,
+    "ssn": "01899699552",
+    "name": "Pengelens Partner",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500000",
+    "partyTypeName": 2,
+    "orgNumber": "897069650",
+    "unitType": "AS",
+    "name": "DDG Fitness AS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]

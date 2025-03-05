@@ -1,13 +1,13 @@
 [
-    {
-      "partyId": "510004",
-      "partyTypeName": 3,
-      "ssn": null,
-      "name": "Selvregistrert Bruker",
-      "isDeleted": false,
-      "onlyHierarchyElementWithNoAccess": false,
-      "person": null,
-      "organisation": null,
-      "childParties": null
-    }
-  ]
+  {
+    "partyId": "510004",
+    "partyTypeName": 3,
+    "ssn": "",
+    "name": "Selvregistrert Bruker",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]
