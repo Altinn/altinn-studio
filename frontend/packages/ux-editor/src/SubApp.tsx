@@ -3,7 +3,7 @@ import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App } from './App';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
+import { FormDesignerNavigation } from './containers/FormDesignNavigation';
 import { useAppContext } from './hooks';
 
 type SubAppProps = {
