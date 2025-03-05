@@ -20,7 +20,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private const string OptionsFolderPath = "App/options/";
 
     /// <summary>
     /// Constructor
@@ -38,7 +37,7 @@ public class OptionsService : IOptionsService
 
         try
         {
-            string[] optionsLists = altinnAppGitRepository.GetOptionsListIds(OptionsFolderPath);
+            string[] optionsLists = altinnAppGitRepository.GetOptionsListIds();
             return optionsLists;
         }
         catch (NotFoundException) // Is raised if the Options folder does not exist
@@ -55,7 +54,7 @@ public class OptionsService : IOptionsService
 
         List<Option> optionsList;
 
-        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, OptionsFolderPath, cancellationToken);
+        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
         try
         {
             optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
