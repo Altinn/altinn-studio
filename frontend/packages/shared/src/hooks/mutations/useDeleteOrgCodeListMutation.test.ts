@@ -4,7 +4,6 @@ import { queriesMock } from '../../mocks/queriesMock';
 import { useDeleteOrgCodeListMutation } from '../../hooks/mutations/useDeleteOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
-import { useCreateOrgCodeListMutation } from '../../hooks/mutations/useCreateOrgCodeListMutation';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListData } from '../../types/CodeListData';
 import type { CodeList } from '../../types/CodeList';
@@ -42,10 +41,10 @@ describe('useDeleteOrgCodeListMutation', () => {
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgCodeLists, org], [codeListToDelete, otherCodeList]);
-    const createCodeListForOrg = jest.fn(() => Promise.resolve([otherCodeList]));
-    const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org), {
+    const deleteCodeListForOrg = jest.fn(() => Promise.resolve([otherCodeList]));
+    const { result } = renderHookWithProviders(() => useDeleteOrgCodeListMutation(org), {
       queryClient,
-      queries: { createCodeListForOrg },
+      queries: { deleteCodeListForOrg },
     });
 
     await result.current.mutateAsync({ title: codeListToDelete.title });
