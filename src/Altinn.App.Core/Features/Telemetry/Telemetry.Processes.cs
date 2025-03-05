@@ -69,6 +69,20 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartProcessEndHandlersActivity(Instance instance)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.EndHandlers");
+        activity?.SetInstanceId(instance);
+        return activity;
+    }
+
+    internal Activity? StartProcessEndHandlerActivity(Instance instance, IProcessEnd handler)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.EndHandler.{handler.GetType()}");
+        activity?.SetInstanceId(instance);
+        return activity;
+    }
+
     internal static class Processes
     {
         internal const string Prefix = "Process";

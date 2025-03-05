@@ -828,8 +828,11 @@ public sealed class ProcessEngineTest
             );
     }
 
-    [Fact]
-    public async Task Next_moves_instance_to_end_event_and_ends_proces()
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    public async Task Next_moves_instance_to_end_event_and_ends_process(bool registerProcessEnd, bool useTelemetry)
     {
         var expectedInstance = new Instance()
         {
@@ -844,11 +847,24 @@ public sealed class ProcessEngineTest
                 EndEvent = "EndEvent_1",
             },
         };
-        using var fixture = Fixture.Create(updatedInstance: expectedInstance);
+        using var fixture = Fixture.Create(
+            updatedInstance: expectedInstance,
+            registerProcessEnd: registerProcessEnd,
+            withTelemetry: useTelemetry
+        );
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.GetApplicationMetadata())
             .ReturnsAsync(new ApplicationMetadata("org/app"));
+
+        if (registerProcessEnd)
+        {
+            fixture
+                .Mock<IProcessEnd>()
+                .Setup(x => x.End(It.IsAny<Instance>(), It.IsAny<List<InstanceEvent>>()))
+                .Verifiable(Times.Once);
+        }
+
         ProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
@@ -978,6 +994,18 @@ public sealed class ProcessEngineTest
                 d.RegisterEventWithEventsComponent(It.Is<Instance>(i => CompareInstance(expectedInstance, i)))
             );
 
+        if (registerProcessEnd)
+        {
+            fixture.Mock<IProcessEnd>().Verify();
+        }
+
+        if (useTelemetry)
+        {
+            var snapshotFilename =
+                $"ProcessEngineTest.Telemetry.IProcessEnd_{(registerProcessEnd ? "registered" : "not_registered")}.json";
+            await Verify(fixture.TelemetrySink.GetSnapshot()).UseFileName(snapshotFilename);
+        }
+
         result.Success.Should().BeTrue();
         result
             .ProcessStateChange.Should()
@@ -1103,7 +1131,8 @@ public sealed class ProcessEngineTest
             Instance? updatedInstance = null,
             IEnumerable<IUserAction>? userActions = null,
             bool withTelemetry = false,
-            TestJwtToken? token = null
+            TestJwtToken? token = null,
+            bool registerProcessEnd = false
         )
         {
             services ??= new ServiceCollection();
@@ -1203,6 +1232,10 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IAppMetadata>(_ => appMetadataMock.Object);
             services.TryAddTransient<IAppResources>(_ => appResourcesMock.Object);
             services.TryAddTransient<InstanceDataUnitOfWorkInitializer>();
+
+            if (registerProcessEnd)
+                services.AddSingleton<IProcessEnd>(_ => new Mock<IProcessEnd>().Object);
+
             services.TryAddTransient<ModelSerializationService>();
 
             foreach (var userAction in userActions ?? [])
