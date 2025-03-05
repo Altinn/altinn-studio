@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAvatar,
@@ -21,7 +21,7 @@ import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 import { useSubroute } from '../../../hooks/useSubRoute';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
-import { dashboardHeaderMenuItems } from '../../../utils/headerUtils/headerUtils';
+import { dashboardHeaderMenuItems } from '../../../utils/headerUtils';
 import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
@@ -53,6 +53,7 @@ type TopNavigationMenuProps = {
 function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
+  const location = useLocation();
   const path: string = `${menuItem.link}/${selectedContext}`;
   const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
 
