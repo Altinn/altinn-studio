@@ -45,7 +45,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
     }
 
     [Fact]
-    public async Task Delete_Returns_200OK_When_CodeList_Does_Not_Exist()
+    public async Task Delete_Returns_404NotFound_When_CodeList_Does_Not_Exist()
     {
         // Arrange
         const string codeListId = "non-existing-code-list";
