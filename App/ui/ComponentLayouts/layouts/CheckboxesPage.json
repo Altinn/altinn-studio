@@ -53,6 +53,41 @@
         "required": false
       },
       {
+        "dataModelBindings": {
+          "saveToList": "ListCheckboxExample",
+          "simpleBinding": "ListCheckboxExample.name"
+        },
+        "id": "CheckboxesPage-Checkboxes2",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "CheckboxesPage.Checkboxes.title"
+        },
+        "optionsId": "persons",
+        "required": false
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroup",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Repeterende Gruppe"
+        },
+        "dataModelBindings": {
+          "group": "ListCheckboxExample"
+        },
+        "hidden": false,
+        "children": [
+          "RepeatingGroupName"
+        ]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupName",
+        "type": "Text",
+        "textResourceBindings": {
+          "title":"Name"
+        },
+        "value": ["dataModel","ListCheckboxExample.name"]
+      },
+      {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary",
         "type": "Header",

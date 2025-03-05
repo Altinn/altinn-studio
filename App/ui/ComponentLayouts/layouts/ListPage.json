@@ -145,11 +145,11 @@
           }
         },
         {
-          "id": "ListPage-Summary2",
+          "id": "ListPage-Summary2WithCheckboxes",
           "type": "Summary2",
           "target": {
             "type": "component",
-            "id": "ListPage-ListComponent"
+            "id": "ListPage-ListWithCheckboxesComponent"
           }
         },
         {
