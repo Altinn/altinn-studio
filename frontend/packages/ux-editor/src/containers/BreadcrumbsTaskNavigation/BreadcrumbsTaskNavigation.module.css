@@ -1,0 +1,13 @@
+.breadcrumbWrapper ol {
+  display: flex !important;
+  list-style-type: none !important;
+}
+
+.breadcrumbWrapper li:not(:last-child)::after {
+  content: '>';
+  margin: 0 8px;
+}
+
+.breadcrumbWrapper a:hover {
+  text-decoration: underline;
+}
