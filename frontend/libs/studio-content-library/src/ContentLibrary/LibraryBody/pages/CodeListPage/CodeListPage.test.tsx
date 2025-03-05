@@ -174,14 +174,15 @@ describe('CodeListPage', () => {
     renderCodeListPage({ textResources, codeListsData: codeListDataList, onUpdateTextResource });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     await user.type(labelField, newLabel);
+    await user.tab();
 
     const expectedLanguage = 'nb';
     const expectedObject: TextResourceWithLanguage = {
       language: expectedLanguage,
       textResource: { ...label1ResourceNb, value: newLabel },
     };
-    expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
-    expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+    expect(onUpdateTextResource).toHaveBeenCalledWith(expectedObject);
   });
 
   it('Renders with text resources in the input fields of the create dialog when given', async () => {
@@ -209,14 +210,15 @@ describe('CodeListPage', () => {
     await user.click(getTextResourceOption(label1ResourceNb));
     await openEditModeForFirstLabel(user, dialog);
     await user.type(getFirstLabelField(dialog), newLabel);
+    await user.tab();
 
     const expectedLanguage = 'nb';
     const expectedObject: TextResourceWithLanguage = {
       language: expectedLanguage,
       textResource: { ...label1ResourceNb, value: newLabel },
     };
-    expect(onUpdateTextResource).toHaveBeenCalledTimes(newLabel.length);
-    expect(onUpdateTextResource).toHaveBeenLastCalledWith(expectedObject);
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+    expect(onUpdateTextResource).toHaveBeenCalledWith(expectedObject);
   });
 });
 
