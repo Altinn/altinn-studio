@@ -6,6 +6,7 @@ import { Card } from '@digdir/designsystemet-react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
+import classes from 'src/layout/Cards/Cards.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent, GenericComponentById } from 'src/layout/GenericComponent';
 import { useNode } from 'src/utils/layout/NodesContext';
@@ -39,7 +40,7 @@ export const Cards = ({ node }: ICardsProps) => {
           <Card
             key={idx}
             color={color}
-            style={{ height: '100%' }}
+            className={classes.card}
           >
             {mediaPosition === 'top' && (
               <Media
@@ -117,7 +118,7 @@ function Media({ card, node, minMediaHeight }: MediaProps) {
   }
 
   return (
-    <Card.Media>
+    <Card.Media className={classes.cardMedia}>
       <CardProvider
         node={node}
         renderedInMedia={true}
