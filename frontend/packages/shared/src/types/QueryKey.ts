@@ -52,6 +52,7 @@ export enum QueryKey {
   UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
   TextResourcesForOrg = 'TextResourcesForOrg',
+  Pages = 'Pages',
 
   // Resourceadm
   ResourceList = 'ResourceList',
