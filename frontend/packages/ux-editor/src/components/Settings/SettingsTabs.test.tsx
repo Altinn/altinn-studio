@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { SettingsTabs } from './SettingsTabs';
 
-describe('OptionTabs', () => {
+describe('SettingsTabs', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render component and select Navigation as default tab', () => {
