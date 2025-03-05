@@ -14,7 +14,7 @@ import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
-import { TextMainconfig } from './TextMainConfig';
+import { TextMainConfig } from './TextMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
 
 export type PropertiesHeaderProps = {
@@ -27,9 +27,9 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const { data: schema } = useComponentSchemaQuery(formItem.type);
+  const { data: schema, isPending } = useComponentSchemaQuery(formItem.type);
 
-  if (!schema) {
+  if (isPending) {
     return (
       <StudioSpinner
         showSpinnerTitle
@@ -80,7 +80,7 @@ export const PropertiesHeader = ({
               handleComponentUpdate={handleComponentUpdate}
             />
             {shouldDisplayFeature(FeatureFlag.MainConfig) && (
-              <TextMainconfig
+              <TextMainConfig
                 component={formItem}
                 handleComponentChange={handleComponentUpdate}
                 title={textResourceBindings?.properties?.title}

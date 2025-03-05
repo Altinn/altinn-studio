@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 
 type TextMainConfigProps = {
   component: FormItem;
-  title?: string[];
+  title?: Record<string, string>;
   handleComponentChange: (component: FormItem) => void;
 };
 
-export const TextMainconfig = ({
+export const TextMainConfig = ({
   component,
   title,
   handleComponentChange,
