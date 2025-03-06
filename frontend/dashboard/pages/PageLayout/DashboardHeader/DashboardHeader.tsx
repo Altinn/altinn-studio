@@ -1,5 +1,7 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import classes from './DashboardHeader.module.css';
+import cn from 'classnames';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAvatar,
@@ -11,11 +13,17 @@ import {
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
+import { HeaderContext } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
+import { useSubroute } from '../../../hooks/useSubRoute';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { dashboardHeaderMenuItems } from '../../../utils/headerUtils';
+import { StringUtils } from '@studio/pure-functions';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -24,6 +32,12 @@ export const DashboardHeader = () => {
     <StudioPageHeader>
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
+        <StudioPageHeader.Center>
+          {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
+            dashboardHeaderMenuItems.map((menuItem: HeaderMenuItem) => (
+              <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+            ))}
+        </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <DashboardHeaderMenu />
         </StudioPageHeader.Right>
@@ -32,10 +46,46 @@ export const DashboardHeader = () => {
   );
 };
 
+type TopNavigationMenuProps = {
+  menuItem: HeaderMenuItem;
+};
+
+function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
+  const selectedContext: string = useSelectedContext();
+  const { t } = useTranslation();
+  const location = useLocation();
+  const path: string = `${menuItem.link}/${selectedContext}`;
+  const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
+
+  return (
+    <StudioPageHeader.HeaderLink
+      color='dark'
+      variant='regular'
+      renderLink={(props) => (
+        <NavLink to={path} {...props}>
+          <span
+            className={cn({
+              [classes.active]: StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
+            })}
+          >
+            {t(menuItem.name)}
+          </span>
+        </NavLink>
+      )}
+    />
+  );
+}
+
+function extractSecondLastRouterParam(pathname: string): string {
+  const pathnameArray = pathname.split('/');
+  return pathnameArray[pathnameArray.length - 2];
+}
+
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
@@ -44,7 +94,7 @@ const DashboardHeaderMenu = () => {
   const repoPath = useRepoPath();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate('/' + context + location.search);
+    navigate(`${subroute}/${context}${location.search}`);
   };
 
   const allMenuItem: StudioProfileMenuItem = {
@@ -83,7 +133,7 @@ const DashboardHeaderMenu = () => {
 
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={showButtonText && triggerButtonText}
+      triggerButtonText={showButtonText ? triggerButtonText : undefined}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'

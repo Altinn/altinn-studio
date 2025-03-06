@@ -87,7 +87,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         };
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
+        /// Initializes a new instance of the <see cref="AltinnAppGitRepository"/> class.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
@@ -997,13 +997,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A list of option list names.</returns>
         public string[] GetOptionsListIds()
         {
-            string optionsFolder = Path.Combine(OptionsFolderPath);
-            if (!DirectoryExistsByRelativePath(optionsFolder))
+            if (!DirectoryExistsByRelativePath(OptionsFolderPath))
             {
                 return [];
             }
 
-            string[] fileNames = GetFilesByRelativeDirectoryAscSorted(optionsFolder, "*.json");
+            string[] fileNames = GetFilesByRelativeDirectoryAscSorted(OptionsFolderPath, "*.json");
             IEnumerable<string> optionsListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
             return optionsListIds.ToArray();
         }
@@ -1014,10 +1013,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="optionsListId">The name of the options list to fetch.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
-        public async Task<string> GetOptionsList(
-            string optionsListId,
-            CancellationToken cancellationToken = default
-        )
+        public async Task<string> GetOptionsList(string optionsListId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

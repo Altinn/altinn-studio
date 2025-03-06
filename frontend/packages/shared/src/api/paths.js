@@ -87,6 +87,11 @@ export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}
 export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
 export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
 
+// Library - org-level
+export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
+export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
+export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
+
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
 

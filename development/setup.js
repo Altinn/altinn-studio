@@ -182,7 +182,7 @@ const createContentRepo = async (user, pass, org) => {
     pass,
     body: {
       content: Buffer.from(
-        `[\n  {\n    "label": "someLabel",\n    "value": "someValue",\n  }\n]`,
+        `[\n  {\n    "label": "someLabel",\n    "value": "someValue"\n  }\n]`,
       ).toString('base64'),
     },
   });
