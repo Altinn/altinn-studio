@@ -20,7 +20,7 @@ describe('PolicyRulesEditor', () => {
   it('displays the correct number of policy rules', () => {
     renderPolicyRulesEditor();
     const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.expandable_card_open_icon'),
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
     expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
   });
