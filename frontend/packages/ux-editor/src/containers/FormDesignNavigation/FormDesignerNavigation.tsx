@@ -7,7 +7,6 @@ import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { AddNewTask } from '../AddNewTask';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
 
-
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -19,8 +18,8 @@ export const FormDesignerNavigation = () => {
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>
-            <SettingsTabs />
             <AddNewTask />
+            <SettingsTabs />
           </div>
           <footer className={classes.footer}>
             <Link href='/contact'>{t('general.contact')}</Link>
