@@ -34,7 +34,7 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
     [Fact]
     public void FirstTest()
     {
-        Assert.Equal('/', Path.DirectorySeparatorChar);
+        Assert.Equal('1', Path.DirectorySeparatorChar);
     }
 
     [Theory]
