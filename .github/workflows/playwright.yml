@@ -8,10 +8,6 @@ on:
       - 'frontend/**'
       - '.github/workflows/playwright.yml'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   playwright-run:
     name: 'Playwright Tests'
