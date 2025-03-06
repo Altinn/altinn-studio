@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.2-pr.676.subform-table-expressions-v3.1c8063c0/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.2-pr.699.subform-table-expressions-v3.c4c1962c/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -10,7 +10,7 @@
           "addButton": "subform.add"
         },
         "layoutSet": "subform",
-        "entryName": [
+        "entryDisplayName": [
           "if",
           ["and", ["compare", ["stringLength", ["dataModel", "brand"]], "greaterThan", 0], ["compare", ["stringLength", ["dataModel", "modelyear"]], "greaterThan", 0]],
           ["concat", ["text", "cool"], ["optionLabel", "brands", ["dataModel", "brand"]], ["text", "from"], ["dataModel", "modelyear"]],
