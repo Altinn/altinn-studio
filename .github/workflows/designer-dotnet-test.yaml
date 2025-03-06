@@ -35,6 +35,7 @@ jobs:
         run: |
           dotnet build backend/Designer.sln -v m
       - name: Test
+        continue-on-error: false
         run: |
           dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build;
           dotnet test backend/Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build;
