@@ -49,7 +49,9 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
         {t('ux_editor.task_card.datamodel')}
         {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
       </StudioParagraph>
-      <StudioButton variant='primary'>{t('ux_editor.task_card.ux_editor')}</StudioButton>
+      <StudioButton color='second' variant='primary'>
+        {t('ux_editor.task_card.ux_editor')}
+      </StudioButton>
     </StudioIconCard>
   );
 };
