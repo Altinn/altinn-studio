@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -40,6 +41,12 @@ public class TextsServiceTest : IDisposable
         var textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         return (targetRepository, altinnGitRepositoryFactory, textsService);
+    }
+
+    [Fact]
+    public void FirstTest()
+    {
+        Assert.Equal('/', Path.DirectorySeparatorChar);
     }
 
     [Fact]

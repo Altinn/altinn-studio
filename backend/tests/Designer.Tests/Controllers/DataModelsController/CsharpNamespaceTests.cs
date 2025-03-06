@@ -31,12 +31,6 @@ public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTe
     {
     }
 
-    [Fact]
-    public void FirstTest()
-    {
-        Assert.Equal('1', Path.DirectorySeparatorChar);
-    }
-
     [Theory]
     [InlineData("Model/XmlSchema/Gitea/aal-vedlegg.xsd", "ttd", "empty-app", "testUser", "App/models/aal-vedlegg.cs", "Altinn.App.Models.vedlegg", "vedlegg", "Altinn.App.Models")]
     [InlineData("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "ttd", "hvem-er-hvem", "testUser", "App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.cs", "Altinn.App.Models", "HvemErHvem_M", "Altinn.App.Models.HvemErHvem_M")]
