@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,6 +13,12 @@ namespace Designer.Tests.Controllers.PreviewController
     {
         public AnonymousTests(WebApplicationFactory<Program> factory) : base(factory)
         {
+        }
+
+        [Fact]
+        public void FailingTestOnWindows()
+        {
+            Assert.Equal('/', Path.DirectorySeparatorChar);
         }
 
         [Fact]

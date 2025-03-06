@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -14,12 +13,6 @@ namespace Designer.Tests.Controllers.TextController
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public GetResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
-        }
-
-        [Fact]
-        public void FailingTestOnWindows()
-        {
-            Assert.Equal('/', Path.DirectorySeparatorChar);
         }
 
         [Theory]
