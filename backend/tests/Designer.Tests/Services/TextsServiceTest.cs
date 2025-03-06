@@ -29,8 +29,8 @@ public class TextsServiceTest : IDisposable
     private const string developer = "testUser";
     private const string layoutSetName1 = "layoutSet1";
     private const string layoutSetName2 = "layoutSet2";
-    private const string layoutName1 = "layoutFile1InSet1.json";
-    private const string layoutName2 = "layoutFile1InSet2.json";
+    private const string layoutName1 = "layoutFile1InSet1";
+    private const string layoutName2 = "layoutFile1InSet2";
 
     private async Task<(string targetRepository, AltinnGitRepositoryFactory altinnGitRepositoryFactory, TextsService textsService)>
         SetupRepository()
