@@ -40,7 +40,7 @@ export class FormLayoutSettings {
   }
 
   public getPdfLayoutName(): string | undefined {
-    return this.layoutSettings.pages.pdfLayoutName;
+    return this.layoutSettings.pages?.pdfLayoutName;
   }
 
   public addPageToOrder(layoutName: string): void {

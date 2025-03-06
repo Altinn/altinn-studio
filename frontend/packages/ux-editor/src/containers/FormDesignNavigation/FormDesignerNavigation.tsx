@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { AddNewTask } from '../AddNewTask';
+import { SettingsTabs } from '../../components/Settings/SettingsTabs';
+
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
@@ -17,6 +19,7 @@ export const FormDesignerNavigation = () => {
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>
+            <SettingsTabs />
             <AddNewTask />
           </div>
           <footer className={classes.footer}>
