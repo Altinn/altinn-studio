@@ -24,5 +24,5 @@ describe('AddNewTask', () => {
 });
 
 const renderAddNewTask = () => {
-  return renderWithProviders()(<AddNewTask />);
+  return renderWithProviders({}, undefined, {})(<AddNewTask />);
 };
