@@ -44,12 +44,6 @@ public class TextsServiceTest : IDisposable
     }
 
     [Fact]
-    public void FirstTest()
-    {
-        Assert.Equal('/', Path.DirectorySeparatorChar);
-    }
-
-    [Fact]
     public async Task UpdateRelatedFiles_KeyExistInLayoutInLayoutSet_ShouldFindNewId()
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();

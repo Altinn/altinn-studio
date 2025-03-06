@@ -25,6 +25,12 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     }
 
     [Fact]
+    public void FailingTestOnWindows()
+    {
+        Assert.Equal('/', Path.DirectorySeparatorChar);
+    }
+
+    [Fact]
     public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
     {
         // Arrange
