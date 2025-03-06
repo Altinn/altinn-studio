@@ -76,7 +76,7 @@
           "id": "RepeatingGroupListWithCheckboxes",
           "type": "RepeatingGroup",
           "textResourceBindings": {
-            "title": "Repeterende Gruppe",
+            "title": "Repeterende Gruppe"
           },
           "dataModelBindings": {
             "group": "ListCheckboxExample"
