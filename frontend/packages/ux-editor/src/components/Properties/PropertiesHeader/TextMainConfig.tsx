@@ -2,10 +2,11 @@ import React from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { TextResource } from '../../TextResource/TextResource';
 import { useTranslation } from 'react-i18next';
+import type { ITextResourceBindings } from '@altinn/ux-editor/types/global';
 
 type TextMainConfigProps = {
   component: FormItem;
-  title?: Record<string, string>;
+  title?: ITextResourceBindings;
   handleComponentChange: (component: FormItem) => void;
 };
 

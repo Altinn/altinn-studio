@@ -2,10 +2,11 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import React from 'react';
 import { EditDataModelBinding } from '../../config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { useFormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
+import type { IDataModelBindings } from '@altinn/ux-editor/types/global';
 
 type DataModelMainConfigProps = {
   component: FormItem;
-  dataModelBindings: string[];
+  dataModelBindings?: IDataModelBindings;
   handleComponentChange: (component: FormItem) => void;
 };
 
@@ -15,7 +16,6 @@ export const DataModelMainConfig = ({
   handleComponentChange,
 }: DataModelMainConfigProps): React.ReactElement => {
   const { debounceSave } = useFormItemContext();
-
   const dataModelBindingKey = Object.keys(dataModelBindings || {})[0];
 
   if (!dataModelBindingKey) {
