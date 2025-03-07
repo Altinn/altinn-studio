@@ -1,1 +1,1 @@
-export { HeaderContext, type HeaderContextType, SelectedContextType } from './HeaderContext';
+export { HeaderContext, type HeaderContextType } from './HeaderContext';
