@@ -7,7 +7,9 @@ import { PageLayout } from './PageLayout';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useParams } from 'react-router-dom';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { Subroute } from '../../enums/Subroute';
+import { SelectedContextType } from '../../enums/SelectedContextType';
+import { StringUtils } from '@studio/pure-functions';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -72,13 +74,19 @@ describe('PageLayout', () => {
     });
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
-    expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
+      expect.anything(),
+    );
   });
 
   it('should redirect to self context if none is defined', async () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
-    expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
+      expect.anything(),
+    );
   });
 
   it.each([['self', 'all', 'ttd']])(
@@ -89,7 +97,10 @@ describe('PageLayout', () => {
       });
       sessionStorage.setItem('dashboard::selectedContext', `"${context}"`);
       renderWithMockServices();
-      expect(mockedNavigate).toHaveBeenCalledWith(context, expect.anything());
+      expect(mockedNavigate).toHaveBeenCalledWith(
+        `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${context}`,
+        expect.anything(),
+      );
     },
   );
 
@@ -98,6 +109,9 @@ describe('PageLayout', () => {
     sessionStorage.setItem('dashboard::selectedContext', '"testinvalidcontext"');
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
-    expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
+      expect.anything(),
+    );
   });
 });
