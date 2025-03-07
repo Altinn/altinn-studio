@@ -158,6 +158,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("checkboxesPersons")]
     public string checkboxesPersons { get; set; }
 
+    [XmlElement("Dates", Order = 29)]
+    [JsonProperty("Dates")]
+    [JsonPropertyName("Dates")]
+    public Dates Dates { get; set; }
+
   }
 
   public class GridExample
@@ -416,6 +421,57 @@ namespace Altinn.App.Models.Model
     [JsonProperty("surname")]
     [JsonPropertyName("surname")]
     public string surname { get; set; }
+
+    [XmlElement("isDeleted", Order = 5)]
+    [JsonProperty("isDeleted")]
+    [JsonPropertyName("isDeleted")]
+    public bool? isDeleted { get; set; }
+
+    public bool ShouldSerializeisDeleted() => isDeleted.HasValue;
+
+  }
+
+  public class Dates
+  {
+    [XmlElement("SetDate", Order = 1)]
+    [JsonProperty("SetDate")]
+    [JsonPropertyName("SetDate")]
+    public string SetDate { get; set; }
+
+    [XmlElement("String", Order = 2)]
+    [JsonProperty("String")]
+    [JsonPropertyName("String")]
+    public DateTime? String { get; set; }
+
+    public bool ShouldSerializeString() => String.HasValue;
+
+    [XmlElement("DateTime", Order = 3)]
+    [JsonProperty("DateTime")]
+    [JsonPropertyName("DateTime")]
+    public DateTime? DateTime { get; set; }
+
+    public bool ShouldSerializeDateTime() => DateTime.HasValue;
+
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
+    [XmlElement("DateOnly", Order = 4)]
+    [JsonProperty("DateOnly")]
+    [JsonPropertyName("DateOnly")]
+    public string DateOnly { get; set; }
+
+    [XmlElement("FormatStringBackend", Order = 5)]
+    [JsonProperty("FormatStringBackend")]
+    [JsonPropertyName("FormatStringBackend")]
+    public string FormatStringBackend { get; set; }
+
+    [XmlElement("FormatDateTimeBackend", Order = 6)]
+    [JsonProperty("FormatDateTimeBackend")]
+    [JsonPropertyName("FormatDateTimeBackend")]
+    public string FormatDateTimeBackend { get; set; }
+
+    [XmlElement("FormatDateOnlyBackend", Order = 7)]
+    [JsonProperty("FormatDateOnlyBackend")]
+    [JsonPropertyName("FormatDateOnlyBackend")]
+    public string FormatDateOnlyBackend { get; set; }
 
   }
 }

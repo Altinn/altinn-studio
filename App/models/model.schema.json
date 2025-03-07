@@ -260,12 +260,44 @@
           },
           "surname": {
             "type": "string"
+          },
+          "isDeleted": {
+            "type": "boolean"
           }
         }
       }
     },
     "checkboxesPersons": {
       "type": "string"
+    },
+    "Dates": {
+      "type": "object",
+      "properties": {
+        "SetDate": {
+          "type": "string"
+        },
+        "String": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DateOnly": {
+          "type": "string",
+          "format": "date"
+        },
+        "FormatStringBackend": {
+          "type": "string"
+        },
+        "FormatDateTimeBackend": {
+          "type": "string"
+        },
+        "FormatDateOnlyBackend": {
+          "type": "string"
+        }
+      }
     }
   }
 }
