@@ -111,7 +111,6 @@ const renderFeedbackForm = ({
         description={description}
         questions={questions}
         position={position || 'inline'}
-        onSubmit={jest.fn()}
       />
     </FeedbackFormContext.Provider>,
   );

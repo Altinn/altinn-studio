@@ -7,8 +7,8 @@ import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
 import { TextQuestion } from './Question/TextQuestion';
 import classes from './FeedbackForm.module.css';
 import { getDefaultAnswerValueForQuestion } from '../utils/questionUtils';
-import type { AnswerType } from '../types/AnswerType';
 import { useTranslation } from 'react-i18next';
+import { submitFeedback } from '../utils/submitUtils';
 
 type FeedbackFormProps = {
   id: string;
@@ -18,7 +18,6 @@ type FeedbackFormProps = {
   disclaimer?: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
-  onSubmit: (answers: Record<string, AnswerType>, path: string) => void;
 };
 
 export function FeedbackForm({
@@ -29,7 +28,6 @@ export function FeedbackForm({
   description,
   disclaimer,
   position = 'inline',
-  onSubmit,
 }: FeedbackFormProps): React.ReactElement {
   const { answers, setAnswers, submitPath } = useFeedbackFormContext();
   const { t } = useTranslation();
@@ -52,7 +50,7 @@ export function FeedbackForm({
 
   const handleSubmit = () => {
     try {
-      onSubmit(
+      submitFeedback(
         {
           ...answers,
           feedbackFormId: id,

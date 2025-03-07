@@ -1,6 +1,4 @@
 import type { ButtonTexts, QuestionConfig } from './QuestionsProps';
-import type { AnswerType } from './AnswerType';
-
 export type FeedbackFormConfig = {
   id: string;
   buttonTexts: ButtonTexts;
@@ -10,5 +8,4 @@ export type FeedbackFormConfig = {
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
   submitPath: string;
-  onSubmit?: (answers: Record<string, AnswerType>, path: string) => void;
 };

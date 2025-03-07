@@ -3,7 +3,6 @@ import type { ButtonTexts, QuestionConfig } from '../types/QuestionsProps';
 import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
 import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
 import { FeedbackFormConfig } from '../types/FeedbackFormConfig';
-import { submitFeedback } from '../utils/submitUtils';
 
 export class FeedbackFormImpl {
   private readonly id: string;
@@ -14,7 +13,6 @@ export class FeedbackFormImpl {
   private readonly questions: QuestionConfig[];
   private readonly position: 'inline' | 'fixed' = 'inline';
   private readonly submitPath: string;
-  private readonly onSubmit?: (answers: Record<string, any>, path: string) => void;
 
   constructor(config: FeedbackFormConfig) {
     this.id = config.id;
@@ -26,7 +24,6 @@ export class FeedbackFormImpl {
     this.getFeedbackForm = this.getFeedbackForm.bind(this);
     this.position = config.position || 'inline';
     this.submitPath = config.submitPath;
-    this.onSubmit = config.onSubmit || submitFeedback;
   }
 
   public getFeedbackForm(): React.ReactElement {
@@ -40,7 +37,6 @@ export class FeedbackFormImpl {
           disclaimer={this.disclaimer}
           questions={this.questions}
           position={this.position}
-          onSubmit={this.onSubmit}
         />
       </FeedbackFormContextProvider>
     );
