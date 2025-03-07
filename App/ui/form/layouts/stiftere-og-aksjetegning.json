@@ -37,6 +37,7 @@
           "Aksjetegning-heading",
           "StifterPerson-Aksjetegning-AntallAksjer",
           "StifterPerson-Aksjetegning-Aksjepris",
+          "fullmektig-heading",
           "fullmektig-checkbox",
           "StifterPerson-Fullmektig"
         ],
@@ -217,12 +218,21 @@
         }
       },
       {
+        "id": "fullmektig-heading",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Fullmektig"
+        },
+        "size": "S"
+      },
+      {
         "dataModelBindings": {
           "simpleBinding": "StifterPerson.HarFullmektig"
         },
         "id": "fullmektig-checkbox",
         "type": "Checkboxes",
         "textResourceBindings": {
+          "title": "Stifteren er representert ved fullmektig",
           "summaryTitle": "stiftere-og-aksjetegning.Group-xCsfYx.title",
           "tableTitle": "stiftere-og-aksjetegning.Group-xCsfYx.title"
         },
