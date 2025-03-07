@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { toast } from 'react-toastify';
 import { StudioButton, StudioModal, StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
@@ -7,6 +8,7 @@ import { TextQuestion } from './Question/TextQuestion';
 import classes from './FeedbackForm.module.css';
 import { getDefaultAnswerValueForQuestion } from '../utils/questionUtils';
 import type { AnswerType } from '../types/AnswerType';
+import { useTranslation } from 'react-i18next';
 
 type FeedbackFormProps = {
   id: string;
@@ -16,7 +18,7 @@ type FeedbackFormProps = {
   disclaimer?: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
-  onSubmit: (answers: Record<string, AnswerType>) => void;
+  onSubmit: (answers: Record<string, AnswerType>, path: string) => void;
 };
 
 export function FeedbackForm({
@@ -29,7 +31,8 @@ export function FeedbackForm({
   position = 'inline',
   onSubmit,
 }: FeedbackFormProps): React.ReactElement {
-  const { answers, setAnswers } = useFeedbackFormContext();
+  const { answers, setAnswers, submitPath } = useFeedbackFormContext();
+  const { t } = useTranslation();
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -48,11 +51,19 @@ export function FeedbackForm({
   };
 
   const handleSubmit = () => {
-    onSubmit({
-      ...answers,
-      feedbackFormId: id,
-    });
-    handleCloseModal();
+    try {
+      onSubmit(
+        {
+          ...answers,
+          feedbackFormId: id,
+        },
+        submitPath,
+      );
+      handleCloseModal();
+      toast.success(t('feedback.success_message'));
+    } catch (error) {
+      toast.error(t('feedback.error_message'));
+    }
   };
 
   const renderQuestion = (question: QuestionConfig) => {
