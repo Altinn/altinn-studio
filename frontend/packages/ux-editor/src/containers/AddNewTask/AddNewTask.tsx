@@ -15,9 +15,7 @@ export const AddNewTask = () => {
     <StudioCard onClick={handleClick} className={classes.card}>
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
-        <StudioHeading className={classes.title} size='2xs'>
-          {t('ux_editor.task_card_add_new_task')}
-        </StudioHeading>
+        <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_task')}</StudioHeading>
       </div>
     </StudioCard>
   );

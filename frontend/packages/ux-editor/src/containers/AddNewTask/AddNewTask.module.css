@@ -1,51 +1,29 @@
-/* NOTE: the css for this file will be updated after merging /Create a card bar to display the layout sets
-#14733/ to replace hard code and place the card always at the right side of the cards bar in the task list */
 .card {
-  height: 244px;
-  width: 244px;
-  min-width: 244px;
-  transition:
-    0.2s transform,
-    0.2s box-shadow;
+  width: var(--icon-card-width);
+  min-width: var(--icon-card-width);
   background-color: var(--fds-semantic-background-default);
-  box-shadow: none;
   border-color: var(--color-neutral-border-subtle, #b8bcc1);
   border-width: var(--studio-treeitem-vertical-line-width);
   border-style: dashed;
 }
 
 .card:hover {
-  box-shadow: var(--fds-shadow-medium);
-  transform: translateY(-2px);
   background: var(--semantic-surface-info-subtle-hover, #b3d0ea);
-  border: var(--fds-border_radius-small);
-  border-style: solid;
   border-color: var(--fds-semantic-surface-action-checked);
 }
 
-.editIcon {
-  padding: 0px;
-  position: absolute;
-  border-radius: var(--fds-border_radius-full);
-  right: var(--fds-spacing-1);
-  top: var(--fds-spacing-1);
-}
-
 .iconContainer {
-  height: var(--fds-spacing-26);
+  height: var(--fds-spacing-14);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--fds-sizing-10);
-  color: var(--fds-semantic-text-neutral-default);
+  margin-bottom: var(--fds-spacing-14);
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  row-gap: var(--fds-spacing-1);
-  padding: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
   text-align: center;
-  font-weight: normal;
 }

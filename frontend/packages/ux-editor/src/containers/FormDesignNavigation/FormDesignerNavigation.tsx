@@ -4,7 +4,6 @@ import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { AddNewTask } from '../AddNewTask';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
 
@@ -20,7 +19,6 @@ export const FormDesignerNavigation = () => {
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>
             <TaskCardBar />
-            <AddNewTask />
             <SettingsTabs />
           </div>
           <footer className={classes.footer}>
