@@ -55,8 +55,10 @@
       {
         "dataModelBindings": {
           "saveToList": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.name"
+          "simpleBinding": "ListCheckboxExample.name",
+          "isDeleted": "ListCheckboxExample.isDeleted"
         },
+        "deletionStrategy":"soft",
         "id": "CheckboxesPage-Checkboxes2",
         "type": "Checkboxes",
         "textResourceBindings": {
