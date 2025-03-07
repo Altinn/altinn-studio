@@ -101,7 +101,9 @@ const renderFeedbackForm = ({
   position?: 'fixed' | 'inline';
 }) => {
   render(
-    <FeedbackFormContext.Provider value={{ answers: {}, setAnswers: setAnswers || jest.fn() }}>
+    <FeedbackFormContext.Provider
+      value={{ answers: {}, setAnswers: setAnswers || jest.fn(), submitPath: '/test' }}
+    >
       <FeedbackForm
         id='test'
         buttonTexts={buttonTexts}
