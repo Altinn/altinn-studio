@@ -260,6 +260,9 @@
           },
           "surname": {
             "type": "string"
+          },
+          "isDeleted": {
+            "type": "boolean"
           }
         }
       }
@@ -270,7 +273,9 @@
     "Dates": {
       "type": "object",
       "properties": {
-        "SetDate": { "type": "string" },
+        "SetDate": {
+          "type": "string"
+        },
         "String": {
           "type": "string",
           "format": "date-time"
@@ -283,9 +288,15 @@
           "type": "string",
           "format": "date"
         },
-        "FormatStringBackend": { "type": "string" },
-        "FormatDateTimeBackend": { "type": "string" },
-        "FormatDateOnlyBackend": { "type": "string" }
+        "FormatStringBackend": {
+          "type": "string"
+        },
+        "FormatDateTimeBackend": {
+          "type": "string"
+        },
+        "FormatDateOnlyBackend": {
+          "type": "string"
+        }
       }
     }
   }

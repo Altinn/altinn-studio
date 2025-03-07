@@ -99,10 +99,24 @@
               <xs:element minOccurs="0" name="age" type="xs:long" />
               <xs:element minOccurs="0" name="profession" type="xs:string" />
               <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="isDeleted" type="xs:boolean" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
         <xs:element minOccurs="0" name="checkboxesPersons" type="xs:string" />
+        <xs:element minOccurs="0" name="Dates">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="SetDate" type="xs:string" />
+              <xs:element minOccurs="0" name="String" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="DateTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="DateOnly" type="xs:date" />
+              <xs:element minOccurs="0" name="FormatStringBackend" type="xs:string" />
+              <xs:element minOccurs="0" name="FormatDateTimeBackend" type="xs:string" />
+              <xs:element minOccurs="0" name="FormatDateOnlyBackend" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
