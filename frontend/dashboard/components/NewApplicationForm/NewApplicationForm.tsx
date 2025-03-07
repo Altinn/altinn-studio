@@ -7,7 +7,7 @@ import { RepoNameInput } from '../RepoNameInput';
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';

@@ -2,13 +2,14 @@ import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { FileUtils } from '@studio/pure-functions';
 
 export const useAddOptionListMutation = (org: string, app: string, meta?: MutationMeta) => {
   const queryClient = useQueryClient();
   const { uploadOptionList } = useServicesContext();
 
   const mutationFn = (file: File) => {
-    const formData = createFormDataWithFile(file);
+    const formData = FileUtils.convertToFormData(file);
     return uploadOptionList(org, app, formData);
   };
 
@@ -20,10 +21,4 @@ export const useAddOptionListMutation = (org: string, app: string, meta?: Mutati
     },
     meta,
   });
-};
-
-const createFormDataWithFile = (file: File): FormData => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return formData;
 };

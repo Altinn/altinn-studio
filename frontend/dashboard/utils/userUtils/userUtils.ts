@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import type { Organization } from 'app-shared/types/Organization';
 
 export const userHasAccessToSelectedContext = ({
