@@ -14,7 +14,7 @@
   <xs:complexType name="Fullmektig">
     <xs:sequence>
       <xs:element minOccurs="0" name="Etternavn" type="xs:string" />
-      <xs:element minOccurs="0" name="Foedselsnummer" type="xs:long" />
+      <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="Adresse">

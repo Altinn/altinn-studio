@@ -17,10 +17,7 @@
   },
   "@xsdRootElement": "Skjemadata",
   "type": "object",
-  "required": [
-    "Selskapsnavn",
-    "SelskapetsFormaal"
-  ],
+  "required": ["Selskapsnavn", "SelskapetsFormaal"],
   "$defs": {
     "Aksjetegning": {
       "type": "object",
@@ -40,7 +37,7 @@
           "type": "string"
         },
         "Foedselsnummer": {
-          "type": "integer"
+          "type": "string"
         }
       }
     },
@@ -57,11 +54,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "Adresselinje",
-        "Postnummer",
-        "Sted"
-      ]
+      "required": ["Adresselinje", "Postnummer", "Sted"]
     }
   },
   "properties": {
@@ -112,10 +105,7 @@
             "title": ""
           }
         },
-        "required": [
-          "Etternavn",
-          "Adresse"
-        ]
+        "required": ["Etternavn", "Adresse"]
       }
     },
     "StifterVirksomhet": {
@@ -157,10 +147,7 @@
           "format": "date"
         }
       },
-      "required": [
-        "AksjekapitalSum",
-        "FristForInnbetaling"
-      ]
+      "required": ["AksjekapitalSum", "FristForInnbetaling"]
     },
     "Styre": {
       "type": "object",
@@ -175,9 +162,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "Etternavn"
-          ]
+          "required": ["Etternavn"]
         },
         "HarNestleder": {
           "type": "string"
@@ -192,9 +177,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "Etternavn"
-          ]
+          "required": ["Etternavn"]
         },
         "Styremedlem": {
           "type": "array",
@@ -209,15 +192,11 @@
                 "type": "string"
               }
             },
-            "required": [
-              "Etternavn"
-            ]
+            "required": ["Etternavn"]
           }
         }
       },
-      "required": [
-        "Styreleder"
-      ]
+      "required": ["Styreleder"]
     },
     "Revisor": {
       "type": "object",
@@ -239,11 +218,7 @@
           "format": "email"
         }
       },
-      "required": [
-        "HarRevisor",
-        "Navn",
-        "Adresse"
-      ]
+      "required": ["HarRevisor", "Navn", "Adresse"]
     },
     "Stiftelsesdokumenter": {
       "type": "array",
