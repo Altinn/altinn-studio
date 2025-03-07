@@ -17,6 +17,7 @@ describe('FeedbackFormImpl', () => {
       heading: 'Give feedback - heading',
       description: 'Description',
       questions: mockQuestions,
+      submitPath: 'test',
     });
 
     render(<div>{feedbackForm.getFeedbackForm()}</div>);
@@ -37,6 +38,7 @@ describe('FeedbackFormImpl', () => {
       heading: 'Give feedback - heading',
       description: 'Description',
       questions: mockQuestions,
+      submitPath: 'test',
     });
 
     render(<div>{feedbackForm.getFeedbackForm()}</div>);
