@@ -73,3 +73,7 @@ export function isCodeListEmpty(codeList: CodeList): boolean {
 export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
   return isCodeListEmpty(codeList) ? CodeListItemType.String : getTypeOfLastValue(codeList);
 }
+
+export function shouldDisableAddButton(codeType: CodeListItemType, codeList: CodeList): boolean {
+  return codeType === 'boolean' && codeList.length > 1;
+}

@@ -12,6 +12,7 @@ export function useCodeListEditorTexts(): CodeListEditorTexts {
 
   return {
     add: t('code_list_editor.add_option'),
+    addButtonDisabled: t('code_list_editor.add_button_disabled'),
     codeList: t('code_list_editor.legend'),
     delete: t('code_list_editor.column_title_delete'),
     deleteItem: (number: number) => t('code_list_editor.delete_code_list_item', { number }),

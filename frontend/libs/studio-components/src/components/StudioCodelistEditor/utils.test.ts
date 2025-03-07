@@ -9,6 +9,7 @@ import {
   getTypeOfLastValue,
   isCodeListEmpty,
   removeCodeListItem,
+  shouldDisableAddButton,
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
@@ -122,6 +123,25 @@ describe('StudioCodelistEditor utils', () => {
 
     it('Returns "boolean" when the code list consists of booleans', () => {
       expect(evaluateDefaultType(codeListWithBooleans)).toBe(CodeListItemType.Boolean);
+    });
+  });
+
+  describe('shouldDisableAddButton', () => {
+    it('Returns true when codeType is boolean and codeList has two elements', () => {
+      expect(shouldDisableAddButton('boolean', codeListWithBooleans)).toBe(true);
+    });
+
+    it('Returns false when codeType is boolean and codeList has less than two elements', () => {
+      const codeListWithSingleBoolean = [{ value: true, label: 'test' }];
+      expect(shouldDisableAddButton('boolean', codeListWithSingleBoolean)).toBe(false);
+    });
+
+    it('Returns false when codeType is string', () => {
+      expect(shouldDisableAddButton('string', codeListWithStrings)).toBe(false);
+    });
+
+    it('Returns false when codeType is number', () => {
+      expect(shouldDisableAddButton('string', codeListWithNumbers)).toBe(false);
     });
   });
 });

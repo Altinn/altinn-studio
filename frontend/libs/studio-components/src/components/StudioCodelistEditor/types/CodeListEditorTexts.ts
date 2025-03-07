@@ -5,6 +5,7 @@ import type { CodeListItemType } from './CodeListItemType';
 
 export type CodeListEditorTexts = {
   add: string;
+  addButtonDisabled: string;
   codeList: string;
   delete: string;
   deleteItem: (number: number) => string;

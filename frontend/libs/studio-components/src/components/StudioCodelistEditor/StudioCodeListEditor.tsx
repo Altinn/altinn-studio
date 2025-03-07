@@ -10,6 +10,7 @@ import {
   changeCodeListItem,
   isCodeListEmpty,
   evaluateDefaultType,
+  shouldDisableAddButton,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -137,7 +138,10 @@ function ControlledCodeListEditor({
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
       />
-      <AddButton onClick={handleAddButtonClick} />
+      <AddButton
+        onClick={handleAddButtonClick}
+        disabled={shouldDisableAddButton(codeType, codeList)}
+      />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
@@ -264,12 +268,21 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
 
 type AddButtonProps = {
   onClick: () => void;
+  disabled: boolean;
 };
 
-function AddButton({ onClick }: AddButtonProps): ReactElement {
+function AddButton({ onClick, disabled }: AddButtonProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  const tooltip = disabled ? texts.addButtonDisabled : undefined;
+
   return (
-    <StudioButton onClick={onClick} variant='secondary' icon={<PlusIcon />}>
+    <StudioButton
+      onClick={onClick}
+      variant='secondary'
+      icon={<PlusIcon />}
+      disabled={disabled}
+      title={tooltip}
+    >
       {texts.add}
     </StudioButton>
   );
