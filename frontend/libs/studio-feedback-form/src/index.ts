@@ -1,2 +1,2 @@
 export { FeedbackFormImpl } from './config/FeedbackFormImpl';
-export { FeedbackFormConfig } from './types/FeedbackFormConfig';
+export type { FeedbackFormConfig } from './types/FeedbackFormConfig';

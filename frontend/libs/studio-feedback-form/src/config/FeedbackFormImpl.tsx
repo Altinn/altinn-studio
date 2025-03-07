@@ -2,7 +2,7 @@ import React from 'react';
 import type { ButtonTexts, QuestionConfig } from '../types/QuestionsProps';
 import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
 import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
-import { FeedbackFormConfig } from '../types/FeedbackFormConfig';
+import type { FeedbackFormConfig } from '../types/FeedbackFormConfig';
 
 export class FeedbackFormImpl {
   private readonly id: string;
