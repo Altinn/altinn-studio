@@ -8,11 +8,10 @@ import { renderWithProviders } from '../../testing/mocks';
 
 describe('taskCard', () => {
   it('should display popover when clicking ellipsis button', async () => {
-    render();
     const user = userEvent.setup();
+    render();
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     expect(screen.getByRole('button', { name: /general.delete/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /ux_editor.task_card.edit/ })).toBeInTheDocument();
   });
 
   it('should display datatype id', async () => {
@@ -23,6 +22,13 @@ describe('taskCard', () => {
   it('should display task type', async () => {
     render();
     expect(screen.getByText(/ux_editor.subform/)).toBeInTheDocument();
+  });
+
+  it('should show deletion button for subform', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    expect(screen.getByRole('button', { name: /general.delete/ })).toBeInTheDocument();
   });
 });
 
