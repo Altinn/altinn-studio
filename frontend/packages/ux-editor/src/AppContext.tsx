@@ -17,6 +17,7 @@ export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
+  removeSelectedFormLayoutSetName: () => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
@@ -48,8 +49,11 @@ export const AppContextProvider = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
 
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName(layoutSets);
+  const {
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutSetName,
+    removeSelectedFormLayoutSetName,
+  } = useSelectedFormLayoutSetName(layoutSets);
 
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -102,6 +106,7 @@ export const AppContextProvider = ({
       previewIframeRef,
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
+      removeSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       updateLayoutsForPreview,
@@ -117,6 +122,7 @@ export const AppContextProvider = ({
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
+      removeSelectedFormLayoutSetName,
       updateLayoutsForPreview,
       updateLayoutSetsForPreview,
       updateLayoutSettingsForPreview,
