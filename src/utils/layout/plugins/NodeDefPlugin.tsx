@@ -6,7 +6,6 @@ import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps, ExprResolver } from 'src/layout/LayoutComponent';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface DefPluginConfig {
   componentType: CompTypes;
@@ -259,7 +258,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
  */
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-  pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction): string[];
+  pickDirectChildren(state: DefPluginState<Config>, restriction?: number | undefined): string[];
   isChildHidden(state: DefPluginState<Config>, childId: string): boolean;
 }
 

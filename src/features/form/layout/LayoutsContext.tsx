@@ -8,6 +8,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
+import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
@@ -15,10 +16,12 @@ import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
 export interface LayoutContextValue {
+  lookups: LayoutLookups;
   layouts: ILayouts;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;
@@ -93,8 +96,10 @@ export function useDataTypeFromLayoutSet(layoutSetName: string) {
   return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
 }
 
+const emptyLayouts: ILayouts = {};
 export const LayoutsProvider = Provider;
-export const useLayouts = (): ILayouts => useCtx()?.layouts ?? {};
+export const useLayouts = (): ILayouts => useCtx()?.layouts ?? emptyLayouts;
+export const useLayoutLookups = () => useCtx().lookups;
 
 export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 
@@ -114,7 +119,10 @@ function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModel
   const withQuirksFixed = applyLayoutQuirks(layouts, layoutSetId);
   removeDuplicateComponentIds(withQuirksFixed, layoutSetId);
 
+  const lookups = makeLayoutLookups(withQuirksFixed);
+
   return {
+    lookups,
     layouts: withQuirksFixed,
     hiddenLayoutsExpressions,
     expandedWidthLayouts,

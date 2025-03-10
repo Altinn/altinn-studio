@@ -1,4 +1,5 @@
 import React from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
@@ -13,38 +14,90 @@ import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext }
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprPositionalArgs,
   ExprValToActualOrExpr,
   ExprValueArgs,
-  LayoutReference,
+  NodeReference,
 } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
+import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 jest.mock('src/features/externalApi/useExternalApi');
 
 interface Props {
-  reference: LayoutReference;
+  reference: NodeReference;
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
 }
 
-function ExpressionRunner({ reference, expression, positionalArguments, valueArguments }: Props) {
+function InnerExpressionRunner({ reference, expression, positionalArguments, valueArguments }: Props) {
   const dataSources = useExpressionDataSources();
   const result = useEvalExpression(ExprVal.Any, reference, expression, null, dataSources, {
     positionalArguments,
     valueArguments,
   });
   return <div data-testid='expr-result'>{JSON.stringify(result)}</div>;
+}
+
+function ExpressionRunner(props: Props) {
+  return (
+    <DataModelLocationFromNode nodeId={props.reference.id}>
+      <InnerExpressionRunner {...props} />
+    </DataModelLocationFromNode>
+  );
+}
+
+function DataModelLocationFromNode({ nodeId, children }: PropsWithChildren<{ nodeId: string }>) {
+  const realNode = useNode(nodeId);
+  if (!realNode) {
+    throw new Error(`Node not found: ${nodeId}`);
+  }
+
+  const [closestRepeating, rowIndex] = getClosestRepeating(realNode);
+  const dataModelBindings = NodesInternal.useNodeData(closestRepeating, (d) => d.layout.dataModelBindings);
+  const repeatingBinding = closestRepeating && getRepeatingBinding(closestRepeating.type, dataModelBindings);
+
+  if (closestRepeating === undefined || rowIndex === undefined || !repeatingBinding) {
+    return children;
+  }
+
+  return (
+    <DataModelLocationProvider
+      binding={repeatingBinding}
+      rowIndex={rowIndex}
+    >
+      {children}
+    </DataModelLocationProvider>
+  );
+}
+
+function getClosestRepeating(node: LayoutNode): [LayoutNode<RepeatingComponents>, number] | [undefined, undefined] {
+  let subject: LayoutNode | LayoutPage = node;
+  while (subject.parent instanceof BaseLayoutNode && !isRepeatingComponentType(subject.parent.type)) {
+    subject = subject.parent;
+  }
+
+  const parent = subject.parent;
+  if (parent instanceof BaseLayoutNode && isRepeatingComponentType(parent.type)) {
+    return [parent as LayoutNode<RepeatingComponents>, subject.rowIndex!];
+  }
+
+  return [undefined, undefined];
 }
 
 function nodeIdFromContext(context: SharedTestFunctionContext | undefined) {
@@ -99,9 +152,9 @@ describe('Expressions shared function tests', () => {
     jest.restoreAllMocks();
   });
 
-  const sharedTests = getSharedTests('functions');
+  const sharedTests = getSharedTests('functions').content;
 
-  describe.each(sharedTests.content)('Function: $folderName', (folder) => {
+  describe.each(sharedTests)('Function: $folderName', (folder) => {
     it.each(folder.content)('$name', async (test) => {
       const {
         disabledFrontend,
@@ -268,21 +321,17 @@ describe('Expressions shared function tests', () => {
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
 
-      let node: LayoutNode | undefined;
       const nodeId = nodeIdFromContext(context);
       const { rerender } = await renderWithNode({
         nodeId,
-        renderer: ({ node: _node }) => {
-          node = _node;
-          return (
-            <ExpressionRunner
-              reference={{ type: 'node', id: _node.id }}
-              expression={expression}
-              positionalArguments={positionalArguments}
-              valueArguments={valueArguments}
-            />
-          );
-        },
+        renderer: () => (
+          <ExpressionRunner
+            reference={{ type: 'node', id: nodeId }}
+            expression={expression}
+            positionalArguments={positionalArguments}
+            valueArguments={valueArguments}
+          />
+        ),
         inInstance,
         queries: {
           fetchLayoutSets: async () => ({
@@ -314,7 +363,7 @@ describe('Expressions shared function tests', () => {
         for (const testCase of testCases) {
           rerender(
             <ExpressionRunner
-              reference={{ type: 'node', id: node!.id }}
+              reference={{ type: 'node', id: nodeId }}
               expression={testCase.expression}
               positionalArguments={positionalArguments}
               valueArguments={valueArguments}

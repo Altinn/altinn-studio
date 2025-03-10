@@ -429,10 +429,6 @@ export class ComponentConfig {
     if (childrenPlugins.length > 0) {
       const ChildClaimerProps = new CG.import({ import: 'ChildClaimerProps', from: 'src/layout/LayoutComponent' });
       const NodeData = new CG.import({ import: 'NodeData', from: 'src/utils/layout/types' });
-      const TraversalRestriction = new CG.import({
-        import: 'TraversalRestriction',
-        from: 'src/utils/layout/useNodeTraversal',
-      });
 
       const claimChildrenBody = childrenPlugins.map((plugin) =>
         `${pluginRef(plugin)}.claimChildren({
@@ -453,7 +449,7 @@ export class ComponentConfig {
         `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
           ${claimChildrenBody.join('\n')}
         }`,
-        `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: ${TraversalRestriction}) {
+        `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: number) {
           return [${pickDirectChildrenBody.join(', ')}];
         }`,
         `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string) {

@@ -181,16 +181,16 @@ export function useFilteredAndSortedOptions({
 
     if (optionFilter !== undefined && ExprValidation.isValid(optionFilter)) {
       options = options.filter((o) => {
-        const { rowNode, dataModelLocation, ...option } = o;
+        const { dataModelLocation, ...option } = o;
         const valueArguments: ExprValueArgs<IOptionInternal> = {
           data: option,
           defaultKey: 'value',
         };
-        const reference: LayoutReference = { type: 'node', id: rowNode?.id ?? node.id };
+        const reference: LayoutReference = { type: 'node', id: node.id };
         const keep = evalExpr(
           optionFilter,
           reference,
-          { ...dataSources, currentDataModelPath: dataModelLocation },
+          { ...dataSources, currentDataModelPath: dataModelLocation ?? dataSources.currentDataModelPath },
           { valueArguments },
         );
         if (!keep && selectedValues.includes(option.value)) {
@@ -222,7 +222,7 @@ export function useFilteredAndSortedOptions({
     // process, and will not ruin the comparison later to make sure the state is set in zustand.
     for (const idx in options) {
       // If we mutate the existing option (possibly coming from useSourceOptions) it will break things.
-      const { rowNode: _1, dataModelLocation: _2, ...option } = options[idx];
+      const { dataModelLocation: _, ...option } = options[idx];
       options[idx] = option;
     }
 

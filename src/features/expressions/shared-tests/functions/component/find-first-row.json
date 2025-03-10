@@ -1,0 +1,51 @@
+{
+  "name": "Lookup should NOT find the first row when looking up from the outside",
+  "comment": "This used to work on frontend, but did not work on backend. This, breaking this on the frontend fixes a compatibility issue.",
+  "expression": ["component", "bedriftsNavn"],
+  "context": {
+    "component": "topLevel",
+    "currentLayout": "Page1"
+  },
+  "expectsFailure": "Component bedriftsNavn was found, but it is inside a repeating structure. Cannot find an instance of it that is a sibling or parent in relation to component topLevel",
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "topLevel",
+            "type": "Text",
+            "value": "Hello world"
+          },
+          {
+            "id": "bedrifter",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn"]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "altinnRowId": "company0",
+        "Navn": "Hell og lykke AS"
+      },
+      {
+        "altinnRowId": "company1",
+        "Navn": "Nedtur og motgang AS"
+      }
+    ]
+  }
+}

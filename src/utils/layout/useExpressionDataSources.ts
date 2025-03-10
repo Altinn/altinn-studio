@@ -2,6 +2,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
@@ -11,11 +12,12 @@ import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/us
 import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { Hidden, NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
+import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
+import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useInnerDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
-import { useInnerNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
@@ -26,7 +28,6 @@ import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/t
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
-import type { NodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 
 export interface ExpressionDataSources {
   process?: IProcess;
@@ -43,11 +44,11 @@ export interface ExpressionDataSources {
   currentLayoutSet: ILayoutSet | null;
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
   nodeDataSelector: NodeDataSelector;
-  nodeTraversal: NodeTraversalSelector;
   transposeSelector: DataModelTransposeSelector;
   externalApis: ExternalApisResult;
-  currentDataModelPath?: IDataModelReference;
+  currentDataModelPath: IDataModelReference | undefined;
   codeListSelector: CodeListSelector;
+  layoutLookups: LayoutLookups;
 }
 
 export function useExpressionDataSources(): ExpressionDataSources {
@@ -57,7 +58,6 @@ export function useExpressionDataSources(): ExpressionDataSources {
     attachmentsSelector,
     optionsSelector,
     nodeDataSelector,
-    dataSelectorForTraversal,
     isHiddenSelector,
     dataElementSelector,
     codeListSelector,
@@ -67,7 +67,6 @@ export function useExpressionDataSources(): ExpressionDataSources {
     NodesInternal.useAttachmentsSelectorProps(),
     NodesInternal.useNodeOptionsSelectorProps(),
     NodesInternal.useNodeDataSelectorProps(),
-    NodesInternal.useDataSelectorForTraversalProps(),
     Hidden.useIsHiddenSelectorProps(),
     useLaxDataElementsSelectorProps(),
     useCodeListSelectorProps(),
@@ -76,12 +75,12 @@ export function useExpressionDataSources(): ExpressionDataSources {
   const process = useLaxProcessData();
   const applicationSettings = useApplicationSettings();
   const currentLanguage = useCurrentLanguage();
-
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const layoutLookups = useLayoutLookups();
   const instanceDataSources = useLaxInstanceDataSources();
   const currentLayoutSet = useCurrentLayoutSet() ?? null;
   const dataModelNames = DataModels.useReadableDataTypes();
   const externalApis = useExternalApis(useApplicationMetadata().externalApiIds ?? []);
-  const nodeTraversal = useInnerNodeTraversalSelector(useNodes(), dataSelectorForTraversal);
   const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
   const langToolsSelector = useInnerLanguageWithForcedNodeSelector(
     DataModels.useDefaultDataType(),
@@ -102,12 +101,13 @@ export function useExpressionDataSources(): ExpressionDataSources {
     langToolsSelector,
     currentLanguage,
     isHiddenSelector,
-    nodeTraversal,
     transposeSelector,
     currentLayoutSet,
     externalApis,
     dataModelNames,
     dataElementSelector,
     codeListSelector,
+    currentDataModelPath,
+    layoutLookups,
   });
 }

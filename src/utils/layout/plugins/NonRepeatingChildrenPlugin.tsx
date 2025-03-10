@@ -11,7 +11,6 @@ import type {
   DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 interface Config<
   Type extends TypesFromCategory<CompCategory.Container>,
@@ -149,7 +148,7 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     }
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): string[] {
+  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: number | undefined): string[] {
     if (restriction !== undefined) {
       return [];
     }

@@ -15,7 +15,6 @@ import type {
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IsHiddenOptions, NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export type ValidationsSelector = (
   nodeOrId: LayoutNode | string,
@@ -49,7 +48,7 @@ export interface ValidationStorePluginConfig {
       node: LayoutNode | undefined,
       mask: NodeVisibility,
       includeSelf: boolean,
-      restriction?: TraversalRestriction,
+      restriction?: number | undefined,
       severity?: ValidationSeverity,
     ) => NodeRefValidation[];
     useValidationsSelector: () => ValidationsSelector;
@@ -285,7 +284,7 @@ function getValidations({ state, id, mask, severity, includeHidden = false }: Ge
 
 interface GetDeepValidationsProps extends GetValidationsProps {
   includeSelf: boolean;
-  restriction?: TraversalRestriction;
+  restriction?: number | undefined;
 }
 
 export function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {

@@ -516,7 +516,7 @@ export class ExternalAppDataModel {
     return metadata.dataTypes.find((dt) => dt.id === this.dataType)!;
   }
 
-  simulateDataModel(_layouts?: ILayoutCollection): unknown {
+  simulateDataModel(numRows = 1, _layouts?: ILayoutCollection): unknown {
     const dataModel = {};
     const layouts = _layouts ?? this.layoutSet?.getLayouts();
     if (!layouts) {
@@ -538,28 +538,39 @@ export class ExternalAppDataModel {
     // Sort groupsNeeded by length to make sure the upper repeating groups are added before the lower/inner levels
     groupsNeeded.sort((a, b) => a.length - b.length);
 
-    // Add one row per repeating group
+    // Add N rows per repeating group
     for (const binding of groupsNeeded) {
       const parts = binding.split('.');
-      let current = dataModel;
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (i === parts.length - 1) {
-          if (!current[part]) {
-            current[part] = [{ [ALTINN_ROW_ID]: uuidv4() }];
-          }
-        } else if (current[part] && Array.isArray(current[part])) {
-          current = current[part][0];
-        } else {
-          if (!current[part]) {
-            current[part] = {};
-          }
-          current = current[part];
-        }
+      if (parts.length) {
+        const part = parts.shift()!;
+        this.buildDataModel(dataModel, part, parts, numRows);
       }
     }
 
     return dataModel;
+  }
+
+  private buildDataModel(current: object, key: string, bindingParts: string[], numRows: number) {
+    if (!bindingParts.length) {
+      if (!current[key]) {
+        current[key] = [];
+        for (let i = 0; i < numRows; i++) {
+          current[key].push({ [ALTINN_ROW_ID]: uuidv4() });
+        }
+      }
+    } else if (current[key] && Array.isArray(current[key])) {
+      const nextKey = bindingParts.shift()!;
+      for (const row of current[key]) {
+        this.buildDataModel(row, nextKey, bindingParts, numRows);
+      }
+      this.buildDataModel(current, nextKey, bindingParts, numRows);
+    } else {
+      if (!current[key]) {
+        current[key] = {};
+      }
+      const nextKey = bindingParts.shift()!;
+      this.buildDataModel(current[key], nextKey, bindingParts, numRows);
+    }
   }
 }
 

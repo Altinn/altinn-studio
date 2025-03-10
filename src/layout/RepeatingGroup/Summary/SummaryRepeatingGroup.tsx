@@ -10,6 +10,7 @@ import { LargeGroupSummaryContainer } from 'src/layout/RepeatingGroup/Summary/La
 import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
@@ -146,6 +147,7 @@ function RegularRepeatingGroupRow({
 }: FullRowProps) {
   const isHidden = Hidden.useIsHiddenSelector();
   const children = useNodeDirectChildren(targetNode, row.index);
+  const dataModelBindings = useNodeItem(targetNode, (i) => i.dataModelBindings);
 
   const childSummaryComponents = children
     .filter((n) => !inExcludedChildren(n))
@@ -157,22 +159,27 @@ function RegularRepeatingGroupRow({
     .filter(typedBoolean);
 
   return (
-    <div
-      data-testid='summary-repeating-row'
+    <DataModelLocationProvider
+      binding={dataModelBindings.group}
+      rowIndex={row.index}
       key={`row-${row.uuid}`}
-      className={classes.border}
     >
-      {childSummaryComponents.map(({ component: RenderCompactSummary, child }) => (
-        <RenderCompactSummary
-          onChangeClick={onChangeClick}
-          changeText={changeText}
-          key={child.id}
-          targetNode={child as never} // FIXME: Never type
-          summaryNode={summaryNode}
-          overrides={{}}
-        />
-      ))}
-    </div>
+      <div
+        data-testid='summary-repeating-row'
+        className={classes.border}
+      >
+        {childSummaryComponents.map(({ component: RenderCompactSummary, child }) => (
+          <RenderCompactSummary
+            onChangeClick={onChangeClick}
+            changeText={changeText}
+            key={child.id}
+            targetNode={child as never} // FIXME: Never type
+            summaryNode={summaryNode}
+            overrides={{}}
+          />
+        ))}
+      </div>
+    </DataModelLocationProvider>
   );
 }
 

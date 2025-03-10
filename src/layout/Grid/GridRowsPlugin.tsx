@@ -13,7 +13,6 @@ import type {
   DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 interface ExternalConfig {
   componentType?: TypesFromCategory<CompCategory.Container>;
@@ -169,7 +168,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction | undefined): string[] {
+  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: number | undefined | undefined): string[] {
     const out: string[] = [];
     if (restriction !== undefined) {
       return out;

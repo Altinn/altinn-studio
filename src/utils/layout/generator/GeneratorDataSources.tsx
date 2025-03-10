@@ -4,6 +4,7 @@ import { useApplicationSettings } from 'src/features/applicationSettings/Applica
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -15,10 +16,10 @@ import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider
 import { Validation } from 'src/features/validation/validationContext';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { useCommitWhenFinished } from 'src/utils/layout/generator/CommitQueue';
-import { Hidden, NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useInnerDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
-import { useInnerNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { ValidationDataSources } from 'src/features/validation';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -50,7 +51,6 @@ function useExpressionDataSources(): ExpressionDataSources {
     attachmentsSelector,
     optionsSelector,
     nodeDataSelector,
-    dataSelectorForTraversal,
     isHiddenSelector,
     dataElementSelector,
     codeListSelector,
@@ -60,7 +60,6 @@ function useExpressionDataSources(): ExpressionDataSources {
     NodesInternal.useAttachmentsSelectorProps(),
     NodesInternal.useNodeOptionsSelectorProps(),
     NodesInternal.useNodeDataSelectorProps(),
-    NodesInternal.useDataSelectorForTraversalProps(),
     Hidden.useIsHiddenSelectorProps(),
     useLaxDataElementsSelectorProps(),
     useCodeListSelectorProps(),
@@ -69,12 +68,13 @@ function useExpressionDataSources(): ExpressionDataSources {
   const process = useLaxProcessData();
   const applicationSettings = useApplicationSettings();
   const currentLanguage = useCurrentLanguage();
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const layoutLookups = useLayoutLookups();
 
   const instanceDataSources = hooks.useLaxInstanceDataSources();
   const currentLayoutSet = hooks.useCurrentLayoutSet() ?? null;
   const dataModelNames = hooks.useReadableDataTypes();
   const externalApis = hooks.useExternalApis();
-  const nodeTraversal = useInnerNodeTraversalSelector(useNodes(), dataSelectorForTraversal);
   const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
   const langToolsSelector = useInnerLanguageWithForcedNodeSelector(
     hooks.useDefaultDataType(),
@@ -95,13 +95,14 @@ function useExpressionDataSources(): ExpressionDataSources {
     langToolsSelector,
     currentLanguage,
     isHiddenSelector,
-    nodeTraversal,
     transposeSelector,
     currentLayoutSet,
     externalApis,
     dataModelNames,
     dataElementSelector,
     codeListSelector,
+    currentDataModelPath,
+    layoutLookups,
   });
 }
 

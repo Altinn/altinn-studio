@@ -10,7 +10,6 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompWithPlugin, IDataModelBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -29,7 +28,7 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
   const nodesStore = NodesInternal.useStore();
 
   return useCallback(
-    async (restriction: TraversalRestriction): Promise<boolean> => {
+    async (restriction: number | undefined): Promise<boolean> => {
       const state = nodesStore.getState();
       const recursiveChildren = new Set<string>(recursivelyFindChildren(nodeRef.current.id, state, restriction));
       const uploaderNodeIds = Object.values(state.nodeData)

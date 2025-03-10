@@ -7,7 +7,6 @@ import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 /**
  * Checks if a repeating group row has validation errors when the group is closed.
@@ -20,7 +19,7 @@ export function useOnGroupCloseValidation() {
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent(
-    (node: LayoutNode, restriction: TraversalRestriction, masks: AllowedValidationMasks): boolean => {
+    (node: LayoutNode, restriction: number | undefined, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
       const state = nodeStore.getState();
       const nodesWithErrors = getRecursiveValidations({
@@ -43,7 +42,7 @@ export function useOnGroupCloseValidation() {
   );
 
   return useCallback(
-    async (node: LayoutNode, restriction: TraversalRestriction, masks: AllowedValidationMasks) => {
+    async (node: LayoutNode, restriction: number | undefined, masks: AllowedValidationMasks) => {
       await validating();
       return callback(node, restriction, masks);
     },

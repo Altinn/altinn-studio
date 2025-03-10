@@ -599,7 +599,7 @@ describe('Validation', () => {
   it('Submitting should be rejected if validation fails on field hidden using expression', () => {
     cy.interceptLayout('group', (c) => {
       if (c.type === 'Input' && c.id === 'sendersName') {
-        c.hidden = ['equals', ['component', 'comments'], 'hideSendersName'];
+        c.hidden = ['equals', ['component', 'hideRepeatingGroupRow'], 748];
       }
     });
 
@@ -611,7 +611,9 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.addItemToGroup(2, 3, 'hideSendersName');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+    cy.get(appFrontend.group.hideRepeatingGroupRow).type('748');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();
@@ -686,7 +688,7 @@ describe('Validation', () => {
       'group',
       () => undefined,
       (layoutSet) => {
-        layoutSet.hide.data.hidden = ['equals', ['component', 'comments'], 'hidePage'];
+        layoutSet.hide.data.hidden = ['equals', ['component', 'hideRepeatingGroupRow'], 749];
       },
     );
 
@@ -698,7 +700,9 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.addItemToGroup(2, 3, 'hidePage');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+    cy.get(appFrontend.group.hideRepeatingGroupRow).type('749');
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();

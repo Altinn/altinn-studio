@@ -11,7 +11,6 @@ import type {
   DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface CardInternal extends Omit<CardConfigExternal, 'children' | 'media'> {
   childIds?: string[];
@@ -119,7 +118,7 @@ export class CardsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: TraversalRestriction | undefined): string[] {
+  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: number | undefined | undefined): string[] {
     const out: string[] = [];
     if (restriction !== undefined) {
       return out;

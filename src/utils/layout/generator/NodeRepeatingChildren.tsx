@@ -5,6 +5,7 @@ import deepEqual from 'fast-deep-equal';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -110,28 +111,33 @@ const GenerateRow = React.memo(function GenerateRow({
   NodesStateQueue.useRemoveRow({ node, plugin });
 
   return (
-    <GeneratorRowProvider
+    <DataModelLocationProvider
+      binding={groupBinding}
       rowIndex={rowIndex}
-      groupBinding={groupBinding}
-      directMutators={directMutators}
-      idMutators={[mutateComponentIdPlain(rowIndex)]}
-      recursiveMutators={recursiveMutators}
     >
-      <MaintainRowUuid
+      <GeneratorRowProvider
+        rowIndex={rowIndex}
         groupBinding={groupBinding}
-        plugin={plugin}
-      />
-      <GeneratorCondition
-        stage={StageEvaluateExpressions}
-        mustBeAdded='all'
+        directMutators={directMutators}
+        idMutators={[mutateComponentIdPlain(rowIndex)]}
+        recursiveMutators={recursiveMutators}
       >
-        <ResolveRowExpressions plugin={plugin} />
-      </GeneratorCondition>
-      <GenerateNodeChildren
-        claims={claims}
-        pluginKey={plugin.getKey()}
-      />
-    </GeneratorRowProvider>
+        <MaintainRowUuid
+          groupBinding={groupBinding}
+          plugin={plugin}
+        />
+        <GeneratorCondition
+          stage={StageEvaluateExpressions}
+          mustBeAdded='all'
+        >
+          <ResolveRowExpressions plugin={plugin} />
+        </GeneratorCondition>
+        <GenerateNodeChildren
+          claims={claims}
+          pluginKey={plugin.getKey()}
+        />
+      </GeneratorRowProvider>
+    </DataModelLocationProvider>
   );
 });
 

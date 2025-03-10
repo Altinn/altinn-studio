@@ -1,5 +1,6 @@
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ValidationErrorMessage } from 'src/features/expressions/validation';
+import type { EvaluateExpressionParams } from 'src/features/expressions/index';
 import type { ExprConfig, Expression } from 'src/features/expressions/types';
 
 export class ExprRuntimeError extends Error {
@@ -33,10 +34,17 @@ export class UnexpectedType extends ExprRuntimeError {
   }
 }
 
-export class NodeNotFound extends Error {
-  public constructor(nodeId: string | undefined) {
-    const id = JSON.stringify(nodeId);
-    super(`Unable to evaluate expressions in context of the ${id} component (it could not be found)`);
+export class NodeRelationNotFound extends ExprRuntimeError {
+  public constructor(ctx: EvaluateExpressionParams, id: string) {
+    const ref = ctx.reference;
+    const ourLocation =
+      ref.type === 'node' ? `component ${ref.id}` : ref.type === 'page' ? `page ${ref.id}` : 'unknown';
+    super(
+      ctx.expr,
+      ctx.path,
+      `Component ${id} was found, but it is inside a repeating structure. Cannot find an instance ` +
+        `of it that is a sibling or parent in relation to ${ourLocation}`,
+    );
   }
 }
 

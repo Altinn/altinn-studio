@@ -13,6 +13,7 @@ import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.mo
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
@@ -33,6 +34,7 @@ export const RepeatingGroupSummary = ({
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const dataModelBindings = useNodeItem(componentNode, (i) => i.dataModelBindings);
   const isNested = componentNode.parent instanceof BaseLayoutNode;
 
   if (rows.length === 0) {
@@ -66,24 +68,34 @@ export const RepeatingGroupSummary = ({
         />
       </Heading>
       <div className={cn(classes.contentWrapper, { [classes.nestedContentWrapper]: isNested })}>
-        {rows.map((row, index) => (
-          <React.Fragment key={row?.uuid}>
-            {index != 0 && <hr className={classes.rowDivider} />}
-            <Flex
+        {rows.map((row) => {
+          if (!row) {
+            return null;
+          }
+
+          return (
+            <DataModelLocationProvider
               key={row?.uuid}
-              container
-              spacing={6}
-              alignItems='flex-start'
+              binding={dataModelBindings.group}
+              rowIndex={row.index}
             >
-              {row?.itemIds?.map((nodeId) => (
-                <ComponentSummaryById
-                  key={nodeId}
-                  componentId={nodeId}
-                />
-              ))}
-            </Flex>
-          </React.Fragment>
-        ))}
+              {row.index != 0 && <hr className={classes.rowDivider} />}
+              <Flex
+                key={row?.uuid}
+                container
+                spacing={6}
+                alignItems='flex-start'
+              >
+                {row?.itemIds?.map((nodeId) => (
+                  <ComponentSummaryById
+                    key={nodeId}
+                    componentId={nodeId}
+                  />
+                ))}
+              </Flex>
+            </DataModelLocationProvider>
+          );
+        })}
       </div>
       {errors?.map(({ message }) => (
         <ErrorMessage

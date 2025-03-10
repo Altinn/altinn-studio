@@ -28,7 +28,7 @@ export const useSourceOptions = ({
     }
 
     const nodeReference: NodeReference = { type: 'node', id: node.id };
-    const { formDataRowsSelector, formDataSelector, langToolsSelector, nodeTraversal } = dataSources;
+    const { formDataRowsSelector, formDataSelector, langToolsSelector } = dataSources;
     const output: IOptionInternal[] = [];
     const langTools = langToolsSelector(node);
     const { group, value, label, helpText, description, dataType } = source;
@@ -48,23 +48,6 @@ export const useSourceOptions = ({
     const groupRows = formDataRowsSelector(groupReference);
     if (!groupRows.length) {
       return output;
-    }
-
-    let repGroupNode: LayoutNode<'RepeatingGroup'> | undefined;
-    if (addRowInfo) {
-      repGroupNode = nodeTraversal(
-        (t) =>
-          t.allNodes(
-            (n) =>
-              n.type === 'node' &&
-              n.layout.type === 'RepeatingGroup' &&
-              n.layout.dataModelBindings &&
-              'group' in n.layout.dataModelBindings &&
-              n.layout.dataModelBindings.group.field === groupReference.field &&
-              n.layout.dataModelBindings.group.dataType === groupReference.dataType,
-          )?.[0] as LayoutNode<'RepeatingGroup'> | undefined,
-        [groupDataType, groupReference.field, groupReference.dataType],
-      );
     }
 
     for (const idx in groupRows) {
@@ -97,17 +80,11 @@ export const useSourceOptions = ({
         }),
       };
 
-      let rowNode: LayoutNode | undefined;
-      if (repGroupNode) {
-        rowNode = nodeTraversal((t) => t.with(repGroupNode).children(undefined, index)?.[0], [repGroupNode, index]);
-      }
-
       output.push({
         value: String(formDataSelector(transposed)),
         label: resolveText(label, nodeReference, modifiedDataSources, nonTransposed) as string,
         description: resolveText(description, nodeReference, modifiedDataSources, nonTransposed),
         helpText: resolveText(helpText, nodeReference, modifiedDataSources, nonTransposed),
-        rowNode,
         dataModelLocation: addRowInfo ? transposed : undefined,
       });
     }

@@ -17,7 +17,6 @@ import type {
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { BaseRow } from 'src/utils/layout/types';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface RepChildrenRow extends BaseRow {
   itemIds: string[];
@@ -216,7 +215,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
     }
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): string[] {
+  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: number | undefined): string[] {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = (state.item as any)[this.settings.internalProp] as (Row<E> | undefined)[];
     if (!rows) {

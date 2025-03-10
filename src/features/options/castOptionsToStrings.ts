@@ -1,18 +1,15 @@
 import type { IDataModelReference, IRawOption } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IOptionInternal extends Omit<IRawOption, 'value'> {
   value: string;
 
   /**
    * When fetching options from the data model, if the source path is bound to a RepeatingGroup component, this may
-   * be set to the first node in each row, representing a node object per option. This is useful in `optionFilter`
-   * (and is currently only set when that property is present), so that the filter can work per-row as well as
-   * per-option.
+   * be set to the data model location for each row/option. This is useful in `optionFilter` (and is currently only set
+   * when that property is present), so that the filter can work per-row as well as per-option.
    *
    * @see useSourceOptions
    */
-  rowNode?: LayoutNode;
   dataModelLocation?: IDataModelReference;
 }
 

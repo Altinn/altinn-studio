@@ -11,7 +11,6 @@ import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { NodeData, NodeItemFromNode } from 'src/utils/layout/types';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 /**
  * Use the item of a node. This re-renders when the item changes (or when the part of the item you select changes),
@@ -63,10 +62,7 @@ export function useWaitForNodeItem<RetVal, N extends LayoutNode | undefined>(
 }
 
 const emptyArray: LayoutNode[] = [];
-export function useNodeDirectChildren(
-  parent: LayoutNode | undefined,
-  restriction?: TraversalRestriction,
-): LayoutNode[] {
+export function useNodeDirectChildren(parent: LayoutNode | undefined, restriction?: number | undefined): LayoutNode[] {
   return (
     NodesInternal.useNodeData(parent, (nodeData) => {
       if (!parent) {

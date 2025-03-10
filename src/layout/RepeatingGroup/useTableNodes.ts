@@ -3,9 +3,8 @@ import { useMemo } from 'react';
 import { CompCategory } from 'src/layout/common';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
-export function useTableNodes(node: LayoutNode<'RepeatingGroup'>, restriction: TraversalRestriction) {
+export function useTableNodes(node: LayoutNode<'RepeatingGroup'>, restriction: number | undefined) {
   const tableHeaders = useNodeItem(node, (item) => item.tableHeaders);
   const children = useNodeDirectChildren(node, restriction);
 

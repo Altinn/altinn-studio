@@ -10,13 +10,12 @@ import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface IDisplayLikertContainer {
   groupNode: LayoutNode<'Likert'>;
   divRef?: React.Ref<HTMLDivElement>;
   id?: string;
-  restriction?: TraversalRestriction;
+  restriction?: number | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 

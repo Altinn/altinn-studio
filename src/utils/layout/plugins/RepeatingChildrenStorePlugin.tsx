@@ -148,7 +148,7 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
 
           return {
             nodeData,
-            ...setReadiness({ state, target: NodesReadiness.NotReady, reason: 'Rows removed', newNodes: true }),
+            ...setReadiness({ state, target: NodesReadiness.NotReady, reason: 'Rows removed' }),
           };
         });
       },
