@@ -4,7 +4,7 @@ metadata:
   name: loadbalancer-config
 data:
   nginx.conf: |
-    worker_processes 1;
+    worker_processes auto;
 
     events { worker_connections 1024; }
 
