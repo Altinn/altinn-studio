@@ -76,5 +76,5 @@ export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
 
 export function isCodeLimitReached(codeList: CodeList, codeType: CodeListItemType): boolean {
   const booleanCodeLimit = 2;
-  return codeType === 'boolean' && codeList.length >= booleanCodeLimit;
+  return codeType === CodeListItemType.Boolean && codeList.length >= booleanCodeLimit;
 }
