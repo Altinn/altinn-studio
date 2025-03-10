@@ -5,6 +5,7 @@ import type { ButtonTexts } from '../types/QuestionsProps';
 import { mockQuestions } from '../../mocks/mockQuestionsConfig';
 import { FeedbackFormContext } from '../contexts/FeedbackFormContext';
 import userEvent from '@testing-library/user-event';
+import axios from 'axios';
 
 const buttonTexts: ButtonTexts = {
   submit: 'Submit',
@@ -14,6 +15,9 @@ const buttonTexts: ButtonTexts = {
 
 const heading = 'Heading';
 const description = 'Description';
+
+jest.mock('axios');
+var mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
   it('should render FeedbackForm', () => {
@@ -48,6 +52,7 @@ describe('FeedbackForm', () => {
   it('should close FeedbackForm modal when submit button is clicked', async () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions });
+    mockedAxios.post.mockResolvedValueOnce({});
 
     const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
@@ -101,7 +106,9 @@ const renderFeedbackForm = ({
   position?: 'fixed' | 'inline';
 }) => {
   render(
-    <FeedbackFormContext.Provider value={{ answers: {}, setAnswers: setAnswers || jest.fn() }}>
+    <FeedbackFormContext.Provider
+      value={{ answers: {}, setAnswers: setAnswers || jest.fn(), submitPath: '/test' }}
+    >
       <FeedbackForm
         id='test'
         buttonTexts={buttonTexts}
@@ -109,7 +116,6 @@ const renderFeedbackForm = ({
         description={description}
         questions={questions}
         position={position || 'inline'}
-        onSubmit={jest.fn()}
       />
     </FeedbackFormContext.Provider>,
   );

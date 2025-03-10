@@ -2,7 +2,7 @@ import React from 'react';
 import type { ButtonTexts, QuestionConfig } from '../types/QuestionsProps';
 import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
 import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
-import type { AnswerType } from '../types/AnswerType';
+import type { FeedbackFormConfig } from '../types/FeedbackFormConfig';
 
 export class FeedbackFormImpl {
   private readonly id: string;
@@ -12,18 +12,9 @@ export class FeedbackFormImpl {
   private readonly disclaimer?: string;
   private readonly questions: QuestionConfig[];
   private readonly position: 'inline' | 'fixed' = 'inline';
-  private readonly onSubmit: (answers: Record<string, any>) => void;
+  private readonly submitPath: string;
 
-  constructor(config: {
-    id: string;
-    buttonTexts: ButtonTexts;
-    heading: string;
-    description: string;
-    disclaimer?: string;
-    questions: QuestionConfig[];
-    position?: 'inline' | 'fixed';
-    onSubmit: (answers: Record<string, AnswerType>) => void;
-  }) {
+  constructor(config: FeedbackFormConfig) {
     this.id = config.id;
     this.buttonTexts = config.buttonTexts;
     this.heading = config.heading;
@@ -32,12 +23,12 @@ export class FeedbackFormImpl {
     this.questions = config.questions;
     this.getFeedbackForm = this.getFeedbackForm.bind(this);
     this.position = config.position || 'inline';
-    this.onSubmit = config.onSubmit;
+    this.submitPath = config.submitPath;
   }
 
   public getFeedbackForm(): React.ReactElement {
     return (
-      <FeedbackFormContextProvider>
+      <FeedbackFormContextProvider submitPath={this.submitPath}>
         <FeedbackForm
           id={this.id}
           buttonTexts={this.buttonTexts}
@@ -46,7 +37,6 @@ export class FeedbackFormImpl {
           disclaimer={this.disclaimer}
           questions={this.questions}
           position={this.position}
-          onSubmit={this.onSubmit}
         />
       </FeedbackFormContextProvider>
     );
