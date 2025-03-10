@@ -15,7 +15,7 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -27,6 +27,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+
+    <!-- <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj">
+      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+    </ProjectReference> -->
     <ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
   </ItemGroup>
 

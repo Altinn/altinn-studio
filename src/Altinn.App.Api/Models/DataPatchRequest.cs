@@ -20,5 +20,5 @@ public class DataPatchRequest
     /// Issues from these validators will not be run during the save operation, but the validator will run on process/next
     /// </summary>
     [JsonPropertyName("ignoredValidators")]
-    public required List<string>? IgnoredValidators { get; init; }
+    public List<string>? IgnoredValidators { get; init; }
 }

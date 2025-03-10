@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Models;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -17,6 +18,7 @@ using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -237,9 +239,11 @@ public sealed class PatchServiceTests : IDisposable
         err.Should().NotBeNull();
         err!.Title.Should().Be("Precondition in patch failed");
         err.Detail.Should().Be("Path `/Name` is not equal to the indicated value.");
-        err.Status.Should().Be((int)HttpStatusCode.Conflict);
-        err.Extensions.Should().ContainKey("previousModel");
-        err.Extensions.Should().ContainKey("patchOperationIndex");
+        err.Status.Should().Be(StatusCodes.Status409Conflict);
+        var errType = err.Should().BeOfType<DataPatchError>().Which;
+        errType.PreviousModel.Should().BeEquivalentTo(oldModel);
+        errType.DataElementId.Should().Be(_dataGuid);
+        errType.PatchOperationIndex.Should().Be(0);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
 using Json.Patch;
@@ -13,7 +14,7 @@ public class DataPatchRequestMultiple
     /// <summary>
     /// The Patch operations to perform.
     /// </summary>
-    [JsonPropertyName("patches")]
+    [JsonPropertyName("patches"), Required]
     public required List<PatchListItem> Patches { get; init; }
 
     /// <summary>
@@ -31,5 +32,5 @@ public class DataPatchRequestMultiple
     /// Issues from these validators will not be run during the save operation, but the validator will run on process/next
     /// </summary>
     [JsonPropertyName("ignoredValidators")]
-    public required List<string>? IgnoredValidators { get; init; }
+    public List<string>? IgnoredValidators { get; init; }
 }

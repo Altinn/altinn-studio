@@ -1,3 +1,4 @@
+using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
@@ -16,7 +17,32 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         HttpResponseMessage response = await client.GetAsync("/swagger/v1/swagger.json");
         string openApiSpec = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
-        await File.WriteAllTextAsync("../../../OpenApi/swagger.json", openApiSpec);
-        await VerifyJson(openApiSpec);
+        await VerifyJson(openApiSpec, _verifySettings);
+    }
+
+    [Fact]
+    public async Task SaveCustomOpenApiSpec()
+    {
+        var org = "tdd";
+        var app = "contributer-restriction";
+        HttpClient client = GetRootedClient(org, app);
+        // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
+        HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");
+        string openApiSpec = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+        await VerifyJson(openApiSpec, _verifySettings);
+    }
+
+    private static VerifySettings _verifySettings
+    {
+        get
+        {
+            VerifySettings settings = new();
+            settings.UseStrictJson();
+            settings.DontScrubGuids();
+            settings.DontIgnoreEmptyCollections();
+            settings.AddExtraSettings(settings => settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore);
+            return settings;
+        }
     }
 }
