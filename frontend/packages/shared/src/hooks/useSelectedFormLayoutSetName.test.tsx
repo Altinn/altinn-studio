@@ -55,7 +55,7 @@ const wrapper = ({
 describe('useSelectedFormLayoutSetName', () => {
   afterEach(() => {
     typedLocalStorage.removeItem('featureFlags');
-    jest.clearAllMocks;
+    jest.clearAllMocks();
   });
 
   it('should return empty string when there are no layout sets', async () => {
