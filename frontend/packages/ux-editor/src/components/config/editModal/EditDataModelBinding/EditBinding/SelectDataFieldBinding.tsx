@@ -2,7 +2,6 @@ import React from 'react';
 import {
   getDataModelFields,
   validateSelectedDataField,
-  type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
@@ -11,10 +10,11 @@ import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
 import { useComponentPropertyHelpText } from '../../../../../hooks';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 type SelectDataFieldProps = {
-  internalBindingFormat: InternalBindingFormat;
-  handleBindingChange: (dataModelBindings: InternalBindingFormat) => void;
+  internalBindingFormat: ExplicitDataModelBinding;
+  handleBindingChange: (dataModelBindings: ExplicitDataModelBinding) => void;
   bindingKey: string;
   componentType: ComponentType;
 };

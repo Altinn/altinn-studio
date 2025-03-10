@@ -91,7 +91,9 @@ describe('EditSubformTableColumns', () => {
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
 
     const columnTitleKey = getUpdatedTableColumns(handleComponentChangeMock)[0].headerContent;
-    expect(columnTitleKey).toEqual(expect.stringContaining('subform_table_column_title_'));
+    expect(columnTitleKey).toEqual(
+      expect.stringContaining(subformLayoutMock.component1.textResourceBindings.title),
+    );
   });
 
   it('should call handleComponentChange when a column is deleted', async () => {

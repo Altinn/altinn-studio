@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
@@ -7,130 +8,100 @@ import {
 
 import userEvent from '@testing-library/user-event';
 
+const value: string = 'value';
+const label: string = 'label';
+const customValidation = jest.fn();
+const onBlur = jest.fn();
+const onChange = jest.fn();
+
 describe('StudioToggleableTextfield', () => {
+  afterEach(jest.clearAllMocks);
+
   it('Renders the view mode by default', () => {
-    renderStudioTextField({
-      viewProps: { children: 'Edit binding' },
-    });
-    expect(screen.getByRole('button', { name: 'Edit binding' })).toBeInTheDocument();
+    renderStudioToggleableTextfield();
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: label })).toHaveTextContent(value);
   });
 
   it('should toggle to edit-mode when edit button is clicked', async () => {
     const user = userEvent.setup();
-    renderStudioTextField({
-      viewProps: { children: 'Edit name' },
-      inputProps: { value: '', icon: <div />, label: 'Your name' },
-    });
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    expect(screen.getByLabelText('Your name')).toBeEnabled();
+    renderStudioToggleableTextfield();
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: label })).toHaveValue(value);
   });
 
   it('should run custom validation when value changes', async () => {
-    const customValidation = jest.fn();
     const user = userEvent.setup();
-    renderStudioTextField({
-      viewProps: { children: 'Edit name' },
-      inputProps: { value: '', label: 'Your name', icon: <div /> },
-      customValidation,
-    });
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-
+    renderStudioToggleableTextfield({ customValidation });
+    await user.click(screen.getByRole('button', { name: label }));
     const typedInputValue = 'John';
-    await user.type(screen.getByLabelText('Your name'), typedInputValue);
-
+    await user.type(screen.getByRole('textbox', { name: label }), typedInputValue);
     expect(customValidation).toHaveBeenCalledTimes(typedInputValue.length);
   });
 
-  it('should be toggle back to view mode on blur', async () => {
+  it('should toggle back to view mode on blur', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextField({
-      viewProps: { children: 'edit' },
-      inputProps: { value: 'value', label: 'Your name', icon: <div /> },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'edit' }));
-    expect(screen.getByLabelText('Your name')).toBeEnabled();
-    expect(screen.queryByRole('button', { name: 'edit' })).not.toBeInTheDocument();
-
-    fireEvent.blur(screen.getByLabelText('Your name'));
-    await screen.findByRole('button', { name: 'edit' });
+    renderStudioToggleableTextfield();
+    const viewButton = screen.getByRole('button', { name: label });
+    await user.click(viewButton);
+    const editTextfield = screen.getByRole('textbox', { name: label });
+    expect(editTextfield).toBeInTheDocument();
+    await user.tab();
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
   });
 
   it('should execute onBlur method when input is blurred', async () => {
-    const onBlurMock = jest.fn();
     const user = userEvent.setup();
-    renderStudioTextField({
-      viewProps: { children: 'Edit name' },
-      inputProps: { onBlur: onBlurMock, label: 'Your name', icon: <div /> },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    fireEvent.blur(screen.getByLabelText('Your name'));
-    expect(onBlurMock).toHaveBeenCalledTimes(1);
+    renderStudioToggleableTextfield();
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.tab();
+    expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
   it('should not toggle view on blur when input field has error', async () => {
+    const error = 'Your name is a required field';
     const user = userEvent.setup();
-
-    renderStudioTextField({
-      viewProps: { children: 'Edit your name' },
-      inputProps: { label: 'Your name', icon: <div />, error: 'Your name is a required field' },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Edit your name' }));
-
-    const inputField = screen.getByLabelText('Your name');
-    fireEvent.blur(inputField);
-
-    expect(inputField).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByText('Your name is a required field')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Edit your name' })).not.toBeInTheDocument();
+    renderStudioToggleableTextfield({ error });
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.tab();
+    expect(screen.getByRole('textbox', { name: label })).toBeInvalid();
+    expect(screen.getByText(error)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
   });
 
   it('should execute onChange method when input value changes', async () => {
-    const onChangeMock = jest.fn();
     const user = userEvent.setup();
-
-    renderStudioTextField({
-      viewProps: { children: 'edit' },
-      inputProps: { onChange: onChangeMock, label: 'Your name', icon: <div /> },
-    });
-
+    renderStudioToggleableTextfield();
     const inputValue = 'John';
-    await user.click(screen.getByRole('button', { name: 'edit' }));
-    await user.type(screen.getByLabelText('Your name'), inputValue);
-
-    expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.type(screen.getByRole('textbox', { name: label }), inputValue);
+    expect(onChange).toHaveBeenCalledTimes(inputValue.length);
   });
 
   it('should render error message if customValidation occured', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextField({
-      viewProps: { children: 'Edit name' },
-      inputProps: { label: 'Your name', icon: <div /> },
-      customValidation: (value: string) =>
-        value === 'test' ? 'Your name cannot be "test"' : undefined,
+    const customError = 'Your name cannot include "test"';
+    renderStudioToggleableTextfield({
+      customValidation: (valueToValidate: string) =>
+        valueToValidate.includes('test') ? customError : undefined,
     });
-
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    await user.type(screen.getByLabelText('Your name'), 'test');
-    expect(screen.getByText('Your name cannot be "test"'));
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.type(screen.getByRole('textbox', { name: label }), 'test');
+    expect(screen.getByText(customError));
   });
 });
 
-const renderStudioTextField = (props: Partial<StudioToggleableTextfieldProps>) => {
-  const defaultProps: StudioToggleableTextfieldProps = {
-    inputProps: {
-      label: 'label',
-      value: 'value',
-      icon: <div />,
-    },
-    viewProps: {
-      children: 'edit',
-    },
-    customValidation: jest.fn(),
-  };
+const defaultProps: StudioToggleableTextfieldProps = {
+  customValidation,
+  label,
+  onBlur,
+  onChange,
+  value,
+};
+
+const renderStudioToggleableTextfield = (
+  props: Partial<StudioToggleableTextfieldProps> = {},
+): RenderResult => {
   return render(<StudioToggleableTextfield {...defaultProps} {...props} />);
 };

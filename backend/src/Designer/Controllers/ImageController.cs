@@ -19,6 +19,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// <summary>
 /// Controller containing actions related to images
 /// </summary>
+[ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images")]

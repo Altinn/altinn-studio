@@ -376,40 +376,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return commits;
         }
 
-        /// <inheritdoc />
-        public Designer.Models.Commit GetInitialCommit(string org, string repository)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            Designer.Models.Commit commit = null;
-
-            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
-            if (repo.Commits.Any() && repo.Commits.Last() != null)
-            {
-                LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
-                commit = new Designer.Models.Commit();
-                commit.Message = firstCommit.Message;
-                commit.MessageShort = firstCommit.MessageShort;
-                commit.Encoding = firstCommit.Encoding;
-                commit.Sha = firstCommit.Sha;
-
-                commit.Author = new Designer.Models.Signature();
-                commit.Author.Email = firstCommit.Author.Email;
-                commit.Author.Name = firstCommit.Author.Name;
-                commit.Author.When = firstCommit.Author.When;
-
-                commit.Comitter = new Designer.Models.Signature();
-                commit.Comitter.Name = firstCommit.Committer.Name;
-                commit.Comitter.Email = firstCommit.Committer.Email;
-                commit.Comitter.When = firstCommit.Committer.When;
-            }
-            else
-            {
-                _logger.LogWarning($" // SourceControlSI // GetInitialCommit // Did not find any commits in repo {localServiceRepoFolder}");
-            }
-
-            return commit;
-        }
-
         /// <summary>
         /// Method for storing AppToken in Developers folder. This is not the permanent solution
         /// </summary>
@@ -519,45 +485,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        public void ResetCommit(string org, string repository)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
-            {
-                if (repo.RetrieveStatus().IsDirty)
-                {
-                    repo.Reset(ResetMode.Hard, "origin/master");
-                    repo.RemoveUntrackedFiles();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Discards local changes to a specific file and the file is updated with latest remote commit (origin/master)
-        /// by checking out the specific file.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <param name="fileName">the name of the file</param>
-        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
-            {
-                CheckoutOptions checkoutOptions = new()
-                {
-                    CheckoutModifiers = CheckoutModifiers.Force,
-                };
-
-                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
-            }
-        }
-
-        /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -575,23 +502,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     fileStatus == FileStatus.Conflicted)
                 {
                     Commands.Stage(repo, fileName);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Halts the merge operation and keeps local changes.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        public void AbortMerge(string org, string repository)
-        {
-            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
-            {
-                if (repo.RetrieveStatus().IsDirty)
-                {
-                    repo.Reset(ResetMode.Hard, "heads/master");
                 }
             }
         }

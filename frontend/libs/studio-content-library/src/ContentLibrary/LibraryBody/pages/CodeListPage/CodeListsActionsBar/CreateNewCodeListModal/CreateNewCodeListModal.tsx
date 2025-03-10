@@ -5,7 +5,7 @@ import {
   StudioModal,
   StudioTextfield,
 } from '@studio/components';
-import type { CodeList, CodeListEditorTexts } from '@studio/components';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
@@ -15,13 +15,17 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
 type CreateNewCodeListModalProps = {
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   codeListNames: string[];
+  textResources?: TextResource[];
 };
 
 export function CreateNewCodeListModal({
+  onBlurTextResource,
   onUpdateCodeList,
   codeListNames,
+  textResources,
 }: CreateNewCodeListModalProps) {
   const { t } = useTranslation();
   const modalRef = createRef<HTMLDialogElement>();
@@ -46,8 +50,10 @@ export function CreateNewCodeListModal({
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
+          onBlurTextResource={onBlurTextResource}
           onUpdateCodeList={onUpdateCodeList}
           onCloseModal={handleCloseModal}
+          textResources={textResources}
         />
       </StudioModal.Dialog>
     </StudioModal.Root>
@@ -57,15 +63,19 @@ export function CreateNewCodeListModal({
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   onCloseModal: () => void;
+  textResources?: TextResource[];
 };
 
 function CreateNewCodeList({
   codeList,
   codeListNames,
+  onBlurTextResource,
   onUpdateCodeList,
   onCloseModal,
+  textResources,
 }: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
@@ -117,16 +127,17 @@ function CreateNewCodeList({
       <StudioTextfield
         label={t('app_content_library.code_lists.create_new_code_list_name')}
         className={classes.codeListTitle}
-        size='small'
         onChange={(event) => handleCodeListTitleChange(event.target.value)}
         error={codeListTitleError}
       />
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
+          onBlurTextResource={onBlurTextResource}
           onChange={handleCodeListChange}
           onInvalid={handleInvalidCodeList}
           texts={editorTexts}
+          textResources={textResources}
         />
       </div>
       <StudioButton

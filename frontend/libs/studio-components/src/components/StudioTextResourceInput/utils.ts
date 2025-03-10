@@ -1,7 +1,11 @@
 import type { TextResource } from '../../types/TextResource';
 import { ArrayUtils } from '@studio/pure-functions';
+import { Mode } from './types/Mode';
 
-export function getTextResourceById(textResources: TextResource[], id: string): TextResource {
+export function getTextResourceById(
+  textResources: TextResource[],
+  id: string,
+): TextResource | undefined {
   return textResources.find((textResource) => textResource.id === id);
 }
 
@@ -21,4 +25,8 @@ export function changeTextResourceInList(
     (textResource) => textResource.id === newTextResource.id,
     newTextResource,
   );
+}
+
+export function determineDefaultMode(currentId?: string | null): Mode {
+  return currentId ? Mode.EditValue : Mode.Search;
 }

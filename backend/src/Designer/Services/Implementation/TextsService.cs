@@ -97,46 +97,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveTextV1(languageCode, textResource);
         }
 
-        /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetTextsV2(string org, string repo, string developer, string languageCode)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-
-            List<string> markdownFileNames = ExtractMarkdownFileNames(jsonTexts);
-            foreach (string markdownFileName in markdownFileNames)
-            {
-                string key = markdownFileName.Split('.')[0];
-                string text = await altinnAppGitRepository.GetTextMarkdown(markdownFileName);
-                jsonTexts[key] = text;
-            }
-
-            return jsonTexts;
-        }
-
-        /// <inheritdoc />
-        public async Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages)
-        {
-            if (languages == null || languages.Count == 0)
-            {
-                throw new FileNotFoundException();
-            }
-
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            Dictionary<string, string> firstJsonTexts = await altinnAppGitRepository.GetTextsV2(languages[0]);
-            languages.RemoveAt(0);
-            List<string> allKeys = firstJsonTexts.Keys.ToList();
-
-            foreach (string languageCode in languages)
-            {
-                Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                allKeys = MergeKeys(allKeys, jsonTexts.Keys.ToList());
-            }
-
-            return allKeys;
-        }
-
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
         {
             foreach (string key in keysToMerge)
@@ -150,68 +110,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return currentSetOfKeys;
-        }
-
-        /// <inheritdoc />
-        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonTexts)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            (Dictionary<string, string>, Dictionary<string, string>) extractMarkdown = ExtractMarkdown(languageCode, jsonTexts);
-
-            foreach (KeyValuePair<string, string> text in extractMarkdown.Item1)
-            {
-                await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
-            }
-
-            await altinnAppGitRepository.SaveTextsV2(languageCode, extractMarkdown.Item2);
-        }
-
-        /// <inheritdoc />
-        public void DeleteTexts(string org, string repo, string developer, string languageCode)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            altinnAppGitRepository.DeleteTexts(languageCode);
-        }
-
-        /// <inheritdoc />
-        public async Task ConvertV1TextsToV2(string org, string repo, string developer)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new[] { "resource.*.json" });
-
-            foreach (string languageFile in languageFiles.ToList())
-            {
-                Dictionary<string, string> newTexts = new();
-
-                string languageCode = GetLanguageCodeFromFilePath(languageFile);
-                TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
-
-                foreach (TextResourceElement text in texts.Resources)
-                {
-                    string newText = text.Value;
-
-                    if (text.Variables != null)
-                    {
-                        newText = ConvertText(text);
-                    }
-
-                    newTexts[text.Id] = newText;
-                }
-
-                (Dictionary<string, string> TextsWithMarkdown, Dictionary<string, string> Texts) extractMarkdown = ExtractMarkdown(languageCode, newTexts);
-
-                foreach (KeyValuePair<string, string> text in extractMarkdown.TextsWithMarkdown)
-                {
-                    await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
-                }
-
-                await UpdateTexts(org, repo, developer, languageCode, extractMarkdown.Texts);
-
-                altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
-            }
         }
 
         public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
@@ -249,59 +147,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await altinnAppGitRepository.SaveTextV1(languageCode, textResourceObject);
-        }
-
-        /// <inheritdoc />
-        public async Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
-        {
-            if (languages == null || languages.Count == 0)
-            {
-                throw new FileNotFoundException();
-            }
-
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new(languages.Count);
-            bool oldKeyExistsOriginally = false;
-            string response = string.Empty;
-            try
-            {
-                foreach (string languageCode in languages)
-                {
-                    Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                    oldKeyExistsOriginally = jsonTexts.ContainsKey(oldKey) || oldKeyExistsOriginally;
-                    if (!string.IsNullOrEmpty(newKey) && jsonTexts.ContainsKey(newKey) && jsonTexts.ContainsKey(oldKey))
-                    {
-                        throw new ArgumentException();
-                    }
-
-                    if (!string.IsNullOrEmpty(newKey) && jsonTexts.ContainsKey(oldKey))
-                    {
-                        string value = jsonTexts[oldKey];
-                        jsonTexts[newKey] = value;
-                    }
-
-                    jsonTexts.Remove(oldKey);
-                    tempUpdatedTexts[languageCode] = jsonTexts;
-                }
-
-                response = string.IsNullOrEmpty(newKey) ? $"the key, {oldKey}, was deleted." : $"The old key, {oldKey}, have been replaced with the new key, {newKey}.";
-
-                if (!oldKeyExistsOriginally)
-                {
-                    throw new Exception($"The key, {oldKey}, does not exist.");
-                }
-            }
-            catch (ArgumentException)
-            {
-                throw new ArgumentException();
-            }
-
-            foreach (KeyValuePair<string, Dictionary<string, string>> kvp in tempUpdatedTexts)
-            {
-                await altinnAppGitRepository.SaveTextsV2(kvp.Key, kvp.Value);
-            }
-
-            return response;
         }
 
         /// <inheritdoc />
@@ -362,7 +207,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (hasMutated)
                 {
                     await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
-                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}");
+                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}.json");
                 }
             }
             return updatedFiles.Count > 0 ? ["App/ui/layouts"] : [];

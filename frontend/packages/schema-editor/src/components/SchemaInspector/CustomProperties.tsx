@@ -110,20 +110,12 @@ export interface InputProps<T> {
 
 export const StringInput = ({ id, value, onChange }: InputProps<string>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  return <StudioTextfield size='sm' id={id} value={value} onChange={handleChange} />;
+  return <StudioTextfield id={id} value={value} onChange={handleChange} />;
 };
 
 export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value));
-  return (
-    <StudioTextfield
-      size='sm'
-      id={id}
-      type='number'
-      value={value.toString()}
-      onChange={handleChange}
-    />
-  );
+  return <StudioTextfield id={id} type='number' value={value.toString()} onChange={handleChange} />;
 };
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {

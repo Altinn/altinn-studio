@@ -6,16 +6,19 @@ import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
-import { getCodeListSourcesById, getCodeListUsageCount } from '../utils/codeListPageUtils';
+import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
+import type { TextResource } from '@studio/components';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
+  onBlurTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
   codeListNames: string[];
   codeListsUsages: CodeListReference[];
+  textResources?: TextResource[];
 };
 
 export function CodeLists({

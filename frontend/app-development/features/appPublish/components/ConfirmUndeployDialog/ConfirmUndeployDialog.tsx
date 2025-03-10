@@ -23,8 +23,11 @@ export const ConfirmUndeployDialog = ({
   const { org, app: appName } = useStudioEnvironmentParams();
   const dialogRef = useRef<HTMLDialogElement>();
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
-  const [undeployError, setUndeployError] = useState<string | null>(null);
-  const mutation = useUndeployMutation(org, appName);
+  const {
+    mutate: mutateUndeploy,
+    isPending: isPendingUndeploy,
+    error: undeployError,
+  } = useUndeployMutation(org, appName);
   const onAppNameInputChange = (event: React.FormEvent<HTMLInputElement>): void => {
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
   };
@@ -33,17 +36,13 @@ export const ConfirmUndeployDialog = ({
   const closeDialog = () => dialogRef.current.close();
 
   const onUndeployClicked = (): void => {
-    mutation.mutate(
+    mutateUndeploy(
       {
         environment,
       },
       {
         onSuccess: (): void => {
-          setUndeployError(null);
           closeDialog();
-        },
-        onError: (): void => {
-          setUndeployError('app_deployment.error_unknown.message');
         },
       },
     );
@@ -63,7 +62,6 @@ export const ConfirmUndeployDialog = ({
           {t('app_deployment.undeploy_confirmation_dialog_description')}
         </StudioParagraph>
         <StudioTextfield
-          size='sm'
           label={t('app_deployment.undeploy_confirmation_input_label')}
           description={t('app_deployment.undeploy_confirmation_input_description', {
             appName,
@@ -74,7 +72,7 @@ export const ConfirmUndeployDialog = ({
           <StudioAlert severity='danger' className={classes.errorContainer}>
             <StudioParagraph size='sm'>
               <Trans
-                i18nKey={undeployError}
+                i18nKey={'app_deployment.error_unknown.message'}
                 components={{
                   a: <StudioLink href='/contact'> </StudioLink>,
                 }}
@@ -83,7 +81,7 @@ export const ConfirmUndeployDialog = ({
           </StudioAlert>
         )}
         <StudioButton
-          disabled={!isAppNameConfirmed}
+          disabled={!isAppNameConfirmed || isPendingUndeploy}
           color='danger'
           size='sm'
           className={classes.confirmUndeployButton}

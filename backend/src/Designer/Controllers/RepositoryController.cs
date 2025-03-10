@@ -26,6 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <remarks>
     /// Initializes a new instance of the <see cref="RepositoryController"/> class.
     /// </remarks>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
@@ -55,14 +56,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Returns a list over repositories
+        /// Returns a list over repositories specified by search parameters
         /// </summary>
-        /// <param name="searchOptions">The search params</param>
-        /// <returns>List of repositories that user has access to.</returns>
+        /// <remarks>
+        /// All parameters create the search parameters
+        /// </remarks>
+        /// <returns>List of filtered repositories that user has access to.</returns>
         [HttpGet]
         [Route("search")]
-        public async Task<SearchResults> Search(SearchOptions searchOptions)
+        public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)
         {
+            SearchOptions searchOptions = new SearchOptions { Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit };
             SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
             return repositories;
         }
@@ -344,32 +348,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Fetches the repository log
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The repo name</param>
-        /// <returns>List of commits</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/log")]
-        public List<Commit> Log(string org, string repository)
-        {
-            return _sourceControl.Log(org, repository);
-        }
-
-        /// <summary>
-        /// Fetches the initial commit
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The repo name</param>
-        /// <returns>The initial commit</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/initial-commit")]
-        public Commit GetInitialCommit(string org, string repository)
-        {
-            return _sourceControl.GetInitialCommit(org, repository);
-        }
-
-        /// <summary>
         /// Gets the latest commit from current user
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -383,17 +361,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// List all branches for a repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The repository</param>
-        /// <returns>List of repos</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
-        public async Task<List<Branch>> Branches(string org, string repository)
-            => await _giteaApi.GetBranches(org, repository);
-
-        /// <summary>
         /// Returns information about a given branch
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -404,59 +371,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
-
-        /// <summary>
-        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <returns>Http response message as ok if reset operation is successful</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard")]
-        public ActionResult DiscardLocalChanges(string org, string repository)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
-                {
-                    return ValidationProblem("One or all of the input parameters are null");
-                }
-
-                _sourceControl.ResetCommit(org, repository);
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="fileName">the name of the file</param>
-        /// <returns>Http response message as ok if checkout operation is successful</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/discard/{fileName}")]
-        public ActionResult DiscardLocalChangesForSpecificFile(string org, string repository, string fileName)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
-                {
-                    return ValidationProblem("One or all of the input parameters are null");
-                }
-
-                _sourceControl.CheckoutLatestCommitForSpecificFile(org, repository, fileName);
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
 
         /// <summary>
         /// Stages a specific file changed in working repository.
@@ -477,46 +391,6 @@ namespace Altinn.Studio.Designer.Controllers
                 }
 
                 _sourceControl.StageChange(org, repository, fileName);
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Clones the remote repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <returns>The result of the cloning</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/clone")]
-        public Task<string> CloneRemoteRepository(string org, string repository)
-        {
-            return _sourceControl.CloneRemoteRepository(org, repository);
-        }
-
-        /// <summary>
-        /// Halts the merge operation and keeps local changes
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of the repository</param>
-        /// <returns>Http response message as ok if abort merge operation is successful</returns>
-        [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/abort-merge")]
-        public ActionResult AbortMerge(string org, string repository)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
-                {
-                    return ValidationProblem("One or all of the input parameters are null");
-                }
-
-                _sourceControl.AbortMerge(org, repository);
-
                 return Ok();
             }
             catch (Exception)
@@ -588,7 +462,7 @@ namespace Altinn.Studio.Designer.Controllers
                         .Status(appContext.Org, appContext.Repo)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
-                };
+                }
 
                 foreach (var changedFile in changedFiles)
                 {

@@ -60,8 +60,6 @@ const onChangeMock = jest.fn();
 const render = () => {
   const override: Summary2OverrideConfig = {
     componentId: component1IdMock,
-    hideEmptyFields: false,
-    forceShow: true,
     hidden: false,
   };
   return renderWithProviders(<EmptyTextField onChange={onChangeMock} override={override} />);

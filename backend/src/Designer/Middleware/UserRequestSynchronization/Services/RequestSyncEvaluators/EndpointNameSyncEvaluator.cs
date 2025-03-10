@@ -55,8 +55,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
                 nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
-                nameof(ProcessModelingController.ProcessDataTypesChangedNotify),
-                nameof(ProcessModelingController.SaveProcessDefinitionFromTemplate)
+                nameof(ProcessModelingController.ProcessDataTypesChangedNotify)
             )
         },
         {

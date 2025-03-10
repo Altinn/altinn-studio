@@ -5,6 +5,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { org } from '@studio/testing/testids';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('DeployPage', () => {
   it('renders a spinner while loading', () => {
@@ -15,7 +16,7 @@ describe('DeployPage', () => {
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
+      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 

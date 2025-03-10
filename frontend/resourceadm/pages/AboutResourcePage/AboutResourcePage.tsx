@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { ErrorSummary, Heading } from '@digdir/designsystemet-react';
+import { ErrorSummary } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -98,9 +99,9 @@ export const AboutResourcePage = ({
   const displayContent = () => {
     return (
       <div className={classes.resourceFields}>
-        <Heading size='large' level={1}>
+        <StudioHeading size='lg' level={1}>
           {t('resourceadm.about_resource_title')}
-        </Heading>
+        </StudioHeading>
         {validationErrors.length > 0 && (
           <ErrorSummary.Root>
             <ErrorSummary.Heading>

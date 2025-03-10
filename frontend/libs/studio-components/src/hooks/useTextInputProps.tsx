@@ -9,26 +9,29 @@ export function useTextInputProps<E extends ElementType>(
   props: SharedTextInputProps<E>,
 ): Omit<SharedTextInputProps<E>, keyof AdditionalProps> {
   const {
-    value = '',
+    value,
+    defaultValue,
     onChange,
     onBlur,
     error,
     errorAfterBlur,
     label,
     withAsterisk,
+    size = 'sm',
     ...rest
   } = props;
 
-  const [valueState, setValueState] = useState(value);
+  const initialValue = value ?? defaultValue ?? '';
+  const [valueState, setValueState] = useState(initialValue);
   const [showError, setShowError] = useState(false);
 
   const disableError = () => setShowError(false);
   const enableError = () => setShowError(true);
 
   useEffect(() => {
-    if (!value) disableError();
-    setValueState(value);
-  }, [value]);
+    if (!initialValue) disableError();
+    setValueState(initialValue);
+  }, [initialValue]);
 
   const handleChange = (event: ChangeEvent<E>) => {
     setValueState(event.target.value);
@@ -53,5 +56,6 @@ export function useTextInputProps<E extends ElementType>(
     onBlur: handleBlur,
     error: errorComponent,
     label: labelComponent,
+    size,
   } as Omit<SharedTextInputProps<E>, keyof AdditionalProps>;
 }

@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { LinkIcon } from '@studio/icons';
 import { StudioToggleableTextfield } from '@studio/components';
@@ -50,27 +49,11 @@ export const ExternalImage = ({
   return (
     <>
       <StudioToggleableTextfield
-        viewProps={{
-          children: existingImageUrl ?? url ?? (
-            <span className={classes.missingUrl}>
-              {t('ux_editor.properties_panel.images.external_url_not_added')}
-            </span>
-          ),
-          label: t('ux_editor.properties_panel.images.enter_external_url'),
-          title: url,
-          variant: 'tertiary',
-          fullWidth: true,
-          icon: <LinkIcon />,
-        }}
-        inputProps={{
-          icon: <LinkIcon />,
-          value: existingImageUrl,
-          onBlur: ({ target }: ChangeEvent<HTMLInputElement>) => handleBlur(target.value),
-          label: t('ux_editor.properties_panel.images.enter_external_url'),
-          size: 'small',
-        }}
-        setViewModeByDefault={!!existingImageUrl}
-        autoFocus={false}
+        icon={<LinkIcon />}
+        label={t('ux_editor.properties_panel.images.enter_external_url')}
+        value={url}
+        onBlur={(event) => handleBlur(event.target.value)}
+        title={url}
       />
       {!!url && (
         <ExternalImageValidationStatus

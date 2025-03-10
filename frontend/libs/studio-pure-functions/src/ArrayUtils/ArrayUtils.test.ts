@@ -57,7 +57,7 @@ describe('ArrayUtils', () => {
     });
   });
 
-  describe('ArrayUtils.intersection', () => {
+  describe('intersection', () => {
     it('Returns intersection of two arrays when included is true', () => {
       expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
       expect(ArrayUtils.intersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
@@ -238,7 +238,7 @@ describe('ArrayUtils', () => {
     });
   });
 
-  describe('rplaceItemsByValue', () => {
+  describe('replaceItemsByValue', () => {
     it('Replaces all items matching the given value with the given replacement', () => {
       const array = ['a', 'b', 'c'];
       expect(ArrayUtils.replaceItemsByValue(array, 'b', 'd')).toEqual(['a', 'd', 'c']);
@@ -287,6 +287,69 @@ describe('ArrayUtils', () => {
     it('Removes empty strings from an array', () => {
       const array = ['0', '1', '', '2', ''];
       expect(ArrayUtils.removeEmptyStrings(array)).toEqual(['0', '1', '2']);
+    });
+  });
+
+  describe('extractUniqueTypes', () => {
+    it('returns array with one occurence of every type from input array', () => {
+      const array = ['hello', 'world', 1, 2, true, false, {}, null, undefined];
+      expect(ArrayUtils.extractUniqueTypes(array)).toEqual([
+        'string',
+        'number',
+        'boolean',
+        'object',
+        'undefined',
+      ]);
+    });
+  });
+
+  describe('hasSingleType', () => {
+    it('returns true for an array with all strings', () => {
+      expect(ArrayUtils.hasSingleType(['a', 'b', 'c'])).toBe(true);
+    });
+
+    it('returns true for an array with all numbers', () => {
+      expect(ArrayUtils.hasSingleType([1, 2, 3])).toBe(true);
+    });
+
+    it('returns false for an array with mixed types', () => {
+      expect(ArrayUtils.hasSingleType([1, 'a', true])).toBe(false);
+    });
+
+    it('returns false for an empty array', () => {
+      expect(ArrayUtils.hasSingleType([])).toBe(false);
+    });
+  });
+
+  describe('toString', () => {
+    it('returns a string with all elements separated by comma when no delimiter is provided', () => {
+      expect(ArrayUtils.toString(['a', 'b', 'c'])).toBe('a,b,c');
+    });
+
+    it('returns an empty string for an empty array', () => {
+      expect(ArrayUtils.toString([])).toBe('');
+    });
+
+    it('returns a string with all elements separated by the given separator', () => {
+      expect(ArrayUtils.toString(['a', 'b', 'c'], '|')).toBe('a|b|c');
+    });
+  });
+
+  describe('getArrayFromString', () => {
+    it('returns an array of strings when the input string is comma-separated', () => {
+      expect(ArrayUtils.getArrayFromString('a,b,c')).toEqual(['a', 'b', 'c']);
+    });
+
+    it('returns an array with the input string as the only element when no separator is found', () => {
+      expect(ArrayUtils.getArrayFromString('abc')).toEqual(['abc']);
+    });
+
+    it('returns an empty array when the input string is empty', () => {
+      expect(ArrayUtils.getArrayFromString('')).toEqual([]);
+    });
+
+    it('trims any whitespace around the elements', () => {
+      expect(ArrayUtils.getArrayFromString(' a, b, c ')).toEqual(['a', 'b', 'c']);
     });
   });
 });
