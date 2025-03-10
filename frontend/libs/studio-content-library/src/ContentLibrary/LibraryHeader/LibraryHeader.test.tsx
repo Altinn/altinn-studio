@@ -16,6 +16,14 @@ describe('LibraryHeader', () => {
     expect(libraryIcon).toBeInTheDocument();
     expect(libraryHeader).toBeInTheDocument();
   });
+
+  it('renders the content library header with isBeta class', () => {
+    renderLibraryHeader();
+    const libraryHeader = screen.getByRole('heading', {
+      name: textMock('app_content_library.library_heading'),
+    });
+    expect(libraryHeader).toHaveClass('isBeta');
+  });
 });
 
 const renderLibraryHeader = () => {
