@@ -43,6 +43,8 @@ export type StudioTableRemotePaginationProps = {
   isLoading?: boolean;
   loadingText?: string;
   onSortClick?: (columnKey: string) => void;
+  sort?: 'asc' | 'desc';
+  sortColumn?: string | null;
   pagination?: RemotePaginationProps;
 };
 
@@ -59,6 +61,8 @@ export const StudioTableRemotePagination = forwardRef<
       loadingText,
       emptyTableFallback,
       onSortClick,
+      sort,
+      sortColumn,
       pagination,
     },
     ref,
@@ -120,6 +124,14 @@ export const StudioTableRemotePagination = forwardRef<
                   sortable={isSortingActive && sortable}
                   onSortClick={() => onSortClick(accessor)}
                   className={headerCellClass}
+                  {...({
+                    'data-sort-direction':
+                      sort === 'asc' && sortColumn === accessor
+                        ? 'asc'
+                        : sort === 'desc' && sortColumn === accessor
+                          ? 'desc'
+                          : undefined,
+                  } as any)}
                 >
                   {heading}
                 </Table.HeaderCell>

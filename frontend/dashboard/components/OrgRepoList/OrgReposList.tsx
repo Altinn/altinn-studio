@@ -30,7 +30,13 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     pageSize,
     setPageSize,
     onSortClick,
-  } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
+    sortDirection,
+    sortColumn,
+  } = useReposSearch({
+    uid: uid as number,
+    defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE,
+    storageKey: 'dashboard-myapps-sort-preference',
+  });
 
   const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
@@ -61,6 +67,8 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         pageNumber={pageNumber}
         onPageChange={setPageNumber}
         onSortClick={onSortClick}
+        sortDirection={sortDirection}
+        sortColumn={sortColumn}
       />
     </div>
   );
