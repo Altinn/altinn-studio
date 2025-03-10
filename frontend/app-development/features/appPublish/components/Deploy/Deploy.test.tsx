@@ -10,6 +10,7 @@ import type { AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
 import { BuildResult } from 'app-shared/types/Build';
 import { type ImageOption } from '../ImageOption';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
@@ -81,7 +82,9 @@ describe('DeploymentActions', () => {
     render(
       {},
       {
-        getDeployPermissions: jest.fn().mockImplementation(() => Promise.reject()),
+        getDeployPermissions: jest
+          .fn()
+          .mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await waitForElementToBeRemoved(() =>
@@ -138,7 +141,7 @@ describe('DeploymentActions', () => {
     const user = userEvent.setup();
 
     const queries: Partial<ServicesContextProps> = {
-      createDeployment: jest.fn().mockRejectedValue(new Error('test error')),
+      createDeployment: jest.fn().mockRejectedValue(createApiErrorMock()),
     };
     render({}, queries);
     await waitForElementToBeRemoved(() =>

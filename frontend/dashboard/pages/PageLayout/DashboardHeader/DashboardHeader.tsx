@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
@@ -42,6 +42,7 @@ type TopNavigationMenuProps = {
 function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): React.ReactElement {
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
+  const location = useLocation();
   const path: string = `${menuItem.link}/${selectedContext}`;
   const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
 
