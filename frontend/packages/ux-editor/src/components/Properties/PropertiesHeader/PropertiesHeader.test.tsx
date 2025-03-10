@@ -32,6 +32,7 @@ const defaultProps: PropertiesHeaderProps = {
 describe('PropertiesHeader', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    queryClientMock.clear();
     typedLocalStorage.removeItem('featureFlags');
   });
 
@@ -43,6 +44,18 @@ describe('PropertiesHeader', () => {
       level: 2,
     });
     expect(heading).toBeInTheDocument();
+  });
+
+  it('should render spinner when fetching component schema', async () => {
+    jest.fn(() => {
+      return Promise.resolve({
+        results: componentSchemaMocks[componentMocks[ComponentType.Input].type],
+      });
+    });
+
+    renderPropertiesHeader({}, false);
+    const spinner = screen.getByText(textMock('ux_editor.properties_panel.texts.loading'));
+    expect(spinner).toBeInTheDocument();
   });
 
   it('displays the help text when the help text button is clicked', async () => {
@@ -183,12 +196,18 @@ describe('PropertiesHeader', () => {
   });
 });
 
-const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
+const renderPropertiesHeader = (
+  props: Partial<PropertiesHeaderProps> = {},
+  useSetQueryDataSchema: boolean = true,
+) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, componentType],
-    componentSchemaMocks[componentType],
-  );
+
+  if (useSetQueryDataSchema)
+    queryClientMock.setQueryData(
+      [QueryKey.FormComponent, componentType],
+      componentSchemaMocks[componentType],
+    );
+
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);
