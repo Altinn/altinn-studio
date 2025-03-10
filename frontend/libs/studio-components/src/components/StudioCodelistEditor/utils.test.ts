@@ -7,9 +7,9 @@ import {
   emptyStringItem,
   evaluateDefaultType,
   getTypeOfLastValue,
+  isCodeLimitReached,
   isCodeListEmpty,
   removeCodeListItem,
-  shouldDisableAddButton,
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
@@ -126,22 +126,22 @@ describe('StudioCodelistEditor utils', () => {
     });
   });
 
-  describe('shouldDisableAddButton', () => {
+  describe('isCodeLimitReached', () => {
     it('Returns true when codeType is boolean and codeList has two elements', () => {
-      expect(shouldDisableAddButton('boolean', codeListWithBooleans)).toBe(true);
+      expect(isCodeLimitReached(codeListWithBooleans, CodeListItemType.Boolean)).toBe(true);
     });
 
     it('Returns false when codeType is boolean and codeList has less than two elements', () => {
       const codeListWithSingleBoolean = [{ value: true, label: 'test' }];
-      expect(shouldDisableAddButton('boolean', codeListWithSingleBoolean)).toBe(false);
+      expect(isCodeLimitReached(codeListWithSingleBoolean, CodeListItemType.Boolean)).toBe(false);
     });
 
     it('Returns false when codeType is string', () => {
-      expect(shouldDisableAddButton('string', codeListWithStrings)).toBe(false);
+      expect(isCodeLimitReached(codeListWithStrings, CodeListItemType.String)).toBe(false);
     });
 
     it('Returns false when codeType is number', () => {
-      expect(shouldDisableAddButton('string', codeListWithNumbers)).toBe(false);
+      expect(isCodeLimitReached(codeListWithNumbers, CodeListItemType.Number)).toBe(false);
     });
   });
 });
