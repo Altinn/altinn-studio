@@ -1,1 +1,6 @@
-export { dashboardHeaderMenuItems } from './headerUtils';
+export {
+  groupMenuItemsByGroup,
+  mapHeaderMenuGroupToNavigationMenu,
+  dashboardHeaderMenuItems,
+  mapNavigationMenuToProfileMenu,
+} from './headerUtils';

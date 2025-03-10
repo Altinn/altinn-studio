@@ -1,5 +1,10 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { getAppDevelopmentRootRoute, getRepoEditUrl } from './urlUtils';
+import {
+  extractLastRouterParam,
+  extractSecondLastRouterParam,
+  getAppDevelopmentRootRoute,
+  getRepoEditUrl,
+} from './urlUtils';
 
 describe('urlUtils', () => {
   describe('applicationAboutPage', () => {
@@ -31,6 +36,46 @@ describe('urlUtils', () => {
 
       expect(result).not.toContain('#/datamodel/');
       expect(result).toContain(APP_DEVELOPMENT_BASENAME);
+    });
+  });
+
+  describe('extractLastRouterParam', () => {
+    it('should return the last part of the pathname', () => {
+      const pathname = '/home/user/profile';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('profile');
+    });
+
+    it('should handle a single segment pathname', () => {
+      const pathname = '/profile';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('profile');
+    });
+
+    it('should return an empty string for an empty pathname', () => {
+      const pathname = '';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('');
+    });
+  });
+
+  describe('extractSecondLastRouterParam', () => {
+    it('should return the second last part of the pathname', () => {
+      const pathname = '/home/user/profile';
+      const result = extractSecondLastRouterParam(pathname);
+      expect(result).toBe('user');
+    });
+
+    it('should handle a single segment pathname', () => {
+      const pathname = '/profile';
+      const result = extractSecondLastRouterParam(pathname);
+      expect(result).toBe('');
+    });
+
+    it('should return an empty string for an empty pathname', () => {
+      const pathname = '';
+      const result = extractSecondLastRouterParam(pathname);
+      expect(result).toBe('');
     });
   });
 });
