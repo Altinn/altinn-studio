@@ -1,6 +1,7 @@
 .container {
   color: #1f2c3d;
   display: flex;
+  align-items: flex-start;
   font-family: var(--studio-font-family);
 
   margin: var(--fds-spacing-1);

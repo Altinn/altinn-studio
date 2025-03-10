@@ -1,7 +1,6 @@
 import React, { type ReactElement, type ReactNode } from 'react';
 import {
   StudioCard,
-  StudioHeading,
   StudioPopover,
   StudioPopoverContent,
   StudioPopoverTrigger,
@@ -26,8 +25,6 @@ export type StudioIconCardProps = {
 export const StudioIconCard = ({
   icon,
   iconColor = 'grey',
-  header,
-  headerOptions,
   contextButtons,
   children,
 }: StudioIconCardProps) => {
@@ -53,12 +50,7 @@ export const StudioIconCard = ({
         </div>
       </div>
 
-      <div className={classes.content}>
-        <StudioHeading className={classes.title} size='2xs' {...headerOptions}>
-          {header}
-        </StudioHeading>
-        {children}
-      </div>
+      <div className={classes.content}>{children}</div>
     </StudioCard>
   );
 };

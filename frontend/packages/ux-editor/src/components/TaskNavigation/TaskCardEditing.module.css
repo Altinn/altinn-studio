@@ -1,0 +1,17 @@
+.card {
+  width: 300px;
+  min-height: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardContent {
+  padding: var(--fds-spacing-2);
+}
+
+.btnGroup {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
