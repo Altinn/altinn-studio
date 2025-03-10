@@ -38,6 +38,10 @@
           ]
         },
         {
+            "id": "DividerPage-Divider",
+            "type": "Divider"
+        },
+        {
           "id": "DividerPage-Input-grid1",
           "type": "Input",
           "textResourceBindings": {
@@ -50,10 +54,6 @@
             "xs": 12,
             "md": 6
           }
-        },
-        {
-            "id": "DividerPage-Divider",
-            "type": "Divider"
         },
         {
           "id": "InputPage-Input-grid2",
