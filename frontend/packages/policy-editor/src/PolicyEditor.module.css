@@ -9,10 +9,6 @@
   margin-bottom: var(--fds-spacing-5);
 }
 
-.addCardButtonWrapper {
-  margin-block: var(--fds-spacing-5);
-}
-
 .heading {
   margin-top: var(--fds-spacing-7);
   margin-bottom: var(--fds-spacing-2);
