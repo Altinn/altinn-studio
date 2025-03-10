@@ -20,11 +20,11 @@ const typeSelectorOptions: TypeSelectorOptionTexts = {
 
 export const texts: CodeListEditorTexts = {
   add: 'Add',
-  addButtonDisabled: 'You cannot have more than two options in a boolean code list',
   codeList: 'Code list',
   delete: 'Delete',
   deleteItem: (number) => `Delete code number ${number}`,
   description: 'Description',
+  disabledAddButtonTooltip: 'You cannot have more than two options in a boolean code list',
   emptyCodeList: 'The code list is empty.',
   generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',

@@ -271,7 +271,7 @@ type AddButtonProps = {
 
 function AddButton({ onClick, disabled }: AddButtonProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  const tooltip = disabled ? texts.addButtonDisabled : undefined;
+  const tooltip = disabled ? texts.disabledAddButtonTooltip : undefined;
 
   return (
     <StudioButton

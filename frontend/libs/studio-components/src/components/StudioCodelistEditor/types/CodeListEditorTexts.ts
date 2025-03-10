@@ -5,11 +5,11 @@ import type { CodeListItemType } from './CodeListItemType';
 
 export type CodeListEditorTexts = {
   add: string;
-  addButtonDisabled: string;
   codeList: string;
   delete: string;
   deleteItem: (number: number) => string;
   description: string;
+  disabledAddButtonTooltip: string;
   emptyCodeList: string;
   generalError: string;
   helpText: string;
