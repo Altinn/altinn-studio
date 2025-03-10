@@ -1,20 +1,20 @@
 import React, { type ReactElement } from 'react';
 import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
-import { StringUtils } from '@studio/pure-functions';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
-import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
-import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
-import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils/headerUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
+import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
+import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { StringUtils } from '@studio/pure-functions';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { extractSecondLastRouterParam } from '../../../utils/urlUtils';
+import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
 export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
@@ -53,6 +53,7 @@ type TopNavigationMenuProps = {
 function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactElement {
   const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
+  const location = useLocation();
   const path: string = `${menuItem.link}/${selectedContext}`;
   const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
 

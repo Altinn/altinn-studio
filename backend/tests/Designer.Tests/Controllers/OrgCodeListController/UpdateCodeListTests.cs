@@ -42,7 +42,7 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
         string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Combine(repoPath, "Codelists", "stringBoolNumbersCodeList.json"), stringBoolNumbersCodeList);
+        await File.WriteAllTextAsync(Path.Combine(repoPath, "Codelists", $"{CodeListId}.json"), stringBoolNumbersCodeList);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
@@ -63,7 +63,7 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(expectedResponse[0].Data?.Count, responseList.Count);
+        Assert.Equal(expectedResponse[0].Data?.Count, responseList[0].Data?.Count);
 
         var expectedData = expectedResponse[0].Data;
         var actualData = responseList.Find(e => e.Title == expectedResponse[0].Title).Data;

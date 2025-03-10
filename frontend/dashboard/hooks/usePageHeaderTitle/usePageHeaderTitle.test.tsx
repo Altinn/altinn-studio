@@ -4,10 +4,10 @@ import { HeaderContext, type HeaderContextProps } from 'dashboard/context/Header
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { mockOrg1 } from 'dashboard/testing/organizationMock';
-import { renderHookWithProviders } from 'dashboard/testing/mocks';
+import { mockOrg1 } from '../../testing/organizationMock';
+import { renderHookWithProviders } from '../../testing/mocks';
 
-jest.mock('dashboard/hooks/useSelectedContext');
+jest.mock('../../hooks/useSelectedContext');
 
 const renderUsePageHeaderTitleHook = (
   headerContextValueProps: Partial<HeaderContextProps> = {},

@@ -1,8 +1,8 @@
+import { useHeaderContext } from '../../context/HeaderContext';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { getOrgNameByUsername } from 'dashboard/utils/userUtils';
+import { getOrgNameByUsername } from '../../utils/userUtils';
 import { useTranslation } from 'react-i18next';
 import { useSelectedContext } from '../useSelectedContext';
-import { useHeaderContext } from '../../context/HeaderContext';
 
 export const useProfileMenuTriggerButtonText = (): string => {
   const { t } = useTranslation();

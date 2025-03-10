@@ -1,3 +1,9 @@
+export type AppPolicyActionMap = {
+  [key: string]: string;
+};
+
+export type AppSubResourceDefaultLimitationType = 'urn:altinn:org' | 'urn:altinn:app';
+
 export interface PolicyRuleCard {
   ruleId: string;
   description: string;

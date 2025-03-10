@@ -21,9 +21,9 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("pages")]
         public async Task<ActionResult<Pages>> GetPages(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] string layoutSetId
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -37,16 +37,20 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("pages")]
         public async Task<ActionResult<Page>> CreatePage(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] string layoutSetId,
-                [FromBody] Page page
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromBody] Page page
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            Page existingPage = await layoutService.GetPageById(editingContext, layoutSetId, page.id);
+            Page existingPage = await layoutService.GetPageById(
+                editingContext,
+                layoutSetId,
+                page.id
+            );
             if (existingPage != null)
             {
                 return Conflict();
@@ -61,10 +65,10 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet("pages/{pageId}")]
         [ProducesResponseType<Page>(StatusCodes.Status200OK)]
         public async Task<ActionResult<Page>> GetPage(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] string layoutSetId,
-                [FromRoute] string pageId
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromRoute] string pageId
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -82,16 +86,20 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("pages/{pageId}")]
         public async Task<ActionResult<Page>> ModifyPage(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] string layoutSetId,
-                [FromRoute] string pageId,
-                [FromBody] Page page
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromRoute] string pageId,
+            [FromBody] Page page
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Page existingPage = await layoutService.GetPageById(editingContext, layoutSetId, pageId);
+            Page existingPage = await layoutService.GetPageById(
+                editingContext,
+                layoutSetId,
+                pageId
+            );
             if (existingPage == null)
             {
                 return NotFound();
@@ -106,10 +114,10 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpDelete("pages/{pageId}")]
         public async Task<ActionResult> DeletePage(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] string layoutSetId,
-                [FromRoute] string pageId
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromRoute] string pageId
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -121,6 +129,26 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             await layoutService.DeletePage(editingContext, layoutSetId, pageId);
+            return Ok();
+        }
+
+        [EndpointSummary("Modify pages")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPut("pages")]
+        public async Task<ActionResult> ModifyPages(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromBody] Pages pages
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+            await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages);
             return Ok();
         }
     }
