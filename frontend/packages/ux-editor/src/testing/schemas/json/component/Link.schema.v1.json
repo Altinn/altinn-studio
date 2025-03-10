@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -59,6 +59,11 @@
         "target": {
           "title": "Target",
           "description": "The target of the link",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "download": {
+          "title": "Download",
+          "description": "Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },

@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Map.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/SimpleTable.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -100,7 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "Map" },
+    "type": { "const": "SimpleTable" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -145,126 +145,109 @@
         }
       }
     },
+    "title": { "type": "string" },
     "dataModelBindings": {
-      "title": "IDataModelBindingsForMap",
+      "title": "IDataModelBindingsForTable",
       "type": "object",
-      "properties": {
-        "simpleBinding": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "geometries": { "$ref": "#/definitions/IRawDataModelBinding" }
-      },
+      "properties": { "tableData": { "$ref": "#/definitions/IRawDataModelBinding" } },
+      "required": ["tableData"],
       "additionalProperties": false
     },
-    "layers": {
+    "columns": {
       "type": "array",
       "items": {
-        "title": "MapLayer",
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "url": {
-                "title": "Map layer url",
-                "description": "Url to a map tile. {z}/{x}/{y} will be replaced with tile coordinates, {s} will be replaced with a random subdomain if subdomains are given",
-                "type": "string"
-              },
-              "attribution": {
-                "title": "Attribution",
-                "description": "Ascribing a work or remark to a particular unit for recognition",
-                "type": "string"
-              },
-              "subdomains": {
-                "title": "Subdomains",
-                "description": "List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.",
-                "type": "array",
-                "items": { "type": "string" }
-              },
-              "type": {
-                "title": "Layer Type",
-                "description": "Type of the map layer",
-                "default": "TileLayer",
-                "const": "TileLayer"
-              },
-              "minZoom": {
-                "title": "Minimum Zoom Level",
-                "description": "The minimum zoom level for the layer",
-                "default": 0,
-                "type": "number"
-              },
-              "maxZoom": {
-                "title": "Maximum Zoom Level",
-                "description": "The maximum zoom level for the layer",
-                "default": 18,
-                "type": "number"
-              }
-            },
-            "required": ["url"],
-            "additionalProperties": false
+        "title": "Columns",
+        "type": "object",
+        "properties": {
+          "header": { "type": "string" },
+          "accessors": {
+            "title": "Accessors",
+            "description": "List of fields that should be included in the cell",
+            "type": "array",
+            "items": { "type": "string" }
           },
-          {
-            "type": "object",
-            "properties": {
-              "url": {
-                "title": "Map layer url",
-                "description": "Url to a wms-type map server",
-                "type": "string"
+          "component": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": { "const": "link" },
+                  "hrefPath": { "type": "string" },
+                  "textPath": { "type": "string" }
+                },
+                "required": ["type", "hrefPath", "textPath"],
+                "additionalProperties": false
               },
-              "attribution": { "type": "string" },
-              "subdomains": { "type": "array", "items": { "type": "string" } },
-              "type": { "const": "WMS" },
-              "layers": {
-                "title": "WMS Layers",
-                "description": "Comma-separated list of one or more WMS layers to display. Sent as a prop to the WMS map server.",
-                "type": "string"
+              {
+                "type": "object",
+                "properties": {
+                  "type": { "const": "date" },
+                  "format": {
+                    "title": "Date format",
+                    "description": "Date format used when displaying the date to the user",
+                    "examples": ["dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd"],
+                    "type": "string"
+                  }
+                },
+                "required": ["type"],
+                "additionalProperties": false
               },
-              "format": {
-                "title": "Image Format",
-                "description": "The MIME type of the WMS tiles to request from the WMS server, as specified by the WMS standard. (use 'image/png' for layers with transparency).",
-                "default": "image/jpeg",
-                "type": "string"
-              },
-              "version": {
-                "title": "WMS Version",
-                "description": "The version of the WMS standard to use",
-                "default": "1.1.1",
-                "type": "string"
-              },
-              "transparent": {
-                "title": "Transparency",
-                "description": "Whether the WMS layer should be transparent",
-                "default": false,
-                "type": "boolean"
-              },
-              "uppercase": {
-                "title": "Uppercase",
-                "description": "Whether the WMS parameters should be uppercase",
-                "default": false,
-                "type": "boolean"
-              },
-              "minZoom": { "default": 0, "type": "number" },
-              "maxZoom": { "default": 18, "type": "number" }
-            },
-            "required": ["url", "type", "layers"],
-            "additionalProperties": false
+              {
+                "type": "object",
+                "properties": {
+                  "type": { "const": "radio" },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": { "type": "string" },
+                        "value": { "type": "string" }
+                      },
+                      "required": ["label", "value"],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              }
+            ]
           }
-        ]
+        },
+        "required": ["header", "accessors"],
+        "additionalProperties": false
       }
     },
-    "centerLocation": {
-      "title": "Center location",
-      "description": "Center location of the map",
-      "type": "object",
-      "properties": { "latitude": { "type": "number" }, "longitude": { "type": "number" } },
-      "required": ["latitude", "longitude"],
-      "additionalProperties": false
+    "zebra": {
+      "title": "Size",
+      "description": "If true, the table will have zebra striping",
+      "type": "boolean"
     },
-    "zoom": { "type": "number" },
-    "geometryType": {
-      "title": "IGeometryType",
-      "default": "GeoJSON",
-      "enum": ["GeoJSON", "WKT"],
+    "enableDelete": {
+      "title": "Enable delete",
+      "description": "If true, will allow user to delete row",
+      "type": "boolean"
+    },
+    "enableEdit": {
+      "title": "Enable delete",
+      "description": "If true, will allow user to edit row",
+      "type": "boolean"
+    },
+    "size": {
+      "title": "Size",
+      "description": "Size of table.",
+      "enum": ["sm", "md", "lg"],
       "type": "string"
+    },
+    "externalApi": {
+      "title": "DataConfig",
+      "type": "object",
+      "properties": { "id": { "type": "string" }, "path": { "type": "string" } },
+      "required": ["id", "path"],
+      "additionalProperties": false
     }
   },
-  "required": ["id", "type", "dataModelBindings"],
-  "title": "Map component schema"
+  "required": ["id", "type", "title", "columns"],
+  "title": "SimpleTable component schema"
 }
