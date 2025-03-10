@@ -12,7 +12,7 @@ export enum Direction {
 }
 
 type SortPreference = {
-  sortKey: string;
+  column: string;
   direction: Direction;
 };
 
@@ -24,18 +24,22 @@ type UseRepoSearchResult = {
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick: (columnKey: string) => void;
+  sortDirection: 'asc' | 'desc';
+  sortColumn: string | null;
 };
 
 type UseReposSearchProps = {
   keyword?: string;
   uid?: number;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
+  storageKey?: string;
 };
 
 export const useReposSearch = ({
   keyword,
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
+  storageKey = 'dashboard-myapps-sort-preference',
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(
@@ -49,17 +53,26 @@ export const useReposSearch = ({
     },
   );
 
-  const savedPreference = typedLocalStorage.getItem<SortPreference>('dashboard-app-sort-order');
-  const [selectedColumn, setSelectedColumn] = useState(savedPreference?.sortKey || 'name');
-  const [sortDirection, setSortDirection] = useState(savedPreference?.direction || Direction.Asc);
+  const savedPreference = typedLocalStorage.getItem<SortPreference>(storageKey);
+  const [selectedColumn, setSelectedColumn] = useState<string | null>(
+    savedPreference?.column || 'name',
+  );
+  const [sortDirection, setSortDirection] = useState<Direction>(
+    savedPreference?.direction || Direction.Asc,
+  );
+
+  const persistSortPreference = (column: string | null, direction: Direction) => {
+    if (column) {
+      typedLocalStorage.setItem(storageKey, { column, direction });
+    }
+  };
 
   const toggleSortDirection = () => {
     setSortDirection((prevDirection) => {
       const newDirection = prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc;
-      typedLocalStorage.setItem('dashboard-app-sort-order', {
-        sortKey: selectedColumn,
-        direction: newDirection,
-      });
+      if (selectedColumn) {
+        persistSortPreference(selectedColumn, newDirection);
+      }
       return newDirection;
     });
   };
@@ -69,12 +82,8 @@ export const useReposSearch = ({
       toggleSortDirection();
     } else {
       setSelectedColumn(columnKey);
-      const newDirection = Direction.Asc;
-      setSortDirection(newDirection);
-      typedLocalStorage.setItem('dashboard-app-sort-order', {
-        sortKey: columnKey,
-        direction: newDirection,
-      });
+      setSortDirection(Direction.Asc);
+      persistSortPreference(columnKey, Direction.Asc);
     }
   };
 
@@ -110,5 +119,7 @@ export const useReposSearch = ({
     pageSize,
     setPageSize,
     onSortClick,
+    sortDirection,
+    sortColumn: selectedColumn,
   };
 };

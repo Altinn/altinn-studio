@@ -22,6 +22,9 @@ export interface RepoListProps {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick?: (columnKey: string) => void;
+  sortStorageKey?: string;
+  sortDirection?: 'asc' | 'desc';
+  sortColumn?: string | null;
 }
 
 export const RepoList = ({
@@ -35,6 +38,9 @@ export const RepoList = ({
   onPageChange,
   onPageSizeChange,
   onSortClick,
+  sortStorageKey = 'dashboard-repos-sort-preference',
+  sortDirection,
+  sortColumn,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
   const tableSize = 'small';
@@ -80,14 +86,6 @@ export const RepoList = ({
     },
   ];
 
-  // The local table can sort all columns, but the Gitea API does not support sorting by createdBy or description
-  // Therefore, we remove the sortable property from these columns when using server-side sorting
-  const nonSortableAccessors = ['createdBy', 'description'];
-  const remotePaginationColumns = columns.map((column) => ({
-    ...column,
-    sortable: nonSortableAccessors.includes(column.accessor) ? false : column.sortable,
-  }));
-
   const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
@@ -125,14 +123,16 @@ export const RepoList = ({
     <div>
       {isServerSort ? (
         <StudioTableRemotePagination
-          columns={remotePaginationColumns}
+          columns={columns}
           rows={rows}
           size={tableSize}
           isLoading={isLoading}
-          loadingText={t('general.loading')}
+          loadingText={t('dashboard.loading')}
           emptyTableFallback={emptyTableFallback}
-          pagination={paginationProps}
           onSortClick={onSortClick}
+          sort={sortDirection}
+          sortColumn={sortColumn}
+          pagination={paginationProps}
         />
       ) : (
         <StudioTableLocalPagination
@@ -143,6 +143,8 @@ export const RepoList = ({
           loadingText={t('general.loading')}
           emptyTableFallback={emptyTableFallback}
           pagination={paginationProps}
+          shouldPersistSort={true}
+          sortStorageKey={sortStorageKey}
         />
       )}
     </div>

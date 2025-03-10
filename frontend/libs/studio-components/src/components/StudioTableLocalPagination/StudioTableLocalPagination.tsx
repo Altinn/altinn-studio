@@ -17,6 +17,8 @@ export type StudioTableLocalPaginationProps = {
   loadingText?: string;
   emptyTableFallback?: React.ReactNode;
   pagination?: LocalPaginationProps;
+  shouldPersistSort?: boolean;
+  sortStorageKey?: string;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -29,19 +31,24 @@ export const StudioTableLocalPagination = forwardRef<
       rows,
       size = 'medium',
       isLoading = false,
-      loadingText,
+      loadingText = 'Loading...',
       emptyTableFallback,
       pagination,
+      shouldPersistSort = false,
+      sortStorageKey,
     },
     ref,
   ): React.ReactElement => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const isSortable = columns.some((column) => column.sortable);
-    const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
+    const { sortedRows, handleSorting, sortDirection, sortColumn } = useTableSorting(rows, {
+      enable: true,
+      shouldPersistSort,
+      storageKey: sortStorageKey,
+    });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     useEffect(() => {
@@ -71,6 +78,8 @@ export const StudioTableLocalPagination = forwardRef<
         loadingText={loadingText}
         emptyTableFallback={emptyTableFallback}
         onSortClick={handleSorting}
+        sort={sortDirection}
+        sortColumn={sortColumn}
         pagination={studioTableRemotePaginationProps}
         ref={ref}
       />

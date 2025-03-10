@@ -1,13 +1,46 @@
 import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
+import { typedLocalStorage } from '@studio/pure-functions';
 
-export const useTableSorting = (rows: Rows, options: Record<'enable', boolean>) => {
-  const [sortColumn, setSortColumn] = useState(null);
-  const [sortDirection, setSortDirection] = useState('asc');
+export type SortPreference = {
+  column: string | null;
+  direction: 'asc' | 'desc';
+};
+
+type TableSortingOptions = {
+  enable: boolean;
+  shouldPersistSort?: boolean;
+  storageKey?: string;
+};
+
+export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
+  const { enable, shouldPersistSort = false, storageKey = 'table-sort-preference' } = options;
+
+  const getSavedPreference = (): SortPreference | null => {
+    if (!shouldPersistSort) return null;
+    return typedLocalStorage.getItem<SortPreference>(storageKey);
+  };
+
+  const savedPreference = getSavedPreference();
+  const [sortColumn, setSortColumn] = useState<string | null>(savedPreference?.column ?? null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
+    savedPreference?.direction ?? 'asc',
+  );
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
 
+  const persistSortPreference = (column: string | null, direction: 'asc' | 'desc') => {
+    if (!shouldPersistSort) return;
+    typedLocalStorage.setItem(storageKey, { column, direction });
+  };
+
   const toggleSortDirection = () => {
-    setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
+    setSortDirection((prevDirection) => {
+      const newDirection = prevDirection === 'asc' ? 'desc' : 'asc';
+      if (sortColumn !== null) {
+        persistSortPreference(sortColumn, newDirection);
+      }
+      return newDirection;
+    });
   };
 
   const handleSorting = (columnKey: string) => {
@@ -16,6 +49,7 @@ export const useTableSorting = (rows: Rows, options: Record<'enable', boolean>) 
     } else {
       setSortColumn(columnKey);
       setSortDirection('asc');
+      persistSortPreference(columnKey, 'asc');
     }
   };
 
@@ -40,15 +74,19 @@ export const useTableSorting = (rows: Rows, options: Record<'enable', boolean>) 
     }
   }, [sortColumn, sortDirection, rows]);
 
-  if (!options.enable) {
+  if (!enable) {
     return {
       sortedRows: undefined,
       handleSorting: undefined,
+      sortDirection: undefined,
+      sortColumn: undefined,
     };
   }
 
   return {
     sortedRows,
     handleSorting,
+    sortDirection,
+    sortColumn,
   };
 };
