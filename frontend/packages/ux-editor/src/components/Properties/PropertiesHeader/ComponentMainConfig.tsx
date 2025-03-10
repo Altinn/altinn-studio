@@ -1,12 +1,11 @@
 import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
-import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
-import type { FormContainer } from '@altinn/ux-editor/types/FormContainer';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 export type ComponentMainConfigProps = {
-  component: FormComponent | FormContainer;
-  handleComponentChange: (component: FormComponent | FormContainer) => void;
+  component: FormItem;
+  handleComponentChange: (component: FormItem) => void;
 };
 
 export const ComponentMainConfig = ({

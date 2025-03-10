@@ -47,12 +47,6 @@ describe('PropertiesHeader', () => {
   });
 
   it('should render spinner when fetching component schema', async () => {
-    jest.fn(() => {
-      return Promise.resolve({
-        results: componentSchemaMocks[componentMocks[ComponentType.Input].type],
-      });
-    });
-
     renderPropertiesHeader({}, false);
     const spinner = screen.getByText(textMock('ux_editor.properties_panel.texts.loading'));
     expect(spinner).toBeInTheDocument();
