@@ -2060,10 +2060,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@digdir/designsystemet-css@npm:0.10.0"
-  checksum: 10/2c9e47ac667e546bfd60079b131f081802a0cb763bf85e5d1d49e07dbdf78d90640a7ead60daa700f3d67f6d7da6779bb799459bb75985adcb36ce1565cb84d1
+"@digdir/designsystemet-css@npm:0.101.0":
+  version: 0.101.0
+  resolution: "@digdir/designsystemet-css@npm:0.101.0"
+  checksum: 10/dcd532afbac21e547a3bacbab497bfbb72c66a4df955ee38a637c3f157b9fa7ba41771d6c71ffb8edee80eee453c0569d30a3e24f9105dc7fa2ae5e77a8764cb
   languageName: node
   linkType: hard
 
@@ -6337,7 +6337,7 @@ __metadata:
     "@altinn/altinn-design-system": "npm:0.30.2"
     "@altinn/figma-design-tokens": "npm:6.0.1"
     "@digdir/design-system-tokens": "npm:0.13.0"
-    "@digdir/designsystemet-css": "npm:0.10.0"
+    "@digdir/designsystemet-css": "npm:0.101.0"
     "@digdir/designsystemet-react": "npm:0.63.1"
     "@digdir/designsystemet-theme": "npm:0.15.3"
     "@microsoft/applicationinsights-react-js": "npm:17.3.4"
