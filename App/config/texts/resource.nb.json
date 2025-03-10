@@ -38,6 +38,10 @@
       "value": "Kort svar"
     },
     {
+      "id": "DividerPage",
+      "value": "Divider"
+    },
+    {
       "id": "InputPage.Input.title",
       "value": "Eksempel på kort svar komponent"
     },

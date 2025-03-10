@@ -15,6 +15,7 @@
       "MapPage",
       "ListPage",
       "GridPage",
+      "DividerPage",
       "CardsPage",
       "RepeatingGroupPage",
       "TabsPage",
