@@ -1,4 +1,4 @@
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { Queries, RenderHookOptions, RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
 import React from 'react';
@@ -18,7 +18,7 @@ type WrapperArgs = {
 } & Pick<MemoryRouterProps, 'initialEntries'>;
 
 const wrapper =
-  ({ queries = {}, queryClient = queryClientMock, initialEntries }: WrapperArgs) =>
+  ({ queries = {}, queryClient = createQueryClientMock(), initialEntries }: WrapperArgs) =>
   // eslint-disable-next-line react/display-name
   (component: ReactNode) => (
     <MemoryRouter initialEntries={initialEntries}>
@@ -34,7 +34,7 @@ export interface ProviderData extends Partial<WrapperArgs> {
 
 export function renderWithProviders(
   component: ReactNode,
-  { queries = {}, queryClient = queryClientMock, initialEntries }: ProviderData = {},
+  { queries = {}, queryClient = createQueryClientMock(), initialEntries }: ProviderData = {},
 ) {
   const renderOptions: RenderOptions = {
     wrapper: ({ children }) =>
@@ -51,7 +51,7 @@ export function renderHookWithProviders<HookResult, Props>(
   hook: (props: Props) => HookResult,
   {
     queries = {},
-    queryClient = queryClientMock,
+    queryClient = createQueryClientMock(),
     externalWrapper = (children) => children,
     initialEntries,
   }: ProviderData = {},
