@@ -23,6 +23,8 @@ import type { IGenericEditComponent } from '../../../../componentConfig';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import classes from './EditTab.module.css';
 
 type EditTabProps = Pick<
@@ -33,7 +35,8 @@ type EditTabProps = Pick<
 export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, status: statusOptionListIds } = useOptionListIdsQuery(org, app);
+  const { status: statusTextResources } = useTextResourcesQuery(org, app);
   const previousComponent = usePrevious(component);
   const dialogRef = createRef<HTMLDialogElement>();
   const errorMessage = useComponentErrorMessage(component);
@@ -44,14 +47,9 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
     }
   }, [component, previousComponent]);
 
-  switch (status) {
+  switch (mergeQueryStatuses(statusOptionListIds, statusTextResources)) {
     case 'pending':
-      return (
-        <StudioSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')}
-        />
-      );
+      return <StudioSpinner spinnerTitle={t('general.loading')} />;
     case 'error':
       return (
         <StudioErrorMessage>
