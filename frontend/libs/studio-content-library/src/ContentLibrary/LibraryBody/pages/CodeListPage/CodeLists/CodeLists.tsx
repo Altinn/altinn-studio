@@ -11,7 +11,7 @@ import type { TextResource } from '@studio/components';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;

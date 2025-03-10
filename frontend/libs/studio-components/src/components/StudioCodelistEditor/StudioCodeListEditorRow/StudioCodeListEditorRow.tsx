@@ -15,6 +15,7 @@ type StudioCodeListEditorRowProps = {
   error: ValueError | null;
   item: CodeListItem;
   number: number;
+  onBlurTextResource: (newTextResource: TextResource) => void;
   onChange: (newItem: CodeListItem) => void;
   onChangeTextResource: (newTextResource: TextResource) => void;
   onDeleteButtonClick: () => void;
@@ -25,6 +26,7 @@ export function StudioCodeListEditorRow({
   error,
   item,
   number,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   onDeleteButtonClick,
@@ -77,27 +79,33 @@ export function StudioCodeListEditorRow({
         currentId={item.label}
         label={texts.itemLabel(number)}
         number={number}
+        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleLabelChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.Label}
+        required={true}
         textResources={textResources}
       />
       <TextResourceIdCell
         currentId={item.description}
         label={texts.itemDescription(number)}
         number={number}
+        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleDescriptionChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.Description}
+        required={false}
         textResources={textResources}
       />
       <TextResourceIdCell
         currentId={item.helpText}
         label={texts.itemHelpText(number)}
         number={number}
+        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleHelpTextChange}
         onChangeTextResource={onChangeTextResource}
         property={CodeListItemTextProperty.HelpText}
+        required={false}
         textResources={textResources}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
@@ -210,9 +218,11 @@ type TextResourceIdCellProps = {
   currentId: string;
   label: string;
   number: number;
+  onBlurTextResource: (newTextResource: TextResource) => void;
   onChangeCurrentId: (newId: string) => void;
   onChangeTextResource: (newTextResource: TextResource) => void;
   property: CodeListItemTextProperty;
+  required: boolean;
   textResources?: TextResource[];
 };
 
@@ -228,9 +238,11 @@ function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
 function TextResourceSelectorCell({
   currentId,
   number,
+  onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
   property,
+  required,
   textResources,
 }: Required<TextResourceIdCellProps>) {
   const {
@@ -239,8 +251,10 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
+      onBlurTextResource={onBlurTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={onChangeTextResource}
+      required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
     />

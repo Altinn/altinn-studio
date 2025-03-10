@@ -30,6 +30,7 @@ export enum QueryKey {
   OptionListsUsage = 'OptionListsUsage',
   OptionLists = 'OptionLists',
   OptionListIds = 'OptionListIds',
+  OrgCodeLists = 'OrgCodeLists',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
   ProcessTaskDataType = 'ProcessTaskDataType',
@@ -50,6 +51,8 @@ export enum QueryKey {
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
+  TextResourcesForOrg = 'TextResourcesForOrg',
+  Pages = 'Pages',
 
   // Resourceadm
   ResourceList = 'ResourceList',

@@ -10,6 +10,7 @@ import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult } from 'app-shared/types/Build';
 import { appRelease } from 'app-shared/mocks/mocks';
 import { type ImageOption } from '../../ImageOption';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const defaultProps: DeployDropdownProps = {
   appDeployedVersion: '',
@@ -73,7 +74,7 @@ describe('DeployDropdown', () => {
     renderDeployDropdown(
       {},
       {
-        getAppReleases: jest.fn().mockImplementation(() => Promise.reject()),
+        getAppReleases: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await waitForElementToBeRemoved(() =>
