@@ -1,0 +1,13 @@
+.card {
+  width: 300px;
+  min-height: 250px;
+}
+
+.cardContent {
+  padding: var(--fds-spacing-2);
+}
+
+.btnGroup {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
