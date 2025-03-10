@@ -73,3 +73,8 @@ export function isCodeListEmpty(codeList: CodeList): boolean {
 export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
   return isCodeListEmpty(codeList) ? CodeListItemType.String : getTypeOfLastValue(codeList);
 }
+
+export function isCodeLimitReached(codeList: CodeList, codeType: CodeListItemType): boolean {
+  const booleanCodeLimit = 2;
+  return codeType === CodeListItemType.Boolean && codeList.length >= booleanCodeLimit;
+}
