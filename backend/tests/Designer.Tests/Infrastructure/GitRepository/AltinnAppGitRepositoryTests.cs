@@ -264,10 +264,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-options";
             string developer = "testUser";
             string optionsId = "test-options";
-            string optionsFolderPath = "App/options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string options = await altinnAppGitRepository.GetOptionsList(optionsId, optionsFolderPath);
+            string options = await altinnAppGitRepository.GetOptionsList(optionsId);
 
             Assert.NotNull(options);
             var optionsArray = JsonNode.Parse(options).AsArray();
@@ -283,10 +282,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-options";
             string developer = "testUser";
             string optionsId = "non-existing-test-options";
-            string optionsFolderPath = "App/options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptionsList(optionsId, optionsFolderPath));
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptionsList(optionsId));
         }
 
         [Fact]
@@ -295,10 +293,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-with-options";
             string developer = "testUser";
-            string optionsFolderPath = "App/options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds(optionsFolderPath);
+            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
             Assert.NotNull(optionListIds);
             Assert.Equal(3, optionListIds.Length);
@@ -311,9 +308,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "empty-app";
             string developer = "testUser";
-            string optionsFolderPath = "App/options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-            var optionsIds = altinnAppGitRepository.GetOptionsListIds(optionsFolderPath);
+            var optionsIds = altinnAppGitRepository.GetOptionsListIds();
             Assert.Equal([], optionsIds);
         }
 

@@ -27,8 +27,6 @@ public class OldInstancesController(IHttpContextAccessor httpContextAccessor,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory
 ) : Controller
 {
-    private const string OptionsFolderPath = "App/options/";
-
     /// <summary>
     /// Get instance data
     /// </summary>
@@ -185,7 +183,7 @@ public class OldInstancesController(IHttpContextAccessor httpContextAccessor,
             // TODO: Need code to get dynamic options list based on language and source?
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string options = await altinnAppGitRepository.GetOptionsList(optionListId, OptionsFolderPath, cancellationToken);
+            string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
             return Ok(options);
         }
         catch (NotFoundException)
