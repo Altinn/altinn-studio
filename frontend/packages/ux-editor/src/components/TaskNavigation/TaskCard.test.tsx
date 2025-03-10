@@ -3,16 +3,26 @@ import React from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import { studioIconCardPopoverTrigger } from '@studio/testing/testids';
+import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { renderWithProviders } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 describe('taskCard', () => {
+  let confirmSpy: jest.SpyInstance;
+  beforeAll(() => {
+    confirmSpy = jest.spyOn(window, 'confirm');
+    confirmSpy.mockImplementation(jest.fn(() => true));
+  });
+
+  afterAll(() => {
+    confirmSpy.mockRestore();
+  });
+
   it('should display popover when clicking ellipsis button', async () => {
-    render();
     const user = userEvent.setup();
+    render();
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     expect(screen.getByRole('button', { name: /general.delete/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /ux_editor.task_card.edit/ })).toBeInTheDocument();
   });
 
   it('should display datatype id', async () => {
@@ -23,6 +33,22 @@ describe('taskCard', () => {
   it('should display task type', async () => {
     render();
     expect(screen.getByText(/ux_editor.subform/)).toBeInTheDocument();
+  });
+
+  it('should show deletion button for subform', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    expect(screen.getByRole('button', { name: /general.delete/ })).toBeInTheDocument();
+  });
+
+  it('should call delete layout set mutation when clicking delete button', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    await user.click(screen.getByRole('button', { name: /general.delete/ }));
+    expect(queriesMock.deleteLayoutSet).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteLayoutSet).toHaveBeenCalledWith(org, app, 'test');
   });
 });
 
