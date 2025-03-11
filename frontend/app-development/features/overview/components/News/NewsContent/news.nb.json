@@ -2,7 +2,7 @@
   "$schema": "news.schema.json",
   "news": [
     {
-      "date": "2025-03-10",
+      "date": "2025-03-11",
       "title": "Biblioteket er nå tilgjengelig fra menylinjen",
       "content": "Vi har lagd et nytt bibliotek! Her finner du nå kodelistene dine. Vi jobber med å utvide biblioteket til at du kan finne eller lagre andre ting der, som bilder og tekster."
     },
