@@ -121,6 +121,16 @@ test('that it is possible to add a new row to an existing codelist and modify th
 test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
+  const codeListTitleAlreadyExists: boolean =
+    await orgLibraryPage.codeLists.getIfCodeListTitleExists(CODELIST_TITLE_UPLOADED);
+
+  // If for some reason the code list was not deleted in the tests in staging, we delete it before testing the creation.
+  // This situation might happen if a test is cancelled right after the creation of the code list.
+  if (codeListTitleAlreadyExists) {
+    await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_UPLOADED);
+    await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  }
+
   const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
