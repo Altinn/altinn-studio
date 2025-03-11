@@ -94,6 +94,16 @@ export class CodeLists extends BasePage {
     await expect(codeList).toBeVisible();
   }
 
+  public async getIfCodeListTitleExists(title: string): Promise<boolean> {
+    const codeList = this.page.getByTitle(
+      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: title,
+      }),
+    );
+
+    return codeList.isVisible();
+  }
+
   public async clickOnAddItemButton(): Promise<void> {
     await this.page
       .getByRole('button', {
