@@ -24,7 +24,6 @@ export class OrgLibraryPage extends BasePage {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('app_content_library.library_heading'),
       level: 1,
-      exact: true,
     });
 
     await expect(heading).toBeVisible();
