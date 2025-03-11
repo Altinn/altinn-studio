@@ -7,6 +7,7 @@ import { StudioButton, StudioDeleteButton, StudioParagraph } from '@studio/compo
 import { useLayoutSetIcon } from '../../hooks/useLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -16,6 +17,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
+  const { setSelectedFormLayoutSetName } = useAppContext();
 
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = useLayoutSetIcon(layoutSetModel);
@@ -32,6 +34,10 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     </StudioDeleteButton>
   );
 
+  const goToFormEditor = () => {
+    setSelectedFormLayoutSetName(layoutSetModel.id);
+  };
+
   return (
     <StudioIconCard
       icon={taskIcon.icon}
@@ -44,7 +50,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
         {t('ux_editor.task_card.datamodel')}
         {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
       </StudioParagraph>
-      <StudioButton color='second' variant='primary'>
+      <StudioButton color='second' onClick={goToFormEditor} variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>
