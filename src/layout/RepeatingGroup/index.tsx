@@ -3,22 +3,23 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent, ValidateComponent, ValidationFilter, ValidationFilterFunction } from '..';
 
-import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { FrontendValidationSource } from 'src/features/validation';
 import { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
 import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { RepeatingGroupSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary';
+import { useValidateRepGroupMinCount } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { GroupExpressions, RepGroupInternal, RepGroupRowExtras } from 'src/layout/RepeatingGroup/types';
 import type { RepeatingGroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { NodeData } from 'src/utils/layout/types';
 
 export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent<'RepeatingGroup'>, ValidationFilter {
@@ -96,39 +97,8 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return false;
   }
 
-  runComponentValidation(
-    node: LayoutNode<'RepeatingGroup'>,
-    { nodeDataSelector }: ValidationDataSources,
-  ): ComponentValidation[] {
-    const dataModelBindings = nodeDataSelector(
-      (picker) => picker(node.id, 'RepeatingGroup')?.layout.dataModelBindings,
-      [node.id],
-    );
-    if (!dataModelBindings) {
-      return [];
-    }
-
-    const validations: ComponentValidation[] = [];
-    // check if minCount is less than visible rows
-    const minCount = nodeDataSelector((picker) => picker(node.id, 'RepeatingGroup')?.item?.minCount, [node.id]) ?? 0;
-    const visibleRows = nodeDataSelector(
-      (picker) =>
-        picker(node.id, 'RepeatingGroup')?.item?.rows?.filter((row) => row && !row.groupExpressions?.hiddenRow).length,
-      [node.id],
-    );
-
-    // Validate minCount
-    if (visibleRows !== undefined && visibleRows < minCount) {
-      validations.push({
-        message: { key: 'validation_errors.minItems', params: [minCount] },
-        severity: 'error',
-        source: FrontendValidationSource.Component,
-        // Treat visibility of minCount the same as required to prevent showing an error immediately
-        category: ValidationMask.Required,
-      });
-    }
-
-    return validations;
+  useComponentValidation(node: LayoutNode<'RepeatingGroup'>): ComponentValidation[] {
+    return useValidateRepGroupMinCount(node);
   }
 
   /**
@@ -140,8 +110,9 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     );
   }
 
-  getValidationFilters(node: LayoutNode<'RepeatingGroup'>, selector: NodeDataSelector): ValidationFilterFunction[] {
-    if (selector((picker) => picker(node.id, 'RepeatingGroup')?.item?.minCount ?? 0, [node.id]) > 0) {
+  getValidationFilters(node: LayoutNode<'RepeatingGroup'>, layoutLookups: LayoutLookups): ValidationFilterFunction[] {
+    const component = layoutLookups.getComponent(node.baseId, 'RepeatingGroup');
+    if (component.minCount && component.minCount > 0) {
       return [this.schemaMinItemsFilter];
     }
     return [];

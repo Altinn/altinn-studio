@@ -3,13 +3,13 @@ import type { MutableRefObject, ReactNode } from 'react';
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { CompBehaviors } from 'src/codegen/Config';
 import type { DisplayData } from 'src/features/displayData';
-import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { BaseRow } from 'src/utils/layout/types';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
@@ -81,27 +81,27 @@ type TypeFromDef<Def extends CompDef> = Def extends CompDef<infer T> ? T : CompT
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField<TypeFromDef<Def>> | ValidateComponent<TypeFromDef<Def>>) {
-  return 'runEmptyFieldValidation' in def || 'runComponentValidation' in def;
+  return 'useEmptyFieldValidation' in def || 'useComponentValidation' in def;
 }
 
 export interface ValidateEmptyField<Type extends CompTypes> {
-  runEmptyFieldValidation: (node: LayoutNode<Type>, validationContext: ValidationDataSources) => ComponentValidation[];
+  useEmptyFieldValidation: (node: LayoutNode<Type>) => ComponentValidation[];
 }
 
 export function implementsValidateEmptyField<Def extends CompDef>(
   def: Def,
 ): def is Def & ValidateEmptyField<TypeFromDef<Def>> {
-  return 'runEmptyFieldValidation' in def;
+  return 'useEmptyFieldValidation' in def;
 }
 
 export interface ValidateComponent<Type extends CompTypes> {
-  runComponentValidation: (node: LayoutNode<Type>, validationContext: ValidationDataSources) => ComponentValidation[];
+  useComponentValidation: (node: LayoutNode<Type>) => ComponentValidation[];
 }
 
 export function implementsValidateComponent<Def extends CompDef>(
   def: Def,
 ): def is Def & ValidateComponent<TypeFromDef<Def>> {
-  return 'runComponentValidation' in def;
+  return 'useComponentValidation' in def;
 }
 
 export interface SubRouting<Type extends CompTypes> {
@@ -115,7 +115,7 @@ export type ValidationFilterFunction = (
 ) => boolean;
 
 export interface ValidationFilter {
-  getValidationFilters: (node: LayoutNode, nodeDataSelector: NodeDataSelector) => ValidationFilterFunction[];
+  getValidationFilters: (node: LayoutNode, layoutLookups: LayoutLookups) => ValidationFilterFunction[];
 }
 
 export type FormDataSelector = (reference: IDataModelReference) => unknown;

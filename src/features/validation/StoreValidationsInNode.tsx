@@ -31,14 +31,24 @@ function StoreValidationsInNodeWorker() {
   const node = GeneratorInternal.useParent() as Node;
   const shouldValidate = shouldValidateNode(item);
 
-  const freshValidations = useNodeValidation(node, shouldValidate);
+  // We intentionally break the rules of hooks eslint rule here. The shouldValidateNode function depends on the
+  // component configuration (specifically, the renderAsSummary property), which cannot change over time (it is not an
+  // expression). Therefore, we can safely ignore lint rule here, as we'll always re-render with the same number of
+  // hooks. If the property changes (from DevTools, for example), the entire form will re-render anyway.
+  if (shouldValidate) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useStoreValidations(node, item);
+  }
+
+  return null;
+}
+
+function useStoreValidations(node: Node, item: CompIntermediate) {
+  const freshValidations = useNodeValidation(node);
   const validations = useUpdatedValidations(freshValidations, node);
 
   const shouldSetValidations = NodesInternal.useNodeData(node, (data) => !deepEqual(data.validations, validations));
-  NodesStateQueue.useSetNodeProp(
-    { node, prop: 'validations', value: validations },
-    shouldSetValidations && shouldValidate,
-  );
+  NodesStateQueue.useSetNodeProp({ node, prop: 'validations', value: validations }, shouldSetValidations);
 
   // Reduce visibility as validations are fixed
   const initialVisibility = getInitialMaskFromNodeItem(item);
@@ -55,8 +65,6 @@ function StoreValidationsInNodeWorker() {
     { node, prop: 'validationVisibility', value: visibilityToSet },
     visibilityToSet !== undefined,
   );
-
-  return null;
 }
 
 function useUpdatedValidations(validations: AnyValidation[], node: Node) {

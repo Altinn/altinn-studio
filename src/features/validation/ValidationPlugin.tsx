@@ -14,6 +14,8 @@ interface Config {
   };
 }
 
+const emptyArray = [];
+
 /**
  * Adds validation support to a form or container component. This is added to your component by default
  * when one of these categories are selected.
@@ -41,7 +43,7 @@ export class ValidationPlugin extends NodeDefPlugin<Config> {
 
   stateFactory(_props: DefPluginStateFactoryProps<Config>): DefPluginExtraState<Config> {
     return {
-      validations: [],
+      validations: emptyArray,
       validationVisibility: 0,
     };
   }

@@ -43,13 +43,18 @@ interface RelationshipLookups {
   };
 }
 
+interface LookupFunctions {
+  // Get the component config for a given ID and component type, or crash
+  getComponent<T extends CompTypes>(id: string, type: T): CompExternal<T>;
+}
+
 interface ChildClaims {
   [parentId: string]: {
     [childId: string]: true;
   };
 }
 
-export type LayoutLookups = PlainLayoutLookups & RelationshipLookups;
+export type LayoutLookups = PlainLayoutLookups & RelationshipLookups & LookupFunctions;
 
 /**
  * Make the simple hash-maps for all components in the layouts. This is used to quickly look up component, and
@@ -142,7 +147,24 @@ export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
     }
   }
 
-  return { ...plainLookups, componentToParent, topLevelComponents };
+  const lookups = { ...plainLookups, componentToParent, topLevelComponents };
+  return makeLookupFunctions(lookups);
+}
+
+function makeLookupFunctions(lookups: PlainLayoutLookups & RelationshipLookups): LayoutLookups {
+  return {
+    ...lookups,
+    getComponent(id, type) {
+      const component = lookups.allComponents[id];
+      if (!component) {
+        throw new Error(`Component '${id}' does not exist`);
+      }
+      if (component.type !== type) {
+        throw new Error(`Component '${id}' is of type '${component.type}', not '${type}'`);
+      }
+      return component as CompExternal<typeof type>;
+    },
+  };
 }
 
 function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLookups, claims: ChildClaims) {

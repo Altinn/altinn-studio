@@ -1,30 +1,25 @@
-import {
-  type ComponentValidation,
-  FrontendValidationSource,
-  type ValidationDataSources,
-  ValidationMask,
-} from 'src/features/validation';
+import { FD } from 'src/features/formData/FormDataWrite';
+import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, CompWithBinding } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
- * Default implementation of runEmptyFieldValidation
- * Checks all of the component's dataModelBindings and returns one error for each one missing data
+ * Default implementation of useEmptyFieldValidation
+ * Checks all the component's dataModelBindings and returns one error for each one missing data
  */
-export function runEmptyFieldValidationAllBindings<Type extends CompTypes>(
+export function useEmptyFieldValidationAllBindings<Type extends CompTypes>(
   node: LayoutNode<Type>,
-  { formDataSelector, invalidDataSelector, nodeDataSelector }: ValidationDataSources,
 ): ComponentValidation[] {
-  const required = nodeDataSelector(
-    (picker) => {
-      const item = picker(node.id, node.type)?.item;
-      return item && 'required' in item ? item.required : false;
-    },
-    [node],
+  const dataModelBindings = NodesInternal.useNodeData(node, (state) => state.layout.dataModelBindings);
+  const required = NodesInternal.useNodeData(node, (state) =>
+    state.item && 'required' in state.item ? state.item.required : false,
   );
-  const dataModelBindings = nodeDataSelector((picker) => picker(node.id, node.type)?.layout.dataModelBindings, [node]);
+  const trb = NodesInternal.useNodeData(node, (state) => state.item?.textResourceBindings);
+  const formDataSelector = FD.useDebouncedSelector();
+  const invalidDataSelector = FD.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {
     return [];
   }
@@ -35,7 +30,6 @@ export function runEmptyFieldValidationAllBindings<Type extends CompTypes>(
     const data = formDataSelector(reference) ?? invalidDataSelector(reference);
     const asString =
       typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-    const trb = nodeDataSelector((picker) => picker(node.id, node.type)?.item?.textResourceBindings, [node]);
 
     if (asString.length === 0) {
       const key =
@@ -57,35 +51,29 @@ export function runEmptyFieldValidationAllBindings<Type extends CompTypes>(
 }
 
 /**
- * Special implementation of runEmptyFieldValidation
+ * Special implementation of useEmptyFieldValidation
  * Only checks simpleBinding, this is useful for components that may save additional data which is not directly controlled by the user,
- * like options-based components that can store the label and metadata about the options along side the actual value
+ * like options-based components that can store the label and metadata about the options alongside the actual value
  */
-export function runEmptyFieldValidationOnlySimpleBinding<Type extends CompWithBinding<'simpleBinding'>>(
+export function useEmptyFieldValidationOnlySimpleBinding<Type extends CompWithBinding<'simpleBinding'>>(
   node: LayoutNode<Type>,
-  { formDataSelector, invalidDataSelector, nodeDataSelector }: ValidationDataSources,
 ): ComponentValidation[] {
-  const required = nodeDataSelector(
-    (picker) => {
-      const item = picker(node.id, node.type)?.item;
-      return item && 'required' in item ? item.required : false;
-    },
-    [node],
+  const required = NodesInternal.useNodeData(node, (state) =>
+    state.item && 'required' in state.item ? state.item.required : false,
   );
-  const reference = nodeDataSelector(
-    (picker) => picker(node.id, node.type)?.layout.dataModelBindings.simpleBinding,
-    [node],
-  );
+  const reference = NodesInternal.useNodeData(node, (state) => state.layout.dataModelBindings.simpleBinding);
+  const trb = NodesInternal.useNodeData(node, (state) => state.item?.textResourceBindings);
+  const validData = FD.useDebouncedPick(reference);
+  const invalidData = FD.useInvalidDebouncedPick(reference);
+  const data = validData ?? invalidData;
   if (!required || !reference) {
     return [];
   }
 
   const validations: ComponentValidation[] = [];
 
-  const data = formDataSelector(reference) ?? invalidDataSelector(reference);
   const asString =
     typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-  const trb = nodeDataSelector((picker) => picker(node.id, node.type)?.item?.textResourceBindings, [node]);
 
   if (asString.length === 0) {
     const key =

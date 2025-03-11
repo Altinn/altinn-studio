@@ -38,7 +38,7 @@ export class Likert extends LikertDef {
   }
 
   // This component does not have empty field validation, so has to override its inherited method
-  runEmptyFieldValidation(): ComponentValidation[] {
+  useEmptyFieldValidation(): ComponentValidation[] {
     return [];
   }
 

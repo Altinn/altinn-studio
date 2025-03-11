@@ -721,13 +721,6 @@ export const FD = {
     });
   },
 
-  useInvalidDebouncedSelectorProps() {
-    return useDelayedSelectorProps({
-      mode: 'simple',
-      selector: invalidDebouncedSelector,
-    });
-  },
-
   /**
    * This will return the form data as a deep object, just like the server sends it to us (and the way we send it back).
    * This will always give you the debounced data, which may or may not be saved to the backend yet.
@@ -829,6 +822,15 @@ export const FD = {
    */
   useInvalidDebounced(dataType: string): object {
     return useSelector((v) => v.dataModels[dataType].invalidDebouncedCurrentData);
+  },
+
+  /**
+   * This returns the current invalid data which cannot be saved to backend
+   */
+  useInvalidDebouncedPick(reference: IDataModelReference | undefined): FDValue {
+    return useSelector((v) =>
+      reference ? dot.pick(reference.field, v.dataModels[reference.dataType].invalidDebouncedCurrentData) : undefined,
+    );
   },
 
   /**

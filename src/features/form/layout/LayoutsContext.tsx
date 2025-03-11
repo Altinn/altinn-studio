@@ -16,12 +16,10 @@ import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
 export interface LayoutContextValue {
-  lookups: LayoutLookups;
   layouts: ILayouts;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;
@@ -57,7 +55,15 @@ function useLayoutQuery() {
     utils.error && window.logError('Fetching form layout failed:\n', utils.error);
   }, [utils.error]);
 
-  return utils;
+  return utils.data
+    ? {
+        ...utils,
+        data: {
+          ...utils.data,
+          lookups: makeLayoutLookups(utils.data.layouts),
+        },
+      }
+    : utils;
 }
 const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({
@@ -119,10 +125,7 @@ function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModel
   const withQuirksFixed = applyLayoutQuirks(layouts, layoutSetId);
   removeDuplicateComponentIds(withQuirksFixed, layoutSetId);
 
-  const lookups = makeLayoutLookups(withQuirksFixed);
-
   return {
-    lookups,
     layouts: withQuirksFixed,
     hiddenLayoutsExpressions,
     expandedWidthLayouts,

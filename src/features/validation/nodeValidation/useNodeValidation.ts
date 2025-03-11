@@ -1,12 +1,17 @@
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Validation } from 'src/features/validation/validationContext';
-import { implementsValidateComponent, implementsValidateEmptyField } from 'src/layout';
+import {
+  type CompDef,
+  implementsValidateComponent,
+  implementsValidateEmptyField,
+  type ValidationFilter,
+} from 'src/layout';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation } from 'src/features/validation';
-import type { CompDef, ValidationFilter } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 
 const emptyArray: AnyValidation[] = [];
 
@@ -14,29 +19,29 @@ const emptyArray: AnyValidation[] = [];
  * Runs validations defined in the component classes. This runs from the node generator, and will collect all
  * validations for a node and return them.
  */
-export function useNodeValidation(node: LayoutNode, shouldValidate: boolean): AnyValidation[] {
+export function useNodeValidation(node: LayoutNode): AnyValidation[] {
   const registry = GeneratorInternal.useRegistry();
-  const dataSources = GeneratorData.useValidationDataSources();
-  const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
+  const layoutLookups = useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 
-  return Validation.useFullState((state) => {
-    if (!shouldValidate) {
-      return emptyArray;
-    }
+  // We intentionally break the rules of hooks eslint rule here. All nodes have a type, and that type never changes
+  // in the lifetime of the node. Therefore, we can safely ignore the linting rule, as we'll always re-render with
+  // the same validator hooks (and thus in practice we will never actually break the rule of hooks, only the linter).
+  const unfiltered: AnyValidation[] = [];
+  if (implementsValidateEmptyField(node.def)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unfiltered.push(...node.def.useEmptyFieldValidation(node as any));
+  }
 
-    const validations: AnyValidation[] = [];
-    if (implementsValidateEmptyField(node.def)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      validations.push(...node.def.runEmptyFieldValidation(node as any, dataSources));
-    }
+  if (implementsValidateComponent(node.def)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unfiltered.push(...node.def.useComponentValidation(node as any));
+  }
 
-    if (implementsValidateComponent(node.def)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      validations.push(...node.def.runComponentValidation(node as any, dataSources));
-    }
-
+  const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
+  const fieldValidations = Validation.useFullState((state) => {
+    const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
       const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
       const fieldValidations = state.state.dataModels[dataElementId]?.[field];
@@ -45,15 +50,22 @@ export function useNodeValidation(node: LayoutNode, shouldValidate: boolean): An
       }
     }
 
-    const result = filter(validations, node, dataSources.nodeDataSelector);
+    // This is set in the selector because the validation system will wait until all nodes (that validate) have set it.
+    // If we set this during render, all components using this hook would have to re-render after saving data, but now
+    // they only have to re-run the selector. The downside here is that empty validations and component validations will
+    // run outside the selector, so they _may_ have new validations that are not yet processed.
     registry.current.validationsProcessed[node.id] = state.processedLast;
-
-    if (result.length === 0) {
-      return emptyArray;
-    }
-
-    return result;
+    return validations;
   });
+
+  unfiltered.push(...fieldValidations);
+
+  const filtered = filter(unfiltered, node, layoutLookups);
+  if (filtered.length === 0) {
+    return emptyArray;
+  }
+
+  return filtered;
 }
 
 /**
@@ -62,14 +74,14 @@ export function useNodeValidation(node: LayoutNode, shouldValidate: boolean): An
 function filter<Validation extends BaseValidation>(
   validations: Validation[],
   node: LayoutNode,
-  selector: NodeDataSelector,
+  layoutLookups: LayoutLookups,
 ): Validation[] {
   if (!implementsValidationFilter(node.def)) {
     return validations;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filters = node.def.getValidationFilters(node as any, selector);
+  const filters = node.def.getValidationFilters(node as any, layoutLookups);
   if (filters.length == 0) {
     return validations;
   }

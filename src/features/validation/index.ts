@@ -1,13 +1,6 @@
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { Expression, ExprValToActual } from 'src/features/expressions/types';
-import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
-import type { DataElementHasErrorsSelector } from 'src/features/validation/validationContext';
-import type { FormDataSelector } from 'src/layout';
-import type { ILayoutSet } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 
 export enum FrontendValidationSource {
   EmptyField = '__empty_field__',
@@ -220,21 +213,6 @@ export type NodeRefValidation<Validation extends AnyValidation<any> = AnyValidat
 export type ValidationsProcessedLast = {
   incremental: BackendValidationIssueGroups | undefined;
   initial: BackendValidationIssue[] | undefined;
-};
-
-/**
- * Contains all the necessary elements from the store to run frontend validations.
- */
-export type ValidationDataSources = {
-  currentLanguage: string;
-  formDataSelector: FormDataSelector;
-  invalidDataSelector: FormDataSelector;
-  attachmentsSelector: AttachmentsSelector;
-  nodeDataSelector: NodeDataSelector;
-  applicationMetadata: ApplicationMetadata;
-  dataElementsSelector: DataElementSelector;
-  layoutSets: ILayoutSet[];
-  dataElementHasErrorsSelector: DataElementHasErrorsSelector;
 };
 
 /**

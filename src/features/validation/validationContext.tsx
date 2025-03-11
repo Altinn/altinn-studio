@@ -149,7 +149,6 @@ const {
   useStore,
   useLaxSelectorAsRef,
   useDelayedSelector,
-  useDelayedSelectorProps,
 } = createZustandContext({
   name: 'Validation',
   required: true,
@@ -317,37 +316,25 @@ function useDS<U>(outerSelector: (state: ValidationContext) => U) {
   });
 }
 
-const dataElementHasErrorsSelector = (dataElementId: string) => (state: ValidationContext) => {
-  const dataElementValidations = state.state.dataModels[dataElementId];
-  for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
-    for (const validation of fieldValidations) {
-      if (validation.severity === 'error') {
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
-export type ValidationSelector = ReturnType<typeof Validation.useSelector>;
-export type ValidationDataModelSelector = ReturnType<typeof Validation.useDataModelSelector>;
-export type DataElementHasErrorsSelector = ReturnType<typeof Validation.useDataElementHasErrorsSelector>;
-
 export const Validation = {
   // Selectors. These are memoized, so they won't cause a re-render unless the selected fields change.
   useSelector: () => useDS((state) => state),
-  useDataModelSelector: () => useDS((state) => state.state.dataModels),
 
-  useDataElementHasErrorsSelector: () =>
-    useDelayedSelector({
-      mode: 'simple',
-      selector: dataElementHasErrorsSelector,
-    }),
-
-  useDataElementHasErrorsSelectorProps: () =>
-    useDelayedSelectorProps({
-      mode: 'simple',
-      selector: dataElementHasErrorsSelector,
+  useDataElementsWithErrors: (elementIds: string[]) =>
+    useMemoSelector((state) => {
+      const out: string[] = [];
+      for (const elementId of elementIds) {
+        const dataElementValidations = state.state.dataModels[elementId];
+        for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
+          for (const validation of fieldValidations) {
+            if (validation.severity === 'error') {
+              out.push(elementId);
+              break;
+            }
+          }
+        }
+      }
+      return out;
     }),
 
   useShowAllBackendErrors: () => useSelector((state) => state.showAllBackendErrors),
