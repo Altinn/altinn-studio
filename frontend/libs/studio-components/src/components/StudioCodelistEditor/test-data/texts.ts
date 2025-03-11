@@ -24,6 +24,7 @@ export const texts: CodeListEditorTexts = {
   delete: 'Delete',
   deleteItem: (number) => `Delete code number ${number}`,
   description: 'Description',
+  disabledAddButtonTooltip: 'You cannot have more than two options in a boolean code list',
   emptyCodeList: 'The code list is empty.',
   generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',
