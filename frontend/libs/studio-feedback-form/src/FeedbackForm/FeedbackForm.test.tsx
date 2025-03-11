@@ -20,6 +20,9 @@ jest.mock('axios');
 var mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
   it('should render FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions });
     expect(screen.getByRole('button', { name: buttonTexts.trigger })).toBeInTheDocument();
@@ -61,6 +64,32 @@ describe('FeedbackForm', () => {
     await user.click(closeButton);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('should close FeedbackForm modal when submit button is clicked and submission fails', async () => {
+    const user = userEvent.setup();
+    renderFeedbackForm({ questions: mockQuestions });
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
+    await user.click(trigger);
+
+    const submitButton = screen.getByText(buttonTexts.submit);
+    mockedAxios.post.mockRejectedValueOnce('Error while submitting feedback');
+
+    await user.click(submitButton);
+
+    // Check if the error was logged
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to submit feedback'),
+      expect.stringContaining('Error while submitting feedback'),
+    );
+
+    // Check if the modal is still open
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Clean up
+    consoleError.mockRestore();
   });
 
   it('should render all questions of type yesNo and text', async () => {

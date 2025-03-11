@@ -49,19 +49,14 @@ export function FeedbackForm({
   };
 
   const handleSubmit = () => {
-    try {
-      submitFeedback(
-        {
-          ...answers,
-          feedbackFormId: id,
-        },
-        submitPath,
-      );
-      handleCloseModal();
-      toast.success(t('feedback.success_message'));
-    } catch (error) {
-      toast.error(t('feedback.error_message'));
-    }
+    submitFeedback({ ...answers, feedbackFormId: id }, submitPath)
+      .then(() => {
+        handleCloseModal();
+        toast.success(t('feedback.success_message'));
+      })
+      .catch(() => {
+        toast.error(t('feedback.error_message'));
+      });
   };
 
   const renderQuestion = (question: QuestionConfig) => {
