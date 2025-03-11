@@ -11,7 +11,7 @@ describe('FeedbackFormContext', () => {
     };
 
     render(
-      <FeedbackFormContextProvider>
+      <FeedbackFormContextProvider submitPath='/test'>
         <TestComponent />
       </FeedbackFormContextProvider>,
     );
@@ -31,7 +31,7 @@ describe('FeedbackFormContext', () => {
     };
 
     render(
-      <FeedbackFormContextProvider>
+      <FeedbackFormContextProvider submitPath='/test'>
         <TestComponent />
       </FeedbackFormContextProvider>,
     );
