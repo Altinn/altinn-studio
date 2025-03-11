@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
-import { App } from './App';
+import { App as FormDesigner } from './App';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FormDesignerNavigation } from './containers/FormDesignNavigation';
 import { useAppContext } from './hooks';
@@ -12,21 +12,21 @@ type SubAppProps = {
   onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
-const UiEditor = () => {
+const App = () => {
   const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
   const { selectedFormLayoutSetName } = useAppContext();
 
   return isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
     <FormDesignerNavigation />
   ) : (
-    <App />
+    <FormDesigner />
   );
 };
 
 export const SubApp = (props: SubAppProps) => {
   return (
     <AppContextProvider {...props}>
-      <UiEditor />
+      <App />
     </AppContextProvider>
   );
 };
