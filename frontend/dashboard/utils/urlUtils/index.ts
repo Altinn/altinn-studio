@@ -1,1 +1,6 @@
-export { getAppDevelopmentRootRoute, getRepoEditUrl } from './urlUtils';
+export {
+  getAppDevelopmentRootRoute,
+  getRepoEditUrl,
+  extractLastRouterParam,
+  extractSecondLastRouterParam,
+} from './urlUtils';
