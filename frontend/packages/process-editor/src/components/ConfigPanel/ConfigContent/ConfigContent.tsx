@@ -15,6 +15,7 @@ import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -34,6 +35,8 @@ export const ConfigContent = (): React.ReactElement => {
   const isFirstSigningTask = tasks
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
+
+  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards);
 
   if (shouldDisplayAction(bpmnDetails.id)) {
     return (
@@ -64,7 +67,7 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
-          {taskHasConnectedLayoutSet && (
+          {!isTaskNavigationEnabled && taskHasConnectedLayoutSet && (
             <Accordion.Item>
               <Accordion.Header>
                 {t('process_editor.configuration_panel_design_title')}
