@@ -298,7 +298,8 @@ declare global {
 
       getCurrentViewportSize(): Chainable<Size>;
 
-      showNavGroups(open: boolean): Chainable<null>;
+      showNavGroups(): Chainable<null>;
+      hideNavGroups(): Chainable<null>;
 
       navGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<JQuery<Element>>;
 

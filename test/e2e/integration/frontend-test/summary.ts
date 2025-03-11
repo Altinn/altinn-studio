@@ -688,6 +688,7 @@ function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | u
     },
   );
   cy.log(`Reloading page with trigger: ${pageValidationConfig?.page ?? 'undefined'}`);
+  cy.waitUntilSaved();
   cy.get('#finishedLoading').then(() => {
     cy.reload();
   });

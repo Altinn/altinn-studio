@@ -17,12 +17,13 @@ describe('navigation', () => {
   ['desktop', 'tablet', 'mobile'].forEach((device: keyof typeof viewportSizes) =>
     it(`navigation component on ${device}`, () => {
       const { width, height } = viewportSizes[device];
+      const isUsingDialog = device === 'mobile' || device === 'tablet';
       cy.viewport(width, height);
       cy.startAppInstance(appFrontend.apps.navigationTest);
       cy.waitForLoad();
 
       // Check initial conditions
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('have.attr', 'aria-current', 'page');
@@ -42,20 +43,20 @@ describe('navigation', () => {
 
       cy.navGroup('Kvittering').should('be.disabled');
       cy.navGroup('Kvittering').should('not.have.attr', 'aria-current');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('not.have.attr', 'aria-current');
       cy.navGroup(/^Informasjon/, 'Litt mer info').should('have.attr', 'aria-current', 'page');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'false');
       cy.navGroup(/^Informasjon/).should('not.have.attr', 'aria-current');
 
@@ -66,32 +67,32 @@ describe('navigation', () => {
       cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('textbox', { name: /Fornavn/ }).type('Donald');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('textbox', { name: /Etternavn/ }).type('Duck');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling').should('have.attr', 'aria-expanded', 'true');
       cy.navGroup('Utfylling').should('have.attr', 'aria-current', 'step');
       cy.navGroup('Utfylling', 'Fornavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Alder').should('have.attr', 'aria-current', 'page');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('textbox', { name: /Alder/ }).type('123');
       cy.get(appFrontend.errorReport).should('be.visible');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Fødselsdag').should('have.attr', 'aria-current', 'page');
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('be.visible');
@@ -101,7 +102,7 @@ describe('navigation', () => {
       });
       cy.gotoNavGroup(/^Informasjon/, 'Generell info');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('have.attr', 'aria-current', 'page');
@@ -114,20 +115,20 @@ describe('navigation', () => {
       cy.findByRole('textbox', { name: /Alder/ }).type('42');
       cy.get(appFrontend.errorReport).should('not.exist');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Biler').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Biler').find(ICON_ERROR).should('not.exist');
       cy.gotoNavGroup('Utfylling', 'Biler');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
       cy.gotoNavGroup('Utfylling', 'Fødselsdag');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Biler').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Biler').find(ICON_ERROR).should('not.exist');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('textbox', { name: /Fødselsdag/ }).type('01011983');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
@@ -142,7 +143,7 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('be.visible');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Registreringsnummer').should('have.attr', 'aria-current', 'page');
       cy.navGroup('Registreringsnummer').should('not.have.attr', 'aria-expanded');
       cy.navGroup('Informasjon').should('have.attr', 'aria-expanded', 'false');
@@ -152,7 +153,7 @@ describe('navigation', () => {
       cy.navGroup('Informasjon', 'Årsmodell').should('not.have.attr', 'aria-current');
       cy.navGroup('Bekreftelse').should('not.exist');
       cy.navGroup('Kvittering').should('not.exist');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: /Biler$/ }).clickAndGone();
       cy.waitForLoad();
@@ -161,7 +162,7 @@ describe('navigation', () => {
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling').should('have.attr', 'aria-expanded', 'false');
       cy.navGroup('Utfylling').should('not.have.attr', 'aria-current');
       cy.navGroup('Utfylling').find(ICON_COMPLETE).should('be.visible');
@@ -172,15 +173,15 @@ describe('navigation', () => {
 
       cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).dsCheck();
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.openNavGroup('Innsending');
       cy.navGroup('Innsending', 'Tilbakemelding').should('not.exist');
       cy.navGroup('Innsending', 'Oppsummering').should('be.visible');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
       cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).dsCheck();
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Innsending').should('not.exist');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('heading', { name: 'Viktig informasjon' }).should('be.visible');
@@ -193,14 +194,14 @@ describe('navigation', () => {
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
       cy.findByRole('heading', { name: 'Se over svarene dine før du sender inn' }).should('be.visible');
 
-      cy.showNavGroups(true);
+      isUsingDialog && cy.showNavGroups();
       cy.navGroup('Personopplysninger').should('be.disabled');
       cy.navGroup('Personopplysninger').should('not.have.attr', 'aria-current');
       cy.navGroup('Bekreftelse').should('be.disabled');
       cy.navGroup('Bekreftelse').should('have.attr', 'aria-current', 'step');
       cy.navGroup('Kvittering').should('be.disabled');
       cy.navGroup('Kvittering').should('not.have.attr', 'aria-current');
-      cy.showNavGroups(false);
+      isUsingDialog && cy.hideNavGroups();
 
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
 
