@@ -68,6 +68,7 @@ export const ConfigContent = (): React.ReactElement => {
         )}
         <Accordion color='neutral'>
           {!isTaskNavigationEnabled && taskHasConnectedLayoutSet && (
+            /*We just hide the accordion for now, It will be removed when we remove featureFlags*/
             <Accordion.Item>
               <Accordion.Header>
                 {t('process_editor.configuration_panel_design_title')}
