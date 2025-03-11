@@ -40,10 +40,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
                     {
                         EmailAddress = revisor.Epost,
                         SubjectTextResourceKey = "signing.revisor_email_subject",
-                        BodyTextResourceKey = "signing.revisor_notification_content".Replace(
-                            "{0}",
-                            revisor.Navn
-                        ),
+                        BodyTextResourceKey = "signing.revisor_notification_content"
                     }
                 }
             }

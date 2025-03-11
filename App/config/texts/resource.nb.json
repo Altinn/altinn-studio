@@ -275,7 +275,7 @@
     },
     {
       "id": "signing.notification_content",
-      "value": "Hei {0},\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+      "value": "Hei $correspondenceRecipientName$,\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
     },
     {
       "id": "signing.email_subject",
@@ -283,7 +283,7 @@
     },
     {
       "id": "signing.revisor_notification_content",
-      "value": "Nytt revisjonsoppdrag for {0} er mottatt for signering i Altinn. Logg inn på Altinn for å signere.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+      "value": "Nytt revisjonsoppdrag for $correspondenceRecipientName$ er mottatt for signering i Altinn. Logg inn på Altinn for å signere.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
     },
     {
       "id": "signing.revisor_email_subject",

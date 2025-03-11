@@ -45,18 +45,12 @@ public class FounderSigneesProvider : ISigneeProvider
                         {
                             EmailAddress = stifterPerson.Epost,
                             SubjectTextResourceKey = "signing.email_subject",
-                            BodyTextResourceKey = "signing.notification_content".Replace(
-                                "{0}",
-                                stifterPerson.Fornavn
-                            ),
+                            BodyTextResourceKey = "signing.notification_content"
                         },
                         Sms = new Sms
                         {
                             MobileNumber = stifterPerson.Mobiltelefon,
-                            BodyTextResourceKey = "signing.notification_content".Replace(
-                                "{0}",
-                                stifterPerson.Fornavn
-                            ),
+                            BodyTextResourceKey = "signing.notification_content"
                         }
                     }
                 }
