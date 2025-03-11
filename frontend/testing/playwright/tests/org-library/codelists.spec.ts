@@ -51,7 +51,7 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
   const codeListTitleAlreadyExists: boolean =
-    await orgLibraryPage.codeLists.getIfCodeListTitleExists(CODELIST_TITLE_MANUALLY);
+    await orgLibraryPage.codeLists.codeListTitleExists(CODELIST_TITLE_MANUALLY);
 
   // If for some reason the code list was not deleted in the tests in staging, we delete it before testing the creation.
   // This situation might happen if a test is cancelled right after the creation of the code list.
@@ -122,7 +122,7 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
   const codeListTitleAlreadyExists: boolean =
-    await orgLibraryPage.codeLists.getIfCodeListTitleExists(CODELIST_TITLE_UPLOADED);
+    await orgLibraryPage.codeLists.codeListTitleExists(CODELIST_TITLE_UPLOADED);
 
   // If for some reason the code list was not deleted in the tests in staging, we delete it before testing the creation.
   // This situation might happen if a test is cancelled right after the creation of the code list.
