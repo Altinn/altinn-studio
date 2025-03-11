@@ -4,8 +4,7 @@ import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components';
-import { type NavigationMenuItem } from '../../types/NavigationMenuItem';
+import { type StudioProfileMenuGroup } from '@studio/components';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
@@ -57,21 +56,6 @@ export function mapNavigationMenuToProfileMenu(
 
 function mapNavigationGroup(group: NavigationMenuGroup): StudioProfileMenuGroup {
   return {
-    items: group.items.map(mapNavigationItem),
+    items: group.items,
   };
-}
-
-function mapNavigationItem(item: NavigationMenuItem): StudioProfileMenuItem {
-  return {
-    itemName: item.itemName,
-    action: mapNavigationAction(item.action),
-  };
-}
-
-function mapNavigationAction(
-  action: NavigationMenuItem['action'],
-): StudioProfileMenuItem['action'] {
-  return action.type === 'button'
-    ? { type: 'button', onClick: action.onClick }
-    : { type: 'link', href: action.href, openInNewTab: action.openInNewTab };
 }
