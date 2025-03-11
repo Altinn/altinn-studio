@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfirmUndeployDialog } from './ConfirmUndeployDialog';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('ConfirmUndeployDialog', () => {
   it('should provide a input field to confirm the app to undeploy and button is disabled', async () => {
@@ -70,7 +71,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should display an error alert when the undeploy mutation fails', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn(() => Promise.reject('error'));
+    const undeployMock = jest.fn(() => Promise.reject(createApiErrorMock()));
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,
     });

@@ -30,7 +30,6 @@ import { emptyBooleanItem, emptyNumberItem, emptyStringItem } from './utils';
 const onAddOrDeleteItem = jest.fn();
 const onBlurAny = jest.fn();
 const onChange = jest.fn();
-const onChangeTextResource = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList: codeListWithoutTextResources,
@@ -38,7 +37,6 @@ const defaultProps: StudioCodeListEditorProps = {
   onAddOrDeleteItem,
   onBlurAny,
   onChange,
-  onChangeTextResource,
   onInvalid,
 };
 const propsWithTextResources: Partial<StudioCodeListEditorProps> = {
@@ -94,9 +92,17 @@ describe('StudioCodeListEditor', () => {
     expect(screen.getByRole('columnheader', { name: texts.delete })).toBeInTheDocument();
   });
 
-  it('Renders a button to add a new code list item', () => {
-    renderCodeListEditor();
-    expect(screen.getByRole('button', { name: texts.add })).toBeInTheDocument();
+  describe('Add button', () => {
+    it('Renders a button to add a new code list item', () => {
+      renderCodeListEditor();
+      expect(screen.getByRole('button', { name: texts.add })).toBeInTheDocument();
+    });
+
+    it('Disables add button when a code list has two or more boolean items', () => {
+      renderCodeListEditor({ codeList: codeListWithBooleans });
+      expect(screen.getByTitle(texts.disabledAddButtonTooltip)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: texts.add })).toBeDisabled();
+    });
   });
 
   it('Does not display the unset option for labels', async () => {
@@ -242,7 +248,8 @@ describe('StudioCodeListEditor', () => {
 
     it('Calls the onChangeTextResource callback with the new text resource when a label is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      const onChangeTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.Label];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
@@ -255,7 +262,8 @@ describe('StudioCodeListEditor', () => {
 
     it('Calls the onChangeTextResource callback with the new text resource when a description is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      const onChangeTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [
         testRowNumber,
         CodeListItemTextProperty.Description,
@@ -271,12 +279,65 @@ describe('StudioCodeListEditor', () => {
 
     it('Calls the onChangeTextResource callback with the new text resource when a help text is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      const onChangeTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
       expect(onChangeTextResource).toHaveBeenCalledTimes(newValue.length);
       expect(onChangeTextResource).toHaveBeenLastCalledWith({
+        ...helpText1Resource,
+        value: expect.stringContaining(newValue),
+      });
+    });
+  });
+
+  describe('onBlurTextResource', () => {
+    const testRowNumber = 1;
+
+    it('Calls the onBlurTextResource callback with the new text resource when a label is changed', async () => {
+      const user = userEvent.setup();
+      const onBlurTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.Label];
+      const newValue = 'new text';
+      await user.type(getTextResourceValueInput(propertyCoords), newValue);
+      await user.tab();
+      expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+      expect(onBlurTextResource).toHaveBeenCalledWith({
+        ...label1Resource,
+        value: expect.stringContaining(newValue),
+      });
+    });
+
+    it('Calls the onBlurTextResource callback with the new text resource when a description is changed', async () => {
+      const user = userEvent.setup();
+      const onBlurTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      const propertyCoords: TextPropertyCoords = [
+        testRowNumber,
+        CodeListItemTextProperty.Description,
+      ];
+      const newValue = 'new text';
+      await user.type(getTextResourceValueInput(propertyCoords), newValue);
+      await user.tab();
+      expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+      expect(onBlurTextResource).toHaveBeenCalledWith({
+        ...description1Resource,
+        value: expect.stringContaining(newValue),
+      });
+    });
+
+    it('Calls the onBlurTextResource callback with the new text resource when a help text is changed', async () => {
+      const user = userEvent.setup();
+      const onBlurTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
+      const newValue = 'new text';
+      await user.type(getTextResourceValueInput(propertyCoords), newValue);
+      await user.tab();
+      expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+      expect(onBlurTextResource).toHaveBeenCalledWith({
         ...helpText1Resource,
         value: expect.stringContaining(newValue),
       });
