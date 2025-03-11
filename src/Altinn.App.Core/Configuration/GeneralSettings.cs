@@ -41,6 +41,8 @@ public class GeneralSettings
 
     internal bool DisableAppConfigurationCache { get; set; }
 
+    internal bool IsTest { get; set; }
+
     /// <summary>
     /// The externally accesible base url for the app with trailing /
     /// </summary>

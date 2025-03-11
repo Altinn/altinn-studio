@@ -45,8 +45,8 @@ public class DataElementAccessCheckerTests
         {
             (null, null, _) => TestAuthentication.GetNoneAuthentication(),
             (string orgName, int orgNo, _) => TestAuthentication.GetServiceOwnerAuthentication(
-                orgNo.ToString(CultureInfo.InvariantCulture),
-                orgName
+                orgNumber: orgNo.ToString(CultureInfo.InvariantCulture),
+                org: orgName
             ),
             (null, int orgNumber, bool systemUser) when !systemUser => TestAuthentication.GetOrgAuthentication(
                 orgNumber.ToString(CultureInfo.InvariantCulture)

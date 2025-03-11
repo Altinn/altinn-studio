@@ -154,7 +154,7 @@ public class SigningUserActionTests
         var userActionContext = new UserActionContext(
             instance,
             1337,
-            authentication: TestAuthentication.GetUserAuthentication(1337)
+            authentication: TestAuthentication.GetUserAuthentication(userId: 1337, applicationMetadata: appMetadata)
         );
 
         // Act
@@ -232,7 +232,7 @@ public class SigningUserActionTests
         var userActionContext = new UserActionContext(
             instance,
             1337,
-            authentication: TestAuthentication.GetUserAuthentication(1337)
+            authentication: TestAuthentication.GetUserAuthentication(1337, applicationMetadata: appMetadata)
         );
 
         // Act
@@ -263,7 +263,7 @@ public class SigningUserActionTests
         var userActionContext = new UserActionContext(
             instance,
             1337,
-            authentication: TestAuthentication.GetUserAuthentication(1337)
+            authentication: TestAuthentication.GetUserAuthentication(1337, applicationMetadata: _defaultAppMetadata)
         );
 
         // Act
@@ -295,7 +295,7 @@ public class SigningUserActionTests
         var userActionContext = new UserActionContext(
             instance,
             1337,
-            authentication: TestAuthentication.GetUserAuthentication(1337)
+            authentication: TestAuthentication.GetUserAuthentication(1337, applicationMetadata: appMetadata)
         );
 
         // Act

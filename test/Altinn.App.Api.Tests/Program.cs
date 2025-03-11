@@ -60,6 +60,7 @@ builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
+builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 
 // AppConfigurationCache.Disable = true;
 

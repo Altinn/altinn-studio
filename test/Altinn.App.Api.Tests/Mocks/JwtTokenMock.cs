@@ -40,6 +40,22 @@ public static class JwtTokenMock
         return tokenstring;
     }
 
+    public static string GenerateToken(JwtPayload payload, TimeSpan tokenExpiry, TimeProvider? timeProvider = null)
+    {
+        var header = new JwtHeader(GetSigningCredentials());
+
+        var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
+        payload.TryAdd("exp", now.Add(tokenExpiry).ToUnixTimeSeconds());
+        payload.TryAdd("iat", now.ToUnixTimeSeconds());
+        payload.TryAdd("nbf", now.ToUnixTimeSeconds());
+        payload.TryAdd("jti", Guid.NewGuid().ToString());
+
+        var securityToken = new JwtSecurityToken(header, payload);
+        var handler = new JwtSecurityTokenHandler();
+
+        return handler.WriteToken(securityToken);
+    }
+
     /// <summary>
     /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
     /// and is included in the integration test project as a separate file.

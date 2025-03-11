@@ -1166,7 +1166,8 @@ public sealed class ProcessEngineTest
             Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
             Mock<IAppMetadata> appMetadataMock = new(MockBehavior.Strict);
             Mock<IAppResources> appResourcesMock = new(MockBehavior.Strict);
-            appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+            var appMetadata = new ApplicationMetadata("org/app");
+            appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
             authenticationContextMock
                 .Setup(a => a.Current)
@@ -1175,7 +1176,8 @@ public sealed class ProcessEngineTest
                         ?? TestAuthentication.GetUserAuthentication(
                             userId: 1337,
                             email: "test@example.com",
-                            ssn: "22927774937"
+                            ssn: "22927774937",
+                            applicationMetadata: appMetadata
                         )
                 );
             processNavigatorMock
