@@ -12,17 +12,18 @@ type SubAppProps = {
   onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
-export const SubApp = (props: SubAppProps) => {
-  const UiEditor = () => {
-    const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
-    const { selectedFormLayoutSetName } = useAppContext();
+const UiEditor = () => {
+  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
+  const { selectedFormLayoutSetName } = useAppContext();
 
-    return isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
-      <FormDesignerNavigation />
-    ) : (
-      <App />
-    );
-  };
+  return isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
+    <FormDesignerNavigation />
+  ) : (
+    <App />
+  );
+};
+
+export const SubApp = (props: SubAppProps) => {
   return (
     <AppContextProvider {...props}>
       <UiEditor />
