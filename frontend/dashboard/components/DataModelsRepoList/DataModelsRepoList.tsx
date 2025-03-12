@@ -10,7 +10,7 @@ import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/designsystemet-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
-import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
+import { DATA_MODEL_REPO_IDENTIFIER } from 'app-shared/constants';
 
 type DataModelsReposListProps = {
   user: User;

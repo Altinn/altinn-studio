@@ -7,7 +7,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import type { SearchRepositoryResponse } from 'app-shared/types/api';
-import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
+import { DATA_MODEL_REPO_IDENTIFIER } from 'app-shared/constants';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 import { type RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
