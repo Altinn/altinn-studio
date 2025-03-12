@@ -3,7 +3,7 @@
   min-width: var(--icon-card-width);
   background-color: var(--fds-semantic-background-default);
   border-color: var(--color-neutral-border-subtle, #b8bcc1);
-  border-width: var(--studio-treeitem-vertical-line-width);
+  border-width: var(--fds-border_width-active);
   border-style: dashed;
 }
 

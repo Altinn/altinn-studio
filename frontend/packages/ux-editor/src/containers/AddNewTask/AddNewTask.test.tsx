@@ -1,7 +1,7 @@
 import React from 'react';
 import { AddNewTask } from './AddNewTask';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'app-development/test/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
@@ -24,5 +24,5 @@ describe('AddNewTask', () => {
 });
 
 const renderAddNewTask = () => {
-  return renderWithProviders({}, undefined, {})(<AddNewTask />);
+  return renderWithProviders(<AddNewTask />);
 };
