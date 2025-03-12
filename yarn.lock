@@ -87,7 +87,7 @@ __metadata:
   dependencies:
     jest: "npm:29.7.0"
   peerDependencies:
-    axios: 1.7.9
+    axios: 1.8.2
     classnames: 2.5.1
     react: 18.3.1
     react-dom: 18.3.1
@@ -6497,7 +6497,7 @@ __metadata:
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
-    axios: "npm:1.7.9"
+    axios: "npm:1.8.2"
     classnames: "npm:2.5.1"
     cross-env: "npm:7.0.3"
     i18next: "npm:23.16.8"
@@ -6961,14 +6961,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.7.9":
-  version: 1.7.9
-  resolution: "axios@npm:1.7.9"
+"axios@npm:1.8.2":
+  version: 1.8.2
+  resolution: "axios@npm:1.8.2"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10/b7a5f660ea53ba9c2a745bf5ad77ad8bf4f1338e13ccc3f9f09f810267d6c638c03dac88b55dae8dc98b79c57d2d6835be651d58d2af97c174f43d289a9fd007
+  checksum: 10/d4328758128d0602cc809a8e7627622cb7839b379eae5e4d6b9d603dd4d5fb89159985630243ec107cf5c675cd8825dba737a319dff9499f3b7688d9a69ec9ed
   languageName: node
   linkType: hard
 
@@ -6983,7 +6983,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-devops-mock@workspace:development/azure-devops-mock"
   dependencies:
-    axios: "npm:1.7.9"
+    axios: "npm:1.8.2"
     cors: "npm:2.8.5"
     express: "npm:4.21.2"
     morgan: "npm:1.10.0"
