@@ -54,8 +54,8 @@ describe('DataModelling', () => {
 
   it('fetches models on mount', () => {
     render();
-    expect(queriesMock.getDataModelsJson).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getDataModelsXsd).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getAppDataModelsJson).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getAppDataModelsXsd).toHaveBeenCalledTimes(1);
   });
 
   it('shows start dialog when no models are present and intro page is closed', () => {
@@ -78,10 +78,10 @@ describe('DataModelling', () => {
   });
 
   it('does not show start dialog when there are models present', async () => {
-    const getDataModelsJson = jest
+    const getAppDataModelsJson = jest
       .fn()
       .mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
-    render({ getDataModelsJson });
+    render({ getAppDataModelsJson });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('data_modelling.loading')));
     expect(
       screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),

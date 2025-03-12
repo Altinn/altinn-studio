@@ -47,7 +47,7 @@ describe('cloneModal', () => {
 
 const renderClonePopoverContent = (props: Partial<ClonePopoverContentProps> = {}) => {
   const queries: Partial<ServicesContextProps> = {
-    getDataModelsXsd: async () => [],
+    getAppDataModelsXsd: async () => [],
   };
   return render(
     <ServicesContextProvider {...queries}>

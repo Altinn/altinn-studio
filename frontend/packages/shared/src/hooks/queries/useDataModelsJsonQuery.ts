@@ -8,9 +8,9 @@ export const useDataModelsJsonQuery = (
   owner: string,
   app: string,
 ): UseQueryResult<DataModelMetadataJson[], Error> => {
-  const { getDataModelsJson } = useServicesContext();
+  const { getAppDataModelsJson } = useServicesContext();
   return useQuery<DataModelMetadataJson[], Error>({
     queryKey: [QueryKey.DataModelsJson, owner, app],
-    queryFn: () => getDataModelsJson(owner, app),
+    queryFn: () => getAppDataModelsJson(owner, app),
   });
 };

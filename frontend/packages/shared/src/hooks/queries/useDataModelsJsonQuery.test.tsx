@@ -8,14 +8,14 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 describe('useDataModelsJsonQuery', () => {
   it('Calls getDataModels with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataJson[] = [jsonMetadataMock];
-    const getDataModelsJson = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
+    const getAppDataModelsJson = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
 
     const result = renderHookWithProviders(() => useDataModelsJsonQuery(org, app), {
-      queries: { getDataModelsJson },
+      queries: { getAppDataModelsJson },
     }).result;
 
     await waitFor(() => result.current.isPending);
-    expect(getDataModelsJson).toHaveBeenCalledWith(org, app);
+    expect(getAppDataModelsJson).toHaveBeenCalledWith(org, app);
     await waitFor(() => result.current.isSuccess);
     expect(result.current.data).toEqual(dataModels);
   });

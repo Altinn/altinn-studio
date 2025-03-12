@@ -8,14 +8,14 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 describe('useDataModelsXsdQuery', () => {
   it('Calls getDataModelsXsd with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataXsd[] = [xsdMetadataMock];
-    const getDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
+    const getAppDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
 
     const result = renderHookWithProviders(() => useDataModelsXsdQuery(org, app), {
-      queries: { getDataModelsXsd },
+      queries: { getAppDataModelsXsd },
     }).result;
 
     await waitFor(() => result.current.isPending);
-    expect(getDataModelsXsd).toHaveBeenCalledWith(org, app);
+    expect(getAppDataModelsXsd).toHaveBeenCalledWith(org, app);
     await waitFor(() => result.current.isSuccess);
     expect(result.current.data).toEqual(dataModels);
   });

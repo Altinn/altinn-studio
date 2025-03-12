@@ -91,10 +91,12 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<DataModelMetadataResponse>(dataModelMetadataResponse),
     ),
-  getDataModelsJson: jest
+  getAppDataModelsJson: jest
     .fn()
     .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
-  getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
+  getAppDataModelsXsd: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
   getDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDeployments: jest
