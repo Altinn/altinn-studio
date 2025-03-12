@@ -4,7 +4,7 @@ import { useRepoMetadataQuery, useRepoStatusQuery } from 'app-shared/hooks/queri
 import { FetchChangesPopover } from './components/FetchChangesPopover';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { VersionControlButtonsContextProvider } from './context';
-import { useGiteaHeaderContext } from './context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
 
 export type VersionControlButtonsProps = {
   onPullSuccess: () => void;

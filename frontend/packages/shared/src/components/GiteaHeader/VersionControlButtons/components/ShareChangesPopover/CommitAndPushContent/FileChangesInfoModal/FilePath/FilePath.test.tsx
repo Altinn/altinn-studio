@@ -5,7 +5,7 @@ import type { FilePathProps } from './FilePath';
 import { FilePath } from './FilePath';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderWithProviders } from '../../../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../../../mocks/renderWithProviders';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';

@@ -11,7 +11,7 @@ import {
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 import { useMediaQuery } from '@studio/components';
-import { renderWithProviders } from '../../test/renderWithProviders';
+import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
 

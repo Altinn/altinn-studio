@@ -15,7 +15,7 @@ import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
 import { useMediaQuery } from '@studio/components';
-import { renderWithProviders } from '../../test/renderWithProviders';
+import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
 
