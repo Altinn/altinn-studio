@@ -34,7 +34,7 @@ export const DashboardHeader = ({ showSubMenu, isRepoError }: DashboardHeaderPro
   const shouldShowSubMenu: boolean =
     showSubMenu &&
     !isRepoError &&
-    !isOrg(selectedContext) &&
+    isOrg(selectedContext) &&
     isOrgLibraryPage &&
     shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
