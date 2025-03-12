@@ -1,17 +1,22 @@
-import React, { createRef } from 'react';
+import React, { createRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components';
-import type { CodeListEditorTexts } from '@studio/components';
+import type { CodeListEditorTexts, TextResource } from '@studio/components';
+import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
+import {
+  useUpdateOptionListMutation,
+  useUpsertTextResourceMutation,
+} from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
-import { useOptionListQuery } from 'app-shared/hooks/queries';
+import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { getTextResourcesForLanguage, createTextResourceWithLanguage } from '../utils/utils';
+import { convertTextResourceToMutationArgs } from 'app-development/features/appContentLibrary/utils/convertTextResourceToMutationArgs';
 import classes from './LibraryOptionsEditor.module.css';
-import type { OptionList } from 'app-shared/types/OptionList';
 
 export type LibraryOptionsEditorProps = {
   handleDelete: () => void;
@@ -25,10 +30,27 @@ export function LibraryOptionsEditor({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionList } = useOptionListQuery(org, app, optionListId);
-  const { doReloadPreview } = usePreviewContext();
+  const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
+  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
+  const { doReloadPreview } = usePreviewContext();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
+
+  const textResourcesForLanguage = useMemo(
+    () => getTextResourcesForLanguage(language, textResources),
+    [textResources],
+  );
+
+  const handleBlurTextResource = useCallback(
+    (textResource: TextResource) => {
+      const updatedTextResource = createTextResourceWithLanguage(language, textResource);
+      const mutationArgs = convertTextResourceToMutationArgs(updatedTextResource);
+      updateTextResource(mutationArgs);
+      doReloadPreview();
+    },
+    [updateTextResource, doReloadPreview],
+  );
 
   const handleOptionsListChange = (newOptionList: OptionList) => {
     if (hasOptionListChanged(optionList, newOptionList)) {
@@ -61,9 +83,13 @@ export function LibraryOptionsEditor({
           codeList={optionList}
           onAddOrDeleteItem={handleOptionsListChange}
           onBlurAny={handleOptionsListChange}
+          onBlurTextResource={handleBlurTextResource}
           texts={editorTexts}
+          textResources={textResourcesForLanguage}
         />
       </StudioModal.Dialog>
     </>
   );
 }
+
+const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
