@@ -1,6 +1,6 @@
 import type { HeaderMenuItem } from './HeaderMenuItem';
 
-export interface HeaderMenuGroup {
+export type HeaderMenuGroup = {
   groupName: string;
   menuItems: HeaderMenuItem[];
-}
+};

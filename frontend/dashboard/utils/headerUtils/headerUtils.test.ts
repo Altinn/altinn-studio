@@ -7,7 +7,7 @@ import {
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import type { StudioProfileMenuGroup, StudioProfileMenuItem } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@studio/components';
 import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
 
 describe('headerMenuUtils', () => {
@@ -52,15 +52,15 @@ describe('headerMenuUtils', () => {
       itemName: 'Link Item 2',
       action: { type: 'link', href: 'https://example.com', openInNewTab: false },
     };
-    const profileMenuButtonItem: StudioProfileMenuItem = {
+    const profileMenuButtonItem: NavigationMenuItem = {
       itemName: buttonItem.itemName,
       action: buttonItem.action,
     };
-    const profileMenuLinkItem: StudioProfileMenuItem = {
+    const profileMenuLinkItem: NavigationMenuItem = {
       itemName: linkItem.itemName,
       action: linkItem.action,
     };
-    const profileMenuLinkItem2: StudioProfileMenuItem = {
+    const profileMenuLinkItem2: NavigationMenuItem = {
       itemName: linkItem2.itemName,
       action: linkItem2.action,
     };
