@@ -1,5 +1,5 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { getAppDevelopmentRootRoute, getRepoEditUrl } from './urlUtils';
+import { getAppDevelopmentRootRoute, getRepoEditUrl } from './';
 
 describe('urlUtils', () => {
   describe('applicationAboutPage', () => {
