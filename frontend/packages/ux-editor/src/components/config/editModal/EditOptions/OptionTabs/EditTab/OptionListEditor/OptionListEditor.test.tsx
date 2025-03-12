@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data:

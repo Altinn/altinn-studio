@@ -13,7 +13,7 @@ import userEvent from '@testing-library/user-event';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { Option } from 'app-shared/types/Option';
 import type { QueryClient } from '@tanstack/react-query';
-import { LibraryOptionsEditor, LibraryOptionsEditorProps } from './LibraryOptionsEditor';
+import { LibraryOptionsEditor, type LibraryOptionsEditorProps } from './LibraryOptionsEditor';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];

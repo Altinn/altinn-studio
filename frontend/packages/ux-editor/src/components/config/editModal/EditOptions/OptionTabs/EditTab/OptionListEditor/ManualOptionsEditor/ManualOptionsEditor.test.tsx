@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
-import { ManualOptionsEditor, ManualOptionsEditorProps } from './ManualOptionsEditor';
+import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
