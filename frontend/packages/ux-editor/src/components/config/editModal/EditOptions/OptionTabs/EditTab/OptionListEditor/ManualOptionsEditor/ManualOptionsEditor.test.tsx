@@ -10,8 +10,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';
-import userEvent from '@testing-library/user-event';
 import type { ITextResources } from 'app-shared/types/global';
+import userEvent from '@testing-library/user-event';
 import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
 
 // Test data:
@@ -71,7 +71,7 @@ describe('ManualOptionEditor', () => {
     expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
   });
 
-  it('should call handleComponentChange with correct parameters when editing description', async () => {
+  it('should call upsertTextResource with correct parameters when editing description', async () => {
     const user = userEvent.setup();
     const expectedLanguage = 'nb';
     const expectedTextResource = { 'some-id': 'test' };
@@ -100,14 +100,12 @@ describe('ManualOptionEditor', () => {
     );
   });
 
-  it('should call useUpsertTextResourceMutation when editing label', () => {});
-
-  it('should show placeholder for option label when option list label is empty', () => {
+  it('should show placeholder for option label when label is empty', () => {
     renderManualOptionsEditorWithData({
       props: {
         component: {
           ...mockComponent,
-          options: [{ value: 2, label: '', description: 'test', helpText: null }],
+          options: [{ value: 1, label: '', description: null, helpText: null }],
         },
       },
     });

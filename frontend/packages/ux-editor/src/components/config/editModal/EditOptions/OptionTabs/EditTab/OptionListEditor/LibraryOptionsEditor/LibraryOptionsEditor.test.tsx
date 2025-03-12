@@ -8,8 +8,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
+import type { QueryClient } from '@tanstack/react-query';
 import type { ITextResources } from 'app-shared/types/global';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { Option } from 'app-shared/types/Option';
@@ -99,7 +99,7 @@ describe('LibraryOptionEditor', () => {
     );
   });
 
-  it('should call updateTextResource with correct parameters when editing label', async () => {
+  it('should call upsertTextResources with correct parameters when editing label', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
     const expectedLanguage = 'nb';

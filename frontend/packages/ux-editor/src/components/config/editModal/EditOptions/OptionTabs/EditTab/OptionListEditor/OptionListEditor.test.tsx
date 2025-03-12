@@ -6,9 +6,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
+import type { QueryClient } from '@tanstack/react-query';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
@@ -93,10 +94,13 @@ describe('OptionListEditor', () => {
         getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
       },
     });
+    const expectedArgs = ObjectUtils.deepCopy(componentWithOptionsId);
+    expectedArgs.optionsId = undefined;
 
     expect(getDeleteButton()).toBeInTheDocument();
     await user.click(getDeleteButton());
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
   });
 });
 
