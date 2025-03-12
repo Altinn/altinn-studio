@@ -11,13 +11,13 @@ const menuItemsMock: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.OrgLibrary,
     link: '/a',
-    group: HeaderMenuGroupKey.Other,
+    group: HeaderMenuGroupKey.Tools,
     name: 'org-library',
   },
   {
     key: HeaderMenuItemKey.AppDashboard,
     link: '/b',
-    group: HeaderMenuGroupKey.Other,
+    group: HeaderMenuGroupKey.Tools,
     name: 'app-dashboard',
   },
 ];
