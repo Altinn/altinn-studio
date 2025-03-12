@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
-import { renderWithProviders } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
 const mockOnClosePopover = jest.fn();
 

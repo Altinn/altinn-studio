@@ -9,7 +9,7 @@ import {
   mockRepoStatus,
   mockVersionControlButtonsContextValue,
 } from './test/mocks/versionControlContextMock';
-import { renderWithProviders } from './test/renderWithProviders';
+import { renderWithProviders } from '../mocks/renderWithProviders';
 
 const mockOnPullSuccess = jest.fn();
 

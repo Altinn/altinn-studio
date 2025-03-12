@@ -8,7 +8,7 @@ import type { FileChangesInfoModalProps } from './FileChangesInfoModal';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderWithProviders } from '../../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../../mocks/renderWithProviders';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';

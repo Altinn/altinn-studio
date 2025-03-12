@@ -7,7 +7,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
-import { GiteaHeaderContext, type GiteaHeaderContextProps } from '../context/GiteaHeaderContext';
+import {
+  GiteaHeaderContext,
+  type GiteaHeaderContextProps,
+} from '../VersionControlButtons/context/GiteaHeaderContext';
 import { app, org } from '@studio/testing/testids';
 
 export const renderWithProviders =
