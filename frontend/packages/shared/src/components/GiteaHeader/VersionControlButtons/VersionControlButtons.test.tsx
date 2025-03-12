@@ -1,29 +1,17 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { VersionControlButtons } from './VersionControlButtons';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import {
-  ServicesContextProvider,
-  type ServicesContextProps,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { VersionControlButtonsContextProvider } from './context';
 import {
   mockRepoStatus,
   mockVersionControlButtonsContextValue,
 } from './test/mocks/versionControlContextMock';
-import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from './test/renderWithProviders';
 
 const mockOnPullSuccess = jest.fn();
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
 
 describe('VersionControlButtons', () => {
   afterEach(jest.clearAllMocks);
@@ -41,9 +29,7 @@ describe('VersionControlButtons', () => {
 
   it('should disable ShareChangesPopover button if user has no push rights', () => {
     renderVersionControlButtons({
-      queries: {
-        getRepoMetadata: jest.fn().mockReturnValue({ data: { hasPushRights: false } }),
-      },
+      getRepoMetadata: jest.fn().mockReturnValue({ data: { hasPushRights: false } }),
     });
 
     const shareChangesButton = screen.getByRole('button', {
@@ -54,9 +40,7 @@ describe('VersionControlButtons', () => {
 
   it('should disable FetchChangesPopover button if there are merge conflicts', () => {
     renderVersionControlButtons({
-      queries: {
-        getRepoStatus: jest.fn().mockReturnValue({ ...mockRepoStatus, hasMergeConflict: true }),
-      },
+      getRepoStatus: jest.fn().mockReturnValue({ ...mockRepoStatus, hasMergeConflict: true }),
     });
 
     const fetchChangesButton = screen.getByRole('button', {
@@ -66,25 +50,10 @@ describe('VersionControlButtons', () => {
   });
 });
 
-type Props = {
-  queries: Partial<ServicesContextProps>;
-};
-
-const renderVersionControlButtons = (props: Partial<Props> = {}) => {
-  const { queries } = props;
-
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
-          <VersionControlButtons onPullSuccess={mockOnPullSuccess} />
-        </VersionControlButtonsContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+const renderVersionControlButtons = (queries: Partial<ServicesContextProps> = {}) => {
+  return renderWithProviders({ ...queriesMock, ...queries })(
+    <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
+      <VersionControlButtons onPullSuccess={mockOnPullSuccess} />
+    </VersionControlButtonsContextProvider>,
   );
 };

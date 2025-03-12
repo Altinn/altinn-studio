@@ -1,10 +1,10 @@
 import React from 'react';
 import classes from './VersionControlButtons.module.css';
 import { useRepoMetadataQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FetchChangesPopover } from './components/FetchChangesPopover';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { VersionControlButtonsContextProvider } from './context';
+import { useGiteaHeaderContext } from './context/GiteaHeaderContext';
 
 export type VersionControlButtonsProps = {
   onPullSuccess: () => void;
@@ -13,9 +13,9 @@ export type VersionControlButtonsProps = {
 export const VersionControlButtons = ({
   onPullSuccess,
 }: VersionControlButtonsProps): React.ReactElement => {
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: currentRepo } = useRepoMetadataQuery(org, app);
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
+  const { owner, repoName } = useGiteaHeaderContext();
+  const { data: currentRepo } = useRepoMetadataQuery(owner, repoName);
+  const { data: repoStatus } = useRepoStatusQuery(owner, repoName);
 
   return (
     <VersionControlButtonsContextProvider

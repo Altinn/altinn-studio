@@ -1,14 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FilePathProps } from './FilePath';
 import { FilePath } from './FilePath';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';
@@ -27,7 +24,7 @@ describe('FilePath', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the file path and name correctly', async () => {
-    await renderFilePath();
+    renderFilePath();
 
     const filePathElement = screen.getByText(filePathWithoutNameMock);
     const fileNameElement = screen.getByText(fileNameMock, { selector: 'strong' });
@@ -38,7 +35,7 @@ describe('FilePath', () => {
 
   it('should toggle diff view on file path click', async () => {
     const user = userEvent.setup();
-    await renderFilePath();
+    renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -52,7 +49,7 @@ describe('FilePath', () => {
 
   it('should remove "No newline at end of file" from diff lines', async () => {
     const user = userEvent.setup();
-    await renderFilePath();
+    renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -87,7 +84,7 @@ describe('FilePath', () => {
 
   it('should not render first part of git diff that is metadata', async () => {
     const user = userEvent.setup();
-    await renderFilePath();
+    renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -119,9 +116,5 @@ const renderFilePath = (props: Partial<FilePathProps> = {}) => {
     ...queriesMock,
     getRepoDiff,
   };
-  return render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <FilePath {...defaultProps} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(allQueries)(<FilePath {...defaultProps} />);
 };

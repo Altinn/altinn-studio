@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState } from 'react';
 import { type Repository } from 'app-shared/types/Repository';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
-import { useHasMergeConflict } from '../hooks/useHasMergeConflict';
+import { useHasMergeConflict } from '../../hooks/useHasMergeConflict';
 import { toast } from 'react-toastify';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
+import { useGiteaHeaderContext } from '../GiteaHeaderContext';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;
@@ -35,14 +35,14 @@ export const VersionControlButtonsContextProvider = ({
   repoStatus,
   onPullSuccess,
 }: Partial<VersionControlButtonsContextProviderProps>) => {
-  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const { owner, repoName } = useGiteaHeaderContext();
 
   const hasPushRights: boolean = currentRepo?.permissions?.push;
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
 
-  const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
-  const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
+  const { refetch: fetchPullData } = useRepoPullQuery(owner, repoName, true);
+  const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(owner, repoName);
 
   const [isLoading, setIsLoading] = useState(false);
 

@@ -6,17 +6,12 @@ import {
   useVersionControlButtonsContext,
 } from './VersionControlButtonsContext';
 import { repository } from 'app-shared/mocks/mocks';
-import { mockRepoStatus } from '../test/mocks/versionControlContextMock';
+import { mockRepoStatus } from '../../test/mocks/versionControlContextMock';
 import userEvent from '@testing-library/user-event';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
-import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderWithProviders } from '../../test/renderWithProviders';
 
 const contextTestId: string = 'context';
 const isLoadingTestId: string = 'isLoading';
@@ -24,13 +19,6 @@ const hasPushRightsTestId: string = 'hasPushRights';
 const hasMergeConflictTestId: string = 'hasMergeConflict';
 const repoStatusTestId: string = 'repoStatus';
 const commitAndPushButtonTestId: string = 'commitAndPushButton';
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
 
 describe('VersionControlButtonsContext', () => {
   afterEach(jest.clearAllMocks);
@@ -218,25 +206,16 @@ type Props = {
 };
 
 const renderVersionControlButtonsContextProvider = (props: Partial<Props> = {}) => {
-  const { queries, contextProviderProps } = props;
+  const { contextProviderProps, queries } = props;
   const {
     currentRepo = { ...repository, permissions: { ...repository.permissions, push: true } },
     repoStatus = mockRepoStatus,
     children,
   } = contextProviderProps;
 
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <VersionControlButtonsContextProvider currentRepo={currentRepo} repoStatus={repoStatus}>
-          {children}
-        </VersionControlButtonsContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders({ ...queriesMock, ...queries })(
+    <VersionControlButtonsContextProvider currentRepo={currentRepo} repoStatus={repoStatus}>
+      {children}
+    </VersionControlButtonsContextProvider>,
   );
 };

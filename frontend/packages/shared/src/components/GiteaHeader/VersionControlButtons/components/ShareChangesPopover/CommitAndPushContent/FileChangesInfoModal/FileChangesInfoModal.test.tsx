@@ -1,17 +1,14 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesInfoModalProps } from './FileChangesInfoModal';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '../../../../test/renderWithProviders';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';
@@ -93,11 +90,7 @@ const renderFileChangesInfoModal = (
     ...queriesMock,
     getRepoDiff,
   };
-  return render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <FileChangesInfoModal {...props} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(allQueries)(<FileChangesInfoModal {...props} />);
 };
 
 const renderAndOpenModal = async (
