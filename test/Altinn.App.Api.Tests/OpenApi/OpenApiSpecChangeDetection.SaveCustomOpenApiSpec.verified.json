@@ -1,5 +1,5 @@
 ﻿{
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "Altinn 3 App API for Endring av navn (RF-1453)",
     "description": "This is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskId |\n|------------|------|----------------|-----------|--------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
@@ -7,7 +7,7 @@
       "name": "Digitaliseringsdirektoratet (altinn)",
       "url": "https://altinn.slack.com"
     },
-    "version": "8.0.0.0"
+    "version": ""
   },
   "servers": [
     {

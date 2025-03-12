@@ -1,8 +1,8 @@
 ﻿{
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "Altinn App Api",
-    "version": "v1"
+    "version": ""
   },
   "paths": {
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions": {

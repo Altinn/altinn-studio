@@ -53,6 +53,9 @@ public class CustomOpenApiController : Controller
         _schemaRepository = new SchemaRepository();
     }
 
+    internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
+    internal static readonly OpenApiFormat SpecFormat = OpenApiFormat.Json;
+
     /// <summary>
     /// Generate the custom OpenAPI documentation for the app
     /// </summary>
@@ -119,7 +122,7 @@ public class CustomOpenApiController : Controller
         var walker = new OpenApiWalker(new SchemaPostVisitor());
         walker.Walk(document);
 
-        return Ok(document.Serialize(OpenApiSpecVersion.OpenApi3_0, OpenApiFormat.Json));
+        return Ok(document.Serialize(SpecVersion, SpecFormat));
     }
 
     private string GetIntroDoc(ApplicationMetadata appMetadata)
