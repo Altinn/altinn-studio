@@ -64,6 +64,8 @@ import {
   dataTypePath,
   orgCodeListsPath,
   layoutPagesPath,
+  dataModelsAllJsonPath,
+  dataModelsAllXsdPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -115,6 +117,8 @@ export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVe
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
+export const getOrgDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsAllJsonPath(owner, app));
+export const getOrgDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsAllXsdPath(owner, app));
 export const getAppDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsAppJsonPath(owner, app));
 export const getAppDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsAppXsdPath(owner, app));
 export const getDataType = (org: string, app: string, dataModelName: string) => get<DataType>(dataTypePath(org, app, dataModelName));
