@@ -31,14 +31,14 @@ describe('ManualOptionEditor', () => {
 
   it('should render the open Dialog button', () => {
     renderManualOptionsEditorWithData();
-    expect(getOptionModalButton()).toBeInTheDocument();
+    expect(getEditButton()).toBeInTheDocument();
   });
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditorWithData();
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
@@ -49,7 +49,7 @@ describe('ManualOptionEditor', () => {
   it('should close Dialog', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditorWithData();
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
@@ -65,7 +65,7 @@ describe('ManualOptionEditor', () => {
     expectedArgs.options = undefined;
     expectedArgs.optionsId = undefined;
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
@@ -116,9 +116,6 @@ describe('ManualOptionEditor', () => {
   it('should call handleDelete when removing chosen options', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditorWithData();
-    const expectedResult = ObjectUtils.deepCopy(mockComponent);
-    expectedResult.options = undefined;
-    expectedResult.optionsId = undefined;
 
     await user.click(getDeleteButton());
 
@@ -126,7 +123,7 @@ describe('ManualOptionEditor', () => {
   });
 });
 
-function getOptionModalButton() {
+function getEditButton() {
   return screen.getByRole('button', {
     name: textMock('general.edit'),
   });

@@ -28,16 +28,11 @@ const optionList: OptionList = [
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render the open Dialog button', () => {
-    renderOptionListEditor();
-    expect(getOptionModalButton()).toBeInTheDocument();
-  });
-
-  it('should render ManualOptionsEditor', async () => {
+  it('should render ManualOptionsEditor when component has options property', async () => {
     const user = userEvent.setup();
     renderOptionListEditor();
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
@@ -45,11 +40,11 @@ describe('OptionListEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render LibraryOptionsEditor when data has loaded', async () => {
+  it('should render LibraryOptionsEditor when component has optionId property', async () => {
     const user = userEvent.setup();
     renderOptionListEditorWithData();
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
@@ -103,7 +98,7 @@ describe('OptionListEditor', () => {
   });
 });
 
-function getOptionModalButton() {
+function getEditButton() {
   return screen.getByRole('button', {
     name: textMock('general.edit'),
   });
