@@ -1,7 +1,6 @@
 import React, { createRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components';
-import type { TextResourceWithLanguage } from '@studio/content-library';
 import type { CodeListEditorTexts, TextResource } from '@studio/components';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
@@ -19,7 +18,7 @@ import { getTextResourcesForLanguage, createTextResourceWithLanguage } from '../
 import { convertTextResourceToMutationArgs } from 'app-development/features/appContentLibrary/utils/convertTextResourceToMutationArgs';
 import classes from './LibraryOptionsEditor.module.css';
 
-type LibraryOptionsEditorProps = {
+export type LibraryOptionsEditorProps = {
   handleDelete: () => void;
   optionListId: string;
 };
@@ -43,20 +42,14 @@ export function LibraryOptionsEditor({
     [textResources],
   );
 
-  const handleUpdateTextResource = useCallback(
-    (textResourceWithLanguage: TextResourceWithLanguage): void => {
-      const mutationArgs = convertTextResourceToMutationArgs(textResourceWithLanguage);
-      updateTextResource(mutationArgs);
-    },
-    [updateTextResource],
-  );
-
   const handleBlurTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-      handleUpdateTextResource?.(updatedTextResource);
+      const mutationArgs = convertTextResourceToMutationArgs(updatedTextResource);
+      updateTextResource(mutationArgs);
+      doReloadPreview();
     },
-    [handleUpdateTextResource],
+    [updateTextResource, doReloadPreview],
   );
 
   const handleOptionsListChange = (newOptionList: OptionList) => {
