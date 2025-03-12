@@ -28,6 +28,7 @@ const textResources: ITextResources = {
 
 describe('ManualOptionEditor', () => {
   afterEach(jest.clearAllMocks);
+
   it('should render the open Dialog button', () => {
     renderManualOptionsEditorWithData();
     expect(getOptionModalButton()).toBeInTheDocument();
