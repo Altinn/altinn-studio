@@ -32,14 +32,14 @@ describe('LibraryOptionEditor', () => {
 
   it('should render the open Dialog button', async () => {
     renderLibraryOptionsEditorWithData();
-    expect(getOptionModalButton()).toBeInTheDocument();
+    expect(getEditButton()).toBeInTheDocument();
   });
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
@@ -50,7 +50,7 @@ describe('LibraryOptionEditor', () => {
   it('should close Dialog', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
@@ -61,7 +61,7 @@ describe('LibraryOptionEditor', () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
     const textBox = getDescriptionInput(2);
     await user.type(textBox, 'test');
     await user.tab();
@@ -75,7 +75,7 @@ describe('LibraryOptionEditor', () => {
     const expectedResultAfterEdit: Option[] = ObjectUtils.deepCopy(optionList);
     expectedResultAfterEdit[1].description = 'test';
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
     const textBox = getDescriptionInput(2);
     await user.type(textBox, 'test');
     await user.tab();
@@ -107,7 +107,7 @@ describe('LibraryOptionEditor', () => {
   });
 });
 
-function getOptionModalButton() {
+function getEditButton() {
   return screen.getByRole('button', {
     name: textMock('general.edit'),
   });

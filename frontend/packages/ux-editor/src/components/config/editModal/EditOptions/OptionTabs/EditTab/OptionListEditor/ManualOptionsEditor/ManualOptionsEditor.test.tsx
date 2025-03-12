@@ -14,96 +14,93 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 const handleDelete = jest.fn();
 const handleComponentChange = jest.fn();
 
-describe('OptionListEditor', () => {
+describe('ManualOptionEditor', () => {
   afterEach(jest.clearAllMocks);
 
-  describe('ManualOptionEditor', () => {
-    it('should render the open Dialog button', () => {
-      renderManualOptionsEditor();
+  it('should render the open Dialog button', () => {
+    renderManualOptionsEditor();
+    expect(getEditButton()).toBeInTheDocument();
+  });
 
-      expect(getOptionModalButton()).toBeInTheDocument();
+  it('should open Dialog', async () => {
+    const user = userEvent.setup();
+    renderManualOptionsEditor();
+
+    await user.click(getEditButton());
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
+    ).toBeInTheDocument();
+  });
+
+  it('should close Dialog', async () => {
+    const user = userEvent.setup();
+    renderManualOptionsEditor();
+    await user.click(getEditButton());
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
+    const user = userEvent.setup();
+    renderManualOptionsEditor({
+      props: { component: { ...mockComponent, options: [], optionsId: undefined } },
     });
+    const expectedArgs = ObjectUtils.deepCopy(mockComponent);
+    expectedArgs.options = undefined;
+    expectedArgs.optionsId = undefined;
 
-    it('should open Dialog', async () => {
-      const user = userEvent.setup();
-      renderManualOptionsEditor();
+    await user.click(getEditButton());
+    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
-      await user.click(getOptionModalButton());
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
+  });
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(
-        screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
-      ).toBeInTheDocument();
-    });
+  it('should call handleComponentChange with correct parameters when editing', async () => {
+    const user = userEvent.setup();
+    renderManualOptionsEditor();
+    const text = 'test';
+    const expectedArgs = ObjectUtils.deepCopy(mockComponent);
+    expectedArgs.optionsId = undefined;
+    expectedArgs.options[0].description = text;
 
-    it('should close Dialog', async () => {
-      const user = userEvent.setup();
-      renderManualOptionsEditor();
-      await user.click(getOptionModalButton());
+    await user.click(getEditButton());
+    const textBox = getDescriptionInput(1);
+    await user.type(textBox, text);
+    await user.tab();
 
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
+  });
 
-    it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
-      const user = userEvent.setup();
-      renderManualOptionsEditor({
-        props: { component: { ...mockComponent, options: [], optionsId: undefined } },
-      });
-      const expectedArgs = ObjectUtils.deepCopy(mockComponent);
-      expectedArgs.options = undefined;
-      expectedArgs.optionsId = undefined;
-
-      await user.click(getOptionModalButton());
-      await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
-
-      expect(handleComponentChange).toHaveBeenCalledTimes(1);
-      expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
-    });
-
-    it('should call handleComponentChange with correct parameters when editing', async () => {
-      const user = userEvent.setup();
-      renderManualOptionsEditor();
-      const text = 'test';
-      const expectedArgs = ObjectUtils.deepCopy(mockComponent);
-      expectedArgs.optionsId = undefined;
-      expectedArgs.options[0].description = text;
-
-      await user.click(getOptionModalButton());
-      const textBox = getDescriptionInput(1);
-      await user.type(textBox, text);
-      await user.tab();
-
-      expect(handleComponentChange).toHaveBeenCalledTimes(1);
-      expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
-    });
-
-    it('should show placeholder for option label when option list label is empty', () => {
-      renderManualOptionsEditor({
-        props: {
-          component: {
-            ...mockComponent,
-            options: [{ value: 1, label: '' }],
-          },
+  it('should show placeholder for option label when option list label is empty', () => {
+    renderManualOptionsEditor({
+      props: {
+        component: {
+          ...mockComponent,
+          options: [{ value: 1, label: '' }],
         },
-      });
-
-      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+      },
     });
 
-    it('should call handleDelete when removing chosen options', async () => {
-      const user = userEvent.setup();
-      renderManualOptionsEditor();
+    expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+  });
 
-      await user.click(getDeleteButton());
+  it('should call handleDelete when removing chosen options', async () => {
+    const user = userEvent.setup();
+    renderManualOptionsEditor();
 
-      expect(handleDelete).toHaveBeenCalledTimes(1);
-    });
+    await user.click(getDeleteButton());
+
+    expect(handleDelete).toHaveBeenCalledTimes(1);
   });
 });
 
-function getOptionModalButton() {
+function getEditButton() {
   return screen.getByRole('button', {
     name: textMock('general.edit'),
   });
