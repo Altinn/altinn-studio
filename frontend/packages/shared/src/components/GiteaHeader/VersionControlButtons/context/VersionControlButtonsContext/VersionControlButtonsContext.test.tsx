@@ -11,7 +11,7 @@ import userEvent from '@testing-library/user-event';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '../../test/renderWithProviders';
+import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
 const contextTestId: string = 'context';
 const isLoadingTestId: string = 'isLoading';
