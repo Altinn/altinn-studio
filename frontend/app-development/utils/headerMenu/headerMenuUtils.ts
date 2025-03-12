@@ -106,11 +106,6 @@ export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGr
   return Object.values(groups);
 };
 
-export const extractLastRouterParam = (pathname: string): string => {
-  const pathnameArray = pathname.split('/');
-  return pathnameArray[pathnameArray.length - 1];
-};
-
 export const mapHeaderMenuGroupToNavigationMenu = (
   menuGroup: HeaderMenuGroup,
 ): NavigationMenuSmallGroup => ({
