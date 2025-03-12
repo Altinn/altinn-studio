@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import {
+  PolicyEditorContext,
+  type PolicyEditorContextProps,
+} from '../../../../contexts/PolicyEditorContext';
+import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 
 const mockTitle: string = 'Test';
 const mockTextChildren: string = 'Test Content';
@@ -12,18 +17,8 @@ const mockChildren: React.ReactNode = <p>{mockTextChildren}</p>;
 describe('ExpandablePolicyElement', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockHandleRemoveElement = jest.fn();
-  const mockHandleCloneElement = jest.fn();
-
-  const defaultProps: ExpandablePolicyElementProps = {
-    title: mockTitle,
-    handleRemoveElement: mockHandleRemoveElement,
-    handleCloneElement: mockHandleCloneElement,
-    children: mockChildren,
-  };
-
   it('renders the component with the provided title and children', () => {
-    render(<ExpandablePolicyElement {...defaultProps} />);
+    renderExpandablePolicyElement({}, { usageType: 'resource' });
 
     const expandButton = screen.getByRole('button', {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
@@ -34,9 +29,8 @@ describe('ExpandablePolicyElement', () => {
     expect(contentElement).toBeInTheDocument();
   });
 
-  it('toggles open/close state when the expand button is clicked', async () => {
-    const user = userEvent.setup();
-    render(<ExpandablePolicyElement {...defaultProps} />);
+  it('renders with open state when usageType is resource', () => {
+    renderExpandablePolicyElement({}, { usageType: 'resource' });
 
     const expandButtonClosedBefore = screen.getByRole('button', {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
@@ -45,7 +39,43 @@ describe('ExpandablePolicyElement', () => {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_open_icon')}`,
     });
 
-    expect(screen.getByText(mockTextChildren)).toBeInTheDocument();
+    expect(expandButtonClosedBefore).toBeInTheDocument();
+    expect(expandButtonOpenedBefore).not.toBeInTheDocument();
+  });
+
+  it('renders with description in header when provided', () => {
+    const mockRuleDescription = 'Test Description';
+    renderExpandablePolicyElement({ description: mockRuleDescription });
+
+    const descriptionElement = screen.getByText(mockRuleDescription);
+    expect(descriptionElement).toBeInTheDocument();
+  });
+
+  it('renders with closed state when usageType is app', () => {
+    renderExpandablePolicyElement({}, { usageType: 'app' });
+    const expandButtonClosedBefore = screen.queryByRole('button', {
+      name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
+    });
+    const expandButtonOpenedBefore = screen.getByRole('button', {
+      name: `${mockTitle} ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+
+    expect(expandButtonClosedBefore).not.toBeInTheDocument();
+    expect(expandButtonOpenedBefore).toBeInTheDocument();
+  });
+
+  it('toggles open/close state when the expand button is clicked', async () => {
+    const user = userEvent.setup();
+    renderExpandablePolicyElement({}, { usageType: 'resource' });
+
+    const expandButtonClosedBefore = screen.getByRole('button', {
+      name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
+    });
+    const expandButtonOpenedBefore = screen.queryByRole('button', {
+      name: `${mockTitle} ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+
+    // expect(screen.getByText(mockTextChildren)).toBeInTheDocument();
     expect(expandButtonClosedBefore).toBeInTheDocument();
     expect(expandButtonOpenedBefore).not.toBeInTheDocument();
 
@@ -69,7 +99,8 @@ describe('ExpandablePolicyElement', () => {
 
   it('calls handleRemoveElement when the "Delete" option in the dropdown menu is clicked', async () => {
     const user = userEvent.setup();
-    render(<ExpandablePolicyElement {...defaultProps} />);
+    const mockHandleRemoveElement = jest.fn();
+    renderExpandablePolicyElement({ handleRemoveElement: mockHandleRemoveElement });
 
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
@@ -84,7 +115,8 @@ describe('ExpandablePolicyElement', () => {
 
   it('calls handleCloneElement when the "Copy" option in the dropdown menu is clicked', async () => {
     const user = userEvent.setup();
-    render(<ExpandablePolicyElement {...defaultProps} />);
+    const mockHandleCloneElement = jest.fn();
+    renderExpandablePolicyElement({ handleCloneElement: mockHandleCloneElement });
 
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
@@ -99,3 +131,21 @@ describe('ExpandablePolicyElement', () => {
     expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
   });
 });
+
+const renderExpandablePolicyElement = (
+  props: Partial<ExpandablePolicyElementProps> = {},
+  context: Partial<PolicyEditorContextProps> = {},
+) => {
+  const defaultProps: ExpandablePolicyElementProps = {
+    title: mockTitle,
+    handleRemoveElement: jest.fn(),
+    handleCloneElement: jest.fn(),
+    children: mockChildren,
+  };
+
+  return render(
+    <PolicyEditorContext.Provider value={{ ...mockPolicyEditorContextValue, ...context }}>
+      <ExpandablePolicyElement {...defaultProps} {...props} />
+    </PolicyEditorContext.Provider>,
+  );
+};

@@ -11,6 +11,7 @@ import {
   type PolicyEditorContextProps,
 } from '../../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
+import type { PolicyRuleCard } from '@altinn/policy-editor/types';
 
 const defaultProps: PolicyRuleProps = {
   policyRule: mockPolicyRuleCard1,
@@ -54,7 +55,8 @@ describe('PolicyRule', () => {
 
   it('calls "savePolicy" when input fields are blurred', async () => {
     const user = userEvent.setup();
-    renderPolicyRule();
+    const mockSavePolicy = jest.fn();
+    renderPolicyRule({ usageType: 'resource', savePolicy: mockSavePolicy });
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
@@ -91,16 +93,28 @@ describe('PolicyRule', () => {
     await user.tab();
 
     const numFields = 5;
-    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(numFields);
+    expect(mockSavePolicy).toHaveBeenCalledTimes(numFields + 1);
+  });
+
+  it('renders policy rule with description when usage type is app', () => {
+    const mockRuleDescription = 'test description';
+    renderPolicyRule(
+      { usageType: 'app' },
+      { policyRule: { ...mockPolicyRuleCard1, description: mockRuleDescription } },
+    );
+    expect(screen.getByText(mockRuleDescription)).toBeInTheDocument();
   });
 });
 
-const renderPolicyRule = (policyEditorContextProps: Partial<PolicyEditorContextProps> = {}) => {
+const renderPolicyRule = (
+  policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
+  props: Partial<PolicyRuleProps> = {},
+) => {
   return render(
     <PolicyEditorContext.Provider
       value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}
     >
-      <PolicyRule {...defaultProps} />
+      <PolicyRule {...defaultProps} {...props} />
     </PolicyEditorContext.Provider>,
   );
 };

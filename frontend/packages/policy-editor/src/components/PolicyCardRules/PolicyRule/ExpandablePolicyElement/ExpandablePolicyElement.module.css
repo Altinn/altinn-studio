@@ -108,3 +108,13 @@
   padding-inline: var(--fds-spacing-5);
   padding-bottom: var(--fds-spacing-3);
 }
+
+.headerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.headerDescription {
+  text-align: start;
+}
