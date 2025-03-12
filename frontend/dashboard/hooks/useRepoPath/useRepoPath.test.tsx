@@ -1,12 +1,12 @@
 import React from 'react';
 import { useRepoPath } from './useRepoPath';
-import { HeaderContext, type HeaderContextProps } from 'dashboard/context/HeaderContext';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
+import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { headerContextValueMock } from '../../testing/headerContextMock';
 import { repositoryOwnerPath, repositoryBasePath } from 'app-shared/api/paths';
-import { mockOrg1, mockOrganizations } from 'dashboard/testing/organizationMock';
-import { userMock } from 'dashboard/testing/userMock';
-import { renderHookWithProviders } from 'dashboard/testing/mocks';
+import { mockOrg1, mockOrganizations } from '../../testing/organizationMock';
+import { userMock } from '../../testing/userMock';
+import { renderHookWithProviders } from '../../testing/mocks';
 import type { User } from 'app-shared/types/Repository';
 
 jest.mock('dashboard/hooks/useSelectedContext');

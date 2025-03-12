@@ -10,6 +10,7 @@ import {
   changeCodeListItem,
   isCodeListEmpty,
   evaluateDefaultType,
+  isCodeLimitReached,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -116,6 +117,7 @@ function ControlledCodeListEditor({
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
+  const shouldDisableAddButton = isCodeLimitReached(codeList, codeType);
 
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addNewCodeListItem(codeList, codeType);
@@ -137,7 +139,7 @@ function ControlledCodeListEditor({
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
       />
-      <AddButton onClick={handleAddButtonClick} />
+      <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
@@ -264,12 +266,21 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
 
 type AddButtonProps = {
   onClick: () => void;
+  disabled: boolean;
 };
 
-function AddButton({ onClick }: AddButtonProps): ReactElement {
+function AddButton({ onClick, disabled }: AddButtonProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  const tooltip = disabled ? texts.disabledAddButtonTooltip : undefined;
+
   return (
-    <StudioButton onClick={onClick} variant='secondary' icon={<PlusIcon />}>
+    <StudioButton
+      onClick={onClick}
+      variant='secondary'
+      icon={<PlusIcon />}
+      disabled={disabled}
+      title={tooltip}
+    >
       {texts.add}
     </StudioButton>
   );

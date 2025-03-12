@@ -1,8 +1,8 @@
 import React from 'react';
 import { usePageHeaderTitle } from './usePageHeaderTitle';
-import { HeaderContext, type HeaderContextProps } from 'dashboard/context/HeaderContext';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { headerContextValueMock } from 'dashboard/testing/headerContextMock';
+import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { headerContextValueMock } from '../../testing/headerContextMock';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { mockOrg1 } from '../../testing/organizationMock';
 import { renderHookWithProviders } from '../../testing/mocks';
