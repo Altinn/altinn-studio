@@ -15,6 +15,7 @@ import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
+import { isOrg } from 'dashboard/pages/OrgContentLibrary/utils';
 
 export type DashboardHeaderProps = {
   showSubMenu: boolean;
@@ -23,6 +24,7 @@ export type DashboardHeaderProps = {
 
 export const DashboardHeader = ({ showSubMenu, isRepoError }: DashboardHeaderProps) => {
   const pageHeaderTitle: string = usePageHeaderTitle();
+  const selectedContext = useSelectedContext();
 
   const location = useLocation();
   const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
@@ -30,13 +32,11 @@ export const DashboardHeader = ({ showSubMenu, isRepoError }: DashboardHeaderPro
   const isOrgLibraryPage: boolean =
     currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
   const shouldShowSubMenu: boolean =
-    showSubMenu && !isRepoError && isOrgLibraryPage && shouldDisplayFeature(FeatureFlag.OrgLibrary);
-
-  console.log('showSubMenu', showSubMenu);
-  console.log('!isRepoError', !isRepoError);
-  console.log('isOrgLibraryPage', isOrgLibraryPage);
-  console.log('shouldDisplayFeature', shouldDisplayFeature(FeatureFlag.OrgLibrary));
-  console.log('currentRoutePath', currentRoutePath);
+    showSubMenu &&
+    !isRepoError &&
+    !isOrg(selectedContext) &&
+    isOrgLibraryPage &&
+    shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
   return (
     <StudioPageHeader>
