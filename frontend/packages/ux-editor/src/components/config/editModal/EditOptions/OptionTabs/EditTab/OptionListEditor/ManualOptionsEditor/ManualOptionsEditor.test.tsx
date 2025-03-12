@@ -86,7 +86,7 @@ describe('ManualOptionEditor', () => {
     });
     const text = 'test';
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
     const textBox = getTextResourceDescriptionInput(1);
     await user.type(textBox, text);
     await user.tab();

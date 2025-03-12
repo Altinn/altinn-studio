@@ -7,6 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
@@ -80,7 +81,7 @@ describe('LibraryOptionEditor', () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
     const expectedResultAfterEdit: Option[] = ObjectUtils.deepCopy(optionList);
-    expectedResultAfterEdit[1].description = 'test';
+    expectedResultAfterEdit[0].value = 'test';
 
     await user.click(getEditButton());
     const textBox = getValueInput(1);
@@ -102,7 +103,7 @@ describe('LibraryOptionEditor', () => {
     const expectedLanguage = 'nb';
     const expectedTextResource = { 'description-id': 'test' };
 
-    await user.click(getOptionModalButton());
+    await user.click(getEditButton());
     const textBox = getTextResourceDescriptionInput(1);
     await user.type(textBox, 'test');
     await user.tab();
