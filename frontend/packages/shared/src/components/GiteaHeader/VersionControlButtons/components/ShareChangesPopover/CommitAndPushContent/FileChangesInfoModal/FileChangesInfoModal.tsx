@@ -9,7 +9,7 @@ import { ClockDashedIcon } from '@studio/icons';
 import { FilePath } from './FilePath/FilePath';
 import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
 import type { QueryStatus } from '@tanstack/react-query';
-import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/VersionControlButtons/context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context/GiteaHeaderContext';
 
 export interface FileChangesInfoModalProps {
   fileChanges: RepoContentStatus[];

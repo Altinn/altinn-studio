@@ -8,7 +8,7 @@ import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { useGiteaHeaderContext } from '../../VersionControlButtons/context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
 export const ClonePopoverContent = () => {
   const { owner, repoName } = useGiteaHeaderContext();

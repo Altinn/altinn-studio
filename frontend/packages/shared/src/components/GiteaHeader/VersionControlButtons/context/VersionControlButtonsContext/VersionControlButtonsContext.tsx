@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { useGiteaHeaderContext } from '../GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;

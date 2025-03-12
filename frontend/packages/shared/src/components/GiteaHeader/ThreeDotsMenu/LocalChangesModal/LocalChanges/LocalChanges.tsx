@@ -7,7 +7,7 @@ import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/VersionControlButtons/context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context/GiteaHeaderContext';
 
 export type LocalChangesProps = {
   onDelete: () => void;

@@ -12,7 +12,7 @@ import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =

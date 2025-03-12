@@ -10,7 +10,7 @@ import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {

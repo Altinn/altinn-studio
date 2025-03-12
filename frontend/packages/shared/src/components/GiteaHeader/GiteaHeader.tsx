@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './GiteaHeader.module.css';
 import { VersionControlButtons } from './VersionControlButtons';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
-import { GiteaHeaderContext } from './VersionControlButtons/context/GiteaHeaderContext';
+import { GiteaHeaderContext } from './context/GiteaHeaderContext';
 
 type GiteaHeaderProps = {
   menuOnlyHasRepository?: boolean;

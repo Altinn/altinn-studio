@@ -3,7 +3,6 @@ import { ClonePopoverContent } from './ClonePopoverContent';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../mocks/renderWithProviders';
 
@@ -45,9 +44,5 @@ const renderClonePopoverContent = () => {
   const queries: Partial<ServicesContextProps> = {
     getDataModelsXsd: async () => [],
   };
-  return renderWithProviders({ ...queriesMock, ...queries })(
-    <ServicesContextProvider {...queries}>
-      <ClonePopoverContent />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders({ ...queriesMock, ...queries })(<ClonePopoverContent />);
 };

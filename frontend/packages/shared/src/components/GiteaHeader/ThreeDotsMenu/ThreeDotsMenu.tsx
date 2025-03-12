@@ -6,7 +6,7 @@ import { repositoryPath } from 'app-shared/api/paths';
 import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
-import { useGiteaHeaderContext } from '../VersionControlButtons/context/GiteaHeaderContext';
+import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
