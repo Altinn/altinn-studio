@@ -5,7 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.660.signing.2a7cb979">
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.693.signing.bee0c2b0">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
