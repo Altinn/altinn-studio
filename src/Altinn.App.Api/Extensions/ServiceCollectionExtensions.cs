@@ -214,6 +214,7 @@ public static class ServiceCollectionExtensions
     {
         var appId = StartupHelper.GetApplicationId().Split("/")[1];
         var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
+        var isTest = config.GetSection("GeneralSettings").GetValue<bool>("IsTest");
         if (string.IsNullOrWhiteSpace(appVersion))
         {
             appVersion = "Local";
@@ -249,6 +250,9 @@ public static class ServiceCollectionExtensions
                         opts.RecordException = true;
                     });
 
+                if (isTest)
+                    return;
+
                 if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {
                     builder = builder.AddAzureMonitorTraceExporter(options =>
@@ -269,6 +273,9 @@ public static class ServiceCollectionExtensions
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation();
 
+                if (isTest)
+                    return;
+
                 if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {
                     builder = builder.AddAzureMonitorMetricExporter(options =>
@@ -287,6 +294,9 @@ public static class ServiceCollectionExtensions
             logging.AddOpenTelemetry(options =>
             {
                 options.IncludeFormattedMessage = true;
+
+                if (isTest)
+                    return;
 
                 if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {

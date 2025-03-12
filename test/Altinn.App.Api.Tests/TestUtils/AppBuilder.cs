@@ -20,6 +20,7 @@ public static class AppBuilder
         builder ??= WebApplication.CreateBuilder();
         builder.Environment.EnvironmentName = "Development";
 
+        builder.Configuration.AddInMemoryCollection([new("GeneralSettings:IsTest", "true")]);
         if (configData is not null)
         {
             builder.Configuration.AddInMemoryCollection(configData);
