@@ -2,7 +2,6 @@ import React, { forwardRef, useCallback, useMemo } from 'react';
 import type { IGenericEditComponent } from '../../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
-import type { TextResourceWithLanguage } from '@studio/content-library';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal, type TextResource } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
@@ -42,26 +41,19 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
       [textResources],
     );
 
-    const handleOptionsListChange = (options: Option[]) => {
-      const updatedComponent = updateComponentOptions(component, options);
-      handleOptionsChange(updatedComponent, handleComponentChange);
-    };
-
-    const handleUpdateTextResource = useCallback(
-      (textResourceWithLanguage: TextResourceWithLanguage): void => {
-        const mutationArgs = convertTextResourceToMutationArgs(textResourceWithLanguage);
+    const handleBlurTextResource = useCallback(
+      (textResource: TextResource) => {
+        const updatedTextResource = createTextResourceWithLanguage(language, textResource);
+        const mutationArgs = convertTextResourceToMutationArgs(updatedTextResource);
         updateTextResource(mutationArgs);
       },
       [updateTextResource],
     );
 
-    const handleBlurTextResource = useCallback(
-      (textResource: TextResource) => {
-        const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-        handleUpdateTextResource?.(updatedTextResource);
-      },
-      [handleUpdateTextResource],
-    );
+    const handleOptionsListChange = (options: Option[]) => {
+      const updatedComponent = updateComponentOptions(component, options);
+      handleOptionsChange(updatedComponent, handleComponentChange);
+    };
 
     const handleClick = () => {
       modalRef.current?.showModal();
