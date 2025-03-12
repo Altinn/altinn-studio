@@ -9,6 +9,7 @@ import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirec
 import { DashboardHeader } from './DashboardHeader';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { REPO_NAME_TTD_FOR_CODELISTS } from '../../constants';
+import { isOrg } from '../OrgContentLibrary/utils';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
@@ -22,7 +23,9 @@ export const PageLayout = () => {
     data: repoStatus,
     isPending: isRepoStatusPending,
     error: repoStatusError,
-  } = useRepoStatusQuery(selectedContext, REPO_NAME_TTD_FOR_CODELISTS);
+  } = useRepoStatusQuery(selectedContext, REPO_NAME_TTD_FOR_CODELISTS, {
+    hideDefaultError: !isOrg(selectedContext),
+  });
 
   const headerContextValue: Partial<HeaderContextProps> = useMemo(
     () => ({
