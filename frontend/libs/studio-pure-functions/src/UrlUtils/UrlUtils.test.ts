@@ -1,6 +1,6 @@
 import { UrlUtils } from './UrlUtils';
 
-describe('UtlUtils', () => {
+describe('UrlUtils', () => {
   describe('extractLastRouterParam', () => {
     it('should return the last part of the pathname', () => {
       const pathname = '/home/user/profile';
