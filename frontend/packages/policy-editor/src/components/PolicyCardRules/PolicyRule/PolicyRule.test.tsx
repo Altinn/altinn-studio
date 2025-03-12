@@ -11,7 +11,6 @@ import {
   type PolicyEditorContextProps,
 } from '../../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
-import type { PolicyRuleCard } from '@altinn/policy-editor/types';
 
 const defaultProps: PolicyRuleProps = {
   policyRule: mockPolicyRuleCard1,
