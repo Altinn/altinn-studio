@@ -1,8 +1,9 @@
-import { type HeaderContextProps } from 'dashboard/context/HeaderContext';
+import { type HeaderContextProps } from '../context/HeaderContext';
 import { userMock } from './userMock';
 import { mockOrganizations } from './organizationMock';
 import type { HeaderMenuItem } from '../types/HeaderMenuItem';
 import { HeaderMenuItemKey } from '../enums/HeaderMenuItemKey';
+import { HeaderMenuGroupKey } from '../enums/HeaderMenuGroupKey';
 import { type NavigationMenuItem } from '../types/NavigationMenuItem';
 import { type NavigationMenuGroup } from '../types/NavigationMenuGroup';
 
@@ -10,11 +11,13 @@ const menuItemsMock: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.OrgLibrary,
     link: '/a',
+    group: HeaderMenuGroupKey.Tools,
     name: 'org-library',
   },
   {
     key: HeaderMenuItemKey.AppDashboard,
     link: '/b',
+    group: HeaderMenuGroupKey.Tools,
     name: 'app-dashboard',
   },
 ];
