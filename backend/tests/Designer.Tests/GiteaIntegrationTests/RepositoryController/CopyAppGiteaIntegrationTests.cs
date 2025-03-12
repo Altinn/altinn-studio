@@ -32,7 +32,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
 
-            // Add some commit and push to be more realistic use case
+            // Add some commit and push to be more realistic use case, this also adds notes to the commit
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
             using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
