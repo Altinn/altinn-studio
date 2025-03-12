@@ -44,6 +44,18 @@ export const TextEditor = () => {
       })),
     });
 
+  const notCoveredFunction = () => {
+    if (true) {
+      handleAddLanguage('norsk');
+    }
+    console.log('wow');
+  };
+  const coveredFunction = () => {
+    console.log('covered');
+    setSearchQuery('search');
+  };
+  coveredFunction();
+
   const { mutate: deleteLanguageMutation } = useDeleteLanguageMutation(org, app);
   const { mutate: textIdMutation } = useTextIdMutation(org, app);
 
