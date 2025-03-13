@@ -2,6 +2,9 @@ import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { Subroute } from '../../enums/Subroute';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
+import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
+import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
+import { type StudioProfileMenuGroup } from '@studio/components';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
@@ -17,3 +20,42 @@ export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
     group: HeaderMenuGroupKey.Tools,
   },
 ];
+
+export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGroup[] => {
+  const groups: { [key: string]: HeaderMenuGroup } = {};
+
+  menuItems.forEach((item: HeaderMenuItem) => {
+    if (!groups[item.group]) {
+      groups[item.group] = { groupName: item.group, menuItems: [] };
+    }
+    groups[item.group].menuItems.push(item);
+  });
+
+  return Object.values(groups);
+};
+
+export const mapHeaderMenuGroupToNavigationMenu = (
+  menuGroup: HeaderMenuGroup,
+): NavigationMenuGroup => ({
+  name: menuGroup.groupName,
+  showName: menuGroup.groupName === HeaderMenuGroupKey.Tools,
+  items: menuGroup.menuItems.map((menuItem: HeaderMenuItem) => ({
+    action: {
+      type: 'link',
+      href: menuItem.link,
+    },
+    itemName: menuItem.name,
+  })),
+});
+
+export function mapNavigationMenuToProfileMenu(
+  navigationGroups: NavigationMenuGroup[],
+): StudioProfileMenuGroup[] {
+  return navigationGroups.map(mapNavigationGroup);
+}
+
+function mapNavigationGroup(group: NavigationMenuGroup): StudioProfileMenuGroup {
+  return {
+    items: group.items,
+  };
+}
