@@ -16,12 +16,10 @@ describe('EditTab', () => {
 
   it('should render spinner', () => {
     renderEditTab();
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it('should render error message when query fails', async () => {
+  it('should render error message when a query fails', async () => {
     renderEditTab({
       queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()) },
     });
@@ -96,9 +94,7 @@ describe('EditTab', () => {
 });
 
 async function waitForSpinnerToBeRemoved() {
-  await waitForElementToBeRemoved(() =>
-    screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
-  );
+  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
 }
 
 function renderEditTab({
