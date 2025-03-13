@@ -636,9 +636,9 @@ public abstract class Authenticated
             TryAssign(claim, JwtClaimTypes.Scope, ref context.ScopeClaim);
         }
 
-        if (!context.ScopeClaim.IsValidString(out var scopeClaimValue))
-            throw new AuthenticationContextException("Invalid scope claim value for token");
-        context.Scopes = new Scopes(scopeClaimValue);
+        context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
+            ? new Scopes(scopeClaimValue)
+            : new Scopes(null);
 
         int? partyId = null;
         if (context.PartyIdClaim.Exists)
@@ -854,9 +854,9 @@ public abstract class Authenticated
                 context.ConsumerClaimValue = JsonSerializer.Deserialize<OrgClaim>(consumerJsonClaim);
         }
 
-        if (!context.ScopeClaim.IsValidString(out var scopeClaimValue))
-            throw new AuthenticationContextException("Invalid scope claim value for token");
-        context.Scopes = new Scopes(scopeClaimValue);
+        context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
+            ? new Scopes(scopeClaimValue)
+            : new Scopes(null);
         context.IsInAltinnPortal = context.Scopes.HasScope("altinn:portal/enduser");
 
         context.ResolveIssuer();
