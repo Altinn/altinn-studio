@@ -352,4 +352,25 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.getArrayFromString(' a, b, c ')).toEqual(['a', 'b', 'c']);
     });
   });
+
+  describe('extractKeyValuePairs', () => {
+    it('Returns an empty object when the input array is empty', () => {
+      expect(ArrayUtils.extractKeyValuePairs([], 'key', 'value')).toEqual({});
+    });
+
+    it('Returns an object with key-value pairs from the input array', () => {
+      type TestObject = { key: string; value: string };
+      const array: TestObject[] = [
+        { key: 'a', value: '1' },
+        { key: 'b', value: '2' },
+        { key: 'c', value: '3' },
+      ];
+      const result = ArrayUtils.extractKeyValuePairs<TestObject, 'key', 'value'>(
+        array,
+        'key',
+        'value',
+      );
+      expect(result).toEqual({ a: '1', b: '2', c: '3' });
+    });
+  });
 });

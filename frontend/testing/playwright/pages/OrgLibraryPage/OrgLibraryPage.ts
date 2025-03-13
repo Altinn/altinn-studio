@@ -21,8 +21,10 @@ export class OrgLibraryPage extends BasePage {
   }
 
   public async waitForPageHeaderToBeVisible(): Promise<void> {
+    const headingText = `${this.textMock('app_content_library.library_heading')} Beta`;
+
     const heading = this.page.getByRole('heading', {
-      name: this.textMock('app_content_library.library_heading'),
+      name: headingText,
       level: 1,
       exact: true,
     });
