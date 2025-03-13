@@ -73,7 +73,7 @@ export const ExpandablePolicyElement = ({
           onBlur={() => setIsButtonFocused(false)}
         >
           <div className={classes.headerWrapper}>
-            <StudioLabelAsParagraph size='small'>{title}</StudioLabelAsParagraph>
+            <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
             {description && (
               <StudioParagraph size='xs' className={classes.headerDescription}>
                 {description}

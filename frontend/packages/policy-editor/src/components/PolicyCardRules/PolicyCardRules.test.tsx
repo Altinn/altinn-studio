@@ -8,8 +8,8 @@ import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
-import type { PolicyRuleCard } from '@altinn/policy-editor/types';
-import { getPolicyRuleIdString } from '@altinn/policy-editor/utils/PolicyRuleUtils';
+import type { PolicyRuleCard } from '../../types';
+import { getPolicyRuleIdString } from '../../utils/PolicyRuleUtils';
 
 const defaultProps: PolicyCardRulesProps = {
   showErrorsOnAllRulesAboveNew: false,

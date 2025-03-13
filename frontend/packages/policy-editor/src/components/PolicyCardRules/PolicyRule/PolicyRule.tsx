@@ -65,6 +65,11 @@ export const PolicyRule = ({
     }
   };
 
+  const usageTypeIsApp: boolean = usageType === 'app';
+  const expandablePolicyElementDescription: string | undefined = usageTypeIsApp
+    ? policyRule.description
+    : undefined;
+
   return (
     <PolicyRuleContextProvider
       policyRule={policyRule}
@@ -76,7 +81,7 @@ export const PolicyRule = ({
       <div>
         <ExpandablePolicyElement
           title={`${t('policy_editor.rule')} ${getPolicyRuleIdString(policyRule)}`}
-          description={usageType === 'app' ? policyRule.description : undefined}
+          description={expandablePolicyElementDescription}
           isCard
           handleCloneElement={handleCloneRule}
           handleRemoveElement={handleDeleteRule}
