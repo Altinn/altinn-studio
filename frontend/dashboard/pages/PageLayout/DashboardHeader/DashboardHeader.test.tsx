@@ -2,48 +2,26 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { type User } from 'app-shared/types/Repository';
-import { type Organization } from 'app-shared/types/Organization';
-import { type HeaderContextType } from 'dashboard/context/HeaderContext';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { MockServicesContextWrapper } from '../../../dashboardTestUtils';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { Subroute } from '../../../enums/Subroute';
+import { HeaderContextProvider } from '../../../context/HeaderContext';
+import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
+import { userMock } from '../../../testing/userMock';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn(),
+  useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
 }));
 
-const userMock: User = {
-  id: 1,
-  avatar_url: '',
-  email: 'tester@tester.test',
-  full_name: 'Tester Testersen',
-  login: 'tester',
-  userType: 0,
-};
-
-const mockOrg1: Organization = {
-  avatar_url: '',
-  id: 12,
-  username: 'ttd',
-  full_name: 'Test',
-};
-const mockOrg2: Organization = {
-  avatar_url: '',
-  id: 23,
-  username: 'unit-test-2',
-  full_name: 'unit-test-2',
-};
-const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
-
 describe('DashboardHeader', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(jest.clearAllMocks);
 
   it('should render the user name as the profile button when in self context', () => {
     (useParams as jest.Mock).mockReturnValue({
@@ -104,10 +82,67 @@ describe('DashboardHeader', () => {
     expect(logoutItem).toBeInTheDocument();
   });
 
+  it('should render correct menu elements in header', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).toBeInTheDocument();
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(appsMenuItem).toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
+  it('should render library menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
+    );
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
+  it('should not render library menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).not.toBeInTheDocument();
+  });
+
+  it('should not render dashboard menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const dashboardMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(dashboardMenuItem).not.toBeInTheDocument();
+  });
+
+  it('should render apps menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    renderDashboardHeader();
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(appsMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
   it('should navigate to the correct organization context when an org is selected', async () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -118,7 +153,7 @@ describe('DashboardHeader', () => {
     const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledWith(`${Subroute.AppDashboard}/${mockOrg1.username}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -126,6 +161,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -136,7 +172,9 @@ describe('DashboardHeader', () => {
     const allItem = screen.getByRole('menuitemradio', { name: textMock('shared.header_all') });
     await user.click(allItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.All}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.All}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -144,6 +182,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.All,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -154,22 +193,19 @@ describe('DashboardHeader', () => {
     const selfItem = screen.getByRole('menuitemradio', { name: userMock.full_name });
     await user.click(selfItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.Self}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });
 
-const headerContextValue: HeaderContextType = {
-  user: userMock,
-  selectableOrgs: mockOrganizations,
-};
-
 const renderDashboardHeader = () => {
   return render(
     <MockServicesContextWrapper>
-      <HeaderContext.Provider value={headerContextValue}>
+      <HeaderContextProvider user={userMock} selectableOrgs={mockOrganizations}>
         <DashboardHeader />
-      </HeaderContext.Provider>
+      </HeaderContextProvider>
     </MockServicesContextWrapper>,
   );
 };

@@ -21,6 +21,7 @@ export const PdfLayoutAccordion = ({
   const layouts = useFormLayouts();
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
   const pdfLayoutData = formLayoutData.find((formLayout) => formLayout.page === pdfLayoutName);
+  if (!pdfLayoutData) return null;
 
   return (
     <Accordion color='neutral'>

@@ -10,6 +10,7 @@ import {
   changeCodeListItem,
   isCodeListEmpty,
   evaluateDefaultType,
+  isCodeLimitReached,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -36,6 +37,7 @@ export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onAddOrDeleteItem?: (codeList: CodeList) => void;
   onBlurAny?: (codeList: CodeList) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
@@ -57,6 +59,7 @@ function StatefulCodeListEditor({
   codeList: defaultCodeList,
   onAddOrDeleteItem,
   onBlurAny,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   onInvalid,
@@ -88,6 +91,7 @@ function StatefulCodeListEditor({
       codeList={codeList}
       onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
+      onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
       textResources={textResources}
@@ -104,6 +108,7 @@ function ControlledCodeListEditor({
   codeList,
   onAddOrDeleteItem,
   onBlurAny,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   textResources,
@@ -112,6 +117,7 @@ function ControlledCodeListEditor({
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
   const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
+  const shouldDisableAddButton = isCodeLimitReached(codeList, codeType);
 
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addNewCodeListItem(codeList, codeType);
@@ -127,12 +133,13 @@ function ControlledCodeListEditor({
         errorMap={errorMap}
         onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
+        onBlurTextResource={onBlurTextResource}
         onChange={onChange}
         onChangeCodeType={setCodeType}
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
       />
-      <AddButton onClick={handleAddButtonClick} />
+      <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
@@ -200,6 +207,7 @@ function TableHeadings(): ReactElement {
 function TableBody({
   codeList,
   onAddOrDeleteItem,
+  onBlurTextResource,
   onChange,
   onChangeTextResource,
   errorMap,
@@ -230,6 +238,7 @@ function TableBody({
           item={item}
           key={index}
           number={index + 1}
+          onBlurTextResource={onBlurTextResource}
           onChange={(newItem) => handleChange(index, newItem)}
           onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
@@ -257,12 +266,21 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
 
 type AddButtonProps = {
   onClick: () => void;
+  disabled: boolean;
 };
 
-function AddButton({ onClick }: AddButtonProps): ReactElement {
+function AddButton({ onClick, disabled }: AddButtonProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  const tooltip = disabled ? texts.disabledAddButtonTooltip : undefined;
+
   return (
-    <StudioButton onClick={onClick} variant='secondary' icon={<PlusIcon />}>
+    <StudioButton
+      onClick={onClick}
+      variant='secondary'
+      icon={<PlusIcon />}
+      disabled={disabled}
+      title={tooltip}
+    >
       {texts.add}
     </StudioButton>
   );

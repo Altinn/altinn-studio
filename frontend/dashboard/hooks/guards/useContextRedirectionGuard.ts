@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 import { useSelectedContext } from '../useSelectedContext';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { typedSessionStorage } from '@studio/pure-functions';
 import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
+import { useSubroute } from '../useSubRoute';
 
 export type UseRedirectionGuardResult = {
   isRedirectionComplete: boolean;
@@ -14,18 +15,23 @@ export type UseRedirectionGuardResult = {
 export const useContextRedirectionGuard = (
   organizations: Organization[],
 ): UseRedirectionGuardResult => {
-  const selectedContext = useSelectedContext();
+  const selectedContextType = useSelectedContext();
+  const subroute = useSubroute();
   const navigate = useNavigate();
   const [isContextRedirectionComplete, setIsContextRedirectionComplete] = useState<boolean>(false);
 
-  if (selectedContext !== SelectedContextType.None) {
-    typedSessionStorage.setItem('dashboard::selectedContext', selectedContext);
+  if (selectedContextType !== SelectedContextType.None) {
+    typedSessionStorage.setItem('dashboard::selectedContext', selectedContextType);
   }
 
   useEffect(() => {
-    handleContextRedirection(selectedContext, organizations, navigate);
+    const dashboardRoute: DashboardRoute = {
+      selectedContextType,
+      subroute,
+    };
+    handleContextRedirection(dashboardRoute, organizations, navigate);
     setIsContextRedirectionComplete(true);
-  }, [selectedContext, organizations, navigate]);
+  }, [selectedContextType, organizations, navigate, subroute]);
 
   return {
     isRedirectionComplete: isContextRedirectionComplete,
@@ -33,43 +39,69 @@ export const useContextRedirectionGuard = (
 };
 
 const handleContextRedirection = (
-  currentContext: SelectedContextType | string,
+  dashboardRoute: DashboardRoute,
   organizations: Organization[],
   navigate: NavigateFunction,
 ): void => {
-  const targetContext = getTargetContext(currentContext);
-
-  if (!hasAccessToContext(targetContext, organizations)) {
-    navigateToContext(SelectedContextType.Self, navigate);
-    return;
+  const { selectedContextType, subroute } = dashboardRoute;
+  if (!hasAccessToTargetContext(selectedContextType, organizations)) {
+    navigateToSelf(subroute, navigate);
+  } else {
+    navigateToDifferentContext(dashboardRoute, navigate);
   }
-
-  if (targetContext === currentContext) return;
-  navigateToContext(targetContext, navigate);
 };
 
-const getTargetContext = (
-  currentContext: SelectedContextType | string,
-): SelectedContextType | string => {
-  if (currentContext === SelectedContextType.None) {
-    return typedSessionStorage.getItem('dashboard::selectedContext') || SelectedContextType.Self;
-  }
-  return currentContext;
-};
+const hasAccessToTargetContext = (
+  selectedContextType: string,
+  organizations: Organization[],
+): boolean => hasAccessToContext(getTargetContext(selectedContextType), organizations);
 
 const hasAccessToContext = (
   targetContext: SelectedContextType | string,
   organizations: Organization[],
-): boolean => {
-  return (
-    organizations &&
-    userHasAccessToSelectedContext({ selectedContext: targetContext, orgs: organizations })
-  );
+): boolean =>
+  organizations &&
+  userHasAccessToSelectedContext({ selectedContext: targetContext, orgs: organizations });
+
+const getTargetContext = (
+  currentContext: SelectedContextType | string,
+): SelectedContextType | string =>
+  currentContext === SelectedContextType.None ? getSelectedContextFromStorage() : currentContext;
+
+const getSelectedContextFromStorage = (): string => {
+  return typedSessionStorage.getItem('dashboard::selectedContext') || SelectedContextType.Self;
+};
+
+const navigateToSelf = (subroute: string, navigate: NavigateFunction): void => {
+  const dashboardRoute: DashboardRoute = {
+    selectedContextType: SelectedContextType.Self,
+    subroute,
+  };
+  navigateToContext(dashboardRoute, navigate);
 };
 
 const navigateToContext = (
-  targetContext: SelectedContextType | string,
+  { subroute, selectedContextType }: DashboardRoute,
+  navigate: NavigateFunction,
+): void => navigate(subroute + '/' + selectedContextType + location.search, { replace: true });
+
+const navigateToDifferentContext = (
+  { subroute, selectedContextType }: DashboardRoute,
   navigate: NavigateFunction,
 ): void => {
-  navigate(targetContext + location.search, { replace: true });
+  if (isTargetContextDifferent(selectedContextType)) {
+    const dashboardRoute: DashboardRoute = {
+      selectedContextType: getTargetContext(selectedContextType),
+      subroute,
+    };
+    navigateToContext(dashboardRoute, navigate);
+  }
+};
+
+const isTargetContextDifferent = (selectedContextType: string): boolean =>
+  getTargetContext(selectedContextType) !== selectedContextType;
+
+type DashboardRoute = {
+  selectedContextType: string;
+  subroute: string;
 };
