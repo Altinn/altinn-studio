@@ -109,8 +109,7 @@
         },
         "overrides": [
           {
-            "componentId": "CheckboxesPage-Checkboxes",
-            "displayType": "string"
+            "componentId": "CheckboxesPage-Checkboxes"
           }
         ]
       },
