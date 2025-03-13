@@ -88,6 +88,9 @@ describe('PolicyEditor', () => {
     const user = userEvent.setup();
     renderPolicyEditor();
 
+    const rulesTab = screen.getByRole('tab', { name: textMock('policy_editor.rules_edit') });
+    await user.click(rulesTab);
+
     const originalLength = mockPolicy.rules.length;
 
     const addButton = screen.getByRole('button', {
