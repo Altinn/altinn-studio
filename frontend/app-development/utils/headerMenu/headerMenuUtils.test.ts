@@ -150,14 +150,13 @@ describe('headerMenuUtils', () => {
 
       // Ensure other items are still present
       const remainingKeys = filteredMenu.map((item) => item.key);
-      expect(remainingKeys).toEqual(
-        expect.arrayContaining([
-          HeaderMenuItemKey.Create,
-          HeaderMenuItemKey.DataModel,
-          HeaderMenuItemKey.Text,
-          HeaderMenuItemKey.ProcessEditor,
-        ]),
-      );
+      expect(remainingKeys).toEqual([
+        HeaderMenuItemKey.Create,
+        HeaderMenuItemKey.DataModel,
+        HeaderMenuItemKey.Text,
+        HeaderMenuItemKey.ProcessEditor,
+        HeaderMenuItemKey.ContentLibrary,
+      ]);
     });
   });
 });

@@ -3,7 +3,14 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
-import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon, UploadIcon } from '@studio/icons';
+import {
+  BookIcon,
+  DatabaseIcon,
+  Density3Icon,
+  PencilIcon,
+  TenancyIcon,
+  UploadIcon,
+} from '@studio/icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
@@ -49,6 +56,14 @@ export const topBarMenuItem: HeaderMenuItem[] = [
     icon: UploadIcon,
     repositoryTypes: [RepositoryType.App],
     group: HeaderMenuGroupKey.Other,
+  },
+  {
+    key: HeaderMenuItemKey.ContentLibrary,
+    link: RoutePaths.ContentLibrary,
+    icon: BookIcon,
+    repositoryTypes: [RepositoryType.App],
+    group: HeaderMenuGroupKey.Tools,
+    isBeta: true,
   },
 ];
 
