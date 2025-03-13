@@ -5,7 +5,7 @@ import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectS
 import { useTranslation } from 'react-i18next';
 import { extractAllUniqueActions, extractAllUniqueSubjects } from '../../utils/AppPolicyUtils';
 
-export function PolicySummary() {
+export function PolicySummary(): React.ReactElement {
   const { policyRules } = usePolicyEditorContext();
   const { t } = useTranslation();
 

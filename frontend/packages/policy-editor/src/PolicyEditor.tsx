@@ -19,8 +19,8 @@ import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
-import { PolicyRulesEditor } from './components/PolicyRulesEditor/PolicyRulesEditor';
-import { PolicyEditorTabs } from './components/PolicyEditorTabs/PolicyEditorTabs';
+import { PolicyRulesEditor } from './components/PolicyRulesEditor';
+import { PolicyEditorTabs } from './components/PolicyEditorTabs';
 
 export type PolicyEditorProps = {
   policy: Policy;

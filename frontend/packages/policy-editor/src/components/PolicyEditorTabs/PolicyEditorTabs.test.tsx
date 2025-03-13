@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { PolicyEditorTabs } from './PolicyEditorTabs';
-import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
+import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

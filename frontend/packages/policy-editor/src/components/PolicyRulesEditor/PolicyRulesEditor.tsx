@@ -3,7 +3,7 @@ import { PolicyCardRules } from '../PolicyCardRules';
 import { AddPolicyRuleButton } from '../AddPolicyRuleButton';
 import classes from './PolicyRulesEditor.module.css';
 
-export function PolicyRulesEditor(): React.ReactNode {
+export function PolicyRulesEditor(): React.ReactElement {
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
   const handleClickAddButton = () => {
