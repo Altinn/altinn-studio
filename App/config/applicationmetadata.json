@@ -28,7 +28,7 @@
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjema",
-        "allowAnonymousOnStateless": true,
+        "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false
       },
       "maxCount": 0,
