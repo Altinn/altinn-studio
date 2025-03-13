@@ -3,14 +3,16 @@ import type { JSX } from 'react';
 
 import { formatISOString, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FrontendValidationSource } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { useDatepickerValidation } from 'src/layout/Datepicker/useDatepickerValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
@@ -30,13 +32,15 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     },
   );
 
-  getDisplayData({ currentLanguage, formData, nodeId, nodeDataSelector }: DisplayDataProps<'Datepicker'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Datepicker');
+    const currentLanguage = useCurrentLanguage();
+    const format = NodesInternal.useNodeDataWhenType(nodeId, 'Datepicker', (data) => data.item?.format);
     const data = formData?.simpleBinding ?? '';
     if (!data) {
       return '';
     }
 
-    const format = nodeDataSelector((picker) => picker(nodeId, 'Datepicker')?.item?.format, [nodeId]);
     const dateFormat = getDateFormat(format, currentLanguage);
     return formatISOString(data, dateFormat) ?? data;
   }

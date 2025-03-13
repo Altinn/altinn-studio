@@ -37,7 +37,7 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
   const formData = FD.useDebounced(dataType);
   const expressionValidationConfig = DataModels.useExpressionValidationConfig(dataType);
-  const dataSources = useExpressionDataSources();
+  const dataSources = useExpressionDataSources(expressionValidationConfig);
   const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
   const allBindings = NodesInternal.useMemoSelector((state) => {
     const out: NodeWithBindings[] = [];
@@ -59,7 +59,7 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
       const validations = {};
 
       for (const { nodeReference, dmb } of allBindings) {
-        // Modify the hierarchy data sources to make the current dataModel the default one when running expression validations
+        // Modify the data sources to make the current dataModel the default one when running expression validations
         const currentLayoutSet = dataSources.currentLayoutSet;
         const modifiedCurrentLayoutSet: ILayoutSet | null = currentLayoutSet
           ? {

@@ -1,5 +1,6 @@
 import React, { forwardRef, type JSX } from 'react';
 
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
@@ -9,7 +10,6 @@ import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.ge
 import { useValidateMissingTag } from 'src/layout/FileUploadWithTag/useValidateMissingTag';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
@@ -28,10 +28,9 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     return false;
   }
 
-  getDisplayData({ attachmentsSelector, nodeId }: DisplayDataProps<'FileUploadWithTag'>): string {
-    return attachmentsSelector(nodeId)
-      .map((a) => a.data.filename)
-      .join(', ');
+  useDisplayData(nodeId: string): string {
+    const attachments = useAttachmentsFor(nodeId);
+    return attachments.map((a) => a.data.filename).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUploadWithTag'>): JSX.Element | null {

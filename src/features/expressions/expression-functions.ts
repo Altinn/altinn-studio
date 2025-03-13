@@ -9,11 +9,9 @@ import { addError } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { CodeListPending } from 'src/features/options/CodeListsProvider';
 import { SearchParams } from 'src/features/routing/AppRoutingContext';
-import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/formatDateLocale';
-import { getNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
   AnyExprArg,
@@ -26,6 +24,7 @@ import type {
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IAuthContext, IInstanceDataSources } from 'src/types/shared';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {
   [Index in keyof T]: T[Index]['variant'] extends 'optional'
@@ -37,6 +36,7 @@ export type AnyFuncDef = FuncDef<readonly AnyExprArg[], ExprVal>;
 export interface FuncDef<Args extends readonly AnyExprArg[], Ret extends ExprVal> {
   args: Args;
   returns: Ret;
+  needs: readonly (keyof ExpressionDataSources)[];
 }
 
 export interface FuncValidationDef {
@@ -71,6 +71,13 @@ function args<A extends readonly AnyExprArg[]>(...args: A): A {
   return args;
 }
 
+type Source = keyof ExpressionDataSources;
+function dataSources<S extends readonly Source[]>(...sources: S): S {
+  return sources;
+}
+
+const noSources: never[] = [];
+
 /**
  * All the function definitions available in expressions. The implementations themselves are located in
  * @see ExprFunctionImplementations
@@ -79,170 +86,218 @@ export const ExprFunctionDefinitions = {
   argv: {
     args: args(required(ExprVal.Number)),
     returns: ExprVal.Any,
+    needs: noSources,
   },
   value: {
     args: args(optional(ExprVal.String)),
     returns: ExprVal.Any,
+    needs: noSources,
   },
   equals: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   notEquals: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   not: {
     args: args(required(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   greaterThan: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   greaterThanEq: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   lessThan: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   lessThanEq: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   concat: {
     args: args(rest(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   and: {
     args: args(required(ExprVal.Boolean), rest(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   or: {
     args: args(required(ExprVal.Boolean), rest(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   if: {
     args: args(required(ExprVal.Boolean), required(ExprVal.Any), optional(ExprVal.String), optional(ExprVal.Any)),
     returns: ExprVal.Any,
+    needs: noSources,
   },
   instanceContext: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('instanceDataSources'),
   },
   frontendSettings: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
+    needs: dataSources('applicationSettings'),
   },
   authContext: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: dataSources('process'),
   },
   component: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
+    needs: dataSources(
+      'layoutLookups',
+      'currentDataModelPath',
+      'isHiddenSelector',
+      'dataModelNames',
+      'formDataSelector',
+    ),
   },
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
     returns: ExprVal.Any,
+    needs: dataSources('currentLayoutSet', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
   },
   countDataElements: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Number,
+    needs: dataSources('dataElementSelector'),
   },
   externalApi: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('externalApis'),
   },
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('displayValues', 'isHiddenSelector', 'currentDataModelPath', 'layoutLookups'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
     returns: ExprVal.String,
+    needs: dataSources('codeListSelector', 'langToolsSelector'),
   },
   formatDate: {
     args: args(required(ExprVal.Date), optional(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('currentLanguage'),
   },
   compare: {
     args: args(required(ExprVal.Any), required(ExprVal.Any), required(ExprVal.Any), optional(ExprVal.Any)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   round: {
     args: args(required(ExprVal.Number), optional(ExprVal.Number)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   text: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('langToolsSelector'),
   },
   linkToComponent: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('layoutLookups', 'process', 'instanceDataSources', 'currentDataModelPath'),
   },
   linkToPage: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: dataSources('process', 'instanceDataSources'),
   },
   language: {
     args: args(),
     returns: ExprVal.String,
+    needs: dataSources('currentLanguage'),
   },
   contains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   notContains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   endsWith: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   startsWith: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   stringReplace: {
     args: args(required(ExprVal.String), required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   stringLength: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Number,
+    needs: noSources,
   },
   stringSlice: {
     args: args(required(ExprVal.String), required(ExprVal.Number), optional(ExprVal.Number)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   stringIndexOf: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Number,
+    needs: noSources,
   },
   commaContains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
+    needs: noSources,
   },
   lowerCase: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   upperCase: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   upperCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   lowerCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
+    needs: noSources,
   },
   _experimentalSelectAndMap: {
     args: args(
@@ -253,11 +308,12 @@ export const ExprFunctionDefinitions = {
       optional(ExprVal.Boolean),
     ),
     returns: ExprVal.String,
+    needs: dataSources('currentLayoutSet', 'formDataSelector'),
   },
 } satisfies { [key: string]: AnyFuncDef };
 
 type Implementation<Name extends ExprFunctionName> = (
-  this: EvaluateExpressionParams,
+  this: EvaluateExpressionParams<ExprFunctions[Name]['needs']>,
   ...params: ArgsToActual<ExprFunctions[Name]['args']>
 ) => ExprValToActual<ExprFunctions[Name]['returns']> | null;
 
@@ -465,35 +521,30 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (id === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
-
     const target = this.dataSources.layoutLookups.allComponents[id];
     if (!target) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
 
-    const def = getComponentDef(target.type);
-    if (!implementsDisplayData(def)) {
-      throw new ExprRuntimeError(this.expr, this.path, `Component with identifier ${id} does not have a displayValue`);
-    }
-
-    const relativeId = makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups);
-    if (!relativeId) {
+    const targetId = makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups);
+    if (!targetId) {
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.isHiddenSelector(relativeId)) {
+    if (this.dataSources.isHiddenSelector(targetId)) {
+      // Not related to the current path, or currently hidden
       return null;
     }
 
-    return def.getDisplayData({
-      attachmentsSelector: this.dataSources.attachmentsSelector,
-      optionsSelector: this.dataSources.optionsSelector,
-      langTools: this.dataSources.langToolsSelector(relativeId),
-      currentLanguage: this.dataSources.currentLanguage,
-      nodeDataSelector: this.dataSources.nodeDataSelector,
-      formData: getNodeFormData(relativeId, this.dataSources.nodeDataSelector, this.dataSources.formDataSelector),
-      nodeId: relativeId,
-    });
+    if (!(id in this.dataSources.displayValues)) {
+      throw new ExprRuntimeError(
+        this.expr,
+        this.path,
+        `Component of type '${target.type}' does not have a displayValue`,
+      );
+    }
+
+    return this.dataSources.displayValues[id] ?? '';
   },
   optionLabel(optionsId, value) {
     if (optionsId === null) {
@@ -765,6 +816,13 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       }
     },
   },
+  displayValue: {
+    validator({ rawArgs, ctx, path }) {
+      if (rawArgs.length > 1 && rawArgs[1] !== null && typeof rawArgs[1] !== 'string') {
+        addError(ctx, [...path, '[2]'], 'The second argument must be a component id (expressions cannot be used here)');
+      }
+    },
+  },
   optionLabel: {
     validator({ rawArgs, ctx, path }) {
       const optionsId = rawArgs[0];
@@ -775,7 +833,10 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
   },
 };
 
-function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams) {
+function pickSimpleValue(
+  path: IDataModelReference,
+  params: EvaluateExpressionParams<['dataModelNames', 'formDataSelector']>,
+) {
   const isValidDataType = params.dataSources.dataModelNames.includes(path.dataType);
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
@@ -794,7 +855,7 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
  * 'compare', where the operator will determine the type of the arguments, and cast them accordingly.
  */
 function lateCastArg<T extends ExprVal>(
-  context: EvaluateExpressionParams,
+  context: EvaluateExpressionParams<[]>,
   arg: unknown,
   argIndex: number,
   type: T,
@@ -891,7 +952,7 @@ export const CompareOperators = {
 type CompareOperator = keyof typeof CompareOperators;
 
 function compare(
-  ctx: EvaluateExpressionParams,
+  ctx: EvaluateExpressionParams<[]>,
   operator: CompareOperator,
   arg1: unknown,
   arg2: unknown,

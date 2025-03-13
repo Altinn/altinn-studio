@@ -1106,6 +1106,31 @@ export const NodesInternal = {
     });
   },
 
+  useNodeDataWhenType<T extends CompTypes, Out>(
+    nodeId: string | undefined,
+    type: T,
+    selector: (nodeData: NodeData<T>) => Out,
+  ) {
+    const insideGenerator = GeneratorInternal.useIsInsideGenerator();
+    return Conditionally.useMemoSelector((s) => {
+      if (!nodeId) {
+        return undefined;
+      }
+
+      const data =
+        insideGenerator && s.nodeData[nodeId]
+          ? s.nodeData[nodeId]
+          : s.readiness === NodesReadiness.Ready
+            ? s.nodeData[nodeId]
+            : (s.prevNodeData?.[nodeId] ?? s.nodeData[nodeId]);
+
+      if (!data || data.layout.type !== type) {
+        return undefined;
+      }
+
+      return selector(data as NodeData<T>);
+    });
+  },
   useNodeData<N extends LayoutNode | undefined, Out>(
     node: N,
     selector: (nodeData: NodeDataFromNode<N>, readiness: NodesReadiness, fullState: NodesContext) => Out,

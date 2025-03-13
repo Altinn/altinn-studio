@@ -219,7 +219,7 @@ export const useLaxInstanceDataElements = (dataType: string | undefined) =>
   useLaxInstance((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;
 
 export type DataElementSelector = <U>(selector: (data: IData[]) => U, deps: unknown[]) => U | typeof ContextNotProvided;
-const dataElementsInnerSelector = (state: InstanceContext) => [state.data?.data ?? emptyArray];
+const dataElementsInnerSelector = (state: InstanceContext): [IData[]] => [state.data?.data ?? emptyArray];
 
 export const useLaxDataElementsSelector = (): DataElementSelector =>
   useLaxDelayedSelector({

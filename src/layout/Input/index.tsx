@@ -4,14 +4,16 @@ import type { JSX } from 'react';
 import { formatNumericText } from '@digdir/design-system-react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { evalFormatting } from 'src/layout/Input/formatting';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -23,15 +25,16 @@ export class Input extends InputDef {
     },
   );
 
-  getDisplayData({ currentLanguage, formData, nodeId, nodeDataSelector }: DisplayDataProps<'Input'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Input');
+    const formatting = NodesInternal.useNodeDataWhenType(nodeId, 'Input', (data) => data.item?.formatting);
+    const currentLanguage = useCurrentLanguage();
     const text = formData?.simpleBinding || '';
     if (!text) {
       return '';
     }
 
-    const formatting = nodeDataSelector((picker) => picker(nodeId, 'Input')?.item?.formatting, [nodeId]);
     const numberFormatting = getMapToReactNumberConfig(formatting, text, currentLanguage);
-
     if (numberFormatting?.number) {
       return formatNumericText(text, numberFormatting.number);
     }

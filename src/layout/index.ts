@@ -121,6 +121,6 @@ export interface ValidationFilter {
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
-export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData<TypeFromDef<Def>> {
-  return 'getDisplayData' in def;
+export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData {
+  return 'useDisplayData' in def;
 }

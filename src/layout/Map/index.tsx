@@ -6,8 +6,8 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -19,7 +19,8 @@ export class Map extends MapDef {
     },
   );
 
-  getDisplayData({ formData }: DisplayDataProps<'Map'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Map');
     const location = parseLocation(formData?.simpleBinding);
     return location ? `${location.latitude}, ${location.longitude}` : '';
   }

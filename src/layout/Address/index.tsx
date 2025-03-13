@@ -7,8 +7,8 @@ import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary
 import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { useAddressValidation } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -22,7 +22,8 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     },
   );
 
-  getDisplayData({ formData }: DisplayDataProps<'Address'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Address');
     return Object.values(formData ?? {}).join(' ');
   }
 

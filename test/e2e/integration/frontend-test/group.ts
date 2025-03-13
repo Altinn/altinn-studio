@@ -14,7 +14,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
   };
 
-  it('Dynamics on group', () => {
+  it('Should work without table headers', () => {
     cy.interceptLayout('group', (component) => {
       if (component.type === 'RepeatingGroup') {
         component.tableHeaders = [];

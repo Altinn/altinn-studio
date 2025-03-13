@@ -112,7 +112,7 @@ const GenerateRow = React.memo(function GenerateRow({
 
   return (
     <DataModelLocationProvider
-      binding={groupBinding}
+      groupBinding={groupBinding}
       rowIndex={rowIndex}
     >
       <GeneratorRowProvider

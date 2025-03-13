@@ -348,6 +348,10 @@ function CellWithComponent({
   isSmall,
 }: CellWithComponentProps) {
   const node = useNode(cell.nodeId);
+  if (!node) {
+    throw new Error(`Node with id ${cell.nodeId} not found`);
+  }
+
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
   const displayData = useDisplayData(node);
   const validations = useUnifiedValidationsForNode(node);
@@ -356,7 +360,7 @@ function CellWithComponent({
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const { textResourceBindings } = useNodeItem(node) ?? {};
 
-  if (isHidden || !node) {
+  if (isHidden) {
     return <CellComponent />;
   }
 

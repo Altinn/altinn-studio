@@ -10,28 +10,30 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
+import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useIndexedComponentIds } from 'src/features/form/layout/utils/makeIndexedId';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { implementsDisplayData } from 'src/layout';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { getComponentDef } from 'src/layout';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
+import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { getNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useDataModelLocationForRow } from 'src/utils/layout/DataModelLocation';
+import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { CompInternal, CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export interface IRepeatingGroupTableRowProps {
@@ -102,30 +104,25 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
-  const tableNodes = useTableNodes(node, index);
-  const displayDataProps = useDisplayDataProps();
-  const formDataSelector = FD.useDebouncedSelector();
-  const displayData = tableNodes.map(<T extends CompTypes>(node: LayoutNode<T>) => {
-    const def = node.def;
-    if (!implementsDisplayData(def)) {
-      return '';
-    }
-
-    return def.getDisplayData({
-      ...displayDataProps,
-      nodeId: node.id,
-      formData: getNodeFormData(node.id, nodeDataSelector, formDataSelector),
-    });
-  });
-  const firstCellData = displayData.find((c) => !!c);
+  const layoutLookups = useLayoutLookups();
+  const dataModelLocation = useDataModelLocationForRow(group.dataModelBindings.group, index);
+  const rawTableIds = useTableComponentIds(node);
+  const displayData = useDisplayDataFor(rawTableIds, dataModelLocation);
+  const tableIds = useIndexedComponentIds(rawTableIds, dataModelLocation);
+  const tableItems = rawTableIds.map((baseId, index) => ({
+    baseId,
+    id: tableIds[index],
+    type: layoutLookups.getComponent(baseId).type,
+  }));
+  const firstCellData = Object.values(displayData).find((c) => !!c);
   const isEditingRow = isEditing(uuid);
   const isDeletingRow = isDeleting(uuid);
 
   // If the row has errors we should highlight the row, unless the errors are for components that are shown in the table,
   // then the component getting highlighted is enough
-  const tableEditingNodeIds = tableNodes
-    .filter((n) => shouldEditInTable(editForGroup, n, columnSettings))
-    .map((n) => n.id);
+  const tableEditingNodeIds = tableItems
+    .filter((i) => shouldEditInTable(editForGroup, i.baseId, i.type, columnSettings))
+    .map((i) => i.id);
   const rowValidations = useDeepValidationsForNode(node, false, index);
   const rowHasErrors = rowValidations.some(
     (validation) => validation.severity === 'error' && !tableEditingNodeIds.includes(validation.nodeId),
@@ -153,15 +150,15 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
       data-row-uuid={uuid}
     >
       {!mobileView ? (
-        tableNodes.map((n, idx) =>
-          shouldEditInTable(editForGroup, n, columnSettings) ? (
+        tableItems.map((item) =>
+          shouldEditInTable(editForGroup, item.baseId, item.type, columnSettings) ? (
             <Table.Cell
-              key={n.id}
+              key={item.id}
               className={classes.tableCell}
             >
-              <div ref={(ref) => refSetter && refSetter(index, `component-${n.id}`, ref)}>
-                <GenericComponent
-                  node={n}
+              <div ref={(ref) => refSetter && refSetter(index, `component-${item.id}`, ref)}>
+                <GenericComponentById
+                  id={item.id}
                   overrideDisplay={{
                     renderedInTable: true,
                     renderLabel: false,
@@ -175,11 +172,10 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
             </Table.Cell>
           ) : (
             <NonEditableCell
-              key={n.id}
-              node={n}
+              key={item.id}
+              nodeId={item.id}
               isEditingRow={isEditingRow}
-              idx={idx}
-              displayData={displayData}
+              displayData={displayData[item.baseId] ?? ''}
               columnSettings={columnSettings}
             />
           ),
@@ -190,18 +186,18 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
             container
             spacing={6}
           >
-            {tableNodes.map(
-              (n, i, { length }) =>
+            {tableItems.map(
+              (item, i, { length }) =>
                 !isEditingRow &&
-                (shouldEditInTable(editForGroup, n, columnSettings) ? (
+                (shouldEditInTable(editForGroup, item.baseId, item.type, columnSettings) ? (
                   <Flex
                     container
                     item
-                    key={n.id}
-                    ref={(ref) => refSetter && refSetter(index, `component-${n.id}`, ref)}
+                    key={item.id}
+                    ref={(ref) => refSetter && refSetter(index, `component-${item.id}`, ref)}
                   >
-                    <GenericComponent
-                      node={n}
+                    <GenericComponentById
+                      id={item.id}
                       overrideItemProps={{
                         grid: {},
                       }}
@@ -211,17 +207,20 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   <Flex
                     container
                     item
-                    key={n.id}
+                    key={item.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
                       <Lang
                         id={getTableTitle(
-                          nodeDataSelector((picker) => picker(n.id, n.type)?.item?.textResourceBindings ?? {}, [n]),
+                          nodeDataSelector(
+                            (picker) => picker(item.id, item.type)?.item?.textResourceBindings ?? {},
+                            [item],
+                          ),
                         )}
                       />
                       :
                     </b>
-                    <span className={classes.contentFormatting}>{displayData[i]}</span>
+                    <span className={classes.contentFormatting}>{displayData[item.baseId] ?? ''}</span>
                     {i < length - 1 && <div style={{ height: 8 }} />}
                   </Flex>
                 )),
@@ -356,16 +355,18 @@ RepeatingGroupTableRow.displayName = 'RepeatingGroupTableRow';
 
 export function shouldEditInTable(
   groupEdit: CompInternal<'RepeatingGroup'>['edit'],
-  tableNode: LayoutNode,
+  componentId: string,
+  type: CompTypes,
   columnSettings: CompRepeatingGroupExternal['tableColumns'],
 ) {
-  const column = columnSettings && columnSettings[tableNode.baseId];
+  const column = columnSettings && columnSettings[componentId];
+  const def = getComponentDef(type);
   if (groupEdit?.mode === 'onlyTable' && column?.editInTable !== false) {
-    return tableNode.def.canRenderInTable();
+    return def.canRenderInTable();
   }
 
   if (column && column.editInTable) {
-    return tableNode.def.canRenderInTable();
+    return def.canRenderInTable();
   }
 
   return false;
@@ -431,18 +432,21 @@ function DeleteElement({
 }
 
 function NonEditableCell({
-  node,
+  nodeId,
   columnSettings,
   isEditingRow,
-  idx,
   displayData,
 }: {
-  node: LayoutNode;
+  nodeId: string;
   columnSettings: ITableColumnFormatting | undefined;
-  idx: number;
-  displayData: string[];
+  displayData: string;
   isEditingRow: boolean;
 }) {
+  const node = useNode(nodeId);
+  if (!node) {
+    throw new Error(`Node with id ${nodeId} not found`);
+  }
+
   const style = useColumnStylesRepeatingGroups(node, columnSettings);
   return (
     <Table.Cell className={classes.tableCell}>
@@ -450,7 +454,7 @@ function NonEditableCell({
         className={classes.contentFormatting}
         style={style}
       >
-        {isEditingRow ? null : displayData[idx]}
+        {isEditingRow ? null : displayData}
       </span>
     </Table.Cell>
   );

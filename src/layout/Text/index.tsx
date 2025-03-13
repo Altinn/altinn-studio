@@ -4,14 +4,15 @@ import type { JSX } from 'react';
 import { TextDef } from 'src/layout/Text/config.def.generated';
 import { TextComponent } from 'src/layout/Text/TextComponent';
 import { TextSummary } from 'src/layout/Text/TextSummary';
-import type { DisplayData, DisplayDataProps } from 'src/features/displayData';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import type { DisplayData } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class Text extends TextDef implements DisplayData<'Text'> {
-  getDisplayData({ nodeDataSelector, nodeId }: DisplayDataProps<'Text'>): string {
-    const text = nodeDataSelector((picker) => picker(nodeId, 'Text')?.item?.value, [nodeId]);
+export class Text extends TextDef implements DisplayData {
+  useDisplayData(nodeId: string): string {
+    const text = NodesInternal.useNodeDataWhenType(nodeId, 'Text', (data) => data.item?.value);
     if (!text) {
       return '';
     }

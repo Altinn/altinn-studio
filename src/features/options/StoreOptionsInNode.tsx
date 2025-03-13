@@ -9,7 +9,6 @@ import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel'
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { GeneratorCondition, StageFetchOptions } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
@@ -38,14 +37,12 @@ function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionPr
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
 
-  const dataSources = GeneratorData.useExpressionDataSources();
-  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ node, item, dataSources });
+  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ node, item });
   const { options, preselectedOption } = useFilteredAndSortedOptions({
     unsorted,
     valueType,
     node,
     item,
-    dataSources,
   });
 
   const hasBeenSet = NodesInternal.useNodeData(

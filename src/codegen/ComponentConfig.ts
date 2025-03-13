@@ -394,9 +394,9 @@ export class ComponentConfig {
     ) {
       additionalMethods.push(
         `// This component has data model bindings, so it should be able to produce a display string
-        abstract getDisplayData(displayDataProps: ${DisplayDataProps}<'${this.type}'>): string;`,
+        abstract useDisplayData(nodeId: string): string;`,
       );
-      implementsInterfaces.push(`${DisplayData}<'${this.type}'>`);
+      implementsInterfaces.push(`${DisplayData}`);
     }
 
     const readyCheckers: string[] = [];

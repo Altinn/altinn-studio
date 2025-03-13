@@ -35,7 +35,7 @@ export class UnexpectedType extends ExprRuntimeError {
 }
 
 export class NodeRelationNotFound extends ExprRuntimeError {
-  public constructor(ctx: EvaluateExpressionParams, id: string) {
+  public constructor(ctx: EvaluateExpressionParams<[]>, id: string) {
     const ref = ctx.reference;
     const ourLocation =
       ref.type === 'node' ? `component ${ref.id}` : ref.type === 'page' ? `page ${ref.id}` : 'unknown';

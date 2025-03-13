@@ -9,6 +9,7 @@ import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings'
 import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs, LayoutReference } from 'src/features/expressions/types';
@@ -17,14 +18,12 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediateExact, CompWithBehavior } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export type OptionsValueType = 'single' | 'multi';
 
 interface FetchOptionsProps {
   node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
-  dataSources: ExpressionDataSources;
 }
 
 interface FilteredAndSortedOptionsProps {
@@ -32,7 +31,6 @@ interface FilteredAndSortedOptionsProps {
   valueType: OptionsValueType;
   node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
-  dataSources: ExpressionDataSources;
 }
 
 export interface GetOptionsResult {
@@ -111,20 +109,16 @@ export function useSetOptions(
   };
 }
 
-function useOptionsUrl(
-  node: LayoutNode,
-  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>,
-  dataSources: ExpressionDataSources,
-) {
+function useOptionsUrl(node: LayoutNode, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
   const { optionsId, secure, mapping, queryParameters } = item;
-  return useGetOptionsUrl(node, dataSources, optionsId, mapping, queryParameters, secure);
+  return useGetOptionsUrl(node, optionsId, mapping, queryParameters, secure);
 }
 
-export function useFetchOptions({ node, item, dataSources }: FetchOptionsProps) {
-  const { options, optionsId, source, optionFilter } = item;
-  const url = useOptionsUrl(node, item, dataSources);
+export function useFetchOptions({ node, item }: FetchOptionsProps) {
+  const { options, optionsId, source } = item;
+  const url = useOptionsUrl(node, item);
 
-  const sourceOptions = useSourceOptions({ source, node, dataSources, addRowInfo: !!optionFilter });
+  const sourceOptions = useSourceOptions({ source, node });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
   const { data, isFetching, error } = useGetOptionsQuery(url);
   useLogFetchError(error, item);
@@ -155,13 +149,7 @@ function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompW
   }, [error, item]);
 }
 
-export function useFilteredAndSortedOptions({
-  unsorted,
-  valueType,
-  node,
-  item,
-  dataSources,
-}: FilteredAndSortedOptionsProps) {
+export function useFilteredAndSortedOptions({ unsorted, valueType, node, item }: FilteredAndSortedOptionsProps) {
   const sortOrder = item.sortOrder;
   const preselected = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
   const language = useLanguage();
@@ -170,6 +158,7 @@ export function useFilteredAndSortedOptions({
   const optionFilter = item.optionFilter;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const selectedValues = useSetOptions(valueType, dataModelBindings, unsorted).selectedValues;
+  const dataSources = useExpressionDataSources(optionFilter);
 
   return useMemo(() => {
     let preselectedOption: IOptionInternal | undefined;
@@ -218,8 +207,7 @@ export function useFilteredAndSortedOptions({
       options.sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
     }
 
-    // Always remove the rowNode and dataModelLocation at this point. It is only to be used in the filtering
-    // process, and will not ruin the comparison later to make sure the state is set in zustand.
+    // Always remove the dataModelLocation at this point. It is only to be used in the filtering process.
     for (const idx in options) {
       // If we mutate the existing option (possibly coming from useSourceOptions) it will break things.
       const { dataModelLocation: _, ...option } = options[idx];

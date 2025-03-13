@@ -10,8 +10,9 @@ import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { useValidateListIsEmpty } from 'src/layout/List/useValidateListIsEmpty';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -25,13 +26,15 @@ export class List extends ListDef {
     },
   );
 
-  getDisplayData({ formData, nodeId, nodeDataSelector }: DisplayDataProps<'List'>): string {
-    const dmBindings = nodeDataSelector((picker) => picker(nodeId, 'List')?.layout.dataModelBindings, [nodeId]);
-    const summaryBinding = nodeDataSelector((picker) => picker(nodeId, 'List')?.item?.summaryBinding, [nodeId]);
-    const legacySummaryBinding = nodeDataSelector(
-      (picker) => picker(nodeId, 'List')?.item?.bindingToShowInSummary,
-      [nodeId],
+  useDisplayData(nodeId: string): string {
+    const dmBindings = NodesInternal.useNodeDataWhenType(nodeId, 'List', (data) => data.layout.dataModelBindings);
+    const summaryBinding = NodesInternal.useNodeDataWhenType(nodeId, 'List', (data) => data.item?.summaryBinding);
+    const legacySummaryBinding = NodesInternal.useNodeDataWhenType(
+      nodeId,
+      'List',
+      (data) => data.item?.bindingToShowInSummary,
     );
+    const formData = useNodeFormDataWhenType(nodeId, 'List');
 
     if (summaryBinding && dmBindings) {
       return formData?.[summaryBinding] ?? '';

@@ -21,7 +21,6 @@ import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprPositionalArgs,
   ExprValToActualOrExpr,
@@ -46,8 +45,7 @@ interface Props {
 }
 
 function InnerExpressionRunner({ reference, expression, positionalArguments, valueArguments }: Props) {
-  const dataSources = useExpressionDataSources();
-  const result = useEvalExpression(ExprVal.Any, reference, expression, null, dataSources, {
+  const result = useEvalExpression(ExprVal.Any, reference, expression, null, {
     positionalArguments,
     valueArguments,
   });
@@ -78,7 +76,7 @@ function DataModelLocationFromNode({ nodeId, children }: PropsWithChildren<{ nod
 
   return (
     <DataModelLocationProvider
-      binding={repeatingBinding}
+      groupBinding={repeatingBinding}
       rowIndex={rowIndex}
     >
       {children}

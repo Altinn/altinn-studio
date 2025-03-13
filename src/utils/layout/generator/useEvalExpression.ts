@@ -4,8 +4,8 @@ import { evalExpr } from 'src/features/expressions';
 import { refAsSuffix } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type {
   ExprConfig,
@@ -14,7 +14,6 @@ import type {
   ExprValToActualOrExpr,
   LayoutReference,
 } from 'src/features/expressions/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export function useEvalExpressionInGenerator<V extends ExprVal>(
   type: V,
@@ -22,9 +21,8 @@ export function useEvalExpressionInGenerator<V extends ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
   defaultValue: ExprValToActual<V>,
 ) {
-  const dataSources = GeneratorData.useExpressionDataSources();
   const enabled = GeneratorStages.useIsDoneAddingNodes();
-  return useEvalExpression(type, reference, expr, defaultValue, dataSources, undefined, enabled);
+  return useEvalExpression(type, reference, expr, defaultValue, undefined, enabled);
 }
 
 /**
@@ -50,10 +48,10 @@ export function useEvalExpression<V extends ExprVal>(
   reference: LayoutReference,
   expr: ExprValToActualOrExpr<V> | undefined,
   defaultValue: ExprValToActual<V>,
-  dataSources: ExpressionDataSources,
   _options?: Omit<EvalExprOptions, 'config' | 'errorIntroText'>,
   enabled = true,
 ) {
+  const dataSources = useExpressionDataSources(expr);
   const options = useShallowMemo(_options ?? {});
   return useMemo(() => {
     if (!enabled) {

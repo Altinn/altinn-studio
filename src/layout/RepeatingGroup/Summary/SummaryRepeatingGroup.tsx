@@ -160,7 +160,7 @@ function RegularRepeatingGroupRow({
 
   return (
     <DataModelLocationProvider
-      binding={dataModelBindings.group}
+      groupBinding={dataModelBindings.group}
       rowIndex={row.index}
       key={`row-${row.uuid}`}
     >

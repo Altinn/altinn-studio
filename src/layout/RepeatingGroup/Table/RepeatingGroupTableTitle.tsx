@@ -8,7 +8,7 @@ import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IProps {
-  node: LayoutNode;
+  node: LayoutNode | undefined;
   columnSettings: ITableColumnFormatting;
 }
 
@@ -25,7 +25,7 @@ export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => {
   );
 };
 
-export function useTableTitle(node: LayoutNode) {
+export function useTableTitle(node: LayoutNode | undefined) {
   const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
 
   if (!textResourceBindings) {

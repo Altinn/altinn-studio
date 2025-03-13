@@ -30,9 +30,9 @@ describe('Shared function tests should exist', () => {
           expect(hasTest).toBeTruthy();
         });
 
-        const func = config.def.getDisplayData.toString().replace(/\s/g, '');
+        const func = config.def.useDisplayData.toString().replace(/\s/g, '');
         const emptyImplementation = /^\w+\(.*?\)\{return'';?}$/;
-        it(`Component '${type}' should not have an empty implementation of getDisplayData`, () => {
+        it(`Component '${type}' should not have an empty implementation of useDisplayData`, () => {
           // If this test fails, you may want to set `displayData: false` in the component config.ts file instead
           expect(func).not.toMatch(emptyImplementation);
         });

@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { FD } from 'src/features/formData/FormDataWrite';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -83,22 +81,30 @@ type NodeFormData<N extends LayoutNode | undefined> = N extends undefined
 
 const emptyObject = {};
 export function useNodeFormData<N extends LayoutNode | undefined>(node: N): NodeFormData<N> {
-  const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings);
-  const formDataSelector = FD.useDebouncedSelector();
+  const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings) as
+    | IDataModelBindings<TypeFromNode<N>>
+    | undefined;
 
-  return useMemo(
-    () =>
-      (dataModelBindings ? getNodeFormDataInner(dataModelBindings, formDataSelector) : emptyObject) as NodeFormData<N>,
-    [dataModelBindings, formDataSelector],
-  );
+  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as NodeFormData<N>;
 }
 
-function getNodeFormDataInner<N extends LayoutNode>(
-  dataModelBindings: IDataModelBindings<TypeFromNode<N>>,
+export function useNodeFormDataWhenType<Type extends CompTypes>(
+  nodeId: string,
+  type: Type,
+): IComponentFormData<Type> | undefined {
+  const dataModelBindings = NodesInternal.useNodeDataWhenType(nodeId, type, (data) => data.layout.dataModelBindings) as
+    | IDataModelBindings<Type>
+    | undefined;
+
+  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick));
+}
+
+function getNodeFormDataInner<T extends CompTypes>(
+  dataModelBindings: IDataModelBindings<T> | undefined,
   formDataSelector: FormDataSelector,
-): NodeFormData<N> {
+): IComponentFormData<T> {
   if (!dataModelBindings) {
-    return emptyObject as NodeFormData<N>;
+    return emptyObject as IComponentFormData<T>;
   }
 
   const formDataObj: { [key: string]: unknown } = {};
@@ -115,7 +121,7 @@ function getNodeFormDataInner<N extends LayoutNode>(
     }
   }
 
-  return formDataObj as NodeFormData<N>;
+  return formDataObj as IComponentFormData<T>;
 }
 
 export function getNodeFormData<Type extends CompTypes = CompTypes>(
@@ -123,7 +129,10 @@ export function getNodeFormData<Type extends CompTypes = CompTypes>(
   nodeDataSelector: NodeDataSelector,
   formDataSelector: FormDataSelector,
 ): IComponentFormData<Type> | undefined {
-  const dataModelBindings = nodeDataSelector((picker) => picker(nodeId)?.layout.dataModelBindings, [nodeId]);
+  const dataModelBindings = nodeDataSelector((picker) => picker(nodeId)?.layout.dataModelBindings, [nodeId]) as
+    | IDataModelBindings<Type>
+    | undefined;
+
   return dataModelBindings
     ? (getNodeFormDataInner(dataModelBindings, formDataSelector) as IComponentFormData<Type>)
     : undefined;

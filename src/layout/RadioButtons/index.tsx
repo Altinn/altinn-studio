@@ -2,14 +2,16 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
+import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -23,9 +25,11 @@ export class RadioButtons extends RadioButtonsDef {
     },
   );
 
-  getDisplayData({ langTools, optionsSelector, formData, nodeId }: DisplayDataProps<'RadioButtons'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'RadioButtons');
     const value = String(formData?.simpleBinding ?? '');
-    const { options } = optionsSelector(nodeId);
+    const options = useNodeOptions(nodeId).options;
+    const langTools = useLanguage();
     return getSelectedValueToText(value, langTools, options) || '';
   }
 

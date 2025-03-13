@@ -5,8 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { CustomDef } from 'src/layout/Custom/config.def.generated';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useNodeFormData } from 'src/utils/layout/useNodeItem';
-import type { DisplayDataProps } from 'src/features/displayData';
+import { useNodeFormData, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -18,7 +17,8 @@ export class Custom extends CustomDef {
     },
   );
 
-  getDisplayData({ formData }: DisplayDataProps<'Custom'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Custom');
     return Object.values(formData ?? {}).join(', ');
   }
 

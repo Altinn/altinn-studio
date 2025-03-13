@@ -1,14 +1,16 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
+import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -23,12 +25,11 @@ export class Checkboxes extends CheckboxesDef {
     },
   );
 
-  getDisplayData(props: DisplayDataProps<'Checkboxes'>): string {
-    const data = getCommaSeparatedOptionsToText(
-      props.formData?.simpleBinding,
-      props.optionsSelector(props.nodeId).options,
-      props.langTools.langAsString,
-    );
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'Checkboxes');
+    const options = useNodeOptions(nodeId).options;
+    const langAsString = useLanguage().langAsString;
+    const data = getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
     return Object.values(data).join(', ');
   }
 

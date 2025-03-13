@@ -76,7 +76,7 @@ export const RepeatingGroupSummary = ({
           return (
             <DataModelLocationProvider
               key={row?.uuid}
-              binding={dataModelBindings.group}
+              groupBinding={dataModelBindings.group}
               rowIndex={row.index}
             >
               {row.index != 0 && <hr className={classes.rowDivider} />}

@@ -13,20 +13,22 @@ const { Provider, useCtx } = createContext<IDataModelReference | undefined>({
 export const useCurrentDataModelLocation = () => useCtx();
 
 export function DataModelLocationProvider({
-  binding,
+  groupBinding,
   rowIndex,
   children,
 }: PropsWithChildren<{
-  binding: IDataModelReference;
+  groupBinding: IDataModelReference;
   rowIndex: number;
 }>) {
-  const value = useMemo(
-    () => ({
-      ...binding,
-      field: `${binding.field}[${rowIndex}]`,
-    }),
-    [binding, rowIndex],
-  );
+  return <Provider value={useDataModelLocationForRow(groupBinding, rowIndex)}>{children}</Provider>;
+}
 
-  return <Provider value={value}>{children}</Provider>;
+export function useDataModelLocationForRow(groupBinding: IDataModelReference, rowIndex: number) {
+  return useMemo(
+    () => ({
+      ...groupBinding,
+      field: `${groupBinding.field}[${rowIndex}]`,
+    }),
+    [groupBinding, rowIndex],
+  );
 }

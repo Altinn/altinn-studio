@@ -1,9 +1,9 @@
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal, refAsSuffix } from 'src/features/expressions/types';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprResolved, LayoutReference } from 'src/features/expressions/types';
 import type { IQueryParameters } from 'src/layout/common.generated';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export function evalQueryParameters(props: ExprResolver<'List'>) {
   if (!props.item.queryParameters) {
@@ -18,11 +18,11 @@ export function evalQueryParameters(props: ExprResolver<'List'>) {
   return out;
 }
 
-export function resolveQueryParameters(
+export function useResolvedQueryParameters(
   queryParameters: IQueryParameters | undefined,
   reference: LayoutReference,
-  dataSources: ExpressionDataSources,
 ): Record<string, string> | undefined {
+  const dataSources = useExpressionDataSources(queryParameters);
   return queryParameters
     ? Object.entries(queryParameters).reduce((obj, [key, expr]) => {
         obj[key] = evalExpr(expr, reference, dataSources, {

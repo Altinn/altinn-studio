@@ -11,7 +11,6 @@ import { getComponentCapabilities, getComponentDef, getNodeConstructor } from 's
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import {
   GeneratorCondition,
@@ -24,6 +23,7 @@ import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEval
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SimpleEval } from 'src/features/expressions';
 import type {
   ExprConfig,
@@ -195,7 +195,7 @@ export function useExpressionResolverProps<T extends CompTypes>(
     () => (node ? { type: 'node', id: node.id } : undefined),
     [node],
   );
-  const allDataSources = GeneratorData.useExpressionDataSources();
+  const allDataSources = useExpressionDataSources(rawItem);
   const allDataSourcesAsRef = useAsRef(allDataSources);
 
   // The hidden property is handled elsewhere, and should never be passed to the item (and resolved as an

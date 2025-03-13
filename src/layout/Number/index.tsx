@@ -3,25 +3,28 @@ import type { JSX } from 'react';
 
 import { formatNumericText } from '@digdir/design-system-react';
 
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { evalFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';
 import { NumberComponent } from 'src/layout/Number/NumberComponent';
 import { NumberSummary } from 'src/layout/Number/NumberSummary';
-import type { DisplayData, DisplayDataProps } from 'src/features/displayData';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import type { DisplayData } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class Number extends NumberDef implements DisplayData<'Number'> {
-  getDisplayData({ currentLanguage, nodeDataSelector, nodeId }: DisplayDataProps<'Number'>): string {
-    const number = nodeDataSelector((picker) => picker(nodeId, 'Number')?.item?.value, [nodeId]);
+export class Number extends NumberDef implements DisplayData {
+  useDisplayData(nodeId: string): string {
+    const number = NodesInternal.useNodeDataWhenType(nodeId, 'Number', (data) => data.item?.value);
+    const formatting = NodesInternal.useNodeDataWhenType(nodeId, 'Number', (data) => data.item?.formatting);
+    const currentLanguage = useCurrentLanguage();
     if (number === undefined || isNaN(number)) {
       return '';
     }
 
     const text = number.toString();
-    const formatting = nodeDataSelector((picker) => picker(nodeId, 'Number')?.item?.formatting, [nodeId]);
     const numberFormatting = getMapToReactNumberConfig(formatting, text, currentLanguage);
 
     if (numberFormatting?.number) {

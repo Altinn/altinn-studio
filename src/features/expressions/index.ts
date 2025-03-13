@@ -43,12 +43,13 @@ export type SimpleEval<T extends ExprVal> = (
   dataSources?: Partial<ExpressionDataSources>,
 ) => ExprValToActual<T>;
 
-export type EvaluateExpressionParams = {
+type Source = keyof ExpressionDataSources;
+export type EvaluateExpressionParams<DataSources extends readonly Source[] = Source[]> = {
   expr: Expression;
   path: string[];
   callbacks: { onBeforeFunctionCall?: BeforeFuncCallback; onAfterFunctionCall?: AfterFuncCallback };
   reference: LayoutReference;
-  dataSources: ExpressionDataSources;
+  dataSources: Pick<ExpressionDataSources, DataSources[number]>;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
 };
@@ -209,7 +210,7 @@ function valueToExprValueType(value: unknown): ExprVal {
 export function exprCastValue<T extends ExprVal>(
   value: unknown,
   toType: T | undefined,
-  context: EvaluateExpressionParams,
+  context: EvaluateExpressionParams<[]>,
 ): ExprValToActual<T> | null {
   if (!toType || !(toType in ExprTypes)) {
     throw new UnknownTargetType(context.expr, context.path, toType ? toType : typeof toType);

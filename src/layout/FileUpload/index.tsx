@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
@@ -9,7 +10,6 @@ import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/Attach
 import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
@@ -28,10 +28,9 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return false;
   }
 
-  getDisplayData({ attachmentsSelector, nodeId }: DisplayDataProps<'FileUpload'>): string {
-    return attachmentsSelector(nodeId)
-      .map((a) => a.data.filename)
-      .join(', ');
+  useDisplayData(nodeId: string): string {
+    const attachments = useAttachmentsFor(nodeId);
+    return attachments.map((a) => a.data.filename).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {

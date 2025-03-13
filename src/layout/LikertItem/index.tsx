@@ -2,14 +2,16 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
+import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -26,13 +28,15 @@ export class LikertItem extends LikertItemDef {
     },
   );
 
-  getDisplayData({ langTools, optionsSelector, formData, nodeId }: DisplayDataProps<'LikertItem'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'LikertItem');
+    const options = useNodeOptions(nodeId).options;
+    const langTools = useLanguage();
     const value = String(formData?.simpleBinding ?? '');
     if (!value) {
       return '';
     }
 
-    const { options } = optionsSelector(nodeId);
     return getSelectedValueToText(value, langTools, options) || '';
   }
 

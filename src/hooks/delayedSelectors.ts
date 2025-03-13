@@ -320,14 +320,12 @@ export enum SelectorStrictness {
   returnWhenNotProvided = 'returnWhenNotProvided',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface SimpleArgMode<T = unknown, Args extends any[] = unknown[], RetVal = unknown> {
+export interface SimpleArgMode<T = unknown, Args extends unknown[] = unknown[], RetVal = unknown> {
   mode: 'simple';
   selector: (...args: Args) => (state: T) => RetVal;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface InnerSelectorMode<T = unknown, Args extends any[] = unknown[]> {
+export interface InnerSelectorMode<T = unknown, Args extends unknown[] = unknown[]> {
   mode: 'innerSelector';
   makeArgs: (state: T) => Args;
 }
@@ -350,8 +348,7 @@ export interface DSProps<C extends DSConfig> {
 
   // State selected from the delayed selector will be compared with this function. The default is deepEqual, meaning
   // that the state will be compared by value, not by reference.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  equalityFn?: (a: any, b: any) => boolean;
+  equalityFn?: (a: unknown, b: unknown) => boolean;
 
   // A function that will create a cache key for the delayed selector. This is used to cache the results of the
   // selector functions. Every argument to the selector function will be passed to this function.
@@ -361,8 +358,7 @@ export interface DSProps<C extends DSConfig> {
 
   // Any dependencies that should be passed to the delayed selector. This is used to determine when the entire
   // selector should be re-created.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deps?: any[];
+  deps?: unknown[];
 }
 
 type MultiDSProps = DSProps<DSConfig>[];
@@ -373,6 +369,26 @@ export type DSPropsForSimpleSelector<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Strictness extends SelectorStrictness = any,
 > = DSProps<DSConfig<Type, SimpleArgMode<Type, Parameters<SimpleSelector>, ReturnType<SimpleSelector>>, Strictness>>;
+
+type DSPropsMatchingSimple<Selector extends (...args: unknown[]) => unknown> = DSProps<
+  DSConfig<unknown, SimpleArgMode<unknown, Parameters<Selector>, ReturnType<Selector>>>
+>;
+type DSPropsMatchingInnerSelector<Args extends unknown[]> = DSProps<
+  DSConfig<
+    unknown,
+    InnerSelectorMode<unknown, Args>,
+    SelectorStrictness.returnWhenNotProvided | SelectorStrictness.throwWhenNotProvided
+  >
+>;
+
+export type DSPropsMatching<Selector> = Selector extends (
+  selector: (...args: infer Args) => unknown,
+  deps: unknown[],
+) => unknown
+  ? () => DSPropsMatchingInnerSelector<Args>
+  : Selector extends (...args: infer Args) => unknown
+    ? () => DSPropsMatchingSimple<Selector>
+    : never;
 
 export type DSReturn<C extends DSConfig> =
   ModeFromConf<C> extends SimpleArgMode

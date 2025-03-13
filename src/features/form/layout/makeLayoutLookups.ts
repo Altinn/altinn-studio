@@ -37,6 +37,11 @@ interface RelationshipLookups {
     [componentId: string]: PageReference | NodeReference | undefined;
   };
 
+  // Map of all component ids to their children component ids
+  componentToChildren: {
+    [componentId: string]: string[] | undefined;
+  };
+
   // Map of all page keys to the top-level component ids on that page
   topLevelComponents: {
     [pageKey: string]: string[] | undefined;
@@ -45,7 +50,10 @@ interface RelationshipLookups {
 
 interface LookupFunctions {
   // Get the component config for a given ID and component type, or crash
-  getComponent<T extends CompTypes>(id: string, type: T): CompExternal<T>;
+  getComponent<T extends CompTypes | undefined = CompTypes>(
+    id: string,
+    type?: T,
+  ): CompExternal<T extends CompTypes ? T : CompTypes>;
 }
 
 interface ChildClaims {
@@ -106,6 +114,7 @@ function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
 export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
   const plainLookups = makePlainLookup(layouts);
   const componentToParent: { [componentId: string]: PageReference | NodeReference } = {};
+  const componentToChildren: { [componentId: string]: string[] } = {};
   const topLevelComponents: { [pageKey: string]: string[] } = {};
 
   for (const pageKey of Object.keys(plainLookups.allPerPage)) {
@@ -128,6 +137,10 @@ export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
               childClaims[parentId] = { ...childClaims[parentId], [childId]: true };
               claimedIds.add(childId);
               componentToParent[childId] = { type: 'node', id: parentId };
+              if (!componentToChildren[parentId]) {
+                componentToChildren[parentId] = [];
+              }
+              componentToChildren[parentId].push(childId);
             }
           },
           getProto: (id) => getTypeAndCapabilities(id, component.id, plainLookups),
@@ -147,7 +160,7 @@ export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
     }
   }
 
-  const lookups = { ...plainLookups, componentToParent, topLevelComponents };
+  const lookups = { ...plainLookups, componentToParent, componentToChildren, topLevelComponents };
   return makeLookupFunctions(lookups);
 }
 
@@ -159,10 +172,10 @@ function makeLookupFunctions(lookups: PlainLayoutLookups & RelationshipLookups):
       if (!component) {
         throw new Error(`Component '${id}' does not exist`);
       }
-      if (component.type !== type) {
+      if (type && component.type !== type) {
         throw new Error(`Component '${id}' is of type '${component.type}', not '${type}'`);
       }
-      return component as CompExternal<typeof type>;
+      return component as CompExternal<typeof type extends CompTypes ? typeof type : CompTypes>;
     },
   };
 }

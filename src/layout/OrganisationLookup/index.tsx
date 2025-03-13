@@ -6,8 +6,8 @@ import type { PropsFromGenericComponent } from '..';
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
 import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps } from 'src/features/displayData';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -18,7 +18,8 @@ export class OrganisationLookup extends OrganisationLookupDef {
     },
   );
 
-  getDisplayData({ formData }: DisplayDataProps<'OrganisationLookup'>): string {
+  useDisplayData(nodeId: string): string {
+    const formData = useNodeFormDataWhenType(nodeId, 'OrganisationLookup');
     return Object.values(formData ?? {}).join(', ');
   }
 

@@ -11,6 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -20,6 +21,20 @@ export type EditButtonProps = {
   summaryComponentId?: string;
   navigationOverride?: (() => Promise<NavigationResult> | void) | null;
 } & React.HTMLAttributes<HTMLButtonElement>;
+
+export function EditButtonById({ id, ...rest }: { id: string } & Omit<EditButtonProps, 'componentNode'>) {
+  const componentNode = useNode(id);
+  if (!componentNode) {
+    return null;
+  }
+
+  return (
+    <EditButton
+      componentNode={componentNode}
+      {...rest}
+    />
+  );
+}
 
 export function EditButton({
   componentNode,
