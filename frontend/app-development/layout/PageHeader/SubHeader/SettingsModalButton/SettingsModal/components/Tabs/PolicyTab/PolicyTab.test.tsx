@@ -104,8 +104,9 @@ describe('PolicyTab', () => {
   );
 
   it('displays the PolicyEditor component with the provided policy and data', async () => {
+    const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
-    
+
     await user.tab();
 
     const elementInPolicyEditor = screen.getByText(textMock('policy_editor.rules'));
