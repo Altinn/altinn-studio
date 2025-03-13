@@ -7,20 +7,22 @@ import type { TextResources, TextResourceWithLanguage } from '@studio/content-li
 import type { TextResource } from '@studio/components';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
+// Test data:
+const language = 'nb';
+const textResource: TextResource = {
+  id: 'some-id',
+  value: 'some-value',
+};
+
 describe('utils functions', () => {
   describe('getTextResourcesForLanguage', () => {
     it('should return undefined if text resources input variable is undefined', () => {
-      const language = '';
-      const textResources = undefined;
-      expect(getTextResourcesForLanguage(language, textResources)).toBeUndefined();
+      const emptyLanguage = '';
+      const undefinedTextResources = undefined;
+      expect(getTextResourcesForLanguage(emptyLanguage, undefinedTextResources)).toBeUndefined();
     });
 
     it('should return array of text resources with correct input', () => {
-      const language = 'nb';
-      const textResource: TextResource = {
-        id: 'some-id',
-        value: 'some-value',
-      };
       const textResources: TextResources = {
         [language]: [textResource],
       };
@@ -32,11 +34,6 @@ describe('utils functions', () => {
 
   describe('createTextResourceWithLanguage', () => {
     it('should return text resource with language with correct input', () => {
-      const language = 'nb';
-      const textResource: TextResource = {
-        id: 'some-id',
-        value: 'some-value',
-      };
       const expectedResult: TextResourceWithLanguage = {
         language: language,
         textResource: textResource,
@@ -48,11 +45,6 @@ describe('utils functions', () => {
 
   describe('convertTextResourceToMutationArgs', () => {
     it('should return text resources with correct input', () => {
-      const language = 'nb';
-      const textResource: TextResource = {
-        id: 'some-id',
-        value: 'some-value',
-      };
       const textResourceWithLanguage: TextResourceWithLanguage = {
         language: language,
         textResource: textResource,

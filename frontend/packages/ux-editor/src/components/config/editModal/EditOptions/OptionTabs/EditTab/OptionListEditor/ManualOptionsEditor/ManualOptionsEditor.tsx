@@ -1,9 +1,9 @@
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { forwardRef } from 'react';
 import type { IGenericEditComponent } from '../../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
-import { StudioCodeListEditor, StudioModal, type TextResource } from '@studio/components';
+import { StudioCodeListEditor, StudioModal } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
@@ -14,14 +14,10 @@ import {
   updateComponentOptions,
 } from '../../../utils/optionsUtils';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import {
-  convertTextResourceToMutationArgs,
-  createTextResourceWithLanguage,
-  getTextResourcesForLanguage,
-} from '../utils/utils';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import classes from './ManualOptionsEditor.module.css';
+import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
 
 export type ManualOptionsEditorProps = {
   handleDelete: () => void;
@@ -36,19 +32,8 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
-    const textResourcesForLanguage = useMemo(
-      () => getTextResourcesForLanguage(language, textResources),
-      [textResources],
-    );
-
-    const handleBlurTextResource = useCallback(
-      (textResource: TextResource) => {
-        const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-        const mutationArgs = convertTextResourceToMutationArgs(updatedTextResource);
-        updateTextResource(mutationArgs);
-      },
-      [updateTextResource],
-    );
+    const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
+    const handleBlurTextResource = useHandleBlurTextResource(language, updateTextResource);
 
     const handleOptionsListChange = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
