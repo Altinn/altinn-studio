@@ -19,9 +19,9 @@ const mockPolicy: Policy = {
 describe('PolicyRulesEditor', () => {
   it('displays the correct number of policy rules', () => {
     renderPolicyRulesEditor();
-    const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
+    const aLabelFromPolicyCard = screen.getAllByRole('button', {
+      name: textMock('policy_editor.more'),
+    });
     expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
   });
 
