@@ -21,5 +21,4 @@ export const appContextMock: AppContextProps = {
   shouldReloadPreview: false,
   previewHasLoaded: jest.fn(),
   onLayoutSetNameChange: jest.fn(),
-  removeSelectedFormLayoutSetName: jest.fn(),
 };
