@@ -24,19 +24,9 @@ const App = () => {
 };
 
 export const SubApp = (props: SubAppProps) => {
-  const UiEditor = () => {
-    const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
-    const { selectedFormLayoutSetName } = useAppContext();
-
-    return isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
-      <FormDesignerNavigation />
-    ) : (
-      <App />
-    );
-  };
   return (
     <AppContextProvider {...props}>
-      <UiEditor />
+      <App />
     </AppContextProvider>
   );
 };
