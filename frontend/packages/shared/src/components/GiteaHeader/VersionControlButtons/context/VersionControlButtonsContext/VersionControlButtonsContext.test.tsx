@@ -8,7 +8,7 @@ import {
 import { repository } from 'app-shared/mocks/mocks';
 import { mockRepoStatus } from '../../test/mocks/versionControlContextMock';
 import userEvent from '@testing-library/user-event';
-import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';

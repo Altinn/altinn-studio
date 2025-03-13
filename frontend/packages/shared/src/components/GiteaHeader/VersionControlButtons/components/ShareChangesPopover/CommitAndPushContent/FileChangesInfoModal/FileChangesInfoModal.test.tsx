@@ -6,7 +6,6 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesInfoModalProps } from './FileChangesInfoModal';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
-import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../../../../mocks/renderWithProviders';
 
@@ -86,11 +85,8 @@ const renderFileChangesInfoModal = (
   props: FileChangesInfoModalProps = defaultProps,
 ): RenderResult => {
   const getRepoDiff = mockGetRepoDiff.mockImplementation(() => Promise.resolve(repoDiffMock));
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getRepoDiff,
-  };
-  return renderWithProviders(allQueries)(<FileChangesInfoModal {...props} />);
+
+  return renderWithProviders({ ...queriesMock, getRepoDiff })(<FileChangesInfoModal {...props} />);
 };
 
 const renderAndOpenModal = async (

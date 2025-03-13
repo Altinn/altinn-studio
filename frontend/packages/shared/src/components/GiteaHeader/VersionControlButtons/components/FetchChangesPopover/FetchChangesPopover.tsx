@@ -23,7 +23,6 @@ export const FetchChangesPopover = (): React.ReactElement => {
   } = useVersionControlButtonsContext();
 
   const { owner, repoName } = useGiteaHeaderContext();
-
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { refetch: fetchPullData } = useRepoPullQuery(owner, repoName, true);

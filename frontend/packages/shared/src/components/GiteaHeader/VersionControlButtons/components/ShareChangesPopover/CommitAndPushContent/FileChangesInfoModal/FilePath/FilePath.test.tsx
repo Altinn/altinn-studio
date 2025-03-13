@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FilePathProps } from './FilePath';
 import { FilePath } from './FilePath';
-import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../../../../../mocks/renderWithProviders';
 
