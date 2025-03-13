@@ -1,5 +1,5 @@
 .settingsModal[open] {
-  --settings-modal-width: min(80vw, 64rem);
+  --settings-modal-width: min(80vw, 150rem);
 
   height: 80vh;
   max-width: unset;
