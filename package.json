@@ -7,6 +7,7 @@
   "exports": "./src/index.tsx",
   "scripts": {
     "postinstall": "husky",
+    "cy:all": "node -r ts-node/register/transpile-only -r tsconfig-paths/register scripts/cypress-run-all.ts",
     "gen": "node -r ts-node/register/transpile-only -r tsconfig-paths/register src/codegen/run.ts",
     "copy-schemas": "node -r ts-node/register/transpile-only -r tsconfig-paths/register scripts/copy-schemas.ts",
     "start": "yarn gen && cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
