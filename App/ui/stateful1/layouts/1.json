@@ -41,7 +41,7 @@
           "title": "Prefilled Job Title"
         },
         "dataModelBindings": {
-          "simpleBinding": "PrefilledJobTitle"
+          "simpleBinding": "JobTitle"
         },
         "required": false,
         "readOnly": false,

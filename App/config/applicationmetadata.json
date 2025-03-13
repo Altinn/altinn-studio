@@ -20,6 +20,7 @@
       "enabledFileValidators": []
     },
     {
+      
       "id": "stateless",
       "allowedContentTypes": [
         "application/xml"
@@ -27,7 +28,7 @@
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjema",
-        "allowAnonymousOnStateless": false,
+        "allowAnonymousOnStateless": true,
         "autoDeleteOnProcessEnd": false
       },
       "maxCount": 0,

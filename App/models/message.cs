@@ -40,6 +40,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("PrefilledJobTitle")]
     public string PrefilledJobTitle { get; set; }
     
+    [XmlElement("JobTitle")]
+    [JsonProperty("JobTitle")]
+    [JsonPropertyName("JobTitle")]
+    public string JobTitle { get; set; }
+
+
     
     
   }

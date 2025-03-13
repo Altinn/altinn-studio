@@ -27,6 +27,9 @@
 								},
 							"PrefilledJobTitle" : {
 								"type" : "string"
+							},
+							"JobTitle" : {
+								"type" : "string"
 							}
 						},
 					"required" : [
