@@ -75,7 +75,6 @@ describe('ExpandablePolicyElement', () => {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_open_icon')}`,
     });
 
-    // expect(screen.getByText(mockTextChildren)).toBeInTheDocument();
     expect(expandButtonClosedBefore).toBeInTheDocument();
     expect(expandButtonOpenedBefore).not.toBeInTheDocument();
 
