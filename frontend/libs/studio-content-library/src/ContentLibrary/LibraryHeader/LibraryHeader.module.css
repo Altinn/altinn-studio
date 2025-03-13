@@ -11,3 +11,7 @@
   color: var(--fds-semantic-text-neutral-default);
   font-size: var(--fds-sizing-10);
 }
+
+.headingText {
+  display: contents;
+}
