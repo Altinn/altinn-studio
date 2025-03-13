@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type { TextResource } from '@studio/components';
-import { createTextResourceWithLanguage, convertTextResourceToMutationArgs } from '../utils/utils';
+import { createTextResourceWithLanguage, convertTextResourceToMutationArgs } from '../utils';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export function useHandleBlurTextResource(
