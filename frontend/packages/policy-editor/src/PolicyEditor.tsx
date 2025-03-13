@@ -90,11 +90,22 @@ export const PolicyEditor = ({
         <div className={classes.alertWrapper}>
           <PolicyEditorAlert />
         </div>
-        {usageType === 'app' ? <PolicyEditorTabs /> : <PolicyRulesEditor />}
+        <PolicyEditorContent usageType={usageType} />
       </div>
     </PolicyEditorContextProvider>
   );
 };
+
+type PolicyEditorUsageContentProps = {
+  usageType: PolicyEditorUsage;
+};
+
+function PolicyEditorContent({ usageType }: PolicyEditorUsageContentProps): React.ReactElement {
+  if (usageType === 'app') {
+    return <PolicyEditorTabs />;
+  }
+  return <PolicyRulesEditor />;
+}
 
 // TODO - Find out how this should be set. Issue: #10880
 const getResourceType = (usageType: PolicyEditorUsage): string => {
