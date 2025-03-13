@@ -8,6 +8,8 @@ import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
+import type { PolicyRuleCard } from '@altinn/policy-editor/types';
+import { getPolicyRuleIdString } from '@altinn/policy-editor/utils/PolicyRuleUtils';
 
 const defaultProps: PolicyCardRulesProps = {
   showErrorsOnAllRulesAboveNew: false,
@@ -16,30 +18,28 @@ const defaultProps: PolicyCardRulesProps = {
 describe('PolicyCardRule', () => {
   afterEach(jest.clearAllMocks);
 
-  it('displays the rules when there are more than 0 rules', async () => {
-    const user = userEvent.setup();
-    renderPolicyCardRules();
+  it.each(mockPolicyEditorContextValue.policyRules)(
+    'displays the rules when there are more than 0 rules',
+    async (rule: PolicyRuleCard) => {
+      const user = userEvent.setup();
+      renderPolicyCardRules();
 
-    const subResourceLabel = screen.getAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
+      const ruleTitle = screen.getByText(
+        `${textMock('policy_editor.rule')} ${getPolicyRuleIdString(rule)}`,
+      );
 
-    await user.tab();
+      await user.tab();
 
-    expect(subResourceLabel.length).toEqual(mockPolicyEditorContextValue.policyRules.length);
-  });
+      expect(ruleTitle).toBeInTheDocument();
+    },
+  );
 
-  it('displays no rules when the policy has no rules', async () => {
-    const user = userEvent.setup();
+  it('displays alert when the policy has no rules', async () => {
     renderPolicyCardRules({ policyRules: [] });
 
-    const subResourceLabel = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
+    const cardButton = screen.queryAllByRole('button');
 
-    await user.tab();
-
-    expect(subResourceLabel.length).toEqual(0);
+    expect(cardButton.length).toEqual(0);
   });
 });
 

@@ -109,6 +109,16 @@ describe('PolicyTab', () => {
 
     await user.tab();
 
+    const elementInPolicyEditor = screen.getByText(textMock('policy_editor.rules'));
+    expect(elementInPolicyEditor).toBeInTheDocument();
+  });
+
+  it('displays the PolicyEditor component with alert if policy rule list is empty', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear(() => Promise.resolve({ ...mockPolicy, rules: [] }));
+
+    await user.tab();
+
     const elementInPolicyEditor = screen.getByText(
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
@@ -129,8 +139,10 @@ describe('PolicyTab', () => {
   });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async () => {
-  getAppPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+const resolveAndWaitForSpinnerToDisappear = async (mockGetAppPolicy?: () => void) => {
+  getAppPolicy.mockImplementation(
+    mockGetAppPolicy ? mockGetAppPolicy : () => Promise.resolve(mockPolicy),
+  );
   getPolicyActions.mockImplementation(() => Promise.resolve(mockActions));
   getPolicySubjects.mockImplementation(() => Promise.resolve(mockSubjects));
 

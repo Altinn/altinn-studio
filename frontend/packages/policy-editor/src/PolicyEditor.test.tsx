@@ -83,11 +83,11 @@ describe('PolicyEditor', () => {
 
     await user.click(addButton);
 
-    const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
+    const ruleContextMenuButtons = screen.getAllByRole('button', {
+      name: textMock('policy_editor.more'),
+    });
 
-    expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);
+    expect(ruleContextMenuButtons.length).toEqual(originalLength + 1);
   });
 });
 
