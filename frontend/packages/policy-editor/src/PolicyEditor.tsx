@@ -96,11 +96,11 @@ export const PolicyEditor = ({
   );
 };
 
-type PolicyEditorUsageContentProps = {
+type PolicyEditorContentProps = {
   usageType: PolicyEditorUsage;
 };
 
-function PolicyEditorContent({ usageType }: PolicyEditorUsageContentProps): React.ReactElement {
+function PolicyEditorContent({ usageType }: PolicyEditorContentProps): React.ReactElement {
   if (usageType === 'app') {
     return <PolicyEditorTabs />;
   }
