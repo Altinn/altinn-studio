@@ -29,14 +29,14 @@ import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/types';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const RepeatingGroupTableSummary = ({
   componentNode,
   isCompact,
   emptyFieldText,
 }: {
-  componentNode: BaseLayoutNode<'RepeatingGroup'>;
+  componentNode: LayoutNode<'RepeatingGroup'>;
   isCompact?: boolean;
   emptyFieldText?: string;
 }) => {
@@ -145,7 +145,7 @@ function HeaderCell({ nodeId, columnSettings }: { nodeId: string; columnSettings
 
 type DataRowProps = {
   row: RepGroupRow | undefined;
-  node: BaseLayoutNode<'RepeatingGroup'>;
+  node: LayoutNode<'RepeatingGroup'>;
   pdfModeActive: boolean;
   columnSettings: ITableColumnFormatting;
 };

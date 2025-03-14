@@ -56,17 +56,18 @@ export class TabsPlugin<Type extends CompTypes>
     return 'TabsPlugin';
   }
 
-  claimChildren({ item, claimChild, getProto }: DefPluginChildClaimerProps<Config<Type>>): void {
+  claimChildren({ item, claimChild, getType, getCapabilities }: DefPluginChildClaimerProps<Config<Type>>): void {
     for (const tab of (item.tabs || []).values()) {
       for (const child of tab.children.values()) {
-        const proto = getProto(child);
-        if (!proto) {
+        const type = getType(child);
+        if (!type) {
           continue;
         }
-        if (proto.capabilities.renderInTabs === false) {
+        const capabilities = getCapabilities(type);
+        if (!capabilities.renderInTabs) {
           window.logWarn(
             `Tabs component included a component '${child}', which ` +
-              `is a '${proto.type}' and cannot be rendered as a Tabs child.`,
+              `is a '${type}' and cannot be rendered as a Tabs child.`,
           );
           continue;
         }
@@ -100,7 +101,7 @@ export class TabsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: number | undefined | undefined): string[] {
+  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: number | undefined): string[] {
     const out: string[] = [];
     if (restriction !== undefined) {
       return out;

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -9,7 +9,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -202,34 +202,36 @@ function nodeDataIsRequired(n: NodeData) {
 }
 
 function useFormState(currentPageId: string | undefined): FormState {
+  const lookups = useLayoutLookups();
+  const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
 
-  const [mainIds, errorReportIds] = NodesInternal.useMemoSelector((state) => {
-    const topLevelNodeData = Object.values(state.nodeData).filter(
-      (node) => node.pageKey === currentPageId && node.parentId === undefined,
-    );
-
+  const [mainIds, errorReportIds] = useMemo(() => {
     if (!hasErrors) {
-      return [topLevelNodeData.map((node) => node.layout.id), emptyArray];
+      return [topLevelIds, emptyArray];
     }
 
     const toMainLayout: string[] = [];
     const toErrorReport: string[] = [];
 
-    for (const node of topLevelNodeData.reverse()) {
-      const capabilities = getComponentCapabilities(node.layout.type);
-      const isButtonLike =
-        node.layout.type === 'ButtonGroup' || (capabilities.renderInButtonGroup && node.layout.type !== 'Custom');
+    for (const id of [...topLevelIds].reverse()) {
+      const type = lookups.allComponents[id]?.type;
+      if (!type) {
+        continue;
+      }
+
+      const capabilities = getComponentCapabilities(type);
+      const isButtonLike = type === 'ButtonGroup' || (capabilities.renderInButtonGroup && type !== 'Custom');
       if (isButtonLike && toMainLayout.length === 0) {
-        toErrorReport.push(node.layout.id);
+        toErrorReport.push(id);
       } else {
-        toMainLayout.push(node.layout.id);
+        toMainLayout.push(id);
       }
     }
 
     return [toMainLayout.reverse(), toErrorReport.reverse()];
-  });
+  }, [hasErrors, lookups.allComponents, topLevelIds]);
 
   const hasRequired = NodesInternal.useSelector((state) =>
     Object.values(state.nodeData).some((node) => node.pageKey === currentPageId && nodeDataIsRequired(node)),

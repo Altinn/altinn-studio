@@ -41,6 +41,7 @@ interface TopLevelRepeatingGroup extends RepeatingGroup {
 type RepeatingGroupMap = { [groupId: string]: TopLevelRepeatingGroup | undefined };
 
 function useAllReferencedGroups(rules: IConditionalRenderingRules | null) {
+  const rowsSelector = FD.useDebouncedRowsSelector();
   return NodesInternal.useMemoSelector((state) => {
     if (!window.conditionalRuleHandlerObject || !rules || Object.keys(rules).length === 0) {
       return {};
@@ -52,20 +53,19 @@ function useAllReferencedGroups(rules: IConditionalRenderingRules | null) {
       if (rule?.repeatingGroup) {
         const nodeData = state.nodeData[rule.repeatingGroup.groupId];
         if (nodeData && isRepeatedGroup(nodeData)) {
-          const numRows = nodeData.item?.rows?.length ?? 0;
-          const topLevel: TopLevelRepeatingGroup = {
-            numRows,
-            binding: nodeData.layout.dataModelBindings?.group,
-            nestedGroups: {},
-          };
+          const binding = nodeData.layout.dataModelBindings.group;
+          const numRows = rowsSelector(binding).length;
+          const topLevel: TopLevelRepeatingGroup = { numRows, binding, nestedGroups: {} };
           if (rule.repeatingGroup.childGroupId) {
             for (const rowIndex of Array.from({ length: numRows }, (_, i) => i)) {
               const childId = `${rule.repeatingGroup.childGroupId}-${rowIndex}`;
               const childNodeData = state.nodeData[childId];
               if (childNodeData && isRepeatedGroup(childNodeData)) {
+                const childBinding = childNodeData.layout.dataModelBindings.group;
+                const childNumRows = rowsSelector(childBinding).length;
                 topLevel.nestedGroups[childId] = {
-                  numRows: childNodeData.item?.rows?.length ?? 0,
-                  binding: childNodeData.layout.dataModelBindings?.group,
+                  numRows: childNumRows,
+                  binding: childBinding,
                 };
               }
             }

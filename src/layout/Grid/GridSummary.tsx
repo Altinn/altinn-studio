@@ -416,19 +416,18 @@ function CellWithText({ children, columnStyleOptions, isHeader = false, headerTi
 }
 
 function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle, isSmall }: CellWithLabelProps) {
-  const referenceComponent = useNode(cell.labelFrom);
-  const refItem = useNodeItem(referenceComponent);
+  const referenceNode = useNode(cell.labelFrom);
+  const refItem = useNodeItem(referenceNode);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
     | ITextResourceBindings
     | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
-  const required = (referenceComponent && refItem && 'required' in refItem && refItem.required) ?? false;
-  const componentId = refItem?.id ?? refItem?.baseComponentId;
+  const required = (referenceNode && refItem && 'required' in refItem && refItem.required) ?? false;
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
-  if (!componentId) {
+  if (!referenceNode) {
     return <CellComponent />;
   }
 
@@ -438,9 +437,9 @@ function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle
       style={columnStyles}
       data-header-title={isSmall ? headerTitle : ''}
     >
-      {componentId && (
+      {referenceNode && (
         <LabelContent
-          componentId={componentId}
+          componentId={referenceNode.id}
           label={title}
           required={required}
         />

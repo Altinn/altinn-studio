@@ -20,7 +20,7 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -71,7 +71,7 @@ function ModeOnlyTable() {
 
 function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const { node } = useRepeatingGroup();
-  const isNested = node.parent instanceof BaseLayoutNode;
+  const isNested = node.parent instanceof LayoutNode;
 
   const { grid } = useNodeItem(node);
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
@@ -97,7 +97,7 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
 
 function ModeShowAll() {
   const { node } = useRepeatingGroup();
-  const isNested = node.parent instanceof BaseLayoutNode;
+  const isNested = node.parent instanceof LayoutNode;
 
   const { rowsToDisplay } = useRepeatingGroupPagination();
   const numRows = rowsToDisplay.length;

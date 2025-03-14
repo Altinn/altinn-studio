@@ -4,7 +4,7 @@ import type { MutableRefObject, PropsWithChildren } from 'react';
 import { SetWaitForCommits, useCommit } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug, generatorLog } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal, NodesReadiness, NodesStore } from 'src/utils/layout/NodesContext';
 import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { RegistryCommitQueues } from 'src/utils/layout/generator/CommitQueue';
@@ -509,7 +509,7 @@ function WhenParentAdded({ id, stage, registryRef, children }: WhenProps) {
   const ready = NodesInternal.useIsAdded(parent);
   useMarkFinished(id, stage, ready);
   registryRef.current.conditions =
-    parent instanceof BaseLayoutNode ? `node ${parent.id} must be added` : `page ${parent?.pageKey} must be added`;
+    parent instanceof LayoutNode ? `node ${parent.id} must be added` : `page ${parent?.pageKey} must be added`;
 
   return ready ? children : null;
 }
@@ -521,7 +521,7 @@ function WhenAllAdded({ id, stage, registryRef, children }: WhenProps) {
   const ready = allAdded && parentAdded;
   useMarkFinished(id, stage, ready);
   registryRef.current.conditions =
-    parent instanceof BaseLayoutNode
+    parent instanceof LayoutNode
       ? `node ${parent.id} and all others are added`
       : `page ${parent?.pageKey} and all others are added`;
 

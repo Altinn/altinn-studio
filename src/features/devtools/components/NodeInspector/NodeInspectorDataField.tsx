@@ -8,10 +8,9 @@ import { useNodeInspectorContext } from 'src/features/devtools/components/NodeIn
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface NodeInspectorDataFieldParams {
   path: string[];
@@ -208,7 +207,7 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     );
   }
 
-  if (typeof value === 'object' && value instanceof BaseLayoutNode) {
+  if (typeof value === 'object' && value instanceof LayoutNode) {
     return (
       <OtherNode
         property={property}

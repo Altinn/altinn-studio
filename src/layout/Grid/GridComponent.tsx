@@ -23,7 +23,7 @@ import {
   useNodeIdsFromGrid,
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
@@ -31,7 +31,6 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 import type { GridRowInternal } from 'src/layout/Grid/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
@@ -40,7 +39,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
-  const isNested = node.parent instanceof BaseLayoutNode;
+  const isNested = node.parent instanceof LayoutNode;
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
 

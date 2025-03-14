@@ -31,7 +31,7 @@ export interface StateFactoryProps<Type extends CompTypes> {
   depth: number;
   rowIndex: number | undefined;
   idMutators: ChildIdMutator[];
-  layoutMap: Record<string, CompExternal>;
+  layoutMap: Record<string, CompExternal | undefined>;
   getCapabilities: (type: CompTypes) => CompCapabilities;
   isValid: boolean;
 }

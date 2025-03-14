@@ -16,7 +16,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { CheckboxSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Checkboxes extends CheckboxesDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Checkboxes'>>(
@@ -48,7 +48,7 @@ export class Checkboxes extends CheckboxesDef {
     );
   }
 
-  useEmptyFieldValidation(node: BaseLayoutNode<'Checkboxes'>): ComponentValidation[] {
+  useEmptyFieldValidation(node: LayoutNode<'Checkboxes'>): ComponentValidation[] {
     return useEmptyFieldValidationOnlySimpleBinding(node);
   }
 

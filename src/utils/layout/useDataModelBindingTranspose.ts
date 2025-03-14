@@ -2,10 +2,9 @@ import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LaxNodeDataSelector } from 'src/utils/layout/NodesContext';
 
 export type DataModelTransposeSelector = ReturnType<typeof useDataModelBindingTranspose>;
@@ -60,7 +59,7 @@ function firstDataModelBinding(
 } {
   const data = nodeDataSelector(
     (picker) => {
-      const nodeData = picker(node instanceof BaseLayoutNode ? node.id : node);
+      const nodeData = picker(node instanceof LayoutNode ? node.id : node);
       if (!nodeData) {
         return undefined;
       }

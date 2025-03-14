@@ -1,10 +1,9 @@
 import React, { Component, useEffect } from 'react';
 import type { MutableRefObject, PropsWithChildren } from 'react';
 
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IErrorBoundary {
   lastError?: Error;
@@ -73,5 +72,5 @@ function isPage(node: LayoutPage | LayoutNode | undefined): node is LayoutPage {
 }
 
 function isNode(node: LayoutPage | LayoutNode | undefined): node is LayoutNode {
-  return node !== undefined && node instanceof BaseLayoutNode;
+  return node !== undefined && node instanceof LayoutNode;
 }

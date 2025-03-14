@@ -173,7 +173,7 @@ export const ComponentRouting = () => {
   }
 
   function isSubroutingNode(node: LayoutNode): node is LayoutNode<'Subform'> {
-    return node.type === 'Subform' && !!node.def.subRouting;
+    return node.isType('Subform') && !!node.def.subRouting;
   }
 
   if (isSubroutingNode(node)) {

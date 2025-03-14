@@ -12,7 +12,7 @@ import { LayoutStyle } from 'src/layout/common.generated';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -42,8 +42,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
   const validations = useUnifiedValidationsForNode(node);
 
   const { id, readOnly, textResourceBindings, required } = useNodeItem(node);
-  const groupContainer =
-    node.parent instanceof BaseLayoutNode && node.parent.isType('Likert') ? node.parent : undefined;
+  const groupContainer = node.parent instanceof LayoutNode && node.parent.isType('Likert') ? node.parent : undefined;
 
   const columns = useNodeItem(props.node, (i) => i.columns);
 

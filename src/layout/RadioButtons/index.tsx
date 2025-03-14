@@ -16,7 +16,7 @@ import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class RadioButtons extends RadioButtonsDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'RadioButtons'>>(
@@ -48,7 +48,7 @@ export class RadioButtons extends RadioButtonsDef {
     );
   }
 
-  useEmptyFieldValidation(node: BaseLayoutNode<'RadioButtons'>): ComponentValidation[] {
+  useEmptyFieldValidation(node: LayoutNode<'RadioButtons'>): ComponentValidation[] {
     return useEmptyFieldValidationOnlySimpleBinding(node);
   }
 

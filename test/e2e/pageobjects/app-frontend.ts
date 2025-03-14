@@ -112,7 +112,6 @@ export class AppFrontend {
   //Receipt
   public receipt = {
     container: '#ReceiptContainer',
-    linkToArchive: 'a[href$="/ui/messagebox/archive"]',
     pdf: '#attachment-list-pdf',
     uploadedAttachments: '[data-testid=attachment-list]',
   };

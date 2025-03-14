@@ -16,7 +16,7 @@ import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Dropdown'>>(
@@ -52,7 +52,7 @@ export class Dropdown extends DropdownDef {
     );
   }
 
-  useEmptyFieldValidation(node: BaseLayoutNode<'Dropdown'>): ComponentValidation[] {
+  useEmptyFieldValidation(node: LayoutNode<'Dropdown'>): ComponentValidation[] {
     return useEmptyFieldValidationOnlySimpleBinding(node);
   }
 

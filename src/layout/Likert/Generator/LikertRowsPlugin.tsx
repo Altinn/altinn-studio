@@ -68,7 +68,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
 
   claimChildren(_props: DefPluginChildClaimerProps<Config>) {}
 
-  pickDirectChildren(state: DefPluginState<Config>, restriction?: number | undefined | undefined): string[] {
+  pickDirectChildren(state: DefPluginState<Config>, restriction?: number | undefined): string[] {
     if (restriction !== undefined) {
       const nodeId = state.item?.rows[restriction]?.itemNodeId;
       return nodeId ? [nodeId] : [];

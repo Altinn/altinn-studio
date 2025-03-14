@@ -23,7 +23,7 @@ import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/Repeat
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider, useDataModelLocationForRow } from 'src/utils/layout/DataModelLocation';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
@@ -42,7 +42,6 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     stickyHeader,
     tableColumns,
     rows,
-    baseComponentId,
     dataModelBindings,
   } = useNodeItem(node);
   const required = !!minCount && minCount > 0;
@@ -70,7 +69,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
 
-  const isNested = typeof baseComponentId === 'string';
+  const isNested = node.parent instanceof LayoutNode;
   const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
 
   return (
@@ -207,7 +206,7 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
   const item = useNodeItem(node);
-  const isNested = node.parent instanceof BaseLayoutNode;
+  const isNested = node.parent instanceof LayoutNode;
 
   const rows = where === 'Before' ? item.rowsBeforeInternal : item.rowsAfterInternal;
   const mobileNodeIds = useNodeIdsFromGridRows(rows, mobileView);

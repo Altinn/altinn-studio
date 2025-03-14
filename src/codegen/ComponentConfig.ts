@@ -40,15 +40,9 @@ const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any>
   }),
 };
 
-const baseLayoutNode = new GenerateImportedSymbol({
-  import: 'BaseLayoutNode',
-  from: 'src/utils/layout/LayoutNode',
-});
-
 export class ComponentConfig {
   public type: string;
   public typeSymbol: string;
-  public layoutNodeType = baseLayoutNode;
   readonly inner = new CG.obj();
   public behaviors: CompBehaviors = {
     isSummarizable: false,
@@ -182,14 +176,6 @@ export class ComponentConfig {
     return this;
   }
 
-  // This will not be used at the moment after we split the group to several components.
-  // However, this is nice to keep for future components that might need it.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public setLayoutNodeType(type: GenerateImportedSymbol<any>): this {
-    this.layoutNodeType = type;
-    return this;
-  }
-
   private beforeFinalizing(): void {
     // We have to add these to our typescript types in order for ITextResourceBindings<T>, and similar to work.
     // Components that doesn't have them, will always have the 'undefined' value.
@@ -216,8 +202,10 @@ export class ComponentConfig {
       from: `./index`,
     });
 
-    const nodeObj = this.layoutNodeType.toTypeScript();
-    const nodeSuffix = this.layoutNodeType === baseLayoutNode ? `<'${this.type}'>` : '';
+    const LayoutNode = new GenerateImportedSymbol({
+      import: 'LayoutNode',
+      from: 'src/utils/layout/LayoutNode',
+    });
 
     const CompCategory = new CG.import({
       import: 'CompCategory',
@@ -239,7 +227,7 @@ export class ComponentConfig {
       `export function getConfig() {
          return {
            def: new ${impl.toTypeScript()}(),
-           nodeConstructor: ${nodeObj},
+           nodeConstructor: ${LayoutNode},
            capabilities: ${JSON.stringify(this.config.capabilities, null, 2)} as const,
            behaviors: ${JSON.stringify(this.behaviors, null, 2)} as const,
          };
@@ -247,7 +235,7 @@ export class ComponentConfig {
       `export type TypeConfig = {
          category: ${CompCategory}.${this.config.category},
          layout: ${this.inner};
-         nodeObj: ${nodeObj}${nodeSuffix};
+         nodeObj: ${LayoutNode}<'${this.type}'>;
          plugins: ${pluginUnion};
        }`,
     ];
@@ -307,11 +295,6 @@ export class ComponentConfig {
 
     const DisplayData = new CG.import({
       import: 'DisplayData',
-      from: 'src/features/displayData/index',
-    });
-
-    const DisplayDataProps = new CG.import({
-      import: 'DisplayDataProps',
       from: 'src/features/displayData/index',
     });
 

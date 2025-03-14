@@ -14,7 +14,7 @@ import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/R
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export const RepeatingGroupSummary = ({
@@ -23,7 +23,7 @@ export const RepeatingGroupSummary = ({
   display,
   emptyFieldText,
 }: {
-  componentNode: BaseLayoutNode<'RepeatingGroup'>;
+  componentNode: LayoutNode<'RepeatingGroup'>;
   isCompact?: boolean;
   display?: 'table' | 'full';
   emptyFieldText?: string;
@@ -35,7 +35,7 @@ export const RepeatingGroupSummary = ({
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
   const dataModelBindings = useNodeItem(componentNode, (i) => i.dataModelBindings);
-  const isNested = componentNode.parent instanceof BaseLayoutNode;
+  const isNested = componentNode.parent instanceof LayoutNode;
 
   if (rows.length === 0) {
     return (

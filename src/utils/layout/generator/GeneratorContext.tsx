@@ -3,8 +3,9 @@ import type { MutableRefObject, PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal, CompIntermediate, CompIntermediateExact, CompTypes, ILayouts } from 'src/layout/layout';
+import type { CompIntermediate, CompIntermediateExact, CompTypes, ILayouts } from 'src/layout/layout';
 import type { Registry } from 'src/utils/layout/generator/GeneratorStages';
+import type { MultiPageMapping } from 'src/utils/layout/generator/NodeRepeatingChildren';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -23,18 +24,18 @@ export interface ChildClaimsMap {
   [parentId: string]: ChildClaims;
 }
 
-type GlobalProviderProps = Pick<GeneratorContext, 'layouts' | 'layoutMap' | 'registry'>;
+type GlobalProviderProps = Pick<GeneratorContext, 'layouts' | 'registry'>;
 
-type PageProviderProps = Pick<GeneratorContext, 'childrenMap' | 'isValid'> & {
+type PageProviderProps = Pick<GeneratorContext, 'isValid'> & {
   parent: LayoutPage;
 };
 
-type NodeGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'directMutators' | 'recursiveMutators'> & {
+type NodeGeneratorProps = {
   item: CompIntermediateExact<CompTypes>;
   parent: LayoutNode;
 };
 
-type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'directMutators' | 'recursiveMutators'> & {
+type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'recursiveMutators' | 'multiPageMapping'> & {
   groupBinding: IDataModelReference;
   rowIndex: number;
 };
@@ -42,14 +43,12 @@ type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'directMutators' 
 interface GeneratorContext {
   registry: MutableRefObject<Registry>;
   idMutators?: ChildIdMutator[];
-  directMutators?: ChildMutator[];
   recursiveMutators?: ChildMutator[];
   layouts: ILayouts;
-  layoutMap: Record<string, CompExternal>;
-  childrenMap: ChildClaimsMap | undefined;
   page: LayoutPage | undefined;
   parent: LayoutNode | LayoutPage | undefined;
   item: CompIntermediateExact<CompTypes> | undefined;
+  multiPageMapping?: MultiPageMapping;
   row:
     | {
         index: number;
@@ -74,26 +73,23 @@ const emptyArray: never[] = [];
  *
  * This provider is meant to be used for nodes, i.e. the lowest level components in the hierarchy.
  */
-export function GeneratorNodeProvider({ children, ...rest }: PropsWithChildren<NodeGeneratorProps>) {
-  const parent = useCtx();
+export function GeneratorNodeProvider({ children, parent, item }: PropsWithChildren<NodeGeneratorProps>) {
+  const parentCtx = useCtx();
   const value: GeneratorContext = useMemo(
     () => ({
       // Inherit all values from the parent, overwrite with our own if they are passed
-      ...parent,
-      ...rest,
+      ...parentCtx,
+      parent,
+      item,
+      multiPageMapping: undefined,
 
-      // Direct mutators and rows are not meant to be inherited, if none are passed to us directly we'll reset
-      directMutators: rest.directMutators ?? emptyArray,
-      row: parent.row ?? undefined,
+      // Direct mutators and rows are not meant to be inherited, and regular non-repeating nodes do not pass them.
+      directMutators: emptyArray,
+      row: undefined,
 
-      idMutators: parent.idMutators ? [...parent.idMutators, ...(rest.idMutators ?? [])] : rest.idMutators,
-      recursiveMutators: parent.recursiveMutators
-        ? [...parent.recursiveMutators, ...(rest.recursiveMutators ?? [])]
-        : rest.recursiveMutators,
-
-      depth: parent.depth + 1,
+      depth: parentCtx.depth + 1,
     }),
-    [parent, rest],
+    [parentCtx, parent, item],
   );
 
   return <Provider value={value}>{children}</Provider>;
@@ -129,9 +125,9 @@ export function GeneratorRowProvider({
   children,
   rowIndex,
   groupBinding,
-  directMutators,
   idMutators,
   recursiveMutators,
+  multiPageMapping,
 }: PropsWithChildren<RowGeneratorProps>) {
   const parent = useCtx();
   const value: GeneratorContext = useMemo(
@@ -143,14 +139,13 @@ export function GeneratorRowProvider({
         binding: groupBinding,
       },
 
-      // Direct mutators and rows are not meant to be inherited, if none are passed to us directly we'll reset
-      directMutators: directMutators ?? emptyArray,
+      multiPageMapping,
       idMutators: parent.idMutators ? [...parent.idMutators, ...(idMutators ?? [])] : idMutators,
       recursiveMutators: parent.recursiveMutators
         ? [...parent.recursiveMutators, ...(recursiveMutators ?? [])]
         : recursiveMutators,
     }),
-    [parent, rowIndex, groupBinding, directMutators, idMutators, recursiveMutators],
+    [parent, rowIndex, groupBinding, multiPageMapping, idMutators, recursiveMutators],
   );
   return <Provider value={value}>{children}</Provider>;
 }
@@ -161,6 +156,7 @@ export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren
       item: undefined,
       row: undefined,
       depth: 0,
+      multiPageIndex: undefined,
       childrenMap: undefined,
       parent: undefined,
       page: undefined,
@@ -178,16 +174,13 @@ export const GeneratorInternal = {
   },
   useRegistry: () => useCtx().registry,
   useIdMutators: () => useCtx().idMutators ?? emptyArray,
-  useDirectMutators: () => useCtx().directMutators ?? emptyArray,
   useRecursiveMutators: () => useCtx().recursiveMutators ?? emptyArray,
   useDepth: () => useCtx().depth,
   useLayouts: () => useCtx().layouts,
-  useLayoutMap: () => useCtx().layoutMap,
-  useChildrenMap: () => useCtx().childrenMap,
   useParent: () => useCtx().parent,
   usePage: () => useCtx().page,
-  useRowBinding: () => useCtx().row?.binding,
   useRowIndex: () => useCtx().row?.index,
+  useMultiPageIndex: (baseId: string) => useCtx().multiPageMapping?.[baseId] ?? undefined,
   useIntermediateItem: () => useCtx().item,
   useIsValid: () => useCtx().isValid ?? true,
 };

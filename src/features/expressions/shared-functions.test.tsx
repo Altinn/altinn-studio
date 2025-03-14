@@ -19,7 +19,7 @@ import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import type {
   ExprPositionalArgs,
@@ -32,7 +32,6 @@ import type { RepeatingComponents } from 'src/features/form/layout/utils/repeati
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 jest.mock('src/features/externalApi/useExternalApi');
@@ -86,12 +85,12 @@ function DataModelLocationFromNode({ nodeId, children }: PropsWithChildren<{ nod
 
 function getClosestRepeating(node: LayoutNode): [LayoutNode<RepeatingComponents>, number] | [undefined, undefined] {
   let subject: LayoutNode | LayoutPage = node;
-  while (subject.parent instanceof BaseLayoutNode && !isRepeatingComponentType(subject.parent.type)) {
+  while (subject.parent instanceof LayoutNode && !isRepeatingComponentType(subject.parent.type)) {
     subject = subject.parent;
   }
 
   const parent = subject.parent;
-  if (parent instanceof BaseLayoutNode && isRepeatingComponentType(parent.type)) {
+  if (parent instanceof LayoutNode && isRepeatingComponentType(parent.type)) {
     return [parent as LayoutNode<RepeatingComponents>, subject.rowIndex!];
   }
 

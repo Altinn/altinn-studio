@@ -2,38 +2,37 @@ import { getComponentDef } from 'src/layout';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { CompClassMap } from 'src/layout';
 import type { CompCategory } from 'src/layout/common';
-import type { ComponentTypeConfigs } from 'src/layout/components.generated';
-import type { CompIntermediate, CompTypes, LayoutNodeFromCategory, ParentNode } from 'src/layout/layout';
+import type { CompTypes, LayoutNodeFromCategory, ParentNode } from 'src/layout/layout';
 
 export interface LayoutNodeProps<Type extends CompTypes> {
-  item: CompIntermediate<Type>;
+  id: string;
+  baseId: string;
+  type: Type;
   parent: ParentNode;
-  rowIndex?: number;
+  rowIndex: number | undefined;
+  multiPageIndex: number | undefined;
 }
 
 /**
- * A LayoutNode wraps a component with information about its parent, allowing you to traverse a component (or an
- * instance of a component inside a repeating group), finding other components near it.
+ * A LayoutNode is a pointer to an instance of a component in the layout. Some components will appear only once, but
+ * others (like those inside repeating groups) will appear multiple times.
  */
-export class BaseLayoutNode<Type extends CompTypes = CompTypes> {
+export class LayoutNode<Type extends CompTypes = CompTypes> {
   public readonly parent: ParentNode;
   public readonly rowIndex?: number;
   public readonly page: LayoutPage;
   public readonly def: CompClassMap[Type];
+  public readonly id: string;
+  public readonly baseId: string;
+  public readonly multiPageIndex: number | undefined;
+  public readonly pageKey: string;
+  public readonly type: Type;
 
-  // These may be overwritten if the state in NodesContext changes. They are only kept
-  // updated here for convenience.
-  public id: string;
-  public baseId: string;
-  public multiPageIndex: number | undefined;
-  public pageKey: string;
-  public type: Type;
-
-  public constructor({ item, parent, rowIndex }: LayoutNodeProps<Type>) {
-    this.id = item.id;
-    this.baseId = item.baseComponentId ?? item.id;
-    this.type = item.type as Type;
-    this.multiPageIndex = item.multiPageIndex;
+  public constructor({ id, type, baseId, parent, rowIndex, multiPageIndex }: LayoutNodeProps<Type>) {
+    this.id = id;
+    this.baseId = baseId;
+    this.type = type;
+    this.multiPageIndex = multiPageIndex;
     this.page = parent instanceof LayoutPage ? parent : parent.page;
     this.pageKey = this.page.pageKey;
     this.def = getComponentDef(this.type);
@@ -50,7 +49,3 @@ export class BaseLayoutNode<Type extends CompTypes = CompTypes> {
     return this.def.category === category;
   }
 }
-
-export type LayoutNode<Type extends CompTypes = CompTypes> = Type extends CompTypes
-  ? ComponentTypeConfigs[Type]['nodeObj']
-  : BaseLayoutNode;

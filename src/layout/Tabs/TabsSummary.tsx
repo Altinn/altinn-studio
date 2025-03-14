@@ -8,10 +8,10 @@ import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/Comp
 import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type TabsSummaryProps = {
-  componentNode: BaseLayoutNode<'Tabs'>;
+  componentNode: LayoutNode<'Tabs'>;
 };
 
 export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {

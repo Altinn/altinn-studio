@@ -6,6 +6,7 @@ import deepEqual from 'fast-deep-equal';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentCapabilities, getComponentDef, getNodeConstructor } from 'src/layout';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
@@ -21,7 +22,7 @@ import {
 } from 'src/utils/layout/generator/GeneratorStages';
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SimpleEval } from 'src/features/expressions';
@@ -44,7 +45,7 @@ import type {
   ITextResourceBindings,
 } from 'src/layout/layout';
 import type { ExprResolver, NodeGeneratorProps } from 'src/layout/LayoutComponent';
-import type { LayoutNode, LayoutNodeProps } from 'src/utils/layout/LayoutNode';
+import type { LayoutNodeProps } from 'src/utils/layout/LayoutNode';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -59,7 +60,7 @@ import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSo
  */
 export function NodeGenerator({ children, externalItem }: PropsWithChildren<NodeGeneratorProps>) {
   const intermediateItem = useIntermediateItem(externalItem) as CompIntermediateExact<CompTypes>;
-  const node = useNewNode(intermediateItem) as LayoutNode;
+  const node = useNewNode(intermediateItem.id, externalItem.id, externalItem.type) as LayoutNode;
   useGeneratorErrorBoundaryNodeRef().current = node;
 
   const commonProps: CommonProps<CompTypes> = { node, externalItem, intermediateItem };
@@ -122,13 +123,13 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonPr
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage()?.pageKey ?? '';
   const idMutators = GeneratorInternal.useIdMutators() ?? [];
-  const layoutMap = GeneratorInternal.useLayoutMap();
+  const layoutMap = useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = (type: CompTypes) => getComponentCapabilities(type);
   const stateFactoryProps = {
     item: intermediateItem,
     parent,
-    parentId: parent instanceof BaseLayoutNode ? parent.id : undefined,
+    parentId: parent instanceof LayoutNode ? parent.id : undefined,
     depth,
     rowIndex,
     pageKey,
@@ -161,10 +162,14 @@ function ResolveExpressions<T extends CompTypes>({ node, intermediateItem }: Com
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     () => (def as CompDef<T>).evalExpressions(resolverProps as any) as CompInternal<T>,
     [def, resolverProps],
-  );
+  ) as unknown;
 
   const isSet = NodesInternal.useNodeData(node, (data) => {
     if (!data.item) {
+      return false;
+    }
+
+    if (typeof resolved !== 'object' || resolved === null) {
       return false;
     }
 
@@ -322,36 +327,33 @@ export function useExpressionResolverProps<T extends CompTypes>(
 }
 
 function useIntermediateItem<T extends CompTypes = CompTypes>(item: CompExternal<T>): CompIntermediate<T> {
-  const directMutators = GeneratorInternal.useDirectMutators();
   const recursiveMutators = GeneratorInternal.useRecursiveMutators();
 
   return useMemo(() => {
     const newItem = structuredClone(item) as CompIntermediate<T>;
 
-    for (const mutator of directMutators) {
-      mutator(newItem);
-    }
     for (const mutator of recursiveMutators) {
       mutator(newItem);
     }
 
     return newItem;
-  }, [directMutators, item, recursiveMutators]);
+  }, [item, recursiveMutators]);
 }
 
 /**
  * Creates a new node instance for a component item, and adds that to the parent node and the store.
  */
-function useNewNode<T extends CompTypes>(item: CompIntermediate<T>): LayoutNode<T> {
+function useNewNode<T extends CompTypes>(id: string, baseId: string, type: T): LayoutNode<T> {
   const parent = GeneratorInternal.useParent()!;
   const rowIndex = GeneratorInternal.useRowIndex();
-  const LNode = useNodeConstructor(item.type);
+  const multiPageIndex = GeneratorInternal.useMultiPageIndex(baseId);
+  const LNode = useNodeConstructor(type);
 
   return useMemo(() => {
-    const newNodeProps: LayoutNodeProps<T> = { item, parent, rowIndex };
+    const newNodeProps: LayoutNodeProps<T> = { id, baseId, type, parent, rowIndex, multiPageIndex };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new LNode(newNodeProps as any) as LayoutNode<T>;
-  }, [LNode, item, parent, rowIndex]);
+  }, [LNode, baseId, id, multiPageIndex, parent, rowIndex, type]);
 }
 
 function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComponentProps {

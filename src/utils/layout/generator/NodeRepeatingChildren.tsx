@@ -97,7 +97,6 @@ const GenerateRow = React.memo(function GenerateRow({
 }: GenerateRowProps) {
   const node = GeneratorInternal.useParent() as LayoutNode;
   const depth = GeneratorInternal.useDepth();
-  const directMutators = useMemo(() => [mutateMultiPageIndex(multiPageMapping)], [multiPageMapping]);
 
   const recursiveMutators = useMemo(
     () => [
@@ -117,8 +116,8 @@ const GenerateRow = React.memo(function GenerateRow({
     >
       <GeneratorRowProvider
         rowIndex={rowIndex}
+        multiPageMapping={multiPageMapping}
         groupBinding={groupBinding}
-        directMutators={directMutators}
         idMutators={[mutateComponentIdPlain(rowIndex)]}
         recursiveMutators={recursiveMutators}
       >
@@ -205,7 +204,7 @@ function MaintainRowUuid({
   return null;
 }
 
-interface MultiPageMapping {
+export interface MultiPageMapping {
   [childId: string]: number;
 }
 
@@ -218,27 +217,12 @@ function makeMultiPageMapping(children: string[] | undefined): MultiPageMapping 
   return mapping;
 }
 
-function mutateMultiPageIndex(multiPageMapping: MultiPageMapping | undefined): ChildMutator {
-  return (item) => {
-    if (!multiPageMapping) {
-      return;
-    }
-
-    const id = item.baseComponentId ?? item.id;
-    const multiPageIndex = multiPageMapping[id];
-    if (multiPageIndex !== undefined) {
-      item['multiPageIndex'] = multiPageIndex;
-    }
-  };
-}
-
 export function mutateComponentIdPlain(rowIndex: number): ChildIdMutator {
   return (id) => `${id}-${rowIndex}`;
 }
 
 export function mutateComponentId(rowIndex: number): ChildMutator {
   return (item) => {
-    item.baseComponentId = item.baseComponentId || item.id;
     item.id += `-${rowIndex}`;
   };
 }

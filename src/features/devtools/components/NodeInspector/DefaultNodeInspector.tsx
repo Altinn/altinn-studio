@@ -23,9 +23,7 @@ export function DefaultNodeInspector({ node, ignoredProperties }: DefaultNodeIns
   const hiddenIsExpression = NodesInternal.useNodeData(node, (s) => Array.isArray(s.layout.hidden));
   const item = hiddenIsExpression ? { ..._item, hidden } : _item;
 
-  const ignoredPropertiesFinal = new Set(
-    ['id', 'type', 'multiPageIndex', 'baseComponentId'].concat(ignoredProperties ?? []),
-  );
+  const ignoredPropertiesFinal = new Set(['id', 'type'].concat(ignoredProperties ?? []));
 
   return (
     <dl className={cn(classes.propertyList, classes.mainPropertyList)}>

@@ -4,9 +4,8 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 type FocusableHTMLElement =
@@ -48,7 +47,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
     let subject: LayoutNode | LayoutPage | undefined = targetNode;
 
     while (subject) {
-      if (!(subject instanceof BaseLayoutNode)) {
+      if (!(subject instanceof LayoutNode)) {
         break;
       }
       if (subject.parent === node) {

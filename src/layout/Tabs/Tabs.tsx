@@ -9,11 +9,10 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
   const size = useNodeItem(node, (i) => i.size);
@@ -130,7 +129,7 @@ function parentNodes(node: LayoutNode): LayoutNode[] {
   const parents: LayoutNode[] = [];
   let parent = node.parent;
   while (parent) {
-    if (!(parent instanceof BaseLayoutNode)) {
+    if (!(parent instanceof LayoutNode)) {
       break;
     }
     parents.push(parent);

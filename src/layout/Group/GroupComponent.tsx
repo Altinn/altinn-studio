@@ -10,11 +10,10 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IGroupComponent {
   groupNode: LayoutNode<'Group'>;
@@ -52,7 +51,7 @@ export function GroupComponent({
     return null;
   }
 
-  const isNested = groupNode.parent instanceof BaseLayoutNode;
+  const isNested = groupNode.parent instanceof LayoutNode;
   const isPanel = container.groupingIndicator === 'panel';
   const isIndented = container.groupingIndicator === 'indented';
   const headingLevel = container.headingLevel ?? (Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel);
@@ -90,10 +89,10 @@ export function GroupComponent({
           }
         >
           <div
-            data-componentid={container.id}
-            data-componentbaseid={container.baseComponentId || container.id}
+            data-componentid={groupNode.id}
+            data-componentbaseid={groupNode.baseId}
             ref={containerDivRef}
-            id={id ?? container.id}
+            id={id ?? groupNode.id}
             data-testid='display-group-container'
             className={cn(classes.groupContainer, {
               [classes.indented]: isIndented && !isNested,

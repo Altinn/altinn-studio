@@ -4,10 +4,9 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RepeatingGroupEditRowContext {
   multiPageEnabled: boolean;
@@ -61,7 +60,7 @@ export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
     }
     let isOurChildRecursively = false;
     let subject: LayoutNode | LayoutPage | undefined = targetNode;
-    while (subject instanceof BaseLayoutNode) {
+    while (subject instanceof LayoutNode) {
       if (subject.parent === node) {
         isOurChildRecursively = true;
         break;

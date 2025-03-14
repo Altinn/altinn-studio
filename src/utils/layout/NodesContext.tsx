@@ -41,7 +41,7 @@ import {
 } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
 import { RepeatingChildrenStorePlugin } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
@@ -51,10 +51,9 @@ import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
 import type { ObjectOrArray } from 'src/hooks/useShallowMemo';
 import type { WaitForState } from 'src/hooks/useWaitForState';
-import type { CompExternal, CompTypes, ILayouts } from 'src/layout/layout';
+import type { CompTypes, ILayouts } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { GeneratorStagesContext, Registry } from 'src/utils/layout/generator/GeneratorStages';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { RepeatingChildrenStorePluginConfig } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
 import type { GeneratorErrors, NodeData, NodeDataFromNode } from 'src/utils/layout/types';
@@ -510,20 +509,6 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
     }
   }, [latestLayouts, layouts, markNotReady, reset, getProcessedLast]);
 
-  const layoutMap = useMemo(() => {
-    const out: { [id: string]: CompExternal } = {};
-    for (const page of Object.values(latestLayouts)) {
-      if (!page) {
-        continue;
-      }
-      for (const component of page) {
-        out[component.id] = component;
-      }
-    }
-
-    return out;
-  }, [latestLayouts]);
-
   if (layouts !== latestLayouts) {
     // You changed the layouts, possibly by using devtools. Hold on while we re-generate!
     return <NodesLoader />;
@@ -533,7 +518,6 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
     <ProvideLayoutPages value={pagesRef.current}>
       <GeneratorGlobalProvider
         layouts={layouts}
-        layoutMap={layoutMap}
         registry={registry}
       >
         {children}
@@ -746,7 +730,7 @@ export function useNode<T extends string | undefined | LayoutNode>(id: T): Layou
       return lastValue.current;
     }
 
-    const node = id instanceof BaseLayoutNode ? id : nodes.findById(id);
+    const node = id instanceof LayoutNode ? id : nodes.findById(id);
     lastValue.current = node;
     return node;
   });

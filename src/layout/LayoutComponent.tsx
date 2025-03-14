@@ -355,15 +355,11 @@ export abstract class FormComponent<Type extends CompTypes>
   }
 }
 
-export interface ComponentProto {
-  type: CompTypes;
-  capabilities: CompCapabilities;
-}
-
 export interface ChildClaimerProps<Type extends CompTypes> {
   item: CompExternal<Type>;
   claimChild: (pluginKey: string, id: string) => void;
-  getProto: (id: string) => ComponentProto | undefined;
+  getType: (id: string) => CompTypes | undefined;
+  getCapabilities: (type: CompTypes) => CompCapabilities;
 }
 
 export abstract class ContainerComponent<Type extends CompTypes> extends _FormComponent<Type> {

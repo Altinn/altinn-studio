@@ -127,7 +127,7 @@ function testConfirm() {
   cy.get(appFrontend.confirm.sendIn).click();
   cy.get(appFrontend.confirm.sendIn).should('not.exist');
   cy.get(appFrontend.receipt.container).should('be.visible');
-  cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
+  cy.findByRole('link', { name: 'Kopi av din kvittering er sendt til ditt arkiv' }).should('be.visible');
 }
 
 function sendIn() {

@@ -9,7 +9,7 @@ import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validatio
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
@@ -45,7 +45,7 @@ export class LikertItem extends LikertItemDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  useEmptyFieldValidation(node: BaseLayoutNode<'LikertItem'>): ComponentValidation[] {
+  useEmptyFieldValidation(node: LayoutNode<'LikertItem'>): ComponentValidation[] {
     return useEmptyFieldValidationOnlySimpleBinding(node);
   }
 
@@ -53,7 +53,7 @@ export class LikertItem extends LikertItemDef {
     const [answerErr] = this.validateDataModelBindingsAny(ctx, 'simpleBinding', ['string', 'number', 'boolean']);
     const errors: string[] = [...(answerErr ?? [])];
 
-    if (!(ctx.node.parent instanceof BaseLayoutNode) || !ctx.node.parent.isType('Likert')) {
+    if (!(ctx.node.parent instanceof LayoutNode) || !ctx.node.parent.isType('Likert')) {
       throw new Error('LikertItem must have a parent of type "Likert"');
     }
     const parentId = ctx.node.parent.id;
