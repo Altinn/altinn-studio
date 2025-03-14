@@ -15,7 +15,7 @@ import { OptionListButtons } from '../OptionListButtons';
 import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
 
-type ManualOptionsEditorProps = {
+export type ManualOptionsEditorProps = {
   handleDelete: () => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
