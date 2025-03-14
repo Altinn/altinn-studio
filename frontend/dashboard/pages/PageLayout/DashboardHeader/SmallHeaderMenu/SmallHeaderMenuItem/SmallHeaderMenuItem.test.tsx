@@ -62,6 +62,30 @@ describe('SmallHeaderMenuItem', () => {
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
+  it('should call onClick when the NavLink is clicked when it is a button', async () => {
+    const user = userEvent.setup();
+    const menuItemButtonOnClick = jest.fn();
+    renderSmallHeaderMenuItem({
+      componentProps: {
+        menuItem: {
+          ...mockMenuItem,
+          action: {
+            type: 'button',
+            onClick: menuItemButtonOnClick,
+          },
+        },
+      },
+    });
+
+    const buttonElement = screen.getByRole('menuitem', {
+      name: menuItemName,
+    });
+    await user.click(buttonElement);
+
+    expect(mockOnClick).toHaveBeenCalledTimes(1);
+    expect(menuItemButtonOnClick).toHaveBeenCalledTimes(1);
+  });
+
   it('should open the link in a new tab when openInNewTab is true', () => {
     renderSmallHeaderMenuItem({
       componentProps: {
