@@ -85,6 +85,7 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
   await settingsModal.verifyThatTabIsVisible('policy');
 
   const policyEditor = new PolicyEditor(page, { app: testAppName });
+  await policyEditor.selectRulesTab();
 
   const securityLevel2 = 2;
   policyEditor.verifySelectedSecurityLevel(securityLevel2);

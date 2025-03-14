@@ -20,7 +20,7 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -32,7 +32,7 @@ export type EditCodeListProps = {
 export function EditCodeList({
   codeList,
   codeListTitle,
-  onChangeTextResource,
+  onBlurTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -67,7 +67,7 @@ export function EditCodeList({
         codeList={codeList}
         onAddOrDeleteItem={handleCodeListChange}
         onBlurAny={handleCodeListChange}
-        onChangeTextResource={onChangeTextResource}
+        onBlurTextResource={onBlurTextResource}
         texts={editorTexts}
         textResources={textResources}
       />

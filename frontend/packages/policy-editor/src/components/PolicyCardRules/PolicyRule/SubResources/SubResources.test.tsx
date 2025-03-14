@@ -18,6 +18,11 @@ describe('SubResources', () => {
     const mockSetPolicyRules = jest.fn();
     renderSubResources({ setPolicyRules: mockSetPolicyRules });
 
+    const toggleListButton = screen.getByRole('button', {
+      name: `resource-1 - 1.2 ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+    await user.click(toggleListButton);
+
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
     );

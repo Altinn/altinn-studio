@@ -34,7 +34,7 @@ export type CodeListPageProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
-  codeListsUsages: CodeListReference[];
+  codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
 };
 
@@ -62,7 +62,7 @@ export function CodeListPage({
     [textResources],
   );
 
-  const handleChangeTextResource = useCallback(
+  const handleBlurTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
       onUpdateTextResource?.(updatedTextResource);
@@ -87,7 +87,7 @@ export function CodeListPage({
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
-        onChangeTextResource={handleChangeTextResource}
+        onBlurTextResource={handleBlurTextResource}
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
@@ -96,7 +96,7 @@ export function CodeListPage({
       />
       <CodeLists
         codeListsData={filteredCodeLists}
-        onChangeTextResource={handleChangeTextResource}
+        onBlurTextResource={handleBlurTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}

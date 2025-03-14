@@ -200,7 +200,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
-            string layoutName = "layoutFile1InSet1.json";
+            string layoutName = "layoutFile1InSet1";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
@@ -216,7 +216,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-without-layoutsets";
             string developer = "testUser";
-            string layoutName = "layoutFile1.json";
+            string layoutName = "layoutFile1";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
@@ -233,7 +233,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
-            string layoutName = "layoutFile2InSet1.json";
+            string layoutName = "layoutFile2InSet1";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
             try

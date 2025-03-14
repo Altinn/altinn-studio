@@ -54,7 +54,7 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
     private static bool TryChangeDataTypes(LayoutSets layoutSets, List<string> newDataTypes, string connectedTaskId)
     {
         bool hasChanges = false;
-        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks[0] == connectedTaskId);
+        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks?[0] == connectedTaskId);
         if (layoutSet is not null && !newDataTypes.Contains(layoutSet.DataType))
         {
             layoutSet.DataType = newDataTypes[0];

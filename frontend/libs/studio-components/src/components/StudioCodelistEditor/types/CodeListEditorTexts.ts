@@ -9,6 +9,7 @@ export type CodeListEditorTexts = {
   delete: string;
   deleteItem: (number: number) => string;
   description: string;
+  disabledAddButtonTooltip: string;
   emptyCodeList: string;
   generalError: string;
   helpText: string;
