@@ -62,7 +62,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
             {icon}
             {property}
           </span>
-          <span className={classes.value}>{value}</span>
+          {hasValue && <span className={classes.value}>{value}</span>}
         </span>
         {readOnly ? (
           <span className={classes.readOnlyWrapper}>
