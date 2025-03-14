@@ -1,14 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import type { QueryClient } from '@tanstack/react-query';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '../mocks/renderWithProviders';
 
 const defaultProps: ThreeDotsMenuProps = {
   isClonePossible: false,
@@ -54,16 +50,8 @@ describe('ThreeDotsMenu', () => {
   });
 });
 
-const renderThreeDotsMenu = (
-  props: Partial<ThreeDotsMenuProps> = {},
-  allQueries: Partial<ServicesContextProps> = queriesMock,
-  queryClient: QueryClient = createQueryClientMock(),
-) =>
-  render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <ThreeDotsMenu {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+const renderThreeDotsMenu = (props: Partial<ThreeDotsMenuProps> = {}) =>
+  renderWithProviders()(<ThreeDotsMenu {...defaultProps} {...props} />);
 
 const getCloneButton = () => getButton(cloneButtonName);
 const getLocalChangesButton = () => getButton(localChangesButtonName);

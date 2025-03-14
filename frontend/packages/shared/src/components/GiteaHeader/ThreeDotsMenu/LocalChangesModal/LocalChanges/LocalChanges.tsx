@@ -7,7 +7,7 @@ import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context/GiteaHeaderContext';
 
 export type LocalChangesProps = {
   onDelete: () => void;
@@ -15,7 +15,7 @@ export type LocalChangesProps = {
 
 export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
-  const { app, org } = useStudioEnvironmentParams();
+  const { owner, repoName } = useGiteaHeaderContext();
   const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
 
   const openDeleteDialog = () => {
@@ -30,14 +30,14 @@ export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
         description={t('local_changes.modal_download_your_files_description')}
         icon={<DownloadIcon />}
         text={t('local_changes.modal_download_only_changed_button')}
-        action={{ type: 'link', href: repoDownloadPath(org, app) }}
+        action={{ type: 'link', href: repoDownloadPath(owner, repoName) }}
       />
       <LocalChangesActionButton
         label={t('local_changes.modal_download_all_files_label')}
         description={t('local_changes_modal.download_all_files_description')}
         icon={<DownloadIcon />}
         text={t('local_changes_modal.download_all_button')}
-        action={{ type: 'link', href: repoDownloadPath(org, app, true) }}
+        action={{ type: 'link', href: repoDownloadPath(owner, repoName, true) }}
       />
       <LocalChangesActionButton
         label={t('local_changes.modal_delete_label')}
@@ -47,7 +47,7 @@ export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
         text={t('local_changes.modal_delete_button')}
         action={{ type: 'button', onClick: openDeleteDialog }}
       />
-      <DeleteModal app={app} org={org} onDelete={onDelete} ref={deleteDialogRef} />
+      <DeleteModal app={repoName} org={owner} onDelete={onDelete} ref={deleteDialogRef} />
     </div>
   );
 };
