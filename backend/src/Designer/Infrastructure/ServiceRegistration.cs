@@ -12,9 +12,11 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +69,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddTransient<ITextsService, TextsService>();
             services.AddTransient<IOptionsService, OptionsService>();
+            services.AddTransient<IOrgCodeListService, OrgCodeListService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddHttpClient<IOrgService, OrgService>();
             services.AddHttpClient<ImageClient>();
@@ -76,7 +79,11 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IInstanceService, InstanceService>();
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
+            services.AddTransient<ILayoutService, LayoutService>();
+            services.AddTransient<IOrgTextsService, OrgTextsService>();
             services.RegisterDatamodeling(configuration);
+            services.RegisterSettingsSingleton<KafkaSettings>(configuration);
+            services.AddTransient<IKafkaProducer, KafkaProducer>();
 
             return services;
         }

@@ -20,7 +20,7 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -32,7 +32,7 @@ export type EditCodeListProps = {
 export function EditCodeList({
   codeList,
   codeListTitle,
-  onChangeTextResource,
+  onBlurTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -67,7 +67,7 @@ export function EditCodeList({
         codeList={codeList}
         onAddOrDeleteItem={handleCodeListChange}
         onBlurAny={handleCodeListChange}
-        onChangeTextResource={onChangeTextResource}
+        onBlurTextResource={onBlurTextResource}
         texts={editorTexts}
         textResources={textResources}
       />
@@ -75,6 +75,7 @@ export function EditCodeList({
         codeListHasUsages={codeListHasUsages}
         codeListSources={codeListSources}
         onDeleteCodeList={handleDeleteCodeList}
+        codeListTitle={codeListTitle}
       />
     </div>
   );
@@ -138,12 +139,14 @@ type CodeListButtonsProps = {
   codeListHasUsages: boolean;
   codeListSources: CodeListIdSource[];
   onDeleteCodeList: (codeListId: string) => void;
+  codeListTitle: string;
 };
 
 function CodeListButtons({
   codeListHasUsages,
   codeListSources,
   onDeleteCodeList,
+  codeListTitle,
 }: CodeListButtonsProps): React.ReactElement {
   const { t } = useTranslation();
   const deleteButtonTitle = codeListHasUsages
@@ -156,6 +159,9 @@ function CodeListButtons({
         onDelete={onDeleteCodeList}
         title={deleteButtonTitle}
         disabled={codeListHasUsages}
+        confirmMessage={t('app_content_library.code_lists.code_list_delete_confirm', {
+          codeListTitle,
+        })}
       >
         {t('app_content_library.code_lists.code_list_delete')}
       </StudioDeleteButton>

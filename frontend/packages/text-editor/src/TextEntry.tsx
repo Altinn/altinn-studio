@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { Textarea } from '@digdir/designsystemet-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
+import { StudioTextarea } from '@studio/components';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;
@@ -39,7 +39,7 @@ export const TextEntry = ({
 
   return (
     <div className={className}>
-      <Textarea
+      <StudioTextarea
         aria-label={t('text_editor.table_row_input_label', {
           lang: t(`language.${lang}`),
           textKey: textId,
@@ -49,7 +49,6 @@ export const TextEntry = ({
         onChange={(e) => handleTextEntryChange(e.target.value)}
         ref={textareaRef}
         error={getError(textEntryValue)}
-        size='small'
       />
       <Variables variables={variables} />
     </div>

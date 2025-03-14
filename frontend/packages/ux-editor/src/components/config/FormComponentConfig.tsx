@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
@@ -18,7 +18,8 @@ import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
-import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { SelectPropertyEditor } from './SelectPropertyEditor/SelectPropertyEditor';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -43,6 +44,27 @@ export const FormComponentConfig = ({
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+
+  const selectedDataType = useComponentPropertyEnumValue();
+
+  const memoizedGetSelectedValuesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      if (!component[propertyKey] || component[propertyKey].length === 0) return undefined;
+      return component[propertyKey].map((dataType: string) => (
+        <div key={dataType}>{selectedDataType(dataType)}</div>
+      ));
+    },
+    [component, selectedDataType],
+  );
+
+  const memoizedSelectedStringPropertiesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      const value = component[propertyKey];
+      if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
+      return value ? selectedDataType(value) : undefined;
+    },
+    [component, selectedDataType],
+  );
 
   if (!schema?.properties) return null;
 
@@ -222,25 +244,33 @@ export const FormComponentConfig = ({
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
         return (
-          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
+          <SelectPropertyEditor
+            key={propertyKey}
+            property={componentPropertyLabel(propertyKey)}
+            title={componentPropertyLabel(propertyKey)}
+            value={memoizedSelectedStringPropertiesDisplay(propertyKey)}
+          >
             <EditStringValue
+              key={propertyKey}
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey={propertyKey}
               enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
         return (
-          <CollapsiblePropertyEditor
+          <SelectPropertyEditor
             key={propertyKey}
-            label={componentPropertyLabel(
+            property={componentPropertyLabel(
               `${propertyKey}${propertyKey === 'preselectedOptionIndex' ? '_button' : ''}`,
             )}
+            title={componentPropertyLabel(propertyKey)}
+            value={component[propertyKey]}
           >
             <EditNumberValue
               component={component}
@@ -249,27 +279,34 @@ export const FormComponentConfig = ({
               key={propertyKey}
               enumValues={properties[propertyKey]?.enum}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
         return (
-          <CollapsiblePropertyEditor key={propertyKey} label={componentPropertyLabel(propertyKey)}>
+          <SelectPropertyEditor
+            key={propertyKey}
+            property={componentPropertyLabel(propertyKey)}
+            title={componentPropertyLabel(propertyKey)}
+            value={memoizedGetSelectedValuesDisplay(propertyKey)}
+          >
             <EditStringValue
               component={component}
-              handleComponentChange={handleComponentUpdate}
+              handleComponentChange={(updatedComponent) => {
+                handleComponentUpdate(updatedComponent);
+              }}
               propertyKey={propertyKey}
               key={propertyKey}
               enumValues={properties[propertyKey]?.items?.enum}
               multiple={true}
             />
-          </CollapsiblePropertyEditor>
+          </SelectPropertyEditor>
         );
       })}
 
-      {/** Object properties */}
+      {/** Object properties  */}
       {objectPropertyKeys.map((propertyKey) => {
         return (
           <Card key={propertyKey} className={classes.objectPropertyContainer}>

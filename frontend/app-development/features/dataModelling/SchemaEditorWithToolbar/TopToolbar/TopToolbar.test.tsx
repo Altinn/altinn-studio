@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();
 
@@ -93,7 +94,7 @@ describe('TopToolbar', () => {
     renderToolbar(
       {},
       {
-        generateModels: jest.fn().mockImplementation(() => Promise.reject()),
+        generateModels: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await user.click(screen.getByRole('button', { name: generateText }));

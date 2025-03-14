@@ -62,6 +62,8 @@ import {
   optionListReferencesPath,
   userOrgPermissionsPath,
   dataTypePath,
+  orgCodeListsPath,
+  layoutPagesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -99,6 +101,9 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
+import type { CodeListsResponse } from '../types/api/CodeListsResponse';
+import { textResourcesMock } from '../mocks/textResourcesMock';
+import type { PagesModel } from '../types/api/dto/PagesModel';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -145,6 +150,9 @@ export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 
+// Layout
+export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
+
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
@@ -176,3 +184,7 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
+
+// Organisation library
+export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
