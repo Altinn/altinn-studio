@@ -4,7 +4,6 @@ import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useU
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
-import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
 import { StudioTextarea } from '@studio/components';
 
@@ -27,39 +26,30 @@ export const TextEntry = ({
 
   const variables = [];
 
-  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setTextEntryValue(e.currentTarget.value);
+  const getError = (value: string) => {
+    if (textId === APP_NAME && value === '') return t('validation_errors.required');
+  };
 
-  const handleTextEntryBlur = () => {
-    if (textEntryValue === '') return;
-    upsertTextResource({ language: lang, translation: textEntryValue, textId });
+  const handleTextEntryChange = (value: string) => setTextEntryValue(value);
+
+  const handleTextEntryBlur = (value: string) => {
+    if (getError(value)) return;
+    upsertTextResource({ language: lang, translation: value, textId });
   };
 
   return (
     <div className={className}>
-      <FormField
-        value={textId}
-        customValidationRules={() => {
-          if (textId === APP_NAME && textEntryValue === '') return 'TextSouldNotBeEmpty';
-          return '';
-        }}
-        customValidationMessages={(errorCode: string) => {
-          if (errorCode === 'TextSouldNotBeEmpty') return t('validation_errors.required');
-        }}
-        renderField={({ fieldProps }) => (
-          <StudioTextarea
-            {...fieldProps}
-            aria-label={t('text_editor.table_row_input_label', {
-              lang: t(`language.${lang}`),
-              textKey: textId,
-            })}
-            value={textEntryValue}
-            onBlur={handleTextEntryBlur}
-            onChange={handleTextEntryChange}
-            ref={textareaRef}
-          />
-        )}
-      ></FormField>
+      <StudioTextarea
+        aria-label={t('text_editor.table_row_input_label', {
+          lang: t(`language.${lang}`),
+          textKey: textId,
+        })}
+        value={textEntryValue}
+        onBlur={(e) => handleTextEntryBlur(e.target.value)}
+        onChange={(e) => handleTextEntryChange(e.target.value)}
+        ref={textareaRef}
+        error={getError(textEntryValue)}
+      />
       <Variables variables={variables} />
     </div>
   );
