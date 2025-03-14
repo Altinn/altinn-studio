@@ -10,16 +10,14 @@ import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
-import { useIsReceiptPage } from 'src/features/routing/AppRoutingContext';
 import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();
   const { expandedWidth } = useUiConfigContext();
   const isScreenSmall = !useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) || expandedWidth;
-  const isReceiptPage = useIsReceiptPage();
 
-  if (!hasGroupedNavigation || !isScreenSmall || isReceiptPage) {
+  if (!hasGroupedNavigation || !isScreenSmall) {
     return null;
   }
 

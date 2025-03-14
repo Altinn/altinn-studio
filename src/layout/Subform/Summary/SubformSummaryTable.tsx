@@ -7,21 +7,20 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
-import { useIsSubformPage, useNavigate } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage, useNavigate, useNavigationParams } from 'src/features/routing/AppRoutingContext';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { DataQueryWithDefaultValue } from 'src/layout/Subform/SubformComponent';
+import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
+import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSummaryComponent';
 import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -40,15 +39,17 @@ function SubformTableRow({
   pdfModeActive: boolean;
 }) {
   const id = dataElement.id;
-  const { tableColumns = [] } = useNodeItem(targetNode);
-  const instanceId = useStrictInstanceId();
-  const url = getStatefulDataModelUrl(instanceId, id, true);
-  const { isFetching, data, error } = useFormDataQuery(url);
+  const { tableColumns } = useNodeItem(targetNode);
+  const { instanceOwnerPartyId, instanceGuid, taskId } = useNavigationParams();
+
+  const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
+
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
 
   const numColumns = tableColumns.length;
-  if (isFetching) {
+  if (isSubformDataFetching) {
     return (
       <Table.Row>
         <Table.Cell colSpan={numColumns}>
@@ -56,7 +57,7 @@ function SubformTableRow({
         </Table.Cell>
       </Table.Row>
     );
-  } else if (error) {
+  } else if (subformDataError) {
     return (
       <Table.Row>
         <Table.Cell colSpan={numColumns}>
@@ -65,6 +66,9 @@ function SubformTableRow({
       </Table.Row>
     );
   }
+
+  const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${targetNode.pageKey}/${targetNode.id}/${dataElement.id}${hasErrors ? '?validate=true' : ''}`;
+
   return (
     <Table.Row
       key={`subform-row-${id}`}
@@ -74,10 +78,11 @@ function SubformTableRow({
       {tableColumns.length ? (
         tableColumns.map((entry, index) => (
           <Table.Cell key={`subform-cell-${id}-${index}`}>
-            <DataQueryWithDefaultValue
-              data={data}
-              query={entry.cellContent.query}
-              defaultValue={entry.cellContent.default}
+            <SubformCellContent
+              cellContent={entry.cellContent}
+              reference={{ type: 'node', id: targetNode.id }}
+              data={subformData}
+              dataSources={subformDataSources}
             />
           </Table.Cell>
         ))
@@ -90,7 +95,7 @@ function SubformTableRow({
             className={classes2.marginLeftAuto}
             componentNode={targetNode}
             summaryComponentId=''
-            navigationOverride={() => navigate(`${targetNode.id}/${id}`)}
+            navigationOverride={() => navigate(url)}
           />
         </Table.Cell>
       )}

@@ -116,9 +116,9 @@ describe('navigation', () => {
       cy.get(appFrontend.errorReport).should('not.exist');
 
       isUsingDialog && cy.showNavGroups();
-      cy.navGroup('Utfylling', 'Biler').find(ICON_COMPLETE).should('not.exist');
-      cy.navGroup('Utfylling', 'Biler').find(ICON_ERROR).should('not.exist');
-      cy.gotoNavGroup('Utfylling', 'Biler');
+      cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_COMPLETE).should('not.exist');
+      cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_ERROR).should('not.exist');
+      cy.gotoNavGroup('Utfylling', 'Kjøretøy');
 
       isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('be.visible');
@@ -126,11 +126,11 @@ describe('navigation', () => {
       cy.gotoNavGroup('Utfylling', 'Fødselsdag');
 
       isUsingDialog && cy.showNavGroups();
-      cy.navGroup('Utfylling', 'Biler').find(ICON_COMPLETE).should('not.exist');
-      cy.navGroup('Utfylling', 'Biler').find(ICON_ERROR).should('not.exist');
+      cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_COMPLETE).should('not.exist');
+      cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_ERROR).should('not.exist');
       isUsingDialog && cy.hideNavGroups();
 
-      cy.findByRole('textbox', { name: /Fødselsdag/ }).type('01011983');
+      cy.findByRole('textbox', { name: /Fødselsdag/ }).type('09061934');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('button', { name: 'Legg til ny' }).click();
       cy.findByRole('textbox', { name: /E-post/ }).type('donald.duck@altinn.no');
@@ -155,7 +155,7 @@ describe('navigation', () => {
       cy.navGroup('Kvittering').should('not.exist');
       isUsingDialog && cy.hideNavGroups();
 
-      cy.findByRole('button', { name: /Biler$/ }).clickAndGone();
+      cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
       cy.waitForLoad();
       cy.findByRole('button', { name: 'Legg til bil' }).should('be.visible');
       cy.findByRole('button', { name: 'Slett' }).clickAndGone();
@@ -210,4 +210,185 @@ describe('navigation', () => {
       cy.get(NAVIGATION_TRIGGER).should('not.exist');
     }),
   );
+
+  ['desktop', 'tablet', 'mobile'].forEach((device: keyof typeof viewportSizes) =>
+    it(`navigation with subform on ${device}`, () => {
+      const { width, height } = viewportSizes[device];
+      const isUsingDialog = device === 'mobile' || device === 'tablet';
+      cy.viewport(width, height);
+      cy.startAppInstance(appFrontend.apps.navigationTest);
+      cy.waitForLoad();
+
+      isUsingDialog && cy.showNavGroups();
+      cy.gotoNavGroup('Utfylling', 'Fornavn');
+      cy.findByRole('textbox', { name: /Fornavn/ }).type('Skrue');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('textbox', { name: /Etternavn/ }).type('McDuck');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('textbox', { name: /Alder/ }).type('75');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('textbox', { name: /Fødselsdag/ }).type('08071900');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('button', { name: 'Legg til ny' }).click();
+      cy.findByRole('textbox', { name: /E-post/ }).type('skrue.mcduck@altinn.no');
+      cy.findByRole('button', { name: 'Legg til ny' }).click();
+      cy.findAllByRole('textbox', { name: /E-post/ })
+        .eq(1)
+        .type('skrue.mcduck@digdir.no');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Utfylling', 'Fornavn').find(ICON_COMPLETE).should('be.visible');
+      cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('be.visible');
+      cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('be.visible');
+      cy.navGroup('Utfylling', 'Fødselsdag').find(ICON_COMPLETE).should('be.visible');
+      cy.navGroup('Utfylling', 'E-post').find(ICON_COMPLETE).should('be.visible');
+      isUsingDialog && cy.hideNavGroups();
+
+      cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+      cy.waitForLoad();
+      cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('AB12345');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.dsSelect('#brand', 'Toyota');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
+
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Registreringsnummer').find(ICON_COMPLETE).should('be.visible');
+      cy.gotoNavGroup('Registreringsnummer');
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Informasjon').find(ICON_COMPLETE).should('be.visible');
+      cy.openNavGroup('Informasjon');
+      cy.navGroup('Informasjon', 'Merke').find(ICON_COMPLETE).should('be.visible');
+      cy.navGroup('Informasjon', 'Årsmodell').find(ICON_COMPLETE).should('be.visible');
+      cy.gotoNavGroup('Informasjon', 'Årsmodell');
+      cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+      cy.waitForLoad();
+
+      cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+      cy.waitForLoad();
+      cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('XY98765');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.dsSelect('#brand', 'Lamborghini');
+      cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+      cy.findByRole('textbox', { name: /Årsmodell/ }).type('2010');
+      cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+      cy.waitForLoad();
+
+      cy.get('#subform-subform-table tbody tr').should('have.length', 2);
+      cy.get('#subform-subform-table tbody tr')
+        .eq(0)
+        .within(() => {
+          cy.get('td').eq(0).should('have.text', '⟦AB12345⟧');
+          cy.get('td').eq(1).should('have.text', 'Toyota');
+          cy.get('td').eq(2).should('have.text', '1998');
+        });
+      cy.get('#subform-subform-table tbody tr')
+        .eq(1)
+        .within(() => {
+          cy.get('td').eq(0).should('have.text', '⟦XY98765⟧');
+          cy.get('td').eq(1).should('have.text', 'Lamborghini');
+          cy.get('td').eq(2).should('have.text', '2010');
+        });
+
+      isUsingDialog && cy.showNavGroups();
+      cy.openNavGroup('Utfylling', 'Kjøretøy', /Biler/);
+      cy.navGroup('Utfylling', 'Kjøretøy', /Biler/)
+        .parent()
+        .then((container) => {
+          cy.findByRole('button', { name: 'En fet Toyota fra 1998', container }).should('be.visible');
+          cy.findByRole('button', { name: 'En fet Lamborghini fra 2010', container }).should('be.visible');
+        });
+
+      cy.gotoNavGroup(/Informasjon/, 'Generell info');
+      isUsingDialog && cy.showNavGroups();
+      cy.openNavGroup('Utfylling', 'Kjøretøy', /Biler/);
+
+      cy.readFile('test/percy.css').then((percyCSS) => {
+        cy.testWcag();
+        cy.percySnapshot(`navigation:subform (${device})`, { percyCSS, widths: [width] });
+      });
+
+      cy.navGroup('Utfylling', 'Kjøretøy', /Biler/)
+        .parent()
+        .then((container) => {
+          cy.findByRole('button', { name: 'En fet Lamborghini fra 2010', container }).clickAndGone();
+        });
+      cy.waitForLoad();
+      cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'XY98765');
+      cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+      cy.waitForLoad();
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
+      cy.gotoNavGroup('Innsending', 'Oppsummering');
+
+      cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
+      cy.findByRole('heading', { name: 'En fet Lamborghini fra 2010' }).should('be.visible');
+      cy.get('#subform-subform-table tbody tr').should('have.length', 2);
+      cy.get('#subform-subform-table tbody tr')
+        .eq(0)
+        .within(() => {
+          cy.get('td').eq(0).should('have.text', '⟦AB12345⟧');
+          cy.get('td').eq(1).should('have.text', 'Toyota');
+          cy.get('td').eq(2).should('have.text', '1998');
+        });
+      cy.get('#subform-subform-table tbody tr')
+        .eq(1)
+        .within(() => {
+          cy.get('td').eq(0).should('have.text', '⟦XY98765⟧');
+          cy.get('td').eq(1).should('have.text', 'Lamborghini');
+          cy.get('td').eq(2).should('have.text', '2010');
+        });
+
+      cy.findByTestId('subform-summary-subform').children().eq(0).should('contain.text', '⟦AB12345⟧ — Toyota — 1998');
+      cy.findByTestId('subform-summary-subform')
+        .children()
+        .eq(1)
+        .should('contain.text', '⟦XY98765⟧ — Lamborghini — 2010');
+
+      // Not a typo, this is different from the two above
+      cy.findByTestId('summary-Summary-subform')
+        .then((container) => cy.findByRole('button', { name: /Endre/, container }))
+        .clickAndGone();
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
+      isUsingDialog && cy.hideNavGroups();
+      cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
+
+      cy.get('#subform-subform-table tbody tr')
+        .eq(0)
+        .then((container) => {
+          cy.findByRole('button', { name: 'Endre', container }).clickAndGone();
+        });
+      cy.waitForLoad();
+      cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'AB12345');
+      cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+      cy.waitForLoad();
+      isUsingDialog && cy.showNavGroups();
+      cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
+      isUsingDialog && cy.hideNavGroups();
+      cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
+
+      cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
+      cy.findByRole('heading', { name: 'Se over svarene dine før du sender inn' }).should('be.visible');
+      cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
+      cy.findByRole('heading', { name: 'Skjemaet er sendt inn' }).should('be.visible');
+    }),
+  );
+
+  it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
+    cy.startAppInstance(appFrontend.apps.navigationTest);
+    cy.waitForLoad();
+    cy.gotoNavGroup('Utfylling', 'Fødselsdag');
+    // Typing invalid data into the date-picker and immediately clicking next
+    // causes us to first wait for saving, then when the validation fails
+    // the error report causes the next-button to unmount before
+    // saving finishes. This unmounts the waitForState hook so the promise
+    // is never resolved and the callback is never completed.
+    // Make sure this does not lead to everything staying disabled.
+    cy.findByRole('textbox', { name: /Fødselsdag/ }).type('1234');
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.get(appFrontend.errorReport).should('be.visible');
+    cy.findByRole('button', { name: 'Neste' }).should('not.be.disabled');
+  });
 });

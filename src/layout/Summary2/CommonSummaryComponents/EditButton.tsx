@@ -87,14 +87,15 @@ export function EditButton({
   };
   return (
     <Button
+      aria-label={isMobile ? langAsString('general.edit') : undefined}
       onClick={onChangeClick}
       variant='tertiary'
       className={className}
     >
       {!isMobile && <Lang id='general.edit' />}
       <Edit
+        aria-hidden
         fontSize='1rem'
-        aria-hidden={true}
         title={`${isMobile ? langAsString('form_filler.summary_item_change') : ''} ${accessibleTitle}`}
       />
     </Button>

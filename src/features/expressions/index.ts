@@ -11,6 +11,7 @@ import {
 } from 'src/features/expressions/errors';
 import { ExprFunctionDefinitions, ExprFunctionImplementations } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
+import { type ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type {
   ExprConfig,
   ExprDate,
@@ -23,7 +24,6 @@ import type {
   ExprValueArgs,
   LayoutReference,
 } from 'src/features/expressions/types';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type BeforeFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[]) => void;
 type AfterFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[], result: unknown) => void;

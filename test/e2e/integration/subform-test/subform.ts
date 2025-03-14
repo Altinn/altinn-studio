@@ -136,13 +136,7 @@ describe('Subform test', () => {
       .next()
       .should('contain.text', 'Du har ikke lagt inn informasjon her');
 
-    // There is probably room for improvement in the way Summary generates ids here, and we probably want
-    // to change the subform title to something other than the data model UUID.
-    cy.get('#label-undefined').should('contain.text', 'Dine mopeder');
-    cy.get('#label-undefined')
-      .next()
-      .invoke('text')
-      .should('match', /^[a-f0-9-]+$/);
+    cy.get('#label-subform-mopeder').should('contain.text', 'Dine mopeder');
 
     cy.get('[data-testid=summary-single-value-component]').eq(2).should('contain.text', regno);
     cy.get('[data-testid=summary-single-value-component]').eq(3).should('contain.text', merke);

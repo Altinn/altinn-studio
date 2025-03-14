@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
 export const SUBFORM_SUMMARY_OVERRIDE_PROPS = new CG.obj(
@@ -39,6 +40,7 @@ export const Config = new CG.component({
   )
   .addProperty(new CG.prop('showAddButton', new CG.bool().optional({ default: true })))
   .addProperty(new CG.prop('showDeleteButton', new CG.bool().optional({ default: true })))
+  .addProperty(new CG.prop('entryDisplayName', new CG.expr(ExprVal.String).optional()))
   .addProperty(
     new CG.prop(
       'tableColumns',
@@ -54,21 +56,41 @@ export const Config = new CG.component({
           ),
           new CG.prop(
             'cellContent',
-            new CG.obj(
-              new CG.prop(
-                'query',
-                new CG.str()
-                  .setTitle('The cell value via data model lookup')
-                  .setDescription('The cell value to display from a data model lookup (dot notation).'),
+            new CG.union(
+              new CG.obj(
+                new CG.prop(
+                  'value',
+                  new CG.expr(ExprVal.String)
+                    .setTitle('The cell value')
+                    .setDescription('The cell value to display from an expression or static value'),
+                ),
+                new CG.prop(
+                  'default',
+                  new CG.str()
+                    .optional()
+                    .setTitle('The default cell value')
+                    .setDescription('The cell value to display if `query` or `value` returns no result.'),
+                ),
               ),
-              new CG.prop(
-                'default',
-                new CG.str()
-                  .optional()
-                  .setTitle('The default cell value')
-                  .setDescription('The cell value to display if `query` returns no result.'),
+              new CG.obj(
+                new CG.prop(
+                  'query',
+                  new CG.str()
+                    .setTitle('The cell value via data model lookup')
+                    .setDescription('The cell value to display from a data model lookup (dot notation).')
+                    .setDeprecated('Use "value" with a dataModel-expression instead'),
+                ),
+                new CG.prop(
+                  'default',
+                  new CG.str()
+                    .optional()
+                    .setTitle('The default cell value')
+                    .setDescription('The cell value to display if `query` or `value` returns no result.'),
+                ),
               ),
-            ),
+            )
+              .setUnionType('discriminated')
+              .exportAs('ISubformCellContent'),
           ),
         ),
       ),

@@ -29,14 +29,16 @@ import type { PresentationType } from 'src/types';
 export interface IPresentationProvidedProps extends PropsWithChildren {
   header?: React.ReactNode;
   type: ProcessTaskType | PresentationType;
-  showNavAndSidebar?: boolean;
+  showNavbar?: boolean;
+  showNavigation?: boolean;
 }
 
 export const PresentationComponent = ({
   header,
   type,
   children,
-  showNavAndSidebar = true,
+  showNavbar = true,
+  showNavigation = true,
 }: IPresentationProvidedProps) => {
   const party = useCurrentParty();
   const user = useProfile();
@@ -67,11 +69,11 @@ export const PresentationComponent = ({
             logoColor={LogoColor.blueDarker}
             headerBackgroundColor={backgroundColor}
           />
-          {showNavAndSidebar && <NavBar />}
-          {showNavAndSidebar && <SideBarNavigation />}
+          {showNavbar && <NavBar showNavigation={showNavigation} />}
+          {showNavigation && <SideBarNavigation />}
           <main
             className={classes.page}
-            style={!showNavAndSidebar ? { marginTop: 54 } : undefined}
+            style={!showNavbar ? { marginTop: 54 } : undefined}
           >
             {isProcessStepsArchived && instanceStatus?.substatus && (
               <AltinnSubstatusPaper

@@ -41,13 +41,13 @@ export function Label(props: LabelProps) {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
   const _item = useNodeItem(node);
   const item = { ..._item, ...overrideItemProps };
-  const { id: nodeId, grid, textResourceBindings: _trb } = item;
+  const { grid, textResourceBindings: _trb } = item;
   const required = 'required' in item && item.required;
   const readOnly = 'readOnly' in item && item.readOnly;
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 
   // These can be overridden by props, but are otherwise retrieved from the node item
-  const id = overrideId ?? nodeId;
+  const id = overrideId ?? node.id;
   const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
 
   if (!textResourceBindings?.title) {

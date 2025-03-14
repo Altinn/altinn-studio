@@ -48,7 +48,10 @@ export const InstanceSelectionWrapper = () => (
   <TaskStoreProvider>
     <DataLoadingProvider>
       <ActiveInstancesProvider>
-        <PresentationComponent type={ProcessTaskType.Unknown}>
+        <PresentationComponent
+          type={ProcessTaskType.Unknown}
+          showNavigation={false}
+        >
           <DataLoadingProvider>
             <InstanceSelection />
           </DataLoadingProvider>

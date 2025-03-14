@@ -301,11 +301,19 @@ declare global {
       showNavGroups(): Chainable<null>;
       hideNavGroups(): Chainable<null>;
 
-      navGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<JQuery<Element>>;
+      navGroup(
+        groupName: string | RegExp,
+        pageName?: string | RegExp,
+        subformName?: string | RegExp,
+      ): Chainable<JQuery<Element>>;
 
       gotoNavGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<null>;
 
-      openNavGroup(groupName: string | RegExp): Chainable<null>;
+      openNavGroup(
+        groupName: string | RegExp,
+        pageName?: string | RegExp,
+        subformName?: string | RegExp,
+      ): Chainable<null>;
 
       ignoreConsoleMessages(consoleMessages: ConsoleMessage[]): Chainable<null>;
     }

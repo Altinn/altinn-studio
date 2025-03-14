@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -43,7 +43,25 @@ type ProcessingResult<T extends string> = {
  */
 export function useIsProcessing<T extends string = string>(): ProcessingResult<T> {
   const [isAnyProcessing, isAnyProcessingRef, setAnyIsProcessing] = useContext(Context);
-  const [process, setProcess] = useState<T | null>(null);
+  const [process, _setProcess] = useState<T | null>(null);
+  const processRef = useRef<T | null>(null);
+
+  const setProcess = useCallback((process: T | null) => {
+    processRef.current = process;
+    _setProcess(process);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (processRef.current) {
+        setAnyIsProcessing(false);
+      }
+    },
+    // If this is processing when the component unmounts, clean up the state since we don't know if the calback will finish now,
+    // if e.g. it depends on a useWaitForState it will unsubscribe from changes at this point and never resolve.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const performProcess = useCallback(
     async (keyOrCallback: T | (() => Promise<unknown>), _callback?: () => Promise<unknown>) => {
@@ -61,7 +79,7 @@ export function useIsProcessing<T extends string = string>(): ProcessingResult<T
         setAnyIsProcessing(false);
       }
     },
-    [isAnyProcessingRef, setAnyIsProcessing],
+    [isAnyProcessingRef, setAnyIsProcessing, setProcess],
   );
 
   return useShallowMemo({

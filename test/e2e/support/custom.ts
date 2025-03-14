@@ -873,8 +873,17 @@ Cypress.Commands.add('hideNavGroups', () => {
   cy.findByRole('dialog', { name: 'Skjemasider' }).should('not.exist');
 });
 
-Cypress.Commands.add('navGroup', (groupName, pageName) => {
-  if (pageName) {
+Cypress.Commands.add('navGroup', (groupName, pageName, subformName) => {
+  if (subformName && pageName) {
+    cy.get('[data-testid=page-navigation]').then((container) =>
+      cy
+        .findByRole('button', { name: groupName, container })
+        .parent()
+        .then((container) => cy.findByRole('button', { name: pageName, container }))
+        .parent()
+        .then((container) => cy.findByRole('button', { name: subformName, container })),
+    );
+  } else if (pageName) {
     cy.get('[data-testid=page-navigation]').then((container) =>
       cy
         .findByRole('button', { name: groupName, container })
@@ -916,11 +925,23 @@ Cypress.Commands.add('gotoNavGroup', (groupName, pageName) => {
   });
 });
 
-Cypress.Commands.add('openNavGroup', (groupName) => {
+Cypress.Commands.add('openNavGroup', (groupName, pageName, subformName) => {
   cy.navGroup(groupName).then((group) => {
     if (group[0].getAttribute('aria-expanded') === 'false') {
       cy.navGroup(groupName).click();
     }
   });
   cy.navGroup(groupName).should('have.attr', 'aria-expanded', 'true');
+
+  if (pageName && !subformName) {
+    throw new Error('Navigation page cannot be "opened", perhaps you intended to use "gotoNavGroup" instead?');
+  }
+
+  if (pageName && subformName) {
+    cy.navGroup(groupName, pageName, subformName).then((subform) => {
+      if (subform[0].getAttribute('aria-expanded') === 'false') {
+        cy.navGroup(groupName, pageName, subformName).click();
+      }
+    });
+  }
 });

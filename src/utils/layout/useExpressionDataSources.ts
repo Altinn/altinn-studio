@@ -8,7 +8,6 @@ import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -31,8 +30,8 @@ import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
-import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
-import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
+import type { FormDataSelector } from 'src/layout';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
@@ -45,12 +44,11 @@ export interface ExpressionDataSources {
   dataElementSelector: DataElementSelector;
   dataModelNames: string[];
   formDataSelector: FormDataSelector;
-  formDataRowsSelector: FormDataRowsSelector;
   attachmentsSelector: AttachmentsSelector;
   optionsSelector: NodeOptionsSelector;
   langToolsSelector: (node: LayoutNode | string | undefined) => IUseLanguage;
   currentLanguage: string;
-  currentLayoutSet: ILayoutSet | null;
+  defaultDataType: string | null;
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
   nodeDataSelector: NodeDataSelector;
   transposeSelector: DataModelTransposeSelector;
@@ -63,7 +61,6 @@ export interface ExpressionDataSources {
 
 const multiSelectors = {
   formDataSelector: () => FD.useDebouncedSelectorProps(),
-  formDataRowsSelector: () => FD.useDebouncedRowsSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
   optionsSelector: () => NodesInternal.useNodeOptionsSelectorProps(),
   nodeDataSelector: () => NodesInternal.useNodeDataSelectorProps(),
@@ -82,8 +79,8 @@ const directHooks = {
   layoutLookups: () => useLayoutLookups(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useLaxInstanceDataSources(),
-  currentLayoutSet: (isInGenerator) =>
-    (isInGenerator ? GeneratorData.useCurrentLayoutSet() : useCurrentLayoutSet()) ?? null,
+  defaultDataType: (isInGenerator) =>
+    (isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType()) ?? null,
   dataModelNames: (isInGenerator) =>
     isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
@@ -98,12 +95,20 @@ const directHooks = {
     ),
 } satisfies { [K in keyof ExpressionDataSources]?: (isInGenerator: boolean) => ExpressionDataSources[K] };
 
+export type DataSourceOverrides = {
+  dataSources?: { [K in keyof ExpressionDataSources]?: () => ExpressionDataSources[K] };
+  unsupportedDataSources?: Set<keyof ExpressionDataSources>;
+  errorSuffix?: string;
+};
+
 /**
  * Figure out which data sources are needed to evaluate an expression and return them. This code breaks the
  * rule of hooks linting rule because it calls hooks conditionally. This is safe as long as `toEvaluate` is
  * the same between renders, i.e. that layout configuration/expressions does not change between renders.
  */
-export function useExpressionDataSources(toEvaluate: unknown): ExpressionDataSources {
+export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSourceOverrides): ExpressionDataSources {
+  const { unsupportedDataSources, errorSuffix, dataSources: overriddenDataSources } = overrides ?? {};
+
   const { neededDataSources, displayValueLookups } = useMemo(() => {
     const functionCalls = new Set<ExprFunctionName>();
     const displayValueLookups = new Set<string>();
@@ -113,18 +118,24 @@ export function useExpressionDataSources(toEvaluate: unknown): ExpressionDataSou
     for (const functionName of functionCalls) {
       const definition = ExprFunctionDefinitions[functionName];
       for (const need of definition.needs) {
+        if (unsupportedDataSources && unsupportedDataSources.has(need)) {
+          const message = `Expression: "${functionName}" is not supported in ${errorSuffix ? errorSuffix : 'this context'}.`;
+          window.logErrorOnce(message);
+          throw new Error(message);
+        }
+
         neededDataSources.add(need);
       }
     }
 
     return { functionCalls, displayValueLookups, neededDataSources };
-  }, [toEvaluate]);
+  }, [toEvaluate, unsupportedDataSources, errorSuffix]);
 
   // Build a multiple delayed selector for each needed data source
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toMultipleSelectors: DSProps<any>[] = [];
   for (const key of neededDataSources) {
-    if (key in multiSelectors) {
+    if (key in multiSelectors && !(overrides?.dataSources && key in overrides.dataSources)) {
       toMultipleSelectors.push(multiSelectors[key]());
     }
   }
@@ -135,7 +146,10 @@ export function useExpressionDataSources(toEvaluate: unknown): ExpressionDataSou
   const output: Partial<ExpressionDataSources> = {};
 
   for (const key of neededDataSources) {
-    if (key in multiSelectors) {
+    if (overriddenDataSources && key in overriddenDataSources) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      output[key] = overriddenDataSources[key]!() as unknown as any;
+    } else if (key in multiSelectors) {
       // Ignoring the typing here because it becomes too complex quickly. We don't really need the typing here, as we
       // have already checked the types in `multiSelectors`, so there's no point in doing it again here.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

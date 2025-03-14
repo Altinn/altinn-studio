@@ -177,7 +177,7 @@ export const ExprFunctionDefinitions = {
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('currentLayoutSet', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
+    needs: dataSources('defaultDataType', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
   },
   countDataElements: {
     args: args(required(ExprVal.String)),
@@ -308,7 +308,7 @@ export const ExprFunctionDefinitions = {
       optional(ExprVal.Boolean),
     ),
     returns: ExprVal.String,
-    needs: dataSources('currentLayoutSet', 'formDataSelector'),
+    needs: dataSources('defaultDataType', 'formDataSelector'),
   },
 } satisfies { [key: string]: AnyFuncDef };
 
@@ -466,13 +466,13 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const dataType = maybeDataType ?? this.dataSources.currentLayoutSet?.dataType;
+    const dataType = maybeDataType ?? this.dataSources.defaultDataType;
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
 
     const reference: IDataModelReference = { dataType, field: propertyPath };
-    if (this.dataSources.currentDataModelPath && this.dataSources.currentDataModelPath.dataType === dataType) {
+    if (this.dataSources.currentDataModelPath?.dataType === dataType) {
       const newReference = transposeDataBinding({
         subject: reference,
         currentLocation: this.dataSources.currentDataModelPath,
@@ -752,7 +752,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const dataType = this.dataSources.currentLayoutSet?.dataType;
+    const dataType = this.dataSources.defaultDataType;
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }

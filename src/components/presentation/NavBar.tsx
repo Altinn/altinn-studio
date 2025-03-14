@@ -7,7 +7,7 @@ import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PopoverNavigation } from 'src/features/navigation/PopoverNavigation';
 
-export const NavBar = () => {
+export const NavBar = ({ showNavigation = true }: { showNavigation?: boolean }) => {
   const { langAsString } = useLanguage();
   const { hideCloseButton, showExpandWidthButton } = usePageSettings();
 
@@ -18,7 +18,7 @@ export const NavBar = () => {
     >
       <div className={classes.wrapper}>
         {!hideCloseButton && <BackNavigationButton className={classes.buttonMargin} />}
-        <PopoverNavigation className={classes.buttonMargin} />
+        {showNavigation && <PopoverNavigation className={classes.buttonMargin} />}
       </div>
       {showExpandWidthButton && <ExpandWidthButton className={classes.buttonMargin} />}
     </nav>
