@@ -144,7 +144,7 @@
     "ajv-errors": "3.0.0",
     "ajv-formats": "3.0.1",
     "ajv-formats-draft2019": "1.6.1",
-    "axios": "1.7.9",
+    "axios": "1.8.2",
     "classnames": "2.5.1",
     "cypress-parallel": "0.14.0",
     "date-fns": "4.1.0",
