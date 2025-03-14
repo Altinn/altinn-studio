@@ -39,7 +39,6 @@ export function ImageComponent({ node }: IImageProps) {
         imgSrc={imgSrc}
         width={width}
         height={cardMediaHeight}
-        renderedInCardMedia={true}
       />
     );
   }
@@ -87,13 +86,9 @@ interface InnerImageProps {
   altText: string | undefined;
   width: string;
   height?: string;
-
-  // When rendered in cards, the aspect can change. We want to keep the image in the aspect ratio of the cards,
-  // but cut sides or top/bottom if needed.
-  renderedInCardMedia?: boolean;
 }
 
-function InnerImage({ renderSvg, id, imgSrc, altText, width, height, renderedInCardMedia }: InnerImageProps) {
+function InnerImage({ renderSvg, id, imgSrc, altText, width, height }: InnerImageProps) {
   if (renderSvg) {
     return (
       <object
@@ -108,7 +103,6 @@ function InnerImage({ renderSvg, id, imgSrc, altText, width, height, renderedInC
           style={{
             width,
             height,
-            objectFit: renderedInCardMedia ? 'cover' : undefined,
           }}
         />
       </object>
@@ -123,7 +117,6 @@ function InnerImage({ renderSvg, id, imgSrc, altText, width, height, renderedInC
       style={{
         width,
         height,
-        objectFit: renderedInCardMedia ? 'cover' : undefined,
       }}
     />
   );

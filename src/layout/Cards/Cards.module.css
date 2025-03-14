@@ -2,8 +2,12 @@
   height: 100%;
 }
 
-.cardMedia {
-  height: 100%;
-  display: flex;
-  align-items: end;
+.cardMedia img,
+audio,
+video {
+  object-fit: cover;
+}
+
+.cardMedia:last-of-type {
+  margin-top: auto;
 }
