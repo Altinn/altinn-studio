@@ -7,7 +7,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockUpsertTextResource = jest.fn();
 const textEntryValue = '';
+const lang = 'nb';
 const APP_NAME = 'appName';
+const translation = 'Hello';
 const textId = APP_NAME;
 
 describe('TextEntry', () => {
@@ -23,7 +25,22 @@ describe('TextEntry', () => {
     renderTextEntry();
     const inputText1 = getTextArea();
     await user.clear(inputText1);
+    await user.tab();
     expect(mockUpsertTextResource).toHaveBeenCalledTimes(0);
+  });
+
+  it("should call upsertTextResource when textEntryValue is '1'", async () => {
+    const user = userEvent.setup();
+    renderTextEntry();
+    const inputText1 = getTextArea();
+    await user.clear(inputText1);
+    await user.type(inputText1, '1');
+    await user.tab();
+    expect(mockUpsertTextResource).toHaveBeenCalledWith({
+      language: lang,
+      textId,
+      translation: '1',
+    });
   });
 
   it("should return nothing when textEntryValue is '' ", async () => {
@@ -45,7 +62,7 @@ describe('TextEntry', () => {
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });
 
-  it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
+  it('should not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText4 = getTextArea();
@@ -57,9 +74,9 @@ describe('TextEntry', () => {
 
 const renderTextEntry = async (props: Partial<TextEntryProps> = {}) => {
   const allProps: TextEntryProps = {
-    textId: 'appName',
-    lang: 'nb',
-    translation: 'Hello',
+    textId,
+    lang,
+    translation,
     upsertTextResource: mockUpsertTextResource,
     className: 'text-entry',
     ...props,
