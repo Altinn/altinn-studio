@@ -12,9 +12,18 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 describe('PolicyEditorAlert', () => {
   afterEach(jest.clearAllMocks);
 
+  it('only displays the alert title when the policy has no rules', async () => {
+    renderPolicyEditorAlert({ policyRules: [] });
+    const alertTextApp = screen.getByText(
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
+    );
+
+    expect(alertTextApp).toBeInTheDocument();
+  });
+
   it('displays the alert title for app when usagetype is app', async () => {
     const user = userEvent.setup();
-    renderPolicyEditorAlert();
+    renderPolicyEditorAlert({ policyRules: [] });
 
     const alertTextApp = screen.getByText(
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
@@ -31,7 +40,7 @@ describe('PolicyEditorAlert', () => {
 
   it('displays the alert title for resource when usagetype is not app', async () => {
     const user = userEvent.setup();
-    renderPolicyEditorAlert({ usageType: 'resource' });
+    renderPolicyEditorAlert({ policyRules: [], usageType: 'resource' });
 
     const alertTextApp = screen.queryByText(
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),

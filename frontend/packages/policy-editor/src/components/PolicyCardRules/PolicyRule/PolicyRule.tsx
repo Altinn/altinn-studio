@@ -26,7 +26,7 @@ export const PolicyRule = ({
   ruleIndex,
 }: PolicyRuleProps): React.ReactNode => {
   const { t } = useTranslation();
-  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
+  const { policyRules, setPolicyRules, savePolicy, usageType } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
@@ -65,6 +65,11 @@ export const PolicyRule = ({
     }
   };
 
+  const usageTypeIsApp: boolean = usageType === 'app';
+  const expandablePolicyElementDescription: string | undefined = usageTypeIsApp
+    ? policyRule.description
+    : undefined;
+
   return (
     <PolicyRuleContextProvider
       policyRule={policyRule}
@@ -76,6 +81,7 @@ export const PolicyRule = ({
       <div>
         <ExpandablePolicyElement
           title={`${t('policy_editor.rule')} ${getPolicyRuleIdString(policyRule)}`}
+          description={expandablePolicyElementDescription}
           isCard
           handleCloneElement={handleCloneRule}
           handleRemoveElement={handleDeleteRule}
