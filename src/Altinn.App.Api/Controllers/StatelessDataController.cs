@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -16,7 +17,6 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -35,6 +35,7 @@ public class StatelessDataController : ControllerBase
     private readonly IPDP _pdp;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
+
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
     private const string PartyPrefix = "partyid";
@@ -72,6 +73,7 @@ public class StatelessDataController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="dataType">The data type id</param>
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+    /// <param name="prefill">Prefilled fields from query parameters</param>
     /// <param name="language">Currently selected language by the user (if available)</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [Authorize]
@@ -79,12 +81,14 @@ public class StatelessDataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<ActionResult> Get(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] string dataType,
         [FromHeader(Name = "party")] string partyFromHeader,
+        [FromQuery] string? prefill,
         [FromQuery] string? language = null
     )
     {
@@ -112,6 +116,34 @@ public class StatelessDataController : ControllerBase
             );
         }
 
+        Dictionary<string, string>? prefillFromQueryParams = null;
+
+        if (!string.IsNullOrEmpty(prefill))
+        {
+            prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            if (prefillFromQueryParams != null)
+            {
+                IValidateQueryParamPrefill? validateQueryParamPrefill =
+                    _appImplementationFactory.Get<IValidateQueryParamPrefill>();
+                if (validateQueryParamPrefill is not null)
+                {
+                    var issue = await validateQueryParamPrefill.PrefillFromQueryParamsIsValid(prefillFromQueryParams);
+                    if (issue != null)
+                    {
+                        return BadRequest(
+                            new ProblemDetails()
+                            {
+                                Title = "Validation error from IValidateQueryParamPrefill",
+                                Detail = issue.Description,
+                                Status = StatusCodes.Status400BadRequest,
+                                Extensions = { ["issue"] = issue },
+                            }
+                        );
+                    }
+                }
+            }
+        }
+
         EnforcementResult enforcementResult = await AuthorizeAction(
             org,
             app,
@@ -127,7 +159,7 @@ public class StatelessDataController : ControllerBase
         object appModel = _appModel.Create(classRef);
 
         // runs prefill from repo configuration if config exists
-        await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
+        await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel, prefillFromQueryParams);
 
         Instance virtualInstance = new Instance() { InstanceOwner = owner };
         await ProcessAllDataRead(virtualInstance, appModel, language);
@@ -377,7 +409,7 @@ public class StatelessDataController : ControllerBase
         if (response?.Response == null)
         {
             _logger.LogInformation(
-                $"// Instances Controller // Authorization of action {action} failed with request: {JsonConvert.SerializeObject(request)}."
+                $"// Instances Controller // Authorization of action {action} failed with request: {JsonSerializer.Serialize(request)}."
             );
             return enforcementResult;
         }
