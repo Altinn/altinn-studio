@@ -6,7 +6,7 @@ describe('ValidationUtils', () => {
       expect(ValidationUtils.valueExists('test')).toBe(true);
     });
     it('should return true when value is 0', () => {
-      expect(ValidationUtils.valueExists('0')).toBe(true);
+      expect(ValidationUtils.valueExists(0)).toBe(true);
     });
     it('should return false when value is null', () => {
       expect(ValidationUtils.valueExists(null)).toBe(false);
