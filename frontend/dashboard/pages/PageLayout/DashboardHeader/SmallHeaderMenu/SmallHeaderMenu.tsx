@@ -13,7 +13,7 @@ import type { NavigationMenuGroup } from '../../../../types/NavigationMenuGroup'
 import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
-} from '../../../../utils/headerUtils/headerUtils';
+} from '../../../../utils/headerUtils';
 import { useProfileMenuTriggerButtonText } from '../../../../hooks/useProfileMenuTriggerButtonText';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
@@ -25,12 +25,12 @@ export function SmallHeaderMenu(): ReactElement {
     setOpen((isOpen) => !isOpen);
   };
 
-  const close = () => {
+  const handleClose = () => {
     setOpen(false);
   };
 
   return (
-    <DropdownMenu onClose={close} open={open}>
+    <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild>
         <StudioButton
           aria-expanded={open}
@@ -45,7 +45,7 @@ export function SmallHeaderMenu(): ReactElement {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownContentProfile />
-        <DropdownMenuGroups onClickMenuItem={close} />
+        <DropdownMenuGroups onClickMenuItem={handleClose} />
       </DropdownMenu.Content>
     </DropdownMenu>
   );

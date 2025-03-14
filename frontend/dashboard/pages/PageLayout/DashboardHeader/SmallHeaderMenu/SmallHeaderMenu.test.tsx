@@ -20,7 +20,7 @@ describe('SmallHeaderMenu', () => {
   it('should render the menu trigger button with the correct text', () => {
     renderSmallHeaderMenu();
 
-    expect(screen.getByRole('button', { name: textMock('top_menu.menu') })).toBeInTheDocument();
+    expect(getTopMenuButton()).toBeInTheDocument();
   });
 
   it('should open the dropdown menu when the trigger button is clicked', async () => {
@@ -33,42 +33,28 @@ describe('SmallHeaderMenu', () => {
       }),
     ).not.toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
-    await user.click(button);
+    await user.click(getTopMenuButton());
 
-    expect(
-      screen.getByRole('menuitem', {
-        name: textMock(headerContextValueMock.menuItems[0].key),
-      }),
-    ).toBeInTheDocument();
+    expect(getMenuItem(0)).toBeInTheDocument();
   });
 
   it('should close the dropdown menu when an item is clicked', async () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
-    await user.click(button);
+    await user.click(getTopMenuButton());
 
-    const menuItem = screen.getByRole('menuitem', {
-      name: textMock(headerContextValueMock.menuItems[0].key),
-    });
+    const menuItem = getMenuItem(0);
     expect(menuItem).toBeInTheDocument();
     await user.click(menuItem);
-
-    expect(
-      screen.queryByRole('menuitem', {
-        name: textMock(headerContextValueMock.menuItems[0].key),
-      }),
-    ).not.toBeInTheDocument();
+    expect(menuItem).not.toBeInTheDocument();
   });
 
   it('should display user name in the profile section', async () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
-    await user.click(button);
+    await user.click(getTopMenuButton());
 
     expect(
       screen.getByText(
@@ -83,8 +69,7 @@ describe('SmallHeaderMenu', () => {
     const user = userEvent.setup();
     renderSmallHeaderMenu();
 
-    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
-    await user.click(button);
+    await user.click(getTopMenuButton());
 
     headerContextValueMock.menuItems.forEach((menuItem) => {
       expect(screen.getByRole('menuitem', { name: textMock(menuItem.key) })).toBeInTheDocument();
@@ -102,8 +87,7 @@ describe('SmallHeaderMenu', () => {
       menuItems: [{ ...headerContextValueMock.menuItems[0], group: HeaderMenuGroupKey.Tools }],
     });
 
-    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
-    await user.click(button);
+    await user.click(getTopMenuButton());
 
     const heading = screen.getByRole('heading', {
       name: textMock(HeaderMenuGroupKey.Tools),
@@ -120,3 +104,15 @@ const renderSmallHeaderMenu = (contextProps: Partial<HeaderContextProps> = {}) =
     </HeaderContext.Provider>,
   );
 };
+
+function getTopMenuButton() {
+  return screen.getByRole('button', {
+    name: textMock('top_menu.menu'),
+  });
+}
+
+function getMenuItem(id: number) {
+  return screen.getByRole('menuitem', {
+    name: textMock(headerContextValueMock.menuItems[id].key),
+  });
+}

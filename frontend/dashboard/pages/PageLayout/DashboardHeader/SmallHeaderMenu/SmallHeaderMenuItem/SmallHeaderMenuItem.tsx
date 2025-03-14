@@ -43,14 +43,12 @@ export const SmallHeaderMenuItem = ({
       ? classes.active
       : '';
 
+  const linkTarget: string = menuItem.action.openInNewTab ? '_blank' : '';
+  const linkRel: string = menuItem.action.openInNewTab ? 'noopener noreferrer' : '';
+
   return (
     <DropdownMenu.Item key={menuItem.itemName} asChild className={linkItemClassName}>
-      <NavLink
-        to={menuItem.action.href}
-        onClick={onClick}
-        target={menuItem.action.openInNewTab ? '_blank' : ''}
-        rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
-      >
+      <NavLink to={menuItem.action.href} onClick={onClick} target={linkTarget} rel={linkRel}>
         {t(menuItem.itemName)}
       </NavLink>
     </DropdownMenu.Item>
