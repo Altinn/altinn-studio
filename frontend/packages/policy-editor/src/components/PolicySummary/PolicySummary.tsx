@@ -1,9 +1,11 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
-import { StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
 import { extractAllUniqueActions, extractAllUniqueSubjects } from '../../utils/AppPolicyUtils';
+import { FeedbackForm } from './FeedbackForm/FeedbackForm';
+import classes from './PolicySummary.module.css';
 
 export function PolicySummary(): React.ReactElement {
   const { policyRules } = usePolicyEditorContext();
@@ -14,6 +16,14 @@ export function PolicySummary(): React.ReactElement {
       <StudioHeading spacing={true} level={4} size='xs'>
         {t('policy_editor.summary_heading')}
       </StudioHeading>
+      <StudioAlert severity='info' title='Tilbakemelding' className={classes.feedbackAlert}>
+        <StudioParagraph size='small' spacing={true}>
+          {t('feedback.general_request')}
+        </StudioParagraph>
+        <div className={classes.feedbackFormWrapper}>
+          <FeedbackForm />
+        </div>
+      </StudioAlert>
       <StudioParagraph spacing={true}>{t('policy_editor.summary_info_about')}</StudioParagraph>
       <StudioParagraph spacing={true}>{t('policy_editor.summary_info_edit')}</StudioParagraph>
       <StudioTable>
