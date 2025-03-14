@@ -127,14 +127,49 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textBoxMinimum = screen.getByRole('spinbutton', {
+    const textBoxMaximum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.maximum_inclusive'),
     });
-    await user.type(textBoxMinimum, '0');
+    await user.type(textBoxMaximum, '0');
     const expectedRestrictions = {
       [IntRestrictionKey.minimum]: undefined,
       [IntRestrictionKey.exclusiveMinimum]: undefined,
       [IntRestrictionKey.maximum]: 0,
+      [IntRestrictionKey.exclusiveMaximum]: undefined,
+      [IntRestrictionKey.multipleOf]: undefined,
+      [IntRestrictionKey.integer]: undefined,
+    };
+
+    await waitFor(() =>
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
+    );
+  });
+
+  it('Should call onChangeRestrictions with correct values when value is cleared', async () => {
+    const user = userEvent.setup();
+    const onChangeRestrictions = jest.fn();
+    const props = {
+      restrictions: {},
+      path: '',
+      onChangeRestrictions,
+      onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
+    };
+    render(<NumberRestrictions readonly={false} {...props} />);
+    const textBoxMinimum = screen.getByRole('spinbutton', {
+      name: textMock('schema_editor.minimum_inclusive'),
+    });
+    await user.type(textBoxMinimum, '0');
+    await user.clear(textBoxMinimum);
+    const textBoxMaximum = screen.getByRole('spinbutton', {
+      name: textMock('schema_editor.maximum_inclusive'),
+    });
+    await user.type(textBoxMaximum, '0');
+    await user.clear(textBoxMaximum);
+    const expectedRestrictions = {
+      [IntRestrictionKey.minimum]: undefined,
+      [IntRestrictionKey.exclusiveMinimum]: undefined,
+      [IntRestrictionKey.maximum]: undefined,
       [IntRestrictionKey.exclusiveMaximum]: undefined,
       [IntRestrictionKey.multipleOf]: undefined,
       [IntRestrictionKey.integer]: undefined,

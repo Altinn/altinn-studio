@@ -31,6 +31,14 @@ describe('StudioPropertyButton', () => {
     expect(screen.getByRole('button', { name: property })).toHaveTextContent(value);
   });
 
+  it('Renders both the property and the value when a value is 0', () => {
+    const value = 0;
+    renderButton({ value });
+    const button = screen.getByRole('button', { name: property });
+    expect(button).toHaveTextContent(property);
+    expect(button).toHaveTextContent(value.toString());
+  });
+
   it('Overrides the icon when a custom icon is given', () => {
     const iconTestId = 'custom-icon';
     const icon = <svg data-testid={iconTestId} />;
