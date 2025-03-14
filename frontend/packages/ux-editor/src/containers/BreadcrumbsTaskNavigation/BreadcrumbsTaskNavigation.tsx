@@ -4,7 +4,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
-import classes from './BreadcrumbsTaskNavigation.module.css';
 import {
   StudioBreadcrumbs,
   StudioBreadcrumbsItem,
@@ -26,10 +25,10 @@ export const BreadcrumbsTaskNavigation = () => {
   return (
     <div>
       <div>
-        <StudioBreadcrumbs className={classes.breadcrumbWrapper}>
+        <StudioBreadcrumbs>
           <StudioBreadcrumbsList>
             <StudioBreadcrumbsItem>
-              <StudioBreadcrumbsLink className={classes.appName} onClick={handleClick}>
+              <StudioBreadcrumbsLink onClick={handleClick}>
                 {appConfigData?.serviceName}
               </StudioBreadcrumbsLink>
             </StudioBreadcrumbsItem>
