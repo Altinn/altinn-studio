@@ -13,9 +13,30 @@ import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
 import { dashboardHeaderMenuItems } from '../../../utils/headerUtils/headerUtils';
 import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { SubHeader } from './SubHeader';
+import { Subroute } from '../../../enums/Subroute';
+import { isOrg } from 'dashboard/pages/OrgContentLibrary/utils';
 
-export const DashboardHeader = () => {
+export type DashboardHeaderProps = {
+  showSubMenu: boolean;
+  isRepoError?: boolean;
+};
+
+export const DashboardHeader = ({ showSubMenu, isRepoError }: DashboardHeaderProps) => {
   const pageHeaderTitle: string = usePageHeaderTitle();
+  const selectedContext = useSelectedContext();
+
+  const location = useLocation();
+  const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
+
+  const isOrgLibraryPage: boolean =
+    currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
+  const shouldShowSubMenu: boolean =
+    showSubMenu &&
+    !isRepoError &&
+    isOrg(selectedContext) &&
+    isOrgLibraryPage &&
+    shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
   return (
     <StudioPageHeader>
@@ -31,6 +52,11 @@ export const DashboardHeader = () => {
           <DashboardHeaderMenu />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
+      {shouldShowSubMenu && (
+        <StudioPageHeader.Sub>
+          <SubHeader hasRepoError={isRepoError} />
+        </StudioPageHeader.Sub>
+      )}
     </StudioPageHeader>
   );
 };

@@ -1,4 +1,4 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -8,10 +8,12 @@ import type { AxiosError } from 'axios';
 export const useRepoStatusQuery = (
   owner: string,
   app: string,
+  meta?: QueryMeta,
 ): UseQueryResult<RepoStatus, AxiosError> => {
   const { getRepoStatus } = useServicesContext();
   return useQuery<RepoStatus, AxiosError>({
     queryKey: [QueryKey.RepoStatus, owner, app],
     queryFn: () => getRepoStatus(owner, app),
+    meta,
   });
 };
