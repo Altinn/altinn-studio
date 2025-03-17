@@ -32,6 +32,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
         />
       );
     }
+
     return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
   },
 );

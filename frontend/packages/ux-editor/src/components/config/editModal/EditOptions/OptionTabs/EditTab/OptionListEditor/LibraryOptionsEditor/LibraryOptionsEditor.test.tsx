@@ -97,7 +97,7 @@ describe('LibraryOptionEditor', () => {
     );
   });
 
-  it('should call upsertTextResources with correct parameters when editing label', async () => {
+  it('should call upsertTextResources with correct parameters when editing description', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
     const expectedLanguage = 'nb';

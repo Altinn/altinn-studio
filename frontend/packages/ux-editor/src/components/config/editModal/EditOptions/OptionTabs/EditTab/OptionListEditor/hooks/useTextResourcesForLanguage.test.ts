@@ -13,17 +13,17 @@ describe('useTextResourcesForLanguage', () => {
     const textResource: TextResource = { id: 'some-id', value: 'some-value' };
     const textResources: TextResources = { [language]: [textResource] };
     const { result } = renderHook(language, textResources);
-    const temp: TextResource[] = result.current;
+    const actualTextResource: TextResource[] = result.current;
 
-    expect(temp).toEqual([textResource]);
+    expect(actualTextResource).toEqual([textResource]);
   });
 
-  it('should call doReloadPreview if provided', () => {
+  it('should return undefined when empty text resources', () => {
     const emptyTextResource: TextResources = {};
     const { result } = renderHook(language, emptyTextResource);
-    const temp: TextResource[] = result.current;
+    const actualTextResource: TextResource[] = result.current;
 
-    expect(temp).toEqual(undefined);
+    expect(actualTextResource).toEqual(undefined);
   });
 });
 
