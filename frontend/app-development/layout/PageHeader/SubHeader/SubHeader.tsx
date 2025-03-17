@@ -23,6 +23,8 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
       leftComponent={repositoryType !== RepositoryType.DataModels && <SubHeaderLeftContent />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
+      owner={org}
+      repoName={app}
     />
   );
 };
