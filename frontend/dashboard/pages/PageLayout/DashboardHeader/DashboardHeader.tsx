@@ -1,27 +1,16 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAvatar,
-  StudioPageHeader,
-  type StudioProfileMenuGroup,
-  useMediaQuery,
-  type StudioProfileMenuItem,
-} from '@studio/components';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { type Organization } from 'app-shared/types/Organization';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { HeaderContext } from 'dashboard/context/HeaderContext';
-import { SelectedContextType } from '../../../enums/SelectedContextType';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
-import { useRepoPath } from 'dashboard/hooks/useRepoPath';
-import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
-import { useSubroute } from '../../../hooks/useSubRoute';
+import { useHeaderContext } from '../../../context/HeaderContext';
+import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
+import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
-import { dashboardHeaderMenuItems } from '../../../utils/headerUtils';
+import { dashboardHeaderMenuItems } from '../../../utils/headerUtils/headerUtils';
 import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
@@ -84,52 +73,9 @@ function extractSecondLastRouterParam(pathname: string): string {
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const selectedContext = useSelectedContext();
-  const subroute = useSubroute();
-  const { mutate: logout } = useLogoutMutation();
-  const { user, selectableOrgs } = useContext(HeaderContext);
-  const navigate = useNavigate();
+  const { user, profileMenuGroups } = useHeaderContext();
 
   const triggerButtonText = useProfileMenuTriggerButtonText();
-  const repoPath = useRepoPath();
-
-  const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate(`${subroute}/${context}${location.search}`);
-  };
-
-  const allMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
-    itemName: t('shared.header_all'),
-    isActive: selectedContext === SelectedContextType.All,
-  };
-
-  const selectableOrgMenuItems: StudioProfileMenuItem[] =
-    selectableOrgs?.map((selectableOrg: Organization) => ({
-      action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
-      itemName: selectableOrg?.full_name || selectableOrg.username,
-      isActive: selectedContext === selectableOrg.username,
-    })) ?? [];
-
-  const selfMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
-    itemName: user?.full_name || user?.login,
-    isActive: selectedContext === SelectedContextType.Self,
-  };
-
-  const giteaMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: repoPath },
-    itemName: t('shared.header_go_to_gitea'),
-  };
-
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
-
-  const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem] },
-    { items: [giteaMenuItem, logOutMenuItem] },
-  ];
 
   return (
     <StudioPageHeader.ProfileMenu

@@ -1,15 +1,10 @@
 import React from 'react';
-import { ClonePopoverContent, type ClonePopoverContentProps } from './ClonePopoverContent';
-import { render, screen } from '@testing-library/react';
+import { ClonePopoverContent } from './ClonePopoverContent';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-
-const mockOnClose = jest.fn();
-
-const defaultProps: ClonePopoverContentProps = {
-  onClose: mockOnClose,
-};
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '../../mocks/renderWithProviders';
 
 describe('cloneModal', () => {
   afterEach(jest.clearAllMocks);
@@ -45,13 +40,9 @@ describe('cloneModal', () => {
   });
 });
 
-const renderClonePopoverContent = (props: Partial<ClonePopoverContentProps> = {}) => {
+const renderClonePopoverContent = () => {
   const queries: Partial<ServicesContextProps> = {
     getAppDataModelsXsd: async () => [],
   };
-  return render(
-    <ServicesContextProvider {...queries}>
-      <ClonePopoverContent {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders({ ...queriesMock, ...queries })(<ClonePopoverContent />);
 };

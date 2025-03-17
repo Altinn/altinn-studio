@@ -36,7 +36,7 @@ export const PolicyRuleSubjectSummary = ({
               {actionsForRole[action]
                 ? ArrayUtils.getArrayFromString(actionsForRole[action]).map((subResource) => {
                     return (
-                      <StudioTag size='small' key={`${action}-${subResource}`} color='info'>
+                      <StudioTag size='sm' key={`${subject}-${action}-${subResource}`} color='info'>
                         {subResource}
                       </StudioTag>
                     );
