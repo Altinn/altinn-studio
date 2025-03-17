@@ -6,7 +6,7 @@ import { app, org } from '@studio/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
 describe('useDataModelsXsdQuery', () => {
-  it('Calls getDataModelsXsd with correct arguments and returns the data', async () => {
+  it('Calls getAppDataModelsXsd with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataXsd[] = [xsdMetadataMock];
     const getAppDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
 

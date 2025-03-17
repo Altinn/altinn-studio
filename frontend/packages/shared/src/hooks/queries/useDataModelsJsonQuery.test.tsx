@@ -6,7 +6,7 @@ import { app, org } from '@studio/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
 describe('useDataModelsJsonQuery', () => {
-  it('Calls getDataModels with correct arguments and returns the data', async () => {
+  it('Calls getAppDataModelsJson with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataJson[] = [jsonMetadataMock];
     const getAppDataModelsJson = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
 
