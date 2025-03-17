@@ -66,7 +66,7 @@ describe('OptionListEditor', () => {
   });
 
   it('should render an error message when getOptionList throws an error', async () => {
-    renderOptionListEditorWithData({
+    renderOptionListEditor({
       queries: {
         getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
       },
