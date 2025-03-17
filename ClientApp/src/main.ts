@@ -38,16 +38,19 @@ export class CustomSigneeList extends LitElement {
   `;
 
   @property({ type: String })
-  org = "Verdens Beste Org AS";
+  signingOrg = "Verdens Beste Org AS";
 
+  @property({ type: String })
   private _signeeTask = new Task(this, {
     task: async () => {
+      const [org, app] = window.location.pathname.split("/").filter(Boolean);
+
       const hashPaths = window.location.hash.split("/").filter(Boolean);
       const instanceOwnerPartyId = hashPaths[2];
       const instanceGuid = hashPaths[3];
 
       const response = await fetch(
-        `/@ViewBag.Org/@ViewBag.App/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`
+        `/${org}/${app}/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch signees: ${response.statusText}`);
@@ -82,7 +85,7 @@ export class CustomSigneeList extends LitElement {
               ${signees.map(
                 (signee) => html`
                   <li>
-                    ${signee.name} på vegne av ${this.org}
+                    ${signee.name} på vegne av ${this.signingOrg}
                     <hr />
                     <i>Digitalt signert gjennom Altinn ${signee.signedTime}</i>
                   </li>

@@ -98,13 +98,14 @@ let CustomSigneeList = class CustomSigneeList extends r$2 {
       color: #68707c;
     }
   `;
-    org = "Verdens Beste Org AS";
+    signingOrg = "Verdens Beste Org AS";
     _signeeTask = new h(this, {
         task: async () => {
+            const [org, app] = window.location.pathname.split("/").filter(Boolean);
             const hashPaths = window.location.hash.split("/").filter(Boolean);
             const instanceOwnerPartyId = hashPaths[2];
             const instanceGuid = hashPaths[3];
-            const response = await fetch(`/@ViewBag.Org/@ViewBag.App/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`);
+            const response = await fetch(`/${org}/${app}/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`);
             if (!response.ok) {
                 throw new Error(`Failed to fetch signees: ${response.statusText}`);
             }
@@ -134,7 +135,7 @@ let CustomSigneeList = class CustomSigneeList extends r$2 {
             <ul>
               ${signees.map((signee) => x `
                   <li>
-                    ${signee.name} på vegne av ${this.org}
+                    ${signee.name} på vegne av ${this.signingOrg}
                     <hr />
                     <i>Digitalt signert gjennom Altinn ${signee.signedTime}</i>
                   </li>
@@ -149,7 +150,10 @@ let CustomSigneeList = class CustomSigneeList extends r$2 {
 };
 __decorate([
     n({ type: String })
-], CustomSigneeList.prototype, "org", void 0);
+], CustomSigneeList.prototype, "signingOrg", void 0);
+__decorate([
+    n({ type: String })
+], CustomSigneeList.prototype, "_signeeTask", void 0);
 CustomSigneeList = __decorate([
     t("custom-signee-list")
 ], CustomSigneeList);
