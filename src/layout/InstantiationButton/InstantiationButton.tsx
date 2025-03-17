@@ -17,6 +17,15 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useCurrentParty();
 
+  // const onClick = () => {
+  //   instantiateWithPrefill(props.node, {
+  //     prefill,
+  //     instanceOwner: {
+  //       partyId: party?.partyId.toString(),
+  //     },
+  //   });
+  // };
+
   useEffect(() => {
     if (error) {
       throw error;

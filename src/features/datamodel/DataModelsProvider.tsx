@@ -17,6 +17,7 @@ import { useCurrentDataModelName, useDataModelUrl } from 'src/features/datamodel
 import { useDataModelSchemaQuery } from 'src/features/datamodel/useDataModelSchemaQuery';
 import {
   getAllReferencedDataTypes,
+  getValidPrefillDataFromQueryParams,
   isDataTypeWritable,
   MissingClassRefException,
   MissingDataElementException,
@@ -295,13 +296,24 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const setError = useSelector((state) => state.setError);
   const dataElements = useLaxInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
-  const url = useDataModelUrl({ dataType, dataElementId, includeRowIds: true });
+  const metaData = useApplicationMetadata();
+
+  const url = useDataModelUrl({
+    dataType,
+    dataElementId,
+    includeRowIds: true,
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
+  });
+
   const { data, error } = useFormDataQuery(url);
+
   useEffect(() => {
-    if (data && url) {
-      setInitialData(dataType, data);
+    if (!data || !url) {
+      return;
     }
-  }, [data, dataType, setInitialData, url]);
+    sessionStorage.removeItem('queryParams');
+    setInitialData(dataType, data);
+  }, [data, dataType, metaData.id, setInitialData, url]);
 
   useEffect(() => {
     setDataElementId(dataType, dataElementId ?? null);

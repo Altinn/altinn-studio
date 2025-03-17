@@ -53,6 +53,13 @@ export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string 
 export const getAnonymousStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
   `${appPath}/v1/data/anonymous?dataType=${dataType}&includeRowId=${includeRowIds.toString()}`;
 
+export const getStatelessDataModelUrlWithPrefill = (
+  dataType: string,
+  includeRowIds: boolean,
+  prefillFromQueryParams: string,
+) =>
+  `${appPath}/v1/data?dataType=${dataType}&includeRowId=${includeRowIds.toString()}&prefill=${prefillFromQueryParams}`;
+
 export const getStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
   `${appPath}/v1/data?dataType=${dataType}&includeRowId=${includeRowIds.toString()}`;
 

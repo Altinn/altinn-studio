@@ -1,4 +1,5 @@
 import { isDataModelReference } from 'src/utils/databindings';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayouts } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
@@ -120,3 +121,197 @@ export function isDataTypeWritable(dataType: string | undefined, isStateless: bo
   const dataElement = dataElements.find((data) => data.dataType === dataType);
   return !!dataElement && dataElement.locked === false;
 }
+
+export interface QueryParamPrefill {
+  appId: string;
+  dataModelName: string;
+  prefillFields: Record<string, string>;
+  created: string;
+}
+
+function isQueryParamPrefill(obj: unknown): obj is QueryParamPrefill {
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+
+  const typedObj = obj as Partial<QueryParamPrefill>;
+
+  if (typeof typedObj.dataModelName !== 'string') {
+    return false;
+  }
+
+  if (typeof typedObj.created !== 'string') {
+    return false;
+  }
+
+  if (!typedObj.prefillFields || typeof typedObj.prefillFields !== 'object') {
+    return false;
+  }
+
+  // Check each key/value to ensure everything is string-based
+  for (const [key, value] of Object.entries(typedObj.prefillFields)) {
+    if (typeof key !== 'string' || typeof value !== 'string') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function isQueryParamPrefillArray(obj: unknown): obj is QueryParamPrefill[] {
+  if (!Array.isArray(obj)) {
+    return false;
+  }
+  return obj.every(isQueryParamPrefill);
+}
+
+export function getValidPrefillDataFromQueryParams(
+  metaData: ApplicationMetadata,
+  dataType: string,
+): string | undefined {
+  const rawParams = sessionStorage.getItem('queryParams');
+  if (!rawParams) {
+    return undefined;
+  }
+
+  if (!metaData.isStatelessApp) {
+    throw new Error('You can only use query parameter prefill in a stateless task. Please read documentation.');
+  }
+
+  const queryParams = JSON.parse(rawParams);
+
+  if (!isQueryParamPrefillArray(queryParams)) {
+    return undefined;
+  }
+
+  const prefillDataForDataType = queryParams.find(
+    (param) => param.dataModelName === dataType && param.appId === metaData.id,
+  );
+
+  if (!prefillDataForDataType) {
+    return undefined;
+  }
+
+  if (!prefillQueryParamsIsValid(prefillDataForDataType)) {
+    return undefined;
+  }
+
+  return JSON.stringify(prefillDataForDataType.prefillFields);
+}
+
+/** Basic validity check for expiration, etc. */
+function prefillQueryParamsIsValid(prefill: QueryParamPrefill): boolean {
+  const createdTime = new Date(prefill.created).getTime();
+  if (Number.isNaN(createdTime)) {
+    return false;
+  }
+
+  const oneHourInMs = 60 * 60 * 1000;
+  const hasExpired = Date.now() - createdTime > oneHourInMs;
+  return !hasExpired;
+}
+
+// export interface QueryParamPrefill {
+//   appId: string;
+//   dataModelName: string;
+//   prefillFields: Record<string, string>[];
+//   created: string;
+// }
+//
+// function isQueryParamPrefill(obj: unknown): obj is QueryParamPrefill {
+//   if (typeof obj !== 'object' || obj === null) {
+//     return false;
+//   }
+//   const typedObj = obj as Partial<QueryParamPrefill>;
+//
+//   if (typeof typedObj.dataModelName !== 'string') {
+//     return false;
+//   }
+//
+//   if (typeof typedObj.created !== 'string') {
+//     return false;
+//   }
+//
+//   if (!Array.isArray(typedObj.prefillFields)) {
+//     return false;
+//   }
+//
+//   for (const item of typedObj.prefillFields) {
+//     if (typeof item !== 'object' || item === null) {
+//       return false;
+//     }
+//
+//     for (const [key, value] of Object.entries(item)) {
+//       if (typeof key !== 'string' || typeof value !== 'string') {
+//         return false;
+//       }
+//     }
+//   }
+//
+//   return true;
+// }
+//
+// export function isQueryParamPrefillArray(obj: unknown): obj is QueryParamPrefill[] {
+//   if (!Array.isArray(obj)) {
+//     return false;
+//   }
+//
+//   for (const item of obj) {
+//     if (!isQueryParamPrefill(item)) {
+//       return false;
+//     }
+//   }
+//
+//   return true;
+// }
+//
+// function prefillQueryParamsIsValid(prefill: QueryParamPrefill): boolean {
+//   const createdTime = new Date(prefill.created).getTime();
+//   if (Number.isNaN(createdTime)) {
+//     return false;
+//   }
+//
+//   const oneHourInMs = 60 * 60 * 1000;
+//   const hasExpired = Date.now() - createdTime > oneHourInMs;
+//
+//   return !hasExpired;
+// }
+//
+// function reducePrefillFieldsToDict({ prefillFields }: QueryParamPrefill): Record<string, string> {
+//   return prefillFields.reduce((acc, current) => ({ ...acc, ...current }), {});
+// }
+//
+// export function getValidPrefillDataFromQueryParams(
+//   metaData: ApplicationMetadata,
+//   dataType: string,
+// ): string | undefined {
+//   const rawParams = sessionStorage.getItem('queryParams');
+//
+//   if (!rawParams) {
+//     return undefined;
+//   }
+//
+//   if (!metaData.isStatelessApp) {
+//     throw new Error('You can only use query parameter prefill in a stateless task. Please read documentation.');
+//   }
+//
+//   const queryParams = JSON.parse(rawParams);
+//
+//   if (!isQueryParamPrefillArray(queryParams)) {
+//     return undefined;
+//   }
+//
+//   const prefillDataForDataType = queryParams.find(
+//     (param) => param.dataModelName === dataType && param.appId === metaData.id,
+//   );
+//
+//   if (!prefillDataForDataType) {
+//     return undefined;
+//   }
+//
+//   if (!prefillQueryParamsIsValid(prefillDataForDataType)) {
+//     return undefined;
+//   }
+//
+//   return JSON.stringify(reducePrefillFieldsToDict(prefillDataForDataType));
+// }

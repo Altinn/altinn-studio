@@ -19,6 +19,7 @@ import {
   getAnonymousStatelessDataModelUrl,
   getStatefulDataModelUrl,
   getStatelessDataModelUrl,
+  getStatelessDataModelUrlWithPrefill,
 } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -58,6 +59,7 @@ type DataModelProps = {
   dataElementId?: string;
   includeRowIds?: boolean;
   language?: string;
+  prefillFromQueryParams?: string;
 };
 
 function getDataModelUrl({
@@ -68,7 +70,15 @@ function getDataModelUrl({
   isAnonymous,
   isStateless,
   instanceId,
+  prefillFromQueryParams,
 }: DataModelDeps & DataModelProps) {
+  if (prefillFromQueryParams && !isAnonymous && isStateless && dataType) {
+    return getUrlWithLanguage(
+      getStatelessDataModelUrlWithPrefill(dataType, includeRowIds, prefillFromQueryParams),
+      language,
+    );
+  }
+
   if (isStateless && isAnonymous && dataType) {
     return getUrlWithLanguage(getAnonymousStatelessDataModelUrl(dataType, includeRowIds), language);
   }
@@ -106,7 +116,13 @@ export function useGetDataModelUrl() {
 }
 
 // We assume that the first data element of the correct type is the one we should use, same as isDataTypeWritable
-export function useDataModelUrl({ dataType, dataElementId, includeRowIds, language }: DataModelProps) {
+export function useDataModelUrl({
+  dataType,
+  dataElementId,
+  includeRowIds,
+  language,
+  prefillFromQueryParams,
+}: DataModelProps) {
   const isAnonymous = useAllowAnonymous();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const instanceId = useLaxInstanceId();
@@ -120,6 +136,7 @@ export function useDataModelUrl({ dataType, dataElementId, includeRowIds, langua
     isAnonymous,
     isStateless,
     instanceId,
+    prefillFromQueryParams,
   });
 }
 
