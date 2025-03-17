@@ -9,3 +9,4 @@ export * from './ScopedStorage';
 export * from './StringUtils';
 export * from './types';
 export * from './WebStorage';
+export * from './UrlUtils';
