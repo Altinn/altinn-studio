@@ -129,9 +129,9 @@ services:
       - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
       - GITEA__mailer__ENABLED=false
       - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
-      - GITEA__mailer__HOST=none
+      - GITEA__mailer__SMTP_ADDR=none
       - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
-      - GITEA__mailer__SKIP_VERIFY=false
+      - GITEA__mailer__FORCE_TRUST_SERVER_CERT=false
       - GITEA__security__INTERNAL_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1MjMyNjM2NTR9.nxb5jknOl-LnVxOvyu0McHglWoixrfOD0mLZ8Druerw
       - GITEA__security__SECRET_KEY=VCOEYZOz3vPZrm1vGBOL6paxSePtLUHc85LsK7QIqbPHRcohw72p5K8EQQJ7YrgA
       - GITEA__server__DOMAIN=studio.localhost

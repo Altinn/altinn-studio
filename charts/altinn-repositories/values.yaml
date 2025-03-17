@@ -70,7 +70,7 @@ environmentVariables:
     value: require
   - name: GITEA__mailer__ENABLED
     value: "true"
-  - name: GITEA__mailer__SKIP_VERIFY
+  - name: GITEA__mailer__FORCE_TRUST_SERVER_CERT
     value: "true"
   - name: GITEA__mailer__REGISTER_EMAIL_CONFIRM
     value: "true"
