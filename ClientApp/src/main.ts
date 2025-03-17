@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
+import { Task } from "@lit/task";
 
 type Signee = {
   name: string;
@@ -39,46 +40,59 @@ export class CustomSigneeList extends LitElement {
   @property({ type: String })
   org = "Verdens Beste Org AS";
 
-  @state()
-  private _signees: Signee[] = [];
+  private _signeeTask = new Task(this, {
+    task: async () => {
+      const hashPaths = window.location.hash.split("/").filter(Boolean);
+      const instanceOwnerPartyId = hashPaths[2];
+      const instanceGuid = hashPaths[3];
 
-  async connectedCallback() {
-    super.connectedCallback();
+      const response = await fetch(
+        `/@ViewBag.Org/@ViewBag.App/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch signees: ${response.statusText}`);
+      }
 
-    const hashPaths = window.location.hash.split("/").filter(Boolean);
-    const instanceOwnerPartyId = hashPaths[2];
-    const instanceGuid = hashPaths[3];
-
-    const response = await fetch(
-      `/@ViewBag.Org/@ViewBag.App/instances/${instanceOwnerPartyId}/${instanceGuid}/signing`
-    );
-    const data: { signeeStates: Signee[] } = await response.json();
-    this._signees = [
-      ...data.signeeStates
-        .filter((signee) => !!signee.signedTime)
-        .map((signee) => ({
-          ...signee,
-          signedTime: formatDateTime(signee.signedTime),
-        })),
-    ];
-
-    this.requestUpdate();
-  }
+      const data: { signeeStates: Signee[] } = await response.json();
+      return [
+        ...data.signeeStates
+          .filter((signee) => !!signee.signedTime)
+          .map((signee) => ({
+            ...signee,
+            signedTime: formatDateTime(signee.signedTime),
+          })),
+      ];
+    },
+    args: () => [],
+  });
 
   render() {
     return html`
-      <h3>Personer som har signert</h3>
-      <ul>
-        ${this._signees.map(
-          (signee) => html`
-            <li>
-              ${signee.name} på vegne av ${this.org}
-              <hr />
-              <i>Digitalt signert gjennom Altinn ${signee.signedTime}</i>
-            </li>
-          `
-        )}
-      </ul>
+      ${this._signeeTask.render({
+        pending: () => html`<p>Loading...</p>`,
+        complete: (signees) => {
+          console.log(signees);
+          if (signees.length === 0) {
+            return html`<p>Ingen har signert ennå</p>`;
+          }
+
+          return html`
+            <h3>Personer som har signert</h3>
+            <ul>
+              ${signees.map(
+                (signee) => html`
+                  <li>
+                    ${signee.name} på vegne av ${this.org}
+                    <hr />
+                    <i>Digitalt signert gjennom Altinn ${signee.signedTime}</i>
+                  </li>
+                `
+              )}
+            </ul>
+          `;
+        },
+        rejected: (error: Error) => html`<p>Error: ${error.message}</p>`,
+      })}
     `;
   }
 }

@@ -20,6 +20,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@lit/task": "^1.0.2",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "lit": "^3.2.1"
   }
