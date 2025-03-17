@@ -1,7 +1,7 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import classes from './BreadcrumbsTaskNavigation.module.css';
@@ -12,6 +12,7 @@ import {
   StudioBreadcrumbsList,
 } from '@studio/components';
 import { useAppContext } from '@altinn/ux-editor/hooks';
+import { UrlUtils } from '@studio/pure-functions';
 
 export const BreadcrumbsTaskNavigation = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -19,21 +20,28 @@ export const BreadcrumbsTaskNavigation = () => {
   const navigate = useNavigate();
   const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
 
+  const location = useLocation();
+  const currentRoutePath: string = UrlUtils.extractLastRouterParam(location.pathname);
+  const isActive = currentRoutePath === 'ui-editor';
+
   const handleClick = () => {
     removeSelectedFormLayoutSetName();
     navigate('../' + RoutePaths.UIEditor);
   };
+
   return (
     <div>
       <div>
-        <StudioBreadcrumbs className={classes.breadcrumbWrapper}>
+        <StudioBreadcrumbs>
           <StudioBreadcrumbsList>
             <StudioBreadcrumbsItem>
-              <StudioBreadcrumbsLink className={classes.appName} onClick={handleClick}>
+              <StudioBreadcrumbsLink onClick={handleClick}>
                 {appConfigData?.serviceName}
               </StudioBreadcrumbsLink>
             </StudioBreadcrumbsItem>
-            <StudioBreadcrumbsItem>{selectedFormLayoutSetName}</StudioBreadcrumbsItem>
+            <StudioBreadcrumbsItem>
+              <div className={isActive && classes.active}>{selectedFormLayoutSetName}</div>
+            </StudioBreadcrumbsItem>
           </StudioBreadcrumbsList>
         </StudioBreadcrumbs>
       </div>
