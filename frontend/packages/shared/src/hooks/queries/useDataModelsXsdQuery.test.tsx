@@ -1,16 +1,16 @@
 import { waitFor } from '@testing-library/react';
-import { useAppDataModelsXsdQuery } from 'app-shared/hooks/queries/useAppDataModelsXsdQuery';
+import { useDataModelsXsdQuery } from 'app-shared/hooks/queries/useDataModelsXsdQuery';
 import type { DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import { xsdMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 import { app, org } from '@studio/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
-describe('useAppDataModelsXsdQuery', () => {
-  it('Calls getAppDataModelsXsd with correct arguments and returns the data', async () => {
+describe('useDataModelsXsdQuery', () => {
+  it('Calls getDataModelsXsd with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataXsd[] = [xsdMetadataMock];
     const getAppDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
 
-    const result = renderHookWithProviders(() => useAppDataModelsXsdQuery(org, app), {
+    const result = renderHookWithProviders(() => useDataModelsXsdQuery(org, app), {
       queries: { getAppDataModelsXsd },
     }).result;
 

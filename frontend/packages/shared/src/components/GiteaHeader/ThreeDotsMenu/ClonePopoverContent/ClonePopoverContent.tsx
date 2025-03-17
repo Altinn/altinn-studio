@@ -4,7 +4,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';
 import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { useAppDataModelsXsdQuery } from 'app-shared/hooks/queries';
+import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
@@ -16,7 +16,7 @@ export type ClonePopoverContentProps = {
 
 export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: dataModel = [] } = useAppDataModelsXsdQuery(org, app);
+  const { data: dataModel = [] } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
   const packagesRouter = new PackagesRouter({ app, org });
 

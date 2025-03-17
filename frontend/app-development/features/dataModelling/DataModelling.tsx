@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner, StudioCenter, StudioError } from '@studio/components';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
-import { useAppDataModelsJsonQuery, useAppDataModelsXsdQuery } from 'app-shared/hooks/queries';
+import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useParams } from 'react-router-dom';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
@@ -16,12 +16,8 @@ interface DataModellingProps {
 export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
-  const {
-    status: jsonStatus,
-    error: jsonError,
-    data: jsonData,
-  } = useAppDataModelsJsonQuery(org, app);
-  const { status: xsdStatus, error: xsdError, data: xsdData } = useAppDataModelsXsdQuery(org, app);
+  const { status: jsonStatus, error: jsonError, data: jsonData } = useDataModelsJsonQuery(org, app);
+  const { status: xsdStatus, error: xsdError, data: xsdData } = useDataModelsXsdQuery(org, app);
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
