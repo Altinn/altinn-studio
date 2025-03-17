@@ -15,7 +15,7 @@ const getOrgDataModelsXsd = jest.fn(() => Promise.resolve(dataModels));
 describe('useDataModelsXsdQuery', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls getAppDataModelsXsd with correct arguments and returns the data, when the repo is not a data model repo', async () => {
+  it('Calls getAppDataModelsXsd with correct arguments and returns the data, when the repo is an app repo', async () => {
     const result = renderHookWithProviders(() => useDataModelsXsdQuery(org, appRepoName), {
       queries: { getAppDataModelsXsd, getOrgDataModelsXsd },
     }).result;

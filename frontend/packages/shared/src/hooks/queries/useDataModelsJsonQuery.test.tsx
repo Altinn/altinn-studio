@@ -15,7 +15,7 @@ const getOrgDataModelsJson = jest.fn(() => Promise.resolve(dataModels));
 describe('useDataModelsJsonQuery', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls getAppDataModelsJson with correct arguments and returns the data, when the repo is not a data model repo', async () => {
+  it('Calls getAppDataModelsJson with correct arguments and returns the data, when the repo is an app repo', async () => {
     const result = renderHookWithProviders(() => useDataModelsJsonQuery(org, appRepoName), {
       queries: { getAppDataModelsJson, getOrgDataModelsJson },
     }).result;
