@@ -46,6 +46,7 @@ export const PropertiesHeader = ({
     : formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
+  const isMainConfigFeatureEnabled = shouldDisplayFeature(FeatureFlag.MainConfig);
 
   return (
     <>
@@ -72,14 +73,14 @@ export const PropertiesHeader = ({
             handleComponentChange={handleComponentUpdate}
           />
         )}
-        {!hideMainConfig && shouldDisplayFeature(FeatureFlag.MainConfig) && <HeaderMainConfig />}
+        {!hideMainConfig && isMainConfigFeatureEnabled && <HeaderMainConfig />}
         {!hideMainConfig && (
           <>
             <EditComponentIdRow
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            {shouldDisplayFeature(FeatureFlag.MainConfig) && (
+            {isMainConfigFeatureEnabled && (
               <TextMainConfig
                 component={formItem}
                 handleComponentChange={handleComponentUpdate}
@@ -90,7 +91,7 @@ export const PropertiesHeader = ({
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />
-            {shouldDisplayFeature(FeatureFlag.MainConfig) && (
+            {isMainConfigFeatureEnabled && (
               <DataModelMainConfig
                 component={formItem}
                 handleComponentChange={handleComponentUpdate}

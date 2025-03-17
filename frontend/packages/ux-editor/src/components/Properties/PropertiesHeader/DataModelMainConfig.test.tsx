@@ -69,7 +69,7 @@ const renderDataModelMainConfig = ({
     <div data-testid='component-wrapper'>
       <FormItemContext.Provider value={formItemContextProviderMock}>
         <DataModelMainConfig
-          component={component1Mock}
+          component={component}
           dataModelBindings={dataModelBindings}
           handleComponentChange={mockHandleComponentUpdate}
         />
