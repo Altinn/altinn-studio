@@ -1,0 +1,182 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Option.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "optionsId": {
+      "title": "Dynamic options (fetched from server)",
+      "description": "ID of the option list to fetch from the server",
+      "type": "string"
+    },
+    "mapping": {
+      "title": "Mapping",
+      "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" }
+    },
+    "queryParameters": {
+      "title": "Query parameters",
+      "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "$ref": "expression.schema.v1.json#/definitions/string" }
+    },
+    "options": {
+      "title": "Static options",
+      "description": "List of static options",
+      "type": "array",
+      "items": {
+        "title": "IRawOption",
+        "examples": [{ "label": "", "value": "" }],
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "value": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "const": null }
+            ]
+          },
+          "description": { "type": "string" },
+          "helpText": { "type": "string" }
+        },
+        "required": ["label", "value"],
+        "additionalProperties": false
+      }
+    },
+    "secure": {
+      "title": "Secure options (when using optionsId)",
+      "description": "Whether to call the secure API endpoint when fetching options from the server (allows for user/instance-specific options)",
+      "default": false,
+      "type": "boolean"
+    },
+    "sortOrder": {
+      "description": "Sorts the code list in either ascending or descending order by label.",
+      "enum": ["asc", "desc"],
+      "type": "string"
+    },
+    "source": {
+      "title": "Option source",
+      "description": "Allows for fetching options from the data model, pointing to a repeating group structure",
+      "type": "object",
+      "properties": {
+        "dataType": {
+          "title": "Data type",
+          "description": "The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.",
+          "type": "string"
+        },
+        "group": {
+          "title": "Group",
+          "description": "The repeating group to base options on.",
+          "examples": ["model.some.group"],
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "description": "A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "value": {
+          "title": "Value",
+          "description": "Field in the group that should be used as value",
+          "examples": ["model.some.group[{0}].someField"],
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key", "My Description"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "helpText": {
+          "title": "Help Text",
+          "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key", "My Help Text"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "required": ["group", "label", "value"],
+      "additionalProperties": false
+    },
+    "optionFilter": {
+      "title": "Filter options (using an expression)",
+      "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "type": { "const": "Option" },
+    "textResourceBindings": {
+      "title": "TRBLabel",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
+    },
+    "value": { "$ref": "expression.schema.v1.json#/definitions/string" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
+  },
+  "required": ["id", "type", "value"],
+  "title": "Option component schema"
+}
