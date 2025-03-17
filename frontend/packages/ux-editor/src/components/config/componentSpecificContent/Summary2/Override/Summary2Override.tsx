@@ -1,18 +1,29 @@
 import { StudioButton } from '@studio/components';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type {
+  Summary2OverrideConfig,
+  Summary2TargetConfig,
+} from 'app-shared/types/ComponentSpecificConfig';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
 import { PlusIcon } from '@studio/icons';
+import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
+import { useAppContext, useComponentTitle } from '../../../../../hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
 
 export type Summary2OverrideProps = {
   overrides: Summary2OverrideConfig[];
+  target: Summary2TargetConfig;
   onChange: (overrides: Summary2OverrideConfig[]) => void;
 };
 
-export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps) => {
+export const Summary2Override = ({ overrides, target, onChange }: Summary2OverrideProps) => {
   const { t } = useTranslation();
   const [openOverrides, setOpenOverrides] = React.useState([]);
+
+  const componentOptions = useTargetComponentOptions(target);
 
   const addOverride = (): void => {
     const updatedOverrides = [...(overrides || [])];
@@ -53,6 +64,7 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
                   ? setOpenOverrides([...openOverrides, index])
                   : setOpenOverrides(openOverrides.filter((i) => i !== index))
               }
+              componentOptions={componentOptions}
               key={`${index}${override.componentId}`}
               override={override}
               onChange={onChangeOverride(index)}
@@ -66,4 +78,31 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
       </StudioButton>
     </>
   );
+};
+
+const useTargetComponentOptions = (target: Summary2TargetConfig): any[] => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const layoutSetName = getTargetLayoutSetName({
+    target,
+    layoutSets,
+    selectedFormLayoutSetName: useAppContext().selectedFormLayoutSetName,
+  });
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, layoutSetName);
+  const getComponentTitle = useComponentTitle();
+
+  if (!formLayoutsData) return [];
+  if (target?.type === 'page' && target.id) {
+    const formPage = formLayoutsData[target.id];
+    if (!formPage) return [];
+    return getComponentOptions({
+      formLayoutsData: [formPage],
+      getComponentTitle,
+    });
+  }
+  const components = getComponentOptions({ formLayoutsData, getComponentTitle });
+  if (target?.type === 'component') {
+    return components.filter(({ id }) => id === target.id);
+  }
+  return components;
 };

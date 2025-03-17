@@ -1,0 +1,10 @@
+.targetConfig {
+  padding: var(--fds-spacing-5);
+  background-color: var(--fds-semantic-background-subtle);
+  border-top: 2px solid var(--fds-semantic-border-divider-subtle);
+  border-bottom: 2px solid var(--fds-semantic-border-divider-subtle);
+}
+
+.targetConfig > * {
+  padding-bottom: var(--fds-spacing-2);
+}

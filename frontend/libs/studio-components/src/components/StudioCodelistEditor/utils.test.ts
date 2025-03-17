@@ -1,11 +1,21 @@
 import type { CodeList } from './types/CodeList';
 import {
-  addEmptyCodeListItem,
+  addNewCodeListItem,
   changeCodeListItem,
+  emptyBooleanItem,
+  emptyNumberItem,
+  emptyStringItem,
+  evaluateDefaultType,
+  getTypeOfLastValue,
+  isCodeLimitReached,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
+import { CodeListItemType } from './types/CodeListItemType';
+import { codeListWithoutTextResources as codeListWithStrings } from './test-data/codeListWithoutTextResources';
+import { codeListWithNumbers } from './test-data/codeListWithNumbers';
+import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 
 // Test data:
 const testCodeList: CodeList = [
@@ -23,23 +33,33 @@ const testCodeList: CodeList = [
 const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
-  describe('addEmptyCodeListItem', () => {
-    it('Adds an empty item to the code list', () => {
-      const codeList = createTestCodeList();
-      const updatedCodeList = addEmptyCodeListItem(codeList);
-      expect(updatedCodeList).toEqual([
-        ...codeList,
-        {
-          label: '',
-          value: '',
-        },
-      ]);
+  describe('addNewCodeListItem', () => {
+    it('Adds an empty string item when the code list consists of strings', () => {
+      const updatedCodeList = addNewCodeListItem(codeListWithStrings, CodeListItemType.String);
+      expect(updatedCodeList).toEqual([...codeListWithStrings, emptyStringItem]);
+    });
+
+    it('Adds an empty number item when valueType is number', () => {
+      const updatedCodeList = addNewCodeListItem(codeListWithNumbers, CodeListItemType.Number);
+      expect(updatedCodeList).toEqual([...codeListWithNumbers, emptyNumberItem]);
+    });
+
+    it('Adds an empty boolean item when valueType is boolean', () => {
+      const updatedCodeList = addNewCodeListItem(codeListWithBooleans, CodeListItemType.Boolean);
+      expect(updatedCodeList).toEqual([...codeListWithBooleans, emptyBooleanItem]);
     });
 
     it('Returns a new instance', () => {
       const codeList = createTestCodeList();
-      const updatedCodeList = addEmptyCodeListItem(codeList);
+      const updatedCodeList = addNewCodeListItem(codeList, CodeListItemType.String);
       expect(updatedCodeList).not.toBe(codeList);
+    });
+  });
+
+  describe('getTypeOfLastValue', () => {
+    it('should throw an error when the code list is empty', () => {
+      const emptyCodeList: CodeList = [];
+      expect(() => getTypeOfLastValue(emptyCodeList)).toThrow();
     });
   });
 
@@ -85,6 +105,43 @@ describe('StudioCodelistEditor utils', () => {
     it('Returns false when the code list is not empty', () => {
       const codeList = createTestCodeList();
       expect(isCodeListEmpty(codeList)).toBe(false);
+    });
+  });
+
+  describe('evaluateDefaultType', () => {
+    it('Returns "string" when the code list is empty', () => {
+      expect(evaluateDefaultType([])).toBe(CodeListItemType.String);
+    });
+
+    it('Returns "string" when the code list consists of strings', () => {
+      expect(evaluateDefaultType(codeListWithStrings)).toBe(CodeListItemType.String);
+    });
+
+    it('Returns "number" when the code list consists of numbers', () => {
+      expect(evaluateDefaultType(codeListWithNumbers)).toBe(CodeListItemType.Number);
+    });
+
+    it('Returns "boolean" when the code list consists of booleans', () => {
+      expect(evaluateDefaultType(codeListWithBooleans)).toBe(CodeListItemType.Boolean);
+    });
+  });
+
+  describe('isCodeLimitReached', () => {
+    it('Returns true when codeType is boolean and codeList has two elements', () => {
+      expect(isCodeLimitReached(codeListWithBooleans, CodeListItemType.Boolean)).toBe(true);
+    });
+
+    it('Returns false when codeType is boolean and codeList has less than two elements', () => {
+      const codeListWithSingleBoolean = [{ value: true, label: 'test' }];
+      expect(isCodeLimitReached(codeListWithSingleBoolean, CodeListItemType.Boolean)).toBe(false);
+    });
+
+    it('Returns false when codeType is string', () => {
+      expect(isCodeLimitReached(codeListWithStrings, CodeListItemType.String)).toBe(false);
+    });
+
+    it('Returns false when codeType is number', () => {
+      expect(isCodeLimitReached(codeListWithNumbers, CodeListItemType.Number)).toBe(false);
     });
   });
 });

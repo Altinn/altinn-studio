@@ -1,5 +1,5 @@
 import type { CellTextResourceInputProps } from '../Cell/CellTextResource';
-import type { TextResourceInputTexts } from '../../StudioTextResourceInput/types/TextResourceInputTexts';
+import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
 export const headerCheckboxLabel = 'Select all';
@@ -35,9 +35,10 @@ export const textResourceProps = (rowNumber: number): CellTextResourceInputProps
 
 export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => ({
   editValue: textResourceEditLabel(rowNumber),
-  emptyResourceList: 'Fant ingen tekstressurser',
+  emptyTextResourceList: 'No text resources available',
   idLabel: 'ID:',
   search: textResourceSearchLabel(rowNumber),
   textResourcePickerLabel: textResourcePickerLabel(rowNumber),
+  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: textResourceValueLabel(rowNumber),
 });

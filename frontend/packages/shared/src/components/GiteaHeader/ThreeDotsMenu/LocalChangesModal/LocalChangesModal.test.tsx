@@ -1,21 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { LocalChangesModal } from './LocalChangesModal';
-
-// Test data:
-const org = 'org';
-const app = 'app';
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
+import { renderWithProviders } from '../../mocks/renderWithProviders';
+import { app } from '@studio/testing/testids';
 
 describe('LocalChanges', () => {
   afterEach(jest.clearAllMocks);
@@ -51,12 +40,7 @@ describe('LocalChanges', () => {
   });
 });
 
-const renderLocalChangesModal = () =>
-  render(
-    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-      <LocalChangesModal />
-    </ServicesContextProvider>,
-  );
+const renderLocalChangesModal = () => renderWithProviders()(<LocalChangesModal />);
 
 const queryDialog = () => screen.queryByRole('dialog');
 const getAllDialogs = () => screen.getAllByRole('dialog');

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
-using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
@@ -42,8 +42,10 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                 {
                     bool hasChanges = false;
                     string[] layoutNames = repository.GetLayoutNames(notification.LayoutSetName);
-                    foreach (var layoutName in layoutNames)
+                    foreach (var layoutFileName in layoutNames)
                     {
+
+                        string layoutName = layoutFileName.Replace(".json", "");
                         var layout = await repository.GetLayout(notification.LayoutSetName, layoutName, cancellationToken);
                         if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
                         {

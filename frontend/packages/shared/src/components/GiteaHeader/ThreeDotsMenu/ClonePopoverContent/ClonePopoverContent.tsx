@@ -5,22 +5,18 @@ import classes from './ClonePopoverContent.module.css';
 import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
-export type ClonePopoverContentProps = {
-  onClose: () => void;
-};
-
-export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: dataModel = [] } = useDataModelsXsdQuery(org, app);
+export const ClonePopoverContent = () => {
+  const { owner, repoName } = useGiteaHeaderContext();
+  const { data: dataModel = [] } = useDataModelsXsdQuery(owner, repoName);
   const { t } = useTranslation();
-  const packagesRouter = new PackagesRouter({ app, org });
+  const packagesRouter = new PackagesRouter({ app: repoName, org: owner });
 
-  const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
+  const gitUrl = window.location.origin.toString() + repositoryGitPath(owner, repoName);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = navigator.clipboard ? true : false;
 
@@ -58,7 +54,7 @@ export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
           </Paragraph>
         </>
       )}
-      <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} size='small' />
+      <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} />
       {canCopy && (
         <div className={classes.buttonWrapper}>
           <StudioButton fullWidth onClick={copyGitUrl} className={classes.button}>

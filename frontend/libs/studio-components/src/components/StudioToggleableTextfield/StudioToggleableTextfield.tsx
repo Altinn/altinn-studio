@@ -1,33 +1,37 @@
 import React, { forwardRef, useEffect, useState } from 'react';
-import {
-  StudioTextfieldToggleView,
-  type StudioTextfieldToggleViewProps,
-} from './StudioTextfieldToggleView';
-
 import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
+import { StudioProperty } from '../StudioProperty';
+import { KeyHorizontalIcon } from '@studio/icons';
+import classes from './StudioToggleableTextfield.module.css';
+import type { Override } from '../../types/Override';
 
-export type StudioToggleableTextfieldProps = {
-  customValidation?: (value: string) => string | undefined;
-  inputProps: StudioIconTextfieldProps;
-  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
-  onIsViewMode?: (isViewMode: boolean) => void;
-  setViewModeByDefault?: boolean;
-  autoFocus?: boolean;
-};
+export type StudioToggleableTextfieldProps = Override<
+  {
+    customValidation?: (value: string) => string | undefined;
+    onIsViewMode?: (isViewMode: boolean) => void;
+  },
+  StudioIconTextfieldProps
+>;
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
   (
     {
-      inputProps,
-      viewProps,
+      error,
       customValidation,
+      icon = <KeyHorizontalIcon />,
+      label,
+      onBlur,
+      onChange,
+      onClick,
       onIsViewMode,
-      setViewModeByDefault = true,
-      autoFocus = true,
+      title,
+      value,
+      defaultValue,
+      ...rest
     }: StudioToggleableTextfieldProps,
     ref,
-  ) => {
-    const [isViewMode, setIsViewMode] = useState(setViewModeByDefault);
+  ): React.ReactElement => {
+    const [isViewMode, setIsViewMode] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
     useEffect(() => {
@@ -49,14 +53,14 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
       return false;
     };
 
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
+    const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
       // Should not close the view mode or blur if there is an error
-      if (errorMessage || inputProps.error) {
+      if (errorMessage || error) {
         return;
       }
 
       toggleViewMode();
-      inputProps.onBlur?.(event);
+      onBlur?.(event);
     };
 
     const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,19 +68,34 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
         runCustomValidation(event);
       }
 
-      inputProps.onChange?.(event);
+      onChange?.(event);
     };
 
-    if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
+    if (isViewMode)
+      return (
+        <StudioProperty.Button
+          icon={icon}
+          property={label}
+          onClick={toggleViewMode}
+          title={title}
+          value={value ?? defaultValue}
+          className={classes.propertyButton}
+        />
+      );
 
     return (
       <StudioIconTextfield
-        {...inputProps}
-        ref={ref}
-        onBlur={handleBlur}
+        autoFocus
+        error={error || errorMessage}
+        icon={icon}
+        label={label}
+        onBlur={handleOnBlur}
         onChange={handleOnChange}
-        error={inputProps.error || errorMessage}
-        autoFocus={autoFocus}
+        ref={ref}
+        title={title}
+        value={value}
+        defaultValue={defaultValue}
+        {...rest}
       />
     );
   },

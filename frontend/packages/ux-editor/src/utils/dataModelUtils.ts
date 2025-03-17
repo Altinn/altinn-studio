@@ -1,6 +1,6 @@
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '../types/FormItem';
+import type { ExplicitDataModelBinding, IDataModelBindings } from '../types/global';
 
 export const getMinOccursFromDataModelFields = (
   dataBindingName: string,
@@ -97,30 +97,20 @@ export const getDataModelFields = ({
   return filterDataModelFields(filter, dataModelMetadata);
 };
 
-export type InternalBindingFormat = {
-  field: string | undefined;
-  dataType: string | undefined;
-};
+const isExplicitDataModelBinding = (
+  binding?: IDataModelBindings,
+): binding is ExplicitDataModelBinding | undefined =>
+  typeof binding === 'object' && 'dataType' in binding && 'field' in binding;
 
 export const convertDataBindingToInternalFormat = (
-  component: FormItem,
-  bindingKey: string,
-): InternalBindingFormat => {
-  const dataModelBinding =
-    component?.dataModelBindings && bindingKey in component.dataModelBindings
-      ? component.dataModelBindings[bindingKey]
-      : undefined;
+  binding?: IDataModelBindings,
+): ExplicitDataModelBinding => {
+  if (isExplicitDataModelBinding(binding)) return binding;
 
-  const isOldFormatOrNotSet =
-    typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
-
-  if (isOldFormatOrNotSet) {
-    return {
-      field: dataModelBinding,
-      dataType: '',
-    };
-  }
-  return dataModelBinding;
+  return {
+    field: binding || '',
+    dataType: '',
+  };
 };
 
 export const validateSelectedDataModel = (

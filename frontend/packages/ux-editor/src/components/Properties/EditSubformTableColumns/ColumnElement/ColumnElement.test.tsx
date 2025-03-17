@@ -2,20 +2,24 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from 'dashboard/testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
-import { type TableColumn } from '../types/TableColumn';
+import type { TableColumn } from '../types/TableColumn';
 import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
 const cellContentDefaultMock: string = 'Default';
 const columnNumberMock: number = 1;
+const addressDataField = convertDataBindingToInternalFormat(
+  subformLayoutMock.component4.dataModelBindings['address'],
+).field;
 
 const mockTableColumn: TableColumn = {
   headerContent: headerContentMock,
@@ -30,21 +34,25 @@ const defaultProps: ColumnElementProps = {
   columnNumber: columnNumberMock,
   isInitialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
-  onEdit: jest.fn(),
+  onChange: jest.fn(),
   subformLayout: layoutSet3SubformNameMock,
 };
 
 describe('ColumnElement', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should call onEdit with updated header content when click on save button', async () => {
-    const onEditMock = jest.fn();
+  it('should call onChange with component values when selecting component', async () => {
+    const onChangeMock = jest.fn();
 
     const user = userEvent.setup();
     renderColumnElement({
-      onEdit: onEditMock,
+      onChange: onChangeMock,
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: addressDataField },
+      },
     });
 
     const editButton = screen.getByRole('button', {
@@ -58,29 +66,18 @@ describe('ColumnElement', () => {
 
     await user.click(componentSelect);
     await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
-    );
-
-    await user.click(
-      await screen.findByText(
-        textMock('ux_editor.properties_panel.subform_table_columns.column_title_unedit'),
-      ),
-    );
-    await user.type(
-      screen.getByText(
-        textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
-      ),
-      'New Title',
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
-    expect(onEditMock).toHaveBeenCalledTimes(1);
-    expect(onEditMock).toHaveBeenCalledWith({
+    expect(onChangeMock).toHaveBeenCalledWith({
       ...mockTableColumn,
-      headerContent: expect.stringContaining('subform_table_column_title_'),
-      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
+      cellContent: {
+        query: subformLayoutMock.component4.dataModelBindings.address,
+      },
+      headerContent: subformLayoutMock.component4.textResourceBindings.title,
     });
   });
 
@@ -127,6 +124,7 @@ const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
     [QueryKey.FormLayouts, org, app, layoutSet3SubformNameMock],
     subformLayoutMock.layoutSet,
   );
+
   return renderWithProviders(<ColumnElement {...defaultProps} {...props} />, {
     ...queriesMock,
     queryClient,

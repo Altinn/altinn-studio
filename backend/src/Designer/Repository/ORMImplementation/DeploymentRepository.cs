@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.EntityFrameworkCore;
+using Guard = Altinn.Studio.Designer.Helpers.Guard;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
@@ -45,6 +46,35 @@ public class DeploymentRepository : IDeploymentRepository
     {
         var dbObject = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking().SingleAsync(d => d.Org == org && d.Buildid == buildId);
         return DeploymentMapper.MapToModel(dbObject);
+    }
+
+    public async Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment)
+    {
+        var dbObject = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking()
+            .Where(d => d.Org == org && d.App == app && d.EnvName == environment)
+            .OrderByDescending(d => d.Created)
+            .FirstAsync();
+
+        return DeploymentMapper.MapToModel(dbObject);
+    }
+
+    public async Task<IEnumerable<DeploymentEntity>> GetSucceeded(string org, string app, string environment, DocumentQueryModel query)
+    {
+        Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
+        Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
+        Guard.AssertArgumentNotNullOrWhiteSpace(app, nameof(app));
+
+        var deploymentsQuery = _dbContext.Deployments.Include(d => d.Build).AsNoTracking().Where(x => x.Org == org && x.App == app && x.EnvName == environment && x.Build.Result.ToLower() == "succeeded");
+
+        deploymentsQuery = query.SortDirection == SortDirection.Descending
+            ? deploymentsQuery.OrderByDescending(d => d.Created)
+            : deploymentsQuery.OrderBy(d => d.Created);
+
+        deploymentsQuery = deploymentsQuery.Take(query.Top ?? int.MaxValue);
+
+        var dbObjects = await deploymentsQuery.ToListAsync();
+        return DeploymentMapper.MapToModels(dbObjects);
+
     }
 
     public async Task Update(DeploymentEntity deploymentEntity)

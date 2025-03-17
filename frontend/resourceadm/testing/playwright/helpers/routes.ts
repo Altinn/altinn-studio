@@ -4,7 +4,7 @@ type RouterRoutes = Record<SupportedRoute, string>;
 
 export const Routes: RouterRoutes = {
   altinnLoginPage: '/',
-  dashboard: '/dashboard/self',
+  dashboard: '/dashboard/app-dashboard/self',
   resourceDashboard: '/resourceadm/{{org}}/{{repo}}',
   resourcePage: '/resourceadm/{{org}}/{{repo}}/resource/{{resourceId}}/about',
 };

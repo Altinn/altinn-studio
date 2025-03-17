@@ -13,7 +13,7 @@ import type { Override } from '../../types/Override';
 export type StudioDecimalInputProps = Override<
   {
     description?: string;
-    onChange: (value: number) => void;
+    onChange: (value: number | null) => void;
     value?: number;
     validationErrorMessage?: string;
   },
@@ -51,7 +51,7 @@ export const StudioDecimalInput = forwardRef(
         description={description}
         value={inputValue}
         onChange={handleInputChange}
-        errorAfterBlur={errorMessage}
+        error={errorMessage}
         inputMode='decimal'
         ref={ref}
         {...rest}

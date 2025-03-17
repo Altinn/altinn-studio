@@ -2,7 +2,7 @@ import { test } from '../../extenders/testExtend';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { BpmnJSQuery } from '@studio/testing/playwright/helpers/BpmnJSQuery';
 import { expect, type Page } from '@playwright/test';
-import { Header } from '@studio/testing/playwright/components/Header';
+import { AppDevelopmentHeader } from '@studio/testing/playwright/components/AppDevelopmentHeader';
 import { DesignerApi } from '@studio/testing/playwright/helpers/DesignerApi';
 import type { StorageState } from '@studio/testing/playwright/types/StorageState';
 import { Gitea } from '@studio/testing/playwright/helpers/Gitea';
@@ -90,14 +90,14 @@ const setupProcessEditorActionConfigPanel = async (
 };
 
 const commitAndPushToGitea = async (page: Page, testAppName: string): Promise<void> => {
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
 };
 
 const goToProcessFileInGitea = async (page: Page, testAppName: string) => {
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnThreeDotsMenu();

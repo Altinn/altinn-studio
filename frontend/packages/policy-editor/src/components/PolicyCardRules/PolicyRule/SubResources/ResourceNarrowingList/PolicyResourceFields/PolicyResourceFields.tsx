@@ -69,7 +69,6 @@ export const PolicyResourceFields = ({
           )}
           <StudioTextfield
             value={resource.type}
-            size='small'
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               handleInputChange('type', event.target.value)
             }
@@ -86,7 +85,6 @@ export const PolicyResourceFields = ({
           )}
           <StudioTextfield
             value={resource.id}
-            size='small'
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               handleInputChange('id', event.target.value)
             }

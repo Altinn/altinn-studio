@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
@@ -16,8 +16,10 @@ import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
-import { StudioProperty } from '@studio/components';
+import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { SelectPropertyEditor } from './SelectPropertyEditor/SelectPropertyEditor';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -41,6 +43,28 @@ export const FormComponentConfig = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+
+  const selectedDataType = useComponentPropertyEnumValue();
+
+  const memoizedGetSelectedValuesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      if (!component[propertyKey] || component[propertyKey].length === 0) return undefined;
+      return component[propertyKey].map((dataType: string) => (
+        <div key={dataType}>{selectedDataType(dataType)}</div>
+      ));
+    },
+    [component, selectedDataType],
+  );
+
+  const memoizedSelectedStringPropertiesDisplay = useMemo(
+    () => (propertyKey: string) => {
+      const value = component[propertyKey];
+      if (Array.isArray(value)) return value.map((dataType) => selectedDataType(dataType));
+      return value ? selectedDataType(value) : undefined;
+    },
+    [component, selectedDataType],
+  );
 
   if (!schema?.properties) return null;
 
@@ -115,24 +139,12 @@ export const FormComponentConfig = ({
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
-      {grid && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.grid')}
-          </Heading>
-          <EditGrid
-            key={component.id}
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-          />
-        </>
-      )}
+
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
-
       {/** Boolean fields, incl. expression type */}
       {defaultDisplayedBooleanKeys.map((propertyKey) => (
         <EditBooleanValue
@@ -143,24 +155,6 @@ export const FormComponentConfig = ({
           key={propertyKey}
         />
       ))}
-      {showOtherComponents &&
-        restOfBooleanKeys.map((propertyKey) => (
-          <EditBooleanValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            defaultValue={properties[propertyKey].default}
-            key={propertyKey}
-          />
-        ))}
-      {restOfBooleanKeys.length > 0 && (
-        <StudioProperty.Button
-          className={classes.button}
-          icon={renderIcon}
-          onClick={() => setShowOtherComponents((prev) => !prev)}
-          property={rendertext}
-        />
-      )}
 
       {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
@@ -190,47 +184,129 @@ export const FormComponentConfig = ({
         </>
       )}
 
-      {/** String properties */}
-      {stringPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
+      {showOtherComponents &&
+        restOfBooleanKeys.map((propertyKey) => (
+          <EditBooleanValue
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
+            defaultValue={properties[propertyKey].default}
             key={propertyKey}
-            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
+        ))}
+
+      {restOfBooleanKeys.length > 0 && (
+        <StudioProperty.Button
+          className={classes.button}
+          icon={renderIcon}
+          onClick={() => setShowOtherComponents((prev) => !prev)}
+          property={rendertext}
+        />
+      )}
+
+      {grid && (
+        <>
+          {showGrid ? (
+            <StudioCard>
+              <StudioCard.Header className={classes.gridHeader}>
+                <div className={classes.flexContainer}>
+                  <Heading size='xs' className={classes.heading}>
+                    {t('ux_editor.component_properties.grid')}
+                  </Heading>
+                  <StudioButton
+                    icon={<XMarkIcon />}
+                    onClick={() => setShowGrid(false)}
+                    title={t('general.close')}
+                    variant='secondary'
+                    className={classes.button}
+                  />
+                </div>
+              </StudioCard.Header>
+              <StudioCard.Content>
+                <EditGrid
+                  key={component.id}
+                  component={component}
+                  handleComponentChange={handleComponentUpdate}
+                />
+              </StudioCard.Content>
+            </StudioCard>
+          ) : (
+            <StudioProperty.Button
+              className={classes.gridButton}
+              icon={<PlusCircleIcon />}
+              onClick={() => setShowGrid(true)}
+              property={t('ux_editor.component_properties.grid')}
+            />
+          )}
+        </>
+      )}
+
+      {/** String properties */}
+      {stringPropertyKeys.map((propertyKey) => {
+        return (
+          <SelectPropertyEditor
+            key={propertyKey}
+            property={componentPropertyLabel(propertyKey)}
+            title={componentPropertyLabel(propertyKey)}
+            value={memoizedSelectedStringPropertiesDisplay(propertyKey)}
+          >
+            <EditStringValue
+              key={propertyKey}
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+            />
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
         return (
-          <EditNumberValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
+          <SelectPropertyEditor
             key={propertyKey}
-            enumValues={properties[propertyKey]?.enum}
-          />
+            property={componentPropertyLabel(
+              `${propertyKey}${propertyKey === 'preselectedOptionIndex' ? '_button' : ''}`,
+            )}
+            title={componentPropertyLabel(propertyKey)}
+            value={component[propertyKey]}
+          >
+            <EditNumberValue
+              component={component}
+              handleComponentChange={handleComponentUpdate}
+              propertyKey={propertyKey}
+              key={propertyKey}
+              enumValues={properties[propertyKey]?.enum}
+            />
+          </SelectPropertyEditor>
         );
       })}
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
         return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
+          <SelectPropertyEditor
             key={propertyKey}
-            enumValues={properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
+            property={componentPropertyLabel(propertyKey)}
+            title={componentPropertyLabel(propertyKey)}
+            value={memoizedGetSelectedValuesDisplay(propertyKey)}
+          >
+            <EditStringValue
+              component={component}
+              handleComponentChange={(updatedComponent) => {
+                handleComponentUpdate(updatedComponent);
+              }}
+              propertyKey={propertyKey}
+              key={propertyKey}
+              enumValues={properties[propertyKey]?.items?.enum}
+              multiple={true}
+            />
+          </SelectPropertyEditor>
         );
       })}
 
-      {/** Object properties */}
+      {/** Object properties  */}
       {objectPropertyKeys.map((propertyKey) => {
         return (
           <Card key={propertyKey} className={classes.objectPropertyContainer}>

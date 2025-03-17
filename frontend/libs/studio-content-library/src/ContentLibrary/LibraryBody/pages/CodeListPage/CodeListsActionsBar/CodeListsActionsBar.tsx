@@ -1,4 +1,5 @@
 import React from 'react';
+import type { TextResource } from '@studio/components';
 import { StudioFileUploader, StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
@@ -10,17 +11,21 @@ import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNam
 import { toast } from 'react-toastify';
 
 export type CodeListsActionsBarProps = {
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
+  textResources?: TextResource[];
 };
 
 export function CodeListsActionsBar({
+  onBlurTextResource,
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
   onSetSearchString,
+  textResources,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
@@ -49,7 +54,12 @@ export function CodeListsActionsBar({
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
         onClear={handleClearSearch}
       />
-      <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
+      <CreateNewCodeListModal
+        codeListNames={codeListNames}
+        onBlurTextResource={onBlurTextResource}
+        onUpdateCodeList={onUpdateCodeList}
+        textResources={textResources}
+      />
       <StudioFileUploader
         accept='.json'
         size='small'
