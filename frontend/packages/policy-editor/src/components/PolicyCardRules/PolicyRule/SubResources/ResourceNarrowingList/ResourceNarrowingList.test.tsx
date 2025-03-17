@@ -27,8 +27,14 @@ const defaultProps: ResourceNarrowingListProps = {
 describe('ResourceNarrowingList', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the list of resources', () => {
+  it('renders the list of resources', async () => {
     renderResourceNarrowingList();
+
+    const user = userEvent.setup();
+    const toggleListButton = screen.getByRole('button', {
+      name: `id1 - id2 ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+    await user.click(toggleListButton);
 
     const removeButtons = screen.getAllByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -61,6 +67,11 @@ describe('ResourceNarrowingList', () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
+    const toggleListButton = screen.getByRole('button', {
+      name: `id1 - id2 ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+    await user.click(toggleListButton);
+
     const [deleteResourceButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
     });
@@ -74,6 +85,11 @@ describe('ResourceNarrowingList', () => {
   it('calls "setPolicyRules" and "savePolicy" when add button is clicked', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
+
+    const toggleListButton = screen.getByRole('button', {
+      name: `id1 - id2 ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+    await user.click(toggleListButton);
 
     const addResourceButton = screen.getByRole('button', {
       name: textMock('policy_editor.narrowing_list_add_button'),
@@ -124,6 +140,11 @@ describe('ResourceNarrowingList', () => {
   it('calls "savePolicy" when a textfield is left', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
+
+    const toggleListButton = screen.getByRole('button', {
+      name: `id1 - id2 ${textMock('policy_editor.expandable_card_open_icon')}`,
+    });
+    await user.click(toggleListButton);
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),

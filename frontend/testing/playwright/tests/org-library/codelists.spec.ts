@@ -50,9 +50,20 @@ const setupAndVerifyCodeListPage = async (
 test('that it is possible to create a new codelist', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
+  const codeListTitleAlreadyExists: boolean =
+    await orgLibraryPage.codeLists.codeListTitleExists(CODELIST_TITLE_MANUALLY);
+
+  // If for some reason the code list was not deleted in the tests in staging, we delete it before testing the creation.
+  // This situation might happen if a test is cancelled right after the creation of the code list.
+  if (codeListTitleAlreadyExists) {
+    await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_MANUALLY);
+    await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+  }
+
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
   await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
+
   await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
 
   await orgLibraryPage.codeLists.verifyNewItemValueFieldIsVisible(
@@ -110,6 +121,16 @@ test('that it is possible to add a new row to an existing codelist and modify th
 test('that it is possible to upload a new codelist', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
+  const codeListTitleAlreadyExists: boolean =
+    await orgLibraryPage.codeLists.codeListTitleExists(CODELIST_TITLE_UPLOADED);
+
+  // If for some reason the code list was not deleted in the tests in staging, we delete it before testing the creation.
+  // This situation might happen if a test is cancelled right after the creation of the code list.
+  if (codeListTitleAlreadyExists) {
+    await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_UPLOADED);
+    await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  }
+
   const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_UPLOADED);
@@ -152,18 +173,18 @@ test('that it is possible to search for and delete the new codelists', async ({
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
   await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
-  await deleteAndVerifyDeletionOfCodeList(
-    orgLibraryPage,
-    CODELIST_TITLE_MANUALLY,
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
     EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW,
+    CODELIST_TITLE_MANUALLY,
   );
+  await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
 
   await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
-  await deleteAndVerifyDeletionOfCodeList(
-    orgLibraryPage,
-    CODELIST_TITLE_UPLOADED,
+  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
     EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE,
+    CODELIST_TITLE_UPLOADED,
   );
+  await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
 });
 
 const searchForAndOpenCodeList = async (
@@ -178,12 +199,7 @@ const searchForAndOpenCodeList = async (
 const deleteAndVerifyDeletionOfCodeList = async (
   orgLibraryPage: OrgLibraryPage,
   codelistTitle: string,
-  expectedNumberOfRowsInCodeList: number,
 ): Promise<void> => {
-  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
-    expectedNumberOfRowsInCodeList,
-    codelistTitle,
-  );
   await orgLibraryPage.codeLists.listenToAndWaitForConfirmDeleteCodeList(codelistTitle);
   await orgLibraryPage.codeLists.clickOnDeleteCodelistButton();
   await orgLibraryPage.codeLists.verifyThatCodeListIsNotVisible(codelistTitle);

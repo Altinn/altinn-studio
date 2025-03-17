@@ -92,9 +92,17 @@ describe('StudioCodeListEditor', () => {
     expect(screen.getByRole('columnheader', { name: texts.delete })).toBeInTheDocument();
   });
 
-  it('Renders a button to add a new code list item', () => {
-    renderCodeListEditor();
-    expect(screen.getByRole('button', { name: texts.add })).toBeInTheDocument();
+  describe('Add button', () => {
+    it('Renders a button to add a new code list item', () => {
+      renderCodeListEditor();
+      expect(screen.getByRole('button', { name: texts.add })).toBeInTheDocument();
+    });
+
+    it('Disables add button when a code list has two or more boolean items', () => {
+      renderCodeListEditor({ codeList: codeListWithBooleans });
+      expect(screen.getByTitle(texts.disabledAddButtonTooltip)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: texts.add })).toBeDisabled();
+    });
   });
 
   it('Does not display the unset option for labels', async () => {

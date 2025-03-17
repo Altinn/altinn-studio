@@ -7,6 +7,7 @@ import {
   emptyStringItem,
   evaluateDefaultType,
   getTypeOfLastValue,
+  isCodeLimitReached,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -122,6 +123,25 @@ describe('StudioCodelistEditor utils', () => {
 
     it('Returns "boolean" when the code list consists of booleans', () => {
       expect(evaluateDefaultType(codeListWithBooleans)).toBe(CodeListItemType.Boolean);
+    });
+  });
+
+  describe('isCodeLimitReached', () => {
+    it('Returns true when codeType is boolean and codeList has two elements', () => {
+      expect(isCodeLimitReached(codeListWithBooleans, CodeListItemType.Boolean)).toBe(true);
+    });
+
+    it('Returns false when codeType is boolean and codeList has less than two elements', () => {
+      const codeListWithSingleBoolean = [{ value: true, label: 'test' }];
+      expect(isCodeLimitReached(codeListWithSingleBoolean, CodeListItemType.Boolean)).toBe(false);
+    });
+
+    it('Returns false when codeType is string', () => {
+      expect(isCodeLimitReached(codeListWithStrings, CodeListItemType.String)).toBe(false);
+    });
+
+    it('Returns false when codeType is number', () => {
+      expect(isCodeLimitReached(codeListWithNumbers, CodeListItemType.Number)).toBe(false);
     });
   });
 });
