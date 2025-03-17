@@ -35,6 +35,19 @@ const defaultProps: PolicyEditorProps = {
 describe('PolicyEditor', () => {
   afterEach(jest.clearAllMocks);
 
+  it('renders tabs view when usage type is app', () => {
+    renderPolicyEditor();
+    expect(screen.getByText(textMock('policy_editor.rules_summary'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.rules_edit'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.summary_heading'))).toBeInTheDocument();
+  });
+
+  it('renders rules view when usage type is resource', () => {
+    renderPolicyEditor({ usageType: 'resource' });
+    expect(screen.queryByText(textMock('policy_editor.rules_summary'))).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.card_button_text'))).toBeInTheDocument();
+  });
+
   it('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
     renderPolicyEditor();
@@ -75,6 +88,9 @@ describe('PolicyEditor', () => {
     const user = userEvent.setup();
     renderPolicyEditor();
 
+    const rulesTab = screen.getByRole('tab', { name: textMock('policy_editor.rules_edit') });
+    await user.click(rulesTab);
+
     const originalLength = mockPolicy.rules.length;
 
     const addButton = screen.getByRole('button', {
@@ -83,11 +99,11 @@ describe('PolicyEditor', () => {
 
     await user.click(addButton);
 
-    const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
+    const ruleContextMenuButtons = screen.getAllByRole('button', {
+      name: textMock('policy_editor.more'),
+    });
 
-    expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);
+    expect(ruleContextMenuButtons.length).toEqual(originalLength + 1);
   });
 });
 

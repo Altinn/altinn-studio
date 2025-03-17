@@ -221,4 +221,19 @@ export class ArrayUtils {
   static hasSingleType = (array: unknown[]): boolean => {
     return ArrayUtils.extractUniqueTypes(array).length === 1;
   };
+
+  public static extractKeyValuePairs<
+    O extends Record<string | number | symbol, any>,
+    K extends keyof O,
+    V extends keyof O,
+  >(array: O[], keyProperty: K, valueProperty: V): Record<O[K], O[V]> {
+    return array.reduce(
+      (acc: Record<O[K], O[V]>, item: O) => {
+        const key = item[keyProperty];
+        acc[key] = item[valueProperty];
+        return acc;
+      },
+      {} as Record<O[K], O[V]>,
+    );
+  }
 }

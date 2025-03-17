@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import classes from './GiteaHeader.module.css';
 import { VersionControlButtons } from './VersionControlButtons';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
+import { GiteaHeaderContext } from './context/GiteaHeaderContext';
 
 type GiteaHeaderProps = {
   menuOnlyHasRepository?: boolean;
@@ -11,25 +12,10 @@ type GiteaHeaderProps = {
   leftComponent?: ReactNode;
   hasRepoError?: boolean;
   onPullSuccess?: () => void;
+  owner: string;
+  repoName: string;
 };
 
-/**
- * @component
- * @example
- *    <GiteaHeader
- *        menuOnlyHasRepository
- *        extraPadding
- *        rightContentClassName={classes.someExtraStyle}
- *    />
- *
- * @property {boolean}[menuOnlyHasRepository] - Flag for if the three dots menu only should show the repository option. This is relevant for resourceadm
- * @property {boolean}[hasCloneModal] - Flag for if the component has a clone modal. This is relevant for app-development
- * @property {string}[rightContentClassName] - Classname for some extra styling for the right content
- * @property {ReactNode}[leftComponent] - Component to be shown on the left
- * @property {boolean}[hasRepoError] - If the repository has an error
- *
- * @returns {React.ReactNode} - The rendered Gitea header component
- */
 export const GiteaHeader = ({
   menuOnlyHasRepository = false,
   hasCloneModal = false,
@@ -37,14 +23,18 @@ export const GiteaHeader = ({
   leftComponent,
   hasRepoError,
   onPullSuccess,
-}: GiteaHeaderProps): React.ReactNode => {
+  owner,
+  repoName,
+}: GiteaHeaderProps): ReactElement => {
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.leftContentWrapper}>{leftComponent}</div>
-      <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
-        {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
-        <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
+    <GiteaHeaderContext.Provider value={{ owner, repoName }}>
+      <div className={classes.wrapper}>
+        <div className={classes.leftContentWrapper}>{leftComponent}</div>
+        <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
+          {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
+          <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
+        </div>
       </div>
-    </div>
+    </GiteaHeaderContext.Provider>
   );
 };

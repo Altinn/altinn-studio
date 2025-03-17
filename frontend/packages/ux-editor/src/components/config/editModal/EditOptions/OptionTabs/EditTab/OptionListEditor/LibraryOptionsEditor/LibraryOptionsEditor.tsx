@@ -13,7 +13,7 @@ import { useOptionListQuery } from 'app-shared/hooks/queries';
 import classes from './LibraryOptionsEditor.module.css';
 import type { OptionList } from 'app-shared/types/OptionList';
 
-type LibraryOptionsEditorProps = {
+export type LibraryOptionsEditorProps = {
   handleDelete: () => void;
   optionListId: string;
 };
