@@ -28,6 +28,11 @@
         }
       },
       {
+        "id": "custom-signee-list",
+        "type": "Custom",
+        "tagName": "custom-signee-list"
+      },
+      {
         "id": "signing-state",
         "type": "SigningStatusPanel"
       }
