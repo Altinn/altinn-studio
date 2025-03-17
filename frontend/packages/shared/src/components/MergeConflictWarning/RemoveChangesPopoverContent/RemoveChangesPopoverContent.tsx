@@ -4,22 +4,24 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 
 export type RemoveChangesPopoverContentProps = {
   onClose: () => void;
+  owner: string;
+  repoName: string;
 };
 
 export const RemoveChangesPopoverContent = ({
   onClose,
+  owner,
+  repoName,
 }: RemoveChangesPopoverContentProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
 
   const queryClient = useQueryClient();
-  const repoResetMutation = useResetRepositoryMutation(org, app);
+  const repoResetMutation = useResetRepositoryMutation(owner, repoName);
 
   const [canDelete, setCanDelete] = useState<boolean>(false);
 
@@ -47,7 +49,7 @@ export const RemoveChangesPopoverContent = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const name: string = event.target.value;
-    setCanDelete(name === app);
+    setCanDelete(name === repoName);
   };
 
   return (
@@ -58,7 +60,7 @@ export const RemoveChangesPopoverContent = ({
       <Paragraph size='small' spacing>
         <Trans
           i18nKey={'overview.reset_repo_confirm_info'}
-          values={{ repositoryName: app }}
+          values={{ repositoryName: repoName }}
           components={{ bold: <strong /> }}
         />
       </Paragraph>

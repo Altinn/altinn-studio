@@ -5,11 +5,14 @@ import { StudioPopover } from '@studio/components';
 import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
 import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const MergeConflictWarning = () => {
+export type MergeConflictWarningProps = {
+  owner: string;
+  repoName: string;
+};
+
+export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningProps) => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
 
   const [resetRepoPopoverOpen, setResetRepoPopoverOpen] = useState<boolean>(false);
 
@@ -26,10 +29,10 @@ export const MergeConflictWarning = () => {
           ikke fungerer, kan du laste ned en zip-fil med endringene dine.
         </Trans>
       </Paragraph>
-      <Link className={classes.link} href={repoDownloadPath(org, app)}>
+      <Link className={classes.link} href={repoDownloadPath(owner, repoName)}>
         {t('overview.download_repo_changes')}
       </Link>
-      <Link className={classes.link} href={repoDownloadPath(org, app, true)}>
+      <Link className={classes.link} href={repoDownloadPath(owner, repoName, true)}>
         {t('overview.download_repo_full')}
       </Link>
       <Paragraph size='small' spacing>
@@ -43,7 +46,11 @@ export const MergeConflictWarning = () => {
             {t('merge_conflict.remove_my_changes')}
           </StudioPopover.Trigger>
           <StudioPopover.Content>
-            <RemoveChangesPopoverContent onClose={toggleResetModal} />
+            <RemoveChangesPopoverContent
+              onClose={toggleResetModal}
+              owner={owner}
+              repoName={repoName}
+            />
           </StudioPopover.Content>
         </StudioPopover>
       </div>
