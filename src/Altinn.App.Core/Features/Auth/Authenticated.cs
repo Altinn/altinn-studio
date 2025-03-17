@@ -625,16 +625,7 @@ public abstract class Authenticated
         context.TokenIssuer = TokenIssuer.Altinn;
         context.IsExchanged = true;
 
-        foreach (var claim in token.Payload)
-        {
-            TryAssign(claim, AltinnCoreClaimTypes.AuthenticationLevel, ref context.AuthLevelClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.Org, ref context.OrgClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.OrgNumber, ref context.OrgNoClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.PartyID, ref context.PartyIdClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.UserId, ref context.UserIdClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.UserName, ref context.UsernameClaim);
-            TryAssign(claim, JwtClaimTypes.Scope, ref context.ScopeClaim);
-        }
+        context.ReadClaims(token);
 
         context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
             ? new Scopes(scopeClaimValue)
@@ -651,7 +642,11 @@ public abstract class Authenticated
         }
 
         int authLevel;
-        if (context.OrgClaim.Exists)
+        if (context.AuthorizationDetailsClaim.Exists)
+        {
+            return NewSystemUser(ref context);
+        }
+        else if (context.OrgClaim.Exists)
         {
             if (!context.OrgClaim.IsValidString(out var orgClaimValue))
                 throw new AuthenticationContextException(
@@ -803,6 +798,39 @@ public abstract class Authenticated
 
             TokenIssuer = TokenIssuer.Unknown;
         }
+
+        public void ReadClaims(JwtSecurityToken token)
+        {
+            foreach (var claim in token.Payload)
+            {
+                TryAssign(claim, JwtClaimTypes.Issuer, ref IssuerClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.AuthenticationLevel, ref AuthLevelClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.AuthenticateMethod, ref AuthMethodClaim);
+                TryAssign(claim, JwtClaimTypes.Scope, ref ScopeClaim);
+                TryAssign(claim, "acr", ref AcrClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.Org, ref OrgClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.OrgNumber, ref OrgNoClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.PartyID, ref PartyIdClaim);
+                TryAssign(claim, "authorization_details", ref AuthorizationDetailsClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.UserId, ref UserIdClaim);
+                TryAssign(claim, AltinnCoreClaimTypes.UserName, ref UsernameClaim);
+                if (
+                    TryAssign(claim, "consumer", ref ConsumerClaim)
+                    && ConsumerClaim.Value is JsonElement consumerJsonClaim
+                )
+                    ConsumerClaimValue = JsonSerializer.Deserialize<OrgClaim>(consumerJsonClaim);
+            }
+        }
+
+        private static bool TryAssign(KeyValuePair<string, object> claim, string name, ref TokenClaim dest)
+        {
+            if (claim.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                dest = new TokenClaim(claim.Key, claim.Value);
+                return true;
+            }
+            return false;
+        }
     }
 
     internal static Authenticated From(
@@ -834,25 +862,7 @@ public abstract class Authenticated
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(tokenStr);
 
-        foreach (var claim in token.Payload)
-        {
-            TryAssign(claim, JwtClaimTypes.Issuer, ref context.IssuerClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.AuthenticationLevel, ref context.AuthLevelClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.AuthenticateMethod, ref context.AuthMethodClaim);
-            TryAssign(claim, JwtClaimTypes.Scope, ref context.ScopeClaim);
-            TryAssign(claim, "acr", ref context.AcrClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.Org, ref context.OrgClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.OrgNumber, ref context.OrgNoClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.PartyID, ref context.PartyIdClaim);
-            TryAssign(claim, "authorization_details", ref context.AuthorizationDetailsClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.UserId, ref context.UserIdClaim);
-            TryAssign(claim, AltinnCoreClaimTypes.UserName, ref context.UsernameClaim);
-            if (
-                TryAssign(claim, "consumer", ref context.ConsumerClaim)
-                && context.ConsumerClaim.Value is JsonElement consumerJsonClaim
-            )
-                context.ConsumerClaimValue = JsonSerializer.Deserialize<OrgClaim>(consumerJsonClaim);
-        }
+        context.ReadClaims(token);
 
         context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
             ? new Scopes(scopeClaimValue)
@@ -1072,16 +1082,6 @@ public abstract class Authenticated
             }
             return false;
         }
-    }
-
-    private static bool TryAssign(KeyValuePair<string, object> claim, string name, ref TokenClaim dest)
-    {
-        if (claim.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
-        {
-            dest = new TokenClaim(claim.Key, claim.Value);
-            return true;
-        }
-        return false;
     }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
