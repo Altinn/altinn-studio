@@ -147,7 +147,7 @@ describe('DataModelling', () => {
     expect(errorsPanel).not.toBeInTheDocument();
   });
 
-  it.each(['getDataModelsJson', 'getDataModelsXsd'])(
+  it.each(['getAppDataModelsJson', 'getAppDataModelsXsd'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';

@@ -16,6 +16,7 @@ interface DataModellingProps {
 export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
+  console.log(`App: ${app}`);
   const { status: jsonStatus, error: jsonError, data: jsonData } = useDataModelsJsonQuery(org, app);
   const { status: xsdStatus, error: xsdError, data: xsdData } = useDataModelsXsdQuery(org, app);
 
