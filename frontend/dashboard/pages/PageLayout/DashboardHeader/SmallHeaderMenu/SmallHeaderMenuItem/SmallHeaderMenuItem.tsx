@@ -4,10 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
-import {
-  extractLastRouterParam,
-  extractSecondLastRouterParam,
-} from '../../../../../utils/urlUtils';
+import { UrlUtils } from '@studio/pure-functions';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuItem;
@@ -20,7 +17,7 @@ export const SmallHeaderMenuItem = ({
 }: SmallHeaderMenuItemProps): ReactElement => {
   const { t } = useTranslation();
   const location = useLocation();
-  const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
+  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
 
   if (menuItem.action.type === 'button') {
     const handleClick = () => {
@@ -42,16 +39,16 @@ export const SmallHeaderMenuItem = ({
   }
 
   const linkItemClassName: string =
-    extractLastRouterParam(menuItem.action.href) === currentRoutePath ? classes.active : '';
+    UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
+      ? classes.active
+      : '';
+
+  const linkTarget: string = menuItem.action.openInNewTab ? '_blank' : '';
+  const linkRel: string = menuItem.action.openInNewTab ? 'noopener noreferrer' : '';
 
   return (
     <DropdownMenu.Item key={menuItem.itemName} asChild className={linkItemClassName}>
-      <NavLink
-        to={menuItem.action.href}
-        onClick={onClick}
-        target={menuItem.action.openInNewTab ? '_blank' : ''}
-        rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
-      >
+      <NavLink to={menuItem.action.href} onClick={onClick} target={linkTarget} rel={linkRel}>
         {t(menuItem.itemName)}
       </NavLink>
     </DropdownMenu.Item>

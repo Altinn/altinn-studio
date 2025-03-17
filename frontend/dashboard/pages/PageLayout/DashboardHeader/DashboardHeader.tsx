@@ -10,15 +10,13 @@ import { useHeaderContext } from '../../../context/HeaderContext';
 import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
-import { extractSecondLastRouterParam } from '../../../utils/urlUtils';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
 export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
-
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
@@ -55,7 +53,7 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactEleme
   const { t } = useTranslation();
   const location = useLocation();
   const path: string = `${menuItem.link}/${selectedContext}`;
-  const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
+  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
 
   return (
     <StudioPageHeader.HeaderLink
