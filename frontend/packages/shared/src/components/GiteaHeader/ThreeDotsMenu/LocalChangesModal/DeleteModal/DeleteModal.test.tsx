@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';
 import { DeleteModal } from './DeleteModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,16 +8,15 @@ import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
+import { renderWithProviders } from 'app-shared/components/GiteaHeader/mocks/renderWithProviders';
+import { app, org } from '@studio/testing/testids';
 
-const mockApp: string = 'TestApp';
-const mockOrg: string = 'TestOrg';
 const onDelete: () => void = jest.fn();
 
 const defaultProps: DeleteModalProps = {
-  app: mockApp,
-  org: mockOrg,
+  app: app,
+  org: org,
   onDelete,
 };
 
@@ -45,7 +44,7 @@ describe('DeleteModal', () => {
     const mockDelete = jest.fn().mockImplementation(() => Promise.resolve());
     await renderDeleteModal({ resetRepoChanges: mockDelete });
     expect(getDeleteButton()).toBeDisabled();
-    await user.type(getNameField(), mockApp);
+    await user.type(getNameField(), app);
     expect(getDeleteButton()).not.toBeDisabled();
     expect(mockDelete).toHaveBeenCalledTimes(0);
     await user.click(getDeleteButton());
@@ -59,7 +58,7 @@ describe('DeleteModal', () => {
     const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
     await renderDeleteModal({ resetRepoChanges: mockDelete });
     expect(getDeleteButton()).toBeDisabled();
-    await user.type(getNameField(), mockApp);
+    await user.type(getNameField(), app);
     expect(getDeleteButton()).not.toBeDisabled();
     expect(mockDelete).toHaveBeenCalledTimes(0);
     await user.click(getDeleteButton());
@@ -77,11 +76,10 @@ const renderDeleteModal = async (
   };
   const ref = createRef<HTMLDialogElement>();
   // eslint-disable-next-line testing-library/render-result-naming-convention
-  const renderResult = render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DeleteModal {...defaultProps} ref={ref} />
-    </ServicesContextProvider>,
-  );
+  const renderResult = renderWithProviders(
+    allQueries,
+    queryClient,
+  )(<DeleteModal {...defaultProps} ref={ref} />);
   ref.current?.showModal();
   await screen.findByRole('dialog');
   return renderResult;

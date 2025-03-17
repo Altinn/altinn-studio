@@ -49,6 +49,7 @@ describe('ManualOptionEditor', () => {
   it('should close Dialog', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditorWithData();
+
     await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -105,7 +106,7 @@ describe('ManualOptionEditor', () => {
       props: {
         component: {
           ...mockComponent,
-          options: [{ value: 1, label: '', description: null, helpText: null }],
+          options: [{ value: 1, label: '' }],
         },
       },
     });
