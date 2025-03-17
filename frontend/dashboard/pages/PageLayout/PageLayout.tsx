@@ -8,8 +8,8 @@ import { StudioPageSpinner } from '@studio/components';
 import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirectionGuard';
 import { DashboardHeader } from './DashboardHeader';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { REPO_NAME_TTD_FOR_CODELISTS } from '../../constants';
 import { isOrg } from '../OrgContentLibrary/utils';
+import { useOrgRepoName } from '../../hooks/useOrgRepoName';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
@@ -18,12 +18,13 @@ export const PageLayout = () => {
   const { isRedirectionComplete } = useContextRedirectionGuard(organizations);
 
   const selectedContext = useSelectedContext();
+  const orgRepoName = useOrgRepoName();
 
   const {
     data: repoStatus,
     isPending: isRepoStatusPending,
     error: repoStatusError,
-  } = useRepoStatusQuery(selectedContext, REPO_NAME_TTD_FOR_CODELISTS, {
+  } = useRepoStatusQuery(selectedContext, orgRepoName, {
     hideDefaultError: !isOrg(selectedContext),
   });
 
