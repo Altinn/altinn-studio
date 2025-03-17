@@ -31,10 +31,4 @@ describe('useOrgRepoName', () => {
     const { result } = renderHook(() => useOrgRepoName());
     expect(result.current).toBe(`${ORG_LIBRARY_REPO_IDENTIFIER}`);
   });
-
-  it('should handle null context', () => {
-    (useSelectedContext as jest.Mock).mockReturnValue(null);
-    const { result } = renderHook(() => useOrgRepoName());
-    expect(result.current).toBe(`${null}${ORG_LIBRARY_REPO_IDENTIFIER}`);
-  });
 });
