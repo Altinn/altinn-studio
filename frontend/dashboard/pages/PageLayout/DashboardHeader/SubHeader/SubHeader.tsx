@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { REPO_NAME_TTD_FOR_CODELISTS } from '../../../../constants';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;

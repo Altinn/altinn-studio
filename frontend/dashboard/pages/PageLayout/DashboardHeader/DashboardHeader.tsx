@@ -15,7 +15,7 @@ import { StringUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
-import { isOrg } from 'dashboard/pages/OrgContentLibrary/utils';
+import { isOrg } from '../../../pages/OrgContentLibrary/utils';
 
 export type DashboardHeaderProps = {
   showSubMenu: boolean;
@@ -25,7 +25,6 @@ export type DashboardHeaderProps = {
 export const DashboardHeader = ({ showSubMenu, isRepoError }: DashboardHeaderProps) => {
   const pageHeaderTitle: string = usePageHeaderTitle();
   const selectedContext = useSelectedContext();
-
   const location = useLocation();
   const currentRoutePath: string = extractSecondLastRouterParam(location.pathname);
 
