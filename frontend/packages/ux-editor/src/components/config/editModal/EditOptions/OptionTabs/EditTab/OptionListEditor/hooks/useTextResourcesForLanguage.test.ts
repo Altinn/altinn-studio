@@ -9,7 +9,7 @@ const language = 'nb';
 describe('useTextResourcesForLanguage', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('should call updateTextResource after updating textResource', () => {
+  it('should return the text resources for the specified language', () => {
     const textResource: TextResource = { id: 'some-id', value: 'some-value' };
     const textResources: TextResources = { [language]: [textResource] };
     const { result } = renderHook(language, textResources);
@@ -27,6 +27,6 @@ describe('useTextResourcesForLanguage', () => {
   });
 });
 
-function renderHook(language: string, updateTextResource: TextResources) {
-  return renderHookWithProviders(() => useTextResourcesForLanguage(language, updateTextResource));
+function renderHook(language: string, textResource: TextResources) {
+  return renderHookWithProviders(() => useTextResourcesForLanguage(language, textResource));
 }
