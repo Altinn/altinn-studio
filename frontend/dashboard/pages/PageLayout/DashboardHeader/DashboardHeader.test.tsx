@@ -1,26 +1,32 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader, type DashboardHeaderProps } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { MockServicesContextWrapper } from '../../../dashboardTestUtils';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { StringUtils, typedLocalStorage } from '@studio/pure-functions';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext';
-import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
+import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
+import { renderWithProviders } from '../../../testing/mocks';
+import { headerContextValueMock } from '../../../testing/headerContextMock';
 
 const mockOrgTtd: string = 'ttd';
+const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
 
 const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
+  useParams: jest.fn().mockReturnValue({
+    subroute: 'app-dashboard',
+    selectedContext: 'self',
+  }),
+  useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
 describe('DashboardHeader', () => {
@@ -207,11 +213,11 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
     renderDashboardHeader({ showSubMenu: false, isRepoError: false });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when isRepoError is true', () => {
@@ -219,11 +225,11 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
     renderDashboardHeader({ showSubMenu: true, isRepoError: true });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when the page is not orgLibrary', () => {
@@ -231,11 +237,11 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.AppDashboard,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when page is orgLibrary and feature flag is not on', () => {
@@ -245,9 +251,7 @@ describe('DashboardHeader', () => {
     });
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when the selected context is not org', () => {
@@ -255,11 +259,11 @@ describe('DashboardHeader', () => {
       selectedContext: SelectedContextType.Self,
       subroute: Subroute.OrgLibrary,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should render the submenu when showSubMenu is true, there is no repo error, page is orgLibrary and feature flag is on', () => {
@@ -269,26 +273,28 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
-    expect(
-      screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') }),
-    ).not.toBeInTheDocument();
+    expect(getFetchChangesButton()).toBeInTheDocument();
 
     typedLocalStorage.removeItem('featureFlags');
   });
 });
 
 const renderDashboardHeader = (props: Partial<DashboardHeaderProps> = {}) => {
-  return render(
-    <MockServicesContextWrapper>
-      <HeaderContextProvider user={userMock} selectableOrgs={mockOrganizations}>
-        <DashboardHeader {...defaultProps} {...props} />
-      </HeaderContextProvider>
-    </MockServicesContextWrapper>,
+  return renderWithProviders(
+    <HeaderContextProvider {...headerContextValueMock}>
+      <DashboardHeader {...defaultProps} {...props} />
+    </HeaderContextProvider>,
   );
 };
 
 const defaultProps: DashboardHeaderProps = {
   showSubMenu: false,
 };
+
+function getFetchChangesButton(): HTMLElement | null {
+  return screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') });
+}
