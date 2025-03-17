@@ -40,7 +40,9 @@ export const BreadcrumbsTaskNavigation = () => {
               </StudioBreadcrumbsLink>
             </StudioBreadcrumbsItem>
             <StudioBreadcrumbsItem>
-              <div className={isActive && classes.active}>{selectedFormLayoutSetName}</div>
+              <div className={isActive ? classes.active : undefined}>
+                {selectedFormLayoutSetName}
+              </div>
             </StudioBreadcrumbsItem>
           </StudioBreadcrumbsList>
         </StudioBreadcrumbs>
