@@ -34,6 +34,7 @@ export const PageLayoutNavigation = () => {
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
               <DropdownMenu.Group>
+                {/*Functionality and the number of items will be implemented based on the upcoming requirements.*/}
                 <DropdownMenu.Item onClick={undefined}>
                   {t('ux_editor.side_oppsett_perfome_another_task')}
                 </DropdownMenu.Item>
