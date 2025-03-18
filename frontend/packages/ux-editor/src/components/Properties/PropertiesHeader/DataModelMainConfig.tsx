@@ -32,7 +32,7 @@ export const DataModelMainConfig = ({
       editFormId={component.id}
       renderOptions={{
         key: dataModelBindingKey,
-        label: dataModelBindingKey !== 'simpleBinding' && dataModelBindingKey,
+        label: dataModelBindingKey !== 'simpleBinding' ? dataModelBindingKey : undefined,
       }}
     />
   );

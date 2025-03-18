@@ -11,7 +11,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSetsExtendedMock,
+} from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
@@ -66,7 +69,10 @@ describe('Properties', () => {
   describe('Component ID Config', () => {
     it('saves the component when changes are made in the component', async () => {
       const user = userEvent.setup();
-      renderProperties();
+      renderProperties({
+        formItem: componentMocks[ComponentType.Input],
+        formItemId: componentMocks[ComponentType.Input].id,
+      });
       const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
       await user.click(button);
       const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
@@ -79,7 +85,7 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const heading = screen.getByRole('heading', {
-        name: textMock('ux_editor.component_title.Input'),
+        name: textMock('ux_editor.component_title.Summary2'),
         level: 2,
       });
       expect(heading).toBeInTheDocument();
@@ -290,8 +296,8 @@ const getComponent = (
 
 const renderProperties = (
   formItemContextProps: Partial<FormItemContext> = {
-    formItem: componentMocks[ComponentType.Input],
-    formItemId: componentMocks[ComponentType.Input].id,
+    formItem: componentMocks[ComponentType.Summary2],
+    formItemId: componentMocks[ComponentType.Summary2].id,
   },
 ) => {
   const queryClientMock = createQueryClientMock();
@@ -302,6 +308,7 @@ const renderProperties = (
     [QueryKey.FormComponent, formItemContextProps.formItem?.type],
     componentSchemaMocks[formItemContextProps.formItem?.type],
   );
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
