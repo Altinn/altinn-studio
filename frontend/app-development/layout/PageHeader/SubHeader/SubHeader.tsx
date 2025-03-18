@@ -11,6 +11,7 @@ import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext
 import { StudioButton } from '@studio/components';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@studio/icons';
+import { useTranslation } from 'react-i18next';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -35,6 +36,7 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
 
 const LeftContent = ({ repositoryType }: { repositoryType: RepositoryType }) => {
   const { returnTo } = usePageHeaderContext();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   if (repositoryType === RepositoryType.DataModels) {
     return null;
@@ -48,7 +50,7 @@ const LeftContent = ({ repositoryType }: { repositoryType: RepositoryType }) => 
         color='inverted'
         icon={<ArrowLeftIcon />}
       >
-        Tilbake til {returnTo}
+        {t(`header.returnTo.${returnTo}`)}
       </StudioButton>
     );
   }
