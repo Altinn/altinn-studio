@@ -69,10 +69,7 @@ describe('Properties', () => {
   describe('Component ID Config', () => {
     it('saves the component when changes are made in the component', async () => {
       const user = userEvent.setup();
-      renderProperties({
-        formItem: componentMocks[ComponentType.Input],
-        formItemId: componentMocks[ComponentType.Input].id,
-      });
+      renderProperties();
       const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
       await user.click(button);
       const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
@@ -85,7 +82,7 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const heading = screen.getByRole('heading', {
-        name: textMock('ux_editor.component_title.Summary2'),
+        name: textMock('ux_editor.component_title.Input'),
         level: 2,
       });
       expect(heading).toBeInTheDocument();
@@ -141,6 +138,31 @@ describe('Properties', () => {
         name: textMock('right_menu.calculations'),
       });
       expect(calculationsAccordion).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('Summary', () => {
+    it('should toggle summary overrides when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties({
+        formItem: componentMocks[ComponentType.Summary2],
+        formItemId: componentMocks[ComponentType.Summary2].id,
+      });
+      const button = screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.override.title'),
+      });
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('should not render summary overrides accordion when formItem is not a Summary2 component', () => {
+      renderProperties();
+      const button = screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.override.title'),
+      });
+      expect(button).not.toBeInTheDocument();
     });
   });
 
@@ -256,7 +278,7 @@ describe('Properties', () => {
   });
 
   it('renders properties when formItem is not a Subform component', () => {
-    renderProperties({ formItem: componentMocks[ComponentType.Input] });
+    renderProperties();
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
@@ -296,8 +318,8 @@ const getComponent = (
 
 const renderProperties = (
   formItemContextProps: Partial<FormItemContext> = {
-    formItem: componentMocks[ComponentType.Summary2],
-    formItemId: componentMocks[ComponentType.Summary2].id,
+    formItem: componentMocks[ComponentType.Input],
+    formItemId: componentMocks[ComponentType.Input].id,
   },
 ) => {
   const queryClientMock = createQueryClientMock();
