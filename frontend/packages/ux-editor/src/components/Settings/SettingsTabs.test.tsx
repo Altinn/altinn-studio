@@ -4,9 +4,14 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { SettingsTabs } from './SettingsTabs';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('SettingsTabs', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks;
+    typedLocalStorage.removeItem('featureFlags');
+  });
 
   it('should render component and select Navigation as default tab', () => {
     renderSettingsTabs();
@@ -45,6 +50,19 @@ describe('SettingsTabs', () => {
     await user.click(dataModelTab);
 
     expect(dataModelTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('should display an info message in the Navigation tab', () => {
+    renderSettingsTabs();
+    const navigationTabContent = screen.getByText(textMock('ux_editor.settings.wip_message'));
+    expect(navigationTabContent).toBeInTheDocument();
+  });
+
+  it('should not display an info message in the Navigation tab when feature flag is enabled"', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.TaskNavigationTabNav]);
+    renderSettingsTabs();
+    const navigationTabContent = screen.queryByText(textMock('ux_editor.settings.wip_message'));
+    expect(navigationTabContent).not.toBeInTheDocument();
   });
 });
 
