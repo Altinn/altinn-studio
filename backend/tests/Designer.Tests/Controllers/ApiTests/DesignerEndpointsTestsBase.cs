@@ -103,11 +103,11 @@ namespace Designer.Tests.Controllers.ApiTests
         /// Value of created org path is stored in <see cref="TestOrgPath"/> property.
         /// Limitation is that only one org can be cloned.
         /// </summary>
-        /// <param name="developer"></param>
-        /// <param name="org"></param>
-        /// <param name="repo"></param>
-        /// <param name="targetOrg"></param>
-        /// <param name="targetRepository"></param>
+        /// <param name="developer">Username of developer.</param>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name.</param>
+        /// <param name="targetOrg">Test organisation name.</param>
+        /// <param name="targetRepository">test repository name.</param>
         /// <exception cref="InvalidOperationException"></exception>
         protected async Task CopyOrgRepositoryForTest(string developer, string org, string repo, string targetOrg, string targetRepository)
         {
@@ -116,6 +116,25 @@ namespace Designer.Tests.Controllers.ApiTests
                 throw new InvalidOperationException("Organization already created for test.");
             }
             TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
+        }
+
+        /// <summary>
+        /// Copies a repository from the test repositories to a temporary location for testing.
+        /// Limitation is that test org has to be created through <see cref="CopyOrgRepositoryForTest"/>
+        /// </summary>
+        /// <param name="developer">Username of developer.</param>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name.</param>
+        /// <param name="targetOrg">Test organisation name.</param>
+        /// <param name="targetRepository">test repository name.</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected async Task AddRepositoryToTestOrg(string developer, string org, string repo, string targetOrg, string targetRepository)
+        {
+            if (TestOrgPath is null)
+            {
+                throw new InvalidOperationException("Organization is not created for test.");
+            }
+            await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
         }
 
         protected override void Dispose(bool disposing)

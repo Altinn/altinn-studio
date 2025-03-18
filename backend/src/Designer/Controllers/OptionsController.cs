@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,14 +26,17 @@ namespace Altinn.Studio.Designer.Controllers;
 public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;
+    private readonly IOrgCodeListService _orgCodeListService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
-    public OptionsController(IOptionsService optionsService)
+    /// <param name="orgCodeListService">The code list service on org level.</param>
+    public OptionsController(IOptionsService optionsService, IOrgCodeListService orgCodeListService)
     {
         _optionsService = optionsService;
+        _orgCodeListService = orgCodeListService;
     }
 
     /// <summary>
@@ -250,5 +254,28 @@ public class OptionsController : ControllerBase
         }
 
         return Ok($"The options file {optionsListId}.json has been deleted.");
+    }
+
+    [HttpPost]
+    [Route("{optionsListId}/import")]
+    public async Task<ActionResult> ImportOptionsListFromOrg(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionsListId, cancellationToken);
+        if (!codeListExists)
+        {
+            return NotFound($"The code list file {optionsListId}.json does not exist.");
+        }
+
+        List<Option> newOptionsList = await _optionsService.ImportOptionsListFromOrg(org, repo, developer, optionsListId, cancellationToken);
+
+        if (newOptionsList is null)
+        {
+            return NotFound($"The options file {optionsListId}.json already exists.");
+        }
+
+        return Ok(newOptionsList);
     }
 }
