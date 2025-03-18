@@ -7,6 +7,10 @@ import { RepositoryType } from 'app-shared/types/global';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
+import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
+import { StudioButton } from '@studio/components';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon } from '@studio/icons';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -20,13 +24,35 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   return (
     <GiteaHeader
       hasCloneModal
-      leftComponent={repositoryType !== RepositoryType.DataModels && <SubHeaderLeftContent />}
+      leftComponent={<LeftContent repositoryType={repositoryType} />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}
       repoName={app}
     />
   );
+};
+
+const LeftContent = ({ repositoryType }: { repositoryType: RepositoryType }) => {
+  const { returnTo } = usePageHeaderContext();
+  const navigate = useNavigate();
+  if (repositoryType === RepositoryType.DataModels) {
+    return null;
+  }
+
+  if (returnTo) {
+    return (
+      <StudioButton
+        onClick={() => navigate(returnTo)}
+        variant='tertiary'
+        color='inverted'
+        icon={<ArrowLeftIcon />}
+      >
+        Tilbake til {returnTo}
+      </StudioButton>
+    );
+  }
+  return <SubHeaderLeftContent />;
 };
 
 const SubHeaderLeftContent = () => {
