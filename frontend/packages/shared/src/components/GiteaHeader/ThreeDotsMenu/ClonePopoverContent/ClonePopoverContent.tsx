@@ -4,7 +4,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';
 import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
+import { useAppDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
@@ -12,7 +12,7 @@ import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
 export const ClonePopoverContent = () => {
   const { owner, repoName } = useGiteaHeaderContext();
-  const { data: dataModel = [] } = useDataModelsXsdQuery(owner, repoName);
+  const { data: dataModel = [] } = useAppDataModelsXsdQuery(owner, repoName);
   const { t } = useTranslation();
   const packagesRouter = new PackagesRouter({ app: repoName, org: owner });
 
