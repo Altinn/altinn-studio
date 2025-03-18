@@ -11,4 +11,4 @@ const option2: Option = {
   value: 'option2',
 };
 
-export const optionListDataMock: OptionList = [option1, option2];
+export const optionListMock: OptionList = [option1, option2];
