@@ -31,6 +31,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { PageLayoutNavigation } from './PageLayoutNavigation';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -137,7 +138,61 @@ export const FormDesigner = (): JSX.Element => {
       );
     };
 
-    return (
+    const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+
+    return isTaskNavigationPageGroups ? (
+      <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
+        <div className={classes.root}>
+          <div className={classes.container}>
+            <StudioResizableLayout.Container
+              orientation='horizontal'
+              localStorageContext={`form-designer-main:${user.id}:${org}`}
+            >
+              {/**
+               * The following check is done for a live user test behind feature flag. It can be removed if this is not something
+               * that is going to be used in the future.
+               */}
+              {!shouldDisplayFeature(FeatureFlag.AddComponentModal) && (
+                <StudioResizableLayout.Element
+                  collapsed={elementsCollapsed}
+                  collapsedSize={50}
+                  minimumSize={300}
+                  maximumSize={300}
+                  disableRightHandle={true}
+                >
+                  <Elements
+                    collapsed={elementsCollapsed}
+                    onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
+                  />
+                </StudioResizableLayout.Element>
+              )}
+              <StudioResizableLayout.Element
+                minimumSize={shouldDisplayFeature(FeatureFlag.AddComponentModal) ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+              >
+                <PageLayoutNavigation />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                minimumSize={250}
+                onResizing={(resizing) => setHidePreview(resizing)}
+              >
+                <Properties />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                collapsed={previewCollapsed}
+                collapsedSize={50}
+                minimumSize={400}
+              >
+                <Preview
+                  collapsed={previewCollapsed}
+                  onCollapseToggle={() => setPreviewCollapsed(!previewCollapsed)}
+                  hidePreview={hidePreview}
+                />
+              </StudioResizableLayout.Element>
+            </StudioResizableLayout.Container>
+          </div>
+        </div>
+      </StudioDragAndDropTree.Provider>
+    ) : (
       <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
