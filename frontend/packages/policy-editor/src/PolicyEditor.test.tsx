@@ -83,6 +83,28 @@ describe('PolicyEditor', () => {
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
+
+  it('increases the rule list length when add rule button is clicked', async () => {
+    const user = userEvent.setup();
+    renderPolicyEditor();
+
+    const rulesTab = screen.getByRole('tab', { name: textMock('policy_editor.rules_edit') });
+    await user.click(rulesTab);
+
+    const originalLength = mockPolicy.rules.length;
+
+    const addButton = screen.getByRole('button', {
+      name: textMock('policy_editor.card_button_text'),
+    });
+
+    await user.click(addButton);
+
+    const ruleContextMenuButtons = screen.getAllByRole('button', {
+      name: textMock('policy_editor.more'),
+    });
+
+    expect(ruleContextMenuButtons.length).toEqual(originalLength + 1);
+  });
 });
 
 const renderPolicyEditor = (policyEditorProps: Partial<PolicyEditorProps> = {}) => {

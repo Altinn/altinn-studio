@@ -1,23 +1,16 @@
 import React from 'react';
 import type { ByRoleOptions } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
+import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from 'app-shared/components/GiteaHeader/mocks/renderWithProviders';
 
 const onDelete = jest.fn();
 
@@ -90,12 +83,7 @@ describe('LocalChanges', () => {
 const renderLocalChanges = (
   allQueries: Partial<ServicesContextProps> = queriesMock,
   queryClient: QueryClient = createQueryClientMock(),
-) =>
-  render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <LocalChanges onDelete={onDelete} />
-    </ServicesContextProvider>,
-  );
+) => renderWithProviders(allQueries, queryClient)(<LocalChanges onDelete={onDelete} />);
 
 const getDownloadChangedOnlyLink = () => getLink(downloadChangedOnlyLinkName);
 const getDownloadAllLink = () => getLink(downloadAllLinkName);
