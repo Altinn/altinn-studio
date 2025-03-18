@@ -12,7 +12,7 @@ const StudioBreadcrumbs = forwardRef<HTMLElement, StudioBreadcrumbsProps>(
   ({ 'aria-label': ariaLabel = defaultAriaLabel, className, ...rest }, ref) => (
     <nav
       aria-label={ariaLabel}
-      className={`${classes['ds-breadcrumbs']} ${className}`}
+      className={`${classes.dsBreadcrumbs} ${className}`}
       ref={ref}
       {...rest}
     />

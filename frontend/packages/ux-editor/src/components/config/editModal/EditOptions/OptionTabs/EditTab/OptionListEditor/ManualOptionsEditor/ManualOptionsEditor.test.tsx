@@ -1,30 +1,42 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import { app, org } from '@studio/testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { componentMocks } from '../../../../../../../../testing/componentMocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../../../../testing/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { QueryClient } from '@tanstack/react-query';
+import type { ITextResources } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
-import { componentMocks } from '../../../../../../../../testing/componentMocks';
 import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const handleDelete = jest.fn();
 const handleComponentChange = jest.fn();
+const textResources: ITextResources = {
+  nb: [
+    { id: 'some-id', value: 'label 1' },
+    { id: 'another-id', value: 'label 2' },
+    { id: 'description-id', value: 'description' },
+  ],
+};
 
 describe('ManualOptionEditor', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the open Dialog button', () => {
-    renderManualOptionsEditor();
+    renderManualOptionsEditorWithData();
     expect(getEditButton()).toBeInTheDocument();
   });
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditor();
+    renderManualOptionsEditorWithData();
 
     await user.click(getEditButton());
 
@@ -36,7 +48,8 @@ describe('ManualOptionEditor', () => {
 
   it('should close Dialog', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditor();
+    renderManualOptionsEditorWithData();
+
     await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -46,7 +59,7 @@ describe('ManualOptionEditor', () => {
 
   it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditor({
+    renderManualOptionsEditorWithData({
       props: { component: { ...mockComponent, options: [], optionsId: undefined } },
     });
     const expectedArgs = ObjectUtils.deepCopy(mockComponent);
@@ -60,25 +73,36 @@ describe('ManualOptionEditor', () => {
     expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
   });
 
-  it('should call handleComponentChange with correct parameters when editing', async () => {
+  it('should call upsertTextResource with correct parameters when editing description', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditor();
+    const expectedLanguage = 'nb';
+    const expectedTextResource = { 'some-id': 'test' };
+    renderManualOptionsEditorWithData({
+      props: {
+        component: {
+          ...mockComponent,
+          options: [{ value: 'value', label: 'label', description: 'some-id' }],
+        },
+      },
+    });
     const text = 'test';
-    const expectedArgs = ObjectUtils.deepCopy(mockComponent);
-    expectedArgs.optionsId = undefined;
-    expectedArgs.options[0].description = text;
 
     await user.click(getEditButton());
-    const textBox = getDescriptionInput(1);
+    const textBox = getTextResourceDescriptionInput(1);
     await user.type(textBox, text);
     await user.tab();
 
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(
+      org,
+      app,
+      expectedLanguage,
+      expectedTextResource,
+    );
   });
 
-  it('should show placeholder for option label when option list label is empty', () => {
-    renderManualOptionsEditor({
+  it('should show placeholder for option label when label is empty', () => {
+    renderManualOptionsEditorWithData({
       props: {
         component: {
           ...mockComponent,
@@ -92,7 +116,7 @@ describe('ManualOptionEditor', () => {
 
   it('should call handleDelete when removing chosen options', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditor();
+    renderManualOptionsEditorWithData();
 
     await user.click(getDeleteButton());
 
@@ -106,9 +130,9 @@ function getEditButton() {
   });
 }
 
-function getDescriptionInput(number: number) {
+function getTextResourceDescriptionInput(number: number) {
   return screen.getByRole('textbox', {
-    name: textMock('code_list_editor.description_item', { number }),
+    name: textMock('code_list_editor.text_resource.description.value', { number }),
   });
 }
 
@@ -124,9 +148,24 @@ const defaultProps: ManualOptionsEditorProps = {
   component: mockComponent,
 };
 
-function renderManualOptionsEditor({ queries = {}, props = {} } = {}) {
+function renderManualOptionsEditor({
+  queries = {},
+  props = {},
+  queryClient = createQueryClientMock(),
+} = {}) {
   renderWithProviders(<ManualOptionsEditor {...defaultProps} {...props} />, {
     queries,
-    queryClient: createQueryClientMock(),
+    queryClient,
   });
+}
+
+function renderManualOptionsEditorWithData({ queries = {}, props = {} } = {}) {
+  const queryClient = createQueryClientWithData();
+  renderManualOptionsEditor({ queries, props, queryClient });
+}
+
+function createQueryClientWithData(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  return queryClient;
 }

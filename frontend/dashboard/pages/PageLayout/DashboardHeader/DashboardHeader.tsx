@@ -84,6 +84,7 @@ function RightContent(): ReactElement {
   if (isSmallScreen) {
     return <SmallHeaderMenu />;
   }
+
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={!isSmallScreen ? triggerButtonText : undefined}

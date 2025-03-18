@@ -15,18 +15,16 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
 const resetRepoChanges = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const mockOnClose = jest.fn();
 
 const defaultProps: RemoveChangesPopoverContentProps = {
   onClose: mockOnClose,
+  owner: org,
+  repoName: app,
 };
 
 describe('DownloadRepoPopoverContent', () => {
