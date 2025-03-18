@@ -13,6 +13,7 @@ import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
+import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 
 const mockOrgTtd: string = 'ttd';
 const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
@@ -28,6 +29,8 @@ jest.mock('react-router-dom', () => ({
   }),
   useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -278,7 +281,37 @@ describe('DashboardHeader', () => {
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
     expect(getFetchChangesButton()).toBeInTheDocument();
+  });
 
+  it('should render small navigation menu when the screen is small', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderDashboardHeader();
+
+    expect(screen.getByRole('button', { name: textMock('top_menu.menu') })).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).not.toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
+  it('should render large navigation menu when the screen is large', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    renderDashboardHeader();
+
+    expect(
+      screen.queryByRole('button', { name: textMock('top_menu.menu') }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).toBeInTheDocument();
     typedLocalStorage.removeItem('featureFlags');
   });
 });
