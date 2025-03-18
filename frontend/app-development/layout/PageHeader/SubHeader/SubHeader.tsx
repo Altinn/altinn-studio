@@ -34,7 +34,11 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   );
 };
 
-const LeftContent = ({ repositoryType }: { repositoryType: RepositoryType }) => {
+export type LeftContentProps = {
+  repositoryType: RepositoryType;
+};
+
+export const LeftContent = ({ repositoryType }: LeftContentProps) => {
   const { returnTo } = usePageHeaderContext();
   const { t } = useTranslation();
   const navigate = useNavigate();
