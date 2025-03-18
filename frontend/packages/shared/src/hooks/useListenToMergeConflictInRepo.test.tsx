@@ -54,7 +54,7 @@ describe('useListenToMergeConflictInRepo', () => {
 });
 
 const renderHookRepoStatusEventListenerHook = () => {
-  return renderHook(() => useRepoStatusEventListener(org, app), {
+  return renderHook(() => useListenToMergeConflictInRepo(org, app), {
     wrapper: ({ children }) => (
       <ServicesContextProvider {...queriesMock}>{children}</ServicesContextProvider>
     ),
