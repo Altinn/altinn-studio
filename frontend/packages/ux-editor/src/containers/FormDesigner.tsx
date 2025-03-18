@@ -31,7 +31,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { PageLayoutNavigation } from './PageLayoutNavigation';
+import { DesignViewNavigation } from './DesignViewNavigation';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -169,7 +169,7 @@ export const FormDesigner = (): JSX.Element => {
               <StudioResizableLayout.Element
                 minimumSize={shouldDisplayFeature(FeatureFlag.AddComponentModal) ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
               >
-                <PageLayoutNavigation />
+                <DesignViewNavigation />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 minimumSize={250}

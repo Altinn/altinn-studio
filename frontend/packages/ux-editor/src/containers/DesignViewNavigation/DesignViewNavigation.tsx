@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components';
-import classes from './PageLayoutNavigation.module.css';
+import classes from './DesignViewNavigation.module.css';
 import { MenuElipsisVerticalIcon, MinusCircleIcon, PlusCircleIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
-export const PageLayoutNavigation = () => {
+export const DesignViewNavigation = () => {
   const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
