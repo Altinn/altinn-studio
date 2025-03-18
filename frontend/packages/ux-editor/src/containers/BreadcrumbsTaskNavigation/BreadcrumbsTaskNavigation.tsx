@@ -30,23 +30,19 @@ export const BreadcrumbsTaskNavigation = () => {
   };
 
   return (
-    <div>
-      <div>
-        <StudioBreadcrumbs>
-          <StudioBreadcrumbsList>
-            <StudioBreadcrumbsItem>
-              <StudioBreadcrumbsLink onClick={handleClick}>
-                {appConfigData?.serviceName}
-              </StudioBreadcrumbsLink>
-            </StudioBreadcrumbsItem>
-            <StudioBreadcrumbsItem>
-              <div className={isActive ? classes.active : undefined}>
-                {selectedFormLayoutSetName}
-              </div>
-            </StudioBreadcrumbsItem>
-          </StudioBreadcrumbsList>
-        </StudioBreadcrumbs>
-      </div>
+    <div className={classes.container}>
+      <StudioBreadcrumbs>
+        <StudioBreadcrumbsList>
+          <StudioBreadcrumbsItem>
+            <StudioBreadcrumbsLink onClick={handleClick}>
+              {appConfigData?.serviceName}
+            </StudioBreadcrumbsLink>
+          </StudioBreadcrumbsItem>
+          <StudioBreadcrumbsItem>
+            <div className={isActive ? classes.active : undefined}>{selectedFormLayoutSetName}</div>
+          </StudioBreadcrumbsItem>
+        </StudioBreadcrumbsList>
+      </StudioBreadcrumbs>
     </div>
   );
 };
