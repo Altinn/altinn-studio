@@ -1,13 +1,5 @@
 import React from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import type { AppVersion } from 'app-shared/types/AppVersion';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { usePreviewContext } from '../contexts/PreviewContext';
-import { useLayoutContext } from '../contexts/LayoutContext';
-import { StudioPageSpinner, useLocalStorage } from '@studio/components';
-import { useTranslation } from 'react-i18next';
-import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 const UiEditor = React.lazy(() => import('app-development/features/uiEditor/UiEditor'));
 const ProcessEditor = React.lazy(
