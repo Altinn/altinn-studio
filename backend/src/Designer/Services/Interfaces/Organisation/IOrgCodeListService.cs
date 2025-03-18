@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgCodeListService
 {
     /// <summary>
-    /// Gets a code list from the org repository with the specified codeListId.
+    /// Gets all code lists from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
