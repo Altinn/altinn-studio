@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -35,6 +35,20 @@ describe('DesignViewNavigation', () => {
     expect(
       await screen.findByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
     ).toBeInTheDocument();
+  });
+
+  it('should close dropdown menu when clicking the menu button twice', async () => {
+    const user = userEvent.setup();
+    renderDesignViewNavigation();
+    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
+    await user.click(menuButton);
+    expect(
+      screen.getByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
+    ).toBeInTheDocument();
+    await waitFor(() => user.click(menuButton));
+    expect(
+      screen.queryByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
+    ).not.toBeInTheDocument();
   });
 });
 
