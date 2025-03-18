@@ -169,7 +169,13 @@ export const FormDesigner = (): JSX.Element => {
               <StudioResizableLayout.Element
                 minimumSize={shouldDisplayFeature(FeatureFlag.AddComponentModal) ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
               >
-                {isTaskNavigationPageGroups ? <DesignViewNavigation /> : <DesignView />}
+                {isTaskNavigationPageGroups ? (
+                  <DesignViewNavigation />
+                ) : (
+                  <div data-testid='design-view'>
+                    <DesignView />
+                  </div>
+                )}
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 minimumSize={250}
