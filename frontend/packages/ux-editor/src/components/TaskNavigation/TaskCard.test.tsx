@@ -4,8 +4,8 @@ import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
-import { renderWithProviders } from '../../testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
 
 describe('taskCard', () => {
   let confirmSpy: jest.SpyInstance;
@@ -50,14 +50,23 @@ describe('taskCard', () => {
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledWith(org, app, 'test');
   });
+
+  it('should set selected form layout set name when clicking on navigation button', async () => {
+    const user = userEvent.setup();
+    const setSelectedFormLayoutSetName = jest.fn();
+
+    render({ appContextProps: { setSelectedFormLayoutSetName } });
+    await user.click(screen.getByRole('button', { name: /ux_editor.task_card.ux_editor/ }));
+    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith('test');
+  });
 });
 
-const render = () => {
+const render = (extendedRenderOptions?: Partial<ExtendedRenderOptions>) => {
   const layoutSet: LayoutSetModel = {
     id: 'test',
     dataType: 'datamodell123',
     type: 'subform',
     task: { id: null, type: null },
   };
-  renderWithProviders(<TaskCard layoutSetModel={layoutSet} />);
+  renderWithProviders(<TaskCard layoutSetModel={layoutSet} />, extendedRenderOptions);
 };
