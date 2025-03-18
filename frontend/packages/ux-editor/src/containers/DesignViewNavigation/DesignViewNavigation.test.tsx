@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 
 describe('DesignViewNavigation', () => {
   it('should render DesignViewNavigation with correct text', () => {
@@ -20,6 +21,20 @@ describe('DesignViewNavigation', () => {
     renderDesignViewNavigation();
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     expect(menuButton).toHaveAttribute('aria-haspopup', 'menu');
+  });
+
+  it('should open dropdown menu when clicking the menu button', async () => {
+    const user = userEvent.setup();
+    renderDesignViewNavigation();
+    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
+    expect(
+      screen.queryByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
+    ).not.toBeInTheDocument();
+    await user.click(menuButton);
+
+    expect(
+      await screen.findByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
+    ).toBeInTheDocument();
   });
 });
 
