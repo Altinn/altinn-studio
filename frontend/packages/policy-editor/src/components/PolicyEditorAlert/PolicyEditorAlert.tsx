@@ -5,8 +5,12 @@ import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { useTranslation } from 'react-i18next';
 
 export const PolicyEditorAlert = (): React.ReactElement => {
-  const { usageType } = usePolicyEditorContext();
+  const { usageType, policyRules } = usePolicyEditorContext();
   const { t } = useTranslation();
+
+  if (policyRules.length > 0) {
+    return null;
+  }
 
   return (
     <Alert severity='info' className={classes.alert}>
