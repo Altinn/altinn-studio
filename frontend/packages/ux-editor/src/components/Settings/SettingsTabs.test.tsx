@@ -9,7 +9,7 @@ import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('SettingsTabs', () => {
   afterEach(() => {
-    jest.clearAllMocks;
+    jest.clearAllMocks();
     typedLocalStorage.removeItem('featureFlags');
   });
 
