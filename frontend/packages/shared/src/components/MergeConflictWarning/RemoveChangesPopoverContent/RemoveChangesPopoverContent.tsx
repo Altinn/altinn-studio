@@ -1,25 +1,32 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components';
+import {
+  StudioTextfield,
+  StudioButton,
+  StudioSpinner,
+  StudioHeading,
+  StudioParagraph,
+} from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 
 export type RemoveChangesPopoverContentProps = {
   onClose: () => void;
+  owner: string;
+  repoName: string;
 };
 
 export const RemoveChangesPopoverContent = ({
   onClose,
+  owner,
+  repoName,
 }: RemoveChangesPopoverContentProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
 
   const queryClient = useQueryClient();
-  const repoResetMutation = useResetRepositoryMutation(org, app);
+  const repoResetMutation = useResetRepositoryMutation(owner, repoName);
 
   const [canDelete, setCanDelete] = useState<boolean>(false);
 
@@ -47,21 +54,21 @@ export const RemoveChangesPopoverContent = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const name: string = event.target.value;
-    setCanDelete(name === app);
+    setCanDelete(name === repoName);
   };
 
   return (
     <div className={classes.wrapper}>
-      <Heading level={2} size='small' spacing>
+      <StudioHeading level={2} size='sm' spacing>
         {t('overview.reset_repo_confirm_heading')}
-      </Heading>
-      <Paragraph size='small' spacing>
+      </StudioHeading>
+      <StudioParagraph size='sm' spacing>
         <Trans
           i18nKey={'overview.reset_repo_confirm_info'}
-          values={{ repositoryName: app }}
+          values={{ repositoryName: repoName }}
           components={{ bold: <strong /> }}
         />
-      </Paragraph>
+      </StudioParagraph>
       <StudioTextfield
         label={t('overview.reset_repo_confirm_repo_name')}
         onChange={handleChange}
