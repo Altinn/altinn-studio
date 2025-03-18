@@ -36,3 +36,10 @@
   margin-top: var(--fds-spacing-10);
   padding-top: var(--fds-spacing-8);
 }
+
+.alert {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  width: 80%;
+  max-width: 1050px;
+  margin-left: var(--fds-spacing-6);
+}
