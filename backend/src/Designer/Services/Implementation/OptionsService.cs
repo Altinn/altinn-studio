@@ -164,4 +164,28 @@ public class OptionsService : IOptionsService
         altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
 
     }
+
+    /// <inheritdoc />
+    public async Task<List<Option>> ImportOptionsListFromOrg(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, GetStaticContentRepo(org), developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        bool optionsListExists = await OptionsListExists(org, repo, developer, optionsListId, cancellationToken);
+        if (optionsListExists)
+        {
+            return null;
+        }
+
+        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionsListId, cancellationToken);
+        string createdOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, codeList, cancellationToken);
+        List<Option> createdOptionsList = JsonSerializer.Deserialize<List<Option>>(createdOptionsString);
+        return createdOptionsList;
+    }
+
+    private static string GetStaticContentRepo(string org)
+    {
+        return $"{org}-content";
+    }
 }

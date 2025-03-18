@@ -91,4 +91,15 @@ public interface IOptionsService
     /// <param name="newOptionsListId">The new name of the options list file.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId, string newOptionsListId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Imports a code list from the static content repository associated with a provided organisation.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="repo">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="optionsListId">Name of the options list</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The imported options list</returns>
+    public Task<List<Option>> ImportOptionsListFromOrg(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
 }

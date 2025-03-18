@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -10,8 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Services;
 
-public class OptionsServiceTests
+public class OptionsServiceTests : IDisposable
 {
+    private string TargetOrg { get; set; }
+
     private const string Org = "ttd";
     private const string Developer = "testUser";
 
@@ -302,11 +307,81 @@ public class OptionsServiceTests
         Assert.Equivalent(optionListsReferences, expectedResponseList);
     }
 
+    [Fact]
+    public async Task ImportOptionsListFromOrg_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
+    {
+        // Arrange
+        const string orgRepo = "org-content";
+        const string appRepo = "app-with-options";
+        const string optionsListId = "codeListString";
+
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, orgRepo, TargetOrg, targetOrgRepository);
+
+        string targetAppRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, appRepo, TargetOrg, targetAppRepository);
+
+        string expectedOptionsListString = TestDataHelper.GetFileFromRepo(TargetOrg, targetOrgRepository, Developer, "Codelists/codeListString.json");
+        List<Option> expectedOptionsList = JsonSerializer.Deserialize<List<Option>>(expectedOptionsListString);
+
+        // Act
+        var optionsService = GetOptionsServiceForTest();
+        List<Option> optionsList = await optionsService.ImportOptionsListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
+
+        // Assert
+        Assert.Equal(expectedOptionsList.Count, optionsList.Count);
+
+        for (int i = 0; i < expectedOptionsList.Count; i++)
+        {
+            Assert.Equal(expectedOptionsList[i].Label, optionsList[i].Label);
+            Assert.Equal(expectedOptionsList[i].Value, optionsList[i].Value);
+            Assert.Equal(expectedOptionsList[i].Description, optionsList[i].Description);
+            Assert.Equal(expectedOptionsList[i].HelpText, optionsList[i].HelpText);
+        }
+    }
+
+    [Fact]
+    public async Task ImportOptionsListFromOrg_ShouldReturnNull_WhenOptionsListDoesAlreadyExist()
+    {
+        // Arrange
+        const string orgRepo = "org-content";
+        const string appRepo = "app-with-options";
+        const string optionsListId = "codeListString";
+
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, orgRepo, TargetOrg, targetOrgRepository);
+
+        string targetAppRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, appRepo, TargetOrg, targetAppRepository);
+
+        const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetAppRepository, Developer);
+        string filePath = Path.Combine(repoPath, "App/options");
+        await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionsListId}.json"), codeList);
+
+        // Act
+        var optionsService = GetOptionsServiceForTest();
+        List<Option> optionsList = await optionsService.ImportOptionsListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
+
+        // Assert
+        Assert.Null(optionsList);
+    }
+
     private static OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         OptionsService optionsService = new(altinnGitRepositoryFactory);
 
         return optionsService;
+    }
+
+    public void Dispose()
+    {
+        if (!string.IsNullOrEmpty(TargetOrg))
+        {
+            TestDataHelper.DeleteOrgDirectory(Developer, TargetOrg);
+        }
     }
 }
