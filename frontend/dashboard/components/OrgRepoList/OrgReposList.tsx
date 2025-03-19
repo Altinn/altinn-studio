@@ -36,7 +36,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   } = useReposSearch({
     uid: uid as number,
     defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE,
-    storageKey: TableSortStorageKey.DashboardApps,
+    storageKey: TableSortStorageKey.OrgRepos,
   });
 
   const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({

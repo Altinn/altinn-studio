@@ -42,7 +42,7 @@ export const RepoList = ({
   onPageChange,
   onPageSizeChange,
   onSortClick,
-  sortStorageKey = TableSortStorageKey.DashboardApps,
+  sortStorageKey = TableSortStorageKey.OrgRepos,
   sortDirection,
   sortColumn,
 }: RepoListProps): React.ReactElement => {

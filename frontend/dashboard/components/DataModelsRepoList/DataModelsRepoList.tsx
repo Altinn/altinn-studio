@@ -50,7 +50,7 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
       <RepoList
         repos={dataModelsIncludingStarredData}
         isLoading={hasPendingDataModels || hasPendingStarredRepos}
-        sortStorageKey={TableSortStorageKey.DataModels}
+        sortStorageKey={TableSortStorageKey.DataModelRepos}
       />
     </div>
   );

@@ -40,7 +40,7 @@ export const useReposSearch = ({
   keyword,
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
-  storageKey = TableSortStorageKey.DashboardApps,
+  storageKey = TableSortStorageKey.OrgRepos,
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(

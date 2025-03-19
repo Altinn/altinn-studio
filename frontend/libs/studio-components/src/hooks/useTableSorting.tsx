@@ -9,12 +9,9 @@ export type SortPreference = {
 
 export enum TableSortStorageKey {
   Default = 'table-sort-preference',
-  LocalTable = 'local-table-sort-preference',
-  RemoteTable = 'remote-table-sort-preference',
-  DashboardApps = 'dashboard-myapps-sort-preference',
-  OrgRepos = 'dashboard-orgrepos-sort-preference',
-  DashboardFavorites = 'dashboard-favorites-sort-preference',
-  DataModels = 'dashboard-datamodels-sort-preference',
+  OrgRepos = 'dashboard-org-repos-sort-preference',
+  FavoriteRepos = 'dashboard-favorite-repos-sort-preference',
+  DataModelRepos = 'dashboard-data-model-repos-sort-preference',
 }
 
 type TableSortingOptions = {

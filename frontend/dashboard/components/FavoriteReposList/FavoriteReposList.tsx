@@ -17,7 +17,7 @@ export const FavoriteReposList = () => {
       <RepoList
         repos={userStarredRepos}
         isLoading={isPending}
-        sortStorageKey={TableSortStorageKey.DashboardFavorites}
+        sortStorageKey={TableSortStorageKey.FavoriteRepos}
       />
     </div>
   );

@@ -35,7 +35,7 @@ export const StudioTableLocalPagination = forwardRef<
       emptyTableFallback,
       pagination,
       shouldPersistSort = false,
-      sortStorageKey = TableSortStorageKey.LocalTable,
+      sortStorageKey,
     },
     ref,
   ): React.ReactElement => {
