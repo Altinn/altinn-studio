@@ -95,7 +95,7 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
-import type { OptionList } from 'app-shared/types/OptionList';
+import type { OptionList, OptionListData } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
@@ -104,6 +104,7 @@ import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import { textResourcesMock } from '../mocks/textResourcesMock';
 import type { PagesModel } from '../types/api/dto/PagesModel';
+import { optionListDataListMock } from 'app-shared/mocks/optionListDataListMock';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -133,6 +134,8 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
+export const getAvailableOptionListDataListsInOrg = (owner: string): Promise<OptionListData[]> => Promise.resolve(optionListDataListMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14885
+
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
