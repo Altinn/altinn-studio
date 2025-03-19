@@ -4,10 +4,12 @@ import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioParagraph } from '@studio/components';
+import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 
 export type ExpandablePolicyElementProps = {
   title: string;
+  description?: string;
   children: ReactNode;
   isCard?: boolean;
   handleRemoveElement: () => void;
@@ -17,6 +19,7 @@ export type ExpandablePolicyElementProps = {
 
 export const ExpandablePolicyElement = ({
   title,
+  description,
   children,
   isCard = true,
   handleRemoveElement,
@@ -24,8 +27,9 @@ export const ExpandablePolicyElement = ({
   hasError = false,
 }: ExpandablePolicyElementProps): React.ReactNode => {
   const { t } = useTranslation();
+  const { usageType } = usePolicyEditorContext();
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(usageType !== 'app');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isButtonFocused, setIsButtonFocused] = useState(false);
@@ -68,7 +72,14 @@ export const ExpandablePolicyElement = ({
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <StudioLabelAsParagraph size='small'>{title}</StudioLabelAsParagraph>
+          <div className={classes.headerWrapper}>
+            <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
+            {description && (
+              <StudioParagraph size='xs' className={classes.headerDescription}>
+                {description}
+              </StudioParagraph>
+            )}
+          </div>
           {isOpen ? (
             <ChevronUpIcon
               title={t('policy_editor.expandable_card_close_icon')}

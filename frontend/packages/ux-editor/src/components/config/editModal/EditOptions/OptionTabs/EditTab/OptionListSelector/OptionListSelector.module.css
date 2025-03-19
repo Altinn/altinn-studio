@@ -14,6 +14,12 @@
   gap: var(--fds-spacing-2);
 }
 
+.card {
+  min-height: var(--fds-spacing-10);
+  display: flex;
+  justify-content: center;
+}
+
 .card:hover {
   background-color: var(--fds-semantic-surface-neutral-subtle);
   cursor: pointer;

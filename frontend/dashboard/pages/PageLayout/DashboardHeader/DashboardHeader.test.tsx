@@ -12,6 +12,7 @@ import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext';
 import { mockOrg1, mockOrg2, mockOrganizations } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
+import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -19,6 +20,8 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useParams: jest.fn().mockReturnValue({ subroute: 'app-dashboard', selectedContext: 'self' }),
 }));
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -197,6 +200,38 @@ describe('DashboardHeader', () => {
       `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render small navigation menu when the screen is small', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderDashboardHeader();
+
+    expect(screen.getByRole('button', { name: textMock('top_menu.menu') })).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).not.toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
+  });
+
+  it('should render large navigation menu when the screen is large', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    renderDashboardHeader();
+
+    expect(
+      screen.queryByRole('button', { name: textMock('top_menu.menu') }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
   });
 });
 

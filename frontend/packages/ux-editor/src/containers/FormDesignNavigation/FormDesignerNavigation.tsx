@@ -11,6 +11,7 @@ export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: appConfigData } = useAppConfigQuery(org, app);
+
   return (
     <div className={classes.wrapper}>
       <main className={classes.container}>

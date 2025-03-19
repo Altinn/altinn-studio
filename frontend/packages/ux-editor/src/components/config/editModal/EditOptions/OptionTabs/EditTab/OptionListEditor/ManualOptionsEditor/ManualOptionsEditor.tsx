@@ -1,29 +1,39 @@
+import React, { forwardRef } from 'react';
 import type { IGenericEditComponent } from '../../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
-import React, { forwardRef } from 'react';
+import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   handleOptionsChange,
   resetComponentOptions,
   updateComponentOptions,
 } from '../../../utils/optionsUtils';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
-import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
+import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
 
-type ManualOptionsEditorProps = {
+export type ManualOptionsEditorProps = {
   handleDelete: () => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
   ({ component, handleComponentChange, handleDelete }, ref): React.ReactNode => {
     const { t } = useTranslation();
+    const { org, app } = useStudioEnvironmentParams();
+    const { data: textResources } = useTextResourcesQuery(org, app);
+    const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
+
+    const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
+    const handleBlurTextResource = useHandleBlurTextResource(language, updateTextResource);
 
     const handleOptionsListChange = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
@@ -57,12 +67,16 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
             codeList={component.options}
             onAddOrDeleteItem={handleOptionsListChange}
             onBlurAny={handleOptionsListChange}
+            onBlurTextResource={handleBlurTextResource}
             texts={editorTexts}
+            textResources={textResourcesForLanguage}
           />
         </StudioModal.Dialog>
       </>
     );
   },
 );
+
+const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
 
 ManualOptionsEditor.displayName = 'ManualOptionsEditor';

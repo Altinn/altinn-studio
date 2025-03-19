@@ -198,14 +198,18 @@ namespace Altinn.Studio.PolicyAdmin
             xacmlRule.Description = policyRule.Description;
 
             List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
+            List<string> subjects = [];
             if (policyRule.Subject != null && policyRule.Subject.Count > 0)
             {
-                ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
+                subjects.AddRange(policyRule.Subject);
             }
-
             if (policyRule.AccessPackages != null && policyRule.AccessPackages.Count > 0)
             {
-                ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.AccessPackages));
+                subjects.AddRange(policyRule.AccessPackages);
+            }
+            if (subjects.Count > 0)
+            {
+                ruleAnyOfs.Add(GetSubjectAnyOfs(subjects));
             }
 
             if (policyRule.Resources != null && policyRule.Resources.Count > 0)

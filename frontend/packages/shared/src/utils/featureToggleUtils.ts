@@ -14,6 +14,8 @@ export enum FeatureFlag {
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   TaskNavigation = 'taskNavigation',
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
+  TaskNavigationEditCards = 'taskNavigationEditCards',
+  TaskNavigationTabNav = 'taskNavigationTabNav',
 }
 
 /*
