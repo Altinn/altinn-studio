@@ -371,17 +371,6 @@ namespace Altinn.Studio.Designer.Controllers
             return layoutSetsModel;
         }
 
-        [HttpGet("task-navigation")]
-        [UseSystemTextJson]
-        public async Task<List<TaskNavigationModel>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-
-            List<TaskNavigationModel> taskNavigationList = await _appDevelopmentService.GetTaskNavigation(editingContext, cancellationToken);
-            return taskNavigationList;
-        }
-
         /// <summary>
         /// Add a new layout set
         /// </summary>

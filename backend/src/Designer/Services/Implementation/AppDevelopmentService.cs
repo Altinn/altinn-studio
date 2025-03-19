@@ -303,28 +303,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSetsModel;
         }
 
-        public async Task<List<TaskNavigationModel>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-
-            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            Definitions definitions = altinnAppGitRepository.GetDefinitions();
-
-            var taskNavigationList = new List<TaskNavigationModel>();
-            layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigation =>
-            {
-                string taskType = TaskTypeFromDefinitions(definitions, taskNavigation.taskId);
-                taskNavigationList.Add(new()
-                {
-                    taskId = taskNavigation.taskId,
-                    taskType = taskType,
-                });
-            });
-
-            return taskNavigationList;
-        }
-
         /// <inheritdoc />
         public async Task<LayoutSetConfig> GetLayoutSetConfig(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
             CancellationToken cancellationToken = default)
