@@ -5,6 +5,7 @@ import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
 import { PadlockLockedFillIcon, PlusCircleIcon, PencilIcon } from '@studio/icons';
 import cn from 'classnames';
+import { ValidationUtils } from '@studio/pure-functions';
 
 export type StudioPropertyButtonProps = {
   property: string;
@@ -28,7 +29,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
     },
     ref,
   ) => {
-    const hasValue = !!value;
+    const hasValue = ValidationUtils.valueExists(value);
 
     const icon = hasValue || givenIcon ? givenIcon : <PlusCircleIcon />;
 
@@ -61,7 +62,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
             {icon}
             {property}
           </span>
-          <span className={classes.value}>{value}</span>
+          {hasValue && <span className={classes.value}>{value}</span>}
         </span>
         {readOnly ? (
           <span className={classes.readOnlyWrapper}>
