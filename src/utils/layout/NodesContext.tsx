@@ -14,6 +14,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -814,14 +815,14 @@ export function isHidden(
     return isHiddenPage(state, id, _options);
   }
 
-  const pageKey = state.nodeData[id]?.pageKey;
-  if (pageKey && isHiddenPage(state, pageKey, _options)) {
-    return true;
-  }
-
   const options = withDefaults(_options);
   if (options.forcedVisibleByDevTools && options.respectDevTools) {
     return false;
+  }
+
+  const pageKey = state.nodeData[id]?.pageKey;
+  if (pageKey && isHiddenPage(state, pageKey, _options)) {
+    return true;
   }
 
   const hidden = state.nodeData[id]?.hidden;
@@ -858,23 +859,27 @@ function makeOptions(forcedVisibleByDevTools: boolean, options?: AccessibleIsHid
   };
 }
 
+function useIsForcedVisibleByDevTools() {
+  return useDevToolsStore((state) => state.isOpen && state.hiddenComponents !== 'hide');
+}
+
 export type IsHiddenSelector = ReturnType<typeof Hidden.useIsHiddenSelector>;
 export const Hidden = {
   useIsHidden(node: LayoutNode | LayoutPage | undefined, options?: AccessibleIsHiddenOptions) {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
     const id = node instanceof LayoutPage ? node.pageKey : node?.id;
     return WhenReady.useSelector((s) => isHidden(s, type, id, makeOptions(forcedVisibleByDevTools, options)));
   },
   useIsHiddenPage(page: LayoutPage | string | undefined, options?: AccessibleIsHiddenOptions) {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     return WhenReady.useSelector((s) => {
       const pageKey = page instanceof LayoutPage ? page.pageKey : page;
       return isHiddenPage(s, pageKey, makeOptions(forcedVisibleByDevTools, options));
     });
   },
   useIsHiddenPageSelector() {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     return Store.useDelayedSelector(
       {
         mode: 'simple',
@@ -887,14 +892,14 @@ export const Hidden = {
     );
   },
   useHiddenPages(): Set<string> {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     const hiddenPages = WhenReady.useLaxMemoSelector((s) =>
       Object.keys(s.pagesData.pages).filter((key) => isHiddenPage(s, key, makeOptions(forcedVisibleByDevTools))),
     );
     return useMemo(() => new Set(hiddenPages === ContextNotProvided ? [] : hiddenPages), [hiddenPages]);
   },
   useIsHiddenSelector() {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     return Store.useDelayedSelector(
       {
         mode: 'simple',
@@ -908,7 +913,7 @@ export const Hidden = {
     );
   },
   useIsHiddenSelectorProps() {
-    const forcedVisibleByDevTools = GeneratorData.useIsForcedVisibleByDevTools();
+    const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     return Store.useDelayedSelectorProps(
       {
         mode: 'simple',
