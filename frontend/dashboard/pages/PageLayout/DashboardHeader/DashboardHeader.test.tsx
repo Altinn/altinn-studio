@@ -33,7 +33,10 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    typedLocalStorage.removeItem('featureFlags');
+  });
 
   it('should render the user name as the profile button when in self context', () => {
     (useParams as jest.Mock).mockReturnValue({
@@ -105,7 +108,6 @@ describe('DashboardHeader', () => {
       name: textMock('dashboard.header_item_dashboard'),
     });
     expect(appsMenuItem).toBeInTheDocument();
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should render library menu element with correct link', () => {
@@ -118,7 +120,6 @@ describe('DashboardHeader', () => {
       'href',
       `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
     );
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should not render library menu element when featureFlag is not turned on', () => {
@@ -147,7 +148,6 @@ describe('DashboardHeader', () => {
       'href',
       `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
     );
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should navigate to the correct organization context when an org is selected', async () => {
@@ -212,6 +212,8 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when showSubMenu is false', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
@@ -224,6 +226,8 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when isRepoError is true', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
@@ -236,11 +240,13 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when the page is not orgLibrary', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: mockOrgTtd,
       subroute: Subroute.AppDashboard,
     });
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
 
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
@@ -252,12 +258,15 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
     });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
   it('should not render the submenu when the selected context is not org', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
       subroute: Subroute.OrgLibrary,
@@ -295,11 +304,11 @@ describe('DashboardHeader', () => {
         name: textMock('dashboard.header_item_library'),
       }),
     ).not.toBeInTheDocument();
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should render large navigation menu when the screen is large', () => {
     typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     renderDashboardHeader();
 
@@ -312,7 +321,6 @@ describe('DashboardHeader', () => {
         name: textMock('dashboard.header_item_library'),
       }),
     ).toBeInTheDocument();
-    typedLocalStorage.removeItem('featureFlags');
   });
 });
 
