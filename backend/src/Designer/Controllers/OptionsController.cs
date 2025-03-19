@@ -257,7 +257,7 @@ public class OptionsController : ControllerBase
     }
 
     [HttpPost]
-    [Route("{optionsListId}/import")]
+    [Route("import/{optionsListId}")]
     public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,6 +28,12 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string orgRepo = "org-content";
         const string appRepo = "empty-app";
         const string optionListId = "codeListString";
+        const string stringCodeList = @"[
+            {""value"": ""norway"",""label"": ""Norge""},
+            {""value"": ""denmark"",""label"": ""Danmark""},
+            {""value"": ""sweden"",""label"": ""country.label.sweden""}
+        ]";
+        List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(stringCodeList);
 
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
@@ -33,14 +42,25 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await AddRepositoryToTestOrg(Developer, Org, appRepo, targetOrg, targetAppRepository);
 
-        string apiUrl = $"/designer/api/{targetOrg}/{targetAppRepository}/options/{optionListId}/import";
+        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(message);
+        string responseContent = await response.Content.ReadAsStringAsync();
+        List<Option> importedOptionList = JsonSerializer.Deserialize<List<Option>>(responseContent);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(importedOptionList.Count, expectedOptionList.Count);
+
+        for (int i = 0; i < expectedOptionList.Count; i++)
+        {
+            Assert.Equal(expectedOptionList[i].Value, importedOptionList[i].Value);
+            Assert.Equal(expectedOptionList[i].Label, importedOptionList[i].Label);
+            Assert.Equal(expectedOptionList[i].Description, importedOptionList[i].Description);
+            Assert.Equal(expectedOptionList[i].HelpText, importedOptionList[i].HelpText);
+        }
     }
 
     [Fact]
@@ -58,16 +78,16 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await AddRepositoryToTestOrg(Developer, Org, appRepo, targetOrg, targetAppRepository);
 
-        string apiUrl = $"/designer/api/{targetOrg}/{targetAppRepository}/options/{optionListId}/import";
+        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(message);
-        string responseMessage = await response.Content.ReadAsStringAsync();
+        string responseContent = await response.Content.ReadAsStringAsync();
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"The code list file {optionListId}.json does not exist.", responseMessage);
+        Assert.Equal($"The code list file {optionListId}.json does not exist.", responseContent);
     }
 
     [Fact]
@@ -90,16 +110,17 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionListId}.json"), codeList);
 
-        string apiUrl = $"/designer/api/{targetOrg}/{targetAppRepository}/options/{optionListId}/import";
+        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(message);
-        string responseMessage = await response.Content.ReadAsStringAsync();
+        string responseContent = await response.Content.ReadAsStringAsync();
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Equal($"The options file {optionListId}.json already exists.", responseMessage);
+        Assert.Equal($"The options file {optionListId}.json already exists.", responseContent);
     }
 
+    private static string ApiUrl(string org, string app, string optionListId) => $"/designer/api/{org}/{app}/options/import/{optionListId}";
 }
