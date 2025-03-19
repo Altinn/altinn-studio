@@ -13,7 +13,8 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
     public new required List<LayoutSetConfig> Sets { get; set; }
 
     [JsonPropertyName("uiSettings")]
-    public required LayoutSetUiSettings UiSettings { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LayoutSetUiSettings? UiSettings { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
