@@ -9,11 +9,11 @@
   position: relative;
 }
 
-.header {
-  color: #022f51;
-  font-family: var(--studio-font-family);
-  font-size: var(--fds-sizing-9);
-  font-weight: 500;
+.alert {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  width: 80%;
+  max-width: 1050px;
+  margin-left: var(--fds-spacing-6);
 }
 
 .panel {
@@ -31,15 +31,15 @@
   gap: var(--fds-spacing-10);
 }
 
+.header {
+  color: #022f51;
+  font-family: var(--studio-font-family);
+  font-size: var(--fds-sizing-9);
+  font-weight: 500;
+}
+
 .footer {
   border-top: 2px solid #efefef;
   margin-top: var(--fds-spacing-10);
   padding-top: var(--fds-spacing-8);
-}
-
-.alert {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  width: 80%;
-  max-width: 1050px;
-  margin-left: var(--fds-spacing-6);
 }
