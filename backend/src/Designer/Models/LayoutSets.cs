@@ -53,7 +53,8 @@ public class LayoutSetTaskNavigation
 {
     [JsonPropertyName("taskId")]
     public string? taskId { get; set; }
-
-    [JsonExtensionData]
-    public IDictionary<string, object?>? UnknownProperties { get; set; }
+    [JsonPropertyName("type")]
+    public string? type { get; set; }
+    [JsonPropertyName("name")]
+    public string? name { get; set; }
 }

@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
         {
-            return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+            return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType;
         }
 
         public async Task<List<TaskNavigationModel>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
@@ -43,11 +43,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var taskNavigationList = new List<TaskNavigationModel>();
             layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigation =>
             {
-                string taskType = TaskTypeFromDefinitions(definitions, taskNavigation.taskId);
                 taskNavigationList.Add(new()
                 {
                     taskId = taskNavigation.taskId,
-                    taskType = taskType,
+                    type = taskNavigation.type ?? TaskTypeFromDefinitions(definitions, taskNavigation.taskId),
+                    name = taskNavigation.name,
                 });
             });
 
