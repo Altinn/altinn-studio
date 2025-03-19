@@ -42,7 +42,7 @@ export const StudioTableLocalPagination = forwardRef<
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const { sortedRows, handleSorting, sortDirection, sortColumn } = useTableSorting(rows, {
+    const { sortedRows, handleSorting } = useTableSorting(rows, {
       enable: true,
       shouldPersistSort,
       storageKey: sortStorageKey,
@@ -78,8 +78,6 @@ export const StudioTableLocalPagination = forwardRef<
         loadingText={loadingText}
         emptyTableFallback={emptyTableFallback}
         onSortClick={handleSorting}
-        sort={sortDirection}
-        sortColumn={sortColumn}
         pagination={studioTableRemotePaginationProps}
         ref={ref}
       />

@@ -134,8 +134,6 @@ export const RepoList = ({
           loadingText={t('dashboard.loading')}
           emptyTableFallback={emptyTableFallback}
           onSortClick={onSortClick}
-          sort={sortDirection}
-          sortColumn={sortColumn}
           pagination={paginationProps}
         />
       ) : (
