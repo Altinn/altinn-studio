@@ -31,7 +31,7 @@ export const StudioTableLocalPagination = forwardRef<
       rows,
       size = 'medium',
       isLoading = false,
-      loadingText = 'Loading...',
+      loadingText,
       emptyTableFallback,
       pagination,
       shouldPersistSort = false,
