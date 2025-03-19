@@ -157,19 +157,30 @@ services:
       timeout: 10s
       retries: 5
 
-  studio_repositories_runner:
-    container_name: gitea-runner
-    image: gitea/act_runner:0.2.11-dind-rootless
+  # studio_repositories_runner:
+  #   container_name: gitea-runner
+  #   image: gitea/act_runner:0.2.11-dind-rootless
+  #   restart: always
+  #   privileged: true
+  #   depends_on:
+  #     studio_repositories:
+  #       condition: service_healthy
+  #   volumes:
+  #     - runnerdata:/data
+  #   environment:
+  #     - GITEA_INSTANCE_URL=http://studio_repositories:3000
+  #     - DOCKER_HOST=unix:///var/run/user/1000/docker.sock
+  #     - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+
+  runner:
     restart: always
-    privileged: true
-    depends_on:
-      studio_repositories:
-        condition: service_healthy
+    build:
+      context: ./gitea-runner
+    privileged: false
     volumes:
-      - runnerdata:/data
+      - ./data/act_runner:/data
     environment:
       - GITEA_INSTANCE_URL=http://studio_repositories:3000
-      - DOCKER_HOST=unix:///var/run/user/1000/docker.sock
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
 
   studio_db:
