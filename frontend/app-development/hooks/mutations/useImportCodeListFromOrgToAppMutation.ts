@@ -1,5 +1,5 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from '../../types/QueryKey';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { OptionList } from 'app-shared/types/OptionList';
 
