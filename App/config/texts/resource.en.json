@@ -361,7 +361,12 @@
     { "id": "PetsSortOrder.AscAge", "value": "Age (1-9)" },
     { "id": "PetsSortOrder.DescAge", "value": "Age (9-1)" },
     { "id": "ChooseFood", "value": "Pick your favourite meal" },
-    { "id": "ChooseColors", "value": "Pick some colors" }
+    { "id": "ChooseColors", "value": "Pick some colors" },
+    {
+      "id": "fileupload-doctype",
+      "value": "Upload all attachments with source {0} here:"
+    }
+
   ]
 }
 

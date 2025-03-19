@@ -385,7 +385,11 @@
     { "id": "PetsSortOrder.AscAge", "value": "Alder (1-9)" },
     { "id": "PetsSortOrder.DescAge", "value": "Alder (9-1)" },
     { "id": "ChooseFood", "value": "Velg din favorittrett" },
-    { "id": "ChooseColors", "value": "Velg noen farger" }
+    { "id": "ChooseColors", "value": "Velg noen farger" },
+    {
+      "id": "fileupload-doctype",
+      "value": "Last opp alle vedlegg med kilde {0} her:"
+    }
   ]
 }
 

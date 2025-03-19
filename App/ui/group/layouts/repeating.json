@@ -215,13 +215,10 @@
         "id": "mainUploaderSingle",
         "type": "FileUpload",
         "textResourceBindings": {
-          "title": "Single uploader in repeating group",
-          "tableTitle": [
-            "if",
-            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
-            "Uploader (single)",
-            "else",
-            "Uploader (one)"
+          "title": ["stringReplace",
+            ["text", "fileupload-doctype"],
+            "{0}",
+            ["optionLabel", "list", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
           ]
         },
         "dataModelBindings": {
