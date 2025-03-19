@@ -27,8 +27,9 @@
   text-align: left;
 
   border-radius: var(--fds-border_radius-interactive);
+  overflow-wrap: anywhere;
   padding: 2px 6px 2px 2px;
-  margin: -2px;
+  margin: -2px -6px -2px -2px;
 
   position: relative;
 }

@@ -5,15 +5,15 @@
   border: none;
   cursor: not-allowed;
   display: grid;
-  width: 100%;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto;
   column-gap: 8px;
   align-items: start;
   text-align: left;
 
   border-radius: var(--fds-border_radius-interactive);
-  padding: 2px;
-  margin: -2px;
+  overflow-wrap: anywhere;
+  padding: 2px 6px 2px 2px;
+  margin: -2px -6px -2px -2px;
 }
 
 .task-name {
