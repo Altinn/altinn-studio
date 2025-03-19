@@ -10,7 +10,6 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useAppContext } from '../../hooks';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
@@ -24,7 +23,6 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const { selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
 
   const formItemConfig = formItemConfigs[component.type];
@@ -55,7 +53,6 @@ export const EditFormComponent = ({
       <ComponentSpecificContent
         component={component}
         handleComponentChange={handleComponentUpdate}
-        layoutName={selectedFormLayoutName}
       />
     </Fieldset>
   );
