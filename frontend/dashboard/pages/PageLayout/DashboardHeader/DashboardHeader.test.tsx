@@ -258,7 +258,7 @@ describe('DashboardHeader', () => {
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
     });
-    (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
     renderDashboardHeader({ showSubMenu: true, isRepoError: false });
 
     expect(getFetchChangesButton()).not.toBeInTheDocument();
