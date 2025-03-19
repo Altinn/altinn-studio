@@ -327,7 +327,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionsList = await optionsService.ImportOptionsListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
+        List<Option> optionsList = await optionsService.ImportOptionListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
 
         // Assert
         Assert.Equal(expectedOptionsList.Count, optionsList.Count);
@@ -363,7 +363,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionsList = await optionsService.ImportOptionsListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
+        List<Option> optionsList = await optionsService.ImportOptionListFromOrg(TargetOrg, targetAppRepository, Developer, optionsListId);
 
         // Assert
         Assert.Null(optionsList);

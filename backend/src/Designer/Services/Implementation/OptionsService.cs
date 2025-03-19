@@ -166,7 +166,7 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> ImportOptionsListFromOrg(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, GetStaticContentRepo(org), developer);

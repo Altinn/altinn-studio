@@ -258,7 +258,7 @@ public class OptionsController : ControllerBase
 
     [HttpPost]
     [Route("{optionsListId}/import")]
-    public async Task<ActionResult> ImportOptionsListFromOrg(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -269,11 +269,11 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionsListId}.json does not exist.");
         }
 
-        List<Option> newOptionsList = await _optionsService.ImportOptionsListFromOrg(org, repo, developer, optionsListId, cancellationToken);
+        List<Option> newOptionsList = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionsListId, cancellationToken);
 
         if (newOptionsList is null)
         {
-            return NotFound($"The options file {optionsListId}.json already exists.");
+            return Conflict($"The options file {optionsListId}.json already exists.");
         }
 
         return Ok(newOptionsList);
