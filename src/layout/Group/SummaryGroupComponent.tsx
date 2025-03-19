@@ -27,7 +27,7 @@ export function SummaryGroupComponent({
   const targetItem = useNodeItem(targetNode);
   const excludedChildren = summaryItem?.excludedChildren;
   const display = overrides?.display || summaryItem?.display;
-  const { langAsString } = useLanguage();
+  const { langAsString } = useLanguage(targetNode);
   const isHidden = Hidden.useIsHiddenSelector();
 
   const inExcludedChildren = useCallback(
@@ -94,7 +94,10 @@ export function SummaryGroupComponent({
       >
         <div className={classes.container}>
           <span className={classes.label}>
-            <Lang id={summaryTitleTrb ?? titleTrb} />
+            <Lang
+              id={summaryTitleTrb ?? titleTrb}
+              node={targetNode}
+            />
           </span>
 
           {!display?.hideChangeButton && (
