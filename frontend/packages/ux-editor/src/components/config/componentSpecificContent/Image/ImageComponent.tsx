@@ -11,7 +11,6 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 export const ImageComponent = ({
   component,
   handleComponentChange,
-  layoutName,
 }: IGenericEditComponent<ComponentType.Image>) => {
   const t = useText();
   const alignOptions = [
