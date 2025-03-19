@@ -9,17 +9,10 @@ import { Summary2Component } from './Summary2';
 export function ComponentSpecificContent({
   component,
   handleComponentChange,
-  layoutName,
 }: IGenericEditComponent) {
   switch (component.type) {
     case ComponentType.Image: {
-      return (
-        <ImageComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-          layoutName={layoutName}
-        />
-      );
+      return <ImageComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
