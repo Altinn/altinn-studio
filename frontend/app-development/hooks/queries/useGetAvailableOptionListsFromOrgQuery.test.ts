@@ -5,7 +5,7 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 import { optionListDataListMock } from 'app-shared/mocks/optionListDataListMock';
 
 describe('useGetAvailableOptionListsFromOrgQuery', () => {
-  it('Calls getDataModels with correct arguments and returns the data', async () => {
+  it('Calls getAvailableOptionListDataListsInOrg with correct arguments and returns the data', async () => {
     const getAvailableOptionListDataListsInOrg = jest
       .fn()
       .mockImplementation(() => Promise.resolve(optionListDataListMock));
