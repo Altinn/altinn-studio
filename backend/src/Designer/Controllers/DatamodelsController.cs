@@ -113,42 +113,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all JSON schema data models within repository.
-        /// </summary>
-        /// <param name="org">the org owning the models repo</param>
-        /// <param name="repository">the model repos</param>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("all-json")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetAllJsonDataModels(string org, string repository)
-        {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            var schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
-
-            return Ok(schemaFiles);
-        }
-
-        /// <summary>
-        /// Method that returns all xsd models within repository.
-        /// </summary>
-        /// <param name="org">the org owning the models repo</param>
-        /// <param name="repository">the model repos</param>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("all-xsd")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetAllXsdDataModels(string org, string repository)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext, true);
-
-            return Ok(schemaFiles);
-        }
-
-        /// <summary>
         /// Method that returns all JSON schema data models within App/models.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
