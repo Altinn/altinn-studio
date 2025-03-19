@@ -12,6 +12,7 @@ import type { PagesConfig, ResourceContentLibraryImpl } from '@studio/content-li
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
+import { repoStatus } from 'app-shared/mocks/mocks';
 
 // Test data:
 const orgName: string = 'org';
@@ -141,6 +142,36 @@ describe('OrgContentLibrary', () => {
 
     expect(deleteCodeListForOrg).toHaveBeenCalledTimes(1);
     expect(deleteCodeListForOrg).toHaveBeenCalledWith(orgName, codeList1Data.title);
+  });
+
+  it('renders merge conflict warning when there is a merge conflict', async () => {
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
+
+    renderOrgContentLibrary({ queries: { getRepoStatus } });
+    await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
+
+    const mergeConflictWarning = screen.getByRole('heading', {
+      name: textMock('merge_conflict.headline'),
+      level: 1,
+    });
+    expect(mergeConflictWarning).toBeInTheDocument();
+  });
+
+  it('does not render merge conflict warning when there is no merge conflict', async () => {
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
+
+    renderOrgContentLibrary({ queries: { getRepoStatus } });
+    await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
+
+    const mergeConflictWarning = screen.queryByRole('heading', {
+      name: textMock('merge_conflict.headline'),
+      level: 1,
+    });
+    expect(mergeConflictWarning).not.toBeInTheDocument();
   });
 });
 
