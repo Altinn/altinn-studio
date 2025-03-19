@@ -120,8 +120,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("app-json")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetAppJsonDataModels(string org, string repository)
+        [Route("json")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetJsonDataModels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
@@ -138,8 +138,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("app-xsd")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetAppXsdDataModels(string org, string repository)
+        [Route("xsd")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXsdDataModels(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
