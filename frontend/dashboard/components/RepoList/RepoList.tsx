@@ -3,7 +3,11 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
+import {
+  StudioTableLocalPagination,
+  StudioTableRemotePagination,
+  TableSortStorageKey,
+} from '@studio/components';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
@@ -11,7 +15,7 @@ import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
 import { Paragraph } from '@digdir/designsystemet-react';
 
-export interface RepoListProps {
+export type RepoListProps = {
   repos: RepoIncludingStarredData[];
   isLoading: boolean;
   isServerSort?: boolean;
@@ -22,10 +26,10 @@ export interface RepoListProps {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick?: (columnKey: string) => void;
-  sortStorageKey?: string;
+  sortStorageKey?: TableSortStorageKey;
   sortDirection?: 'asc' | 'desc';
   sortColumn?: string | null;
-}
+};
 
 export const RepoList = ({
   repos = [],
@@ -38,7 +42,7 @@ export const RepoList = ({
   onPageChange,
   onPageSizeChange,
   onSortClick,
-  sortStorageKey = 'dashboard-repos-sort-preference',
+  sortStorageKey = TableSortStorageKey.DashboardApps,
   sortDirection,
   sortColumn,
 }: RepoListProps): React.ReactElement => {

@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Columns, Rows, PaginationTexts } from '../StudioTableRemotePagination';
-import { useTableSorting } from '../../hooks/useTableSorting';
+import { useTableSorting, TableSortStorageKey } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
 
 export type LocalPaginationProps = {
@@ -18,7 +18,7 @@ export type StudioTableLocalPaginationProps = {
   emptyTableFallback?: React.ReactNode;
   pagination?: LocalPaginationProps;
   shouldPersistSort?: boolean;
-  sortStorageKey?: string;
+  sortStorageKey?: TableSortStorageKey;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -35,7 +35,7 @@ export const StudioTableLocalPagination = forwardRef<
       emptyTableFallback,
       pagination,
       shouldPersistSort = false,
-      sortStorageKey,
+      sortStorageKey = TableSortStorageKey.LocalTable,
     },
     ref,
   ): React.ReactElement => {

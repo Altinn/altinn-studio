@@ -11,6 +11,7 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/designsystemet-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
+import { TableSortStorageKey } from '@studio/components';
 
 type DataModelsReposListProps = {
   user: User;
@@ -49,6 +50,7 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
       <RepoList
         repos={dataModelsIncludingStarredData}
         isLoading={hasPendingDataModels || hasPendingStarredRepos}
+        sortStorageKey={TableSortStorageKey.DataModels}
       />
     </div>
   );

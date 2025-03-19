@@ -5,6 +5,7 @@ import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 import { typedLocalStorage } from '@studio/pure-functions';
+import { TableSortStorageKey } from '@studio/components';
 
 export enum Direction {
   Asc = 'asc',
@@ -32,14 +33,14 @@ type UseReposSearchProps = {
   keyword?: string;
   uid?: number;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
-  storageKey?: string;
+  storageKey?: TableSortStorageKey;
 };
 
 export const useReposSearch = ({
   keyword,
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
-  storageKey = 'dashboard-myapps-sort-preference',
+  storageKey = TableSortStorageKey.DashboardApps,
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(

@@ -7,14 +7,24 @@ export type SortPreference = {
   direction: 'asc' | 'desc';
 };
 
+export enum TableSortStorageKey {
+  Default = 'table-sort-preference',
+  LocalTable = 'local-table-sort-preference',
+  RemoteTable = 'remote-table-sort-preference',
+  DashboardApps = 'dashboard-myapps-sort-preference',
+  OrgRepos = 'dashboard-orgrepos-sort-preference',
+  DashboardFavorites = 'dashboard-favorites-sort-preference',
+  DataModels = 'dashboard-datamodels-sort-preference',
+}
+
 type TableSortingOptions = {
   enable: boolean;
   shouldPersistSort?: boolean;
-  storageKey?: string;
+  storageKey?: TableSortStorageKey;
 };
 
 export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
-  const { enable, shouldPersistSort = false, storageKey = 'table-sort-preference' } = options;
+  const { enable, shouldPersistSort = false, storageKey = TableSortStorageKey.Default } = options;
 
   const getSavedPreference = (): SortPreference | null => {
     if (!shouldPersistSort) return null;

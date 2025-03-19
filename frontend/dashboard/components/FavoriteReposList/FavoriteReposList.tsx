@@ -3,7 +3,7 @@ import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { Heading } from '@digdir/designsystemet-react';
-
+import { TableSortStorageKey } from '@studio/components';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export const FavoriteReposList = () => {
       <RepoList
         repos={userStarredRepos}
         isLoading={isPending}
-        sortStorageKey='dashboard-favorites-sort-preference'
+        sortStorageKey={TableSortStorageKey.DashboardFavorites}
       />
     </div>
   );
