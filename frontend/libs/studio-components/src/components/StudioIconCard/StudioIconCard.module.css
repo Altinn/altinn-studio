@@ -43,6 +43,7 @@
 }
 
 .iconContainer {
+  padding: var(--fds-spacing-2);
   height: var(--fds-spacing-26);
   display: flex;
   align-items: center;
