@@ -172,9 +172,7 @@ export const FormDesigner = (): JSX.Element => {
                 {isTaskNavigationPageGroups ? (
                   <DesignViewNavigation />
                 ) : (
-                  <div data-testid='design-view'>
-                    <DesignView />
-                  </div>
+                  <DesignView data-testid='design-view' />
                 )}
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element

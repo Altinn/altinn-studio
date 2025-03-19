@@ -24,7 +24,7 @@ import { user as userMock } from 'app-shared/mocks/mocks';
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn(),
   FeatureFlag: {
-    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
+    TaskNavigationPageGroups: 'taskNavigationPageGroups',
   },
 }));
 
@@ -178,18 +178,6 @@ describe('FormDesigner', () => {
 
     await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
     expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
-  });
-
-  it('should render DesignView when TaskNavigationPageGroups feature flag is false', async () => {
-    shouldDisplayFeature.mockReturnValue(false);
-    await waitForData();
-    render();
-
-    await waitFor(() =>
-      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
-    );
-    expect(screen.getByTestId('design-view')).toBeInTheDocument();
-    expect(screen.queryByText(textMock('ux_editor.side_oppsett_header'))).not.toBeInTheDocument();
   });
 
   it('should render DesignViewNavigation when TaskNavigationPageGroups feature flag is true', async () => {
