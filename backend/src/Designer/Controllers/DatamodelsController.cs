@@ -125,7 +125,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            var schemaFiles = _schemaModelService.GetAppSchemaFiles(editingContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
 
             return Ok(schemaFiles);
         }
@@ -143,7 +143,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetAppSchemaFiles(editingContext, true);
+            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(editingContext, true);
 
             return Ok(schemaFiles);
         }
