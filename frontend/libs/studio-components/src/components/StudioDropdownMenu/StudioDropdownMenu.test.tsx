@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { StudioDropdownMenu } from './';
 import React, { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
@@ -76,6 +76,21 @@ describe('StudioDropdownMenu', () => {
     expect(screen.getByTestId(icon4TestId)).toBeInTheDocument();
   });
 
+  it('Triggers onFileUpload when a file is selected', async () => {
+    const user = userEvent.setup();
+    const fileNameMock = 'fileNameMock';
+    renderTestDropdownMenu();
+    await openDropdown(user);
+
+    const file = new File(['test'], `${fileNameMock}.json`, { type: 'application/json' });
+    const fileInputElement = screen.getByLabelText(fileUploaderText);
+
+    await user.upload(fileInputElement, file);
+
+    expect(onFileUpload).toHaveBeenCalledTimes(1);
+    expect(onFileUpload).toHaveBeenCalledWith(expect.any(Object));
+  });
+
   const openDropdown = (user: UserEvent) =>
     user.click(screen.getByRole('button', { name: buttonLabel }));
 });
@@ -89,6 +104,7 @@ const group2Item1Text = 'Group 2 Item 1';
 const group2Item2Text = 'Group 2 Item 2';
 const group2Item3Text = 'Group 2 Item 3';
 const fileUploaderText = 'Upload file';
+const onFileUpload = jest.fn();
 const group1Item1Action = jest.fn();
 const icon1TestId = 'Icon 1';
 const icon2TestId = 'Icon 2';
@@ -117,7 +133,11 @@ const renderTestDropdownMenu = () =>
         <StudioDropdownMenu.Item icon={icon3} iconPlacement='right'>
           {group2Item3Text}
         </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.FileUploaderItem icon={icon4} iconPlacement='right'>
+        <StudioDropdownMenu.FileUploaderItem
+          icon={icon4}
+          iconPlacement='right'
+          onFileUpload={onFileUpload}
+        >
           {fileUploaderText}
         </StudioDropdownMenu.FileUploaderItem>
       </StudioDropdownMenu.Group>
