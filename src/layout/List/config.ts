@@ -26,20 +26,20 @@ export const Config = new CG.component({
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
   .addDataModelBinding(
-    new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForList'),
-  )
-  .addDataModelBinding(
     new CG.obj(
       new CG.prop(
-        'saveToList',
+        'group',
         new CG.dataModelBinding()
-          .setTitle('SaveToList')
+          .setTitle('group binding')
           .setDescription(
             'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
           )
           .optional(),
       ),
-    ).exportAs('IDataModelBindingsForSaveTolist'),
+    )
+      .optional()
+      .additionalProperties(new CG.dataModelBinding().optional())
+      .exportAs('IDataModelBindingsForList'),
   )
   .addProperty(
     new CG.prop(
