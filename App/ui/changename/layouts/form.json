@@ -390,7 +390,7 @@
         "id": "mobilnummer",
         "type": "Input",
         "textResourceBindings": {
-          "title": "Mobil nummer"
+          "title": "cellphone-number"
         },
         "dataModelBindings": {
           "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraMobiltelefonsnummer-datadef-34750.value"
