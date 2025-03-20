@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,12 @@ public class ApplicationLanguage : IApplicationLanguage
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    private static readonly Regex _fileNameRegex = new(
+        @"^resource\.[a-z]{2}\.json$",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(10)
+    );
 
     private readonly AppSettings _settings;
     private readonly Telemetry? _telemetry;
@@ -44,6 +51,11 @@ public class ApplicationLanguage : IApplicationLanguage
 
         foreach (var fileInfo in textResourceFilesInDirectory)
         {
+            if (!_fileNameRegex.IsMatch(fileInfo.Name))
+            {
+                continue;
+            }
+
             await using (FileStream fileStream = new(fileInfo.FullName, FileMode.Open, FileAccess.Read))
             {
                 // ! TODO: find a better way to deal with deserialization errors here, rather than adding nulls to the list
