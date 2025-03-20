@@ -98,8 +98,8 @@ public interface IOptionsService
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="optionListId">Name of the options list</param>
+    /// <param name="optionListId">Name of the option list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The imported options list</returns>
+    /// <returns>The imported option list</returns>
     public Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default);
 }
