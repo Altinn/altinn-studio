@@ -6,6 +6,9 @@ const ComposedComponent = (args): React.ReactElement => (
   <StudioDropdownMenu anchorButtonProps={{ children: args.label }}>
     <StudioDropdownMenu.Group heading='My heading'>
       <StudioDropdownMenu.Item {...args} />
+      <StudioDropdownMenu.FileUploaderItem label='Upload File'>
+        Upload File
+      </StudioDropdownMenu.FileUploaderItem>
     </StudioDropdownMenu.Group>
   </StudioDropdownMenu>
 );
