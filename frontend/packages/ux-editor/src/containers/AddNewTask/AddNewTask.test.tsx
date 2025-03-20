@@ -19,7 +19,9 @@ describe('AddNewTask', () => {
 
     renderAddNewTask();
     await user.click(screen.getByText(textMock('ux_editor.task_card_add_new_task')));
-    expect(navigate).toHaveBeenCalledWith('../' + RoutePaths.ProcessEditor);
+    expect(navigate).toHaveBeenCalledWith(
+      '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
+    );
   });
 });
 

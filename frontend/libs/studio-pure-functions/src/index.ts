@@ -8,5 +8,6 @@ export * from './ObjectUtils';
 export * from './ScopedStorage';
 export * from './StringUtils';
 export * from './types';
+export * from './ValidationUtils';
 export * from './WebStorage';
 export * from './UrlUtils';
