@@ -185,6 +185,11 @@ describe('Repeating group attachments', () => {
       },
     ];
 
+    cy.get(appFrontend.group.row(0).uploadSingle.fileUploader).should(
+      'contain.text',
+      'Last opp alle vedlegg med kilde Altinn her:',
+    );
+
     uploadFile({
       item: appFrontend.group.row(0).uploadSingle,
       idx: 0,

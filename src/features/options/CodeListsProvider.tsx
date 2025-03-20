@@ -132,6 +132,14 @@ function getAllReferencedCodeLists(
           queryParameters: component.queryParameters,
           secure: component.secure,
         });
+        if (urls.has(url)) {
+          // If the same URL is already in the list, we don't need to add it again. This is especially important
+          // if this optionsId is needed both in static and dynamic contexts (i.e. both referenced in a component and
+          // in an expression). The expression engine can only read from the store, so we need to make sure that we
+          // don't overwrite with 'storeInZustand: false'. The recursive function below will always overwrite, and
+          // thus take precedence.
+          continue;
+        }
         urls.set(url, { optionsId: component.optionsId, storeInZustand: false });
       }
       addCodeListsFromExpressionsRecursive(component, language, instanceId, urls);
