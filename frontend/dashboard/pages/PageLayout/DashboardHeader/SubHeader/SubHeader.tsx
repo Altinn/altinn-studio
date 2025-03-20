@@ -2,16 +2,30 @@ import React, { type ReactElement } from 'react';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { useOrgRepoName } from '../../../../hooks/useOrgRepoName';
+import { isOrg } from '../../../OrgContentLibrary/utils';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
-export type SubHeaderProps = {
-  hasRepoError?: boolean;
-};
-
-export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
+export const SubHeader = (): ReactElement => {
+  const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const orgRepoName = useOrgRepoName();
 
-  if (!orgRepoName) return null;
+  const {
+    data: repoStatus,
+    isLoading,
+    error: repoStatusError,
+  } = useRepoStatusQuery(selectedContext, orgRepoName, {
+    hideDefaultError: !isOrg(selectedContext),
+  });
+
+  const hasMergeConflict: boolean = repoStatus?.hasMergeConflict;
+  const hasRepoError: boolean = repoStatusError !== null;
+
+  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
+
+  if (!orgRepoName || hasMergeConflict) return null;
   return (
     <GiteaHeader
       hasCloneModal

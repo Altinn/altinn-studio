@@ -1,32 +1,18 @@
 import { Outlet } from 'react-router-dom';
 import { useOrganizationsQuery } from '../../hooks/queries';
-import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 import React, { useMemo } from 'react';
 import { HeaderContextProvider, type HeaderContextProps } from '../../context/HeaderContext';
 import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner } from '@studio/components';
 import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirectionGuard';
 import { DashboardHeader } from './DashboardHeader';
-import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { isOrg } from '../OrgContentLibrary/utils';
-import { useOrgRepoName } from '../../hooks/useOrgRepoName';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
   const { isRedirectionComplete } = useContextRedirectionGuard(organizations);
-
-  const selectedContext = useSelectedContext();
-  const orgRepoName = useOrgRepoName();
-
-  const {
-    data: repoStatus,
-    isPending: isRepoStatusPending,
-    error: repoStatusError,
-  } = useRepoStatusQuery(selectedContext, orgRepoName, {
-    hideDefaultError: !isOrg(selectedContext),
-  });
 
   const headerContextValue: Partial<HeaderContextProps> = useMemo(
     () => ({
@@ -36,7 +22,7 @@ export const PageLayout = () => {
     [organizations, user],
   );
 
-  const isLoadingData: boolean = !isRedirectionComplete || isRepoStatusPending;
+  const isLoadingData: boolean = !isRedirectionComplete;
 
   if (isLoadingData) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
 
@@ -46,10 +32,7 @@ export const PageLayout = () => {
         user={headerContextValue.user}
         selectableOrgs={headerContextValue.selectableOrgs}
       >
-        <DashboardHeader
-          showSubMenu={!repoStatus?.hasMergeConflict}
-          isRepoError={repoStatusError !== null}
-        />
+        <DashboardHeader />
       </HeaderContextProvider>
       <Outlet />
     </>
