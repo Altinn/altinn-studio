@@ -9,8 +9,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 export const layoutSet1NameMock = 'test-layout-set';
@@ -53,10 +51,7 @@ const wrapper = ({
 };
 
 describe('useSelectedFormLayoutSetName', () => {
-  afterEach(() => {
-    typedLocalStorage.removeItem('featureFlags');
-    jest.clearAllMocks();
-  });
+  afterEach(() => jest.clearAllMocks);
 
   it('should return empty string when there are no layout sets', async () => {
     const { result } = renderHook(() => useSelectedFormLayoutSetName(undefined), { wrapper });
@@ -74,9 +69,8 @@ describe('useSelectedFormLayoutSetName', () => {
     expect(result.current.selectedFormLayoutSetName).toEqual(layoutSetsMock.sets[0].id);
   });
 
-  it('should return undefined when selected layout does not exist and taskNavigation feature flag is enabled', async () => {
+  it('should return undefined when selected layout does not exist', async () => {
     const client = createQueryClientMock();
-    typedLocalStorage.setItem('featureFlags', [FeatureFlag.TaskNavigation]);
 
     const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {

@@ -3,7 +3,6 @@ import React from 'react';
 import { SubApp } from './SubApp';
 import { render, screen, within } from '@testing-library/react';
 import { appContextMock } from './testing/appContextMock';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -48,10 +47,7 @@ describe('SubApp', () => {
     expect(within(provider).getByTestId(appTestId)).toBeInTheDocument();
   });
 
-  it('renders FormDesignerNavigation when task navigation is enabled and no layout set is selected', () => {
-    (shouldDisplayFeature as jest.Mock).mockImplementation(
-      (feature) => feature === FeatureFlag.TaskNavigation,
-    );
+  it('renders FormDesignerNavigation when no layout set is selected', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppVersion, org, app], {
       frontendVersion: '4.0.0',
