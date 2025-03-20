@@ -16,6 +16,7 @@ import { headerContextValueMock } from '../../../testing/headerContextMock';
 import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockOrgTtd: string = 'ttd';
 const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
@@ -347,6 +348,7 @@ const renderDashboardHeader = (queries: Partial<ServicesContextProps> = {}) => {
     <HeaderContextProvider {...headerContextValueMock}>
       <DashboardHeader />
     </HeaderContextProvider>,
+    { queries: { ...queries, ...queriesMock } },
   );
 };
 
