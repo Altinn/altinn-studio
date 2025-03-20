@@ -22,9 +22,7 @@ export const PageLayout = () => {
     [organizations, user],
   );
 
-  const isLoadingData: boolean = !isRedirectionComplete;
-
-  if (isLoadingData) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
+  if (!isRedirectionComplete) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
 
   return (
     <>
