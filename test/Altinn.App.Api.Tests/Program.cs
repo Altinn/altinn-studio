@@ -19,6 +19,7 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +59,9 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
+builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
+    options.RequestCollectionOptions.InjectResponseHeaders = false
+);
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);

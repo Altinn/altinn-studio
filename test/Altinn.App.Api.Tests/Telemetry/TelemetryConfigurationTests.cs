@@ -3,6 +3,7 @@ using System.Reflection;
 using Altinn.App.Api.Tests.TestUtils;
 using Altinn.App.Core.Features;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -152,6 +153,9 @@ public class TelemetryConfigurationTests
 
         Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
         services.AddApplicationInsightsTelemetryProcessor<TelemetryProcessor>();
+        services.Configure<ApplicationInsightsServiceOptions>(options =>
+            options.RequestCollectionOptions.InjectResponseHeaders = false
+        );
 
         // Don't use BuildStrictServiceProvider here since we only want to test parts of the container that
         // `AddAltinnAppServices` brings in
@@ -208,6 +212,9 @@ public class TelemetryConfigurationTests
         services.AddKeyedSingleton<ITelemetryProcessor, TelemetryProcessor>("test");
 
         Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
+        services.Configure<ApplicationInsightsServiceOptions>(options =>
+            options.RequestCollectionOptions.InjectResponseHeaders = false
+        );
 
         // Don't use BuildStrictServiceProvider here since we only want to test parts of the container that
         // `AddAltinnAppServices` brings in
