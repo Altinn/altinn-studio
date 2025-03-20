@@ -306,7 +306,7 @@ describe('DashboardHeader', () => {
 
     renderDashboardHeader({ getRepoStatus });
 
-    await waitForElementToBeRemoved(() => screen.getByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(getFetchChangesButton()).toBeInTheDocument();
   });
 

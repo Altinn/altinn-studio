@@ -101,5 +101,5 @@ const renderSubHeader = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const waitForLoadingToComplete = async () => {
-  await waitForElementToBeRemoved(() => screen.getByText(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
 };
