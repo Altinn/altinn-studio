@@ -7,7 +7,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-export const SubHeader = (): ReactElement => {
+export const SubHeader = (): ReactElement | null => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const orgRepoName = useOrgRepoName();
