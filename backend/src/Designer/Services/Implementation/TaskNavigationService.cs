@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType;
         }
 
-        public async Task<List<TaskNavigationModel>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -40,18 +40,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
 
-            var taskNavigationList = new List<TaskNavigationModel>();
-            layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigation =>
+            var taskNavigationGroupList = new List<TaskNavigationGroup>();
+            layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigationGroup =>
             {
-                taskNavigationList.Add(new()
+                taskNavigationGroupList.Add(new()
                 {
-                    taskId = taskNavigation.taskId,
-                    type = taskNavigation.type ?? TaskTypeFromDefinitions(definitions, taskNavigation.taskId),
-                    name = taskNavigation.name,
+                    taskId = taskNavigationGroup.taskId,
+                    type = taskNavigationGroup.type ?? TaskTypeFromDefinitions(definitions, taskNavigationGroup.taskId),
+                    name = taskNavigationGroup.name,
                 });
             });
 
-            return taskNavigationList;
+            return taskNavigationGroupList;
         }
     }
 }

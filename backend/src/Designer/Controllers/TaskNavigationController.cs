@@ -34,16 +34,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Get task navigation
         /// </summary>
-        /// <returns>The task navigation</returns>
+        /// <returns>The list of task navigation groups</returns>
         [HttpGet]
         [UseSystemTextJson]
-        public async Task<List<TaskNavigationModel>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
+        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            List<TaskNavigationModel> taskNavigationList = await _taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
-            return taskNavigationList;
+            List<TaskNavigationGroup> taskNavigationGroupList = await _taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
+            return taskNavigationGroupList;
         }
     }
 }
