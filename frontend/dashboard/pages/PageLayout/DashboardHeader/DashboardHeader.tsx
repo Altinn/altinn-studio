@@ -12,12 +12,35 @@ import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
 import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
 import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { SubHeader } from './SubHeader';
+import { Subroute } from '../../../enums/Subroute';
+import { isOrg } from '../../../pages/OrgContentLibrary/utils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
-export const DashboardHeader = (): ReactElement => {
+export type DashboardHeaderProps = {
+  showSubMenu: boolean;
+  isRepoError?: boolean;
+};
+
+export const DashboardHeader = ({
+  showSubMenu,
+  isRepoError,
+}: DashboardHeaderProps): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const selectedContext = useSelectedContext();
+  const location = useLocation();
+  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+
+  const isOrgLibraryPage: boolean =
+    currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
+  const shouldShowSubMenu: boolean =
+    showSubMenu &&
+    !isRepoError &&
+    isOrg(selectedContext) &&
+    isOrgLibraryPage &&
+    shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
   return (
     <StudioPageHeader>
@@ -28,6 +51,11 @@ export const DashboardHeader = (): ReactElement => {
           <RightContent />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
+      {shouldShowSubMenu && (
+        <StudioPageHeader.Sub>
+          <SubHeader hasRepoError={isRepoError} />
+        </StudioPageHeader.Sub>
+      )}
     </StudioPageHeader>
   );
 };
