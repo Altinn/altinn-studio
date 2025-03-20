@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.TaskNavigationController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string expected = JsonSerializer.Serialize(new List<TaskNavigationGroup>(){
+            string expected = JsonSerializer.Serialize(new List<TaskNavigationGroupDto>(){
                 new ()
                 {
                     taskId = "Task_1",

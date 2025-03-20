@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType;
         }
 
-        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public async Task<List<TaskNavigationGroupDto>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
 
-            var taskNavigationGroupList = new List<TaskNavigationGroup>();
+            var taskNavigationGroupList = new List<TaskNavigationGroupDto>();
             layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigationGroup =>
             {
                 taskNavigationGroupList.Add(new()

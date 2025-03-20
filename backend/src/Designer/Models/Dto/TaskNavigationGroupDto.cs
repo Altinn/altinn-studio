@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class TaskNavigationGroup
+public class TaskNavigationGroupDto
 {
     [JsonPropertyName("taskId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -14,6 +14,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
         /// <returns>The list of task navigation groups</returns>
-        public Task<List<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+        public Task<List<TaskNavigationGroupDto>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
     }
 }

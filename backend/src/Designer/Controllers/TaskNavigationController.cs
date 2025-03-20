@@ -37,12 +37,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The list of task navigation groups</returns>
         [HttpGet]
         [UseSystemTextJson]
-        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
+        public async Task<List<TaskNavigationGroupDto>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            List<TaskNavigationGroup> taskNavigationGroupList = await _taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
+            List<TaskNavigationGroupDto> taskNavigationGroupList = await _taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
             return taskNavigationGroupList;
         }
     }

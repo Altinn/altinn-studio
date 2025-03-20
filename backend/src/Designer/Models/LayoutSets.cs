@@ -14,7 +14,7 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
 
     [JsonPropertyName("uiSettings")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public LayoutSetUiSettings? UiSettings { get; set; }
+    public UiSettings? UiSettings { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
@@ -39,17 +39,17 @@ public class LayoutSetConfig
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
-public class LayoutSetUiSettings
+public class UiSettings
 {
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<LayoutSetTaskNavigation>? TaskNavigation { get; set; }
+    public List<TaskNavigationGroup>? TaskNavigation { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
-public class LayoutSetTaskNavigation
+public class TaskNavigationGroup
 {
     [JsonPropertyName("taskId")]
     public string? taskId { get; set; }
