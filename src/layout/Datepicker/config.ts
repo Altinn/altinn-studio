@@ -67,8 +67,8 @@ export const Config = new CG.component({
         .optional({ default: 'dd.MM.yyyy' })
         .setTitle('Date format')
         .setDescription(
-          'Date format used when displaying the date to the user. The user date format from the locale ' +
-            'will be prioritized over this setting.',
+          'Date format used when filling out and displaying the date to the user. ' +
+            "If not set the format will be based on the user's selected language.",
         )
         .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'),
     ),

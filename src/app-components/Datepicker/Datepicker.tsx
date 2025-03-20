@@ -47,7 +47,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const dateValue = new Date(value);
-  const dayPickerDate = isValidDate(dateValue) ? dateValue : new Date();
+  const dayPickerDate = isValidDate(dateValue) ? dateValue : undefined;
 
   const handleDayPickerSelect = (date: Date) => {
     if (date && isValidDate(date)) {
@@ -80,6 +80,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
           trigger={
             <Button
               id={`${id}-button`}
+              className={styles.calendarToggleButton}
               variant='tertiary'
               icon={true}
               aria-controls='dialog'
