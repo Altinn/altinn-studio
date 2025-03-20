@@ -13,7 +13,7 @@
   background-color: var(--fds-semantic-surface-neutral-subtle);
   width: 80%;
   max-width: 1050px;
-  margin-left: var(--fds-spacing-6);
+  margin-left: var(--fds-spacing-5);
 }
 
 .panel {
