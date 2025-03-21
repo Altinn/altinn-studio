@@ -13,7 +13,7 @@ export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
-  const { data: releases = [] } = useAppReleasesQuery(org, app);
+  const { data: releases = [], isPending: appReleasesIsPending } = useAppReleasesQuery(org, app);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { t } = useTranslation();
 
@@ -22,11 +22,15 @@ export function CreateRelease() {
 
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
-  const mutation = useCreateReleaseMutation(org, app);
+  const { mutate: createRelease, isPending: createReleaseIsPending } = useCreateReleaseMutation(
+    org,
+    app,
+  );
+
   const handleBuildVersionClick = async () => {
     if (versionNameValid(releases, tagName) && tagName !== '') {
       const { data: newMasterBranchStatus } = await getMasterBranchStatus();
-      mutation.mutate({
+      createRelease({
         tagName,
         name: tagName,
         body,
@@ -76,7 +80,12 @@ export function CreateRelease() {
       <div>
         <StudioButton
           onClick={handleBuildVersionClick}
-          disabled={!versionNameValid(releases, tagName) || !tagName}
+          disabled={
+            appReleasesIsPending ||
+            createReleaseIsPending ||
+            !versionNameValid(releases, tagName) ||
+            !tagName
+          }
         >
           {t('app_create_release.build_version')}
         </StudioButton>
