@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
-import { StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
 import { PolicyAccessPackageServices } from '../PolicyAccessPackageServices';
 
 type PolicyAccessPackageAccordionContentProps = { accessPackageUrn: string };

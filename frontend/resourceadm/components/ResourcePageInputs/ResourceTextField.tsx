@@ -1,6 +1,6 @@
 import React, { useState, forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 

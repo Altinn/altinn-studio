@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import { useConcatOptionsLabels } from '../hooks';
 import type { OptionList } from 'app-shared/types/OptionList';
 import classes from './OptionListLabels.module.css';

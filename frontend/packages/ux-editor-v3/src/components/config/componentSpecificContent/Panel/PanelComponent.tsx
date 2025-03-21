@@ -5,7 +5,7 @@ import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();

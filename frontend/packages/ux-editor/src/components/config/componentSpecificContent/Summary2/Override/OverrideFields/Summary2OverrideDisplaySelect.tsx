@@ -3,7 +3,7 @@ import type {
   OverrideDisplay,
   Summary2OverrideConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type Summary2OverrideDisplaySelectProps = {

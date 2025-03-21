@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@studio/components-legacy';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 

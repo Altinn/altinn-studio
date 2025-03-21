@@ -4,7 +4,7 @@ import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
+import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components-legacy';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

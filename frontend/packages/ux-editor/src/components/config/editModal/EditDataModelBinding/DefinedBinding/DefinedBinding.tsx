@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioProperty, StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
 import { LinkIcon } from '@studio/icons';
 import classes from './DefinedBinding.module.css';
 import { useTranslation } from 'react-i18next';

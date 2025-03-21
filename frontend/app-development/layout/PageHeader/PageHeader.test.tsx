@@ -9,9 +9,9 @@ import { pageHeaderContextMock, previewContextMock } from 'app-development/test/
 import { PreviewContext } from 'app-development/contexts/PreviewContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
-import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 const defaultProps: PageHeaderProps = {
   showSubMenu: true,

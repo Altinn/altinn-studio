@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@studio/components';
+import {
+  StudioAlert,
+  StudioParagraph,
+  StudioSpinner,
+  StudioTextfield,
+} from '@studio/components-legacy';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

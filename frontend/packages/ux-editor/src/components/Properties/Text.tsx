@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Heading } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
 import { EditOptions } from '../config/editModal/EditOptions';
 import type { FormComponent, FormComponentBase } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';

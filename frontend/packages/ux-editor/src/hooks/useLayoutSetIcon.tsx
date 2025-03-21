@@ -8,7 +8,7 @@ import {
   SignTaskIcon,
 } from '@studio/icons';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import type { StudioIconCardIconColors } from '@studio/components/src/components/StudioIconCard/StudioIconCard';
+import type { StudioIconCardIconColors } from '@studio/components-legacy/src/components/StudioIconCard/StudioIconCard';
 
 export const useLayoutSetIcon = (
   layoutSetModel: LayoutSetModel,

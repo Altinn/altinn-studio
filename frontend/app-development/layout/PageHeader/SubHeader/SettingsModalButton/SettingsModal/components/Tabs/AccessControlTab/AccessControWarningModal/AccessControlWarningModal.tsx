@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './AccessControlWarningModal.module.css';
 import { Modal } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components/src';
+import { StudioButton } from '@studio/components-legacy/src';
 
 export interface AccessControlWarningModalProps {
   modalRef: React.MutableRefObject<HTMLDialogElement>;

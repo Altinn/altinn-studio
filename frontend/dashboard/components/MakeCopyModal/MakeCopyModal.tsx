@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { StudioModal } from '@studio/components';
+import { StudioModal } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';

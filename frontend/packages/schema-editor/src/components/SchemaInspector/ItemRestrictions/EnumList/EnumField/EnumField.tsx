@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
 
 export type EnumFieldProps = {
   value: string;

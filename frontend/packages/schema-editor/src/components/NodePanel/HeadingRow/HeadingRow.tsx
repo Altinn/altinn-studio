@@ -13,7 +13,7 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components-legacy';
 import {
   BooleanIcon,
   CombinationIcon,

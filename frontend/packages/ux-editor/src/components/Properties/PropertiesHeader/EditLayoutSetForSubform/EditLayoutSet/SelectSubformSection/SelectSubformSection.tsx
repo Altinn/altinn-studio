@@ -4,7 +4,7 @@ import {
   StudioRecommendedNextAction,
   StudioProperty,
   StudioButton,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { CheckmarkIcon, PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectSubformSection.module.css';

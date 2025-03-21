@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import { CogIcon } from '@studio/icons';
 
 export interface IRuleButtonProps {

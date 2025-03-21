@@ -12,6 +12,7 @@ COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
 COPY ./frontend/language/package.json ./frontend/language/
 COPY ./frontend/libs/studio-components/package.json ./frontend/libs/studio-components/
+COPY ./frontend/libs/studio-components-legacy/package.json ./frontend/libs/studio-components-legacy/
 COPY ./frontend/libs/studio-content-library/package.json ./frontend/libs/studio-content-library/
 COPY ./frontend/libs/studio-feedback-form/package.json ./frontend/libs/studio-feedback-form/
 COPY ./frontend/libs/studio-hooks/package.json ./frontend/libs/studio-hooks/

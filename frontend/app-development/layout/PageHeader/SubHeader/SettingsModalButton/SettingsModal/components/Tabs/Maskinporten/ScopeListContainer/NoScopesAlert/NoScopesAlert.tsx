@@ -4,7 +4,7 @@ import classes from './NoScopesAlert.module.css';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { LoggedInTitle } from '../LoggedInTitle';
-import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components-legacy';
 
 export const NoScopesAlert = (): ReactElement => {
   const { t } = useTranslation();
