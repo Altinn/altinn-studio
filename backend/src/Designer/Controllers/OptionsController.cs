@@ -269,7 +269,7 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionsListId}.json does not exist.");
         }
 
-        List<Option> newOptionsList = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionsListId, cancellationToken);
+        List<Option> newOptionsList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionsListId, cancellationToken);
 
         if (newOptionsList is null)
         {
