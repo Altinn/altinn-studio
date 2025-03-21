@@ -6,14 +6,19 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
+import { StudioAlert } from '@studio/components';
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: appConfigData } = useAppConfigQuery(org, app);
+
   return (
     <div className={classes.wrapper}>
       <main className={classes.container}>
+        <StudioAlert size='md' className={classes.alert}>
+          {t('ux_editor.info.new_overview_page')}
+        </StudioAlert>
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.header}>{appConfigData?.serviceName}</div>

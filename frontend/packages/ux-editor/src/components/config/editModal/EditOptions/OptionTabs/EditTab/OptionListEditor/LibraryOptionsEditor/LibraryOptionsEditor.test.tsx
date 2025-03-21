@@ -10,9 +10,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
+import type { ITextResources } from 'app-shared/types/global';
+import type { QueryClient } from '@tanstack/react-query';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { Option } from 'app-shared/types/Option';
-import type { QueryClient } from '@tanstack/react-query';
 import { LibraryOptionsEditor, type LibraryOptionsEditorProps } from './LibraryOptionsEditor';
 
 // Test data:
@@ -22,10 +23,17 @@ const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId
 const handleDelete = jest.fn();
 const doReloadPreview = jest.fn();
 const optionList: OptionList = [
-  { value: 'value 1', label: 'label 1', description: 'description', helpText: 'help text' },
-  { value: 'value 2', label: 'label 2', description: null, helpText: null },
+  { value: 'value 1', label: 'some-id', description: 'description-id', helpText: 'help text' },
+  { value: 'value 2', label: 'another-id', description: null, helpText: null },
   { value: 'value 3', label: '', description: null, helpText: null },
 ];
+const textResources: ITextResources = {
+  nb: [
+    { id: 'some-id', value: 'label 1' },
+    { id: 'another-id', value: 'label 2' },
+    { id: 'description-id', value: 'description' },
+  ],
+};
 
 describe('LibraryOptionEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -62,21 +70,21 @@ describe('LibraryOptionEditor', () => {
     renderLibraryOptionsEditorWithData();
 
     await user.click(getEditButton());
-    const textBox = getDescriptionInput(2);
+    const textBox = getValueInput(1);
     await user.type(textBox, 'test');
     await user.tab();
 
     await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
   });
 
-  it('should call updateOptionList with correct parameters when closing Dialog', async () => {
+  it('should call updateOptionList with correct parameters when editing value', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
     const expectedResultAfterEdit: Option[] = ObjectUtils.deepCopy(optionList);
-    expectedResultAfterEdit[1].description = 'test';
+    expectedResultAfterEdit[0].value = 'test';
 
     await user.click(getEditButton());
-    const textBox = getDescriptionInput(2);
+    const textBox = getValueInput(1);
     await user.type(textBox, 'test');
     await user.tab();
 
@@ -86,6 +94,26 @@ describe('LibraryOptionEditor', () => {
       app,
       componentWithOptionsId.optionsId,
       expectedResultAfterEdit,
+    );
+  });
+
+  it('should call upsertTextResources with correct parameters when editing description', async () => {
+    const user = userEvent.setup();
+    renderLibraryOptionsEditorWithData();
+    const expectedLanguage = 'nb';
+    const expectedTextResource = { 'description-id': 'test' };
+
+    await user.click(getEditButton());
+    const textBox = getTextResourceDescriptionInput(1);
+    await user.type(textBox, 'test');
+    await user.tab();
+
+    await waitFor(() => expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1));
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(
+      org,
+      app,
+      expectedLanguage,
+      expectedTextResource,
     );
   });
 
@@ -113,9 +141,15 @@ function getEditButton() {
   });
 }
 
-function getDescriptionInput(number: number) {
+function getTextResourceDescriptionInput(number: number) {
   return screen.getByRole('textbox', {
-    name: textMock('code_list_editor.description_item', { number }),
+    name: textMock('code_list_editor.text_resource.description.value', { number }),
+  });
+}
+
+function getValueInput(number: number) {
+  return screen.getByRole('textbox', {
+    name: textMock('code_list_editor.value_item', { number }),
   });
 }
 
@@ -150,5 +184,6 @@ function renderLibraryOptionsEditorWithData({ queries = {}, props = {} } = {}) {
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }

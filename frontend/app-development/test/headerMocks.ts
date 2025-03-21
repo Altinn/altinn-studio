@@ -36,6 +36,7 @@ export const pageHeaderContextMock: PageHeaderContextProps = {
   profileMenuGroups: profileMenuGroupsMock,
   repoOwnerIsOrg: true,
   variant: 'regular',
+  returnTo: null,
 };
 
 export const previewContextMock: PreviewContextProps = {

@@ -1,0 +1,30 @@
+.card {
+  width: var(--icon-card-width);
+  min-width: var(--icon-card-width);
+  background-color: var(--fds-semantic-background-default);
+  border-color: var(--color-neutral-border-subtle, #b8bcc1);
+  border-width: var(--fds-border_width-active);
+  border-style: dashed;
+}
+
+.card:hover {
+  background: var(--semantic-surface-info-subtle-hover, #b3d0ea);
+  border-color: var(--fds-semantic-surface-action-checked);
+  cursor: pointer;
+}
+
+.iconContainer {
+  height: var(--fds-spacing-14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fds-sizing-10);
+  margin-bottom: var(--fds-spacing-14);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: var(--fds-spacing-3);
+  text-align: center;
+}
