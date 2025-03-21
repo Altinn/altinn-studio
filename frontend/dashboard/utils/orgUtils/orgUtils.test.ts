@@ -1,4 +1,4 @@
-import { isOrg } from './utils';
+import { isOrg } from './';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 
 describe('utils', () => {

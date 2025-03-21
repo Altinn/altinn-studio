@@ -8,7 +8,7 @@ import { StudioPageSpinner } from '@studio/components';
 import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirectionGuard';
 import { DashboardHeader } from './DashboardHeader';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { isOrg } from '../OrgContentLibrary/utils';
+import { isOrg } from '../../utils/orgUtils';
 import { useOrgRepoName } from '../../hooks/useOrgRepoName';
 
 export const PageLayout = () => {
