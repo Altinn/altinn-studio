@@ -18,15 +18,15 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     {
     }
 
-    private const string Org = "ttd";
-    private const string Developer = "testUser";
+    private const string OrgName = "ttd";
+    private const string Username = "testUser";
 
     [Fact]
     public async Task Post_Returns200OK_WhenImportingCodeListFromOrg()
     {
         // Arrange
-        const string orgRepo = "org-content";
-        const string appRepo = "empty-app";
+        const string orgRepoName = "org-content";
+        const string appRepoName = "empty-app";
         const string optionListId = "codeListString";
         const string stringCodeList = @"[
             {""value"": ""norway"",""label"": ""Norge""},
@@ -37,10 +37,10 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Developer, Org, orgRepo, targetOrg, targetOrgRepository);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Developer, Org, appRepo, targetOrg, targetAppRepository);
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
 
         string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -67,16 +67,16 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     public async Task Post_Returns404NotFound_WhenCodeListDoesNotExist()
     {
         // Arrange
-        const string orgRepo = "org-content";
-        const string appRepo = "empty-app";
+        const string orgRepoName = "org-content";
+        const string appRepoName = "empty-app";
         const string optionListId = "nonExistentCodeList";
 
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Developer, Org, orgRepo, targetOrg, targetOrgRepository);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Developer, Org, appRepo, targetOrg, targetAppRepository);
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
 
         string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -94,19 +94,19 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     public async Task Post_Returns409Conflict_WhenOptionListAlreadyExists()
     {
         // Arrange
-        const string orgRepo = "org-content";
-        const string appRepo = "app-with-options";
+        const string orgRepoName = "org-content";
+        const string appRepoName = "app-with-options";
         const string optionListId = "codeListString";
 
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Developer, Org, orgRepo, targetOrg, targetOrgRepository);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Developer, Org, appRepo, targetOrg, targetAppRepository);
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
 
         const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
-        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetAppRepository, Developer);
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetAppRepository, Username);
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionListId}.json"), codeList);
 

@@ -32,7 +32,7 @@ public class OptionsController : ControllerBase
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
-    /// <param name="orgCodeListService">The code list service on org level.</param>
+    /// <param name="orgCodeListService">The CodeList service for organisation level.</param>
     public OptionsController(IOptionsService optionsService, IOrgCodeListService orgCodeListService)
     {
         _optionsService = optionsService;
@@ -257,25 +257,25 @@ public class OptionsController : ControllerBase
     }
 
     [HttpPost]
-    [Route("import/{optionsListId}")]
-    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    [Route("import/{optionListId}")]
+    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionsListId, cancellationToken);
+        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionListId, cancellationToken);
         if (!codeListExists)
         {
-            return NotFound($"The code list file {optionsListId}.json does not exist.");
+            return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        List<Option> newOptionsList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionsListId, cancellationToken);
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, cancellationToken);
 
-        if (newOptionsList is null)
+        if (importedOptionList is null)
         {
-            return Conflict($"The options file {optionsListId}.json already exists.");
+            return Conflict($"The options file {optionListId}.json already exists.");
         }
 
-        return Ok(newOptionsList);
+        return Ok(importedOptionList);
     }
 }

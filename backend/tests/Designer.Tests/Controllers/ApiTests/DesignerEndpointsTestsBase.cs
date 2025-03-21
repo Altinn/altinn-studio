@@ -134,7 +134,7 @@ namespace Designer.Tests.Controllers.ApiTests
         {
             if (TestOrgPath is null)
             {
-                throw new InvalidOperationException("Organisation is not created for test.");
+                throw new InvalidOperationException("Organisation has not been instantiated for test.");
             }
             await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
         }
