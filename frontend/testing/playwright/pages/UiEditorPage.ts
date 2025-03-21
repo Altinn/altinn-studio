@@ -26,7 +26,7 @@ export class UiEditorPage extends BasePage {
       const layoutString = `?layout=${layout}`;
       await this.page.waitForURL(`${baseRoute}${layoutString}`);
     } else {
-      await this.page.waitForURL(baseRoute);
+      await this.page.waitForURL(baseRoute, { timeout: 10000 });
     }
   }
 
