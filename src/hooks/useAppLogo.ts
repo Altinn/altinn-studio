@@ -16,7 +16,7 @@ export function useAppLogoUrl() {
 
 export function useDisplayAppOwnerNameInHeader() {
   const application = useApplicationMetadata();
-  return application.logoOptions?.displayAppOwnerNameInHeader ?? true;
+  return application.logoOptions?.displayAppOwnerNameInHeader === true;
 }
 
 export function useAppLogoSize() {

@@ -10,15 +10,21 @@
 }
 
 .medium {
-  height: 50px;
+  height: 56px;
 }
 
 .large {
-  height: 50px;
+  height: 72px;
 }
 
 @media only screen and (min-width: 576px) {
   .large {
-    height: 123px;
+    height: 120px;
+  }
+}
+
+@media print {
+  .large {
+    height: 104px;
   }
 }

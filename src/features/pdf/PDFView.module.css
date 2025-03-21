@@ -23,15 +23,9 @@
   margin-bottom: var(--fds-spacing-4);
 }
 
-.paymentTitleContainer {
+.pdf-logo-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fds-spacing-6);
-  margin-bottom: var(--fds-spacing-3);
-  h1 {
-    margin-bottom: 0;
-  }
+  margin-bottom: var(--fds-spacing-12);
 }
 
 @media print {
