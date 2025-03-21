@@ -35,12 +35,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         ]";
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(stringCodeList);
 
-        string targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
-
-        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
 
         string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -71,12 +66,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string appRepoName = "empty-app";
         const string optionListId = "nonExistentCodeList";
 
-        string targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
-
-        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
 
         string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -98,12 +88,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string appRepoName = "app-with-options";
         const string optionListId = "codeListString";
 
-        string targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
-
-        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
 
         const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrgName, targetAppRepoName, Username);
@@ -120,6 +105,18 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal($"The options file {optionListId}.json already exists.", responseContent);
+    }
+
+    private async Task<(string targetOrgName, string targetAppRepoName)> SetupTestOrgAndRepo(string orgRepoName, string appRepoName)
+    {
+        string targetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
+
+        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
+
+        return (targetOrgName, targetAppRepoName);
     }
 
     private static string ApiUrl(string org, string app, string optionListId) => $"/designer/api/{org}/{app}/options/import/{optionListId}";
