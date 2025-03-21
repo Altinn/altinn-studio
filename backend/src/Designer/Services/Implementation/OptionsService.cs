@@ -166,25 +166,36 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, GetStaticContentRepo(org), developer);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        bool optionsListExists = await OptionsListExists(org, repo, developer, optionsListId, cancellationToken);
-        if (optionsListExists)
+        bool optionListExists = await OptionsListExists(org, repo, developer, optionListId, cancellationToken);
+        if (optionListExists)
         {
             return null;
         }
 
-        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionsListId, cancellationToken);
-        string createdOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, codeList, cancellationToken);
-        List<Option> createdOptionsList = JsonSerializer.Deserialize<List<Option>>(createdOptionsString);
-        return createdOptionsList;
+        return await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
     }
 
-    private static string GetStaticContentRepo(string org)
+    private async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    {
+        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
+        string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
+        return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
+    }
+
+    private AltinnOrgGitRepository GetStaticContentRepo(string org, string developer)
+    {
+        string repository = StaticContentRepoName(org);
+        return _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repository, developer);
+    }
+
+    private static string StaticContentRepoName(string org)
     {
         return $"{org}-content";
     }
