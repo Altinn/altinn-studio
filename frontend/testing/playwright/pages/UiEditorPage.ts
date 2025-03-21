@@ -26,7 +26,7 @@ export class UiEditorPage extends BasePage {
       const layoutString = `?layout=${layout}`;
       await this.page.waitForURL(`${baseRoute}${layoutString}`);
     } else {
-      await this.page.waitForURL(baseRoute, { timeout: 10000 });
+      await this.page.waitForURL(baseRoute);
     }
   }
 
@@ -262,6 +262,17 @@ export class UiEditorPage extends BasePage {
 
   public async verifyThatTextareaIsVisible(lang: LanguageCode): Promise<void> {
     await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
+  }
+
+  public async clickOnUxEditorButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('ux_editor.task_card.ux_editor') })
+      .click();
+  }
+
+  public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
+    const addButton = this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') });
+    await expect(addButton).toBeVisible();
   }
 
   private getDroppableList(): Locator {
