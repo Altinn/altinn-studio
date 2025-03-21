@@ -276,6 +276,8 @@ export const queriesMock: ServicesContextProps = {
   createPage: jest.fn().mockImplementation(() => Promise.resolve()),
   changePageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
 
+  //
+
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
   importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),
