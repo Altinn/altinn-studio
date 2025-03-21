@@ -9,12 +9,13 @@ import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getDescriptionId } from 'src/components/label/Label';
 import classes from 'src/components/label/LabelContent.module.css';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export type LabelContentProps = Readonly<{
   componentId: string;
-  label?: string;
+  label?: React.ReactNode;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
@@ -33,6 +34,7 @@ export function LabelContent({
   className,
 }: LabelContentProps) {
   const { overrideDisplay } = useFormComponentCtx() ?? {};
+  const { elementAsString } = useLanguage();
 
   if (overrideDisplay?.renderLabel === false) {
     return null;
@@ -42,7 +44,7 @@ export function LabelContent({
     <span className={cn(classes.labelWrapper, className)}>
       <span className={classes.labelContainer}>
         <span className={classes.labelContent}>
-          <Lang id={label} />
+          {typeof label === 'string' ? <Lang id={label} /> : label}
           <RequiredIndicator required={required} />
           <OptionalIndicator
             readOnly={readOnly}
@@ -54,7 +56,7 @@ export function LabelContent({
           <HelpTextContainer
             id={componentId}
             helpText={<Lang id={help} />}
-            title={label}
+            title={typeof label === 'string' ? label : elementAsString(label)}
           />
         )}
       </span>

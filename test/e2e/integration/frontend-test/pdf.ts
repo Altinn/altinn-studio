@@ -98,7 +98,7 @@ describe('PDF', () => {
     cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
     cy.findByRole('radio', { name: /adoptivforelders/i }).check();
     cy.findByRole('textbox', { name: /når vil du at/i }).type('01/01/2020');
-    cy.findByRole('textbox', { name: /mobil nummer/i }).type('98765432');
+    cy.findByRole('textbox', { name: /mobilnummer/i }).type('98765432');
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.reference).should('have.value', '');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', '');
@@ -125,7 +125,7 @@ describe('PDF', () => {
         cy.getSummary('Bruksnummer').should('not.exist');
         cy.getSummary('Forklar din tilknytning til gårdsbruket').should('not.exist');
         cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
-        cy.getSummary('Mobil nummer').should('contain.text', '+47 987 65 432');
+        cy.getSummary('Mobilnummer').should('contain.text', '+47 987 65 432');
         cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
         cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
         cy.getSummary('Referanse 2').should('contain.text', 'Dole');
@@ -168,7 +168,7 @@ describe('PDF', () => {
         cy.getSummary('Bruksnummer').should('contain.text', '56');
         cy.getSummary('Forklar din tilknytning til gårdsbruket').should('contain.text', 'Gris');
         cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
-        cy.getSummary('Mobil nummer').should('contain.text', '+47 987 65 432');
+        cy.getSummary('Mobilnummer').should('contain.text', '+47 987 65 432');
         cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Altinn');
         cy.getSummary('Referanse').should('contain.text', 'Ola Nordmann');
         cy.getSummary('Referanse 2').should('contain.text', 'Ole');

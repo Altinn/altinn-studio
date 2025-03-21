@@ -21,7 +21,6 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { node, overrideDisplay } = props;
   const isValid = useIsValid(node);
   const item = useNodeItem(node);
-  const parentItem = useNodeItem(node.parent instanceof LayoutNode ? node.parent : undefined);
   const { id, layout, readOnly, textResourceBindings, required, showLabelsInTable } = item;
   const showAsCard = 'showAsCard' in item ? item.showAsCard : false;
   const { selectedValues, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);
@@ -35,16 +34,22 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
     : null;
   const confirmChangeText = langAsString('form_filler.alert_confirm');
 
-  const getLabelPrefixForLikert = () => {
-    if (parentItem?.type === 'Likert' && parentItem.textResourceBindings?.leftColumnHeader) {
-      return `${langAsString(parentItem.textResourceBindings.leftColumnHeader)} `;
-    }
-    return null;
-  };
+  const leftColumnHeader = useNodeItem(node.parent instanceof LayoutNode ? node.parent : undefined, (i) =>
+    i.type === 'Likert' ? i.textResourceBindings?.leftColumnHeader : undefined,
+  );
   const labelText = (
     <LabelContent
       componentId={id}
-      label={[getLabelPrefixForLikert(), langAsString(textResourceBindings?.title)].join(' ')}
+      label={
+        <>
+          {leftColumnHeader ? (
+            <>
+              <Lang id={leftColumnHeader} />{' '}
+            </>
+          ) : null}
+          <Lang id={textResourceBindings?.title} />
+        </>
+      }
       help={textResourceBindings?.help}
       required={required}
       readOnly={readOnly}

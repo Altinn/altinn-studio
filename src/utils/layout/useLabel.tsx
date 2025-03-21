@@ -32,8 +32,8 @@ export function useLabel({
   const { langAsString } = useLanguage();
   const { title, help, description } = textResourceBindings ?? {};
 
-  const shouldShowLabel = (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true;
-  const labelText = shouldShowLabel ? langAsString(textResourceBindings?.title) : undefined;
+  const shouldShowLabel = (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && title;
+  const labelText = shouldShowLabel ? <Lang id={title} /> : undefined;
 
   const getRequiredComponent = () => (required ? <RequiredIndicator required={required} /> : undefined);
   const getOptionalComponent = () =>
