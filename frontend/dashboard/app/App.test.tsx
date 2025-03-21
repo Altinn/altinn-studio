@@ -74,7 +74,6 @@ describe('App', () => {
   it('should display the apps overview by default', async () => {
     const client = createQueryClientWithUserAndOrg();
     renderApp({ client, customServices });
-    await waitForElementToBeRemoved(querySpinner());
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
   });
 
@@ -83,7 +82,6 @@ describe('App', () => {
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ client, customServices, initialEntries });
-    await waitForElementToBeRemoved(querySpinner());
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
@@ -94,7 +92,6 @@ describe('App', () => {
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ client, customServices, initialEntries });
-    await waitForElementToBeRemoved(querySpinner());
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     await user.click(
