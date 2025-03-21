@@ -4187,6 +4187,38 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/components@workspace:frontend/libs/studio-components":
+  version: 0.0.0-use.local
+  resolution: "@studio/components@workspace:frontend/libs/studio-components"
+  dependencies:
+    "@chromatic-com/storybook": "npm:3.2.4"
+    "@storybook/addon-essentials": "npm:8.5.2"
+    "@storybook/addon-interactions": "npm:8.5.2"
+    "@storybook/addon-links": "npm:8.5.2"
+    "@storybook/addon-webpack5-compiler-swc": "npm:2.0.0"
+    "@storybook/blocks": "npm:8.5.2"
+    "@storybook/react": "npm:8.5.2"
+    "@storybook/react-webpack5": "npm:8.5.2"
+    "@storybook/test": "npm:8.5.2"
+    "@studio/icons": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.6.3"
+    "@testing-library/react": "npm:16.2.0"
+    "@types/jest": "npm:^29.5.5"
+    ajv: "npm:8.17.1"
+    eslint: "npm:8.57.1"
+    eslint-plugin-storybook: "npm:^0.11.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    react: "npm:^18.2.0"
+    react-dnd-html5-backend: "npm:16.0.1"
+    react-dom: "npm:^18.2.0"
+    storybook: "npm:^8.0.4"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:5.7.3"
+  languageName: unknown
+  linkType: soft
+
 "@studio/content-library@workspace:^, @studio/content-library@workspace:frontend/libs/studio-content-library":
   version: 0.0.0-use.local
   resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
