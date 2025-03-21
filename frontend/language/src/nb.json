@@ -1955,6 +1955,8 @@
   "ux_editor.sync_error_settings_component_id": "En feil oppsto under synkronisering av komponentID i filen 'Settings.json'. Vennligst forsikre deg om at 'Settings.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "ux_editor.task_card.datamodel": "Datamodell: ",
   "ux_editor.task_card.edit": "Endre oppgave",
+  "ux_editor.task_card.edit.confirm_data_model_change": "Er du sikker på at du vil bytte datamodell?\nFelt i skjemaet ditt kan få ugyldige knytninger hvis du gjør det. Du får feilmeldinger for felt som mister knytningen til nåværende datamodell.",
+  "ux_editor.task_card.no_datamodel": "Ingen datamodell",
   "ux_editor.task_card.ux_editor": "Utform",
   "ux_editor.task_card_add_new_task": "Legg til ny oppgave",
   "ux_editor.text_resource_binding_add_description": "Legg til beskrivelse",

@@ -444,6 +444,14 @@ namespace Designer.Tests.Utils
             return targetOrgDirectory;
         }
 
+        public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
+        {
+            string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
+            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+
+            await CopyDirectory(sourceDirectory, targetRepoDirectory);
+        }
+
         private static string GetOrgDirectory(string org, string developer)
         {
             return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
