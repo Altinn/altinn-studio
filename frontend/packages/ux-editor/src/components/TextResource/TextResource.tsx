@@ -161,7 +161,7 @@ const TextResourceButton = ({
   onOpen,
   textResourceId,
 }: TextResourceButtonProps) => {
-  const value = useTextResourceValue(textResourceId);
+  const value = useTextResourceValue(textResourceId) || textResourceId;
   return (
     <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
   );
