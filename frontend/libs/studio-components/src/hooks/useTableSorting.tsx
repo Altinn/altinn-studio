@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
 import { typedLocalStorage } from '@studio/pure-functions';
+import { TableSortStorageKey } from '../types/TableSortStorageKey';
+
+type SortDirection = 'asc' | 'desc';
 
 export type SortPreference = {
   column: string | null;
-  direction: 'asc' | 'desc';
+  direction: SortDirection;
 };
-
-export enum TableSortStorageKey {
-  Default = 'table-sort-preference',
-  OrgRepos = 'dashboard-org-repos-sort-preference',
-  FavoriteRepos = 'dashboard-favorite-repos-sort-preference',
-  DataModelRepos = 'dashboard-data-model-repos-sort-preference',
-}
 
 type TableSortingOptions = {
   enable: boolean;
@@ -23,29 +19,28 @@ type TableSortingOptions = {
 export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
   const { enable, shouldPersistSort = false, storageKey = TableSortStorageKey.Default } = options;
 
-  const getSavedPreference = (): SortPreference | null => {
-    if (!shouldPersistSort) return null;
-    return typedLocalStorage.getItem<SortPreference>(storageKey);
-  };
 
-  const savedPreference = getSavedPreference();
+  const savedPreference: SortPreference | null = shouldPersistSort
+    ? typedLocalStorage.getItem<SortPreference>(storageKey)
+    : null;
+
   const [sortColumn, setSortColumn] = useState<string | null>(savedPreference?.column ?? null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
-    savedPreference?.direction ?? 'asc',
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    savedPreference?.direction ?? 'asc'
   );
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
 
-  const persistSortPreference = (column: string | null, direction: 'asc' | 'desc') => {
-    if (!shouldPersistSort) return;
+  const persistSortPreference = (column: string | null, direction: SortDirection) => {
     typedLocalStorage.setItem(storageKey, { column, direction });
   };
 
   const toggleSortDirection = () => {
     setSortDirection((prevDirection) => {
       const newDirection = prevDirection === 'asc' ? 'desc' : 'asc';
-      if (sortColumn !== null) {
+      if (shouldPersistSort && sortColumn !== null) {
         persistSortPreference(sortColumn, newDirection);
       }
+
       return newDirection;
     });
   };
@@ -56,7 +51,9 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
     } else {
       setSortColumn(columnKey);
       setSortDirection('asc');
-      persistSortPreference(columnKey, 'asc');
+      if (shouldPersistSort) {
+        persistSortPreference(columnKey, 'asc');
+      }
     }
   };
 
