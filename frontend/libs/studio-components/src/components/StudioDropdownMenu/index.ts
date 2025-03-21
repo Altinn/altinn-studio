@@ -1,16 +1,19 @@
 import { StudioDropdownMenu as Root } from './StudioDropdownMenu';
 import { DropdownMenuGroup } from '@digdir/designsystemet-react';
 import { StudioDropdownMenuItem } from './StudioDropdownMenuItem';
+import { StudioDropdownMenuFileUploaderItem } from './StudioDropdownMenuFileUploaderItem';
 
 type StudioDropdownMenuComponent = typeof Root & {
   Group: typeof DropdownMenuGroup;
   Item: typeof StudioDropdownMenuItem;
+  FileUploaderItem: typeof StudioDropdownMenuFileUploaderItem;
 };
 
 const StudioDropdownMenu = Root as StudioDropdownMenuComponent;
 
 StudioDropdownMenu.Group = DropdownMenuGroup;
 StudioDropdownMenu.Item = StudioDropdownMenuItem;
+StudioDropdownMenu.FileUploaderItem = StudioDropdownMenuFileUploaderItem;
 
 StudioDropdownMenu.Group.displayName = 'StudioDropdownMenu.Group';
 StudioDropdownMenu.Item.displayName = 'StudioDropdownMenu.Item';

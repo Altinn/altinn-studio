@@ -1,0 +1,19 @@
+.studioDropdownMenuFileUploaderItem {
+  display: flex;
+}
+
+.fileUploaderLabel {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  gap: var(--fds-spacing-1);
+}
+
+.iconWrapper {
+  display: contents;
+}
+
+.fileInput {
+  display: none;
+}
