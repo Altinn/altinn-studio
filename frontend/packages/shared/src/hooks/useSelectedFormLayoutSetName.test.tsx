@@ -10,11 +10,12 @@ import type { QueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { app } from '@studio/testing/testids';
 
 // Test data:
 export const layoutSet1NameMock = 'test-layout-set';
 export const layoutSet2NameMock = 'test-layout-set-2';
+export const invalidLayoutSetNameMock = 'invalid-layout-set';
 export const layoutSetsMock: LayoutSets = {
   sets: [
     {
@@ -54,29 +55,29 @@ const wrapper = ({
 
 describe('useSelectedFormLayoutSetName', () => {
   afterEach(() => {
-    typedLocalStorage.removeItem('featureFlags');
+    typedLocalStorage.removeItem('layoutSet/' + app);
     jest.clearAllMocks();
   });
 
-  it('should return empty string when there are no layout sets', async () => {
+  it('should return undefined when there are no layout sets', async () => {
     const { result } = renderHook(() => useSelectedFormLayoutSetName(undefined), { wrapper });
-    expect(result.current.selectedFormLayoutSetName).toEqual('');
+    expect(result.current.selectedFormLayoutSetName).toEqual(undefined);
   });
 
   it('should return default layout set when selected does not exist', async () => {
     const client = createQueryClientMock();
+    typedLocalStorage.setItem('layoutSet/' + app, invalidLayoutSetNameMock);
 
     const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {
         return wrapper({ children, client });
       },
     });
-    expect(result.current.selectedFormLayoutSetName).toEqual(layoutSetsMock.sets[0].id);
+    expect(result.current.selectedFormLayoutSetName).toEqual(undefined);
   });
 
-  it('should return undefined when selected layout does not exist and taskNavigation feature flag is enabled', async () => {
+  it('should return undefined when selected layout does not exist', async () => {
     const client = createQueryClientMock();
-    typedLocalStorage.setItem('featureFlags', [FeatureFlag.TaskNavigation]);
 
     const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {
@@ -88,6 +89,7 @@ describe('useSelectedFormLayoutSetName', () => {
 
   it('should return selected layout set when selected does exist', async () => {
     const client = createQueryClientMock();
+    typedLocalStorage.setItem('layoutSet/' + app, layoutSet1NameMock);
 
     const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {

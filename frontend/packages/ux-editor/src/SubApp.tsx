@@ -2,7 +2,6 @@ import React from 'react';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App as FormDesigner } from './App';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FormDesignerNavigation } from './containers/FormDesignNavigation';
 import { useAppContext } from './hooks';
 
@@ -13,14 +12,8 @@ type SubAppProps = {
 };
 
 const App = () => {
-  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigation);
   const { selectedFormLayoutSetName } = useAppContext();
-
-  return isTaskNavigationEnabled && !selectedFormLayoutSetName ? (
-    <FormDesignerNavigation />
-  ) : (
-    <FormDesigner />
-  );
+  return !selectedFormLayoutSetName ? <FormDesignerNavigation /> : <FormDesigner />;
 };
 
 export const SubApp = (props: SubAppProps) => {

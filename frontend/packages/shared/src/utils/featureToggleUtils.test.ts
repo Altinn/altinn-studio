@@ -28,16 +28,6 @@ describe('featureToggle localStorage', () => {
     expect(shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck)).toBeFalsy();
   });
 
-  it('should return true if TaskNavigation is enabled in the localStorage', () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['taskNavigation']);
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigation)).toBeTruthy();
-  });
-
-  it('should return false if TaskNavigation is not enabled in the localStorage', () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['demo']);
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigation)).toBeFalsy();
-  });
-
   it('should return true if taskNavigationPageGroups is enabled in the localStorage', () => {
     typedLocalStorage.setItem<string[]>('featureFlags', ['taskNavigationPageGroups']);
     expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeTruthy();
@@ -90,16 +80,6 @@ describe('featureToggle url', () => {
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeNull();
   });
 
-  it('should return true if TaskNavigation is enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigation');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigation)).toBeTruthy();
-  });
-
-  it('should return false if TaskNavigation is not enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigation)).toBeFalsy();
-  });
-
   it('should return true if taskNavigationPageGroups is enabled in the url', () => {
     window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigationPageGroups');
     expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeTruthy();
@@ -138,11 +118,6 @@ describe('addFeatureToLocalStorage', () => {
       'demo',
       'shouldOverrideAppLibCheck',
     ]);
-  });
-
-  it('should add TaskNavigation to local storage', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.TaskNavigation);
-    expect(typedLocalStorage.getItem<string[]>('featureFlags')).toEqual(['taskNavigation']);
   });
 });
 

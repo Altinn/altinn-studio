@@ -42,6 +42,9 @@ const setupAndVerifyUiEditorPage = async (
     }, featureFlag);
   }
 
+  await uiEditorPage.clickOnUxEditorButton();
+  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
+
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(pageName);
 

@@ -36,7 +36,9 @@ export const ConfigContent = (): React.ReactElement => {
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
-  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards);
+  const isTaskNavigationEditCardsEnabled = shouldDisplayFeature(
+    FeatureFlag.TaskNavigationEditCards,
+  );
 
   if (shouldDisplayAction(bpmnDetails.id)) {
     return (
@@ -67,7 +69,7 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
-          {!isTaskNavigationEnabled && taskHasConnectedLayoutSet && (
+          {!isTaskNavigationEditCardsEnabled && taskHasConnectedLayoutSet && (
             /*We just hide the accordion for now, It will be removed when we remove featureFlags*/
             <Accordion.Item>
               <Accordion.Header>
