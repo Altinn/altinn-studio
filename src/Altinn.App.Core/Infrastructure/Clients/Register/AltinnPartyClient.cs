@@ -6,12 +6,11 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -23,10 +22,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 public class AltinnPartyClient : IAltinnPartyClient
 {
     private readonly ILogger _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly AppSettings _settings;
     private readonly HttpClient _client;
     private readonly IAppMetadata _appMetadata;
+    private readonly IUserTokenProvider _userTokenProvider;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly Telemetry? _telemetry;
 
@@ -35,31 +33,28 @@ public class AltinnPartyClient : IAltinnPartyClient
     /// </summary>
     /// <param name="platformSettings">The current platform settings.</param>
     /// <param name="logger">The logger</param>
-    /// <param name="httpContextAccessor">The http context accessor </param>
-    /// <param name="settings">The application settings.</param>
     /// <param name="httpClient">The http client</param>
     /// <param name="appMetadata">The app metadata service</param>
+    /// <param name="userTokenProvider">The user token provider</param>
     /// <param name="accessTokenGenerator">The platform access token generator</param>
     /// <param name="telemetry">Telemetry for metrics and traces.</param>
     public AltinnPartyClient(
         IOptions<PlatformSettings> platformSettings,
         ILogger<AltinnPartyClient> logger,
-        IHttpContextAccessor httpContextAccessor,
-        IOptionsMonitor<AppSettings> settings,
         HttpClient httpClient,
         IAppMetadata appMetadata,
+        IUserTokenProvider userTokenProvider,
         IAccessTokenGenerator accessTokenGenerator,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
-        _settings = settings.CurrentValue;
         httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
         _appMetadata = appMetadata;
+        _userTokenProvider = userTokenProvider;
         _accessTokenGenerator = accessTokenGenerator;
         _telemetry = telemetry;
     }
@@ -71,7 +66,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         Party? party = null;
 
         string endpointUrl = $"parties/{partyId}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         HttpResponseMessage response = await _client.GetAsync(
             token,
@@ -105,7 +100,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         Party party;
 
         string endpointUrl = "parties/lookup";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         StringContent content = new StringContent(JsonSerializerPermissive.Serialize(partyLookup));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
