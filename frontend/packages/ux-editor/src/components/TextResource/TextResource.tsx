@@ -9,6 +9,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useAppContext } from '../../hooks';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
@@ -32,6 +34,8 @@ export const generateId = (options?: GenerateTextResourceIdOptions) => {
   return generateTextResourceId(options.layoutId, options.componentId, options.textResourceKey);
 };
 
+const language = DEFAULT_LANGUAGE;
+
 export const TextResource = ({
   compact,
   generateIdOptions,
@@ -40,28 +44,27 @@ export const TextResource = ({
   label,
   textResourceId,
 }: TextResourceProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { formItemId } = useFormItemContext();
   const { selectedFormLayoutName: formLayoutName } = useAppContext();
 
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
-  const initialTextResourceValue = useTextResourceValue(textResourceId);
-  const [currentValue, setCurrentValue] = useState<string>(initialTextResourceValue);
+  const { mutate } = useUpsertTextResourceMutation(org, app);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
     if (!textResourceId) {
-      handleIdChange(generateId(generateIdOptions));
+      const newTextResourceId = generateId(generateIdOptions);
+      mutate({ textId: newTextResourceId, language, translation: '' });
+      handleIdChange(newTextResourceId);
     }
     setIsOpen(true);
   };
 
   const handleClose = () => {
-    if (currentValue === '') {
-      handleRemoveTextResource?.();
-    }
     setIsOpen(false);
   };
 
@@ -82,7 +85,6 @@ export const TextResource = ({
       legend={label}
       onClose={handleClose}
       onDelete={handleRemoveTextResource ? handleDelete : undefined}
-      onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
     />
@@ -102,7 +104,6 @@ type TextResourceFieldsetProps = {
   onClose: () => void;
   onDelete: () => void;
   onReferenceChange: (id: string) => void;
-  onSetCurrentValue: (value: string) => void;
   textResourceId: string;
 };
 
@@ -112,7 +113,6 @@ const TextResourceFieldset = ({
   onClose,
   onDelete,
   onReferenceChange,
-  onSetCurrentValue,
   textResourceId,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
@@ -139,11 +139,7 @@ const TextResourceFieldset = ({
         </>
       }
     >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onReferenceChange={onReferenceChange}
-        onSetCurrentValue={onSetCurrentValue}
-      />
+      <TextResourceEditor textResourceId={textResourceId} onReferenceChange={onReferenceChange} />
     </StudioProperty.Fieldset>
   );
 };
