@@ -179,19 +179,14 @@ public class OptionsService : IOptionsService
         return await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
     }
 
-    private async Task<List<Option>> ImportOptionListFromOrg(string orgName, string repoName, string username, string optionListId, CancellationToken cancellationToken)
+    private async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
     {
-        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(orgName, username);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(orgName, repoName, username);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, StaticContentRepoName(org), developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
         string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
         return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
-    }
-
-    private AltinnOrgGitRepository GetStaticContentRepo(string orgName, string username)
-    {
-        return _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(orgName, StaticContentRepoName(orgName), username);
     }
 
     private static string StaticContentRepoName(string org)
