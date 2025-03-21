@@ -9,6 +9,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { useAppContext } from './hooks';
 
 const providerTestId = 'provider';
 const appTestId = 'app';
@@ -19,9 +20,7 @@ jest.mock('./AppContext', () => ({
   },
 }));
 jest.mock('./hooks', () => ({
-  useAppContext: () => {
-    return {};
-  },
+  useAppContext: jest.fn(),
 }));
 jest.mock('./containers/FormDesignNavigation', () => ({
   FormDesignerNavigation: () => {
@@ -40,7 +39,10 @@ jest.mock('app-shared/utils/featureToggleUtils', () => ({
 }));
 
 describe('SubApp', () => {
-  it('Renders the app within the AppContext provider', () => {
+  it('renders FormDesigner when a layout set is selected', () => {
+    (useAppContext as jest.Mock).mockReturnValue({
+      selectedFormLayoutSetName: 'test',
+    });
     renderWithProviders();
     const provider = screen.getByTestId(providerTestId);
     expect(provider).toBeInTheDocument();
@@ -48,6 +50,9 @@ describe('SubApp', () => {
   });
 
   it('renders FormDesignerNavigation when no layout set is selected', () => {
+    (useAppContext as jest.Mock).mockReturnValue({
+      selectedFormLayoutSetName: undefined,
+    });
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppVersion, org, app], {
       frontendVersion: '4.0.0',
