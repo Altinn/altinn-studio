@@ -35,14 +35,14 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         ]";
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(stringCodeList);
 
-        string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
+        string targetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
 
-        string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
+        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
 
-        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
@@ -71,14 +71,14 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string appRepoName = "empty-app";
         const string optionListId = "nonExistentCodeList";
 
-        string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
+        string targetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
 
-        string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
+        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
 
-        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act

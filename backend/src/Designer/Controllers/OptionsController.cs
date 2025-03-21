@@ -32,7 +32,7 @@ public class OptionsController : ControllerBase
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
-    /// <param name="orgCodeListService">The CodeList service for organisation level.</param>
+    /// <param name="orgCodeListService">The code list service for organisation level.</param>
     public OptionsController(IOptionsService optionsService, IOrgCodeListService orgCodeListService)
     {
         _optionsService = optionsService;
