@@ -45,7 +45,7 @@ namespace Designer.Tests.Services
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
-                var schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                var schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Equal(7, schemaFiles.Count);
 
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
@@ -57,7 +57,7 @@ namespace Designer.Tests.Services
                 await _schemaModelService.DeleteSchema(editingContext, schemaToDelete.RepositoryRelativeUrl);
 
                 // Assert
-                schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Equal(6, schemaFiles.Count);
                 applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
                 Assert.Single(applicationMetadata.DataTypes);
@@ -83,7 +83,7 @@ namespace Designer.Tests.Services
             {
                 string dataModelName = "datamodel";
 
-                var schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                var schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Single(schemaFiles);
 
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
@@ -95,7 +95,7 @@ namespace Designer.Tests.Services
                 await _schemaModelService.DeleteSchema(editingContext, schemaToDelete.RepositoryRelativeUrl);
 
                 // Assert
-                schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Empty(schemaFiles);
                 var applicationMetadataAfter = await altinnAppGitRepository.GetApplicationMetadata();
                 Assert.Equal(applicationMetadataBefore.DataTypes.Count - 1, applicationMetadataAfter.DataTypes.Count);
@@ -124,7 +124,7 @@ namespace Designer.Tests.Services
             try
             {
 
-                var schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                var schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Equal(7, schemaFiles.Count);
 
                 // Act
@@ -132,7 +132,7 @@ namespace Designer.Tests.Services
                 await _schemaModelService.DeleteSchema(editingContext, schemaToDelete.RepositoryRelativeUrl);
 
                 // Assert
-                schemaFiles = _schemaModelService.GetAllSchemaFiles(editingContext);
+                schemaFiles = _schemaModelService.GetSchemaFiles(editingContext);
                 Assert.Equal(6, schemaFiles.Count);
             }
             finally

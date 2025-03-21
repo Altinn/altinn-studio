@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { organization, repoStatus, user } from 'app-shared/mocks/mocks';
+import { organization, user } from 'app-shared/mocks/mocks';
 import { PageLayout } from './PageLayout';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -10,8 +10,6 @@ import { useParams } from 'react-router-dom';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { StringUtils } from '@studio/pure-functions';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -115,17 +113,5 @@ describe('PageLayout', () => {
       `${StringUtils.removeLeadingSlash(Subroute.AppDashboard)}/${SelectedContextType.Self}`,
       expect.anything(),
     );
-  });
-
-  it('should show a spinner when repoStatus is pending', async () => {
-    renderWithMockServices();
-    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
-  });
-
-  it('should not show a spinner when repoStatus is not pending', async () => {
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    renderWithMockServices({ ...queriesMock, getRepoStatus: mockGetRepoStatus });
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('dashboard.loading')));
-    expect(screen.queryByText(textMock('dashboard.loading'))).not.toBeInTheDocument();
   });
 });
