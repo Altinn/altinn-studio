@@ -10,15 +10,14 @@ export type SortPreference = {
   direction: SortDirection;
 };
 
-type TableSortingOptions = {
+type TableSortingOptions<StorageKey = string> = {
   enable: boolean;
   shouldPersistSort?: boolean;
-  storageKey?: TableSortStorageKey;
+  storageKey?: StorageKey;
 };
 
 export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
   const { enable, shouldPersistSort = false, storageKey = TableSortStorageKey.Default } = options;
-
 
   const savedPreference: SortPreference | null = shouldPersistSort
     ? typedLocalStorage.getItem<SortPreference>(storageKey)
@@ -26,7 +25,7 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
 
   const [sortColumn, setSortColumn] = useState<string | null>(savedPreference?.column ?? null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(
-    savedPreference?.direction ?? 'asc'
+    savedPreference?.direction ?? 'asc',
   );
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
 
