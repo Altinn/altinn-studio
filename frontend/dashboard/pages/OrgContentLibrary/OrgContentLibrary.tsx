@@ -18,7 +18,7 @@ import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUplo
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
-import { isOrg } from './utils';
+import { isOrg } from '../../utils/orgUtils';
 import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
 import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';

@@ -14,7 +14,7 @@ import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
-import { isOrg } from '../../../pages/OrgContentLibrary/utils';
+import { isOrg } from '../../../utils/orgUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
