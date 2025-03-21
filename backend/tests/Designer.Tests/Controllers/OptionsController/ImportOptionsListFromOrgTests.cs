@@ -98,19 +98,19 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string appRepoName = "app-with-options";
         const string optionListId = "codeListString";
 
-        string targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrg, targetOrgRepository);
+        string targetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
+        await CopyOrgRepositoryForTest(Username, OrgName, orgRepoName, targetOrgName, targetOrgRepoName);
 
-        string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrg, targetAppRepository);
+        string targetAppRepoName = TestDataHelper.GenerateTestRepoName();
+        await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
 
         const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
-        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetAppRepository, Username);
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrgName, targetAppRepoName, Username);
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionListId}.json"), codeList);
 
-        string apiUrl = ApiUrl(targetOrg, targetAppRepository, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
