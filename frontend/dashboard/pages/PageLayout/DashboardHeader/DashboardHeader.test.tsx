@@ -13,7 +13,7 @@ import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
-import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
 
 const mockOrgTtd: string = 'ttd';
 const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
@@ -30,7 +30,7 @@ jest.mock('react-router-dom', () => ({
   useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(() => {

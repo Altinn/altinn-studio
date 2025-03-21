@@ -1,4 +1,4 @@
-# @studio/components
+# @studio/components-legacy
 
 Studio Components is an internal library developed for Team Altinn Studio to facilitate the construction of the UI for
 our no-code tool.
@@ -44,7 +44,7 @@ export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(
 
 ## How to install Studio Components
 
-Currently, the `@studio/components` package resides as a local package within the Altinn Studio repository. This enables
-all packages and apps within the Altinn Studio repository to install `@studio/components` by adding the following
-dependency to their package.json: `"@studio/components": "workspace:^"`, followed by running `yarn install`. The
+Currently, the `@studio/components-legacy` package resides as a local package within the Altinn Studio repository. This enables
+all packages and apps within the Altinn Studio repository to install `@studio/components-legacy` by adding the following
+dependency to their package.json: `"@studio/components-legacy": "workspace:^"`, followed by running `yarn install`. The
 advantage of this setup is that it allows us to easily publish the package to NPM in the future.

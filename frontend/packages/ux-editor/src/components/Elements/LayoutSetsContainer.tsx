@@ -4,7 +4,7 @@ import { useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioCombobox, StudioErrorMessage } from '@studio/components';
+import { StudioCombobox, StudioErrorMessage } from '@studio/components-legacy';
 import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';

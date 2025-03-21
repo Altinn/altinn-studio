@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { StudioToggleableTextfield } from '@studio/components';
+import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';

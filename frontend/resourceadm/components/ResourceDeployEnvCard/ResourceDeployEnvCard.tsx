@@ -9,7 +9,7 @@ import {
   StudioParagraph,
   StudioSpinner,
   StudioTag,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
