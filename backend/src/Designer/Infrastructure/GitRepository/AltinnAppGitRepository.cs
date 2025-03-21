@@ -1240,7 +1240,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Finds all schema files in App/models directory.
         /// </summary>
-        public IList<AltinnCoreFile> GetAppSchemaFiles(bool xsd = false)
+        public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
         {
             string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
             string schemaFilesPath = Path.Combine(ModelFolderPath, schemaFilesPattern);
