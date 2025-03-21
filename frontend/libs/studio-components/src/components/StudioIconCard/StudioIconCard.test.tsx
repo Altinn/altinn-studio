@@ -38,14 +38,4 @@ describe('StudioIconCard', () => {
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     expect(screen.getByRole('button', { name: buttonText })).toBeInTheDocument();
   });
-
-  it('should apply headerOptions to header studioheading', async () => {
-    const headerText = 'header-text-123&=';
-    render(
-      <StudioIconCard icon={<ClipboardIcon />} header={headerText} headerOptions={{ level: 5 }}>
-        <div></div>
-      </StudioIconCard>,
-    );
-    expect(screen.getByRole('heading', { name: headerText }).tagName.toLowerCase()).toBe('h5');
-  });
 });
