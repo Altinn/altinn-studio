@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Likert.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Option.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -46,69 +46,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "readOnly": {
-      "title": "Read only/disabled?",
-      "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "required": {
-      "title": "Required?",
-      "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "showValidations": {
-      "title": "Validation types",
-      "description": "List of validation types to show",
-      "type": "array",
-      "items": {
-        "enum": [
-          "Schema",
-          "Component",
-          "Expression",
-          "CustomBackend",
-          "Required",
-          "AllExceptRequired",
-          "All"
-        ],
-        "type": "string"
-      }
-    },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "type": "boolean"
-    },
-    "forceShowInSummary": {
-      "title": "Force show in summary",
-      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "columns": {
-      "title": "Columns",
-      "description": "Add customization to the columns of the likert component",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "title": "Value",
-            "description": "The value of the answer column",
-            "anyOf": [{ "type": "string", "pattern": "^\\d+$" }, { "type": "number" }]
-          },
-          "divider": {
-            "title": "Divider",
-            "description": "Choose if the divider should be shown 'before', 'after' or on 'both' sides of the column.",
-            "enum": ["before", "after", "both"]
-          }
-        },
-        "required": ["value"],
-        "additionalProperties": false
-      }
     },
     "optionsId": {
       "title": "Dynamic options (fetched from server)",
@@ -214,91 +151,32 @@
       "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "Likert" },
+    "type": { "const": "Option" },
     "textResourceBindings": {
+      "title": "TRBLabel",
+      "type": "object",
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The title of the group",
+          "description": "Label text/title shown above the component",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "description": {
           "title": "Description",
-          "description": "The description text for the Likert table.",
+          "description": "Label description shown above the component, below the title",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "tableTitle": {
-          "title": "Table title",
-          "description": "Title used in the table view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "shortName": {
-          "title": "Short name (for validation)",
-          "description": "Alternative name used for required validation messages (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "requiredValidation": {
-          "title": "Required validation message",
-          "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "leftColumnHeader": {
-          "title": "Left column header",
-          "description": "The header text for the left column in the Likert table",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questions": {
-          "title": "Questions",
-          "description": "The questions to be displayed in each row (use a dynamic text resource)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questionDescriptions": {
-          "title": "Question descriptions",
-          "description": "The descriptions to be displayed in each row (use a dynamic text resource)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "questionHelpTexts": {
-          "title": "Question help texts",
-          "description": "The help texts to be displayed in each row (use a dynamic text resource)",
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
-    "dataModelBindings": {
-      "title": "IDataModelBindingsLikert",
-      "type": "object",
-      "properties": {
-        "answer": { "$ref": "#/definitions/IRawDataModelBinding" },
-        "questions": { "$ref": "#/definitions/IRawDataModelBinding" }
-      },
-      "required": ["answer", "questions"],
-      "additionalProperties": false
-    },
-    "filter": {
-      "title": "Filter",
-      "description": "Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones(beware that start index starts at zero, and stop index starts at one, so {start, stop} = {0, 3} will display 3 rows, not 4)",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "key": { "enum": ["start", "stop"] },
-          "value": { "anyOf": [{ "type": "string", "pattern": "^\\d+$" }, { "type": "number" }] }
-        },
-        "required": ["key", "value"],
-        "additionalProperties": false
-      }
-    }
+    "value": { "$ref": "expression.schema.v1.json#/definitions/string" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
-  "required": ["id", "type", "dataModelBindings"],
-  "title": "Likert component schema"
+  "required": ["id", "type", "value"],
+  "title": "Option component schema"
 }

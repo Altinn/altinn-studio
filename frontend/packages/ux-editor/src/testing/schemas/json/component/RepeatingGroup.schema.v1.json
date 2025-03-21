@@ -16,11 +16,11 @@
     },
     "grid": {
       "properties": {
-        "xs": { "$ref": "#/definitions/IGridSize" },
-        "sm": { "$ref": "#/definitions/IGridSize" },
-        "md": { "$ref": "#/definitions/IGridSize" },
-        "lg": { "$ref": "#/definitions/IGridSize" },
-        "xl": { "$ref": "#/definitions/IGridSize" },
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
         "labelGrid": { "$ref": "#/definitions/IGridStyling" },
         "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
@@ -195,13 +195,7 @@
     "dataModelBindings": {
       "title": "IDataModelBindingsForGroup",
       "type": "object",
-      "properties": {
-        "group": {
-          "title": "Group",
-          "description": "Dot notation location for a repeating group structure (array of objects), where the data is stored",
-          "type": "string"
-        }
-      },
+      "properties": { "group": { "$ref": "#/definitions/IRawDataModelBinding" } },
       "required": ["group"],
       "additionalProperties": false
     },
@@ -318,12 +312,14 @@
       "title": "Max number of rows",
       "description": "Maximum number of rows that can be added.",
       "type": "integer",
-      "minimum": 2
+      "minimum": 1
     },
     "minCount": {
       "title": "Min number of rows",
       "description": "Minimum number of rows that should be added. If the user has not added enough rows, the repeating group will show a validation error",
-      "type": "integer"
+      "default": 0,
+      "type": "integer",
+      "minimum": 0
     },
     "tableHeaders": {
       "title": "Table headers",
