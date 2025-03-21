@@ -29,7 +29,31 @@ public sealed class TestJwtToken : IXunitSerializable
 {
     public AuthenticationTypes Type { get; set; }
     public int PartyId { get; set; }
-    public string Token { get; set; } = "";
+
+    // NOTE: it's important that the token is not part of the XUnit serialization
+    // as the tokens content is time sensitive (nbf, exp), so they should be created lazily.
+    // Including it as part of serialiation will lead to flaky tests as it's possible to
+    // run test cases in a IDE test explorer which was serialized >= 'token.exp' ago
+    private string? _token;
+    public string Token
+    {
+        get
+        {
+            if (_token is not null)
+                return _token;
+
+            _token = Type switch
+            {
+                AuthenticationTypes.User => TestAuthentication.GetUserToken(),
+                AuthenticationTypes.SelfIdentifiedUser => TestAuthentication.GetSelfIdentifiedUserToken(),
+                // AuthenticationTypes.Org => TestAuthentication.GetOrgToken(),
+                AuthenticationTypes.ServiceOwner => TestAuthentication.GetServiceOwnerToken(),
+                AuthenticationTypes.SystemUser => TestAuthentication.GetSystemUserToken(),
+                _ => throw new InvalidOperationException("Unsupported token type: " + Type),
+            };
+            return _token;
+        }
+    }
 
     private Authenticated? _auth;
     public Authenticated Auth
@@ -56,25 +80,22 @@ public sealed class TestJwtToken : IXunitSerializable
 
     public TestJwtToken() { }
 
-    public TestJwtToken(AuthenticationTypes type, int partyId, string token)
+    public TestJwtToken(AuthenticationTypes type, int partyId)
     {
         Type = type;
         PartyId = partyId;
-        Token = token;
     }
 
     public void Deserialize(IXunitSerializationInfo info)
     {
         Type = (AuthenticationTypes)info.GetValue<int>("Type");
         PartyId = info.GetValue<int>("PartyId");
-        Token = info.GetValue<string>("Token");
     }
 
     public void Serialize(IXunitSerializationInfo info)
     {
         info.AddValue("Type", (int)Type);
         info.AddValue("PartyId", PartyId);
-        info.AddValue("Token", Token);
     }
 }
 
@@ -101,11 +122,11 @@ public static class TestAuthentication
     {
         public AllTokens()
         {
-            Add(new(AuthenticationTypes.User, DefaultUserPartyId, GetUserToken()));
-            Add(new(AuthenticationTypes.SelfIdentifiedUser, DefaultUserPartyId, GetSelfIdentifiedUserToken()));
+            Add(new(AuthenticationTypes.User, DefaultUserPartyId));
+            Add(new(AuthenticationTypes.SelfIdentifiedUser, DefaultUserPartyId));
             // Add(new(AuthenticationTypes.Org, DefaultOrgPartyId));
-            Add(new(AuthenticationTypes.ServiceOwner, DefaultOrgPartyId, GetServiceOwnerToken()));
-            Add(new(AuthenticationTypes.SystemUser, DefaultOrgPartyId, GetSystemUserToken()));
+            Add(new(AuthenticationTypes.ServiceOwner, DefaultOrgPartyId));
+            Add(new(AuthenticationTypes.SystemUser, DefaultOrgPartyId));
         }
     }
 
