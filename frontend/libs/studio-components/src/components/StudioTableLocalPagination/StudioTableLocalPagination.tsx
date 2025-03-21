@@ -3,6 +3,7 @@ import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Columns, Rows, PaginationTexts } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
+import type { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export type LocalPaginationProps = {
   pageSizeOptions: number[];
@@ -17,6 +18,8 @@ export type StudioTableLocalPaginationProps = {
   loadingText?: string;
   emptyTableFallback?: React.ReactNode;
   pagination?: LocalPaginationProps;
+  shouldPersistSort?: boolean;
+  sortStorageKey?: TableSortStorageKey;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -32,16 +35,21 @@ export const StudioTableLocalPagination = forwardRef<
       loadingText,
       emptyTableFallback,
       pagination,
+      shouldPersistSort = false,
+      sortStorageKey,
     },
     ref,
   ): React.ReactElement => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const isSortable = columns.some((column) => column.sortable);
-    const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
+    const { sortedRows, handleSorting } = useTableSorting(rows, {
+      enable: true,
+      shouldPersistSort,
+      storageKey: sortStorageKey,
+    });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     useEffect(() => {

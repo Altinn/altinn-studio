@@ -3,7 +3,11 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
+import {
+  StudioTableLocalPagination,
+  StudioTableRemotePagination,
+  TableSortStorageKey,
+} from '@studio/components';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
@@ -11,7 +15,7 @@ import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
 import { Paragraph } from '@digdir/designsystemet-react';
 
-export interface RepoListProps {
+export type RepoListProps = {
   repos: RepoIncludingStarredData[];
   isLoading: boolean;
   isServerSort?: boolean;
@@ -22,7 +26,10 @@ export interface RepoListProps {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick?: (columnKey: string) => void;
-}
+  sortStorageKey?: TableSortStorageKey;
+  sortDirection?: 'asc' | 'desc';
+  sortColumn?: string | null;
+};
 
 export const RepoList = ({
   repos = [],
@@ -35,6 +42,9 @@ export const RepoList = ({
   onPageChange,
   onPageSizeChange,
   onSortClick,
+  sortStorageKey = TableSortStorageKey.OrgRepos,
+  sortDirection,
+  sortColumn,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
   const tableSize = 'small';
@@ -80,14 +90,6 @@ export const RepoList = ({
     },
   ];
 
-  // The local table can sort all columns, but the Gitea API does not support sorting by createdBy or description
-  // Therefore, we remove the sortable property from these columns when using server-side sorting
-  const nonSortableAccessors = ['createdBy', 'description'];
-  const remotePaginationColumns = columns.map((column) => ({
-    ...column,
-    sortable: nonSortableAccessors.includes(column.accessor) ? false : column.sortable,
-  }));
-
   const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
@@ -125,14 +127,14 @@ export const RepoList = ({
     <div>
       {isServerSort ? (
         <StudioTableRemotePagination
-          columns={remotePaginationColumns}
+          columns={columns}
           rows={rows}
           size={tableSize}
           isLoading={isLoading}
-          loadingText={t('general.loading')}
+          loadingText={t('dashboard.loading')}
           emptyTableFallback={emptyTableFallback}
-          pagination={paginationProps}
           onSortClick={onSortClick}
+          pagination={paginationProps}
         />
       ) : (
         <StudioTableLocalPagination
@@ -143,6 +145,8 @@ export const RepoList = ({
           loadingText={t('general.loading')}
           emptyTableFallback={emptyTableFallback}
           pagination={paginationProps}
+          shouldPersistSort={true}
+          sortStorageKey={sortStorageKey}
         />
       )}
     </div>
