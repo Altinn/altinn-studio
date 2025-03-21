@@ -1,1 +1,1 @@
-export type { TextResource } from '@studio/components';
+export type { TextResource } from '@studio/components-legacy';

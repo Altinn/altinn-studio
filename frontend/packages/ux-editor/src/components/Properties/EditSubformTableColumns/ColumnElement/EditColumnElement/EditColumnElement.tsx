@@ -9,7 +9,7 @@ import {
   StudioDeleteButton,
   StudioDivider,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';

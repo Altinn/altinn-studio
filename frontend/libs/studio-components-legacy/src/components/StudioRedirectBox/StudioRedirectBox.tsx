@@ -1,7 +1,7 @@
 import React, { type ReactElement, type HTMLAttributes } from 'react';
 import cn from 'classnames';
 import classes from './StudioRedirectBox.module.css';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
 
 export type StudioRedirectBoxProps = {
   title: string;

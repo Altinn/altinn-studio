@@ -9,12 +9,12 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
-import { useMediaQuery } from '@studio/components';
+import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();

@@ -7,7 +7,7 @@ import {
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
+import { StudioLabelAsParagraph, StudioPopover } from '@studio/components-legacy';
 import { InformationIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 

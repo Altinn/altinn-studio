@@ -1,6 +1,11 @@
 import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
-import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioPopover,
+  StudioSpinner,
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type DeployPopoverProps = {

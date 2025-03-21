@@ -17,7 +17,7 @@ import { useComponentPropertyDescription } from '../../hooks/useComponentPropert
 import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@studio/icons';
-import { StudioButton, StudioCard, StudioProperty } from '@studio/components';
+import { StudioButton, StudioCard, StudioProperty } from '@studio/components-legacy';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import { SelectPropertyEditor } from './SelectPropertyEditor/SelectPropertyEditor';
 

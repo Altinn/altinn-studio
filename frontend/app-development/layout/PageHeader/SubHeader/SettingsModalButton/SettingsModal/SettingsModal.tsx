@@ -6,7 +6,7 @@ import {
   StudioContentMenu,
   type StudioContentMenuButtonTabProps,
   StudioModal,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';

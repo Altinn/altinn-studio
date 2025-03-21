@@ -4,7 +4,7 @@ import {
   StudioSpinner,
   StudioSwitch,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

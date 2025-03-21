@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './AnsattportenLogin.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioParagraph } from '@studio/components-legacy';
 import { EnterIcon } from '@studio/icons';
 import { loginWithAnsattPorten } from 'app-shared/api/paths';
 import { openSettingsModalWithTabQueryKey } from '../../../../../../../../../hooks/useOpenSettingsModalBasedQueryParam';

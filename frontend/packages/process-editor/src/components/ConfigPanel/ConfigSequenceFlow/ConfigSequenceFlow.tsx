@@ -5,7 +5,7 @@ import {
   StudioButton,
   StudioExpression,
   StudioSectionHeader,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';

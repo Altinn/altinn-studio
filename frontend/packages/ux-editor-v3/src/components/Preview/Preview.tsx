@@ -9,7 +9,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCenter } from '@studio/components';
+import { StudioButton, StudioCenter } from '@studio/components-legacy';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';

@@ -5,7 +5,7 @@ import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import { LinkButton } from '../LinkButton';
-import { StudioAlert, StudioLabelAsParagraph, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioLabelAsParagraph, StudioParagraph } from '@studio/components-legacy';
 
 export type ResourceDeployStatusProps = {
   /**

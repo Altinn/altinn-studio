@@ -1,5 +1,5 @@
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import type { RepoIncludingStarredData } from '../../utils/repoUtils/repoUtils';

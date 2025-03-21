@@ -9,7 +9,7 @@ import {
   getSomeElementsChecked,
   getAllElementsDisabled,
 } from './utils';
-import { type StudioCheckboxTableRowElement } from '@studio/components';
+import { type StudioCheckboxTableRowElement } from '@studio/components-legacy';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 // Mock data

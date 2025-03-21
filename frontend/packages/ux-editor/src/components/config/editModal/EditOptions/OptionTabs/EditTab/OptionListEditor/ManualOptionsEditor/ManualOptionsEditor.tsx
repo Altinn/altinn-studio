@@ -3,7 +3,7 @@ import type { IGenericEditComponent } from '../../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
-import { StudioCodeListEditor, StudioModal } from '@studio/components';
+import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';

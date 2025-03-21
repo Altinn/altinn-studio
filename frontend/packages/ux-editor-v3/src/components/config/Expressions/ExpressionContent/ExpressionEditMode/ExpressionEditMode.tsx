@@ -20,7 +20,7 @@ import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { useText } from '../../../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 
 export interface ExpressionEditModeProps {
   expression: Expression;

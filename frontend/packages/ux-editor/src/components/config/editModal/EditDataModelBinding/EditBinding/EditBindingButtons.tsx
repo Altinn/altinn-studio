@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioDeleteButton } from '@studio/components';
+import { StudioButton, StudioDeleteButton } from '@studio/components-legacy';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';

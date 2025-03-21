@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './LibraryHeader.module.css';
-import { studioBetaTagClasses, StudioHeading } from '@studio/components';
+import { studioBetaTagClasses, StudioHeading } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { BookIcon } from '@studio/icons';
 import cn from 'classnames';

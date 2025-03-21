@@ -9,7 +9,7 @@ import {
   StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';

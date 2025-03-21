@@ -4,8 +4,8 @@ import {
   StudioCodeListEditor,
   StudioModal,
   StudioTextfield,
-} from '@studio/components';
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components';
+} from '@studio/components-legacy';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';

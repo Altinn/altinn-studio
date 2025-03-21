@@ -4,7 +4,7 @@ import {
   StudioDeleteButton,
   StudioProperty,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { Option } from 'app-shared/types/Option';
 import { XMarkIcon } from '@studio/icons';

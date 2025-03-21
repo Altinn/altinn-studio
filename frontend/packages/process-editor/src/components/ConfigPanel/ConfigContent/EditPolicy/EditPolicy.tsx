@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
-import { StudioButton, StudioRedirectBox } from '@studio/components';
+import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';

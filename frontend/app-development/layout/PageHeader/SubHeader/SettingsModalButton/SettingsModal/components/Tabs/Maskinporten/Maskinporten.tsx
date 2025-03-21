@@ -2,7 +2,7 @@ import React, { type ReactNode, type ReactElement } from 'react';
 import classes from './Maskinporten.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
-import { StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components-legacy';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
 import { ScopeListContainer } from './ScopeListContainer';
 import { AnsattportenLogin } from './AnsattportenLogin';

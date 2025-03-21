@@ -5,7 +5,7 @@ import {
   type StudioCheckboxTableRowElement,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   type MaskinportenScopes,

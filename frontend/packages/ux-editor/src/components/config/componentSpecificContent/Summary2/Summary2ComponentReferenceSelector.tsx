@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCombobox } from '@studio/components';
+import { StudioCombobox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type Summary2ComponentTargetIdProps = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import { Trans } from 'react-i18next';
 
 export type CodeListsCounterMessageProps = {

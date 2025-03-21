@@ -7,7 +7,7 @@ import {
   StudioParagraph,
   StudioHeading,
   StudioTextarea,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from '../../utils/resourceUtils';
 import type {

@@ -1,5 +1,5 @@
 import classes from './StudioMenuTab.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import type { ReactNode } from 'react';
 import React from 'react';
 

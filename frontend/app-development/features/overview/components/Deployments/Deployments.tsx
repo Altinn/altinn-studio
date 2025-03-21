@@ -3,7 +3,7 @@ import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioSpinner } from '@studio/components';
+import { StudioError, StudioSpinner } from '@studio/components-legacy';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';

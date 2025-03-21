@@ -11,7 +11,7 @@ import {
   StudioLink,
   StudioAlert,
   StudioErrorMessage,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {

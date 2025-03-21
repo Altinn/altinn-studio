@@ -1,6 +1,6 @@
 import { useHandleBlurTextResource } from './useHandleBlurTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { TextResource } from '@studio/components';
+import type { TextResource } from '@studio/components-legacy';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 // Test data:

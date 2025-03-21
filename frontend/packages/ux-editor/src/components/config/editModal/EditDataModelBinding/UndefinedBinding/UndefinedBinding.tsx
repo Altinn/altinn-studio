@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@studio/components-legacy';
 import { LinkIcon } from '@studio/icons';
 
 export type UndefinedBindingProps = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type Image = {

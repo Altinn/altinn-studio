@@ -6,7 +6,7 @@ import {
   StudioButton,
   StudioParagraph,
   type StudioProfileMenuItem,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';

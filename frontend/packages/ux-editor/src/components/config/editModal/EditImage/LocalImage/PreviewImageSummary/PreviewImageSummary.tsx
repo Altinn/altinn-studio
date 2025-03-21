@@ -1,6 +1,6 @@
 import React from 'react';
 import { ImageIcon } from '@studio/icons';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton } from '@studio/components-legacy';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';

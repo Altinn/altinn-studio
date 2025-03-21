@@ -3,7 +3,7 @@ import type { Option } from 'app-shared/types/Option';
 import { useTextResourcesSelector } from '../../../../../../../../hooks';
 import { textResourceByLanguageAndIdSelector } from '../../../../../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { StudioCodeFragment } from '@studio/components';
+import { StudioCodeFragment } from '@studio/components-legacy';
 import type { ITextResource } from 'app-shared/types/global';
 import classes from './OptionValue.module.css';
 

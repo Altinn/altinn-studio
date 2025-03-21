@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import {
   StudioRecommendedNextActionContextProvider,
   useStudioRecommendedNextActionContext,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import React from 'react';
 
 describe('StudioRecommendedNextActionContext', () => {

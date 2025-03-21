@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@studio/components-legacy';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,

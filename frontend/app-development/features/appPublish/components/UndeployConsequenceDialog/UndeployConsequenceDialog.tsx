@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
 

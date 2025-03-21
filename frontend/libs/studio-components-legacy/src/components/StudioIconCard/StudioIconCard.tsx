@@ -4,7 +4,7 @@ import {
   StudioPopover,
   StudioPopoverContent,
   StudioPopoverTrigger,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import classes from './StudioIconCard.module.css';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';

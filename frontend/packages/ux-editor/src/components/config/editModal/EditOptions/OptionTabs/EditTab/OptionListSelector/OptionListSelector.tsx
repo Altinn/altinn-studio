@@ -10,7 +10,7 @@ import {
   StudioModal,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
