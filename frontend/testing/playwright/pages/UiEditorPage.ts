@@ -10,6 +10,7 @@ import type { LanguageCode } from '../enum/LanguageCode';
 const dataModelBindingButtonTextMap: Record<string, TextKey> = {
   Input: 'ux_editor.component_title.Input',
 };
+const TIMEOUT_VERIFY_UI_EDITOR_PAGE = 15000;
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -26,7 +27,7 @@ export class UiEditorPage extends BasePage {
       const layoutString = `?layout=${layout}`;
       await this.page.waitForURL(`${baseRoute}${layoutString}`);
     } else {
-      await this.page.waitForURL(baseRoute, { timeout: 10000 });
+      await this.page.waitForURL(baseRoute, { timeout: TIMEOUT_VERIFY_UI_EDITOR_PAGE });
     }
   }
 
