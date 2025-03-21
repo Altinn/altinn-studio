@@ -228,7 +228,7 @@ public class OptionsServiceTests : IDisposable
         const string repo = "app-with-options";
         const string optionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath =  await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
