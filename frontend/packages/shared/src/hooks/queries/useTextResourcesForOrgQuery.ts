@@ -4,12 +4,12 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { type ITextResourcesWithLanguage } from '../../types/global';
 
 export const useTextResourcesForOrgQuery = (
-  org: string,
+  orgName: string,
   language: string,
 ): UseQueryResult<ITextResourcesWithLanguage> => {
   const { getTextResourcesForOrg } = useServicesContext();
   return useQuery<ITextResourcesWithLanguage>({
-    queryKey: [QueryKey.TextResourcesForOrg],
-    queryFn: () => getTextResourcesForOrg(org, language),
+    queryKey: [QueryKey.TextResourcesForOrg, orgName, language],
+    queryFn: () => getTextResourcesForOrg(orgName, language),
   });
 };
