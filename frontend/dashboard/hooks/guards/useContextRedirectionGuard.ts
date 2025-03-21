@@ -4,9 +4,11 @@ import { useSelectedContext } from '../useSelectedContext';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { typedSessionStorage } from '@studio/pure-functions';
-import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
+import { StringUtils, typedSessionStorage } from '@studio/pure-functions';
+import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useSubroute } from '../useSubRoute';
+import { Subroute } from '../../enums/Subroute';
+import { isOrg } from '../../utils/orgUtils';
 
 export type UseRedirectionGuardResult = {
   isRedirectionComplete: boolean;
@@ -44,12 +46,25 @@ const handleContextRedirection = (
   navigate: NavigateFunction,
 ): void => {
   const { selectedContextType, subroute } = dashboardRoute;
-  if (!hasAccessToTargetContext(selectedContextType, organizations)) {
-    navigateToSelf(subroute, navigate);
-  } else {
+
+  const hasAccess: boolean = hasAccessToTargetContext(selectedContextType, organizations);
+  if (hasAccess) {
     navigateToDifferentContext(dashboardRoute, navigate);
+    return;
+  }
+
+  const shouldNavigateToDifferentContext: boolean =
+    isOrg(selectedContextType) && hasOrgLibrarySubroute(subroute);
+
+  if (shouldNavigateToDifferentContext) {
+    navigateToDifferentContext(dashboardRoute, navigate);
+  } else {
+    navigateToSelf(subroute, navigate);
   }
 };
+
+const hasOrgLibrarySubroute = (subroute: string): boolean =>
+  subroute === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
 
 const hasAccessToTargetContext = (
   selectedContextType: string,
