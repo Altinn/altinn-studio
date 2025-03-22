@@ -1,0 +1,4 @@
+.container {
+  background: var(--fds-semantic-surface-neutral-subtle);
+  flex: var(--properties-width-fraction);
+}

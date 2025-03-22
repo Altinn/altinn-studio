@@ -14,11 +14,12 @@ export type StudioSectionHeaderProps = {
     text: string;
     title: string;
   };
+  menu?: React.ReactNode;
 } & HTMLAttributes<HTMLDivElement>;
 
 const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>(
   (
-    { heading, helpText, icon, className: givenClassName, ...rest }: StudioSectionHeaderProps,
+    { heading, helpText, icon, className: givenClassName, menu, ...rest }: StudioSectionHeaderProps,
     ref,
   ): React.ReactElement => {
     const className = cn(givenClassName, classes.container);
@@ -35,6 +36,7 @@ const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>
             {helpText.text}
           </HelpText>
         )}
+        {menu}
       </div>
     );
   },
