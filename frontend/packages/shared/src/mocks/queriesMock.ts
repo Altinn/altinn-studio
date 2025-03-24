@@ -121,6 +121,7 @@ export const queriesMock: ServicesContextProps = {
   getAvailableOptionListDataListsInOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListData[]>([])),
+  importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),

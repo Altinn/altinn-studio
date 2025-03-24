@@ -7,12 +7,14 @@ import { App } from './App';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { user as userMock } from 'app-shared/mocks/mocks';
+import { repoStatus, user as userMock } from 'app-shared/mocks/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import type { Organization } from 'app-shared/types/Organization';
 import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
@@ -26,6 +28,12 @@ const org: Organization = {
   avatar_url: 'data:image/svg+xml;utf8,<svg></svg>',
   id: 1,
   username: 'some-org',
+};
+
+const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+const customServices: ServicesContextProps = {
+  ...queriesMock,
+  getRepoStatus: mockGetRepoStatus,
 };
 
 describe('App', () => {
@@ -63,9 +71,9 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
   });
 
-  it('should display the apps overview by default', () => {
+  it('should display the apps overview by default', async () => {
     const client = createQueryClientWithUserAndOrg();
-    renderApp({ client });
+    renderApp({ client, customServices });
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
   });
 
@@ -73,7 +81,8 @@ describe('App', () => {
     const user = userEvent.setup();
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ client, initialEntries });
+    renderApp({ client, customServices, initialEntries });
+
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
   });
@@ -82,7 +91,8 @@ describe('App', () => {
     const user = userEvent.setup();
     const client = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ client, initialEntries });
+    renderApp({ client, customServices, initialEntries });
+
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     await user.click(
       screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
