@@ -1,6 +1,8 @@
 .card {
+  height: var(--icon-card-height);
   width: var(--icon-card-width);
   min-width: var(--icon-card-width);
+  justify-content: center;
   background-color: var(--fds-semantic-background-default);
   border-color: var(--color-neutral-border-subtle, #b8bcc1);
   border-width: var(--fds-border_width-active);
@@ -19,12 +21,12 @@
   align-items: center;
   justify-content: center;
   font-size: var(--fds-sizing-10);
-  margin-bottom: var(--fds-spacing-14);
+  padding-top: 0;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  padding: var(--fds-spacing-3);
+  padding: var(--fds-spacing-6);
   text-align: center;
 }
