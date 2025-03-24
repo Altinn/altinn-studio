@@ -10,7 +10,7 @@ import http from 'k6/http';
 export function loadAltinnInbox(aspxauthCookie, partyId) {
   var endpoint = config.altinnUi.inbox;
   var params = {
-    cookies: { '.ASPXAUTH': aspxauthCookie, AltinnPartyId: partyId },
+    cookies: { config.authCookieName: aspxauthCookie, AltinnPartyId: partyId },
   };
   return httpGet(endpoint, params);
 }
@@ -25,7 +25,7 @@ export function loadAltinnInbox(aspxauthCookie, partyId) {
 export function searchMessageBox(aspxauthCookie, partyId, searchCriteria) {
   var endpoint = config.altinnUi.search;
   var params = {
-    cookies: { '.ASPXAUTH': aspxauthCookie, AltinnPartyId: partyId },
+    cookies: { config.authCookieName: aspxauthCookie, AltinnPartyId: partyId },
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },

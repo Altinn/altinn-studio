@@ -130,7 +130,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo)
 export function clearCookies() {
   var jar = http.cookieJar();
   jar.set('https://' + config.baseUrl, 'AltinnStudioRuntime', 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
-  jar.set('https://' + config.baseUrl, '.ASPXAUTH', 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
+  jar.set('https://' + config.baseUrl, config.authCookieName, 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
 }
 
 /**
