@@ -38,7 +38,7 @@ public class LayoutServiceTests
     [Fact]
     public async Task UsesGroup_ShouldReturnFalse_IfNotUsingGroups()
     {
-        const string repo = "app-with-layoutSets";
+        const string repo = "app-with-layoutsets";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
