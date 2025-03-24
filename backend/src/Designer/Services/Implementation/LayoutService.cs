@@ -227,5 +227,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             pages.pages.ForEach((page) => pageOrder.Add(page.id));
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
         }
+
+        public async Task<bool> IsLayoutUsingGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+                layoutSetId
+            );
+            return jsonNode["pages"]["groups"] is not null;
+        }
     }
 }
