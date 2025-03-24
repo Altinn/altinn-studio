@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -18,14 +19,37 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private static Pages GetPagesFromSettings(JsonNode settings)
         {
-            Pages pages = new() { pages = [] };
+            Pages pages = new();
 
             JsonNode pagesNode = settings["pages"];
-            JsonArray pagesArray = pagesNode["order"] as JsonArray;
-            foreach (JsonNode pageNode in pagesArray)
+            if (pagesNode["order"] is JsonArray pagesArray)
             {
-                string pageId = pageNode.GetValue<string>();
-                pages.pages.Add(new Page { id = pageId });
+                pages.pages = [];
+                foreach (JsonNode pageNode in pagesArray)
+                {
+                    string pageId = pageNode.GetValue<string>();
+                    pages.pages.Add(new Page { id = pageId });
+                }
+            }
+            if (pagesNode["groups"] is JsonArray groupsArray)
+            {
+                pages.groups = [];
+                foreach (JsonNode groupNode in groupsArray)
+                {
+                    Group group = new();
+                    if (pagesNode["name"] is JsonNode name)
+                    {
+                        group.name = name.GetValue<string>();
+                    }
+                    group.pages =
+                    [
+                        .. (groupNode["order"] as JsonArray).Select(node => new Page
+                        {
+                            id = node.GetValue<string>(),
+                        }),
+                    ];
+                    pages.groups.Add(group);
+                }
             }
 
             return pages;
@@ -243,6 +267,100 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 layoutSetId
             );
             return jsonNode["pages"]["groups"] is not null;
+        }
+
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when layout already uses page groups
+        /// </exception>
+        public async Task ConvertPagesToGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            if (await IsLayoutUsingPageGroups(editingContext, layoutSetId))
+            {
+                throw new InvalidOperationException(
+                    "Layout cannot be converted to layout with page groups. Layout already uses page groups."
+                );
+            }
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+                layoutSetId
+            );
+
+            JsonArray order = jsonNode["pages"]["order"] as JsonArray;
+            JsonArray groups = [];
+
+            foreach (JsonNode page in order)
+            {
+                string pageName = page.GetValue<string>();
+                groups.Add(
+                    new JsonObject
+                    {
+                        {
+                            "order",
+                            new JsonArray { pageName }
+                        },
+                    }
+                );
+            }
+
+            jsonNode["pages"]["groups"] = groups;
+            jsonNode["pages"]["order"] = null;
+            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+        }
+
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when layout does not use page groups
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if a group is in an invalid configuration
+        /// </exception>
+        public async Task ConvertGroupsToPages(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            if (!await IsLayoutUsingPageGroups(editingContext, layoutSetId))
+            {
+                throw new InvalidOperationException(
+                    "Layout cannot be converted to layout without page groups. Layout does not use page groups."
+                );
+            }
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+                layoutSetId
+            );
+
+            JsonArray groups = jsonNode["pages"]["groups"] as JsonArray;
+            JsonArray order = [];
+
+            foreach (JsonNode group in groups)
+            {
+                if (group["order"] is not JsonArray pages)
+                {
+                    throw new InvalidOperationException($"Page group does not contain order array");
+                }
+                foreach (JsonNode page in pages)
+                {
+                    string pageName = page.GetValue<string>();
+                    order.Add(pageName);
+                }
+            }
+
+            jsonNode["pages"]["order"] = order;
+            jsonNode["pages"]["groups"] = null;
+            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
         }
     }
 }

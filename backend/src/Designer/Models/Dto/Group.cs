@@ -8,6 +8,6 @@ public class Group
     [JsonPropertyName("name")]
     public string name { get; set; }
 
-    [JsonPropertyName("pages")]
+    [JsonPropertyName("order")]
     public List<Page> pages { get; set; }
 }

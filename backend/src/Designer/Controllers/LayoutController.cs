@@ -151,5 +151,27 @@ namespace Altinn.Studio.Designer.Controllers
             await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages);
             return Ok();
         }
+
+        [EndpointSummary("Convert layout to use groups")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpPost("convert-to-groups")]
+        public async Task<ActionResult> ConvertToGroups(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+            await layoutService.ConvertPagesToGroups(editingContext, layoutSetId);
+            return Ok();
+        }
     }
 }

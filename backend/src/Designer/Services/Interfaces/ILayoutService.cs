@@ -42,5 +42,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );
+        public Task ConvertPagesToGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        );
+        public Task ConvertGroupsToPages(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        );
     }
 }
