@@ -20,7 +20,7 @@ public class GetXsdDatamodelsTests : DesignerEndpointsTestsBase<GetXsdDatamodels
     [InlineData("ttd", "hvem-er-hvem")]
     public async Task GetXsdDatamodels_NoInput_ShouldReturnAllModels(string org, string repo)
     {
-        string url = $"{VersionPrefix(org, repo)}/all-xsd";
+        string url = $"{VersionPrefix(org, repo)}/xsd";
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 

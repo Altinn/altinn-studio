@@ -6,12 +6,16 @@ import { screen } from '@testing-library/react';
 import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('taskCard', () => {
   let confirmSpy: jest.SpyInstance;
   beforeAll(() => {
     confirmSpy = jest.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(jest.fn(() => true));
+
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.TaskNavigationEditCards);
   });
 
   afterAll(() => {
@@ -23,6 +27,7 @@ describe('taskCard', () => {
     render();
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     expect(screen.getByRole('button', { name: /general.delete/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /ux_editor.task_card.edit/ })).toBeInTheDocument();
   });
 
   it('should display datatype id', async () => {
@@ -58,6 +63,37 @@ describe('taskCard', () => {
     render({ appContextProps: { setSelectedFormLayoutSetName } });
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.ux_editor/ }));
     expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith('test');
+  });
+
+  it('should open edit mode when clicking edit button', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
+
+    expect(screen.getByRole('button', { name: /general.save/ })).toBeInTheDocument();
+  });
+
+  it('should exit save mode when closing', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
+    await user.click(screen.getByRole('button', { name: /general.close/ }));
+    expect(screen.queryByRole('button', { name: /general.save/ })).not.toBeInTheDocument();
+  });
+
+  it('should exit save mode when saving', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
+    await user.type(
+      screen.getByRole('textbox', { name: /ux_editor.component_properties.layoutSet/ }),
+      'test',
+    );
+    await user.click(screen.getByRole('button', { name: /general.save/ }));
+    expect(screen.queryByRole('button', { name: /general.save/ })).not.toBeInTheDocument();
   });
 });
 

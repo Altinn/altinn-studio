@@ -1,7 +1,6 @@
 import React, { type ReactElement, type ReactNode } from 'react';
 import {
   StudioCard,
-  StudioHeading,
   StudioPopover,
   StudioPopoverContent,
   StudioPopoverTrigger,
@@ -21,18 +20,18 @@ export type StudioIconCardProps = {
   headerOptions?: HeadingProps;
   contextButtons?: ReactNode;
   children: ReactNode;
+  className?: string;
 };
 
 export const StudioIconCard = ({
   icon,
   iconColor = 'grey',
-  header,
-  headerOptions,
   contextButtons,
   children,
+  className,
 }: StudioIconCardProps) => {
   return (
-    <StudioCard className={classes.card}>
+    <StudioCard className={cn(classes.card, className)}>
       {contextButtons && (
         <StudioPopover placement='bottom-start' size='sm'>
           <StudioPopoverTrigger
@@ -53,12 +52,7 @@ export const StudioIconCard = ({
         </div>
       </div>
 
-      <div className={classes.content}>
-        <StudioHeading className={classes.title} size='2xs' {...headerOptions}>
-          {header}
-        </StudioHeading>
-        {children}
-      </div>
+      <div className={classes.content}>{children}</div>
     </StudioCard>
   );
 };
