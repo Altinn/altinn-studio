@@ -1,6 +1,8 @@
 import { useTableSorting } from './useTableSorting';
 import { act, renderHook } from '@testing-library/react';
 import type { Rows } from '../components';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { TableSortStorageKey } from '../types/TableSortStorageKey';
 
 describe('useTableSorting', () => {
   const rows: Rows = [
@@ -66,5 +68,24 @@ describe('useTableSorting', () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: false }));
     expect(result.current.sortedRows).toBeUndefined();
     expect(result.current.handleSorting).toBeUndefined();
+  });
+
+  it('should persist sort preference when toggling sort direction with persistence enabled', () => {
+    const setItemSpy = jest.spyOn(typedLocalStorage, 'setItem');
+    const { result } = renderHook(() =>
+      useTableSorting(rows, { enable: true, shouldPersistSort: true })
+    );
+
+    act(() => result.current.handleSorting('creator'));
+    expect(setItemSpy).toHaveBeenCalledWith(
+      TableSortStorageKey.Default,
+      { column: 'creator', direction: 'asc' }
+    );
+
+    act(() => result.current.handleSorting('creator'));
+    expect(setItemSpy).toHaveBeenCalledWith(
+      TableSortStorageKey.Default,
+      { column: 'creator', direction: 'desc' }
+    );
   });
 });
