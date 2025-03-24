@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 import { useTabProps } from '../hooks/useTabProps';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 
 export type StudioContentMenuButtonTabProps<TabId extends string> = {
   icon: ReactNode;

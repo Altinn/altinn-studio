@@ -6,7 +6,7 @@ import {
   StudioSpinner,
   StudioHeading,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';

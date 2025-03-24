@@ -4,7 +4,7 @@ import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 import linkClasses from './StudioPageHeaderHeaderLink.module.css';
-import { studioBetaTagClasses } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export type StudioPageHeaderHeaderLinkProps = {
   color: StudioPageHeaderColor;

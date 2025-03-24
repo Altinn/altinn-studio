@@ -18,7 +18,7 @@ import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components-legacy';
 import { withTranslation } from 'react-i18next';
 import {
   conditionalRenderingDeleteButtonId,
