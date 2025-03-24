@@ -9,7 +9,7 @@ public class Pages
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public List<Page> pages { get; set; }
 
-    [JsonPropertyName("Groups")]
+    [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public List<Group> groups { get; set; }
 }
