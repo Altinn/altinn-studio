@@ -71,7 +71,7 @@ export function buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, api) {
 //Function to build headers with .aspxauth cookie
 export function buildHeaderWithAspxAuth(aspxauthCookie, api) {
   var params = {
-    cookies: { config.authCookieName: aspxauthCookie },
+    cookies: { [config.authCookieName]: aspxauthCookie },
   };
   params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
   return params;
