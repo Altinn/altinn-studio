@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 export interface TextResourceProps {
   textResourceId: string;
   onReferenceChange: (id: string) => void;
-  onSetCurrentValue: (value: string) => void;
 }
 
 enum TextResourceTab {
@@ -16,11 +15,7 @@ enum TextResourceTab {
   Search = 'search',
 }
 
-export const TextResourceEditor = ({
-  textResourceId,
-  onReferenceChange,
-  onSetCurrentValue,
-}: TextResourceProps) => {
+export const TextResourceEditor = ({ textResourceId, onReferenceChange }: TextResourceProps) => {
   const { t } = useTranslation();
 
   return (
@@ -34,10 +29,7 @@ export const TextResourceEditor = ({
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={TextResourceTab.Type} className={classes.tabContent}>
-        <TextResourceValueEditor
-          textResourceId={textResourceId}
-          onSetCurrentValue={onSetCurrentValue}
-        />
+        <TextResourceValueEditor textResourceId={textResourceId} />
       </Tabs.Content>
       <Tabs.Content value={TextResourceTab.Search}>
         <TextResourcePicker onReferenceChange={onReferenceChange} textResourceId={textResourceId} />
