@@ -73,19 +73,19 @@ describe('useTableSorting', () => {
   it('should persist sort preference when toggling sort direction with persistence enabled', () => {
     const setItemSpy = jest.spyOn(typedLocalStorage, 'setItem');
     const { result } = renderHook(() =>
-      useTableSorting(rows, { enable: true, shouldPersistSort: true })
+      useTableSorting(rows, { enable: true, shouldPersistSort: true }),
     );
 
     act(() => result.current.handleSorting('creator'));
-    expect(setItemSpy).toHaveBeenCalledWith(
-      TableSortStorageKey.Default,
-      { column: 'creator', direction: 'asc' }
-    );
+    expect(setItemSpy).toHaveBeenCalledWith(TableSortStorageKey.Default, {
+      column: 'creator',
+      direction: 'asc',
+    });
 
     act(() => result.current.handleSorting('creator'));
-    expect(setItemSpy).toHaveBeenCalledWith(
-      TableSortStorageKey.Default,
-      { column: 'creator', direction: 'desc' }
-    );
+    expect(setItemSpy).toHaveBeenCalledWith(TableSortStorageKey.Default, {
+      column: 'creator',
+      direction: 'desc',
+    });
   });
 });
