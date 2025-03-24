@@ -21,12 +21,12 @@
   align-items: center;
   justify-content: center;
   font-size: var(--fds-sizing-10);
-  margin-bottom: var(--fds-spacing-14);
+  padding-top: 0;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  padding: var(--fds-spacing-3);
+  padding: var(--fds-spacing-6);
   text-align: center;
 }
