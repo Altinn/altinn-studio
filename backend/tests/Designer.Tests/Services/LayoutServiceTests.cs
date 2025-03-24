@@ -28,7 +28,10 @@ public class LayoutServiceTests
         );
 
         LayoutService layoutService = GetLayoutServiceForTest();
-        bool isLayoutUsingGroups = await layoutService.IsLayoutUsingGroups(editingContext, "form");
+        bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
+            editingContext,
+            "form"
+        );
         Assert.True(isLayoutUsingGroups);
     }
 
@@ -45,7 +48,7 @@ public class LayoutServiceTests
         );
 
         LayoutService layoutService = GetLayoutServiceForTest();
-        bool isLayoutUsingGroups = await layoutService.IsLayoutUsingGroups(
+        bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
             editingContext,
             "layoutSet1"
         );
