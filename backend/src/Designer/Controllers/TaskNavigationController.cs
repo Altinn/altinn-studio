@@ -18,19 +18,8 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/task-navigation")]
-    public class TaskNavigationController : Controller
+    public class TaskNavigationController(ITaskNavigationService taskNavigationService) : Controller
     {
-        private readonly ITaskNavigationService _taskNavigationService;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskNavigationController"/> class.
-        /// </summary>
-        /// <param name="taskNavigationService">The task navigation service</param>
-        public TaskNavigationController(ITaskNavigationService taskNavigationService)
-        {
-            _taskNavigationService = taskNavigationService;
-        }
-
         /// <summary>
         /// Get task navigation
         /// </summary>
@@ -42,7 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            List<TaskNavigationGroupDto> taskNavigationGroupList = await _taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
+            List<TaskNavigationGroupDto> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
             return taskNavigationGroupList;
         }
     }

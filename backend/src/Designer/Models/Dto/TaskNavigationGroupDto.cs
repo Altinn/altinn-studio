@@ -6,13 +6,13 @@ public class TaskNavigationGroupDto
 {
     [JsonPropertyName("taskId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string taskId { get; set; }
+    public string TaskId { get; set; }
 
-    [JsonPropertyName("type")]
+    [JsonPropertyName("taskType")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string type { get; set; }
+    public string TaskType { get; set; }
 
     [JsonPropertyName("name")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string name { get; set; }
+    public string Name { get; set; }
 }

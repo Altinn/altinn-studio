@@ -52,9 +52,9 @@ public class UiSettings
 public class TaskNavigationGroup
 {
     [JsonPropertyName("taskId")]
-    public string? taskId { get; set; }
+    public string? TaskId { get; set; }
     [JsonPropertyName("type")]
-    public string? type { get; set; }
+    public string? Type { get; set; }
     [JsonPropertyName("name")]
-    public string? name { get; set; }
+    public string? Name { get; set; }
 }

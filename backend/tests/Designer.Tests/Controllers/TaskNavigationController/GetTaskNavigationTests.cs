@@ -34,18 +34,18 @@ namespace Designer.Tests.Controllers.TaskNavigationController
             string expected = JsonSerializer.Serialize(new List<TaskNavigationGroupDto>(){
                 new ()
                 {
-                    taskId = "Task_1",
-                    type = "data",
-                    name = "tasks.form"
+                    TaskId = "Task_1",
+                    TaskType = "data",
+                    Name = "tasks.form"
                 },
                 new ()
                 {
-                    taskId = "Task_Confirm",
-                    type = "confirmation"
+                    TaskId = "Task_Confirm",
+                    TaskType = "confirmation"
                 },
                 new ()
                 {
-                    type = "receipt"
+                    TaskType = "receipt"
                 }
             });
             string actual = await response.Content.ReadAsStringAsync();
