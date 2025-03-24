@@ -6,9 +6,9 @@ import type { OptionListData } from 'app-shared/types/OptionList';
 
 export const useGetAvailableOptionListsFromOrgQuery = (
   org: string,
-): UseQueryResult<OptionListData[], Error> => {
+): UseQueryResult<string[], Error> => {
   const { getAvailableOptionListDataListsInOrg } = useServicesContext();
-  return useQuery<OptionListData[]>({
+  return useQuery<string[]>({
     queryKey: [QueryKey.OptionLists, org],
     queryFn: () => getAvailableOptionListDataListsInOrg(org),
   });

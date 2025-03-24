@@ -104,7 +104,7 @@ import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import { textResourcesMock } from '../mocks/textResourcesMock';
 import type { PagesModel } from '../types/api/dto/PagesModel';
-import { optionListDataListMock } from 'app-shared/mocks/optionListDataListMock';
+import { listOfAvailableOptionListTitlesToImport } from 'app-shared/mocks/optionListDataListMock';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -134,7 +134,7 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getAvailableOptionListDataListsInOrg = (owner: string): Promise<OptionListData[]> => Promise.resolve(optionListDataListMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14885
+export const getAvailableOptionListDataListsInOrg = (owner: string): Promise<string[]> => Promise.resolve(listOfAvailableOptionListTitlesToImport); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14885
 
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
