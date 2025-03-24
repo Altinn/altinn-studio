@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
         }
 
-        public async Task<bool> IsLayoutUsingGroups(
+        public async Task<bool> IsLayoutUsingPageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         )

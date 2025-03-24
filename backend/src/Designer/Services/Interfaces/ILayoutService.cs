@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             Pages pages
         );
 
-        public Task<bool> IsLayoutUsingGroups(
+        public Task<bool> IsLayoutUsingPageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );
