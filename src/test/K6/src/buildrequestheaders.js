@@ -1,4 +1,4 @@
-import * as config from '../config.js';
+import * as config from './config.js';
 
 const appsAccessSubscriptionKey = __ENV.appsaccesskey;
 const sblAccessSubscriptionKey = __ENV.sblaccesskey;
