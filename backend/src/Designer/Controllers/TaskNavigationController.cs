@@ -23,16 +23,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Get task navigation
         /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The list of task navigation groups</returns>
         [HttpGet]
         [UseSystemTextJson]
-        public async Task<List<TaskNavigationGroupDto>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<List<TaskNavigationGroupDto>>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
             List<TaskNavigationGroupDto> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
-            return taskNavigationGroupList;
+            return Ok(taskNavigationGroupList);
         }
     }
 }
