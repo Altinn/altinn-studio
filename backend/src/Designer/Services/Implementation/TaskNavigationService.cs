@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
 
             var taskNavigationGroupList = new List<TaskNavigationGroupDto>();
-            layoutSetsFile.UiSettings.TaskNavigation.ForEach(taskNavigationGroup =>
+            layoutSetsFile.UiSettings?.TaskNavigation?.ForEach(taskNavigationGroup =>
             {
                 taskNavigationGroupList.Add(new()
                 {
