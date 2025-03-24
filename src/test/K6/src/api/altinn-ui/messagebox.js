@@ -10,7 +10,7 @@ import http from 'k6/http';
 export function loadAltinnInbox(aspxauthCookie, partyId) {
   var endpoint = config.altinnUi.inbox;
   var params = {
-    cookies: { config.authCookieName: aspxauthCookie, AltinnPartyId: partyId },
+    cookies: { [config.authCookieName]: aspxauthCookie, AltinnPartyId: partyId },
   };
   return httpGet(endpoint, params);
 }
