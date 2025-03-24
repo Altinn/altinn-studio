@@ -6,12 +6,23 @@ export var baseUrls = {
   at24: 'at24.altinn.cloud',
   tt02: 'tt02.altinn.no',
   yt01: 'yt01.altinn.cloud',
-  prod: 'altinn.no',
+  prod: 'altinn.no'
 };
+
+export var authCookieNames = {
+  at21: '.AspxAuthCloud',
+  at22: '.AspxAuthCloud',
+  at23: '.AspxAuthCloud',
+  at24: '.AspxAuthCloud',
+  tt02: '.AspxAuthTT02',
+  yt01: '.AspxAuthYt',
+  prod: '.AspxAuthProd'
+}
 
 //Get values from environment
 const environment = __ENV.env.toLowerCase();
 export let baseUrl = baseUrls[environment];
+export let authCookieName = authCookieNames[environment];
 
 //Altinn API
 export var authentication = {

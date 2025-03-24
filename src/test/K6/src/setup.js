@@ -32,7 +32,7 @@ export function authenticateUser(userName, userPassword) {
   addErrorCount(success);
   stopIterationOnFail('Authentication towards Altinn 2 Failed', success, res);
 
-  const cookieName = '.ASPXAUTH';
+  const cookieName = config.authCookieName;
   var cookieValue = res.cookies[cookieName][0].value;
   return cookieValue;
 }
