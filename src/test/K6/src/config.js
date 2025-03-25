@@ -18,8 +18,8 @@ export var authCookieNames = {
   at24: '.AspxAuthCloud',
   tt02: '.ASPXAUTH', // '.AspxAuthTT02',
   yt01: '.ASPXAUTH', // '.AspxAuthYt',
-  prod: '.ASPXAUTH', // '.AspxAuthProd'
-}
+  prod: '.ASPXAUTH' // '.AspxAuthProd'
+};
 
 //Get values from environment
 const environment = __ENV.env.toLowerCase();
