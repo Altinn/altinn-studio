@@ -20,7 +20,7 @@ public class GetDatamodelsTests : DesignerEndpointsTestsBase<GetDatamodelsTests>
     [InlineData("ttd", "hvem-er-hvem")]
     public async Task GetDatamodels_NoInput_ShouldReturnAllModels(string org, string repo)
     {
-        string url = $"{VersionPrefix(org, repo)}/all-json";
+        string url = $"{VersionPrefix(org, repo)}/json";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 

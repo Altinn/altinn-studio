@@ -3,7 +3,7 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
+import { Fieldset, Label, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
@@ -13,7 +13,7 @@ import {
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function StringRestrictions({
@@ -94,13 +94,12 @@ export function StringRestrictions({
         <>
           <div>
             <div className={classes.formatFieldsRowContent}>
-              <Textfield
+              <StudioTextfield
                 label={t(formatMinLangKey)}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
                 }
                 value={formatState.earliest}
-                size='sm'
               />
               <Switch
                 size='small'
@@ -115,13 +114,12 @@ export function StringRestrictions({
           </div>
           <div>
             <div className={classes.formatFieldsRowContent}>
-              <Textfield
+              <StudioTextfield
                 label={t(formatMaxLangKey)}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
                 }
                 value={formatState.latest}
-                size='sm'
               />
               <Switch
                 size='small'

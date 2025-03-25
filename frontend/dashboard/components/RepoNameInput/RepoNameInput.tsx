@@ -1,27 +1,27 @@
 import React from 'react';
 import classes from './RepoNameInput.module.css';
-import type { TextfieldProps } from '@digdir/designsystemet-react';
-import { Paragraph, Textfield } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
+import type { StudioTextfieldProps } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 
 type RepoNameInputProps = {
   repoName?: string;
   errorMessage?: string;
-} & TextfieldProps;
+} & StudioTextfieldProps;
 
 export const RepoNameInput = ({ repoName, errorMessage, name, onChange }: RepoNameInputProps) => {
   const { t } = useTranslation();
 
   return (
     <div>
-      <Textfield
+      <StudioTextfield
         name={name}
         id='service-saved-name'
         label={t('general.service_name')}
         defaultValue={repoName}
         error={errorMessage}
         onChange={onChange}
-        size='small'
       />
       <Paragraph size='small' className={classes.textWrapper}>
         {t('dashboard.service_saved_name_description')}{' '}

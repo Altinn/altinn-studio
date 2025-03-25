@@ -77,6 +77,26 @@ export class ArrayUtils {
   }
 
   /**
+   * Returns a string representation of the given array.
+   * @param array The array of interest.
+   * @param delimiter The delimiter to use between items. Defaults to ', '.
+   * @returns A string representation of the given array.
+   */
+  public static toString = <T>(array: T[], delimiter: string = ','): string =>
+    array.join(delimiter);
+
+  /**
+   * Splits a delimited string into an array.
+   * @param array The array of interest.
+   * @param delimiter The delimiter to split the string by. Defaults to ','.
+   * @returns An array of strings.
+   */
+  public static getArrayFromString = (string: string, delimiter: string = ','): string[] => {
+    if (!string) return [];
+    return string.split(delimiter).map((item) => item.trim());
+  };
+
+  /**
    * Replaces the last item in an array.
    * @param array The array of interest.
    * @param replaceWith The item to replace the last item with.
@@ -201,4 +221,19 @@ export class ArrayUtils {
   static hasSingleType = (array: unknown[]): boolean => {
     return ArrayUtils.extractUniqueTypes(array).length === 1;
   };
+
+  public static extractKeyValuePairs<
+    O extends Record<string | number | symbol, any>,
+    K extends keyof O,
+    V extends keyof O,
+  >(array: O[], keyProperty: K, valueProperty: V): Record<O[K], O[V]> {
+    return array.reduce(
+      (acc: Record<O[K], O[V]>, item: O) => {
+        const key = item[keyProperty];
+        acc[key] = item[valueProperty];
+        return acc;
+      },
+      {} as Record<O[K], O[V]>,
+    );
+  }
 }

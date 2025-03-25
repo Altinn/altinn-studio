@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { StudioAlert, StudioSectionHeader } from '@studio/components';
+import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -10,6 +10,7 @@ import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
+import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
@@ -29,6 +30,12 @@ export const PropertiesHeader = ({
     ? QuestionmarkDiamondIcon
     : formItemConfigs[formItem.type]?.icon;
 
+  const hideContentWhenSubformGuide =
+    formItem.type === ComponentType.Subform && !formItem['layoutSet'];
+
+  const displayMainConfigHeader =
+    shouldDisplayFeature(FeatureFlag.MainConfig) || ComponentType.Summary2 === formItem.type;
+
   return (
     <>
       <StudioSectionHeader
@@ -47,19 +54,27 @@ export const PropertiesHeader = ({
           {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
         </StudioAlert>
       )}
-      <div className={classes.content}>
-        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
+      <div className={classes.mainContent}>
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
             handleComponentChange={handleComponentUpdate}
           />
         )}
+        {!hideContentWhenSubformGuide && displayMainConfigHeader && <HeaderMainConfig />}
+        {!hideContentWhenSubformGuide && (
+          <>
+            <EditComponentIdRow
+              component={formItem}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+            <ComponentMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+            />
+          </>
+        )}
       </div>
-      {(formItem.type === ComponentType.Summary2 ||
-        shouldDisplayFeature(FeatureFlag.MainConfig)) && (
-        <ComponentMainConfig component={formItem} handleComponentChange={handleComponentUpdate} />
-      )}
     </>
   );
 };

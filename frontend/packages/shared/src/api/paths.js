@@ -31,10 +31,8 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     saveOnly,
   })}`; // Get, Put, Delete
 export const dataTypePath = (org, app, dataModelName) => `${basePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`; // Get, Put
-export const dataModelsAllJsonPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
-export const dataModelsAllXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
-export const dataModelsAppJsonPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-json`; // Get
-export const dataModelsAppXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/app-xsd`; // Get
+export const dataModelsJsonPath = (org, app) => `${basePath}/${org}/${app}/datamodels/json`; // Get
+export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
 
@@ -65,6 +63,8 @@ export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
+export const layoutPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
+export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutPath(org, app, layoutSetName)}/pages/${pageName ? pageName : ''}`;
 
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
@@ -84,6 +84,11 @@ export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; //
 export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}/images/${encodeURIComponent(imageFilePath)}`; // Get, Delete
 export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
 export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
+
+// Library - org-level
+export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
+export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
+export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get

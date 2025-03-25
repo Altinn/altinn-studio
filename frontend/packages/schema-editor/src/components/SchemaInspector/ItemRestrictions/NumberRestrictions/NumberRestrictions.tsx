@@ -15,8 +15,8 @@ import {
   NumberRestrictionsReducerActionType,
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
-import { valueExists } from '@altinn/schema-editor/utils/value';
-import { StudioTextfield } from '@studio/components';
+import { ValidationUtils } from '@studio/pure-functions';
+import { StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
@@ -70,7 +70,7 @@ export function NumberRestrictions({
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMin,
-      valueExists(newValue) ? parseFloat(newValue) : undefined,
+      ValidationUtils.valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
 
@@ -78,7 +78,7 @@ export function NumberRestrictions({
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMax,
-      valueExists(newValue) ? parseFloat(newValue) : undefined,
+      ValidationUtils.valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
 

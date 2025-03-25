@@ -3,13 +3,13 @@ import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { TrashIcon, PencilIcon } from '@studio/icons';
-import { Table, Textfield } from '@digdir/designsystemet-react';
+import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
 
 export interface TextRowProps {
   idExists: (newTextId: string, oldTextId: string) => boolean;
@@ -110,13 +110,12 @@ export const TextRow = ({
       <Table.Cell className={classes.cellContent}>
         <div className={classes.textIdContainer}>
           {textIdEditOpen ? (
-            <Textfield
+            <StudioTextfield
               value={textIdValue}
               aria-label={t('text_editor.key.edit', { textKey: textIdValue })}
               error={keyError}
               onBlur={keyError ? undefined : handleTextIdBlur}
               onChange={(e) => handleTextIdChange(e.target.value)}
-              size='small'
             />
           ) : (
             <div role='text' aria-readonly className={classes.textId}>

@@ -5,7 +5,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -64,6 +64,7 @@ export const EditTextResourceBindings = ({
             onChange={handleAddKey}
             label={t('ux_editor.text_resource_bindings.add_label')}
           >
+            <option value='' hidden></option>
             {keysToAdd.map((key) => (
               <option key={key} value={key}>
                 {t(`ux_editor.modal_properties_textResourceBindings_${key}`)}

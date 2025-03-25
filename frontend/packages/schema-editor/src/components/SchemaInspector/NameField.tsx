@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { TextfieldProps } from '@digdir/designsystemet-react';
-import { StudioTextfield } from '@studio/components';
+import type { StudioTextfieldProps } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
-export type NameFieldProps = TextfieldProps & {
+export type NameFieldProps = StudioTextfieldProps & {
   id?: string;
   schemaPointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;

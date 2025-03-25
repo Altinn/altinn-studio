@@ -8,8 +8,8 @@ import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton } from '@studio/components';
-import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
+import { StudioButton } from '@studio/components-legacy';
+import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -47,9 +47,9 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
 
-  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
+  const { mutate: deletePage, isPending } = useDeletePageMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -57,14 +57,7 @@ export const PageAccordion = ({
 
   const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName, {
-        onSuccess: async ({ layouts }) => {
-          await updateLayoutsForPreview(
-            selectedFormLayoutSetName,
-            Object.keys(layouts).length === 1,
-          );
-        },
-      });
+      deletePage(pageName);
     }
   };
 

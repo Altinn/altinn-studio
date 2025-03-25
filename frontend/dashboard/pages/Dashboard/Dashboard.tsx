@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';
-import { StudioSearch } from '@studio/components';
+import { StudioSearch } from '@studio/components-legacy';
 import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
@@ -17,8 +17,10 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
-import { SelectedContextType } from 'dashboard/context/HeaderContext';
+import { SelectedContextType } from '../../enums/SelectedContextType';
 import { SafeErrorView } from '../../components/SafeErrorView';
+import { DASHBOARD_BASENAME } from 'app-shared/constants';
+import { useSubroute } from '../../hooks/useSubRoute';
 
 type DashboardProps = {
   user: User;
@@ -29,6 +31,7 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
@@ -55,7 +58,10 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               onKeyDown={handleKeyDown}
               onClear={handleClearSearch}
             />
-            <Link href={'/dashboard/' + selectedContext + '/new'} className={classes.newLink}>
+            <Link
+              href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
+              className={classes.newLink}
+            >
               <span>{t('dashboard.new_service')}</span>
               <PlusCircleFillIcon className={classes.plusFillIcon} />
               <PlusCircleIcon className={classes.plusIcon} />

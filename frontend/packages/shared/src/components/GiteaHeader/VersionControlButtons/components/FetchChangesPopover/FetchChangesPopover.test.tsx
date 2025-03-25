@@ -1,22 +1,19 @@
 import React from 'react';
 import { FetchChangesPopover } from './FetchChangesPopover';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { useMediaQuery } from '@studio/components';
+import { useMediaQuery } from '@studio/components-legacy';
+import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 const mockGetRepoPull = jest.fn();
 
@@ -153,18 +150,11 @@ type Props = {
 const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
   const { queries, versionControlButtonsContextProps } = props;
 
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <VersionControlButtonsContext.Provider
-        value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
-      >
-        <FetchChangesPopover />
-      </VersionControlButtonsContext.Provider>
-    </ServicesContextProvider>,
+  return renderWithProviders({ ...queriesMock, ...queries })(
+    <VersionControlButtonsContext.Provider
+      value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
+    >
+      <FetchChangesPopover />
+    </VersionControlButtonsContext.Provider>,
   );
 };

@@ -12,7 +12,7 @@ import {
   StudioPageImageBackgroundContainer,
   StudioHeading,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';

@@ -1,6 +1,6 @@
 import React from 'react';
-import type { TextResource } from '@studio/components';
-import { StudioFileUploader, StudioSearch } from '@studio/components';
+import type { TextResource } from '@studio/components-legacy';
+import { StudioFileUploader, StudioSearch } from '@studio/components-legacy';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNam
 import { toast } from 'react-toastify';
 
 export type CodeListsActionsBarProps = {
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
@@ -20,7 +20,7 @@ export type CodeListsActionsBarProps = {
 };
 
 export function CodeListsActionsBar({
-  onChangeTextResource,
+  onBlurTextResource,
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
@@ -56,7 +56,7 @@ export function CodeListsActionsBar({
       />
       <CreateNewCodeListModal
         codeListNames={codeListNames}
-        onChangeTextResource={onChangeTextResource}
+        onBlurTextResource={onBlurTextResource}
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
       />
