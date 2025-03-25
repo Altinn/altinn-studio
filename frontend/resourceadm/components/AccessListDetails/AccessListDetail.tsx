@@ -14,7 +14,7 @@ import {
   StudioLink,
   StudioModal,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 

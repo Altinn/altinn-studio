@@ -13,7 +13,7 @@ import {
   StudioPageSpinner,
   StudioResizableLayout,
   useLocalStorage,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';

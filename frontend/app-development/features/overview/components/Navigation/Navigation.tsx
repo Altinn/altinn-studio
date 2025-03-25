@@ -5,7 +5,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
-import { studioBetaTagClasses } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export const Navigation = () => {
   const { t } = useTranslation();

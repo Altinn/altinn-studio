@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioSectionHeader } from '@studio/components';
+import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
 import { MenuElipsisVerticalIcon, MinusCircleIcon, PlusCircleIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';

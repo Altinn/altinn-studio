@@ -1,1 +1,0 @@
-export { GoBackButton } from './GoBackButton';

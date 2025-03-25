@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components';
+import { StudioCard, StudioHeading } from '@studio/components-legacy';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';

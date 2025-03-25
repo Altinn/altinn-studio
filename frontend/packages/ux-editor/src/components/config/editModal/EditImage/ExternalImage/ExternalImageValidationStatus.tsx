@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ExternalImageValidationStatus.module.css';
-import { StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 

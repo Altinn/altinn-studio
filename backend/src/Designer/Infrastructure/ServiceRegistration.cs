@@ -74,6 +74,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddHttpClient<IOrgService, OrgService>();
             services.AddHttpClient<ImageClient>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+            services.AddTransient<ITaskNavigationService, TaskNavigationService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<IInstanceService, InstanceService>();
