@@ -31,3 +31,7 @@
 .pdfIcon {
   font-size: var(--fds-sizing-6);
 }
+
+.customNavigationMenu {
+  background-color: var(--fds-semantic-surface-neutral-neutral);
+}

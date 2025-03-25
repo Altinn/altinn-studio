@@ -45,7 +45,7 @@ export const DesignViewNavigation = () => {
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
                   <PlusCircleIcon />
-                  {t('ux_editor.side_oppsett_add_group_devision')}
+                  {t('ux_editor.side_oppsett_add_group_division')}
                 </DropdownMenu.Item>
               </DropdownMenu.Group>
             </DropdownMenu.Content>

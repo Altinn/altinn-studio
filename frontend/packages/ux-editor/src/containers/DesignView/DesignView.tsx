@@ -8,18 +8,21 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
 import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
-import { PlusIcon } from '@studio/icons';
+import { DragVerticalIcon, FolderIcon, PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { DesignViewNavigation } from '../DesignViewNavigation';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import classesPageAccordion from './PageAccordion/PageAccordion.module.css';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -128,11 +131,90 @@ export const DesignView = (): ReactNode => {
     );
   });
 
+  // Mock data for groups(Just for testing, will be replaced with actual data)
+  const mockGroups = !pagesModel?.pages?.length
+    ? []
+    : [
+        {
+          name: 'Sideoppsett 1',
+          type: 'Sideoppsett 1',
+          pages: pagesModel.pages[0] ? [{ id: pagesModel.pages[0].id }] : [],
+        },
+        {
+          name: 'sideoppsett 2',
+          type: 'sideoppsett 2',
+          markWhenCompleted: true,
+          pages: pagesModel.pages.slice(1, 4).map((page) => ({ id: page.id })),
+        },
+        {
+          name: 'sideoppsett 3',
+          type: 'sideoppsett 3',
+          pages: pagesModel.pages[4] ? [{ id: pagesModel.pages[4].id }] : [],
+        },
+      ];
+
+  const displayGroupAccordions = !mockGroups.length
+    ? null
+    : mockGroups.map((group) => (
+        <div key={group.name}>
+          <div className={classes.groupHeaderWrapper}>
+            <div className={classes.container}>
+              <FolderIcon aria-hidden className={classes.liftIcon} />
+              <StudioHeading level={3} size='2xs'>
+                {group.name}
+              </StudioHeading>
+            </div>
+            <DragVerticalIcon aria-hidden className={classes.rightIcon} />
+          </div>
+
+          {group.pages.map((page) => {
+            const layout = formLayoutData?.find((formLayout) => formLayout.page === page.id);
+            if (!layout) return null;
+
+            const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
+
+            return (
+              <div key={page.id} className={classes.groupAccordionWrapper}>
+                <PageAccordion
+                  key={page.id}
+                  pageName={page.id}
+                  isOpen={page.id === selectedFormLayoutName}
+                  onClick={() => handleClickAccordion(page.id)}
+                  isInvalid={isInvalidLayout}
+                  hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
+                    page.id,
+                  )}
+                  navigationMenuClassName={classesPageAccordion.customNavigationMenu}
+                >
+                  {page.id === selectedFormLayoutName && (
+                    <FormLayout
+                      layout={layout.data}
+                      isInvalid={isInvalidLayout}
+                      duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
+                    />
+                  )}
+                </PageAccordion>
+              </div>
+            );
+          })}
+        </div>
+      ));
+
+  const hasGroups = mockGroups.length > 0;
+  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+
   return (
     <div className={classes.root}>
       <div className={classes.wrapper}>
+        {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
-          <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+          {hasGroups ? (
+            <>{displayGroupAccordions}</>
+          ) : (
+            pagesModel?.pages?.length > 0 && (
+              <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+            )
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>
