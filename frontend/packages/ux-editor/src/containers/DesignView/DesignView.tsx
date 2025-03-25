@@ -8,7 +8,7 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton, StudioHeading } from '@studio/components-legacy';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
