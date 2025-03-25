@@ -20,7 +20,6 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
-  navigationMenuClassName?: string;
 };
 
 /**
@@ -45,7 +44,6 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
-  navigationMenuClassName,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -78,13 +76,7 @@ export const PageAccordion = ({
           >
             {pageName}
           </Accordion.Header>
-          <div
-            className={
-              navigationMenuClassName
-                ? `${classes.navigationMenu} ${navigationMenuClassName}`
-                : classes.navigationMenu
-            }
-          >
+          <div className={classes.navigationMenu}>
             {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
             {showNavigationMenu && <NavigationMenu pageName={pageName} />}
             <StudioButton

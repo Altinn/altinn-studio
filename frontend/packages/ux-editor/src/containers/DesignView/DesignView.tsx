@@ -22,7 +22,6 @@ import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import classesPageAccordion from './PageAccordion/PageAccordion.module.css';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -184,7 +183,6 @@ export const DesignView = (): ReactNode => {
                   hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
                     page.id,
                   )}
-                  navigationMenuClassName={classesPageAccordion.customNavigationMenu}
                 >
                   {page.id === selectedFormLayoutName && (
                     <FormLayout
