@@ -12,7 +12,7 @@ export const Config = asUploaderComponent(
       renderInButtonGroup: false,
       renderInAccordion: true,
       renderInAccordionGroup: false,
-      renderInCards: false,
+      renderInCards: true,
       renderInCardsMedia: false,
       renderInTabs: true,
     },
