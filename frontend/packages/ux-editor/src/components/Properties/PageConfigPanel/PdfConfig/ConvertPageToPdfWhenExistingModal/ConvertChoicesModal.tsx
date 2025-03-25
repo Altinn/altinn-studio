@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { StudioModal } from '@studio/components';
+import { StudioModal } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
 import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByConversionChoices';
 import { useTranslation } from 'react-i18next';

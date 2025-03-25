@@ -9,7 +9,7 @@ import {
   StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -18,8 +18,12 @@ import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUplo
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
-import { isOrg } from './utils';
+import { isOrg } from '../../utils/orgUtils';
 import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
+import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
+import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 
 export function OrgContentLibrary(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -34,9 +38,18 @@ export function OrgContentLibrary(): ReactElement {
 function OrgContentLibraryWithContext(): ReactElement {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const orgRepoName = useOrgRepoName();
+
+  const { data: repoStatus } = useRepoStatusQuery(selectedContext, orgRepoName);
+
+  useListenToMergeConflictInRepo(selectedContext, orgRepoName);
 
   const { data: codeListsResponse, status: codeListResponseStatus } =
     useOrgCodeListsQuery(selectedContext);
+
+  if (repoStatus?.hasMergeConflict) {
+    return <MergeConflictWarning owner={selectedContext} repoName={orgRepoName} />;
+  }
 
   switch (codeListResponseStatus) {
     case 'pending':

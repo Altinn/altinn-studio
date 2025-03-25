@@ -3,6 +3,7 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TaskCard } from './TaskCard';
 import classes from './TaskCardBar.module.css';
+import { AddNewTask } from '@altinn/ux-editor/containers/AddNewTask';
 
 export const TaskCardBar = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -18,6 +19,7 @@ export const TaskCardBar = () => {
       {layoutSetsModel.sets.map((layoutSetModel) => (
         <TaskCard key={layoutSetModel.id} layoutSetModel={layoutSetModel} />
       ))}
+      <AddNewTask />
     </div>
   );
 };

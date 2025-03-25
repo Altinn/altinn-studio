@@ -1,4 +1,4 @@
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,

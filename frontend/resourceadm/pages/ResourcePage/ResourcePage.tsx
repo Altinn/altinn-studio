@@ -25,8 +25,8 @@ import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioContentMenu, StudioSpinner } from '@studio/components';
-import type { StudioContentMenuButtonTabProps } from '@studio/components';
+import { StudioContentMenu, StudioSpinner } from '@studio/components-legacy';
+import type { StudioContentMenuButtonTabProps } from '@studio/components-legacy';
 
 /**
  * @component

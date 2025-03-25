@@ -8,7 +8,7 @@ import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 
 export type PageAccordionProps = {

@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components';
+import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
