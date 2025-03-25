@@ -131,6 +131,7 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
+      groups: [],
     });
     expect(menuItemDown).not.toBeInTheDocument();
 
@@ -142,6 +143,7 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+      groups: [],
     });
   });
 });
