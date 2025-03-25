@@ -118,7 +118,7 @@ export const queriesMock: ServicesContextProps = {
   getOptionListsReferences: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
-  getAvailableOptionListTitlesInOrg: jest
+  getAvailableCodeListTitlesInOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<string[]>([])),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),

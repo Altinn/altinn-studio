@@ -3,12 +3,12 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
-export const useGetAvailableOptionListsFromOrgQuery = (
+export const useGetAvailableCodeListsFromOrgQuery = (
   org: string,
 ): UseQueryResult<string[], Error> => {
-  const { getAvailableOptionListTitlesInOrg } = useServicesContext();
+  const { getAvailableCodeListTitlesInOrg } = useServicesContext();
   return useQuery<string[]>({
-    queryKey: [QueryKey.OptionListTitles, org],
-    queryFn: () => getAvailableOptionListTitlesInOrg(org),
+    queryKey: [QueryKey.CodeListTitles, org],
+    queryFn: () => getAvailableCodeListTitlesInOrg(org),
   });
 };
