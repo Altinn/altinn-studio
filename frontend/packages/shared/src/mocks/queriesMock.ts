@@ -127,6 +127,7 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getTextResources: jest
     .fn()
