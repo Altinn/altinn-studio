@@ -59,12 +59,6 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
       const validations = {};
 
       for (const { nodeReference, dmb } of allBindings) {
-        // Modify the hierarchy data sources to make the current dataModel the default one when running expression validations
-        const modifiedDataSources: ExpressionDataSources = {
-          ...dataSources,
-          defaultDataType: dataType,
-        };
-
         for (const reference of Object.values(dmb as Record<string, IDataModelReference>)) {
           if (reference.dataType !== dataType) {
             continue;
@@ -87,6 +81,11 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
 
           for (const validationDef of validationDefs) {
             const valueArguments: ExprValueArgs<{ field: string }> = { data: { field }, defaultKey: 'field' };
+            const modifiedDataSources: ExpressionDataSources = {
+              ...dataSources,
+              defaultDataType: dataType,
+              currentDataModelPath: reference,
+            };
             const isInvalid = evalExpr(validationDef.condition as Expression, nodeReference, modifiedDataSources, {
               positionalArguments: [field],
               valueArguments,
