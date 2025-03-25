@@ -54,6 +54,7 @@ export enum QueryKey {
   DataType = 'DataType',
   TextResourcesForOrg = 'TextResourcesForOrg',
   Pages = 'Pages',
+  TaskNavigationGroup = 'TaskNavigationGroup',
 
   // Resourceadm
   ResourceList = 'ResourceList',
