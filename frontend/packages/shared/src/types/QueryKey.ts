@@ -29,6 +29,7 @@ export enum QueryKey {
   OptionList = 'OptionList',
   OptionListsUsage = 'OptionListsUsage',
   OptionLists = 'OptionLists',
+  OptionListTitles = 'OptionListTitles',
   OptionListIds = 'OptionListIds',
   OrgCodeLists = 'OrgCodeLists',
   OrgList = 'OrgList',

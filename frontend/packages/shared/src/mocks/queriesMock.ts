@@ -69,7 +69,7 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import type { OptionList, OptionListData } from 'app-shared/types/OptionList';
+import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
@@ -118,9 +118,9 @@ export const queriesMock: ServicesContextProps = {
   getOptionListsReferences: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
-  getAvailableOptionListDataListsInOrg: jest
+  getAvailableOptionListTitlesInOrg: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<OptionListData[]>([])),
+    .mockImplementation(() => Promise.resolve<string[]>([])),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
