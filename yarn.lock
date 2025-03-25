@@ -3840,6 +3840,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/addon-webpack5-compiler-swc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@storybook/addon-webpack5-compiler-swc@npm:2.0.0"
+  dependencies:
+    "@swc/core": "npm:^1.7.3"
+    swc-loader: "npm:^0.2.3"
+  checksum: 10/c5f6d6af3010e8cc6b8cfefa7e0ba3ee982021fcdcb4c1673f9a462fe53333c78248917cca9438b7620da064f16884c59a1ab185ca7ca0af507a25c20a7ffc8a
+  languageName: node
+  linkType: hard
+
 "@storybook/addon-webpack5-compiler-swc@npm:3.0.0":
   version: 3.0.0
   resolution: "@storybook/addon-webpack5-compiler-swc@npm:3.0.0"
@@ -4211,11 +4221,13 @@ __metadata:
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     react: "npm:^18.2.0"
+    react-dnd: "npm:16.0.1"
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:^18.2.0"
     storybook: "npm:^8.0.4"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.7.3"
+    uuid: "npm:10.0.0"
   languageName: unknown
   linkType: soft
 
@@ -4628,7 +4640,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.10.8":
+"@swc/core@npm:^1.10.8, @swc/core@npm:^1.7.3":
   version: 1.11.13
   resolution: "@swc/core@npm:1.11.13"
   dependencies:
@@ -18150,7 +18162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swc-loader@npm:0.2.6, swc-loader@npm:^0.2.6":
+"swc-loader@npm:0.2.6, swc-loader@npm:^0.2.3, swc-loader@npm:^0.2.6":
   version: 0.2.6
   resolution: "swc-loader@npm:0.2.6"
   dependencies:
