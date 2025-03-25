@@ -5,7 +5,7 @@ import {
   definitionNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { SchemaTree } from './SchemaTree';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { screen } from '@testing-library/react';

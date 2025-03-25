@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageServices.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
 
 const selectedLanguage = 'nb';

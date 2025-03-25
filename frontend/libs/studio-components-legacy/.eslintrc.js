@@ -15,7 +15,7 @@ module.exports = {
               {
                 group: ['app-shared/*', '@altinn/*'],
                 message:
-                  'Files in the @studio/components package should not depend on app-specific packages.',
+                  'Files in the @studio/components-legacy package should not depend on app-specific packages.',
               },
               {
                 group: ['i18next', 'react-i18next'],

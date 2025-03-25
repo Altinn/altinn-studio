@@ -10,7 +10,7 @@ import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IInternalLayout } from '../../../types/global';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import type { AddedItem } from './types';
 import { PlusIcon } from '@studio/icons';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';

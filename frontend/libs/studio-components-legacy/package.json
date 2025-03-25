@@ -1,5 +1,5 @@
 {
-  "name": "@studio/components",
+  "name": "@studio/components-legacy",
   "packageManager": "yarn@4.6.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
