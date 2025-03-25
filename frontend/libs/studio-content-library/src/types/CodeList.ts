@@ -1,1 +1,1 @@
-export type { CodeList } from '@studio/components';
+export type { CodeList } from '@studio/components-legacy';

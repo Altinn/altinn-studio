@@ -1,0 +1,4 @@
+.active {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+  border-radius: 5px;
+}

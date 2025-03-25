@@ -118,6 +118,7 @@ export const queriesMock: ServicesContextProps = {
   getOptionListsReferences: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
+  importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -126,6 +127,7 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getTextResources: jest
     .fn()

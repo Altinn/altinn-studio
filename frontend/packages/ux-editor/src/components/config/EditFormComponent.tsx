@@ -3,14 +3,13 @@ import { ComponentSpecificContent } from './componentSpecificContent';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useAppContext } from '../../hooks';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
@@ -24,7 +23,6 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const { selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
 
   const formItemConfig = formItemConfigs[component.type];
@@ -55,7 +53,6 @@ export const EditFormComponent = ({
       <ComponentSpecificContent
         component={component}
         handleComponentChange={handleComponentUpdate}
-        layoutName={selectedFormLayoutName}
       />
     </Fieldset>
   );

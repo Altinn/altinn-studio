@@ -1,0 +1,28 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "dataModelBindings": {
+          "simpleBinding": "extra"
+        },
+        "id": "extra",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "extra.extra.title"
+        },
+        "options": [
+          { "value": "feedback", "label": "Skjul tilbakemelding" },
+          { "value": "summary", "label": "Skjul oppsummering" }
+        ]
+      },
+      {
+        "id": "NavigationButtons-WBPR29",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components';
+import { StudioCard, StudioHeading } from '@studio/components-legacy';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './AddNewTask.module.css';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next';
 export const AddNewTask = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const handleClick = () => navigate('../' + RoutePaths.ProcessEditor);
+  const handleClick = () =>
+    navigate(`../${RoutePaths.ProcessEditor}?returnTo=${RoutePaths.UIEditor}`);
 
   return (
     <StudioCard onClick={handleClick} className={classes.card}>
