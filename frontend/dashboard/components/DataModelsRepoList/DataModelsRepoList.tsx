@@ -11,7 +11,7 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/designsystemet-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
-import { TableSortStorageKey } from '@studio/components';
+import { TableSortStorageKey } from '@studio/components-legacy';
 
 type DataModelsReposListProps = {
   user: User;
