@@ -4153,9 +4153,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/components@workspace:^, @studio/components@workspace:frontend/libs/studio-components":
+"@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
-  resolution: "@studio/components@workspace:frontend/libs/studio-components"
+  resolution: "@studio/components-legacy@workspace:frontend/libs/studio-components-legacy"
   dependencies:
     "@chromatic-com/storybook": "npm:3.2.4"
     "@storybook/addon-essentials": "npm:8.5.2"
@@ -4191,7 +4191,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
   dependencies:
-    "@studio/components": "workspace:^"
+    "@studio/components-legacy": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -4199,7 +4199,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/feedback-form@workspace:frontend/libs/studio-feedback-form"
   dependencies:
-    "@studio/components": "workspace:^"
+    "@studio/components-legacy": "workspace:^"
   languageName: unknown
   linkType: soft
 

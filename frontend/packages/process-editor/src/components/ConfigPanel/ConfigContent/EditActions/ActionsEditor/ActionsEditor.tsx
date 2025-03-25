@@ -8,7 +8,7 @@ import {
   StudioDeleteButton,
   StudioProperty,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
