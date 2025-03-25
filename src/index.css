@@ -8,7 +8,7 @@
   font-weight: normal;
   line-height: 1.5;
   text-align: left;
-  color: var(--semantic-text-neutral-default);
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 /* Workaround for the design-system aggressively setting the font to 'Inter' */
@@ -54,9 +54,9 @@
   --table-input-margin: 15px; /* From design-system, move to figma-tokens? */
 
   --repeating-group-edit-surface-color: #f1fbff;
-  --repeating-group-edit-border-color: var(--colors-blue-400);
-  --repeating-group-edit-divider-color: var(--colors-blue-200);
-  --repeating-group-error-color: var(--colors-red-200);
+  --repeating-group-edit-border-color: var(--fds-colors-blue-400);
+  --repeating-group-edit-divider-color: var(--fds-colors-blue-200);
+  --repeating-group-error-color: var(--fds-colors-red-200);
 
   /* Focus styles */
   --fds-inner-focus-border-color: #1e2b3c;

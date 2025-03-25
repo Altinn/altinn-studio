@@ -14,8 +14,6 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import '@digdir/designsystemet-css';
 
-import { AppWrapper } from '@altinn/altinn-design-system';
-
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
@@ -41,6 +39,7 @@ import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
 
+import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
@@ -67,17 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
         <AppPrefetcher />
-        <AppWrapper>
-          <LanguageProvider>
-            <LangToolsStoreProvider>
-              <ViewportWrapper>
-                <UiConfigProvider>
-                  <RouterProvider router={router} />
-                </UiConfigProvider>
-              </ViewportWrapper>
-            </LangToolsStoreProvider>
-          </LanguageProvider>
-        </AppWrapper>
+        <LanguageProvider>
+          <LangToolsStoreProvider>
+            <ViewportWrapper>
+              <UiConfigProvider>
+                <RouterProvider router={router} />
+              </UiConfigProvider>
+            </ViewportWrapper>
+          </LangToolsStoreProvider>
+        </LanguageProvider>
       </ErrorBoundary>
     </AppQueriesProvider>,
   );

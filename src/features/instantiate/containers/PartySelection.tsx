@@ -2,9 +2,9 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
-import { LegacyCheckbox } from '@digdir/design-system-react';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
+import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -221,9 +221,10 @@ export const PartySelection = () => {
           container
           justifyContent='space-between'
           direction='row'
+          className={classes.subTitleContainer}
         >
           <Flex item>
-            <Paragraph className={classes.subTitle}>
+            <Paragraph className={cn(classes.subTitle, classes.padding)}>
               <Lang id='party_selection.subheader' />
             </Paragraph>
           </Flex>
@@ -232,36 +233,27 @@ export const PartySelection = () => {
             <Flex
               container
               direction='row'
+              className={cn(classes.checkboxContainer, classes.padding)}
             >
-              <Flex
-                item
-                className={classes.checkbox}
-              >
-                <Flex
-                  container
-                  direction='row'
+              <Flex item>
+                <Checkbox
+                  size='sm'
+                  value='showDeleted'
+                  checked={showDeleted}
+                  onChange={toggleShowDeleted}
                 >
-                  <LegacyCheckbox
-                    checked={showDeleted}
-                    onChange={toggleShowDeleted}
-                    label={<Lang id='party_selection.show_deleted' />}
-                  />
-                </Flex>
+                  <Lang id='party_selection.show_deleted' />
+                </Checkbox>
               </Flex>
-              <Flex
-                item
-                className={classes.checkbox}
-              >
-                <Flex
-                  container
-                  direction='row'
+              <Flex item>
+                <Checkbox
+                  size='sm'
+                  value='showSubUnits'
+                  checked={showSubUnits}
+                  onChange={toggleShowSubUnits}
                 >
-                  <LegacyCheckbox
-                    checked={showSubUnits}
-                    onChange={toggleShowSubUnits}
-                    label={<Lang id='party_selection.show_sub_unit' />}
-                  />
-                </Flex>
+                  <Lang id='party_selection.show_sub_unit' />
+                </Checkbox>
               </Flex>
             </Flex>
           </Flex>

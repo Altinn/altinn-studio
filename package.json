@@ -130,7 +130,6 @@
     "webpack-dev-server": "5.2.0"
   },
   "dependencies": {
-    "@altinn/altinn-design-system": "0.30.2",
     "@babel/polyfill": "7.12.1",
     "@date-fns/tz": "1.2.0",
     "@digdir/design-system-react": "0.54.0",
@@ -139,6 +138,7 @@
     "@digdir/designsystemet-theme": "0.15.3",
     "@material-ui/core": "4.12.4",
     "@navikt/aksel-icons": "7.14.2",
+    "@navikt/ds-icons": "^3.4.3",
     "@tanstack/react-query": "5.66.9",
     "ajv": "8.17.1",
     "ajv-errors": "3.0.0",
