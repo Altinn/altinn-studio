@@ -8,7 +8,7 @@ import {
   StudioLabelAsParagraph,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictProps = {

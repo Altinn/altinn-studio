@@ -4,7 +4,7 @@ import {
   StudioIconTextfield,
   StudioParagraph,
   StudioRecommendedNextAction,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,

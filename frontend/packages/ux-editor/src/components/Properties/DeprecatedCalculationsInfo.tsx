@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExternalLinkIcon } from '@studio/icons';
-import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components-legacy';
 import { useAppContext } from '../../hooks';
 import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';

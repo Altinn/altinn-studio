@@ -5,7 +5,7 @@ import {
   StudioErrorMessage,
   StudioSpinner,
   usePrevious,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { useComponentErrorMessage } from '../../../../../../hooks';

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictWarning.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioPopover, StudioHeading, StudioParagraph, StudioLink } from '@studio/components';
+import {
+  StudioPopover,
+  StudioHeading,
+  StudioParagraph,
+  StudioLink,
+} from '@studio/components-legacy';
 import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
 import { repoDownloadPath } from 'app-shared/api/paths';
 

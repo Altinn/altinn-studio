@@ -4,7 +4,7 @@ import {
   StudioParagraph,
   StudioSpinner,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';

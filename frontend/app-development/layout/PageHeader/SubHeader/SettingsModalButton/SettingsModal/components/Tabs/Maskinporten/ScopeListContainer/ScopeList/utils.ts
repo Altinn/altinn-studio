@@ -1,4 +1,4 @@
-import { type StudioCheckboxTableRowElement } from '@studio/components';
+import { type StudioCheckboxTableRowElement } from '@studio/components-legacy';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 export const mapScopesToRowElements = (

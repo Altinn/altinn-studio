@@ -1,6 +1,11 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
-import { StudioAlert, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
+import {
+  StudioAlert,
+  StudioHeading,
+  StudioParagraph,
+  StudioTable,
+} from '@studio/components-legacy';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
 import { extractAllUniqueActions, extractAllUniqueSubjects } from '../../utils/AppPolicyUtils';
