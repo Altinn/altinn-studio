@@ -6,6 +6,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class Group
 {
     [JsonPropertyName("name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string name { get; set; }
 
     [JsonPropertyName("order")]
