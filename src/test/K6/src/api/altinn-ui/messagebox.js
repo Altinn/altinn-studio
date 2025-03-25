@@ -25,7 +25,7 @@ export function loadAltinnInbox(aspxauthCookie, partyId) {
 export function searchMessageBox(aspxauthCookie, partyId, searchCriteria) {
   var endpoint = config.altinnUi.search;
   var params = {
-    cookies: { config.authCookieName: aspxauthCookie, AltinnPartyId: partyId },
+    cookies: { [config.authCookieName]: aspxauthCookie, AltinnPartyId: partyId },
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
