@@ -38,8 +38,8 @@
         "message": "Beskrivelse kan ikke være flink",
         "condition": [
           "and",
-          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
-          ["equals", ["dataModel", ["argv", 0]], "flink"]
+          ["greaterThan", ["stringLength", ["dataModel", "root.arbeidserfaring.beskrivelse"]], 0],
+          ["equals", ["dataModel", "root.arbeidserfaring.beskrivelse"], "flink"]
         ]
       }
     ],
