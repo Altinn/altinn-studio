@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './OverrideCurrentPdfByConversionChoices.module.css';

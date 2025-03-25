@@ -13,7 +13,7 @@ import {
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
 } from '@studio/icons';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 
 export interface DeploymentEnvironmentLogListProps {

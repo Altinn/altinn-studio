@@ -7,7 +7,7 @@ import {
   StudioCheckbox,
   StudioHeading,
   StudioModal,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import classes from './MigrationPanel.module.css';
 import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';

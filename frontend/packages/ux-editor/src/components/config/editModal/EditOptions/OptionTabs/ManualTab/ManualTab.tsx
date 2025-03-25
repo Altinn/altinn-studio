@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { addOptionToComponent, generateRandomOption } from '../../../../../../utils/component';
-import { StudioErrorMessage, StudioProperty } from '@studio/components';
+import { StudioErrorMessage, StudioProperty } from '@studio/components-legacy';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { EditOption } from './EditOption';
 import { ArrayUtils } from '@studio/pure-functions';

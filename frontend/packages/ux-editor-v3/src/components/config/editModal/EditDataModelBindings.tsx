@@ -7,7 +7,7 @@ import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { LinkIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from './InputActionWrapper';
 import { useAppContext } from '../../../hooks/useAppContext';
