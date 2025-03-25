@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { StudioTextfieldProps } from '@studio/components';
-import { StudioTextfield } from '@studio/components';
+import type { StudioTextfieldProps } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';

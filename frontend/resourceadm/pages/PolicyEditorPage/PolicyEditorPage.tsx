@@ -6,7 +6,7 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
-import { StudioSpinner, StudioHeading } from '@studio/components';
+import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
 import { useResourcePolicyQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';

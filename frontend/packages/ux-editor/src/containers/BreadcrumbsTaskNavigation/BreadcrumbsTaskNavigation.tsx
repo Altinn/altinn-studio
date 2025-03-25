@@ -10,7 +10,7 @@ import {
   StudioBreadcrumbsItem,
   StudioBreadcrumbsLink,
   StudioBreadcrumbsList,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import { UrlUtils } from '@studio/pure-functions';
 

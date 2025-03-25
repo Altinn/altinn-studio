@@ -6,7 +6,7 @@ import { getPartyTypesAllowedOptions } from '../../../../utils/tabUtils/accessCo
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { AccessControlWarningModal } from '../AccessControWarningModal';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioCheckboxTable } from '@studio/components';
+import { StudioCheckboxTable } from '@studio/components-legacy';
 
 export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;

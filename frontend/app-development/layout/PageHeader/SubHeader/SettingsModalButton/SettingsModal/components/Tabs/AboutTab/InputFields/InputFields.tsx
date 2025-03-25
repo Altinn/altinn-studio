@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
 
 type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
 

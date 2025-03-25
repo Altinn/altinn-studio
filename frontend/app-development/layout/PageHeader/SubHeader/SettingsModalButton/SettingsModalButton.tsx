@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioPageHeader, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
