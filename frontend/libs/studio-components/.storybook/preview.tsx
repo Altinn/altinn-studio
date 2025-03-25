@@ -3,6 +3,9 @@ import type { Preview } from '@storybook/react';
 import { DocsContainer } from '@storybook/addon-docs';
 import { Unstyled } from '@storybook/blocks';
 
+import '@digdir/designsystemet-css';
+import '@digdir/designsystemet-theme';
+
 const preview: Preview = {
   parameters: {
     layout: 'centered',

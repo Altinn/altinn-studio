@@ -10,6 +10,9 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@digdir/designsystemet-css": "^1.0.2",
+    "@digdir/designsystemet-react": "^1.0.2",
+    "@digdir/designsystemet-theme": "^1.0.2",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
     "ajv": "8.17.1",
