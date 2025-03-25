@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@studio/components-legacy';
 
 export const LoggedInTitle = (): ReactElement => {
   const { t } = useTranslation();

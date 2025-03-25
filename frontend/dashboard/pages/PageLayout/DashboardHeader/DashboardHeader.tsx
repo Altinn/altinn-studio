@@ -3,7 +3,7 @@ import classes from './DashboardHeader.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';

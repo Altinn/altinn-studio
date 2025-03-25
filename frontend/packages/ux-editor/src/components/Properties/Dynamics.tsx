@@ -6,7 +6,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import { DeprecatedConditionalRenderingInfo } from '@altinn/ux-editor/components/Properties/DeprecatedConditionalRenderingInfo';
 import classes from './Dynamics.module.css';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@studio/components-legacy';
 
 export const Dynamics = () => {
   const { formItemId: formId, formItem: form } = useFormItemContext();
