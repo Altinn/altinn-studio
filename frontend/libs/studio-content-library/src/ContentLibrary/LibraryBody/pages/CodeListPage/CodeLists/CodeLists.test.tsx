@@ -8,7 +8,7 @@ import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import type { CodeList as StudioComponentsCodeList } from '@studio/components';
+import type { CodeList as StudioComponentsCodeList } from '@studio/components-legacy';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
 const codeListName = codeListsDataMock[0].title;

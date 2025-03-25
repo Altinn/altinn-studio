@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './errorMessage.module.css';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type ErrorMessageProps = {

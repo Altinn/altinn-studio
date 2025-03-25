@@ -3,7 +3,7 @@ import { ComponentSpecificContent } from './componentSpecificContent';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '../../data/formItemConfig';

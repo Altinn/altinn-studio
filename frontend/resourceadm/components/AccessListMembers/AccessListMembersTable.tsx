@@ -2,8 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
-import { StudioButton, StudioErrorMessage, StudioTableLocalPagination } from '@studio/components';
-import type { Columns } from '@studio/components';
+import {
+  StudioButton,
+  StudioErrorMessage,
+  StudioTableLocalPagination,
+} from '@studio/components-legacy';
+import type { Columns } from '@studio/components-legacy';
 import classes from './AccessListMembers.module.css';
 import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 import { stringNumberToAriaLabel } from '../../utils/stringUtils';
