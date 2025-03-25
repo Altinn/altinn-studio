@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 {
     public interface ILayoutService
     {
-        public Task<Pages> GetPagesByLayoutSetId(
+        public Task<Designer.Models.Dto.Pages> GetPagesByLayoutSetId(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );
@@ -35,18 +35,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task UpdatePageOrder(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
-            Pages pages
+            Designer.Models.Dto.Pages pages
         );
 
         public Task<bool> IsLayoutUsingPageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );
-        public Task ConvertPagesToGroups(
+        public Task ConvertPagesToPageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );
-        public Task ConvertGroupsToPages(
+        public Task ConvertPageGroupsToPages(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         );

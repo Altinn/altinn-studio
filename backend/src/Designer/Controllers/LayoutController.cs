@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -14,13 +15,14 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app}/layouts/layoutSet/{layoutSetId}/")]
+    [UseSystemTextJson]
     public class LayoutController(ILayoutService layoutService) : Controller
     {
         [EndpointSummary("Retrieve pages")]
-        [ProducesResponseType<Pages>(StatusCodes.Status200OK)]
+        [ProducesResponseType<Models.Dto.Pages>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("pages")]
-        public async Task<ActionResult<Pages>> GetPages(
+        public async Task<ActionResult<Models.Dto.Pages>> GetPages(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] string layoutSetId
@@ -28,12 +30,15 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Pages pages = await layoutService.GetPagesByLayoutSetId(editingContext, layoutSetId);
+            Models.Dto.Pages pages = await layoutService.GetPagesByLayoutSetId(
+                editingContext,
+                layoutSetId
+            );
             return Ok(pages);
         }
 
         [EndpointSummary("Create page")]
-        [ProducesResponseType<Pages>(StatusCodes.Status201Created)]
+        [ProducesResponseType<App.Core.Models.Pages>(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("pages")]
         public async Task<ActionResult<Page>> CreatePage(
@@ -139,7 +144,7 @@ namespace Altinn.Studio.Designer.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] string layoutSetId,
-            [FromBody] Pages pages
+            [FromBody] Models.Dto.Pages pages
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -152,13 +157,13 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok();
         }
 
-        [EndpointSummary("Convert layout to use groups")]
+        [EndpointSummary("Convert layout to use page groups")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [HttpPost("convert-to-groups")]
-        public async Task<ActionResult> ConvertToGroups(
+        [HttpPost("convert-to-pagegroups")]
+        public async Task<ActionResult> ConvertToPageGroups(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] string layoutSetId
@@ -170,7 +175,29 @@ namespace Altinn.Studio.Designer.Controllers
                 app,
                 developer
             );
-            await layoutService.ConvertPagesToGroups(editingContext, layoutSetId);
+            await layoutService.ConvertPagesToPageGroups(editingContext, layoutSetId);
+            return Ok();
+        }
+
+        [EndpointSummary("Convert layout to use page order")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpPost("convert-to-pageorder")]
+        public async Task<ActionResult> ConvertToPageOrder(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+            await layoutService.ConvertPageGroupsToPages(editingContext, layoutSetId);
             return Ok();
         }
     }

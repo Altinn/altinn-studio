@@ -74,7 +74,7 @@ public class LayoutServiceTests
             editingContext,
             "layoutSet1"
         );
-        await layoutService.ConvertPagesToGroups(editingContext, "layoutSet1");
+        await layoutService.ConvertPagesToPageGroups(editingContext, "layoutSet1");
         Assert.True(await layoutService.IsLayoutUsingPageGroups(editingContext, "layoutSet1"));
         Pages pages = await layoutService.GetPagesByLayoutSetId(editingContext, "layoutSet1");
 
@@ -110,7 +110,7 @@ public class LayoutServiceTests
             editingContext,
             "form"
         );
-        await layoutService.ConvertGroupsToPages(editingContext, "form");
+        await layoutService.ConvertPageGroupsToPages(editingContext, "form");
         Assert.False(await layoutService.IsLayoutUsingPageGroups(editingContext, "form"));
         Pages pages = await layoutService.GetPagesByLayoutSetId(editingContext, "form");
         Assert.Equal(
