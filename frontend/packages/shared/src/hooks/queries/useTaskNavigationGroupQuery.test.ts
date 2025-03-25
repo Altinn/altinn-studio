@@ -5,6 +5,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const taskNavigationGroups = [
   {
@@ -26,23 +28,24 @@ describe('useTaskNavigationGroupQuery', () => {
 
   it('calls getTaskNavigationGroup with the correct parameters', async () => {
     await renderAndWaitForResult();
-    expect(getTaskNavigationGroup).toHaveBeenCalledTimes(1);
-    expect(getTaskNavigationGroup).toHaveBeenCalledWith(org, app);
+    expect(queriesMock.getTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getTaskNavigationGroup).toHaveBeenCalledWith(org, app);
   });
 
   it('Stores the result in the cache with correct keys', async () => {
     const client = createQueryClientMock();
-    await renderAndWaitForResult(client);
+    await renderAndWaitForResult({ getTaskNavigationGroup }, client);
     const key: TanstackQueryKey = [QueryKey.TaskNavigationGroup, org, app];
     expect(client.getQueryData(key)).toEqual(taskNavigationGroups);
   });
 });
 
 const renderAndWaitForResult = async (
+  queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ): Promise<void> => {
   const { result } = renderHookWithProviders(() => useTaskNavigationGroupQuery(org, app), {
-    queries: { getTaskNavigationGroup },
+    queries,
     queryClient,
   });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
