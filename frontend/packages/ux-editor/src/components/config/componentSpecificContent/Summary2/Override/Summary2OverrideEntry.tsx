@@ -5,7 +5,7 @@ import {
   StudioDeleteButton,
   StudioDivider,
   StudioProperty,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';

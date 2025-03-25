@@ -1,7 +1,7 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import type { CodeListData } from '../CodeListPage';
 import type { TextResources } from '../../../../../types/TextResources';
-import type { TextResource } from '@studio/components';
+import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 
 export const getCodeListSourcesById = (

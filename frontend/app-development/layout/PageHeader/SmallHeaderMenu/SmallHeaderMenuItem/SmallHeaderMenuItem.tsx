@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
-import { studioBetaTagClasses } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;

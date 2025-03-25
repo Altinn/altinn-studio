@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './SaveStatus.module.css';
-import { StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon } from '@studio/icons';
 

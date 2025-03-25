@@ -11,7 +11,7 @@ import {
   OperationStatusResourceIcon,
 } from '@studio/icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@studio/components-legacy';
 import { type Resource } from 'dashboard/types/Resource';
 
 const resources: Resource[] = [

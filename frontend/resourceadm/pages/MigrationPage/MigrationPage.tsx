@@ -7,7 +7,7 @@ import {
   StudioSpinner,
   StudioLabelAsParagraph,
   StudioLink,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';

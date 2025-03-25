@@ -6,7 +6,7 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 const latestFrontendVersion = '4';
