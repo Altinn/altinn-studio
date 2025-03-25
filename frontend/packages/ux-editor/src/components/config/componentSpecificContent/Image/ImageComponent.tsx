@@ -5,7 +5,7 @@ import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({

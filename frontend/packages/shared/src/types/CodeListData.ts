@@ -1,4 +1,4 @@
-import type { CodeListItem } from '@studio/components';
+import type { CodeListItem } from '@studio/components-legacy';
 
 export type CodeListData = {
   title: string;

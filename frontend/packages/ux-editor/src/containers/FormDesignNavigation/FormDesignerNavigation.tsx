@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@studio/components-legacy';
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
