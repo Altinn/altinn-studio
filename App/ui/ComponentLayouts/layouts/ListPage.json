@@ -16,11 +16,11 @@
           }
         },
         {
-          "id": "ListPage-Header-Component",
+          "id": "ListPage-Header-Component1",
           "type": "Header",
           "size": "h3",
           "textResourceBindings": {
-            "title": "Header.Component"
+            "title": "Komponent med radioknapper"
           }
         },
         {
@@ -49,10 +49,47 @@
           }
         },
         {
+          "id": "ListPage-Header-Summary",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary"
+          }
+        },
+        {
+          "id": "ListPage-Summary",
+          "type": "Summary",
+          "componentRef": "ListPage-ListComponent"
+        },
+        {
+          "id": "ListPage-Header-Summary2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary2"
+          }
+        },
+        {
+          "id": "ListPage-Summary2",
+          "type": "Summary2",
+          "target": {
+            "type": "component",
+            "id": "ListPage-ListComponent"
+          }
+        },
+        {
+          "id": "ListPage-Header-Component2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Komponent med sjekkbokser"
+          }
+        },
+        {
           "id": "ListPage-ListWithCheckboxesComponent",
           "type": "List",
           "dataModelBindings": {
-            "saveToList": "ListCheckboxExample",
+            "group": "ListCheckboxExample",
             "name": "ListCheckboxExample.name",
             "age": "ListCheckboxExample.age",
             "profession": "ListCheckboxExample.profession"
@@ -60,6 +97,7 @@
           "textResourceBindings": {
             "title": "ListPage.List2.title"
           },
+          "summaryBinding": "name",
           "dataListId": "people",
           "tableHeaders": {
             "name": "Navn",
@@ -70,7 +108,8 @@
           "pagination": {
             "alternatives": [5, 10],
             "default": 5
-          }
+          },
+          "required": false
         },
         {
           "id": "RepeatingGroupListWithCheckboxes",
@@ -124,7 +163,7 @@
           }
         },
         {
-          "id": "ListPage-Header-Summary",
+          "id": "ListPage-Header-Summary-Component2",
           "type": "Header",
           "size": "h3",
           "textResourceBindings": {
@@ -132,12 +171,12 @@
           }
         },
         {
-          "id": "ListPage-Summary",
+          "id": "ListPage-Summary-Component2",
           "type": "Summary",
-          "componentRef": "ListPage-ListComponent"
+          "componentRef": "ListPage-ListWithCheckboxesComponent"
         },
         {
-          "id": "ListPage-Header-Summary2",
+          "id": "ListPage-Header-Summary2-Component2",
           "type": "Header",
           "size": "h3",
           "textResourceBindings": {
@@ -150,13 +189,18 @@
           "target": {
             "type": "component",
             "id": "ListPage-ListWithCheckboxesComponent"
+            "id": "ListPage-ListWithCheckboxesComponent"
           }
         },
         {
           "id": "ListPage-NavigationButtons",
           "showBackButton": true,
           "textResourceBindings": {},
-          "type": "NavigationButtons"
+          "type": "NavigationButtons",
+          "validateOnNext": {
+            "page": "current",
+            "show": ["All"]
+          }
         }
       ]
     }
