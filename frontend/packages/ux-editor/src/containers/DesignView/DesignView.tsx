@@ -148,7 +148,6 @@ export const DesignView = (): ReactNode => {
         {
           name: 'sideoppsett 3',
           type: 'sideoppsett 3',
-          pages: pagesModel.pages.slice(3, 5).map((page) => ({ id: page.id })),
         },
       ];
 
