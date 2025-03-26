@@ -189,6 +189,6 @@ describe('FormDesigner', () => {
       expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
     );
     expect(screen.queryByTestId('design-view')).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.side_oppsett_header'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();
   });
 });
