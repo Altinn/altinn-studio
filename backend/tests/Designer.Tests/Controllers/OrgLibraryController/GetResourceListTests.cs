@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
-namespace Designer.Tests.Controllers.OrgGeneralController;
+namespace Designer.Tests.Controllers.OrgLibraryController;
 
 public class GetResourceListTests : DesignerEndpointsTestsBase<GetResourceListTests>, IClassFixture<WebApplicationFactory<Program>>
 {

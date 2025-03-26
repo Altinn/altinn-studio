@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Altinn.Studio.Designer.Enums;
@@ -11,17 +10,17 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [ApiController]
 [Authorize]
 [Route("designer/api/{org}")]
-public class OrgGeneralController : ControllerBase
+public class OrgLibraryController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OrgGeneralController"/> class.
+    /// Initializes a new instance of the <see cref="OrgLibraryController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The code list service</param>
     /// <param name="orgTextsService">The texts service</param>
-    public OrgGeneralController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
+    public OrgLibraryController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
     {
         _orgCodeListService = orgCodeListService;
         _orgTextsService = orgTextsService;
