@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,8 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 {
     private const string CodeListFolderPath = "Codelists/";
     private const string LanguageResourceFolderName = "Texts/";
+
+    private const string TextResourceFileNamePattern = "resource.??.json";
 
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -36,6 +39,23 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
     public AltinnOrgGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
     {
+    }
+
+    public List<string> GetLanguages()
+    {
+        List<string> languages = [];
+
+        string[] directoryFiles = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
+        foreach (string directoryFile in directoryFiles)
+        {
+            string fileName = Path.GetFileName(directoryFile);
+            string[] nameParts = fileName.Split('.');
+            string languageCode = nameParts[1];
+            languages.Add(languageCode);
+            languages.Sort(StringComparer.Ordinal);
+        }
+
+        return languages;
     }
 
     /// <summary>

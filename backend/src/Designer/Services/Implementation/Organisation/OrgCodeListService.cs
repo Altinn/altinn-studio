@@ -142,7 +142,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    private string[] GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
+    public string[] GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
