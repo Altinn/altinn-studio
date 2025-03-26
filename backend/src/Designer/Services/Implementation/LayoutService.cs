@@ -185,5 +185,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             layoutSettings.Pages.Order = [.. pages.Pages.Select(page => page.Id)];
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
+
+        public async Task<bool> IsLayoutUsingPageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            return layoutSettings.Pages.Groups is not null;
+        }
     }
 }
