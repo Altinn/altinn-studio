@@ -1,5 +1,5 @@
 import React from 'react';
-import { OrgContentLibrary } from './OrgContentLibrary';
+import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -54,7 +54,7 @@ const resourceLibraryTestId = 'resource-library';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
-describe('OrgContentLibrary', () => {
+describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
   it('Renders the content library', async () => {
@@ -229,7 +229,7 @@ function createQueryClientWithData(): QueryClient {
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
   return renderWithProviders(
     <Routes>
-      <Route path=':selectedContext' element={<OrgContentLibrary />} />
+      <Route path=':selectedContext' element={<OrgContentLibraryPage />} />
     </Routes>,
     { ...defaultProviderData, ...providerData },
   );

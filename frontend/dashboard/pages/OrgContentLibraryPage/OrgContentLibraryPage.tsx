@@ -38,21 +38,21 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateTextResourcesForOrgMutation } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 
-export function OrgContentLibrary(): ReactElement {
+export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
 
   return isOrg(selectedContext) ? (
-    <OrgContentLibraryWithOrg orgName={selectedContext} />
+    <OrgContentLibrary orgName={selectedContext} />
   ) : (
     <ContextWithoutLibraryAccess />
   );
 }
 
-type OrgContentLibraryWithOrgProps = {
+type OrgContentLibraryProps = {
   orgName: string;
 };
 
-function OrgContentLibraryWithOrg({ orgName }: OrgContentLibraryWithOrgProps): ReactElement {
+function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
   const orgRepoName = useOrgRepoName();
   const { data: repoStatus } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
@@ -70,13 +70,13 @@ type MergeableOrgContentLibraryProps = {
 
 function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps): ReactElement {
   const { t } = useTranslation();
-  const { data: codeListsResponse, status: codeListResponseStatus } = useOrgCodeListsQuery(orgName);
+  const { data: codeListDataList, status: codeListDataListStatus } = useOrgCodeListsQuery(orgName);
   const { data: textResources, status: textResourcesStatus } = useTextResourcesForOrgQuery(
     orgName,
     DEFAULT_LANGUAGE,
   );
 
-  const status = mergeQueryStatuses(codeListResponseStatus, textResourcesStatus);
+  const status = mergeQueryStatuses(codeListDataListStatus, textResourcesStatus);
 
   switch (status) {
     case 'pending':
@@ -86,7 +86,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     case 'success':
       return (
         <OrgContentLibraryWithContextAndData
-          codeListsDataList={codeListsResponse}
+          codeListDataList={codeListDataList}
           orgName={orgName}
           textResources={textResources}
         />
@@ -95,17 +95,17 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 }
 
 type OrgContentLibraryWithContextAndDataProps = {
-  codeListsDataList: CodeListData[];
+  codeListDataList: CodeListData[];
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };
 
 function OrgContentLibraryWithContextAndData({
-  codeListsDataList,
+  codeListDataList,
   orgName,
   textResources: textResourcesWithLanguage,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
-  const { mutate: updateOptionList } = useUpdateOrgCodeListMutation(orgName);
+  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
   const { mutate: updateTextResources } = useUpdateTextResourcesForOrgMutation(orgName);
 
@@ -124,14 +124,14 @@ function OrgContentLibraryWithContextAndData({
   );
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
-    updateOptionList({ title, data: codeList });
+    updateCodeList({ title, data: codeList });
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListsDataList,
+          codeListsData: codeListDataList,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
@@ -160,8 +160,8 @@ function ContextWithoutLibraryAccess(): ReactElement {
   );
 }
 
-function useUploadCodeList(org: string): (file: File) => void {
-  const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(org, {
+function useUploadCodeList(orgName: string): (file: File) => void {
+  const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(orgName, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { t } = useTranslation();
