@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './DigdirLogoLink.module.css';
 import { DigdirLogo } from './DigdirLogo';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import { StudioPageHeaderHeaderButton } from '../../StudioPageHeaderHeaderButton';
 import { useStudioPageHeaderContext } from '../../context';
 
