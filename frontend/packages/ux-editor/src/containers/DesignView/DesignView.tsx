@@ -143,12 +143,12 @@ export const DesignView = (): ReactNode => {
           name: 'sideoppsett 2',
           type: 'sideoppsett 2',
           markWhenCompleted: true,
-          pages: pagesModel.pages.slice(1, 4).map((page) => ({ id: page.id })),
+          pages: pagesModel.pages.slice(1, 3).map((page) => ({ id: page.id })),
         },
         {
           name: 'sideoppsett 3',
           type: 'sideoppsett 3',
-          pages: pagesModel.pages.slice(4, 6).map((page) => ({ id: page.id })),
+          pages: pagesModel.pages.slice(3, 5).map((page) => ({ id: page.id })),
         },
       ];
 
