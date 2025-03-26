@@ -66,7 +66,6 @@ export const PageAccordion = ({
       <Accordion.Item open={isOpen}>
         <div className={classes.accordionHeaderRow}>
           <div
-            data-testid='accordion-header-wrapper'
             className={
               isInvalid || hasDuplicatedIds
                 ? classes.accordionHeaderWarning

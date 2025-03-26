@@ -137,7 +137,7 @@ export const DesignView = (): ReactNode => {
         {
           name: 'Sideoppsett 1',
           type: 'Sideoppsett 1',
-          pages: pagesModel.pages[0] ? [{ id: pagesModel.pages[0].id }] : [],
+          pages: pagesModel.pages.slice(0, 1).map((page) => ({ id: page.id })),
         },
         {
           name: 'sideoppsett 2',
@@ -148,7 +148,7 @@ export const DesignView = (): ReactNode => {
         {
           name: 'sideoppsett 3',
           type: 'sideoppsett 3',
-          pages: pagesModel.pages[4] ? [{ id: pagesModel.pages[4].id }] : [],
+          pages: pagesModel.pages.slice(4, 6).map((page) => ({ id: page.id })),
         },
       ];
 

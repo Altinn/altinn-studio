@@ -41,8 +41,6 @@ const defaultProps: PageAccordionProps = {
   children: mockChildren,
   isOpen: false,
   onClick: mockOnClick,
-  isInvalid: false,
-  hasDuplicatedIds: false,
 };
 
 describe('PageAccordion', () => {
@@ -118,18 +116,6 @@ describe('PageAccordion', () => {
     });
     await user.click(deleteButton);
     expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
-  });
-
-  it('applies accordionHeaderWarning class when isInvalid is true', async () => {
-    await render({ isInvalid: true, hasDuplicatedIds: false });
-    const headerWrapper = screen.getByTestId('accordion-header-wrapper');
-    expect(headerWrapper).toHaveClass('accordionHeaderWarning');
-  });
-
-  it('applies accordionHeaderWarning class when hasDuplicatedIds is true', async () => {
-    await render({ isInvalid: false, hasDuplicatedIds: true });
-    const headerWrapper = screen.getByTestId('accordion-header-wrapper');
-    expect(headerWrapper).toHaveClass('accordionHeaderWarning');
   });
 });
 
