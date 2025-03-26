@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -47,11 +47,9 @@ describe('DesignViewNavigation', () => {
     ).toBeInTheDocument();
     await user.click(document.body);
 
-    await waitFor(() => {
-      expect(
-        screen.queryByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
-      ).not.toBeInTheDocument();
-    });
+    expect(
+      screen.queryByText(textMock('ux_editor.side_oppsett_perfome_another_task')),
+    ).not.toBeInTheDocument();
   });
 });
 
