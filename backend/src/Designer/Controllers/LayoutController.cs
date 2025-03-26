@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -14,6 +16,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app}/layouts/layoutSet/{layoutSetId}/")]
+    [UseSystemTextJson]
     public class LayoutController(ILayoutService layoutService) : Controller
     {
         [EndpointSummary("Retrieve pages")]
@@ -149,6 +152,62 @@ namespace Altinn.Studio.Designer.Controllers
                 developer
             );
             await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages);
+            return Ok();
+        }
+
+        [EndpointSummary("Convert layout to use page groups")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [HttpPost("convert-to-pagegroups")]
+        public async Task<ActionResult> ConvertToPageGroups(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+            try
+            {
+                await layoutService.ConvertPagesToPageGroups(editingContext, layoutSetId);
+            }
+            catch (InvalidOperationException e)
+            {
+                return Conflict(e.Message);
+            }
+            return Ok();
+        }
+
+        [EndpointSummary("Convert layout to use page order")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [HttpPost("convert-to-pageorder")]
+        public async Task<ActionResult> ConvertToPageOrder(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+            try
+            {
+                await layoutService.ConvertPageGroupsToPages(editingContext, layoutSetId);
+            }
+            catch (InvalidOperationException e)
+            {
+                return Conflict(e.Message);
+            }
             return Ok();
         }
     }
