@@ -20,7 +20,7 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useParties } from 'src/features/party/PartiesProvider';
+import { usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -157,7 +157,7 @@ export const ReceiptContainer = () => {
   const instanceOrg = useLaxInstanceData((i) => i.org);
   const instanceOwner = useLaxInstanceData((i) => i.instanceOwner);
   const dataElements = useLaxInstanceAllDataElements();
-  const parties = useParties();
+  const parties = usePartiesAllowedToInstantiate();
   const langTools = useLanguage();
   const receiver = useAppReceiver();
 

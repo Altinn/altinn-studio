@@ -12,7 +12,7 @@ describe('Confirm', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <Confirm />,
       queries: {
-        fetchParties: () => Promise.resolve([getPartyMock()]),
+        fetchPartiesAllowedToInstantiate: () => Promise.resolve([getPartyMock()]),
         fetchCurrentParty: () => Promise.resolve(getPartyMock()),
       },
     });
@@ -29,7 +29,7 @@ describe('Confirm', () => {
       renderer: () => <Confirm />,
       instanceId: instance.id,
       queries: {
-        fetchParties: () => Promise.resolve([partyMock.org]),
+        fetchPartiesAllowedToInstantiate: () => Promise.resolve([partyMock.org]),
         fetchCurrentParty: () => Promise.resolve(subunitParty),
         fetchInstanceData: (partyId: string, instanceGuid: string) => {
           expect(partyId).toBe(subunitParty.partyId.toString());

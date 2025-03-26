@@ -18,7 +18,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import {
   useCurrentParty,
-  useParties,
+  usePartiesAllowedToInstantiate,
   useSetCurrentParty,
   useSetHasSelectedParty,
 } from 'src/features/party/PartiesProvider';
@@ -39,7 +39,7 @@ export const PartySelection = () => {
   const selectedParty = useCurrentParty();
   const setUserHasSelectedParty = useSetHasSelectedParty();
 
-  const parties = useParties() ?? [];
+  const parties = usePartiesAllowedToInstantiate() ?? [];
   const appMetadata = useApplicationMetadata();
 
   const appPromptForPartyOverride = appMetadata.promptForParty;

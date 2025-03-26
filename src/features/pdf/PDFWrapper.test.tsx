@@ -98,7 +98,7 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       fetchFormData: async () => ({}),
       fetchLayouts: async () => ({}),
       fetchCurrentParty: async () => party,
-      fetchParties: async () => [party],
+      fetchPartiesAllowedToInstantiate: async () => [party],
       fetchUserProfile: async () => {
         if (renderAs === RenderAs.User) {
           return getProfileMock();
