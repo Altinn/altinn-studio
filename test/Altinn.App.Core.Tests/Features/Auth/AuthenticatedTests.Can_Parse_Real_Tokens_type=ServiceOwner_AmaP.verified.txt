@@ -1,0 +1,32 @@
+﻿{
+  Description: GetTestOrgToken in localtest,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+ServiceOwner,
+  Auth: {
+    Name: skd,
+    OrgNo: 974761076,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: localtest,
+    TokenIssuer: Maskinporten,
+    TokenIsExchanged: true,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOm9yZyI6InNrZCIsInVybjphbHRpbm46YXV0aGxldmVsIjozLCJ1cm46YWx0aW5uOnNjb3BlIjoiYWx0aW5uOnNlcnZpY2Vvd25lci9pbnN0YW5jZXMud3JpdGUgYWx0aW5uOnNlcnZpY2Vvd25lci9pbnN0YW5jZXMucmVhZCIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTc0NzYxMDc2IiwibmJmIjoxNzQyOTA2NDYyLCJleHAiOjE3NDI5NjQwNjIsImlhdCI6MTc0MjkwNjQ2Mn0.UJSqOGZG3xCMH7KUx148NhPvARATpI2yzK4RxxL_Fe2XqtEaRJQX6IBMTbfu-WLdHZ8l4m7Epk7cJwxE1ek3BP1XMayq95rrNIwjcXoicDBfLUb7Ug2II89jKd-pCinuZGT8ai4LmKz8ydPAXgq6fV1ExctsqcTQhQIbgDYa9TFVKInpmv3Mj9f7vdiJKdfuxE_rHOzu8cqUVECLvK4AU602pnw9JvclAXa53hBkDlHmNv8-JzVUdqkEMBiPrWklWDZqHNZuVkKrrvS_5-dS9Z6rjZ9IcnMZ2fSRNoTHO85qtVqGzTzLsN0QjRXOYGk_mZVD4LVjOp7JBDuWqcpefQ
+  },
+  Jwt: {
+    exp: 1742964062,
+    iat: 1742906462,
+    nbf: 1742906462,
+    urn:altinn:authlevel: 3,
+    urn:altinn:org: skd,
+    urn:altinn:orgNumber: 974761076,
+    urn:altinn:scope: altinn:serviceowner/instances.write altinn:serviceowner/instances.read
+  },
+  Details: {
+    Party: {
+      PartyId: 1234,
+      PartyTypeName: Organisation,
+      OrgNumber: 974761076,
+      Name: Test AS,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false
+    }
+  }
+}
