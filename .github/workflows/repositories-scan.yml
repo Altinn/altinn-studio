@@ -8,11 +8,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
     - name: Build the Docker image
       run: docker build ./gitea --tag altinn-repos:${{github.sha}}
 
-    - uses: Azure/container-scan@v0
+    - uses: Azure/container-scan@f9af925b897d8af5f7e0026b8bca9346261abc93 # v0
       env:
         # See https://github.com/goodwithtech/dockle/issues/188
         DOCKLE_HOST: "unix:///var/run/docker.sock"
