@@ -26,11 +26,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
 
             var taskNavigationGroupList = new List<TaskNavigationGroupDto>();
-            layoutSetsFile.UiSettings?.TaskNavigation?.ForEach(taskNavigationGroup =>
+            layoutSets.UiSettings?.TaskNavigation?.ForEach(taskNavigationGroup =>
             {
                 taskNavigationGroupList.Add(new()
                 {
@@ -41,6 +41,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             });
 
             return taskNavigationGroupList;
+        }
+
+        public async Task AddTaskNavigationGroup(AltinnRepoEditingContext altinnRepoEditingContext, TaskNavigationGroupDto taskNavigationGroup, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
+            layoutSets.UiSettings ??= new();
+            layoutSets.UiSettings.TaskNavigation ??= [];
+            layoutSets.UiSettings.TaskNavigation.Add(new()
+            {
+                TaskId = taskNavigationGroup.TaskId,
+                Type = taskNavigationGroup.TaskType,
+                Name = taskNavigationGroup.Name,
+            });
+
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
         }
     }
 }
