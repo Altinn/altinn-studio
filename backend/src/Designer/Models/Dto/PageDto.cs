@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class Page
+public class PageDto
 {
     [JsonPropertyName("id")]
-    public string id { get; set; }
+    public string Id { get; set; }
 }
