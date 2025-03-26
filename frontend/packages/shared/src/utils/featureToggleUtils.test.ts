@@ -99,15 +99,6 @@ describe('featureToggle url', () => {
     window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
     expect(shouldDisplayFeature(FeatureFlag.TaskNavigation)).toBeFalsy();
   });
-  it('should return true if taskNavigationPageGroups is enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigationPageGroups');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeTruthy();
-  });
-
-  it('should return false if taskNavigationPageGroups is not enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeFalsy();
-  });
 
   it('should return true if taskNavigationPageGroups is enabled in the url', () => {
     window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigationPageGroups');
