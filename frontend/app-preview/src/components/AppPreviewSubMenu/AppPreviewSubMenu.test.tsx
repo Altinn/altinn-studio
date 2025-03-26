@@ -2,10 +2,10 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
 import { renderWithProviders } from 'app-preview/test/mocks';
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 describe('AppPreviewSubMenu', () => {
   afterEach(() => jest.clearAllMocks());

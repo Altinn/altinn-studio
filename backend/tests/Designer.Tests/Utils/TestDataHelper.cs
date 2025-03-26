@@ -138,7 +138,7 @@ namespace Designer.Tests.Utils
             }
             if (length is < 12 or > 28)
             {
-                throw new ArgumentException("Length for test repo must be between 12 and 20.");
+                throw new ArgumentException("Length for test repo must be between 12 and 28.");
             }
 
             if ("test-repo-".Length + suffix?.Length > length)
@@ -415,6 +415,57 @@ namespace Designer.Tests.Utils
             }
 
             return bytes;
+        }
+
+        public static string GenerateTestOrgName(int length = 27)
+        {
+            if (length is < 12 or > 27)
+            {
+                throw new ArgumentException("Length for test org must be between 12 and 27.");
+            }
+
+            return $"test-org-{Guid.NewGuid()}"[..length];
+        }
+
+        public static string GetOrgContentRepoName(string org)
+        {
+            return $"{org}-content";
+        }
+
+        public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg, string targetRepository)
+        {
+            string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
+            string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
+            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+
+            CreateEmptyDirectory(targetOrgDirectory);
+            await CopyDirectory(sourceDirectory, targetRepoDirectory);
+
+            return targetOrgDirectory;
+        }
+
+        public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
+        {
+            string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
+            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+
+            await CopyDirectory(sourceDirectory, targetRepoDirectory);
+        }
+
+        private static string GetOrgDirectory(string org, string developer)
+        {
+            return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
+        }
+
+        public static string GetOrgRepositoryDirectory(string developer, string org, string repository)
+        {
+            return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
+        }
+
+        public static void DeleteOrgDirectory(string developer, string org)
+        {
+            string orgRepositoryDirectory = GetOrgDirectory(org, developer);
+            DeleteDirectory(orgRepositoryDirectory);
         }
     }
 }

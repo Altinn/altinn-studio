@@ -13,11 +13,9 @@ type WrapperArgs = {
   queryClient: QueryClient;
 };
 
-const queryClientMock = createQueryClientMock();
-
 export const renderHookWithProviders = (
   hook: () => any,
-  { queries = {}, queryClient = queryClientMock }: Partial<WrapperArgs> = {},
+  { queries = {}, queryClient = createQueryClientMock() }: Partial<WrapperArgs> = {},
 ) => {
   return renderHook(hook, {
     wrapper: ({ children }) => (

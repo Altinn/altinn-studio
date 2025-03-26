@@ -7,7 +7,6 @@ import { userEvent } from '@testing-library/user-event';
 describe('FeedbackFormImpl', () => {
   it('should render FeedbackFormImpl', () => {
     const feedbackForm = new FeedbackFormImpl({
-      onSubmit: jest.fn(),
       id: 'test',
       buttonTexts: {
         submit: 'Submit',
@@ -17,6 +16,7 @@ describe('FeedbackFormImpl', () => {
       heading: 'Give feedback - heading',
       description: 'Description',
       questions: mockQuestions,
+      submitPath: 'test',
     });
 
     render(<div>{feedbackForm.getFeedbackForm()}</div>);
@@ -28,7 +28,6 @@ describe('FeedbackFormImpl', () => {
     const user = userEvent.setup();
     const feedbackForm = new FeedbackFormImpl({
       id: 'test',
-      onSubmit: jest.fn(),
       buttonTexts: {
         submit: 'Submit',
         trigger: 'Give feedback',
@@ -37,6 +36,7 @@ describe('FeedbackFormImpl', () => {
       heading: 'Give feedback - heading',
       description: 'Description',
       questions: mockQuestions,
+      submitPath: 'test',
     });
 
     render(<div>{feedbackForm.getFeedbackForm()}</div>);

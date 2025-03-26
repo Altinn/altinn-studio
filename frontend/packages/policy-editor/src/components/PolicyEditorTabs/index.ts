@@ -1,0 +1,1 @@
+export { PolicyEditorTabs } from './PolicyEditorTabs';

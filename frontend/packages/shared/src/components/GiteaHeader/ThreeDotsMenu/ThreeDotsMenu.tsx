@@ -3,17 +3,17 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components-legacy';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
 };
 
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
-  const { org, app } = useStudioEnvironmentParams();
+  const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
 
@@ -43,7 +43,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
                   {t('sync_header.clone')}
                 </StudioPopover.Trigger>
                 <StudioPopover.Content className={classes.popoverContent}>
-                  <ClonePopoverContent onClose={toggleClonePopoverOpen} />
+                  <ClonePopoverContent />
                 </StudioPopover.Content>
               </StudioPopover>
             </li>
@@ -53,7 +53,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
               as='a'
               className={classes.menuButton + ' ' + classes.link}
               fullWidth
-              href={repositoryPath(org, app)}
+              href={repositoryPath(owner, repoName)}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
               size='small'

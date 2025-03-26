@@ -5,10 +5,12 @@ import {
   StudioErrorMessage,
   StudioSpinner,
   usePrevious,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { useComponentErrorMessage } from '../../../../../../hooks';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import {
   handleOptionsChange,
   updateComponentOptions,
@@ -20,6 +22,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../../../componentConfig';
+import type { QueryStatus } from '@tanstack/react-query';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
@@ -33,7 +36,8 @@ type EditTabProps = Pick<
 export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, status: optionListIdsStatus } = useOptionListIdsQuery(org, app);
+  const { status: textResourcesStatus } = useTextResourcesQuery(org, app);
   const previousComponent = usePrevious(component);
   const dialogRef = createRef<HTMLDialogElement>();
   const errorMessage = useComponentErrorMessage(component);
@@ -44,14 +48,14 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
     }
   }, [component, previousComponent]);
 
-  switch (status) {
+  const mergedQueryStatues: QueryStatus = mergeQueryStatuses(
+    optionListIdsStatus,
+    textResourcesStatus,
+  );
+
+  switch (mergedQueryStatues) {
     case 'pending':
-      return (
-        <StudioSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')}
-        />
-      );
+      return <StudioSpinner spinnerTitle={t('general.loading')} />;
     case 'error':
       return (
         <StudioErrorMessage>

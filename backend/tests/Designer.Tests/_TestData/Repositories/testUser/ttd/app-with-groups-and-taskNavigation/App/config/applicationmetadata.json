@@ -1,0 +1,75 @@
+{
+  "id": "ttd/app-with-groups-and-taskNavigation",
+  "org": "ttd",
+  "title": {
+    "nb": "Navigasjonstest",
+    "en": "Navigation test"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": ["application/pdf"],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "subform",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "classRef": "Altinn.App.Models.subform.subform",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": true,
+        "allowUserDelete": true,
+        "allowInSubform": true
+      },
+      "taskId": "Task_1",
+      "maxCount": 10,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "disallowUserInstantiation": false,
+  "created": "2024-12-09T11:52:44.8227718Z",
+  "createdBy": "bjosttveit",
+  "lastChanged": "2024-12-09T11:52:44.8227726Z",
+  "lastChangedBy": "bjosttveit"
+}
+

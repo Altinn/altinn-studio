@@ -6,7 +6,6 @@ on:
       - 'testdata/**'
       - 'backend/**'
   pull_request:
-    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
@@ -36,11 +35,11 @@ jobs:
           dotnet build backend/Designer.sln -v m
       - name: Test
         run: |
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~PreviewController --no-build;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build;
-          dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~PreviewController --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
           dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build

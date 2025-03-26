@@ -3,7 +3,7 @@ import type {
   CodeListEditorTexts,
   CodeListItemTextProperty,
   TextResourceInputTexts,
-} from '@studio/components';
+} from '@studio/components-legacy';
 
 export function useOptionListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();
@@ -16,6 +16,7 @@ export function useOptionListEditorTexts(): CodeListEditorTexts {
     delete: t('code_list_editor.column_title_delete'),
     deleteItem: (number: number) => t('code_list_editor.delete_code_list_item', { number }),
     description: t('code_list_editor.column_title_description'),
+    disabledAddButtonTooltip: t('code_list_editor.add_button_disabled'),
     emptyCodeList: t('code_list_editor.empty'),
     generalError: t('code_list_editor.general_error'),
     helpText: t('code_list_editor.column_title_help_text'),
@@ -45,6 +46,7 @@ function useTextResourceTexts(): (
   const prefix = 'code_list_editor.text_resource';
   return (number: number, property: CodeListItemTextProperty) => ({
     editValue: t(`${prefix}.${property}.edit_mode`, { number }),
+    emptyTextResourceList: t(`${prefix}.empty_list`),
     emptyResourceList: t(`${prefix}.empty_list`),
     idLabel: t(`${prefix}.id_label`),
     search: t(`${prefix}.${property}.search_mode`, { number }),

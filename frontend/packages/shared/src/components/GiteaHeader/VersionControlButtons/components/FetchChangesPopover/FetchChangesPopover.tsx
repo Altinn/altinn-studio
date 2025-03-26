@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -22,10 +22,10 @@ export const FetchChangesPopover = (): React.ReactElement => {
     onPullSuccess,
   } = useVersionControlButtonsContext();
 
+  const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { org, app } = useStudioEnvironmentParams();
-  const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
+  const { refetch: fetchPullData } = useRepoPullQuery(owner, repoName, true);
   const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);

@@ -3,8 +3,8 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
-import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
+import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
+import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { useOpenSettingsModalBasedQueryParam } from '../hooks/useOpenSettingsModalBasedQueryParam';
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 /**
  * Displays the layout for the app development pages
@@ -63,12 +64,13 @@ type PagesToRenderProps = {
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   // Listen to URL-search params and opens settings-modal if params matches.
   useOpenSettingsModalBasedQueryParam();
+  const { org, app } = useStudioEnvironmentParams();
 
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {
     return <NotFoundPage />;
   }
   if (repoStatus?.hasMergeConflict) {
-    return <MergeConflictWarning />;
+    return <MergeConflictWarning owner={org} repoName={app} />;
   }
   return (
     <WebSocketSyncWrapper>

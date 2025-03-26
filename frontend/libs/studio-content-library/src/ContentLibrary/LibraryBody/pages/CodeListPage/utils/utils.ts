@@ -1,14 +1,14 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import type { CodeListData } from '../CodeListPage';
 import type { TextResources } from '../../../../../types/TextResources';
-import type { TextResource } from '@studio/components';
+import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 
 export const getCodeListSourcesById = (
-  codeListsUsages: CodeListReference[],
+  codeListsUsages: CodeListReference[] | undefined,
   codeListTitle: string,
 ): CodeListIdSource[] => {
-  const codeListUsages: CodeListReference | undefined = codeListsUsages.find(
+  const codeListUsages: CodeListReference | undefined = codeListsUsages?.find(
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
   return codeListUsages?.codeListIdSources ?? [];

@@ -4,8 +4,8 @@ import {
   StudioCodeListEditor,
   StudioModal,
   StudioTextfield,
-} from '@studio/components';
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components';
+} from '@studio/components-legacy';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
@@ -15,14 +15,14 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
 type CreateNewCodeListModalProps = {
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
 };
 
 export function CreateNewCodeListModal({
-  onChangeTextResource,
+  onBlurTextResource,
   onUpdateCodeList,
   codeListNames,
   textResources,
@@ -50,7 +50,7 @@ export function CreateNewCodeListModal({
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
-          onChangeTextResource={onChangeTextResource}
+          onBlurTextResource={onBlurTextResource}
           onUpdateCodeList={onUpdateCodeList}
           onCloseModal={handleCloseModal}
           textResources={textResources}
@@ -63,7 +63,7 @@ export function CreateNewCodeListModal({
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
-  onChangeTextResource?: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   onCloseModal: () => void;
   textResources?: TextResource[];
@@ -72,7 +72,7 @@ type CreateNewCodeListProps = {
 function CreateNewCodeList({
   codeList,
   codeListNames,
-  onChangeTextResource,
+  onBlurTextResource,
   onUpdateCodeList,
   onCloseModal,
   textResources,
@@ -133,8 +133,8 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
+          onBlurTextResource={onBlurTextResource}
           onChange={handleCodeListChange}
-          onChangeTextResource={onChangeTextResource}
           onInvalid={handleInvalidCodeList}
           texts={editorTexts}
           textResources={textResources}

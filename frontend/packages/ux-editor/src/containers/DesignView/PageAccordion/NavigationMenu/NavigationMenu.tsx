@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
-import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
+import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
+import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -22,22 +22,10 @@ export type NavigationMenuProps = {
  */
 export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
-
   const { org, app } = useStudioEnvironmentParams();
-
   const { selectedFormLayoutSetName } = useAppContext();
-
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-
-  const layoutOrder = formLayoutSettings?.pages?.order;
-  const disableUp = layoutOrder.indexOf(pageName) === 0;
-  const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
-
-  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { mutate: changePageOrder } = useChangePageOrderMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -45,10 +33,21 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const moveLayout = (action: 'up' | 'down') => {
-    if (action === 'up' || action === 'down') {
-      updateLayoutOrder({ layoutName: pageName, direction: action });
-    }
+  const pageIndex = pagesModel.pages.findIndex((page) => page.id === pageName);
+  const disableUp = pageIndex === 0;
+  const disableDown = pageIndex === pagesModel.pages.length - 1;
+
+  const moveLayoutUp = () => {
+    const page = pagesModel.pages.splice(pageIndex, 1)[0];
+    pagesModel.pages.splice(pageIndex - 1, 0, page);
+    changePageOrder(pagesModel);
+    setDropdownOpen(false);
+  };
+
+  const moveLayoutDown = () => {
+    const page = pagesModel.pages.splice(pageIndex, 1)[0];
+    pagesModel.pages.splice(pageIndex + 1, 0, page);
+    changePageOrder(pagesModel);
     setDropdownOpen(false);
   };
 
@@ -67,7 +66,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
         <DropdownMenu.Content>
           <DropdownMenu.Group>
             <DropdownMenu.Item
-              onClick={() => !disableUp && moveLayout('up')}
+              onClick={() => !disableUp && moveLayoutUp()}
               disabled={disableUp}
               id='move-page-up-button'
             >
@@ -75,7 +74,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
               {t('ux_editor.page_menu_up')}
             </DropdownMenu.Item>
             <DropdownMenu.Item
-              onClick={() => !disableDown && moveLayout('down')}
+              onClick={() => !disableDown && moveLayoutDown()}
               disabled={disableDown}
               id='move-page-down-button'
             >

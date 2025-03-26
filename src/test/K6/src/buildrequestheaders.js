@@ -1,3 +1,5 @@
+import * as config from './config.js';
+
 const appsAccessSubscriptionKey = __ENV.appsaccesskey;
 const sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
@@ -69,7 +71,7 @@ export function buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, api) {
 //Function to build headers with .aspxauth cookie
 export function buildHeaderWithAspxAuth(aspxauthCookie, api) {
   var params = {
-    cookies: { '.ASPXAUTH': aspxauthCookie },
+    cookies: { [config.authCookieName]: aspxauthCookie },
   };
   params = addSubscriptionKey(params, appsAccessSubscriptionKey, api);
   return params;

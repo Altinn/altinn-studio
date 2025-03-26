@@ -36,7 +36,7 @@ const router = createBrowserRouter(
           <Route
             key={route.path}
             path={route.path}
-            element={<route.subapp {...route.props} />}
+            element={<route.subapp />}
             errorElement={<RouteErrorBoundary />}
           />
         ))}

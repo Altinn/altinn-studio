@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@studio/components-legacy';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { ManualTab } from './ManualTab';
