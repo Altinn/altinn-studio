@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioHeading, StudioHeadingProps } from './StudioHeading';
+import { StudioHeading, type StudioHeadingProps } from './StudioHeading';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 const mockHeading: string = 'Test Heading';
