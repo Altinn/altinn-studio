@@ -15,7 +15,7 @@ import {
   DASHBOARD_ROOT_ROUTE,
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
-import { OrgContentLibrary } from '../pages/OrgContentLibrary';
+import { OrgContentLibraryPage } from '../pages/OrgContentLibraryPage';
 import { useSubroute } from '../hooks/useSubRoute';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { Organization } from 'app-shared/types/Organization';
@@ -98,6 +98,6 @@ function SubrouteGuard(props: AppWithDataProps): React.ReactElement {
       return <Dashboard {...props} />;
 
     case ORG_LIBRARY_BASENAME:
-      return <OrgContentLibrary />;
+      return <OrgContentLibraryPage />;
   }
 }
