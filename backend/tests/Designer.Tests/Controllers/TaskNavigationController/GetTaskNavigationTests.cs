@@ -11,12 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TaskNavigationController
 {
-    public class GetTaskNavigationTests : DesignerEndpointsTestsBase<GetTaskNavigationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetTaskNavigationTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetTaskNavigationTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/task-navigation";
-        public GetTaskNavigationTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
 
         [Theory]
         [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
