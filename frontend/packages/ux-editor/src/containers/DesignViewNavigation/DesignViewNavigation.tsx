@@ -10,7 +10,7 @@ export const DesignViewNavigation = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <div className={classes.container}>
+    <div className={classes.container} data-testid='design-view-navigation'>
       <StudioSectionHeader
         heading={{
           text: t('ux_editor.page_layout_header'),

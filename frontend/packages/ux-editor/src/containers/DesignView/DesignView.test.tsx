@@ -24,6 +24,13 @@ import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn(),
+  FeatureFlag: {
+    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
+  },
+}));
+
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
@@ -124,6 +131,28 @@ describe('DesignView', () => {
     const pdfAccordionButton = screen.getByRole('button', { name: pdfLayoutName });
     expect(pdfAccordionButton).toBeInTheDocument();
     consoleWarnSpy.mockRestore();
+  });
+
+  it('renders DesignViewNavigation when isTaskNavigationPageGroups is true', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(true);
+    renderDesignView();
+    expect(screen.getByTestId('design-view-navigation')).toBeInTheDocument();
+  });
+
+  it('does not render DesignViewNavigation when isTaskNavigationPageGroups is false', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(false);
+    renderDesignView();
+    expect(screen.queryByTestId('design-view-navigation')).not.toBeInTheDocument();
+  });
+
+  it('does not render Accordion when pagesModel has no pages', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(false);
+    renderDesignView({ ...formLayoutSettingsMock, pages: { order: [] } });
+    const accordion = screen.queryByRole('group', { name: /accordion/i });
+    expect(accordion).not.toBeInTheDocument();
   });
 });
 const renderDesignView = (

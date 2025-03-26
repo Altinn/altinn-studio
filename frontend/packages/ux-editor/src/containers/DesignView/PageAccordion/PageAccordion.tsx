@@ -65,17 +65,19 @@ export const PageAccordion = ({
     <Accordion>
       <Accordion.Item open={isOpen}>
         <div className={classes.accordionHeaderRow}>
-          <Accordion.Header
+          <div
+            data-testid='accordion-header-wrapper'
             className={
               isInvalid || hasDuplicatedIds
                 ? classes.accordionHeaderWarning
                 : classes.accordionHeader
             }
-            level={3}
-            onHeaderClick={onClick}
           >
-            {pageName}
-          </Accordion.Header>
+            <Accordion.Header level={3} onHeaderClick={onClick}>
+              {pageName}
+            </Accordion.Header>
+          </div>
+
           <div className={classes.navigationMenu}>
             {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
             {showNavigationMenu && <NavigationMenu pageName={pageName} />}
