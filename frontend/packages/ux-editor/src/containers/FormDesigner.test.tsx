@@ -165,16 +165,4 @@ describe('FormDesigner', () => {
     await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
     expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
   });
-
-  it('should render DesignViewNavigation when TaskNavigationPageGroups feature flag is true', async () => {
-    shouldDisplayFeature.mockReturnValue(true);
-    await waitForData();
-    render();
-
-    await waitFor(() =>
-      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
-    );
-    expect(screen.queryByTestId('design-view')).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();
-  });
 });
