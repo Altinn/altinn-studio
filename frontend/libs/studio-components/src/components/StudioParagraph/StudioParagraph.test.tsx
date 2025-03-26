@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioParagraph, StudioParagraphProps } from './StudioParagraph';
+import { StudioParagraph, type StudioParagraphProps } from './StudioParagraph';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 const mockText: string = 'Test Paragraph';
