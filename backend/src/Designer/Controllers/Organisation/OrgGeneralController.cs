@@ -13,9 +13,6 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [Route("designer/api/{org}")]
 public class OrgGeneralController : ControllerBase
 {
-    private const string CodeList = "codeList";
-    private const string TextResource = "textResource";
-
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
 
@@ -36,21 +33,20 @@ public class OrgGeneralController : ControllerBase
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="resourceType">The type of resource to return the names of. For example code lists or text resources. </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The JSON config</returns>
     [HttpGet]
     [Route("resources/{resourceType}")]
-    public ActionResult<List<string>> GetListOfResources(string resourceType, string org, CancellationToken cancellationToken = default)
+    public ActionResult<List<string>> GetListOfResources(LibraryResourceType resourceType, string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         switch (resourceType)
         {
-            case CodeList:
+            case LibraryResourceType.CodeList:
                 {
                     // Replace with call to orgCodeListService
                     List<string> codeListResult = ["dummyCodeList1", "dummyCodeList2"];
                     return Ok(codeListResult);
                 }
-            case TextResource:
+            case LibraryResourceType.TextResource:
                 {
                     // Replace with call to orgTextsService
                     List<string> textResourceResult = ["dummyTextResource1", "dummyTextResource2"];
