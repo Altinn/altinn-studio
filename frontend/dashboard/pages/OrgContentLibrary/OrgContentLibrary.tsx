@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListData,
