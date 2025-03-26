@@ -24,14 +24,14 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build
-        working-directory: frontend/libs/studio-components
+        working-directory: frontend/libs/studio-components-legacy
         run: yarn build-storybook
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages-storybook
-          path: frontend/libs/studio-components/storybook-static
+          path: frontend/libs/studio-components-legacy/storybook-static
 
   deploy:
     needs: build
