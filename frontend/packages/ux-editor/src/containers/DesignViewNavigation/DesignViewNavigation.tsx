@@ -13,7 +13,7 @@ export const DesignViewNavigation = () => {
     <div className={classes.container}>
       <StudioSectionHeader
         heading={{
-          text: t('ux_editor.side_oppsett_header'),
+          text: t('ux_editor.page_layout_header'),
           level: 2,
         }}
         menu={
@@ -36,16 +36,16 @@ export const DesignViewNavigation = () => {
               <DropdownMenu.Group>
                 {/*Functionality and the number of items will be implemented based on the upcoming requirements.*/}
                 <DropdownMenu.Item onClick={undefined}>
-                  {t('ux_editor.side_oppsett_perfome_another_task')}
+                  {t('ux_editor.page_layout_perfome_another_task')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
                   <MinusCircleIcon />
 
-                  {t('ux_editor.side_oppsett_remove_group_division')}
+                  {t('ux_editor.page_layout_remove_group_division')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
                   <PlusCircleIcon />
-                  {t('ux_editor.side_oppsett_add_group_division')}
+                  {t('ux_editor.page_layout_add_group_division')}
                 </DropdownMenu.Item>
               </DropdownMenu.Group>
             </DropdownMenu.Content>
