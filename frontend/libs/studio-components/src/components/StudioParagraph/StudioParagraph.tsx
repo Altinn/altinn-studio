@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paragraph, ParagraphProps } from '@digdir/designsystemet-react';
+import { Paragraph, type ParagraphProps } from '@digdir/designsystemet-react';
 
 export type StudioParagraphProps = ParagraphProps;
 
