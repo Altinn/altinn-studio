@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioButton, StudioParagraph } from '@studio/components';
+import { StudioAvatar, StudioButton, StudioParagraph } from '@studio/components-legacy';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useHeaderContext } from '../../../../context/HeaderContext';

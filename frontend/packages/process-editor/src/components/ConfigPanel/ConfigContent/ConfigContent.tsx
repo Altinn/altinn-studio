@@ -3,7 +3,10 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
+import {
+  StudioDisplayTile,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components-legacy';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';
@@ -36,7 +39,9 @@ export const ConfigContent = (): React.ReactElement => {
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
-  const isTaskNavigationEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards);
+  const isTaskNavigationEditCardsEnabled = shouldDisplayFeature(
+    FeatureFlag.TaskNavigationEditCards,
+  );
 
   if (shouldDisplayAction(bpmnDetails.id)) {
     return (
@@ -67,7 +72,7 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
-          {!isTaskNavigationEnabled && taskHasConnectedLayoutSet && (
+          {!isTaskNavigationEditCardsEnabled && taskHasConnectedLayoutSet && (
             /*We just hide the accordion for now, It will be removed when we remove featureFlags*/
             <Accordion.Item>
               <Accordion.Header>

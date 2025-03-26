@@ -8,7 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type AddItemContentProps = {

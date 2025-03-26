@@ -4,7 +4,7 @@ import {
   StudioParagraph,
   StudioNativeSelect,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ResourceContactPoint, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { HelpText } from '@digdir/designsystemet-react';
-import { StudioFieldset, StudioTextfield } from '@studio/components';
+import { StudioFieldset, StudioTextfield } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
