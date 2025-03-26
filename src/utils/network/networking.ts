@@ -48,7 +48,7 @@ export async function httpDelete(url: string, options?: AxiosRequestConfig): Pro
 export async function putWithoutConfig<ReturnType>(url: string): Promise<ReturnType> {
   try {
     const response = await axios.put(url);
-    return response.data ? response.data : null;
+    return response.data;
   } catch (err) {
     throw new Error(`HTTP Call failed: ${err.message}`);
   }

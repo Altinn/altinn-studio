@@ -8,7 +8,7 @@ export async function httpGet<T>(url: string, options?: AxiosRequestConfig): Pro
     headers: { Pragma: 'no-cache' },
     ...options,
   });
-  return response.data ? response.data : null;
+  return response.data;
 }
 
 export async function httpPut<T, D = unknown>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> {

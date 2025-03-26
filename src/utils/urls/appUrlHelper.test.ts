@@ -88,6 +88,7 @@ describe('Frontend urlHelper.ts', () => {
       const oldWindowLocation = window.location;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).location;
+      // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
       window.location = {
         ...oldWindowLocation,
         ...location,
@@ -145,6 +146,7 @@ describe('Frontend urlHelper.ts', () => {
         const oldWindowLocation = window.location;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (window as any).location;
+        // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
         window.location = {
           ...oldWindowLocation,
           origin: 'https://ttd.apps.altinn.no',
