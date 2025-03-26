@@ -7,6 +7,7 @@ export enum QueryKey {
   AppVersion = 'AppVersion',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
+  CodeListTitles = 'CodeListTitles',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
