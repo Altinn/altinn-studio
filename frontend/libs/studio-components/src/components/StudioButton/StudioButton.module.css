@@ -1,0 +1,18 @@
+.studioButton {
+  display: inline-flex;
+  gap: var(--ds-size-1);
+}
+
+.innerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.iconWrapper {
+  display: contents;
+}
+
+.smallWithIconOnly {
+  min-height: var(--ds-size-8);
+}
