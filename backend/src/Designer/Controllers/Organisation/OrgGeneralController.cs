@@ -28,14 +28,14 @@ public class OrgGeneralController : ControllerBase
     }
 
     /// <summary>
-    /// Returns available resources from an organisation, based on the requested type.
+    /// Returns names of available resources from an organisation, based on the requested type.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="resourceType">The type of resource to return the names of. For example code lists or text resources. </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("resources/{resourceType}")]
-    public ActionResult<List<string>> GetListOfResources(LibraryResourceType resourceType, string org, CancellationToken cancellationToken = default)
+    public ActionResult<List<string>> GetResourceList(LibraryResourceType resourceType, string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         switch (resourceType)
@@ -53,7 +53,7 @@ public class OrgGeneralController : ControllerBase
                     return Ok(textResourceResult);
                 }
             default:
-                throw new ArgumentOutOfRangeException(nameof(resourceType), resourceType, null);
+                return BadRequest($"{resourceType} is not a valid member of {nameof(LibraryResourceType)}.");
         }
     }
 }
