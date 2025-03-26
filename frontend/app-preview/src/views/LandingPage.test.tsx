@@ -8,6 +8,8 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -32,7 +34,10 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 describe('LandingPage', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    jest.clearAllMocks();
+    typedLocalStorage.removeItem('layoutSet/' + app);
+  });
 
   it('should display a spinner initially when loading user', () => {
     renderLandingPage();
@@ -91,10 +96,13 @@ describe('LandingPage', () => {
   });
 
   it('should display a warning message when previewing a subform', async () => {
+    typedLocalStorage.setItem('layoutSet/' + app, layoutSet3SubformNameMock);
     renderLandingPage({
       getLayoutSets: jest
         .fn()
-        .mockImplementation(() => Promise.resolve({ sets: [{ id: '', type: 'subform' }] })),
+        .mockImplementation(() =>
+          Promise.resolve({ sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] }),
+        ),
     });
 
     await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));

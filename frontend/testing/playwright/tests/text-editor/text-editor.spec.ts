@@ -216,6 +216,7 @@ const navigateToUiEditorAndVerifyPage = async (
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
+  await uiEditorPage.clickOnUxEditorButton();
   await uiEditorPage.clickOnPageAccordion(PAGE_1);
   await uiEditorPage.verifyUiEditorPage(PAGE_1);
 };
