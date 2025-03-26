@@ -1,1 +1,1 @@
-export { StudioButton } from './StudioButton';
+export { StudioDropdown } from './StudioDropdown';

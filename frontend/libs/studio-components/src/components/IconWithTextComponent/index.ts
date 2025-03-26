@@ -1,0 +1,1 @@
+export { IconWithTextComponent } from './IconWithTextComponent';
