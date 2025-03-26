@@ -21,7 +21,7 @@ describe('StudioHeading', () => {
     expect(getHeading(mockHeading).getAttribute('data-size')).toBe('lg');
   });
 
-  it('applies custom data-size correctly', () => {
+  it('applies custom level prop correctly', () => {
     renderStudioHeading({ level: 1 });
     expect(getHeading(mockHeading, 1)).toBeInTheDocument();
   });
