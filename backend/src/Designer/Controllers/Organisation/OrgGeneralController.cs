@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +13,9 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [Route("designer/api/{org}")]
 public class OrgGeneralController : ControllerBase
 {
+    private const string CodeList = "codeList";
+    private const string TextResource = "textResource";
+
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
 
@@ -37,20 +42,22 @@ public class OrgGeneralController : ControllerBase
     public ActionResult<List<string>> GetListOfResources(string resourceType, string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (resourceType == "codeList")
+        switch (resourceType)
         {
-            // Replace with call to orgCodeListService
-            List<string> result = ["dummyCodeList1", "dummyCodeList2"];
-            return Ok(result);
+            case CodeList:
+                {
+                    // Replace with call to orgCodeListService
+                    List<string> codeListResult = ["dummyCodeList1", "dummyCodeList2"];
+                    return Ok(codeListResult);
+                }
+            case TextResource:
+                {
+                    // Replace with call to orgTextsService
+                    List<string> textResourceResult = ["dummyTextResource1", "dummyTextResource2"];
+                    return Ok(textResourceResult);
+                }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(resourceType), resourceType, null);
         }
-
-        if (resourceType == "textResource")
-        {
-            // Replace with call to orgTextsService
-            List<string> result = ["dummyTextResource1", "dummyTextResource2"];
-            return Ok(result);
-        }
-
-        return NotFound();
     }
 }
