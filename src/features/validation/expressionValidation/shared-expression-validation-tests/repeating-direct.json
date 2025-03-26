@@ -1,5 +1,5 @@
 {
-  "name": "Should work in repeating groups",
+  "name": "Should work in repeating groups when refering to the data model path directly",
   "expects": [
     {
       "message": "none is not allowed",
@@ -23,7 +23,7 @@
       "none-is-not-allowed": {
         "message": "none is not allowed",
         "severity": "error",
-        "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
+        "condition": ["equals", ["dataModel", "form.names.name"], "none"]
       }
     }
   },

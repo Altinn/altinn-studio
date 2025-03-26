@@ -1,5 +1,5 @@
 {
-  "name": "Should return all of the correct errors",
+  "name": "Should return all of the correct errors when referring to the data model path directly",
   "expects": [
     {
       "message": "none is not allowed",
@@ -35,7 +35,7 @@
         {
           "message": "this should not be shown",
           "severity": "warning",
-          "condition": ["startsWith", ["dataModel", ["argv", 0]], "a"]
+          "condition": ["startsWith", ["dataModel", "form.name"], "a"]
         }
       ],
       "form.email": [
@@ -43,20 +43,20 @@
         {
           "message": "email must be real",
           "severity": "error",
-          "condition": ["contains", ["dataModel", ["argv", 0]], "fake"]
+          "condition": ["contains", ["dataModel", "form.email"], "fake"]
         },
         {
           "ref": "str-len",
           "condition": [
             "lessThan",
-            ["stringLength", ["dataModel", ["argv", 0]]],
+            ["stringLength", ["dataModel", "form.email"]],
             20
           ]
         },
         {
           "message": "email must contain @",
           "severity": "error",
-          "condition": ["notContains", ["dataModel", ["argv", 0]], "@"]
+          "condition": ["notContains", ["dataModel", "form.email"], "@"]
         }
       ]
     },
