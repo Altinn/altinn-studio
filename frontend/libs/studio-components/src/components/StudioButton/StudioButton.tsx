@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react';
 import classes from './StudioButton.module.css';
 import cn from 'classnames';
 import { Button, type ButtonProps } from '@digdir/designsystemet-react';
-import { IconPlacement } from '../../types/IconPlacement';
+import type { IconPlacement } from '../../types/IconPlacement';
 
 export type StudioButtonProps = {
   icon?: ReactNode;
