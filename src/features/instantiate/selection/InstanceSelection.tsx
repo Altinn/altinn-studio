@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import type { MouseEventHandler } from 'react';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
-import { Edit as EditIcon } from '@navikt/ds-icons';
+import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Pagination } from 'src/app-components/Pagination/Pagination';
@@ -139,7 +139,7 @@ function InstanceSelection() {
                       onMouseDown={handleOpenInstance}
                       aria-label={`${langAsString('instance_selection.continue')}`}
                     >
-                      <EditIcon fontSize='1rem' />
+                      <PencilIcon fontSize='1rem' />
                     </Button>
                   </div>
                 </Table.Cell>
@@ -209,7 +209,7 @@ function InstanceSelection() {
                     }}
                   >
                     <Lang id='instance_selection.continue' />
-                    <EditIcon
+                    <PencilIcon
                       fontSize='1rem'
                       title={langAsString('instance_selection.continue')}
                     />

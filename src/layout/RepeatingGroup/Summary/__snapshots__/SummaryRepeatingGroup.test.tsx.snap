@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
+exports[`SummaryRepeatingGroup SummaryRepeatingGroup -- should match snapshot 1`] = `
 <DocumentFragment>
   <div
     style="display: none;"
@@ -40,7 +40,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
         >
           <path
             clip-rule="evenodd"
-            d="M22.835 1.165a3.976 3.976 0 0 1 0 5.623L8.073 21.549.682 24 0 23.318l2.45-7.392L17.21 1.165a3.977 3.977 0 0 1 5.624 0Zm-4.218 7.029-2.811-2.812L4.188 17l-1.393 4.205 4.207-1.395L18.618 8.194ZM21.43 2.57a1.989 1.989 0 0 0-2.703-.1l-.108.1-1.406 1.406 2.811 2.812 1.406-1.406a1.988 1.988 0 0 0 .101-2.703l-.1-.109Z"
+            d="M19.638 4.417a3.25 3.25 0 0 0-4.608-.008l-9.378 9.379a.75.75 0 0 0-.191.324l-1.414 4.95a.75.75 0 0 0 .925.927l4.94-1.398a.75.75 0 0 0 .327-.191l9.39-9.391a3.25 3.25 0 0 0 .01-4.592M16.091 5.47a1.752 1.752 0 1 1 2.478 2.478l-.23.23-2.477-2.479zM14.8 6.76 6.85 14.71l-.991 3.47 3.457-.979 7.963-7.963z"
             fill="currentColor"
             fill-rule="evenodd"
           />

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Edit } from '@navikt/ds-icons';
+import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/layout/Summary/EditButton.module.css';
@@ -21,7 +21,7 @@ export function EditButton(props: IEditButtonProps) {
       aria-label={`${props.editText}: ${props.label}`}
     >
       {props.editText}
-      <Edit
+      <PencilIcon
         fontSize='1rem'
         aria-hidden={true}
       />

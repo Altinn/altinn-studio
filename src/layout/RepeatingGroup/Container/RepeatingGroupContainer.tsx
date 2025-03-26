@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { Add as AddIcon } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -189,7 +189,7 @@ function AddButton() {
       disabled={currentlyAddingRow}
       fullWidth
     >
-      <AddIcon
+      <PlusIcon
         fontSize='1.5rem'
         aria-hidden='true'
       />

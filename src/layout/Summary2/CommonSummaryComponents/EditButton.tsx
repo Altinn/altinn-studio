@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Edit } from '@navikt/ds-icons';
+import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
@@ -93,7 +93,7 @@ export function EditButton({
       className={className}
     >
       {!isMobile && <Lang id='general.edit' />}
-      <Edit
+      <PencilIcon
         aria-hidden
         fontSize='1rem'
         title={`${isMobile ? langAsString('form_filler.summary_item_change') : ''} ${accessibleTitle}`}

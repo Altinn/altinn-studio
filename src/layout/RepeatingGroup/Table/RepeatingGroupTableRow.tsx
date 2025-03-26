@@ -2,7 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
-import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
+import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
@@ -257,12 +257,15 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                 >
                   {editButtonText}
                   {rowHasErrors ? (
-                    <ErrorIcon
-                      fontSize='1rem'
-                      aria-hidden='true'
-                    />
+                    <span style={{ color: '#C30000' }}>
+                      <XMarkOctagonFillIcon
+                        fontSize='1rem'
+                        aria-hidden='true'
+                        style={{ verticalAlign: 'middle' }}
+                      />
+                    </span>
                   ) : (
-                    <EditIcon
+                    <PencilIcon
                       fontSize='1rem'
                       aria-hidden='true'
                     />
@@ -314,12 +317,15 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
               >
                 {(isEditingRow || !mobileViewSmall) && editButtonText}
                 {rowHasErrors ? (
-                  <ErrorIcon
-                    fontSize='1rem'
-                    aria-hidden='true'
-                  />
+                  <span style={{ color: '#C30000' }}>
+                    <XMarkOctagonFillIcon
+                      fontSize='1rem'
+                      aria-hidden='true'
+                      style={{ verticalAlign: 'middle' }}
+                    />
+                  </span>
                 ) : (
-                  <EditIcon
+                  <PencilIcon
                     fontSize='1rem'
                     aria-hidden='true'
                   />
@@ -422,7 +428,7 @@ function DeleteElement({
         className={classes.tableButton}
       >
         {children}
-        <DeleteIcon
+        <TrashIcon
           fontSize='1rem'
           aria-hidden='true'
         />

@@ -1,21 +1,21 @@
 import React from 'react';
 
-import { Email, Information, Telephone } from '@navikt/ds-icons';
+import { EnvelopeClosedIcon, InformationSquareIcon, PhoneIcon } from '@navikt/aksel-icons';
 
 import type { IFooterIcon } from 'src/features/footer/types';
 
 interface FooterIconProps {
   icon: IFooterIcon;
 }
-type Icon = typeof Email;
+type Icon = typeof EnvelopeClosedIcon;
 type IFooterIconMap = {
   [K in IFooterIcon]: Icon;
 };
 
 const FooterIconMap: IFooterIconMap = {
-  email: Email,
-  information: Information,
-  phone: Telephone,
+  email: EnvelopeClosedIcon,
+  information: InformationSquareIcon,
+  phone: PhoneIcon,
 };
 
 export const FooterIcon = ({ icon }: FooterIconProps) => {

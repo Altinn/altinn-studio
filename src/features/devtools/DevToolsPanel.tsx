@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import type { ErrorInfo, PropsWithChildren } from 'react';
 
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/DevTools.module.css';
@@ -84,7 +84,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
                   aria-label='close'
                   icon={true}
                 >
-                  <Close
+                  <XMarkIcon
                     fontSize='1rem'
                     aria-hidden
                   />

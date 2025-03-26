@@ -2904,13 +2904,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:7.14.2":
-  version: 7.14.2
-  resolution: "@navikt/aksel-icons@npm:7.14.2"
-  checksum: 10c0/2bf6cb4aa929664897049782f04da67f2ada4b3dc4431cb8994080ab369fe0ac4d63190ffc4fd12882eb447d567c6eb656d9b8a6d6bc3d0ae0acbf2e176fff2e
-  languageName: node
-  linkType: hard
-
 "@navikt/aksel-icons@npm:^5.12.2":
   version: 5.18.3
   resolution: "@navikt/aksel-icons@npm:5.18.3"
@@ -2918,16 +2911,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/ds-icons@npm:^3.4.3":
-  version: 3.4.3
-  resolution: "@navikt/ds-icons@npm:3.4.3"
-  peerDependencies:
-    "@types/react": ^17.0.30 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10c0/959b68c3f2947aa6a8ddba1827d22e7071934790b001f24833823150f90cde6e6eaf08ca2215427a99b6e52a81ac9e82ecc3bb50dda36eefe6d1cd10d41436f1
+"@navikt/aksel-icons@npm:^7.17.4":
+  version: 7.17.4
+  resolution: "@navikt/aksel-icons@npm:7.17.4"
+  checksum: 10c0/0eb9fe03b28433fda5fe349858969f88f0384f9bb0d99ff244f7ad9f8cb206ca7e1130591aec255ae89e77ede1f692f9162b8a122be24e74a9a44536fbfdc06a
   languageName: node
   linkType: hard
 
@@ -4967,8 +4954,7 @@ __metadata:
     "@eslint/compat": "npm:1.2.7"
     "@faker-js/faker": "npm:9.5.0"
     "@material-ui/core": "npm:4.12.4"
-    "@navikt/aksel-icons": "npm:7.14.2"
-    "@navikt/ds-icons": "npm:^3.4.3"
+    "@navikt/aksel-icons": "npm:^7.17.4"
     "@percy/cli": "npm:1.30.7"
     "@percy/cypress": "npm:3.1.4"
     "@pmmmwh/react-refresh-webpack-plugin": "npm:0.5.15"

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Alert } from '@digdir/designsystemet-react';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -133,7 +133,7 @@ export const LayoutInspector = () => {
                 aria-label='close'
                 icon={true}
               >
-                <Close
+                <XMarkIcon
                   fontSize='1rem'
                   aria-hidden
                 />

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button } from '@digdir/designsystemet-react';
-import { FullscreenEnter, FullscreenExit } from '@navikt/ds-icons';
+import { ExpandIcon, ShrinkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/ExpandWidthButton.module.css';
@@ -23,7 +23,7 @@ export function ExpandWidthButton(props: Parameters<typeof Button>[0]) {
     >
       {expandedWidth ? (
         <>
-          <FullscreenExit
+          <ShrinkIcon
             className={classes.expandWidthIcon}
             aria-hidden
           />
@@ -31,7 +31,7 @@ export function ExpandWidthButton(props: Parameters<typeof Button>[0]) {
         </>
       ) : (
         <>
-          <FullscreenEnter
+          <ExpandIcon
             className={classes.expandWidthIcon}
             aria-hidden
           />

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
+import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
@@ -135,7 +135,7 @@ function RepeatingGroupsEditContainerInternal({
               data-testid='delete-button'
             >
               <Lang id='general.delete' />
-              <DeleteIcon fontSize='1rem' />
+              <TrashIcon fontSize='1rem' />
             </Button>
           </Flex>
         </Flex>
@@ -180,7 +180,7 @@ function RepeatingGroupsEditContainerInternal({
                     onClick={() => prevMultiPage()}
                     disabled={!isFresh}
                   >
-                    <Back
+                    <ChevronLeftIcon
                       fontSize='1rem'
                       aria-hidden='true'
                     />
@@ -197,7 +197,7 @@ function RepeatingGroupsEditContainerInternal({
                     disabled={!isFresh}
                   >
                     <Lang id='general.next' />
-                    <Next
+                    <ChevronRightIcon
                       fontSize='1rem'
                       aria-hidden='true'
                     />

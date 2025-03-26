@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { Alert, Button } from '@digdir/designsystemet-react';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -59,7 +59,7 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
           onClick={handleClose}
           aria-label={langAsString('general.close')}
         >
-          <Close
+          <XMarkIcon
             fontSize='1rem'
             aria-hidden='true'
           />

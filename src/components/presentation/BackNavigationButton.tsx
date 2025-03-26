@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Spinner } from '@digdir/designsystemet-react';
-import { Left } from '@navikt/ds-icons';
+import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
@@ -51,7 +51,7 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         className={cn(classes.button, props.className)}
       >
         {!isExitingSubform && (
-          <Left
+          <ArrowLeftIcon
             fontSize='1rem'
             aria-hidden
           />
@@ -74,7 +74,7 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         className={cn(classes.button, props.className)}
       >
         <a href={returnUrl}>
-          <Left
+          <ArrowLeftIcon
             fontSize='1rem'
             aria-hidden
           />
@@ -94,7 +94,7 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
         className={cn(classes.button, props.className)}
       >
         <a href={messageBoxUrl}>
-          <Left
+          <ArrowLeftIcon
             fontSize='1rem'
             aria-hidden
           />

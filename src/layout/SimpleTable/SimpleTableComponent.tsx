@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { Link } from '@digdir/designsystemet-react';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@navikt/ds-icons';
+import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
 
 import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
@@ -62,7 +62,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
         });
       },
       buttonText: <Lang id='general.delete' />,
-      icon: <DeleteIcon />,
+      icon: <TrashIcon />,
       color: 'danger',
     });
   }
@@ -74,7 +74,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
         setShowEdit(true);
       },
       buttonText: <Lang id='general.edit' />,
-      icon: <EditIcon />,
+      icon: <PencilIcon />,
       variant: 'tertiary',
       color: 'second',
     });

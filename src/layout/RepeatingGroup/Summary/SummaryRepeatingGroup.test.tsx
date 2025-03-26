@@ -9,14 +9,14 @@ import { renderWithNode } from 'src/test/renderWithProviders';
 import { useNode } from 'src/utils/layout/NodesContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-describe('SummaryGroupComponent', () => {
+describe('SummaryRepeatingGroup', () => {
   let mockHandleDataChange: () => void;
 
   beforeEach(() => {
     mockHandleDataChange = jest.fn();
   });
 
-  test('SummaryGroupComponent -- should match snapshot', async () => {
+  test('SummaryRepeatingGroup -- should match snapshot', async () => {
     const { asFragment } = await render();
     expect(asFragment()).toMatchSnapshot();
   });
