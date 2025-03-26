@@ -154,49 +154,57 @@ export const DesignView = (): ReactNode => {
 
   const displayGroupAccordions = !mockGroups.length
     ? null
-    : mockGroups.map((group) => (
-        <div key={group.name}>
-          <div className={classes.groupHeaderWrapper}>
-            <div className={classes.container}>
-              <FolderIcon aria-hidden className={classes.liftIcon} />
-              <StudioHeading level={3} size='2xs'>
-                {group.name}
-              </StudioHeading>
-            </div>
-            <DragVerticalIcon aria-hidden className={classes.rightIcon} />
-          </div>
-
-          {group.pages.map((page) => {
-            const layout = formLayoutData?.find((formLayout) => formLayout.page === page.id);
-            if (!layout) return null;
-
-            const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
-
-            return (
-              <div key={page.id} className={classes.groupAccordionWrapper}>
-                <PageAccordion
-                  key={page.id}
-                  pageName={page.id}
-                  isOpen={page.id === selectedFormLayoutName}
-                  onClick={() => handleClickAccordion(page.id)}
-                  isInvalid={isInvalidLayout}
-                  hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
-                    page.id,
-                  )}
-                >
-                  {page.id === selectedFormLayoutName && (
-                    <FormLayout
-                      layout={layout.data}
-                      isInvalid={isInvalidLayout}
-                      duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
-                    />
-                  )}
-                </PageAccordion>
+    : mockGroups.map((group) => {
+        if (!group.pages || group.pages.length === 0) {
+          return null;
+        }
+        return (
+          <div key={group.name}>
+            <div className={classes.groupHeaderWrapper}>
+              <div className={classes.container}>
+                <FolderIcon aria-hidden className={classes.liftIcon} />
+                <StudioHeading level={3} size='2xs'>
+                  {group.name}
+                </StudioHeading>
               </div>
-            );
-          })}
-        </div>
-      ));
+              <DragVerticalIcon aria-hidden className={classes.rightIcon} />
+            </div>
+
+            {group.pages.map((page) => {
+              const layout = formLayoutData?.find((formLayout) => formLayout.page === page.id);
+              if (!layout) {
+                console.warn(`Layout not found for page: ${page.id}`);
+                return null;
+              }
+
+              const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
+
+              return (
+                <div key={page.id} className={classes.groupAccordionWrapper}>
+                  <PageAccordion
+                    key={page.id}
+                    pageName={page.id}
+                    isOpen={page.id === selectedFormLayoutName}
+                    onClick={() => handleClickAccordion(page.id)}
+                    isInvalid={isInvalidLayout}
+                    hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
+                      page.id,
+                    )}
+                  >
+                    {page.id === selectedFormLayoutName && (
+                      <FormLayout
+                        layout={layout.data}
+                        isInvalid={isInvalidLayout}
+                        duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
+                      />
+                    )}
+                  </PageAccordion>
+                </div>
+              );
+            })}
+          </div>
+        );
+      });
 
   const hasGroups = mockGroups.length > 0;
   const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);

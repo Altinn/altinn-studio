@@ -58,6 +58,7 @@ describe('DesignView', () => {
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView(
       {
         ...formLayoutSettingsMock,
@@ -73,6 +74,7 @@ describe('DesignView', () => {
     expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       id: `${textMock('ux_editor.page')}${4}`,
     });
+    consoleWarnSpy.mockRestore();
   });
 
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
@@ -114,12 +116,14 @@ describe('DesignView', () => {
 
   it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
     const pdfLayoutName = 'pdfLayoutName';
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView(
       { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
       { [pdfLayoutName]: layout1Mock },
     );
     const pdfAccordionButton = screen.getByRole('button', { name: pdfLayoutName });
     expect(pdfAccordionButton).toBeInTheDocument();
+    consoleWarnSpy.mockRestore();
   });
 });
 const renderDesignView = (
