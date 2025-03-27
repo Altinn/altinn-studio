@@ -24,7 +24,7 @@ export const TaskCardBar = () => {
       ))}
       <AddNewTask />
       {/** featureFlags will be added to AddSubformCard componenet which will be created in this issue: #15036 */}
-      {isTaskNavigationSubformEnabled && true}
+      {isTaskNavigationSubformEnabled}
     </div>
   );
 };
