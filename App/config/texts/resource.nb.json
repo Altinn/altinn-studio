@@ -306,6 +306,10 @@
     {
       "id": "CardsPage-text-Input",
       "value": "Skriv et navn"
+    },
+    {
+      "id": "AttachmentListPage",
+      "value": "Vedleggsliste"
     }
   ]
 }
