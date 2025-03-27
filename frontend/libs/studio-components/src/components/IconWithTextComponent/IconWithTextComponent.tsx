@@ -11,7 +11,7 @@ export type IconWithTextComponentProps = {
 
 export function IconWithTextComponent({
   icon,
-  iconPlacement,
+  iconPlacement = 'left',
   children,
 }: IconWithTextComponentProps): ReactElement {
   const iconComponent = (

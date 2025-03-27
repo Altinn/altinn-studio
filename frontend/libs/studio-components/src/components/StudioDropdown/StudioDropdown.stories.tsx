@@ -23,7 +23,20 @@ const meta: Meta = {
   argTypes: {
     placement: {
       control: 'radio',
-      options: ['top', 'right', 'bottom', 'left', 'start', 'end'],
+      options: [
+        'top',
+        'right',
+        'bottom',
+        'left',
+        'bottom-start',
+        'bottom-end',
+        'top-start',
+        'top-end',
+        'right-start',
+        'right-end',
+        'left-start',
+        'left-end',
+      ],
     },
   },
 };
