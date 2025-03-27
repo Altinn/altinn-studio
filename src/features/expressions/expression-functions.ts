@@ -685,10 +685,12 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
     return string.startsWith(stringToMatch);
   },
-  stringReplace(string, search, replace) {
-    if (!string || !search || replace === null) {
+  stringReplace(string, search, _replace) {
+    if (!string || !search) {
       return null;
     }
+
+    const replace = _replace === null ? '' : _replace;
     return string.replace(new RegExp(escapeStringRegexp(search), 'g'), replace);
   },
   stringLength: (string) => (string === null ? 0 : string.length),
