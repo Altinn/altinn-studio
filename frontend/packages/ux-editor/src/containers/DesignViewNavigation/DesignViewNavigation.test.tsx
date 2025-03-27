@@ -28,12 +28,12 @@ describe('DesignViewNavigation', () => {
     renderDesignViewNavigation();
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perfom_another_task')),
+      screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();
     await user.click(menuButton);
 
     expect(
-      await screen.findByText(textMock('ux_editor.page_layout_perfom_another_task')),
+      await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
   });
 
@@ -43,12 +43,12 @@ describe('DesignViewNavigation', () => {
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await user.click(menuButton);
     expect(
-      screen.getByText(textMock('ux_editor.page_layout_perfom_another_task')),
+      screen.getByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
     await user.click(document.body);
 
     expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perfom_another_task')),
+      screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();
   });
 });
