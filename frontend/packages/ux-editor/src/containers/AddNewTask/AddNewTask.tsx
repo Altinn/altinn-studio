@@ -12,8 +12,17 @@ export const AddNewTask = () => {
   const handleClick = () =>
     navigate(`../${RoutePaths.ProcessEditor}?returnTo=${RoutePaths.UIEditor}`);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') handleClick();
+  };
+
   return (
-    <StudioCard onClick={handleClick} className={classes.card}>
+    <StudioCard
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className={classes.card}
+      tabIndex={0}
+    >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
         <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_task')}</StudioHeading>
