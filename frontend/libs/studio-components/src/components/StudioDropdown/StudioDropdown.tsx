@@ -13,14 +13,14 @@ export type StudioDropdownProps = {
   triggerButtonText?: string;
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose'>;
 
-export const StudioDropdown = ({
+export function StudioDropdown({
   icon,
   iconPlacement = 'left',
   triggerButtonText,
   children,
   'data-size': dataSize = 'sm',
   ...rest
-}: StudioDropdownProps): ReactElement => {
+}: StudioDropdownProps): ReactElement {
   const [open, setOpen] = useState<boolean>(false);
 
   const handleClick = () => {
@@ -46,4 +46,4 @@ export const StudioDropdown = ({
       </Dropdown>
     </Dropdown.TriggerContext>
   );
-};
+}

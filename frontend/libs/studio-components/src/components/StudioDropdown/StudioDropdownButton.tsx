@@ -13,14 +13,14 @@ export type StudioDropdownButtonProps = {
   iconPlacement?: IconPlacement;
 } & Omit<DropdownButtonProps, 'icon'>;
 
-export const StudioDropdownButton = ({
+export function StudioDropdownButton({
   children,
   icon,
   iconPlacement = 'left',
   onClick,
   className,
   ...rest
-}: StudioDropdownButtonProps): ReactElement => {
+}: StudioDropdownButtonProps): ReactElement {
   const { setOpen } = useContext(StudioDropdownContext);
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -40,6 +40,6 @@ export const StudioDropdownButton = ({
       </IconWithTextComponent>
     </Dropdown.Button>
   );
-};
+}
 
 StudioDropdownButton.displayName = 'StudioDropdown.Button';

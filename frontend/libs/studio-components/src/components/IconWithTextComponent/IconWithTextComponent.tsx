@@ -9,11 +9,11 @@ export type IconWithTextComponentProps = {
   children: ReactNode;
 };
 
-export const IconWithTextComponent = ({
+export function IconWithTextComponent({
   icon,
   iconPlacement,
   children,
-}: IconWithTextComponentProps): ReactElement => {
+}: IconWithTextComponentProps): ReactElement {
   const iconComponent = (
     <span aria-hidden className={classes.iconWrapper}>
       {icon}
@@ -27,4 +27,4 @@ export const IconWithTextComponent = ({
       {iconPlacement === 'right' && iconComponent}
     </span>
   );
-};
+}

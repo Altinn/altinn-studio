@@ -1,9 +1,10 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioDropdown } from './index';
 import { PencilIcon } from '@studio/icons';
 
-const ComposedComponent = (args): React.ReactElement => (
+const ComposedComponent = (args): ReactElement => (
   <StudioDropdown triggerButtonText='My menu label'>
     <StudioDropdown.List>
       <StudioDropdown.Heading>My heading</StudioDropdown.Heading>
