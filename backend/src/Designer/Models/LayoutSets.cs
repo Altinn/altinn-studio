@@ -51,7 +51,7 @@ public class UiSettings
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
-[JsonConverter(typeof(TaskNavigationGroupConverter))]
+[JsonConverter(typeof(TaskNavigationGroupJsonConverter))]
 public abstract class TaskNavigationGroup
 {
     [JsonPropertyName("name")]

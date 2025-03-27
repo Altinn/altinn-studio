@@ -5,7 +5,7 @@ using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Converters;
 
-public class TaskNavigationGroupConverter : JsonConverter<TaskNavigationGroup>
+public class TaskNavigationGroupJsonConverter : JsonConverter<TaskNavigationGroup>
 {
     public override TaskNavigationGroup Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
