@@ -43,5 +43,5 @@ const renderStudioHeading = (props: Partial<StudioHeadingProps> = {}): RenderRes
   return render(<StudioHeading {...defaultProps} {...props} />);
 };
 
-const getHeading = (name: string, level: number = 2): HTMLElement =>
+const getHeading = (name: string, level?: number): HTMLElement =>
   screen.getByRole('heading', { name, level });
