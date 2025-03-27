@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@studio/icons';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components-legacy';
 
 export const PreviewLimitationsInfo = () => {
   const { t } = useTranslation();

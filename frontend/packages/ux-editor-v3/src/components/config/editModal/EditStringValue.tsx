@@ -1,5 +1,4 @@
-import { Textfield } from '@digdir/designsystemet-react';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getComponentPropertyLabel } from '../../../utils/language';
@@ -58,7 +57,7 @@ export const EditStringValue = ({
             ))}
           </StudioNativeSelect>
         ) : (
-          <Textfield
+          <StudioTextfield
             {...fieldProps}
             id={`component-id-input${component.id}`}
             onChange={(e) => fieldProps.onChange(e.target.value, e)}

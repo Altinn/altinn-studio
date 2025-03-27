@@ -23,6 +23,9 @@
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" />
     <PackageReference Include="CompilerAttributes" />
+    <PackageReference Include="Confluent.Kafka" />
+    <PackageReference Include="Confluent.SchemaRegistry" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" />
     <PackageReference Include="DistributedLock.Postgres" />
     <PackageReference Include="DotNetEnv" />
     <PackageReference Include="ini-parser-netstandard" />
@@ -55,6 +58,10 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
+    <PackageReference Include="Quartz" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
+    <PackageReference Include="Quartz.Serialization.SystemTextJson" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
 

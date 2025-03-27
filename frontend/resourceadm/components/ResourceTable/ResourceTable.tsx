@@ -1,11 +1,24 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import { Tag } from '@digdir/designsystemet-react';
-import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio/components';
-import type { Columns } from '@studio/components';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTableLocalPagination,
+  StudioTag,
+} from '@studio/components-legacy';
+import type { Columns } from '@studio/components-legacy';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
+
+const isDateEqualToLocalResourceChangedTime = (date: Date): boolean => {
+  return (
+    date.getFullYear() === LOCAL_RESOURCE_CHANGED_TIME.getFullYear() &&
+    date.getMonth() === LOCAL_RESOURCE_CHANGED_TIME.getMonth() &&
+    date.getDate() === LOCAL_RESOURCE_CHANGED_TIME.getDate()
+  );
+};
 
 export type ResourceTableProps = {
   /**
@@ -63,7 +76,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
-          size='medium'
+          size='md'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
@@ -81,7 +94,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          size='medium'
+          size='md'
         />
       );
     } else {
@@ -114,9 +127,9 @@ export const ResourceTable = ({
               tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
-              <Tag key={env} color='info' size='small'>
+              <StudioTag key={env} color='info' size='sm'>
                 {tagText}
-              </Tag>
+              </StudioTag>
             );
           })}
         </div>
@@ -145,14 +158,20 @@ export const ResourceTable = ({
       accessor: 'lastChanged',
       heading: t('dashboard.resource_table_header_last_changed'),
       sortable: true,
-      bodyCellFormatter: (value: string) =>
-        value
-          ? new Date(value).toLocaleDateString('no-NB', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            })
-          : '',
+      bodyCellFormatter: (value: string) => {
+        if (!value) {
+          return '';
+        }
+        const date = new Date(value);
+        if (isDateEqualToLocalResourceChangedTime(date)) {
+          return '';
+        }
+        return date.toLocaleDateString('no-NB', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+      },
     },
     {
       accessor: 'environments',

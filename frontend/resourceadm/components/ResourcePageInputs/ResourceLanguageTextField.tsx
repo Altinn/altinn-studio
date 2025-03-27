@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Textarea, Textfield } from '@digdir/designsystemet-react';
+import { StudioTextarea, StudioTextfield } from '@studio/components-legacy';
 import { RightTranslationBar } from '../RightTranslationBar';
 import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
@@ -105,9 +105,17 @@ export const ResourceLanguageTextField = ({
     onBlur(getTrimmedTranslations());
   };
 
-  const onChangeNbField = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const onChangeNbTextField = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onNbFieldValueChanged(event.target.value);
+  };
+
+  const onChangeNbTextArea = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onNbFieldValueChanged(event.target.value);
+  };
+
+  const onNbFieldValueChanged = (newValue: string) => {
     setTranslations((oldTranslations) => {
-      return { ...oldTranslations, nb: event.target.value };
+      return { ...oldTranslations, nb: newValue };
     });
   };
 
@@ -119,13 +127,12 @@ export const ResourceLanguageTextField = ({
     <>
       <div className={classes.inputWrapper}>
         {useTextArea ? (
-          <Textarea
+          <StudioTextarea
             id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
-            size='small'
             value={translations['nb']}
-            onChange={onChangeNbField}
+            onChange={onChangeNbTextArea}
             onFocus={onFocus}
             error={mainFieldError.length > 0 ? mainFieldError : undefined}
             onBlur={onBlurField}
@@ -133,13 +140,12 @@ export const ResourceLanguageTextField = ({
             required={required}
           />
         ) : (
-          <Textfield
+          <StudioTextfield
             id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
-            size='small'
             value={translations['nb']}
-            onChange={onChangeNbField}
+            onChange={onChangeNbTextField}
             onFocus={onFocus}
             error={mainFieldError.length > 0 ? mainFieldError : undefined}
             onBlur={onBlurField}

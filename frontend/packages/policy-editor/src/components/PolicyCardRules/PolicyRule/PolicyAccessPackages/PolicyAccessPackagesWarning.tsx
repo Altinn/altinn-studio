@@ -6,7 +6,7 @@ import {
   StudioParagraph,
   StudioLink,
   StudioList,
-} from '@studio/components';
+} from '@studio/components-legacy';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {
   const { t } = useTranslation();

@@ -8,8 +8,8 @@ import {
   StudioDeleteButton,
   StudioProperty,
   StudioParagraph,
-} from '@studio/components';
-import { CheckmarkIcon } from '@studio/icons';
+} from '@studio/components-legacy';
+import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
@@ -45,16 +45,23 @@ export const ActionsEditor = ({
     actionIndex: actionIndex + 1,
   });
 
+  const handleOnClose = (): void => {
+    setComponentMode('view');
+    if (!actionElement.action) handleOnDelete();
+  };
+
+  const handleOnDelete = (): void => {
+    bpmnActionModeler.deleteActionFromTask(actionElement);
+    onDeleteClick();
+  };
+
   if (componentMode === 'edit') {
     return (
       <ActionEditable
         actionElement={actionElement}
         actionIndex={actionIndex}
-        onClose={() => setComponentMode('view')}
-        onDelete={() => {
-          bpmnActionModeler.deleteActionFromTask(actionElement);
-          if (onDeleteClick) onDeleteClick();
-        }}
+        onClose={handleOnClose}
+        onDelete={handleOnDelete}
       />
     );
   }
@@ -66,7 +73,6 @@ export const ActionsEditor = ({
       onClick={() => setComponentMode('edit')}
       property={actionLabel}
       value={actionElement.action}
-      className={classes.actionView}
     />
   );
 };
@@ -128,8 +134,7 @@ const ActionEditable = ({
             item: actionElement.action,
           })}
           variant='secondary'
-          color='success'
-          icon={<CheckmarkIcon />}
+          icon={<XMarkIcon />}
           onClick={onClose}
         />
         <StudioDeleteButton

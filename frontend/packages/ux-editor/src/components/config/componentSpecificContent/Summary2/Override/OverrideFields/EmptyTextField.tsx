@@ -1,7 +1,7 @@
 import React, { type ChangeEvent } from 'react';
 import classes from './EmptyTextField.module.css';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioAlert, StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioProperty, StudioTextfield } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type EmptyTextFieldProps = {
@@ -12,14 +12,6 @@ type EmptyTextFieldProps = {
 export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-
-  if (override.hideEmptyFields || !override.forceShow) {
-    return (
-      <StudioAlert>
-        {t('ux_editor.component_properties.summary.override.hide_empty_fields.info_message')}
-      </StudioAlert>
-    );
-  }
 
   if (!open) {
     return (

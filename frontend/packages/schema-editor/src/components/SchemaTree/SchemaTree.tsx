@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';

@@ -1,6 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
-  extractLastRouterParam,
   filterRoutesByFeatureFlag,
   getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
@@ -82,26 +81,6 @@ describe('headerMenuUtils', () => {
     });
   });
 
-  describe('extractLastRouterParam', () => {
-    it('should return the last part of the pathname', () => {
-      const pathname = '/home/user/profile';
-      const result = extractLastRouterParam(pathname);
-      expect(result).toBe('profile');
-    });
-
-    it('should handle a single segment pathname', () => {
-      const pathname = '/profile';
-      const result = extractLastRouterParam(pathname);
-      expect(result).toBe('profile');
-    });
-
-    it('should return an empty string for an empty pathname', () => {
-      const pathname = '';
-      const result = extractLastRouterParam(pathname);
-      expect(result).toBe('');
-    });
-  });
-
   describe('mapHeaderMenuGroupToNavigationMenu', () => {
     it('should correctly map header menu group to navigation menu group', () => {
       const group = {
@@ -171,14 +150,13 @@ describe('headerMenuUtils', () => {
 
       // Ensure other items are still present
       const remainingKeys = filteredMenu.map((item) => item.key);
-      expect(remainingKeys).toEqual(
-        expect.arrayContaining([
-          HeaderMenuItemKey.Create,
-          HeaderMenuItemKey.DataModel,
-          HeaderMenuItemKey.Text,
-          HeaderMenuItemKey.ProcessEditor,
-        ]),
-      );
+      expect(remainingKeys).toEqual([
+        HeaderMenuItemKey.Create,
+        HeaderMenuItemKey.DataModel,
+        HeaderMenuItemKey.Text,
+        HeaderMenuItemKey.ProcessEditor,
+        HeaderMenuItemKey.ContentLibrary,
+      ]);
     });
   });
 });

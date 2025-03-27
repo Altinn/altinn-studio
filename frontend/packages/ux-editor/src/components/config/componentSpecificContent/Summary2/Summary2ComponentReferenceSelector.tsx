@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCombobox } from '@studio/components';
+import { StudioCombobox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type Summary2ComponentTargetIdProps = {
@@ -21,6 +21,7 @@ export const Summary2ComponentReferenceSelector = ({
   const invalidMessage = invalidOption && t('ux_editor.component_properties.target_invalid');
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
+
   return (
     <StudioCombobox
       size='small'
@@ -28,8 +29,10 @@ export const Summary2ComponentReferenceSelector = ({
       value={value ? [value] : []}
       onValueChange={(v) => onValueChange(v[0])}
       error={errorMessage}
-      multiple={false}
     >
+      <StudioCombobox.Empty>
+        {t('ux_editor.component_properties.target_empty')}
+      </StudioCombobox.Empty>
       {options.map((option) => (
         <StudioCombobox.Option value={option.id} key={option.id} description={option.description}>
           {option.id}

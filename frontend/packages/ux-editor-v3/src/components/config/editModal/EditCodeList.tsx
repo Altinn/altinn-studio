@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { Textfield, ErrorMessage } from '@digdir/designsystemet-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { StudioButton, StudioNativeSelect, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioNativeSelect,
+  StudioSpinner,
+  StudioTextfield,
+} from '@studio/components-legacy';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
@@ -70,7 +75,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
       {
         <>
           {useCustomCodeList && (
-            <Textfield
+            <StudioTextfield
               type='text'
               label={t('ux_editor.modal_properties_custom_code_list_id')}
               onChange={(event) => handleOptionsIdChange(event)}

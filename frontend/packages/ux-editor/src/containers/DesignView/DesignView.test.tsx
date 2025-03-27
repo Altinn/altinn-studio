@@ -4,7 +4,7 @@ import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { StudioDragAndDrop } from '@studio/components';
+import { StudioDragAndDrop } from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -15,6 +15,7 @@ import {
   layout1Mock,
   layout1NameMock,
   layout2NameMock,
+  pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -49,13 +50,9 @@ describe('DesignView', () => {
     });
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
-      org,
-      app,
-      `${textMock('ux_editor.page')}${3}`,
-      mockSelectedLayoutSet,
-      expect.any(Object),
-    );
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${3}`,
+    });
   });
 
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
@@ -73,13 +70,9 @@ describe('DesignView', () => {
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
-      org,
-      app,
-      `${textMock('ux_editor.page')}${4}`,
-      mockSelectedLayoutSet,
-      expect.any(Object),
-    );
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${4}`,
+    });
   });
 
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
@@ -111,7 +104,7 @@ describe('DesignView', () => {
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalled();
+    expect(queriesMock.createPage).toHaveBeenCalled();
   });
 
   it('Displays the tree view version of the layout', () => {
@@ -138,6 +131,7 @@ const renderDesignView = (
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayout),
   );
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     layoutSettings,

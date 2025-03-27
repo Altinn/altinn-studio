@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
-using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
@@ -54,7 +54,7 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
     private static bool TryChangeDataTypes(LayoutSets layoutSets, List<string> newDataTypes, string connectedTaskId)
     {
         bool hasChanges = false;
-        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks[0] == connectedTaskId);
+        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks?[0] == connectedTaskId);
         if (layoutSet is not null && !newDataTypes.Contains(layoutSet.DataType))
         {
             layoutSet.DataType = newDataTypes[0];

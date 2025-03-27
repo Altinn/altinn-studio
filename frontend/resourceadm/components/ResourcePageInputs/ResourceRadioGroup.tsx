@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Radio } from '@digdir/designsystemet-react';
+import { StudioRadio } from '@studio/components-legacy';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
@@ -78,9 +78,9 @@ export const ResourceRadioGroup = ({
 
   return (
     <div className={classes.inputWrapper}>
-      <Radio.Group
+      <StudioRadio.Group
         id={id}
-        size='small'
+        size='sm'
         onChange={(val: string) => {
           setSelected(val);
           onChange(val);
@@ -100,12 +100,12 @@ export const ResourceRadioGroup = ({
       >
         {options.map((opt) => {
           return (
-            <Radio key={opt.value} value={opt.value}>
+            <StudioRadio key={opt.value} value={opt.value}>
               {opt.label}
-            </Radio>
+            </StudioRadio>
           );
         })}
-      </Radio.Group>
+      </StudioRadio.Group>
     </div>
   );
 };

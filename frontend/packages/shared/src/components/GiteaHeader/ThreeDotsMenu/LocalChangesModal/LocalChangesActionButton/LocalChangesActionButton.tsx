@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './LocalChangesActionButton.module.css';
 import { Link, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
 
 interface LinkAction {
   /**

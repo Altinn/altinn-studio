@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioError, StudioModal, StudioSpinner } from '@studio/components';
+import { StudioError, StudioModal, StudioSpinner } from '@studio/components-legacy';
 import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
 import { FilePath } from './FilePath/FilePath';
 import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { QueryStatus } from '@tanstack/react-query';
+import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context/GiteaHeaderContext';
 
 export interface FileChangesInfoModalProps {
   fileChanges: RepoContentStatus[];
@@ -26,15 +26,19 @@ export const FileChangesInfoModal = ({
   fileChanges,
 }: FileChangesInfoModalProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: repoDiff, status: repoDiffStatus } = useRepoDiffQuery(org, app);
+  const { owner, repoName } = useGiteaHeaderContext();
+  const { data: repoDiff, status: repoDiffStatus } = useRepoDiffQuery(owner, repoName);
 
   const gitDiffIncludesFile = (filePath: string): boolean =>
     repoDiffStatus === 'success' && Object.keys(repoDiff).includes(filePath);
 
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger icon={<ClockDashedIcon />} variant='tertiary'>
+      <StudioModal.Trigger
+        icon={<ClockDashedIcon />}
+        variant='tertiary'
+        className={classes.openDialogButton}
+      >
         {t('sync_header.review_file_changes')}
       </StudioModal.Trigger>
       <StudioModal.Dialog

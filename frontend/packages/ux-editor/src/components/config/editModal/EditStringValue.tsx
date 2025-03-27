@@ -2,10 +2,10 @@ import React, { type ReactElement } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { Combobox, Textfield } from '@digdir/designsystemet-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
@@ -83,7 +83,7 @@ export const EditStringValue = ({
             </StudioNativeSelect>
           )
         ) : (
-          <Textfield
+          <StudioTextfield
             {...fieldProps}
             id={`component-id-input${component.id}`}
             onChange={(e) => fieldProps.onChange(e.target.value, e)}

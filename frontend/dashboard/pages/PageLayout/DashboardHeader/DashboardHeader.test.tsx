@@ -1,48 +1,44 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
-import { useParams } from 'react-router-dom';
+import { SelectedContextType } from '../../../enums/SelectedContextType';
+import { useLocation, useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { type User } from 'app-shared/types/Repository';
-import { type Organization } from 'app-shared/types/Organization';
-import { type HeaderContextType } from 'dashboard/context/HeaderContext';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { StringUtils, typedLocalStorage } from '@studio/pure-functions';
+import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { Subroute } from '../../../enums/Subroute';
+import { HeaderContextProvider } from '../../../context/HeaderContext';
+import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
+import { userMock } from '../../../testing/userMock';
+import { renderWithProviders } from '../../../testing/mocks';
+import { headerContextValueMock } from '../../../testing/headerContextMock';
+import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { repoStatus } from 'app-shared/mocks/mocks';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+
+const mockOrgTtd: string = 'ttd';
+const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
 
 const mockNavigate = jest.fn();
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: jest.fn(),
+  useParams: jest.fn().mockReturnValue({
+    subroute: 'app-dashboard',
+    selectedContext: 'self',
+  }),
+  useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
-const userMock: User = {
-  id: 1,
-  avatar_url: '',
-  email: 'tester@tester.test',
-  full_name: 'Tester Testersen',
-  login: 'tester',
-  userType: 0,
-};
-
-const mockOrg1: Organization = {
-  avatar_url: '',
-  id: 12,
-  username: 'ttd',
-  full_name: 'Test',
-};
-const mockOrg2: Organization = {
-  avatar_url: '',
-  id: 23,
-  username: 'unit-test-2',
-  full_name: 'unit-test-2',
-};
-const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('should render the user name as the profile button when in self context', () => {
@@ -57,7 +53,7 @@ describe('DashboardHeader', () => {
 
   it('should render the organization name when selected context is an organization', () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      selectedContext: mockOrgTtd,
     });
 
     renderDashboardHeader();
@@ -104,10 +100,64 @@ describe('DashboardHeader', () => {
     expect(logoutItem).toBeInTheDocument();
   });
 
+  it('should render correct menu elements in header', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).toBeInTheDocument();
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(appsMenuItem).toBeInTheDocument();
+  });
+
+  it('should render library menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    renderDashboardHeader();
+    const libraryMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.OrgLibrary}/${SelectedContextType.Self}`,
+    );
+  });
+
+  it('should not render library menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const libraryMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_library'),
+    });
+    expect(libraryMenuItem).not.toBeInTheDocument();
+  });
+
+  it('should not render dashboard menu element when featureFlag is not turned on', () => {
+    renderDashboardHeader();
+    const dashboardMenuItem = screen.queryByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(dashboardMenuItem).not.toBeInTheDocument();
+  });
+
+  it('should render apps menu element with correct link', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    renderDashboardHeader();
+    const appsMenuItem = screen.getByRole('link', {
+      name: textMock('dashboard.header_item_dashboard'),
+    });
+    expect(appsMenuItem).toHaveAttribute(
+      'href',
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
+  });
+
   it('should navigate to the correct organization context when an org is selected', async () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -118,7 +168,7 @@ describe('DashboardHeader', () => {
     const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledWith(`${Subroute.AppDashboard}/${mockOrg1.username}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -126,6 +176,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -136,7 +187,9 @@ describe('DashboardHeader', () => {
     const allItem = screen.getByRole('menuitemradio', { name: textMock('shared.header_all') });
     await user.click(allItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.All}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.All}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -144,6 +197,7 @@ describe('DashboardHeader', () => {
     const user = userEvent.setup();
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.All,
+      subroute: Subroute.AppDashboard,
     });
 
     renderDashboardHeader();
@@ -154,22 +208,150 @@ describe('DashboardHeader', () => {
     const selfItem = screen.getByRole('menuitemradio', { name: userMock.full_name });
     await user.click(selfItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.Self}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `${Subroute.AppDashboard}/${SelectedContextType.Self}`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not render the submenu when there is a merge conflict', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: mockOrgTtd,
+      subroute: Subroute.OrgLibrary,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
+
+    renderDashboardHeader({ getRepoStatus });
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
+  });
+
+  it('should not render the submenu when there is a repo error', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: mockOrgTtd,
+      subroute: Subroute.OrgLibrary,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+
+    const getRepoStatus = jest.fn().mockImplementation(() => Promise.reject(new Error('error')));
+
+    renderDashboardHeader({ getRepoStatus });
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
+  });
+
+  it('should not render the submenu when the page is not orgLibrary', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: mockOrgTtd,
+      subroute: Subroute.AppDashboard,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
+
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
+
+    renderDashboardHeader({ getRepoStatus });
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
+  });
+
+  it('should not render the submenu when page is orgLibrary and feature flag is not on', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: mockOrgTtd,
+      subroute: Subroute.OrgLibrary,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
+
+    renderDashboardHeader({ getRepoStatus });
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
+  });
+
+  it('should not render the submenu when the selected context is not org', () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: SelectedContextType.Self,
+      subroute: Subroute.OrgLibrary,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
+
+    renderDashboardHeader({ getRepoStatus });
+    expect(getFetchChangesButton()).not.toBeInTheDocument();
+  });
+
+  it('should render the submenu when showSubMenu is true, there is no repo error, page is orgLibrary and feature flag is on', async () => {
+    typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: mockOrgTtd,
+      subroute: Subroute.OrgLibrary,
+    });
+    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
+
+    renderDashboardHeader({ getRepoStatus });
+
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    expect(getFetchChangesButton()).toBeInTheDocument();
+  });
+
+  it('should render small navigation menu when the screen is small', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderDashboardHeader();
+
+    expect(screen.getByRole('button', { name: textMock('top_menu.menu') })).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render large navigation menu when the screen is large', () => {
+    typedLocalStorage.setItem('featureFlags', FeatureFlag.OrgLibrary);
+
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    renderDashboardHeader();
+
+    expect(
+      screen.queryByRole('button', { name: textMock('top_menu.menu') }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole('link', {
+        name: textMock('dashboard.header_item_library'),
+      }),
+    ).toBeInTheDocument();
   });
 });
 
-const headerContextValue: HeaderContextType = {
-  user: userMock,
-  selectableOrgs: mockOrganizations,
-};
-
-const renderDashboardHeader = () => {
-  return render(
-    <MockServicesContextWrapper>
-      <HeaderContext.Provider value={headerContextValue}>
-        <DashboardHeader />
-      </HeaderContext.Provider>
-    </MockServicesContextWrapper>,
+const renderDashboardHeader = (queries: Partial<ServicesContextProps> = {}) => {
+  return renderWithProviders(
+    <HeaderContextProvider {...headerContextValueMock}>
+      <DashboardHeader />
+    </HeaderContextProvider>,
+    { queries: { ...queries, ...queriesMock } },
   );
 };
+
+function getFetchChangesButton(): HTMLElement | null {
+  return screen.queryByRole('button', { name: textMock('sync_header.fetch_changes') });
+}

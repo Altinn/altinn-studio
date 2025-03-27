@@ -8,7 +8,6 @@ import { DeployResourcePage } from '../DeployResourcePage';
 import { useSinlgeResourceQuery, useValidatePolicyQuery } from '../../hooks/queries';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
-import { Spinner } from '@digdir/designsystemet-react';
 import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
@@ -26,8 +25,8 @@ import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioContentMenu } from '@studio/components';
-import type { StudioContentMenuButtonTabProps } from '@studio/components';
+import { StudioContentMenu, StudioSpinner } from '@studio/components-legacy';
+import type { StudioContentMenuButtonTabProps } from '@studio/components-legacy';
 
 /**
  * @component
@@ -234,10 +233,10 @@ export const ResourcePage = (): React.JSX.Element => {
       </div>
       {resourcePending || !resourceData ? (
         <div className={classes.spinnerWrapper}>
-          <Spinner
-            size='xlarge'
+          <StudioSpinner
+            size='xl'
             variant='interaction'
-            title={t('resourceadm.about_resource_spinner')}
+            spinnerTitle={t('resourceadm.about_resource_spinner')}
           />
         </div>
       ) : (

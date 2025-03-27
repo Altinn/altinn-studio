@@ -1,6 +1,6 @@
 import React, { type RefObject, useRef } from 'react';
-import { StudioFileUploader } from '@studio/components';
-import type { StudioFileUploaderProps } from '@studio/components';
+import { StudioFileUploader } from '@studio/components-legacy';
+import type { StudioFileUploaderProps } from '@studio/components-legacy';
 
 export type FileValidation = {
   validateFileName?: (fileName: string) => boolean;

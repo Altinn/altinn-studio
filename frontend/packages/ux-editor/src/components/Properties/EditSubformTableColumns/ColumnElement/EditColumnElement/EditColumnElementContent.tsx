@@ -1,52 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { StudioCodeFragment, StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioCodeFragment } from '@studio/components-legacy';
 import { Trans, useTranslation } from 'react-i18next';
+import { TextResource } from '../../../../TextResource/TextResource';
+import type { TableColumn } from '../../types/TableColumn';
 import classes from './EditColumnElementContent.module.css';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 type EditColumnElementContentProps = {
-  title: string;
-  setTitle: (title: string) => void;
-  cellContent: string;
+  subformLayout: string;
+  tableColumn: TableColumn;
+  onChange: (updatedTableColumn: TableColumn) => void;
 };
 
 export const EditColumnElementContent = ({
-  title,
-  setTitle,
-  cellContent,
+  subformLayout,
+  tableColumn,
+  onChange,
 }: EditColumnElementContentProps) => {
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const { t } = useTranslation();
 
-  const errorMessage = t('ux_editor.properties_panel.subform_table_columns.column_title_error');
-
   return (
-    <div>
-      {isEditingTitle ? (
-        <StudioTextfield
+    <>
+      <div className={classes.textResource}>
+        <TextResource
           label={t('ux_editor.properties_panel.subform_table_columns.column_title_edit')}
-          size='sm'
-          value={title}
-          autoFocus={true}
-          onChange={(e) => setTitle(e.target.value)}
-          error={!title?.trim() && errorMessage}
+          textResourceId={tableColumn.headerContent}
+          handleIdChange={(newTextKey) => onChange({ ...tableColumn, headerContent: newTextKey })}
+          handleRemoveTextResource={() => onChange({ ...tableColumn, headerContent: '' })}
+          generateIdOptions={{
+            layoutId: subformLayout,
+            componentId: 'tableColumn',
+            textResourceKey: generateRandomId(6),
+          }}
         />
-      ) : (
-        <StudioProperty.Button
-          className={classes.componentTitleButton}
-          onClick={() => setIsEditingTitle(true)}
-          property={t('ux_editor.properties_panel.subform_table_columns.column_title_unedit')}
-          value={title}
-        />
-      )}
+      </div>
 
       <div className={classes.componentCellContent}>
         <Trans
           i18nKey='ux_editor.properties_panel.subform_table_columns.column_cell_content'
-          values={{ cellContent }}
+          values={{ cellContent: tableColumn.cellContent?.query }}
           components={[<StudioCodeFragment key='0' />]}
         />
       </div>
-    </div>
+    </>
   );
 };

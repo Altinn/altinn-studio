@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
-import type { Expression, DataLookupOptions } from '@studio/components';
-import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
+import type { Expression, DataLookupOptions } from '@studio/components-legacy';
+import { DataLookupFuncName, StudioDeleteButton } from '@studio/components-legacy';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
@@ -48,13 +48,15 @@ export const ExpressionContent = ({
           {heading}
         </Paragraph>
       </legend>
-      <StudioDeleteButton
-        className={classes.deleteButton}
-        confirmMessage={t('right_menu.expressions_delete_confirm')}
-        onDelete={onDelete}
-        size='small'
-        title={t('right_menu.expression_delete')}
-      />
+      {expression && (
+        <StudioDeleteButton
+          className={classes.deleteButton}
+          confirmMessage={t('right_menu.expressions_delete_confirm')}
+          onDelete={onDelete}
+          size='small'
+          title={t('right_menu.expression_delete')}
+        />
+      )}
       <div className={classes.expressionWrapper}>
         <ExpressionWithTexts
           expression={expression}

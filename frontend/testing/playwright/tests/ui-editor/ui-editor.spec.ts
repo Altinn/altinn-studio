@@ -35,6 +35,9 @@ const setupAndVerifyUiEditorPage = async (
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.verifyUiEditorPage();
+  await uiEditorPage.clickOnUxEditorButton();
+  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
+
   return uiEditorPage;
 };
 

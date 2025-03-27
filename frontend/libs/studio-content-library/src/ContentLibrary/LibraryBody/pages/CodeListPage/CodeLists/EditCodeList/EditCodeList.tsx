@@ -1,11 +1,11 @@
-import type { CodeList, CodeListEditorTexts } from '@studio/components';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioModal,
   StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
@@ -20,21 +20,25 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
+  textResources?: TextResource[];
 };
 
 export function EditCodeList({
   codeList,
   codeListTitle,
+  onBlurTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
   codeListSources,
+  textResources,
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
@@ -63,12 +67,15 @@ export function EditCodeList({
         codeList={codeList}
         onAddOrDeleteItem={handleCodeListChange}
         onBlurAny={handleCodeListChange}
+        onBlurTextResource={onBlurTextResource}
         texts={editorTexts}
+        textResources={textResources}
       />
       <CodeListButtons
         codeListHasUsages={codeListHasUsages}
         codeListSources={codeListSources}
         onDeleteCodeList={handleDeleteCodeList}
+        codeListTitle={codeListTitle}
       />
     </div>
   );
@@ -110,24 +117,12 @@ function EditCodeListTitle({
   return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
-      inputProps={{
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        icon: <KeyVerticalIcon />,
-        title: t('app_content_library.code_lists.code_list_edit_id_title', {
-          codeListName: codeListTitle,
-        }),
-        value: codeListTitle,
-        onBlur: (event) => handleUpdateCodeListId(event.target.value),
-        size: 'small',
-      }}
-      viewProps={{
-        label: t('app_content_library.code_lists.code_list_edit_id_label'),
-        children: codeListTitle,
-        variant: 'tertiary',
-        title: t('app_content_library.code_lists.code_list_view_id_title', {
-          codeListName: codeListTitle,
-        }),
-      }}
+      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      onBlur={(event) => handleUpdateCodeListId(event.target.value)}
+      title={t('app_content_library.code_lists.code_list_view_id_title', {
+        codeListName: codeListTitle,
+      })}
+      value={codeListTitle}
     />
   ) : (
     <StudioDisplayTile
@@ -135,6 +130,7 @@ function EditCodeListTitle({
       label={t('app_content_library.code_lists.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
+      className={classes.displayTitle}
     />
   );
 }
@@ -143,12 +139,14 @@ type CodeListButtonsProps = {
   codeListHasUsages: boolean;
   codeListSources: CodeListIdSource[];
   onDeleteCodeList: (codeListId: string) => void;
+  codeListTitle: string;
 };
 
 function CodeListButtons({
   codeListHasUsages,
   codeListSources,
   onDeleteCodeList,
+  codeListTitle,
 }: CodeListButtonsProps): React.ReactElement {
   const { t } = useTranslation();
   const deleteButtonTitle = codeListHasUsages
@@ -161,6 +159,9 @@ function CodeListButtons({
         onDelete={onDeleteCodeList}
         title={deleteButtonTitle}
         disabled={codeListHasUsages}
+        confirmMessage={t('app_content_library.code_lists.code_list_delete_confirm', {
+          codeListTitle,
+        })}
       >
         {t('app_content_library.code_lists.code_list_delete')}
       </StudioDeleteButton>

@@ -6,7 +6,7 @@ import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components-legacy';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const MapComponent = ({
@@ -110,7 +110,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                     id={component.id}
                     label={t('ux_editor.url_label')}
                     value={fieldProps.value}
-                    size='sm'
                     onChange={(e) => fieldProps.onChange(e.target.value, e)}
                     name='url'
                   />
@@ -130,7 +129,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                     id={component.id}
                     label={t('ux_editor.attribution_label')}
                     value={fieldProps.value}
-                    size='sm'
                     name='attribution'
                     onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   />

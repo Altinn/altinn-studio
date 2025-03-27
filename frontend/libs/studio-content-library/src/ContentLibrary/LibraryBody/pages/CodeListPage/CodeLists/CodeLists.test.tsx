@@ -8,7 +8,7 @@ import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import type { CodeList as StudioComponentsCodeList } from '@studio/components';
+import type { CodeList as StudioComponentsCodeList } from '@studio/components-legacy';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
 const codeListName = codeListsDataMock[0].title;
@@ -244,8 +244,10 @@ describe('CodeLists', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('calls onDeleteCodeList when clicking delete button', async () => {
+  it('calls onDeleteCodeList when the user clicks the delete button and confirms', async () => {
     const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+
     renderCodeLists();
     const deleteCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.code_list_delete'),
@@ -257,6 +259,21 @@ describe('CodeLists', () => {
     expect(onDeleteCodeListMock).toHaveBeenCalledTimes(1);
     expect(onDeleteCodeListMock).toHaveBeenLastCalledWith(codeListName);
   });
+
+  it('does not call onDeleteCodeList when it is not confirmed', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+
+    renderCodeLists();
+    const deleteCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_delete'),
+    });
+    expect(deleteCodeListButton.title).toBe(
+      textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
+    );
+    await user.click(deleteCodeListButton);
+    expect(onDeleteCodeListMock).toHaveBeenCalledTimes(0);
+  });
 });
 
 const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
@@ -267,7 +284,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
   );
   await user.click(codeListIdToggleTextfield);
   const codeListIdInput = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_edit_id_title', {
+    textMock('app_content_library.code_lists.code_list_view_id_title', {
       codeListName: oldCodeListId,
     }),
   );

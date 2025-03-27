@@ -1,9 +1,9 @@
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import type { IDataModelBindingsKeyValue, ITextResourceBindings, IOption } from './global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
-import type { BooleanExpression } from '@studio/components';
+import type { BooleanExpression } from '@studio/components-legacy';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -14,7 +14,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   size?: string;
   options?: IOption[];
   pageIndex?: number;
-  dataModelBindings?: IDataModelBindings;
+  dataModelBindings?: IDataModelBindingsKeyValue;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
   codeListId?: string;

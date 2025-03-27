@@ -6,7 +6,7 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
-import { Spinner, Heading } from '@digdir/designsystemet-react';
+import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
 import { useResourcePolicyQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
@@ -74,10 +74,10 @@ export const PolicyEditorPage = ({
     if (isPolicyPending || isActionPending || isSubjectsPending || isLoadingAccessPackages) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner
-            size='xlarge'
+          <StudioSpinner
+            size='xl'
             variant='interaction'
-            title={t('resourceadm.policy_editor_spinner')}
+            spinnerTitle={t('resourceadm.policy_editor_spinner')}
           />
         </div>
       );
@@ -102,9 +102,9 @@ export const PolicyEditorPage = ({
 
   return (
     <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
-      <Heading size='large' spacing level={1}>
+      <StudioHeading size='lg' spacing level={1}>
         {t('resourceadm.policy_editor_title')}
-      </Heading>
+      </StudioHeading>
       {displayContent()}
     </div>
   );

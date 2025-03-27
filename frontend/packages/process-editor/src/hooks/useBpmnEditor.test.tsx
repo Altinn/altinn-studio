@@ -3,25 +3,24 @@ import type { RenderHookResult } from '@testing-library/react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { UseBpmnEditorResult } from './useBpmnEditor';
 import { useBpmnEditor } from './useBpmnEditor';
-import type { BpmnContextProviderProps } from '../contexts/BpmnContext';
+import type { BpmnContextProps, BpmnContextProviderProps } from '../contexts/BpmnContext';
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components-legacy';
 import { BpmnConfigPanelFormContextProvider } from '../contexts/BpmnConfigPanelContext';
 import type { TaskEvent } from '../types/TaskEvent';
 import { EventListeners } from '../../test/EventListeners';
 import type {
   BpmnBusinessObjectEditor,
   BpmnExtensionElementsEditor,
-} from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
+} from '../types/BpmnBusinessObjectEditor';
 import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
 import type { BpmnTaskType } from '../types/BpmnTaskType';
-import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import type { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
-import type { SelectionChangedEvent } from '@altinn/process-editor/types/SelectionChangeEvent';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
+import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 
 // Test data:
@@ -170,9 +169,9 @@ describe('useBpmnEditor', () => {
       oldSelection: [],
       newSelection: [element],
     };
-    const { result } = await setupWithBpmnDetails();
+    const { result } = await setupWithBpmnContext();
     act(() => eventListeners.triggerEvent('selection.changed', selectionChangedEvent));
-    expect(result.current.bpmnDetails.element).toEqual(element);
+    expect(result.current.bpmnContext.bpmnDetails.element).toEqual(element);
   });
 
   it('Updates BPMN details with null when "selection.changed" event is triggered with no new selected object', async () => {
@@ -180,13 +179,12 @@ describe('useBpmnEditor', () => {
       oldSelection: [element],
       newSelection: [],
     };
-    const { result } = await setupWithBpmnDetails();
+    const { result } = await setupWithBpmnContext();
     act(() => eventListeners.triggerEvent('selection.changed', selectionChangedEvent));
-    expect(result.current.bpmnDetails).toBe(null);
+    expect(result.current.bpmnContext.bpmnDetails).toBe(null);
   });
 
-  // Todo: Remove skip when this test passes. Fixing this will resolve https://github.com/Altinn/altinn-studio/issues/13035.
-  it.skip('Calls only the most recent saveBpmn function when the "commandStack.changed" event is triggered', async () => {
+  it('Calls only the most recent saveBpmn function when the "commandStack.changed" event is triggered', async () => {
     const saveBpmn1 = jest.fn();
     const saveBpmn2 = jest.fn();
     const bpmnApiContextProps: Partial<BpmnApiContextProps> = {
@@ -201,6 +199,14 @@ describe('useBpmnEditor', () => {
     await waitFor(expect(saveBpmn2).toHaveBeenCalled);
     expect(saveBpmn1).not.toHaveBeenCalled();
     expect(saveBpmn2).toHaveBeenCalledTimes(1);
+  });
+
+  it('Resets the modeler ref when the callback is called with null', async () => {
+    const { result } = await setupWithBpmnContext();
+    const { modelerRef } = result.current.bpmnContext;
+    expect(modelerRef.current).not.toBeNull();
+    act(() => result.current.bpmnEditor(null));
+    expect(modelerRef.current).toBeNull();
   });
 });
 
@@ -243,11 +249,11 @@ function renderWithBpmnProviders(
   );
 }
 
-async function setupWithBpmnDetails(): Promise<
-  RenderHookResult<UseBpmnEditorAndDetailsResult, void>
+async function setupWithBpmnContext(): Promise<
+  RenderHookResult<UseBpmnEditorAndContextResult, void>
 > {
   const wrapper = ({ children }) => renderWithBpmnProviders(children);
-  const utils = renderHook(() => useBpmnEditorAndDetails(), { wrapper });
+  const utils = renderHook(() => useBpmnEditorAndContext(), { wrapper });
   const { result } = utils;
   const div = document.createElement('div');
   result.current.bpmnEditor(div);
@@ -255,13 +261,13 @@ async function setupWithBpmnDetails(): Promise<
   return utils;
 }
 
-type UseBpmnEditorAndDetailsResult = {
+type UseBpmnEditorAndContextResult = {
   bpmnEditor: UseBpmnEditorResult;
-  bpmnDetails: BpmnDetails;
+  bpmnContext: Partial<BpmnContextProps>;
 };
 
-const useBpmnEditorAndDetails = (): UseBpmnEditorAndDetailsResult => {
+const useBpmnEditorAndContext = (): UseBpmnEditorAndContextResult => {
   const bpmnEditor = useBpmnEditor();
-  const { bpmnDetails } = useBpmnContext();
-  return { bpmnEditor, bpmnDetails };
+  const bpmnContext = useBpmnContext();
+  return { bpmnEditor, bpmnContext };
 };

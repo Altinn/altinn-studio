@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../hooks';
 import type { FormComponent } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { Textfield } from '@digdir/designsystemet-react';
+import { StudioTextfield } from '@studio/components-legacy';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
@@ -49,7 +49,7 @@ export const EditComponentId = ({
         }
       }}
       renderField={({ fieldProps }) => (
-        <Textfield
+        <StudioTextfield
           {...fieldProps}
           name={`component-id-input${component.id}`}
           onChange={(e) => fieldProps.onChange(e.target.value, e)}

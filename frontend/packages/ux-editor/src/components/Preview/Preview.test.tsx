@@ -9,6 +9,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
+import { subformLayoutMock } from '../../testing/subformLayoutMock';
 
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', async () => {
@@ -132,6 +133,16 @@ describe('Preview', () => {
         ),
     );
   });
+
+  it('should show a warning that subform is unsupported in preview', async () => {
+    appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
+  });
 });
 
 const collapseToggle = jest.fn();
@@ -141,6 +152,11 @@ export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
   options = {
     ...options,
     queries: {
+      getLayoutSets: jest
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve({ sets: [{ id: subformLayoutMock.layoutSetName, type: 'subform' }] }),
+        ),
       createPreviewInstance: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),

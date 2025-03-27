@@ -52,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: 'Azure login'
-        uses: azure/login@v2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2
         with:
             client-id: ${{ secrets.client-id }}
             tenant-id: ${{ secrets.tenant-id }}
@@ -72,7 +72,7 @@ jobs:
                                 --password-stdin
 
       - name: Setup Flux CLI
-        uses: fluxcd/flux2/action@v2.4.0
+        uses: fluxcd/flux2/action@8d5f40dca5aa5d3c0fc3414457dda15a0ac92fa4 # v2.5.1
 
       - name: Generate cofiguration file
         run: |
@@ -101,7 +101,7 @@ jobs:
 
       - name: Send Trace to Azure Monitor
         if: ${{ inputs.trace-workflow }}
-        uses: altinn/altinn-platform/actions/send-ci-cd-trace@v1.0.1
+        uses: altinn/altinn-platform/actions/send-ci-cd-trace@cc4b775eb4d7015674bfcaac762e40f270afab87 # v1.0.1
         with:
             connection_string: ${{ secrets.trace-connection-string }}
             app: "${{ inputs.artifact-name }}"

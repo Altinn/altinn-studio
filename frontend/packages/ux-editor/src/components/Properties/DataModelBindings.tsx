@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty, StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -29,22 +29,21 @@ export const DataModelBindings = (): React.JSX.Element => {
   }
 
   const { dataModelBindings } = schema.properties;
+  let dataModelBindingsProperties = dataModelBindings?.properties;
 
-  if (!dataModelBindings) {
+  if (dataModelBindings?.anyOf) {
+    const { properties } = Object.values(dataModelBindings.anyOf).find((dataModelProp: any) =>
+      (dataModelProp.required as string[]).includes(multipleAttachments ? 'list' : 'simpleBinding'),
+    ) as any;
+    dataModelBindingsProperties = properties;
+  }
+
+  if (!Object.keys(dataModelBindingsProperties || {}).length) {
     return (
       <Alert size='small' className={classes.alert}>
         {t('ux_editor.modal_properties_data_model_binding_not_present')}
       </Alert>
     );
-  }
-
-  let dataModelBindingsProperties = dataModelBindings?.properties;
-
-  if (dataModelBindings.anyOf) {
-    const { properties } = Object.values(dataModelBindings.anyOf).find((dataModelProp: any) =>
-      (dataModelProp.required as string[]).includes(multipleAttachments ? 'list' : 'simpleBinding'),
-    ) as any;
-    dataModelBindingsProperties = properties;
   }
 
   const handleMultipleAttachmentsSwitch = () => {

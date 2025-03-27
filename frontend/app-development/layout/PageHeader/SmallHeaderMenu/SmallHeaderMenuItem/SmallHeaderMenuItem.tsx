@@ -3,9 +3,9 @@ import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
-import { StudioBetaTag } from '@studio/components';
+import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;
@@ -19,7 +19,7 @@ export const SmallHeaderMenuItem = ({
   const { t } = useTranslation();
 
   const location = useLocation();
-  const currentRoutePath: string = extractLastRouterParam(location.pathname);
+  const currentRoutePath: string = UrlUtils.extractLastRouterParam(location.pathname);
 
   if (menuItem.action.type === 'button') {
     return (
@@ -30,18 +30,20 @@ export const SmallHeaderMenuItem = ({
   }
 
   const linkItemClassName: string =
-    extractLastRouterParam(menuItem.action.href) === currentRoutePath ? classes.active : '';
+    UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
+      ? classes.active
+      : '';
 
   return (
     <DropdownMenu.Item key={menuItem.name} asChild className={linkItemClassName}>
       <NavLink
+        className={menuItem.isBeta && studioBetaTagClasses.isBeta}
         to={menuItem.action.href}
         onClick={onClick}
         target={menuItem.action.openInNewTab ? '_blank' : ''}
         rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
       >
         {t(menuItem.name)}
-        {menuItem.isBeta && <StudioBetaTag />}
       </NavLink>
     </DropdownMenu.Item>
   );

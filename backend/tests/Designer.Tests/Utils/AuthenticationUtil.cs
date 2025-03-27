@@ -1,40 +1,13 @@
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Moq;
 
 namespace Designer.Tests.Utils
 {
     public static class AuthenticationUtil
     {
-        public static async Task AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient client, HttpRequestMessage message)
-        {
-            string loginUrl = $"/Login";
-            HttpRequestMessage httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl)
-            {
-            };
-
-            HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
-
-            string xsrfUrl = $"" +
-                             $"designer/api/user/current";
-            HttpRequestMessage httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl)
-            {
-            };
-
-            IEnumerable<string> cookies = null;
-            if (loginResponse.Headers.Contains("Set-Cookie"))
-            {
-                cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
-            }
-
-            HttpResponseMessage xsrfResponse = await client.SendAsync(httpRequestMessageXsrf);
-
-            IEnumerable<string> xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
-            string xsrfToken = GetXsrfTokenFromCookie(xsrfcookies);
-            SetAltinnStudioCookieFromResponseHeader(message, cookies, xsrfToken);
-        }
-
         internal static string GetXsrfTokenFromCookie(IEnumerable<string> setCookieHeader)
         {
             foreach (string singleCookieHeader in setCookieHeader)
@@ -55,42 +28,47 @@ namespace Designer.Tests.Utils
             return null;
         }
 
-        internal static void SetAltinnStudioCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
+        internal static Mock<IHttpContextAccessor> GetAuthenticatedHttpContextAccessor(string userName = "testUser")
         {
-            if (setCookieHeader != null)
-            {
-                foreach (string singleCookieHeader in setCookieHeader)
-                {
-                    string[] cookies = singleCookieHeader.Split(',');
+            var httpContextAccessor = new Mock<IHttpContextAccessor>();
 
-                    foreach (string cookie in cookies)
-                    {
-                        string[] cookieSettings = cookie.Split(";");
+            MockUserPrincipal(httpContextAccessor, userName);
+            MockHttpContextGetToken(httpContextAccessor, "access_token", "testToken", null, userName);
 
-                        if (cookieSettings[0].StartsWith(Altinn.Studio.Designer.Constants.General.DesignerCookieName))
-                        {
-                            AddAuthCookie(requestMessage, cookieSettings[0].Replace(Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=", string.Empty), xsrfToken);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                AddAuthCookie(requestMessage, null, xsrfToken);
-            }
+            return httpContextAccessor;
         }
 
-        private static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
+        private static void MockHttpContextGetToken(
+            Mock<IHttpContextAccessor> httpContextAccessorMock,
+            string tokenName, string tokenValue, string scheme = null, string username = "testUser")
         {
-            if (token != null)
-            {
-                requestMessage.Headers.Add("Cookie", Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=" + token);
-            }
+            var authenticationServiceMock = new Mock<IAuthenticationService>();
+            httpContextAccessorMock
+                .Setup(x => x.HttpContext.RequestServices.GetService(typeof(IAuthenticationService)))
+                .Returns(authenticationServiceMock.Object);
 
-            if (xsrfToken != null)
-            {
-                requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
-            }
+            var authResult = AuthenticateResult.Success(
+                new AuthenticationTicket(GetTestClaimsPrincipal(username), scheme));
+
+            authResult.Properties.StoreTokens([
+                new AuthenticationToken { Name = tokenName, Value = tokenValue }
+            ]);
+
+            authenticationServiceMock
+                .Setup(x => x.AuthenticateAsync(httpContextAccessorMock.Object.HttpContext, scheme))
+                .ReturnsAsync(authResult);
+        }
+
+        private static void MockUserPrincipal(Mock<IHttpContextAccessor> httpContextAccessorMock, string userName = "testUser")
+        {
+            httpContextAccessorMock.Setup(req => req.HttpContext.User).Returns(() => GetTestClaimsPrincipal(userName));
+        }
+
+        private static ClaimsPrincipal GetTestClaimsPrincipal(string userName)
+        {
+            var claims = new[] { new Claim(ClaimTypes.Name, userName) };
+            var identity = new ClaimsIdentity(claims, userName);
+            return new ClaimsPrincipal(identity);
         }
     }
 }

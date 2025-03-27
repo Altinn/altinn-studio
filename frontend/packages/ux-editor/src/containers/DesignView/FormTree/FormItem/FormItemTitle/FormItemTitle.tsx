@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useCallback } from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
@@ -11,6 +11,7 @@ import { isContainer } from '../../../../../utils/formItemUtils';
 import { useFormItemContext } from '../../../../FormItemContext';
 import { useAppContext } from '../../../../../hooks';
 import classNames from 'classnames';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -43,6 +44,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     <div
       className={classNames(classes.root, {
         [classes.duplicateComponentIds]: duplicateComponents?.includes(formItem.id),
+        [classes.deprecatedComponent]: isComponentDeprecated(formItem.type),
       })}
     >
       <div className={classes.label}>{children}</div>

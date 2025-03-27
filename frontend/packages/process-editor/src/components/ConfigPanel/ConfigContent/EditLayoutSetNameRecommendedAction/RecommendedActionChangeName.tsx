@@ -3,7 +3,7 @@ import {
   StudioIconTextfield,
   StudioRecommendedNextAction,
   useStudioRecommendedNextActionContext,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -46,7 +46,6 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
       <StudioIconTextfield
         error={newNameError}
         icon={<KeyVerticalIcon />}
-        size='sm'
         label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setNewName(event.target.value);

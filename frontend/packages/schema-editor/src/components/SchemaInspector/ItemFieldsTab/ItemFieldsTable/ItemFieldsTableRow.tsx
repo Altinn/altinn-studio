@@ -9,7 +9,7 @@ import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioCenter } from '@studio/components';
+import { StudioCenter } from '@studio/components-legacy';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { ItemFieldType } from './ItemFieldType';
 
@@ -70,7 +70,6 @@ export const ItemFieldsTableRow = ({
           hideLabel
           onKeyDown={onKeyDown}
           schemaPointer={fullPath}
-          size='small'
           aria-label={t('schema_editor.field_name')}
         />
       </td>

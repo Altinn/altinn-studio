@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import type { SettingsModalTab } from '../../components/SettingsModal';
 import { SettingsModal } from '../../components/SettingsModal';
@@ -36,7 +36,7 @@ const setUpAndOpenSettingsModal = async (
   tabToStartAt: SettingsModalTab = 'about',
 ): Promise<SettingsModal> => {
   const settingsModal = new SettingsModal(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   await setupAndVerifyUiEditorPage(page, testAppName);
 
@@ -85,6 +85,7 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
   await settingsModal.verifyThatTabIsVisible('policy');
 
   const policyEditor = new PolicyEditor(page, { app: testAppName });
+  await policyEditor.selectRulesTab();
 
   const securityLevel2 = 2;
   policyEditor.verifySelectedSecurityLevel(securityLevel2);

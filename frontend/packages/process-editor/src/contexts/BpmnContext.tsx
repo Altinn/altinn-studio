@@ -12,6 +12,9 @@ export type BpmnContextProps = {
   appLibVersion: string;
   bpmnDetails: BpmnDetails;
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
+  isInitialized: boolean;
+  setIsInitialized: React.Dispatch<React.SetStateAction<boolean>>;
+  initialBpmnXml: string;
 };
 
 export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
@@ -27,6 +30,8 @@ export const BpmnContextProvider = ({
   appLibVersion,
 }: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [initialBpmnXml] = useState<string>(bpmnXml);
 
   const isEditAllowed =
     supportsProcessEditor(appLibVersion) ||
@@ -56,6 +61,9 @@ export const BpmnContextProvider = ({
         appLibVersion,
         bpmnDetails,
         setBpmnDetails,
+        isInitialized,
+        setIsInitialized,
+        initialBpmnXml,
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 import React, { useState, type ReactElement, type ReactNode } from 'react';
 import classes from './EditSubformTableColumns.module.css';
-import { StudioButton, StudioHeading } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components-legacy';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';
@@ -67,7 +67,7 @@ export const EditSubformTableColumns = ({
             columnNumber={index + 1}
             isInitialOpenForEdit={newColumnNumber === index + 1}
             onDeleteColumn={() => deleteColumn(tableColumn, index)}
-            onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
+            onChange={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
           />
         ))}
       <StudioButton

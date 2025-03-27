@@ -1,7 +1,7 @@
-import type { IDataModelBindings, ITextResourceBindings } from './global';
+import type { IDataModelBindingsKeyValue, ITextResourceBindings } from './global';
 import type { ContainerComponentType } from './ContainerComponent';
 import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
-import type { BooleanExpression, StringExpression } from '@studio/components';
+import type { BooleanExpression, StringExpression } from '@studio/components-legacy';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 
 export type FormContainer<T extends ContainerComponentType = ContainerComponentType> = {
@@ -10,7 +10,7 @@ export type FormContainer<T extends ContainerComponentType = ContainerComponentT
 }[T];
 
 type ContainerBase<T extends ContainerComponentType> = {
-  dataModelBindings?: IDataModelBindings;
+  dataModelBindings?: IDataModelBindingsKeyValue;
   grid?: GridSizes;
   hidden?: BooleanExpression;
   id: string;

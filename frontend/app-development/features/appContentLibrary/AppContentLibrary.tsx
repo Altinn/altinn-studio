@@ -2,15 +2,20 @@ import type {
   CodeListData,
   CodeListReference,
   CodeListWithMetadata,
+  TextResourceWithLanguage,
 } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 
-import { useOptionListsQuery, useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
+import {
+  useOptionListsQuery,
+  useOptionListsReferencesQuery,
+  useTextResourcesQuery,
+} from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageError, StudioPageSpinner } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -21,11 +26,14 @@ import {
   useUpdateOptionListMutation,
   useUpdateOptionListIdMutation,
   useDeleteOptionListMutation,
+  useUpsertTextResourceMutation,
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListUsages } from './utils/mapToCodeListUsages';
 import type { OptionListData } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import type { ITextResources } from 'app-shared/types/global';
+import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -38,8 +46,13 @@ export function AppContentLibrary(): React.ReactElement {
     org,
     app,
   );
+  const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
 
-  const status = mergeQueryStatuses(optionListDataListStatus, optionListUsagesStatus);
+  const status = mergeQueryStatuses(
+    optionListDataListStatus,
+    optionListUsagesStatus,
+    textResourcesStatus,
+  );
 
   switch (status) {
     case 'pending':
@@ -51,6 +64,7 @@ export function AppContentLibrary(): React.ReactElement {
         <AppContentLibraryWithData
           optionListDataList={optionListDataList}
           optionListUsages={optionListUsages}
+          textResources={textResources}
         />
       );
   }
@@ -59,16 +73,19 @@ export function AppContentLibrary(): React.ReactElement {
 type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
   optionListUsages: OptionListReferences;
+  textResources: ITextResources;
 };
 
 function AppContentLibraryWithData({
   optionListDataList,
   optionListUsages,
+  textResources,
 }: AppContentLibraryWithDataProps): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
   const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
+  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
   const handleUpload = useUploadOptionList(org, app);
 
   const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
@@ -83,6 +100,14 @@ function AppContentLibraryWithData({
     updateOptionList({ optionListId: title, optionList: codeList });
   };
 
+  const handleUpdateTextResource = useCallback(
+    (textResourceWithLanguage: TextResourceWithLanguage): void => {
+      const mutationArgs = convertTextResourceToMutationArgs(textResourceWithLanguage);
+      updateTextResource(mutationArgs);
+    },
+    [updateTextResource],
+  );
+
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
@@ -91,8 +116,10 @@ function AppContentLibraryWithData({
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
+          onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           codeListsUsages,
+          textResources,
         },
       },
       images: {

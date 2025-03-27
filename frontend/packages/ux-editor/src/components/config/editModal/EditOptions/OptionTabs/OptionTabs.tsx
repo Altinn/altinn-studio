@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@studio/components-legacy';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { ManualTab } from './ManualTab';
@@ -44,22 +44,13 @@ function OptionTabsMergedTabs({
   handleComponentChange,
   optionListIds,
 }: OptionTabsProps) {
-  const initialSelectedOptionsType = getSelectedOptionsTypeWithManualSupport(
+  const initialSelectedOptionsType = getSelectedOptionsType(
     component.optionsId,
     component.options,
     optionListIds || [],
   );
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionsType);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const updatedSelectedOptionsType = getSelectedOptionsType(
-      component.optionsId,
-      component.options,
-      optionListIds,
-    );
-    setSelectedOptionsType(updatedSelectedOptionsType);
-  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <StudioTabs
@@ -96,15 +87,6 @@ function OptionTabsSplitTabs({ component, handleComponentChange, optionListIds }
   );
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionsType);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const updatedSelectedOptionsType = getSelectedOptionsTypeWithManualSupport(
-      component.optionsId,
-      component.options,
-      optionListIds,
-    );
-    setSelectedOptionsType(updatedSelectedOptionsType);
-  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <StudioTabs

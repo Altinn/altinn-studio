@@ -8,11 +8,13 @@ export enum FeatureFlag {
   ComponentConfigBeta = 'componentConfigBeta',
   ExportForm = 'exportForm',
   Maskinporten = 'maskinporten',
+  MainConfig = 'mainConfig',
   OptionListEditor = 'optionListEditor',
+  OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  Subform = 'subform',
-  Summary2 = 'summary2',
-  Undeploy = 'undeploy',
+  TaskNavigationPageGroups = 'taskNavigationPageGroups',
+  TaskNavigationEditCards = 'taskNavigationEditCards',
+  TaskNavigationTabNav = 'taskNavigationTabNav',
 }
 
 /*
