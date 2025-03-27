@@ -20,7 +20,7 @@ export type StudioTableLocalPaginationProps = {
   pagination?: LocalPaginationProps;
   shouldPersistSort?: boolean;
   sortStorageKey?: TableSortStorageKey;
-  sortedRows?: Rows; 
+  sortedRows?: Rows;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -31,7 +31,7 @@ export const StudioTableLocalPagination = forwardRef<
     {
       columns,
       rows,
-      sortedRows: externalSortedRows, 
+      sortedRows: externalSortedRows,
       size = 'medium',
       isLoading = false,
       loadingText,
@@ -51,7 +51,7 @@ export const StudioTableLocalPagination = forwardRef<
       storageKey: sortStorageKey,
     });
 
-    const sortedRows = externalSortedRows || internalSortedRows; 
+    const sortedRows = externalSortedRows || internalSortedRows;
     const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 

@@ -189,9 +189,7 @@ describe('StudioTableLocalPagination', () => {
 
     render(
       <StudioTableLocalPagination
-        columns={[
-          { accessor: 'name', heading: 'Name' },
-        ]}
+        columns={[{ accessor: 'name', heading: 'Name' }]}
         rows={rows}
         sortedRows={sortedRows}
         pagination={paginationProps}
