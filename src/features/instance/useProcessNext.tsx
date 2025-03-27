@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useDisplayError } from 'src/core/errorHandling/DisplayErrorProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instance/InstanceContext';
 import { useReFetchProcessData } from 'src/features/instance/ProcessContext';
@@ -38,6 +39,7 @@ export function useProcessNext() {
   const setShowAllBackendErrors = Validation.useSetShowAllBackendErrors();
   const onSubmitFormValidation = useOnFormSubmitValidation();
   const applicationMetadata = useApplicationMetadata();
+  const displayError = useDisplayError();
 
   const { mutateAsync } = useMutation({
     mutationFn: async ({ action }: ProcessNextProps = {}) => {
@@ -78,6 +80,7 @@ export function useProcessNext() {
     },
     onError: (error: HttpClientError) => {
       window.logError('Process next failed:\n', error);
+      displayError(error);
     },
   });
 
@@ -86,7 +89,7 @@ export function useProcessNext() {
     if (hasErrors) {
       return;
     }
-    await mutateAsync(props ?? {});
+    await mutateAsync(props ?? {}).catch(() => {});
   });
 }
 
