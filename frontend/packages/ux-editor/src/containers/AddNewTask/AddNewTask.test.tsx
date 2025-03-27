@@ -40,21 +40,6 @@ describe('AddNewTask', () => {
       ),
     );
   });
-  // it('should redirect to the process editor when pressing enter', async () => {
-  //   const user = userEvent.setup();
-  //   const navigate = jest.fn();
-  //   jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(navigate);
-
-  //   renderAddNewTask();
-  //   screen.logTestingPlaygroundURL();
-  //   const card = screen.getByText(textMock('ux_editor.task_card_add_new_task'));
-  //   // focus the card
-  //   await user.focus(card);
-  //   await user.keyboard('Enter');
-  //   expect(navigate).toHaveBeenCalledWith(
-  //     '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
-  //   );
-  // });
 });
 
 const renderAddNewTask = () => {
