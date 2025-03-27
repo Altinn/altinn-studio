@@ -3,7 +3,7 @@ export type PageModel = {
 };
 
 export type GroupModel = {
-  name: string;
+  name?: string;
   pages: PageModel[];
   type?: string;
   markWhenCompleted?: boolean;
