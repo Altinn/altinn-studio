@@ -27,21 +27,21 @@ jobs:
           echo "${{ github.event.inputs.tag }}" | grep -P '^v(\d+)\.(\d+)\.(\d+)(-(preview|rc)\.\d+$|$)'
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           path: app-frontend
           sparse-checkout: |
             .github
 
       - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           repository: 'Altinn/altinn-cdn'
           token: ${{secrets.ALTINN_CDN_TOKEN}}
           path: cdn
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}

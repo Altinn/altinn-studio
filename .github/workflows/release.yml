@@ -25,13 +25,13 @@ jobs:
           echo "${{ github.event.release.tag_name }}" | grep -P $REGEX
 
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           path: app-frontend
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: install node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
         with:
           node-version: '22'
 
@@ -44,7 +44,7 @@ jobs:
         run: yarn build
 
       - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         if: '!env.ACT'
         with:
           repository: 'Altinn/altinn-cdn'
@@ -52,7 +52,7 @@ jobs:
           path: cdn
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2
         if: '!env.ACT'
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}

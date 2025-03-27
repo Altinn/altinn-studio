@@ -12,14 +12,14 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ format('refs/pull/{0}/head', github.event.issue.number) }}
           path: app-frontend
           fetch-depth: 0
 
       - name: install node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
         with:
           node-version: '22'
 
@@ -46,7 +46,7 @@ jobs:
           echo $version
 
       - name: Create PR comment
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
         id: pr-comment
         with:
           issue-number: ${{ github.event.issue.number }}
@@ -67,7 +67,7 @@ jobs:
         run: yarn build
 
       - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         if: '!env.ACT'
         with:
           repository: 'Altinn/altinn-cdn'
@@ -75,7 +75,7 @@ jobs:
           path: cdn
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2
         if: '!env.ACT'
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
@@ -106,7 +106,7 @@ jobs:
         run: git push
 
       - name: Update PR comment - failure
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
         if: failure()
         with:
           issue-number: ${{ github.event.issue.number }}
@@ -116,7 +116,7 @@ jobs:
             > ❌ Failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Update PR comment - success
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
         if: success()
         with:
           issue-number: ${{ github.event.issue.number }}
