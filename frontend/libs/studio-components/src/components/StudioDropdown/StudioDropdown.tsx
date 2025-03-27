@@ -29,7 +29,12 @@ export const StudioDropdown = ({
 
   return (
     <Dropdown.TriggerContext>
-      <Dropdown.Trigger data-size={dataSize} onClick={handleClick} icon={!triggerButtonText}>
+      <Dropdown.Trigger
+        data-size={dataSize}
+        onClick={handleClick}
+        icon={!triggerButtonText}
+        aria-expanded={open}
+      >
         <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}
         </IconWithTextComponent>
