@@ -40,7 +40,6 @@ export const DesignViewNavigation = () => {
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
                   <MinusCircleIcon />
-
                   {t('ux_editor.page_layout_remove_group_division')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
