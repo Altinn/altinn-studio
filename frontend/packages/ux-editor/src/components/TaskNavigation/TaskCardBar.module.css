@@ -10,4 +10,27 @@
 
   overflow-x: scroll;
   background-color: #e6eff8;
+  padding-bottom: 0;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-1);
+  overflow-x: scroll;
+  padding-bottom: var(--fds-spacing-4);
+}
+
+.addCardsContainer {
+  display: flex;
+  flex-direction: column;
+  height: var(--icon-card-height);
+  width: var(--icon-card-width);
+  gap: var(--fds-spacing-3);
+  padding-left: var(--fds-spacing-1);
+}
+
+.addCardsContainer > * {
+  flex: 1;
+  min-height: 0;
 }
