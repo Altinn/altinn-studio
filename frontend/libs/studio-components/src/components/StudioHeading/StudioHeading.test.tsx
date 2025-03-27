@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioHeading, type StudioHeadingProps } from './StudioHeading';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 const mockHeading: string = 'Test Heading';
 
@@ -28,6 +29,10 @@ describe('StudioHeading', () => {
 
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) => renderStudioHeading({ className }));
+  });
+
+  it('Appends custom attributes to the heading element', () => {
+    testCustomAttributes((customAttributes) => renderStudioHeading({ ...customAttributes }));
   });
 });
 
