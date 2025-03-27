@@ -23,7 +23,7 @@ export function StudioDropdown({
 }: StudioDropdownProps): ReactElement {
   const [open, setOpen] = useState<boolean>(false);
 
-  const handleClick = () => {
+  const handleClick = (): void => {
     setOpen((oldValue: boolean) => !oldValue);
   };
 

@@ -64,7 +64,7 @@ describe('StudioDropdown', () => {
     expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
   });
 
-  const openDropdown = (user: UserEvent) =>
+  const openDropdown = (user: UserEvent): Promise<void> =>
     user.click(screen.getByRole('button', { name: triggerButtonText }));
 });
 
@@ -116,4 +116,4 @@ const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResul
   );
 };
 
-const getButton = (name: string) => screen.getByRole('button', { name });
+const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });

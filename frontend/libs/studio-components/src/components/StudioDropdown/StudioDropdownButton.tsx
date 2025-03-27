@@ -23,7 +23,7 @@ export function StudioDropdownButton({
 }: StudioDropdownButtonProps): ReactElement {
   const { setOpen } = useContext(StudioDropdownContext);
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick(event);
     setOpen(false);
   };
