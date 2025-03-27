@@ -196,12 +196,12 @@ public class OrgTextsServiceTests : IDisposable
 
     [Theory]
     [InlineData("org-content")]
-    public async Task GetTextIds_ShouldReturnUniqueTextIds(string org)
+    public async Task GetTextIds_ShouldReturnUniqueTextIds(string repo)
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, org, TargetOrg, targetRepo);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         // Act
@@ -209,6 +209,24 @@ public class OrgTextsServiceTests : IDisposable
 
         // Assert
         Assert.Equal(2, textIds.Count);
+        Assert.NotEqual(textIds[0], textIds[1]);
+    }
+
+    [Theory]
+    [InlineData("org-content-empty")]
+    public async Task GetTextIds_ShouldReturnEmptyList_WhenTextIdsDoesNotExist(string repo)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
+        var service = GetOrgTextsService();
+
+        // Act
+        List<string> textIds = await service.GetTextIds(TargetOrg, Developer);
+
+        // Assert
+        Assert.Empty(textIds);
     }
 
     private static TextResource GetInitialTextResources(string language = "nb")

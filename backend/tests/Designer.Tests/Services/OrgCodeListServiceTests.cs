@@ -250,12 +250,12 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetCodeListIds_ShouldReturnListOfCodeListIds_WhenNoCodeListsExists()
+    public async Task GetCodeListIds_ShouldReturnListOfCodeListIds_WhenCodeListsExists()
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepo);
         var service = GetOrgCodeListService();
 
         // Act
@@ -271,8 +271,8 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string repo = "org-content-empty";
         TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepository);
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgCodeListService();
 
         // Act

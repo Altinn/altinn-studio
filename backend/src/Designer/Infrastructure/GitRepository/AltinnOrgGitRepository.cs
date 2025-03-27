@@ -41,9 +41,9 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     public List<string> GetLanguages()
     {
-        string[] directoryFiles = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
+        string[] languageFilePaths = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
 
-        List<string> languages = directoryFiles
+        List<string> languages = languageFilePaths
             .Select(Path.GetFileName)
             .Select(fileName => fileName.Split('.')[1])
             .ToList();

@@ -26,8 +26,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
-        List<string> expectedLanguages = ["nb", "en"];
-        expectedLanguages.Sort(StringComparer.Ordinal);
+        List<string> expectedLanguages = ["en", "nb"];
 
         // Act
         List<string> languages = altinnOrgGitRepository.GetLanguages();
