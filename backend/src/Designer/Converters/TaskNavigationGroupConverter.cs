@@ -18,7 +18,7 @@ public class TaskNavigationGroupConverter : JsonConverter<TaskNavigationGroup>
             return JsonSerializer.Deserialize<TaskNavigationTask>(json, options);
         }
 
-        if (root.TryGetProperty("type", out JsonElement typeProp) && typeProp.GetString()?.ToLowerInvariant() == "receipt")
+        if (root.TryGetProperty("type", out JsonElement typeProp) && typeProp.GetString()?.ToLowerInvariant() == TaskNavigationReceiptType.Receipt.ToString().ToLowerInvariant())
         {
             return JsonSerializer.Deserialize<TaskNavigationReceipt>(json, options);
         }

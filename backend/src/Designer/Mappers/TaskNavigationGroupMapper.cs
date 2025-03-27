@@ -27,4 +27,27 @@ public static class TaskNavigationGroupMapper
             }
         };
     }
+
+    public static TaskNavigationGroup ToDomain(this TaskNavigationGroupDto dto)
+    {
+        if (!string.IsNullOrEmpty(dto.TaskId))
+        {
+            return new TaskNavigationTask
+            {
+                TaskId = dto.TaskId,
+                Name = dto.Name,
+            };
+        }
+
+        if (dto.TaskType?.ToLowerInvariant() == TaskNavigationReceiptType.Receipt.ToString().ToLowerInvariant())
+        {
+            return new TaskNavigationReceipt
+            {
+                Type = TaskNavigationReceiptType.Receipt,
+                Name = dto.Name,
+            };
+        }
+
+        return null;
+    }
 }

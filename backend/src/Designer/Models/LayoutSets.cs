@@ -65,9 +65,10 @@ public class TaskNavigationTask : TaskNavigationGroup
 public class TaskNavigationReceipt : TaskNavigationGroup
 {
     [JsonPropertyName("type")]
-    public string? Type { get; set; }
+    public TaskNavigationReceiptType? Type { get; set; }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TaskNavigationReceiptType
 {
     [EnumMember(Value = "receipt")]
