@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7AD5FADE-607
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Core", "src\Altinn.App.Core\Altinn.App.Core.csproj", "{1745B251-BD5C-43B7-BA7D-9C4BFAB37535}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Common.Tests", "test\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj", "{D5838692-2703-4E42-8802-6E1FA7F1B50B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Tests.Common", "test\Altinn.App.Tests.Common\Altinn.App.Tests.Common.csproj", "{D5838692-2703-4E42-8802-6E1FA7F1B50B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Internal.Analyzers", "src\Altinn.App.Internal.Analyzers\Altinn.App.Internal.Analyzers.csproj", "{A43CE769-FAB0-49E7-BDD4-3FCA939E1E5A}"
 EndProject

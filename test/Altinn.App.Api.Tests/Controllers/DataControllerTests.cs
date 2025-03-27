@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;

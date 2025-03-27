@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;

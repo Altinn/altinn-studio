@@ -1,6 +1,4 @@
 using System.Net;
-using Altinn.App.Api.Tests.Utils;
-using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;

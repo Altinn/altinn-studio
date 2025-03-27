@@ -53,7 +53,7 @@ public class LocaltestValidationTests
                 .Setup(f => f.CreateClient(It.IsAny<string>()))
                 .Returns(() => server.CreateClient(new ReqHandler(onRequest)));
 
-            var app = Api.Tests.TestUtils.AppBuilder.Build(registerCustomAppServices: services =>
+            var app = AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(_ => server);
 

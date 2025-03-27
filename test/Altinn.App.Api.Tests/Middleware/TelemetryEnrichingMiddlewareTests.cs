@@ -1,8 +1,5 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
-using Altinn.App.Api.Tests.Mocks;
-using Altinn.App.Api.Tests.Utils;
-using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;

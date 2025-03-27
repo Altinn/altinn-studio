@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Net;
 using System.Text.Json;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;

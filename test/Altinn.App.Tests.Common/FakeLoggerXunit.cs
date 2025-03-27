@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Xunit.Abstractions;
 
-namespace Altinn.App.Common.Tests;
+namespace Altinn.App.Tests.Common;
 
 public static class FakeLoggerXunit
 {

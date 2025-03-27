@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
@@ -14,7 +13,7 @@ using AltinnCore.Authentication.Constants;
 using Xunit.Abstractions;
 using static Altinn.App.Core.Features.Auth.Authenticated;
 
-namespace Altinn.App.Api.Tests.Utils;
+namespace Altinn.App.Tests.Common.Auth;
 
 public enum AuthenticationTypes
 {
@@ -101,22 +100,22 @@ public sealed class TestJwtToken : IXunitSerializable
 
 public static class TestAuthentication
 {
-    internal const int DefaultUserId = 1337;
-    internal const int DefaultUserPartyId = 501337;
-    internal const string DefaultUsername = "testuser";
-    internal const int DefaultUserAuthenticationLevel = 2;
+    public const int DefaultUserId = 1337;
+    public const int DefaultUserPartyId = 501337;
+    public const string DefaultUsername = "testuser";
+    public const int DefaultUserAuthenticationLevel = 2;
 
-    internal const string DefaultOrgNumber = "405003309";
-    internal const string DefaultOrg = "tdd";
-    internal const int DefaultOrgPartyId = 5001337;
-    internal const string DefaultServiceOwnerScope =
+    public const string DefaultOrgNumber = "405003309";
+    public const string DefaultOrg = "tdd";
+    public const int DefaultOrgPartyId = 5001337;
+    public const string DefaultServiceOwnerScope =
         "altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
-    internal const string DefaultOrgScope = "altinn:instances.read altinn:instances.write";
+    public const string DefaultOrgScope = "altinn:instances.read altinn:instances.write";
 
-    internal const string DefaultSystemUserId = "f58fe166-bc22-4899-beb7-c3e8e3332f43";
-    internal const string DefaultSystemId = "1cb8b115-31bf-421f-8029-8bb0cd23c954";
-    internal const string DefaultSystemUserOrgNumber = "310702641";
-    internal const string DefaultSystemUserSupplierOrgNumber = "991825827";
+    public const string DefaultSystemUserId = "f58fe166-bc22-4899-beb7-c3e8e3332f43";
+    public const string DefaultSystemId = "1cb8b115-31bf-421f-8029-8bb0cd23c954";
+    public const string DefaultSystemUserOrgNumber = "310702641";
+    public const string DefaultSystemUserSupplierOrgNumber = "991825827";
 
     public sealed class AllTokens : TheoryData<TestJwtToken>
     {

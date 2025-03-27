@@ -23,29 +23,6 @@
       -->
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4cv2-4hjh-77rx" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Implementation\AppBaseTests.cs" />
-    <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-    <Watch Include="LayoutExpressions/**/*.json" />
-    <Content Include="Features/Validators/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-    <Watch Include="Features/Validators/**/*.json" />
-    <Content Include="Models/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-    <Watch Include="Models/**/*.json" />
-    <Watch Include="**/*.cs" />
-    <Content Update="Implementation\TestData\AppMetadata\default.applicationmetadata.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Implementation\TestData\AppMetadata\invalid.applicationmetadata.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Implementation\TestData\AppPolicy\policy.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Implementation\TestData\AppProcess\process.bpmn">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="secrets.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.10.0" />
@@ -68,47 +45,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Altinn.App.Core\Altinn.App.Core.csproj" />
-    <ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
-    <ProjectReference Include="..\Altinn.App.Api.Tests\Altinn.App.Api.Tests.csproj" />
+    <ProjectReference Include="../../src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Helpers\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Infrastructure\Clients\Authorization\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Internal\Pdf\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Internal\Process\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Internal\App\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Features\Action\TestData\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Implementation\TestData\**">
+    <Compile Include="../Altinn.App.Tests.Common/ModuleInitializer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="Features/Validators/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="Models/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="secrets.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="**/TestData/**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Watch Remove="Extensions\DictionaryExtensionsTests.cs" />
-    <Watch Remove="Internal\Pdf\PdfServiceTests.cs" />
-    <Watch Remove="Mocks\RequestInterceptor.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Internal\Pdf\TestData\example.pdf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="LayoutExpressions\CommonTests\exclusive-tests\functions\" />
+    <EmbeddedResource Include="Internal/Pdf/TestData/example.pdf" />
   </ItemGroup>
 
 </Project>

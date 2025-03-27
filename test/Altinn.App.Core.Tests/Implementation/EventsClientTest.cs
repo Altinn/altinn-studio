@@ -1,7 +1,6 @@
 #nullable disable
 using System.Net;
 using System.Text.Json;
-using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Events;

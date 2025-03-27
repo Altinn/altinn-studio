@@ -5,16 +5,15 @@ using System.Runtime.CompilerServices;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using static Altinn.App.Common.Tests.TelemetrySink;
+using static Altinn.App.Tests.Common.TelemetrySink;
 
-namespace Altinn.App.Common.Tests;
+namespace Altinn.App.Tests.Common;
 
-public static class TelemetryDI
+public static class TelemetrySinkDI
 {
     public static IServiceCollection AddTelemetrySink(
         this IServiceCollection services,
@@ -247,13 +246,13 @@ public sealed record TelemetrySink : IDisposable
     {
         public bool IsDisposed { get; set; }
 
-        public void Dispose() => Scopes.TryRemove(this, out _).Should().BeTrue();
+        public void Dispose() => Assert.True(Scopes.TryRemove(this, out _));
     }
 
     public static Scope CreateScope()
     {
         var scope = new Scope();
-        Scopes.TryAdd(scope, default).Should().BeTrue();
+        Assert.True(Scopes.TryAdd(scope, default));
         return scope;
     }
 }

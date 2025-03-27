@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.App.Api.Tests.TestUtils;
+namespace Altinn.App.Tests.Common;
 
 public static class AppBuilder
 {
@@ -28,13 +28,13 @@ public static class AppBuilder
         }
 
         // 1. AddAltinnAppControllersWithViews
-        Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppControllersWithViews(builder.Services);
+        Api.Extensions.ServiceCollectionExtensions.AddAltinnAppControllersWithViews(builder.Services);
 
         // 2. RegisterCustomAppServices
         registerCustomAppServices?.Invoke(builder.Services);
 
         // 3. AddAltinnAppServices
-        Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
+        Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
             builder.Services,
             builder.Configuration,
             builder.Environment
@@ -47,11 +47,11 @@ public static class AppBuilder
         overrideAltinnAppServices?.Invoke(builder.Services);
 
         // 5. ConfigureAppWebHost
-        Altinn.App.Api.Extensions.WebHostBuilderExtensions.ConfigureAppWebHost(builder.WebHost, []);
+        Api.Extensions.WebHostBuilderExtensions.ConfigureAppWebHost(builder.WebHost, []);
 
         // 6. UseAltinnAppCommonConfiguration
         var app = builder.Build();
-        Altinn.App.Api.Extensions.WebApplicationBuilderExtensions.UseAltinnAppCommonConfiguration(app);
+        Api.Extensions.WebApplicationBuilderExtensions.UseAltinnAppCommonConfiguration(app);
 
         return app;
     }

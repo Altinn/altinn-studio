@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.App.Common.Tests;
+namespace Altinn.App.Core.Tests.Features.Telemetry;
 
 public class TelemetryDITests
 {

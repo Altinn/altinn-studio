@@ -1,6 +1,5 @@
 using System.Diagnostics.Tracing;
 using System.Reflection;
-using Altinn.App.Api.Tests.TestUtils;
 using Altinn.App.Core.Features;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;

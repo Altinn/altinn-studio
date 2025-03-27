@@ -4,7 +4,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.Platform.Register.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

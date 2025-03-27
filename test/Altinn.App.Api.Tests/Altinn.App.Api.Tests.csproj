@@ -27,33 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+    <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
 
-    <!-- <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+    <!-- <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj">
+      <CopyToOutputDirectory>lib/$(TargetFramework)/*.xml</CopyToOutputDirectory>
     </ProjectReference> -->
-    <ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
+    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Altinn.App.Core.Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="TestResources/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <LinkBase>/</LinkBase>
-      <Link>/%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="jwtselfsignedcert.pfx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="JWTValidationCert.cer">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="C:\dev\nugets\app-lib-dotnet\test\Altinn.App.Api.Tests\.editorconfig" />
+    <Compile Include="../Altinn.App.Tests.Common/ModuleInitializer.cs" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,3 @@
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Internal.Language;
 using Altinn.Platform.Profile.Models;
 using FluentAssertions;

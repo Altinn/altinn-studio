@@ -1,6 +1,5 @@
 using System.Globalization;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

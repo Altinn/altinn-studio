@@ -1,4 +1,3 @@
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using FluentAssertions;
 using Moq;

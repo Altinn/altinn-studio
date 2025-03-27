@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Altinn.App.Api.Tests.Mocks;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Profile;
@@ -24,7 +23,7 @@ public class UserHelperTest
 
         public static Fixture Create(ClaimsPrincipal userPrincipal, string? partyCookieValue = null)
         {
-            var app = TestUtils.AppBuilder.Build(overrideAltinnAppServices: services =>
+            var app = AppBuilder.Build(overrideAltinnAppServices: services =>
             {
                 var httpContextMock = new Mock<HttpContext>();
                 httpContextMock.Setup(x => x.Request.Cookies["AltinnPartyId"]).Returns(partyCookieValue);

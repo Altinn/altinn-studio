@@ -5,7 +5,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO.Hashing;
 using System.Text;
 using System.Text.Json;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;

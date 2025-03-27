@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Altinn.App.Api.Tests;
+namespace Altinn.App.Tests.Common;
 
 internal static class ModuleInitializer
 {

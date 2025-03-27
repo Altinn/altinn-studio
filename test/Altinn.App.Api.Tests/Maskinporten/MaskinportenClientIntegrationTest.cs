@@ -1,6 +1,5 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Tests.Extensions;
-using Altinn.App.Api.Tests.TestUtils;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
