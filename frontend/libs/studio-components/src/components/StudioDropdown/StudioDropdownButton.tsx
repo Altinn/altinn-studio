@@ -24,7 +24,7 @@ export function StudioDropdownButton({
   const { setOpen } = useContext(StudioDropdownContext);
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
-    onClick(event);
+    onClick && onClick(event);
     setOpen(false);
   };
 
