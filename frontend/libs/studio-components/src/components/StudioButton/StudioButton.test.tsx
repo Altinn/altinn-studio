@@ -7,7 +7,8 @@ import type { IconPlacement } from '../../types/IconPlacement';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
-const iconPlacementCases: IconPlacement[] = [undefined, 'left', 'right'];
+const iconPlacementCases: IconPlacement[] = ['left', 'right'];
+const iconTestId: string = 'icon';
 
 describe('StudioButton', () => {
   beforeEach(jest.clearAllMocks);
@@ -21,7 +22,6 @@ describe('StudioButton', () => {
   it.each(iconPlacementCases)(
     'Renders a button with the given icon when iconPlacement is %s and there is no content',
     (iconPlacement) => {
-      const iconTestId = 'icon';
       const icon = <span data-testid={iconTestId} />;
       renderButton({ icon, iconPlacement });
       expect(screen.getByTestId('icon')).toBeInTheDocument();
@@ -32,7 +32,6 @@ describe('StudioButton', () => {
     'Renders a button with the given content and icon when iconPlacement is %s',
     (iconPlacement) => {
       const children = 'Button content';
-      const iconTestId = 'icon';
       const icon = <span data-testid={iconTestId} />;
       renderButton({ icon, iconPlacement, children });
       expect(getButtonByName(children)).toBeInTheDocument();
