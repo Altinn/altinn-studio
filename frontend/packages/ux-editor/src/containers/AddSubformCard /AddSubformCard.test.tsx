@@ -8,7 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 describe('AddSubformCard', () => {
   it('should render AddSubformCard', () => {
     renderAddSubformCard();
-    expect(screen.getByText(textMock('ux_editor.task_card_add_new_subform'))).toBeInTheDocument;
+    expect(screen.getByText(textMock('ux_editor.task_card_add_new_subform'))).toBeInTheDocument();
   });
 });
 
