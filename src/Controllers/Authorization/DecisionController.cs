@@ -72,8 +72,10 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occured in DecisionController");
+
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
