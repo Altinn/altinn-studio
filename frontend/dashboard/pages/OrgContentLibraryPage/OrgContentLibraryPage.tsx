@@ -25,65 +25,78 @@ import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 
-export function OrgContentLibrary(): ReactElement {
+export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
 
   return isOrg(selectedContext) ? (
-    <OrgContentLibraryWithContext />
+    <OrgContentLibrary orgName={selectedContext} />
   ) : (
     <ContextWithoutLibraryAccess />
   );
 }
 
-function OrgContentLibraryWithContext(): ReactElement {
-  const { t } = useTranslation();
-  const selectedContext = useSelectedContext();
+type OrgContentLibraryProps = {
+  orgName: string;
+};
+
+function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
   const orgRepoName = useOrgRepoName();
-
-  const { data: repoStatus } = useRepoStatusQuery(selectedContext, orgRepoName);
-
-  useListenToMergeConflictInRepo(selectedContext, orgRepoName);
-
-  const { data: codeListsResponse, status: codeListResponseStatus } =
-    useOrgCodeListsQuery(selectedContext);
+  const { data: repoStatus } = useRepoStatusQuery(orgName, orgRepoName);
+  useListenToMergeConflictInRepo(orgName, orgRepoName);
 
   if (repoStatus?.hasMergeConflict) {
-    return <MergeConflictWarning owner={selectedContext} repoName={orgRepoName} />;
+    return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
+  } else {
+    return <MergeableOrgContentLibrary orgName={orgName} />;
   }
+}
 
-  switch (codeListResponseStatus) {
+type MergeableOrgContentLibraryProps = {
+  orgName: string;
+};
+
+function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps): ReactElement {
+  const { t } = useTranslation();
+  const { data: codeListDataList, status: codeListDataListStatus } = useOrgCodeListsQuery(orgName);
+
+  switch (codeListDataListStatus) {
     case 'pending':
       return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
     case 'error':
       return <StudioPageError message={t('dashboard.org_library.fetch_error')} />;
     case 'success':
-      return <OrgContentLibraryWithContextAndData codeListsDataList={codeListsResponse} />;
+      return (
+        <OrgContentLibraryWithContextAndData
+          codeListDataList={codeListDataList}
+          orgName={orgName}
+        />
+      );
   }
 }
 
 type OrgContentLibraryWithContextAndDataProps = {
-  codeListsDataList: CodeListData[];
+  codeListDataList: CodeListData[];
+  orgName: string;
 };
 
 function OrgContentLibraryWithContextAndData({
-  codeListsDataList,
+  codeListDataList,
+  orgName,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
-  const selectedContext = useSelectedContext();
+  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
 
-  const { mutate: updateOptionList } = useUpdateOrgCodeListMutation(selectedContext);
-  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(selectedContext);
-
-  const handleUpload = useUploadCodeList(selectedContext);
+  const handleUpload = useUploadCodeList(orgName);
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
-    updateOptionList({ title, data: codeList });
+    updateCodeList({ title, data: codeList });
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListsDataList,
+          codeListsData: codeListDataList,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
@@ -110,8 +123,8 @@ function ContextWithoutLibraryAccess(): ReactElement {
   );
 }
 
-function useUploadCodeList(org: string): (file: File) => void {
-  const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(org, {
+function useUploadCodeList(orgName: string): (file: File) => void {
+  const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(orgName, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { t } = useTranslation();
