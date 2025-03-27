@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioParagraph, type StudioParagraphProps } from './StudioParagraph';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 const mockText: string = 'Test Paragraph';
 
@@ -24,6 +25,10 @@ describe('StudioParagraph', () => {
 
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) => renderStudioParagraph({ className }));
+  });
+
+  it('Appends custom attributes to the paragraph element', () => {
+    testCustomAttributes((customAttributes) => renderStudioParagraph({ ...customAttributes }));
   });
 });
 
