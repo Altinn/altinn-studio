@@ -32,7 +32,7 @@ describe('StudioHeading', () => {
   });
 
   it('Appends custom attributes to the heading element', () => {
-    testCustomAttributes((customAttributes) => renderStudioHeading({ ...customAttributes }));
+    testCustomAttributes(renderStudioHeading);
   });
 });
 
