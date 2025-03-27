@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { StudioParagraph, type StudioParagraphProps } from './StudioParagraph';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -32,7 +33,7 @@ describe('StudioParagraph', () => {
   });
 });
 
-const renderStudioParagraph = (props: Partial<StudioParagraphProps> = {}) => {
+const renderStudioParagraph = (props: Partial<StudioParagraphProps> = {}): RenderResult => {
   return render(<StudioParagraph {...props}>{mockText}</StudioParagraph>);
 };
 
