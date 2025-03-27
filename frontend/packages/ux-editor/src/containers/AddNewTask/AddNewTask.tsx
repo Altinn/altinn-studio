@@ -12,14 +12,14 @@ export const AddNewTask = () => {
   const handleClick = () =>
     navigate(`../${RoutePaths.ProcessEditor}?returnTo=${RoutePaths.UIEditor}`);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') handleClick();
+  const handleKeyDown = (key: string) => {
+    if (key === 'Enter' || key === ' ') handleClick();
   };
 
   return (
     <StudioCard
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(e) => handleKeyDown(e.key)}
       className={classes.card}
       tabIndex={0}
     >
