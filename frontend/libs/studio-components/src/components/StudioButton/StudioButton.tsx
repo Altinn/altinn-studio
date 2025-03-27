@@ -4,6 +4,7 @@ import classes from './StudioButton.module.css';
 import cn from 'classnames';
 import { Button, type ButtonProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../types/IconPlacement';
+import { IconWithTextComponent } from '../IconWithTextComponent';
 
 export type StudioButtonProps = {
   icon?: ReactNode;
@@ -18,12 +19,6 @@ export const StudioButton = ({
   children,
   ...rest
 }: StudioButtonProps): ReactElement => {
-  const iconComponent = (
-    <span aria-hidden className={classes.iconWrapper}>
-      {icon}
-    </span>
-  );
-
   const classNames = cn(givenClassName, classes.studioButton, {
     [classes.smallWithIconOnly]: dataSize === 'sm' && !children,
   });
@@ -31,11 +26,9 @@ export const StudioButton = ({
   return (
     <Button className={classNames} icon={!children} data-size={dataSize} {...rest}>
       {icon ? (
-        <span className={classes.innerContainer}>
-          {iconPlacement === 'left' && iconComponent}
+        <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
           {children}
-          {iconPlacement === 'right' && iconComponent}
-        </span>
+        </IconWithTextComponent>
       ) : (
         children
       )}
