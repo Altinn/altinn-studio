@@ -85,7 +85,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
-            Converters = { new TaskNavigationGroupConverter() },
         };
 
         /// <summary>

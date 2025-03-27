@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Converters;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -50,6 +51,7 @@ public class UiSettings
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
+[JsonConverter(typeof(TaskNavigationGroupConverter))]
 public abstract class TaskNavigationGroup
 {
     [JsonPropertyName("name")]
