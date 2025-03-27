@@ -99,8 +99,9 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <summary>
     /// Gets all code list Ids
     /// </summary>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of code list Ids</returns>
-    public string[] GetCodeListIds(CancellationToken cancellationToken = default)
+    public List<string> GetCodeListIds(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -112,7 +113,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string[] fileNames = GetFilesByRelativeDirectoryAscSorted(codeListFolder, "*.json");
         IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
-        return codeListIds.ToArray();
+        return codeListIds.ToList();
     }
 
     /// <summary>

@@ -194,6 +194,23 @@ public class OrgTextsServiceTests : IDisposable
         await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang));
     }
 
+    [Theory]
+    [InlineData("org-content")]
+    public async Task GetTextIds_ShouldReturnUniqueTextIds(string org)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, org, TargetOrg, targetRepo);
+        var service = GetOrgTextsService();
+
+        // Act
+        List<string> textIds = await service.GetTextIds(TargetOrg, Developer);
+
+        // Assert
+        Assert.Equal(2, textIds.Count);
+    }
+
     private static TextResource GetInitialTextResources(string language = "nb")
     {
         string fileContents = TestDataHelper.GetFileFromRepo(Org, "org-content", Developer, RelativePath(language));

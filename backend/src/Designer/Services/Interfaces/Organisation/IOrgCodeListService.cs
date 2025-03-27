@@ -16,7 +16,7 @@ public interface IOrgCodeListService
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of code list ids</returns>
-    public string[] GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default);
+    public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all code lists from the org repository.

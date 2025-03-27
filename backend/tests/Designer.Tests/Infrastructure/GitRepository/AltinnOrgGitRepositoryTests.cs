@@ -20,6 +20,28 @@ public class AltinnOrgGitRepositoryTests : IDisposable
     private const string Developer = "testUser";
 
     [Theory]
+    [InlineData("org-content")]
+    public async Task GetLanguages_WithRepoThatHasTextResources_ShouldReturnCorrectLanguages(string repository)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+        List<string> expectedLanguages = ["nb", "en"];
+        expectedLanguages.Sort(StringComparer.Ordinal);
+
+        // Act
+        List<string> languages = altinnOrgGitRepository.GetLanguages();
+
+        // Assert
+        Assert.Equal(expectedLanguages.Count, languages.Count);
+
+        for (int i = 0; i < expectedLanguages.Count; i++)
+        {
+            Assert.Equal(expectedLanguages[i], languages[i]);
+        }
+    }
+
+    [Theory]
     [InlineData("org-content", "nb")]
     public async Task GetText_WithRepoThatHasTextResources_ShouldReturnTexts(string repository, string language)
     {
@@ -63,11 +85,11 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
 
         // Act
-        string[] codeListIds = altinnOrgGitRepository.GetCodeListIds();
+        List<string> codeListIds = altinnOrgGitRepository.GetCodeListIds();
 
         // Assert
         Assert.NotNull(codeListIds);
-        Assert.Equal(6, codeListIds.Length);
+        Assert.Equal(6, codeListIds.Count);
     }
 
     [Theory]
@@ -79,7 +101,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
 
         // Act
-        string[] codeListIds = altinnOrgGitRepository.GetCodeListIds();
+        List<string> codeListIds = altinnOrgGitRepository.GetCodeListIds();
 
         // Assert
         Assert.Empty(codeListIds);
