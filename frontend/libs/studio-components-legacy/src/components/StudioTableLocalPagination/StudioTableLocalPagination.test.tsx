@@ -180,4 +180,31 @@ describe('StudioTableLocalPagination', () => {
     const unFormattedNameCell = screen.queryByText('Sophie Salt');
     expect(unFormattedNameCell).not.toBeInTheDocument();
   });
+
+  it('renders sorted rows when sortedRows is provided', () => {
+    const sortedRows: Rows = [
+      { id: 1, name: 'Sorted Row 1' },
+      { id: 2, name: 'Sorted Row 2' },
+    ];
+
+    render(
+      <StudioTableLocalPagination
+        columns={[
+          { accessor: 'name', heading: 'Name' },
+        ]}
+        rows={rows}
+        sortedRows={sortedRows}
+        pagination={paginationProps}
+      />,
+    );
+
+    const tableBody = screen.getAllByRole('rowgroup')[1];
+    const tableBodyRows = within(tableBody).getAllByRole('row');
+    expect(tableBodyRows).toHaveLength(2); // Expect 2 rows from sortedRows
+    expect(screen.getByRole('cell', { name: 'Sorted Row 1' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Sorted Row 2' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('cell', { name: 'Coordinated register notification' }),
+    ).not.toBeInTheDocument();
+  });
 });

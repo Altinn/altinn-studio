@@ -7,7 +7,7 @@ import { TableSortStorageKey } from '@studio/components-legacy';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
-  const { data: userStarredRepos = [], isPending } = useStarredReposQuery();
+  const { data: userStarredRepos = [], isPending: isPendingStarredRepos } = useStarredReposQuery();
 
   return (
     <div>
@@ -16,7 +16,7 @@ export const FavoriteReposList = () => {
       </Heading>
       <RepoList
         repos={userStarredRepos}
-        isLoading={isPending}
+        isLoading={isPendingStarredRepos}
         sortStorageKey={TableSortStorageKey.FavoriteRepos}
       />
     </div>

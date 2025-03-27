@@ -20,6 +20,7 @@ export type StudioTableLocalPaginationProps = {
   pagination?: LocalPaginationProps;
   shouldPersistSort?: boolean;
   sortStorageKey?: TableSortStorageKey;
+  sortedRows?: Rows; 
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -30,6 +31,7 @@ export const StudioTableLocalPagination = forwardRef<
     {
       columns,
       rows,
+      sortedRows: externalSortedRows, 
       size = 'medium',
       isLoading = false,
       loadingText,
@@ -43,21 +45,22 @@ export const StudioTableLocalPagination = forwardRef<
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const { sortedRows, handleSorting } = useTableSorting(rows, {
+    const { sortedRows: internalSortedRows, handleSorting } = useTableSorting(rows, {
       enable: true,
       shouldPersistSort,
       storageKey: sortStorageKey,
     });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+    const sortedRows = externalSortedRows || internalSortedRows; 
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     useEffect(() => {
-      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
       setRowsToRender(newRowsToRender);
-    }, [sortedRows, rows, currentPage, pageSize]);
+    }, [sortedRows, currentPage, pageSize]);
 
-    const totalRows = rows.length;
+    const totalRows = sortedRows.length;
     const totalPages = Math.ceil(totalRows / pageSize);
 
     const studioTableRemotePaginationProps = pagination && {
