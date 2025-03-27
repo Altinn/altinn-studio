@@ -594,7 +594,7 @@ public static class ExpressionEvaluator
         string? search = ToStringForEquals(args[1]);
         string? replace = ToStringForEquals(args[2]);
 
-        if (subject is null || search is null || replace is null || subject == "" || search == "")
+        if (subject is null || search is null || subject == "" || search == "")
         {
             return null;
         }
