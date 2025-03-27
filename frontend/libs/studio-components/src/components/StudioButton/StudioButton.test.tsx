@@ -2,17 +2,15 @@ import React from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import type { IconPlacement } from '../../types/IconPlacement';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
-// Mocks:
-jest.mock('./StudioButton.module.css', () => ({
-  studioButton: 'studioButton',
-}));
+const iconPlacementCases: IconPlacement[] = [undefined, 'left', 'right'];
 
 describe('StudioButton', () => {
-  const iconPlacementCases: IconPlacement[] = [undefined, 'left', 'right'];
+  beforeEach(jest.clearAllMocks);
 
   it('Renders a button with the given content', () => {
     const children = 'Button content';
@@ -43,7 +41,7 @@ describe('StudioButton', () => {
   );
 
   it('Appends custom attributes to the button element', () => {
-    testCustomAttributes(renderButton, getButton);
+    testCustomAttributes(renderButton);
   });
 
   it('Appends given classname to internal classname', () => {
@@ -51,8 +49,7 @@ describe('StudioButton', () => {
   });
 });
 
-const renderButton = (props: StudioButtonProps) => render(<StudioButton {...props} />);
+const renderButton = (props: StudioButtonProps): RenderResult =>
+  render(<StudioButton {...props} />);
 
-const getButton = (): HTMLButtonElement => screen.getByRole('button') as HTMLButtonElement;
-const getButtonByName = (name: string): HTMLButtonElement =>
-  screen.getByRole('button', { name }) as HTMLButtonElement;
+const getButtonByName = (name: string): HTMLButtonElement => screen.getByRole('button', { name });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { IconWithTextComponent } from './IconWithTextComponent';
 import type { IconWithTextComponentProps } from './IconWithTextComponent';
 
@@ -43,6 +44,8 @@ const defaultProps: IconWithTextComponentProps = {
   children: mockChildren,
 };
 
-const renderIconWithTextComponent = (props: Partial<IconWithTextComponentProps> = {}) => {
+const renderIconWithTextComponent = (
+  props: Partial<IconWithTextComponentProps> = {},
+): RenderResult => {
   return render(<IconWithTextComponent {...defaultProps} {...props} />);
 };
