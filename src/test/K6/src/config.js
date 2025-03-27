@@ -13,7 +13,7 @@ export var baseUrls = {
 // are rolled out to all environments
 export var authCookieNames = {
   at21: '.ASPXAUTH', // '.AspxAuthCloud',
-  at22: '.ASPXAUTH', // '.AspxAuthCloud',
+  at22: '.AspxAuthCloud',
   at23: '.ASPXAUTH', // '.AspxAuthCloud',
   at24: '.AspxAuthCloud',
   tt02: '.ASPXAUTH', // '.AspxAuthTT02',
