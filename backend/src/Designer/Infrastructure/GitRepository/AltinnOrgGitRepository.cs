@@ -16,9 +16,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 {
     private const string CodeListFolderPath = "Codelists/";
     private const string LanguageResourceFolderName = "Texts/";
-
     private const string TextResourceFileNamePattern = "resource.??.json";
-
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
