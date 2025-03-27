@@ -1,6 +1,6 @@
 import React from 'react';
 import { AddNewTask } from './AddNewTask';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -23,6 +23,38 @@ describe('AddNewTask', () => {
       '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
     );
   });
+
+  it('should redirect to the process editor when pressing enter', async () => {
+    const user = userEvent.setup();
+    const navigate = jest.fn();
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(navigate);
+    renderAddNewTask();
+
+    const card = screen.getByRole('button');
+    card.focus();
+    await user.keyboard('{Enter}');
+
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith(
+        '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
+      ),
+    );
+  });
+  // it('should redirect to the process editor when pressing enter', async () => {
+  //   const user = userEvent.setup();
+  //   const navigate = jest.fn();
+  //   jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(navigate);
+
+  //   renderAddNewTask();
+  //   screen.logTestingPlaygroundURL();
+  //   const card = screen.getByText(textMock('ux_editor.task_card_add_new_task'));
+  //   // focus the card
+  //   await user.focus(card);
+  //   await user.keyboard('Enter');
+  //   expect(navigate).toHaveBeenCalledWith(
+  //     '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
+  //   );
+  // });
 });
 
 const renderAddNewTask = () => {

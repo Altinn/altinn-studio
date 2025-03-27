@@ -22,6 +22,7 @@ export const AddNewTask = () => {
       onKeyDown={(e) => handleKeyDown(e.key)}
       className={classes.card}
       tabIndex={0}
+      role='button'
     >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
