@@ -28,7 +28,7 @@ describe('StudioParagraph', () => {
   });
 
   it('Appends custom attributes to the paragraph element', () => {
-    testCustomAttributes((customAttributes) => renderStudioParagraph({ ...customAttributes }));
+    testCustomAttributes(renderStudioParagraph);
   });
 });
 
