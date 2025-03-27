@@ -12,7 +12,6 @@ export enum FeatureFlag {
   OptionListEditor = 'optionListEditor',
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  TaskNavigation = 'taskNavigation',
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
   TaskNavigationEditCards = 'taskNavigationEditCards',
   TaskNavigationTabNav = 'taskNavigationTabNav',

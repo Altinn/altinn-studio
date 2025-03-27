@@ -46,6 +46,7 @@ public class OrgCodeListController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<OptionListData>>> GetCodeLists(string org, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             await _sourceControl.VerifyCloneExists(org, $"{org}-content");
