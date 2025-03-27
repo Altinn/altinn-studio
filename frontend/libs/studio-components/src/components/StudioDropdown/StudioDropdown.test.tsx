@@ -64,6 +64,31 @@ describe('StudioDropdown', () => {
     expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('Renders the file uploader item with the correct text and icon', async () => {
+    const user = userEvent.setup();
+    renderStudioDropdown();
+    await openDropdown(user);
+
+    const fileUploaderItem = getButton(fileUploaderText);
+    expect(fileUploaderItem).toBeInTheDocument();
+    expect(screen.getByTestId(icon4TestId)).toBeInTheDocument();
+  });
+
+  it('Triggers onFileUpload when a file is selected', async () => {
+    const user = userEvent.setup();
+    const fileNameMock = 'fileNameMock';
+    renderStudioDropdown();
+    await openDropdown(user);
+
+    const file = new File(['test'], `${fileNameMock}.json`, { type: 'application/json' });
+    const fileInputElement = screen.getByLabelText(fileUploaderText);
+
+    await user.upload(fileInputElement, file);
+
+    expect(onFileUpload).toHaveBeenCalledTimes(1);
+    expect(onFileUpload).toHaveBeenCalledWith(expect.any(Object));
+  });
+
   const openDropdown = (user: UserEvent): Promise<void> =>
     user.click(screen.getByRole('button', { name: triggerButtonText }));
 });
@@ -75,13 +100,17 @@ const list1Item1Text: string = 'Group 1 Item 1';
 const list2Item1Text: string = 'Group 2 Item 1';
 const list2Item2Text: string = 'Group 2 Item 2';
 const list2Item3Text: string = 'Group 2 Item 3';
+const fileUploaderText: string = 'Upload file';
+const onFileUpload = jest.fn();
 const list1Item1Action = jest.fn();
 const icon1TestId: string = 'Icon 1';
 const icon2TestId: string = 'Icon 2';
 const icon3TestId: string = 'Icon 3';
+const icon4TestId: string = 'Icon 4';
 const icon1: ReactElement = <span data-testid={icon1TestId} />;
 const icon2: ReactElement = <span data-testid={icon2TestId} />;
 const icon3: ReactElement = <span data-testid={icon3TestId} />;
+const icon4: ReactElement = <span data-testid={icon4TestId} />;
 
 const defaultProps: StudioDropdownProps = {
   triggerButtonText: triggerButtonText,
@@ -110,6 +139,15 @@ const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResul
           <StudioDropdown.Button icon={icon3} iconPlacement='right'>
             {list2Item3Text}
           </StudioDropdown.Button>
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.FileUploaderButton
+            icon={icon4}
+            iconPlacement='right'
+            onFileUpload={onFileUpload}
+          >
+            {fileUploaderText}
+          </StudioDropdown.FileUploaderButton>
         </StudioDropdown.Item>
       </StudioDropdown.List>
     </StudioDropdown>,
