@@ -41,18 +41,14 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     public List<string> GetLanguages()
     {
-        List<string> languages = [];
-
         string[] directoryFiles = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
-        foreach (string directoryFile in directoryFiles)
-        {
-            string fileName = Path.GetFileName(directoryFile);
-            string[] nameParts = fileName.Split('.');
-            string languageCode = nameParts[1];
-            languages.Add(languageCode);
-            languages.Sort(StringComparer.Ordinal);
-        }
 
+        List<string> languages = directoryFiles
+            .Select(Path.GetFileName)
+            .Select(fileName => fileName.Split('.')[1])
+            .ToList();
+
+        languages.Sort(StringComparer.Ordinal);
         return languages;
     }
 
