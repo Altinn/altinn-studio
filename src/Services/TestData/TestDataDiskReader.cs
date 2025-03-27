@@ -17,12 +17,36 @@ public static class TestDataDiskReader
         await ReadFolderToDictionary(Path.Join(testDataPath, "authorization", "claims"), testData.Authorization.Claims);
         await ReadRoles(testDataPath, testData);
         await ReadFolderToDictionary(Path.Join(testDataPath, "authorization", "partylist"), testData.Authorization.PartyList);
+        await ReadSystems(testDataPath, testData.Authorization);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Profile", "User"), testData.Profile.User);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Org"), testData.Register.Org);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Party"), testData.Register.Party);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Person"), testData.Register.Person);
 
         return testData;
+    }
+
+    private static async Task ReadSystems(string testDataPath, TestDataAuthorization testData)
+    {
+        var systemsFolder = new DirectoryInfo(Path.Join(testDataPath, "authorization", "systems"));
+        foreach (var systemFolder in systemsFolder.GetDirectories())
+        {
+            var systemId = systemFolder.Name;
+            var systemData = JsonSerializer.Deserialize<TestDataSystem>(await File.ReadAllBytesAsync(Path.Join(systemFolder.FullName, "system.json")))
+                ?? throw new Exception("Failed to deserialize system data");
+            systemData = systemData with { SystemUsers = new() };
+            testData.Systems[systemId] = systemData;
+
+            var systemUsersFolder = new DirectoryInfo(Path.Join(systemFolder.FullName, "systemusers"));
+            foreach (var systemUserData in systemUsersFolder.GetFiles())
+            {
+                var systemUser = JsonSerializer.Deserialize<TestDataSystemUser>(await File.ReadAllBytesAsync(systemUserData.FullName))
+                    ?? throw new Exception("Failed to deserialize system user data");
+                systemUser = systemUser with { SystemId = systemId };
+                testData.SystemUsers[systemUser.Id] = systemUser;
+                systemData.SystemUsers[systemUser.Id] = systemUser;
+            }
+        }
     }
 
     private static async Task ReadRoles(string testDataPath, TestDataModel testData)

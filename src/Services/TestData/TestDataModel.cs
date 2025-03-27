@@ -22,8 +22,23 @@ public class TestDataAuthorization
     public Dictionary<string, List<CustomClaim>> Claims { get; set; } = new();
     public Dictionary<string, List<Party>> PartyList { get; set; } = new();
     public Dictionary<string, Dictionary<string, List<Role>>> Roles { get; set; } = new();
-
+    public Dictionary<string, TestDataSystem> Systems { get; set; } = new();
+    public Dictionary<string, TestDataSystemUser> SystemUsers { get; set; } = new();
 }
+
+public sealed record TestDataSystem(
+    string Id,
+    string Name,
+    string ClientId,
+    Dictionary<string, TestDataSystemUser> SystemUsers
+);
+
+public sealed record TestDataSystemUser(
+    string Id,
+    string SystemId,
+    string PartyOrgNo,
+    IEnumerable<string> AppRights
+);
 
 public class TestDataProfile
 {

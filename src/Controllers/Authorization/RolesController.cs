@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.Controllers
         [Authorize]
         public async Task<ActionResult> Get(int coveredByUserId, int offeredByPartyId)
         {
-            int? authnUserId = User.GetUserIdAsInt();
+            int? authnUserId = User.GetUserId();
 
             if (coveredByUserId != authnUserId)
             {

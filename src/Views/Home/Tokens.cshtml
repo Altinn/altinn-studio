@@ -52,6 +52,25 @@
                 <button type="submit" class="btn btn-primary">Generate service owner token</button>
             </div>
         }
+        
+        <div class="flex flex-column">
+        <h2 class="mt-4">System user tokens</h2>
+        @using (Html.BeginForm("GetTestSystemUserToken", "Home", FormMethod.Get, new { Class = "form-signin" }))
+        {
+            <div class="form-group mt-1">
+                <label>Select systemuser</label>
+                @Html.DropDownList("systemUserId", Model.TestSystemUsers, new { Class = "form-control" })
+            </div>
+            <div class="form-group mt-1">
+                <label>Scopes for the token separated by space " " (scopes does not seem to be verified by localtest storage)</label>
+
+                @Html.TextBox("scope", "altinn:instances.read altinn:instances.write", new { Class = "form-control", Id = "scope", PlaceHolder = "altinn:instances.read altinn:instances.write" })
+            </div>
+
+            <div class="form-group mt-1">
+                <button type="submit" class="btn btn-primary">Get systems user token</button>
+            </div>
+        }
     </div>
 </div>
 

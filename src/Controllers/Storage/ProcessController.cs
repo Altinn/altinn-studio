@@ -206,7 +206,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             existingInstance.Process = processState;
-            existingInstance.LastChangedBy = User.GetUserOrOrgId();
+            existingInstance.LastChangedBy = User.GetUserOrOrgNo();
             existingInstance.LastChanged = DateTime.UtcNow;
         }
 

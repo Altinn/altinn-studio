@@ -2,12 +2,15 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Services.Authentication.Interface;
+using LocalTest.Services.Register.Interface;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AuthSettings = Altinn.Platform.Authentication.Configuration.GeneralSettings;
@@ -19,29 +22,30 @@ public class AuthenticationService : IAuthentication
     private readonly AltinnOrgsClient _orgsClient;
     private readonly AuthSettings _authSettings;
     private readonly GeneralSettings _generalSettings;
+    private readonly CertificateSettings _certSettings;
     private readonly IClaims _claimsService;
+    private readonly IOrganizations _organisations;
 
     public AuthenticationService(
         AltinnOrgsClient orgsClient,
         IOptions<AuthSettings> authSettings,
         IOptions<GeneralSettings> generalSettings,
-        IClaims claimsService
+        IOptions<CertificateSettings> certSettings,
+        IClaims claimsService,
+        IOrganizations organisations
     )
     {
         _orgsClient = orgsClient;
         _authSettings = authSettings.Value;
         _generalSettings = generalSettings.Value;
+        _certSettings = certSettings.Value;
         _claimsService = claimsService;
+        _organisations = organisations;
     }
 
     ///<inheritdoc/>
     public string GenerateToken(ClaimsPrincipal principal)
     {
-        List<X509Certificate2> certificates = new List<X509Certificate2>
-        {
-            new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234") // lgtm [cs/hardcoded-credentials]
-        };
-
         TimeSpan tokenExpiry = new TimeSpan(0, _authSettings.GetJwtCookieValidityTime, 0);
 
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -49,13 +53,37 @@ public class AuthenticationService : IAuthentication
         {
             Subject = new ClaimsIdentity(principal.Identity),
             Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
-            SigningCredentials = new X509SigningCredentials(certificates[0])
+            SigningCredentials = GetSigningCredentials(),
         };
 
         SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
         string serializedToken = tokenHandler.WriteToken(token);
 
         return serializedToken;
+    }
+
+    public string GenerateToken(JwtPayload payload)
+    {
+        var now = DateTimeOffset.UtcNow;
+        TimeSpan tokenExpiry = new TimeSpan(0, _authSettings.GetJwtCookieValidityTime, 0);
+
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        
+        var header = new JwtHeader(GetSigningCredentials());
+
+        payload.TryAdd("exp", now.Add(tokenExpiry).ToUnixTimeSeconds());
+        payload.TryAdd("iat", now.ToUnixTimeSeconds());
+        payload.TryAdd("nbf", now.ToUnixTimeSeconds());
+        payload.TryAdd("jti", Guid.NewGuid().ToString());
+
+        var securityToken = new JwtSecurityToken(header, payload);
+        return tokenHandler.WriteToken(securityToken);
+    }
+
+    private X509SigningCredentials GetSigningCredentials()
+    {
+        var cert = new X509Certificate2(_certSettings.CertificatePath, _certSettings.CertificatePwd);
+        return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }
 
     /// <inheritdoc />
@@ -158,4 +186,62 @@ public class AuthenticationService : IAuthentication
 
         return GenerateToken(principal);
     }
+
+    public async Task<string> GenerateTokenForSystemUser(string systemId, string systemUserId, string systemUserOrgNumber, string supplierOrgNumber, string scope)
+    {
+        string iss = _generalSettings.Hostname;
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(systemUserOrgNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(supplierOrgNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(scope);
+        
+        var org = await _organisations.GetOrganization(systemUserOrgNumber);
+        if (org is null)
+            throw new ArgumentException("Organization not found in register", nameof(systemUserOrgNumber));
+
+        var payload = new JwtPayload
+        {
+            // { "iss", iss },
+            { "token_type", "Bearer" },
+            { "scope", scope },
+            { "client_id", Guid.NewGuid().ToString() },
+            { "jti", Guid.NewGuid().ToString() },
+            { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
+            { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+        };
+        
+        AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
+            [Guid.Parse(systemUserId)],
+            systemId,
+            new OrgClaim(
+                "iso6523-actorid-upis",
+                 $"0192:{systemUserOrgNumber}"
+            )
+        );
+
+        var consumer = new OrgClaim(
+            "iso6523-actorid-upis",
+            $"0192:{supplierOrgNumber}"
+        );
+        payload.Add("authorization_details", JsonSerializer.SerializeToElement(authorizationDetails));
+        payload.Add("consumer", JsonSerializer.SerializeToElement(consumer));
+
+        return GenerateToken(payload);
+    }
 }
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(SystemUserAuthorizationDetailsClaim), typeDiscriminator: "urn:altinn:systemuser")]
+internal record AuthorizationDetailsClaim();
+
+internal sealed record SystemUserAuthorizationDetailsClaim(
+    [property: JsonPropertyName("systemuser_id")] IReadOnlyList<Guid> SystemUserId,
+    [property: JsonPropertyName("system_id")] string SystemId,
+    [property: JsonPropertyName("systemuser_org")] OrgClaim SystemUserOrg
+) : AuthorizationDetailsClaim();
+
+internal sealed record OrgClaim(
+    [property: JsonPropertyName("authority")] string Authority,
+    [property: JsonPropertyName("ID")] string Id
+);

@@ -34,5 +34,7 @@ namespace LocalTest.Services.Authentication.Interface
         /// </summary>
         /// <returns>JWT token</returns>
         public Task<string> GenerateTokenForProfile(UserProfile profile, int authenticationLevel);
+
+        public Task<string> GenerateTokenForSystemUser(string systemId, string systemUserId, string systemUserOrgNumber, string supplierOrgNumber, string scope);
     }
 }

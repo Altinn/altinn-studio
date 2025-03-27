@@ -23,6 +23,8 @@ namespace LocalTest.Configuration
 
         public string NotificationsStorageFolder { get; set; } = "notifications/";
 
+        public string AuthorizationAuditFolder { get; set; } = "authorization/";
+
         /// <summary>
         /// Folder where static test data like profile, authorization, and register data is available for local testing.
         /// </summary>

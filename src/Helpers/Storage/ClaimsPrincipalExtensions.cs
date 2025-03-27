@@ -1,99 +1,159 @@
+#nullable enable
+
+using System;
 using System.Security.Claims;
+using System.Text.Json;
+
+using Altinn.AccessManagement.Core.Models;
 using AltinnCore.Authentication.Constants;
 
-namespace Altinn.Platform.Storage.Helpers
+namespace Altinn.Platform.Storage.Helpers;
+
+/// <summary>
+/// Helper methods on the ClaimsPrincipal class to get user information from different claims.
+/// </summary>
+public static class ClaimsPrincipalExtensions
 {
     /// <summary>
-    /// Helper methods to extend ClaimsPrincipal. 
+    /// Looks for any service owner related scopes and return true if any are found, otherwise false.
     /// </summary>
-    public static class ClaimsPrincipalExtensions
+    /// <param name="user">The ClaimsPrincipal to check for scopes delegated to service owners.</param>
+    public static bool HasServiceOwnerScope(this ClaimsPrincipal user)
     {
-        /// <summary>
-        /// Gets the userId or the orgNumber or null if neither claims are present.
-        /// </summary>
-        public static string GetUserOrOrgId(this ClaimsPrincipal User)
+        string? scope = user.FindFirstValue("scope");
+
+        return scope is not null && scope.Contains("altinn:serviceowner");
+    }
+
+    /// <summary>
+    /// Gets the userId or the orgNumber or null if neither claims are present.
+    /// </summary>
+    public static string? GetUserOrOrgNo(this ClaimsPrincipal user)
+    {
+        int? userId = GetUserId(user);
+        if (userId.HasValue)
         {
-            int? userId = GetUserIdAsInt(User);
-            if (userId.HasValue)
-            {
-                return userId.Value.ToString();
-            }
+            return userId.Value.ToString();
+        }
 
-            int? orgId = GetOrgNumber(User);
-            if (orgId.HasValue)
-            {
-                return orgId.Value.ToString();
-            }
+        var systemUser = GetSystemUser(user);
+        if (systemUser is not null)
+        {
+            return GetSystemUserOwner(user);
+        }
 
+        string? orgNo = GetOrgNumber(user);
+        if (orgNo is not null)
+        {
+            return orgNo;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns the value of the org claim if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the org claim value.</param>
+    public static string? GetOrg(this ClaimsPrincipal user)
+    {
+        return user.FindFirstValue(AltinnCoreClaimTypes.Org);
+    }
+
+    /// <summary>
+    /// Returns the value of the organization number claim if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the organization number claim value.</param>
+    public static string? GetOrgNumber(this ClaimsPrincipal user)
+    {
+        return user.FindFirstValue(AltinnCoreClaimTypes.OrgNumber);
+    }
+
+    /// <summary>
+    /// Return the value of the user id claim as an int if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the UserId claim value.</param>
+    public static int? GetUserId(this ClaimsPrincipal user)
+    {
+        string? claimValue = user.FindFirstValue(AltinnCoreClaimTypes.UserId);
+        if (claimValue is not null && int.TryParse(claimValue, out int userId))
+        {
+            return userId;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Return the SystemUserClaim value of the authorization_details claim if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the claim value.</param>
+    public static SystemUserClaim? GetSystemUser(this ClaimsPrincipal user)
+    {
+        string? authorizationDetailsValue = user.FindFirstValue("authorization_details");
+        if (authorizationDetailsValue is null)
+        {
             return null;
         }
 
-        /// <summary>
-        /// Get the org identifier string or null if it is not an org.
-        /// </summary>        
-        public static string GetOrg(this ClaimsPrincipal User)
-        {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))
-            {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.Org);
-                if (orgClaim != null)
-                {
-                    return orgClaim.Value;
-                }
-            }
+        return JsonSerializer.Deserialize<SystemUserClaim>(authorizationDetailsValue);
+    }
 
-            return null;
+    /// <summary>
+    /// Gets the organization number of the owner of the system user if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the system user claim value.</param>
+    public static Guid? GetSystemUserId(this ClaimsPrincipal user)
+    {
+        SystemUserClaim? systemUser = GetSystemUser(user);
+        if (systemUser is not null)
+        {
+            string systemUserId = systemUser.Systemuser_id[0];
+            if (Guid.TryParse(systemUserId, out Guid systemUserIdGuid))
+            {
+                return systemUserIdGuid;
+            }
         }
 
-        /// <summary>
-        /// Returns the organisation number of an org user or null if claim does not exist.
-        /// </summary>
-        public static int? GetOrgNumber(this ClaimsPrincipal User)
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the organization number of the owner of the system user if found. Otherwise null.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the system user claim value.</param>
+    public static string? GetSystemUserOwner(this ClaimsPrincipal user)
+    {
+        SystemUserClaim? systemUser = GetSystemUser(user);
+        if (systemUser is not null)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
+            string consumerAuthority = systemUser.Systemuser_org.Authority;
+            if (!"iso6523-actorid-upis".Equals(consumerAuthority))
             {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.OrgNumber);
-                if (orgClaim != null && int.TryParse(orgClaim.Value, out int orgNumber))
-                {
-                    return orgNumber;
-                }
+                return null;
             }
 
-            return null;
+            string consumerId = systemUser.Systemuser_org.ID;
+
+            string organisationNumber = consumerId.Split(":")[1];
+            return organisationNumber;
         }
 
-        /// <summary>
-        /// Return the userId as an int or null if UserId claim is not set
-        /// </summary>
-        public static int? GetUserIdAsInt(this ClaimsPrincipal User)
+        return null;
+    }
+
+    /// <summary>
+    /// Returns the value of the authentication level claim if found. Otherwise 0.
+    /// </summary>
+    /// <param name="user">The ClaimsPrincipal to check for the authentication level claim value.</param>
+    public static int GetAuthenticationLevel(this ClaimsPrincipal user)
+    {
+        string? claimValue = user.FindFirstValue(AltinnCoreClaimTypes.AuthenticationLevel);
+        if (claimValue is not null && int.TryParse(claimValue, out int authenticationLevel))
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
-            {
-                Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.UserId);
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-                {
-                    return userId;
-                }
-            }
-
-            return null;
+            return authenticationLevel;
         }
 
-        /// <summary>
-        /// Returns the authentication level of the user.
-        /// </summary>
-        public static int GetAuthenticationLevel(this ClaimsPrincipal User)
-        {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel))
-            {
-                Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel);
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int authenticationLevel))
-                {
-                    return authenticationLevel;
-                }
-            }
-
-            return 0;
-        }
+        return 0;
     }
 }
