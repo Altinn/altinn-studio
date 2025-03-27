@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { StudioDropdown, type StudioDropdownProps } from './';
 import React from 'react';
+import type { ReactElement } from 'react';
+import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
+import { StudioDropdown, type StudioDropdownProps } from './';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
@@ -66,24 +68,28 @@ describe('StudioDropdown', () => {
     user.click(screen.getByRole('button', { name: triggerButtonText }));
 });
 
-const triggerButtonText = 'Open';
-const list1Heading = 'Group 1';
-const list2Heading = 'Group 2';
-const list1Item1Text = 'Group 1 Item 1';
-const list2Item1Text = 'Group 2 Item 1';
-const list2Item2Text = 'Group 2 Item 2';
-const list2Item3Text = 'Group 2 Item 3';
+const triggerButtonText: string = 'Open';
+const list1Heading: string = 'Group 1';
+const list2Heading: string = 'Group 2';
+const list1Item1Text: string = 'Group 1 Item 1';
+const list2Item1Text: string = 'Group 2 Item 1';
+const list2Item2Text: string = 'Group 2 Item 2';
+const list2Item3Text: string = 'Group 2 Item 3';
 const list1Item1Action = jest.fn();
-const icon1TestId = 'Icon 1';
-const icon2TestId = 'Icon 2';
-const icon3TestId = 'Icon 3';
-const icon1 = <span data-testid={icon1TestId} />;
-const icon2 = <span data-testid={icon2TestId} />;
-const icon3 = <span data-testid={icon3TestId} />;
+const icon1TestId: string = 'Icon 1';
+const icon2TestId: string = 'Icon 2';
+const icon3TestId: string = 'Icon 3';
+const icon1: ReactElement = <span data-testid={icon1TestId} />;
+const icon2: ReactElement = <span data-testid={icon2TestId} />;
+const icon3: ReactElement = <span data-testid={icon3TestId} />;
 
-const renderStudioDropdown = (props?: Partial<StudioDropdownProps>) => {
+const defaultProps: StudioDropdownProps = {
+  triggerButtonText: triggerButtonText,
+};
+
+const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResult => {
   return render(
-    <StudioDropdown triggerButtonText={triggerButtonText}>
+    <StudioDropdown {...defaultProps} {...props}>
       <StudioDropdown.List>
         <StudioDropdown.Heading>{list1Heading}</StudioDropdown.Heading>
         <StudioDropdown.Item>
