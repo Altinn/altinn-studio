@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
@@ -49,12 +50,26 @@ public class UiSettings
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
-public class TaskNavigationGroup
+public abstract class TaskNavigationGroup
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+}
+
+public class TaskNavigationTask : TaskNavigationGroup
 {
     [JsonPropertyName("taskId")]
     public string? TaskId { get; set; }
+}
+
+public class TaskNavigationReceipt : TaskNavigationGroup
+{
     [JsonPropertyName("type")]
     public string? Type { get; set; }
-    [JsonPropertyName("name")]
-    public string? Name { get; set; }
+}
+
+public enum TaskNavigationReceiptType
+{
+    [EnumMember(Value = "receipt")]
+    Receipt
 }
