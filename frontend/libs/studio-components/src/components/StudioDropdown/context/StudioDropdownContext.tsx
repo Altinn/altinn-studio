@@ -22,11 +22,9 @@ export const StudioDropdownContextProvider = ({
   );
 };
 
-export const useStudioDropdownContext = (): Partial<StudioDropdownContextProps> => {
+export const useStudioDropdownContext = (): StudioDropdownContextProps => {
   const context = useContext(StudioDropdownContext);
-  console.log('context', context);
   if (context === undefined) {
-    console.log('context is undefined');
     throw new Error('useStudioDropdownContext must be used within a StudioDropdownContextProvider');
   }
   return context;
