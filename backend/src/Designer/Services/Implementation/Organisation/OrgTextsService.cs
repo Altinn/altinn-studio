@@ -88,6 +88,24 @@ public class OrgTextsService : IOrgTextsService
         await altinnOrgGitRepository.SaveText(languageCode, textResourceObject, cancellationToken);
     }
 
+    public async Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        List<string> textKeys = [];
+        List<string> languages = altinnOrgGitRepository.GetLanguages();
+        foreach (string languageCode in languages)
+        {
+            TextResource textResource = await GetText(org, developer, languageCode, cancellationToken);
+            List<string> textIds = textResource.Resources.Select(textResourceElement => textResourceElement.Id).ToList();
+            textKeys.AddRange(textIds);
+        }
+
+        return textKeys.Distinct().ToList();
+    }
+
     private static string GetStaticContentRepo(string org)
     {
         return $"{org}-content";

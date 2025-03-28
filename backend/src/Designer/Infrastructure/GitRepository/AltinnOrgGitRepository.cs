@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 {
     private const string CodeListFolderPath = "Codelists/";
     private const string LanguageResourceFolderName = "Texts/";
-
+    private const string TextResourceFileNamePattern = "resource.??.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -36,6 +37,19 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
     public AltinnOrgGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
     {
+    }
+
+    public List<string> GetLanguages()
+    {
+        string[] languageFilePaths = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
+
+        List<string> languages = languageFilePaths
+            .Select(Path.GetFileName)
+            .Select(fileName => fileName.Split('.')[1])
+            .ToList();
+
+        languages.Sort(StringComparer.Ordinal);
+        return languages;
     }
 
     /// <summary>
@@ -79,8 +93,9 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <summary>
     /// Gets all code list Ids
     /// </summary>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of code list Ids</returns>
-    public string[] GetCodeListIds(CancellationToken cancellationToken = default)
+    public List<string> GetCodeListIds(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -92,7 +107,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string[] fileNames = GetFilesByRelativeDirectoryAscSorted(codeListFolder, "*.json");
         IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
-        return codeListIds.ToArray();
+        return codeListIds.ToList();
     }
 
     /// <summary>

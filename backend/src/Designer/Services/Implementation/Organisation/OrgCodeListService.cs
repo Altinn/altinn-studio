@@ -34,7 +34,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string[] codeListIds = GetCodeListIds(org, developer);
+        List<string> codeListIds = GetCodeListIds(org, developer, cancellationToken);
         List<OptionListData> codeLists = [];
         foreach (string codeListId in codeListIds)
         {
@@ -142,21 +142,14 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    private string[] GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
+    public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        try
-        {
-            string[] codeListIds = altinnOrgGitRepository.GetCodeListIds();
-            return codeListIds;
-        }
-        catch (NotFoundException) // Is raised if the Options folder does not exist
-        {
-            return [];
-        }
+        List<string> codeListIds = altinnOrgGitRepository.GetCodeListIds(cancellationToken);
+        return codeListIds;
     }
 
     private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
