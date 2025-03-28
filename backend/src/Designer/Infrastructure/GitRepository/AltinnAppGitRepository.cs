@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Converters;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
