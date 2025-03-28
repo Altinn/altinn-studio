@@ -1,21 +1,45 @@
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { NavigationReceipt, NavigationTask } from 'app-shared/types/api/LayoutSetsResponse';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import { StudioSpinner } from '@studio/components-legacy';
 import React, { type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { isReceipt, taskNavigationIcon, taskNavigationType } from './SettingsUtils';
+import { PadlockLockedFillIcon } from '@studio/icons';
+import classes from './SettingsNavigation.module.css';
 
 export const SettingsNavigation = (): ReactElement => {
+  const { t } = useTranslation();
+
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const taskNavigation = layoutSets?.uiSettings?.taskNavigation || [];
+  const { data: taskNavigationGroups, isPending } = useTaskNavigationGroupQuery(org, app);
+
+  if (isPending) {
+    return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
+  }
 
   return (
-    <>
-      {taskNavigation.map((task: NavigationTask | NavigationReceipt, key: number) => (
-        <div key={key}>
-          <h1>{task.name}</h1>
-          <p>{'taskId' in task ? task.taskId : task.type}</p>
-        </div>
+    <div className={classes.taskNavigationContainer}>
+      {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
+        <TaskNavigation key={key} taskType={task.taskType} />
       ))}
-    </>
+    </div>
+  );
+};
+
+const TaskNavigation = ({ taskType }: Partial<TaskNavigationGroup>): ReactElement => {
+  const { t } = useTranslation();
+
+  const taskIcon = taskNavigationIcon(taskType, classes.taskIcon);
+  const taskTypeName = taskNavigationType(taskType);
+
+  return (
+    <div className={classes.taskWrapper}>
+      <div className={classes.taskContent}>
+        {taskIcon}
+        <span className={classes.taskTypeName}>{t(`${taskTypeName}`)}</span>
+      </div>
+      {isReceipt(taskType) && <PadlockLockedFillIcon className={classes.taskIconLocker} />}
+    </div>
   );
 };

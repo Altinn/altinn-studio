@@ -1,0 +1,48 @@
+:root {
+  --icon-size: 28px;
+  --icon-size-locker: 21px;
+  --font-weight-semi-bold: 500;
+  --container-height: 637px;
+  --container-width: 541px;
+  --border-radius: 8px;
+}
+
+.taskNavigationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+  max-width: var(--container-width);
+  max-height: var(--container-height);
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border: var(--fds-border_width-default) solid #b8bcc1;
+  border-radius: var(--border-radius);
+  overflow-y: auto;
+}
+
+.taskWrapper {
+  display: flex;
+  justify-content: space-between;
+  width: var(--task-width);
+  align-items: center;
+}
+
+.taskContent {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}
+
+.taskIcon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.taskTypeName {
+  font-weight: var(--font-weight-semi-bold);
+}
+
+.taskIconLocker {
+  width: var(--icon-size-locker);
+  height: var(--icon-size-locker);
+}
