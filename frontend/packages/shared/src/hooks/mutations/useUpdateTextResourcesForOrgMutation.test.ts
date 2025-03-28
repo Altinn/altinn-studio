@@ -14,7 +14,7 @@ describe('useUpdateTextResourcesForOrgMutation', () => {
       { queries: { updateTextResourcesForOrg } },
     );
     const language: string = 'nb';
-    const payload: KeyValuePairs = {
+    const payload: KeyValuePairs<string> = {
       [label1TextResource.id]: label1TextResource.value,
       [label2TextResource.id]: label2TextResource.value,
     };

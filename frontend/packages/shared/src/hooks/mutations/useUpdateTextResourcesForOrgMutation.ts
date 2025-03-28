@@ -7,7 +7,7 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 
 export type UpdateTextResourcesForOrgMutationArgs = {
   language: string;
-  payload: KeyValuePairs;
+  payload: KeyValuePairs<string>;
 };
 
 export const useUpdateTextResourcesForOrgMutation = (
