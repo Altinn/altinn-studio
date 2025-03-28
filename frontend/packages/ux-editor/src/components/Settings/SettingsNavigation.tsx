@@ -1,10 +1,10 @@
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isReceipt, taskNavigationIcon, taskNavigationType } from './SettingsUtils';
+import { isTaskReceipt, taskNavigationIcon, taskNavigationType } from './SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
 
@@ -14,9 +14,15 @@ export const SettingsNavigation = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: taskNavigationGroups, isPending } = useTaskNavigationGroupQuery(org, app);
 
-  if (isPending) {
+  if (isPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
-  }
+
+  if (!taskNavigationGroups.length)
+    return (
+      <StudioAlert className={classes.warningMessage} severity='warning'>
+        {t('ux_editor.settings.navigation_warning')}
+      </StudioAlert>
+    );
 
   return (
     <div className={classes.taskNavigationContainer}>
@@ -39,7 +45,9 @@ const TaskNavigation = ({ taskType }: Partial<TaskNavigationGroup>): ReactElemen
         {taskIcon}
         <span className={classes.taskTypeName}>{t(`${taskTypeName}`)}</span>
       </div>
-      {isReceipt(taskType) && <PadlockLockedFillIcon className={classes.taskIconLocker} />}
+      {isTaskReceipt(taskType) && (
+        <PadlockLockedFillIcon data-testid='lockerIcon' className={classes.taskIconLocker} />
+      )}
     </div>
   );
 };

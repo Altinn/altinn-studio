@@ -46,3 +46,7 @@
   width: var(--icon-size-locker);
   height: var(--icon-size-locker);
 }
+
+.warningMessage {
+  display: inline-flex;
+}
