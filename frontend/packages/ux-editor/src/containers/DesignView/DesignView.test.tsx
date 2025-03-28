@@ -154,6 +154,32 @@ describe('DesignView', () => {
     const accordion = screen.queryByRole('group', { name: /accordion/i });
     expect(accordion).not.toBeInTheDocument();
   });
+
+  it('renders group accordions when isTaskNavigationPageGroups is true and there are groups', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
+  });
+
+  it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(false);
+    renderDesignView();
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('sideoppsett 2')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockPageName1 })).toBeInTheDocument();
+  });
+
+  it('renders page accordions when isTaskNavigationPageGroups is false', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(false);
+    renderDesignView();
+    formLayoutSettingsMock.pages.order.forEach((page) => {
+      expect(screen.getByRole('button', { name: page })).toBeInTheDocument();
+    });
+  });
 });
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,

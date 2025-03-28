@@ -213,7 +213,7 @@ export const DesignView = (): ReactNode => {
       <div className={classes.wrapper}>
         {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
-          {hasGroups ? (
+          {isTaskNavigationPageGroups && hasGroups ? (
             <>{displayGroupAccordions}</>
           ) : (
             pagesModel?.pages?.length > 0 && (
