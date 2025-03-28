@@ -4,7 +4,7 @@ import classes from './StudioButton.module.css';
 import cn from 'classnames';
 import { Button, type ButtonProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../types/IconPlacement';
-import { IconWithTextComponent } from '../IconWithTextComponent';
+import { TextWithIcon } from '../TextWithIcon';
 
 export type StudioButtonProps = {
   icon?: ReactNode;
@@ -26,9 +26,9 @@ export const StudioButton = ({
   return (
     <Button className={classNames} icon={!children} data-size={dataSize} {...rest}>
       {icon ? (
-        <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
+        <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {children}
-        </IconWithTextComponent>
+        </TextWithIcon>
       ) : (
         children
       )}
