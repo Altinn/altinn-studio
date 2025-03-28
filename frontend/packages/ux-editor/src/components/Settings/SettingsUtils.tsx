@@ -6,9 +6,10 @@ import {
   NavigationSignIcon,
   NavigationPayIcon,
 } from '@studio/icons';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export const taskNavigationType = (taskType: string) => {
-  if (taskType === 'receipt' || taskType === 'PROTECTED_TASK_NAME_CUSTOM_RECEIPT') {
+  if (taskType === 'receipt' || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
     return 'process_editor.configuration_panel_custom_receipt_accordion_header';
   } else {
     return `process_editor.task_type.${taskType}`;
@@ -16,14 +17,21 @@ export const taskNavigationType = (taskType: string) => {
 };
 
 export const taskNavigationIcon = (taskType: string, taskIcon?: string): ReactElement => {
-  if (isReceipt(taskType)) return <ReceiptIcon className={taskIcon} />;
-  if (taskType == 'data') return <NavigationDataIcon className={taskIcon} />;
-  if (taskType == 'signing') return <NavigationSignIcon className={taskIcon} />;
-  if (taskType == 'payment') return <NavigationPayIcon className={taskIcon} />;
-
-  return <QuestionmarkIcon />;
+  switch (taskType) {
+    case 'receipt':
+    case PROTECTED_TASK_NAME_CUSTOM_RECEIPT:
+      return <ReceiptIcon data-testid='receipt' className={taskIcon} />;
+    case 'data':
+      return <NavigationDataIcon data-testid='data' className={taskIcon} />;
+    case 'signing':
+      return <NavigationSignIcon data-testid='signing' className={taskIcon} />;
+    case 'payment':
+      return <NavigationPayIcon data-testid='payment' className={taskIcon} />;
+    default:
+      return <QuestionmarkIcon data-testid='questionMark' className={taskIcon} />;
+  }
 };
 
-export const isReceipt = (taskType: string) => {
-  return taskType === 'receipt' || taskType === 'PROTECTED_TASK_NAME_CUSTOM_RECEIPT';
+export const isTaskReceipt = (taskType: string) => {
+  return taskType === 'receipt' || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
 };
