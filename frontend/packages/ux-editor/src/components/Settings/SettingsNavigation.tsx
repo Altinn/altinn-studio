@@ -33,7 +33,11 @@ export const SettingsNavigation = (): ReactElement => {
   );
 };
 
-const TaskNavigation = ({ taskType }: Partial<TaskNavigationGroup>): ReactElement => {
+type TaskNavigationProps = {
+  taskType: string;
+};
+
+const TaskNavigation = ({ taskType }: TaskNavigationProps): ReactElement => {
   const { t } = useTranslation();
 
   const taskIcon = taskNavigationIcon(taskType, classes.taskIcon);
