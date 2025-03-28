@@ -4,11 +4,7 @@ import { RequiredIndicator } from '../../RequiredIndicator';
 import classes from './HeaderMainConfig.module.css';
 import { useTranslation } from 'react-i18next';
 
-type HeaderMainConfigProps = {
-  children?: React.ReactNode;
-};
-
-export const HeaderMainConfig = ({ children }: Partial<HeaderMainConfigProps>): JSX.Element => {
+export const HeaderMainConfig = (): JSX.Element => {
   const { t } = useTranslation();
 
   return (
@@ -17,7 +13,6 @@ export const HeaderMainConfig = ({ children }: Partial<HeaderMainConfigProps>): 
         {t('ux_editor.component_properties.main_configuration')}
         <RequiredIndicator />
       </StudioHeading>
-      {children}
     </div>
   );
 };

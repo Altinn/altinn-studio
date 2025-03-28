@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -34,6 +32,7 @@ const defaultProps: PropertiesHeaderProps = {
 describe('PropertiesHeader', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    queryClientMock.clear();
     typedLocalStorage.removeItem('featureFlags');
   });
 
@@ -45,6 +44,12 @@ describe('PropertiesHeader', () => {
       level: 2,
     });
     expect(heading).toBeInTheDocument();
+  });
+
+  it('should render spinner when fetching component schema', async () => {
+    renderPropertiesHeader({}, false);
+    const spinner = screen.getByText(textMock('ux_editor.properties_panel.texts.loading'));
+    expect(spinner).toBeInTheDocument();
   });
 
   it('displays the help text when the help text button is clicked', async () => {
@@ -185,21 +190,19 @@ describe('PropertiesHeader', () => {
   });
 });
 
-const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
+const renderPropertiesHeader = (
+  props: Partial<PropertiesHeaderProps> = {},
+  useSetQueryDataSchema: boolean = true,
+) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, componentType],
-    componentSchemaMocks[componentType],
-  );
+
+  if (useSetQueryDataSchema)
+    queryClientMock.setQueryData(
+      [QueryKey.FormComponent, componentType],
+      componentSchemaMocks[componentType],
+    );
+
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  return renderWithProviders(
-    <FormItemContext.Provider
-      value={{
-        ...formItemContextProviderMock,
-      }}
-    >
-      <PropertiesHeader {...defaultProps} {...props} />
-    </FormItemContext.Provider>,
-  );
+  return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);
 };

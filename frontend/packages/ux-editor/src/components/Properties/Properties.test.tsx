@@ -11,9 +11,13 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSetsExtendedMock,
+} from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 // Test data:
 const pageConfigPanelTestId = 'pageConfigPanel';
@@ -137,6 +141,31 @@ describe('Properties', () => {
     });
   });
 
+  describe('Summary', () => {
+    it('should toggle summary overrides when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties({
+        formItem: componentMocks[ComponentType.Summary2],
+        formItemId: componentMocks[ComponentType.Summary2].id,
+      });
+      const button = screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.override.title'),
+      });
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('should not render summary overrides accordion when formItem is not a Summary2 component', () => {
+      renderProperties();
+      const button = screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.summary.override.title'),
+      });
+      expect(button).not.toBeInTheDocument();
+    });
+  });
+
   describe('Text', () => {
     it('Toggles text when clicked', async () => {
       const user = userEvent.setup();
@@ -249,7 +278,7 @@ describe('Properties', () => {
   });
 
   it('renders properties when formItem is not a Subform component', () => {
-    renderProperties({ formItem: componentMocks[ComponentType.Input] });
+    renderProperties();
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
@@ -297,6 +326,11 @@ const renderProperties = (
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
+  queryClientMock.setQueryData(
+    [QueryKey.FormComponent, formItemContextProps.formItem?.type],
+    componentSchemaMocks[formItemContextProps.formItem?.type],
+  );
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,

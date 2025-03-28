@@ -21,7 +21,9 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import type {
   OverrideDisplay,
   OverrideDisplayType,
+  Summary2TargetConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;
@@ -46,25 +48,37 @@ describe('Summary2Override', () => {
     render();
     await user.click(addNewOverrideButton());
     expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.any(Object)]),
+      expect.objectContaining({
+        overrides: [expect.any(Object)],
+      }),
     );
   });
 
   it('should be able to remove override', async () => {
     const user = userEvent.setup();
-    render({
+    const component = {
+      ...defaultProps.component,
       overrides: [{ componentId: '1' }],
-    });
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.click(removeOverrideButton());
-    expect(defaultProps.onChange).toHaveBeenCalledWith([]);
+    expect(defaultProps.onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        overrides: [],
+      }),
+    );
   });
 
   it.each([checkBoxId, multipleSelectId])(
     'should render type options when component is %s',
     async (componentId) => {
       const user = userEvent.setup();
-      render({ overrides: [{ componentId }] });
+      const component = {
+        ...defaultProps.component,
+        overrides: [{ componentId }],
+      };
+      render({ component });
 
       await user.click(overrideCollapsedButton(1));
       await user.click(overrideDisplayTypeSelector());
@@ -73,7 +87,11 @@ describe('Summary2Override', () => {
   );
 
   it('should not render type selector when component is not multiple select nor checkbox', async () => {
-    render({ overrides: [{ componentId: component1IdMock }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: component1IdMock }],
+    };
+    render({ component });
     await userEvent.click(overrideCollapsedButton(1));
 
     expect(
@@ -85,7 +103,12 @@ describe('Summary2Override', () => {
 
   it('should be able to change override componentId', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '2' }], target: { type: 'layoutSet' } });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: '1' }],
+      target: { type: 'layoutSet' } as Summary2TargetConfig,
+    };
+    render({ component });
     const componentId = component1IdMock;
     await user.click(overrideCollapsedButton(1));
     await user.click(overrideComponentSelect());
@@ -95,13 +118,19 @@ describe('Summary2Override', () => {
       }),
     );
     await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(expect.arrayContaining([{ componentId }])),
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ overrides: [{ componentId }] }),
+      ),
     );
   });
 
   it('should be able to change override hidden', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1', hidden: false }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: '1', hidden: false }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.click(
       screen.getByRole('checkbox', {
@@ -110,14 +139,20 @@ describe('Summary2Override', () => {
     );
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: '1', hidden: true }]),
+        expect.objectContaining({
+          overrides: [{ componentId: '1', hidden: true }],
+        }),
       ),
     );
   });
 
   it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: container1IdMock, isCompact: false }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: container1IdMock, isCompact: false }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     const compactCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
@@ -127,14 +162,20 @@ describe('Summary2Override', () => {
     await user.click(compactCheckbox);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: container1IdMock, isCompact: true }]),
+        expect.objectContaining({
+          overrides: [{ componentId: container1IdMock, isCompact: true }],
+        }),
       ),
     );
   });
 
   it('"isCompact" checkbox should be checked when isCompact is true', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: container1IdMock, isCompact: true }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: container1IdMock, isCompact: true }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     const compactCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
@@ -144,38 +185,56 @@ describe('Summary2Override', () => {
     await user.click(compactCheckbox);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: container1IdMock, isCompact: false }]),
+        expect.objectContaining({
+          overrides: [{ componentId: container1IdMock, isCompact: false }],
+        }),
       ),
     );
   });
 
   it('should be able to override display type when component type is multiple select', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: multipleSelectId }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: multipleSelectId }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.selectOptions(overrideDisplayTypeSelector(), overrideDisplayType('string'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ componentId: multipleSelectId, displayType: 'string' }]),
+      expect.objectContaining({
+        overrides: [{ componentId: multipleSelectId, displayType: 'string' }],
+      }),
     );
   });
 
   it('should be able to override display type when component type is checkbox', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: checkBoxId }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: checkBoxId }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.selectOptions(overrideDisplayTypeSelector(), overrideDisplayType('string'));
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: checkBoxId, displayType: 'string' }]),
+        expect.objectContaining({
+          overrides: [{ componentId: checkBoxId, displayType: 'string' }],
+        }),
       ),
     );
   });
 
   it('should collapse and uncollapse override', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: '1' }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: '1' }],
+    };
+    render({ component });
     await user.click(overrideCollapsedButton(1));
     expect(
       screen.queryByRole('button', {
@@ -192,13 +251,19 @@ describe('Summary2Override', () => {
 
   it('should render component specific overrides', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: repeatingGroupComponentId }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: repeatingGroupComponentId }],
+    };
+    render({ component });
 
     await user.click(overrideCollapsedButton(1));
     await user.selectOptions(overrideDisplaySelector(), overrideDisplaySelectType('table'));
 
     expect(defaultProps.onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ componentId: repeatingGroupComponentId, display: 'table' }]),
+      expect.objectContaining({
+        overrides: [{ componentId: repeatingGroupComponentId, display: 'table' }],
+      }),
     );
   });
 
@@ -217,7 +282,11 @@ describe('Summary2Override', () => {
     },
   ])('should set default props for components', async (args) => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: component1IdMock }] });
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: component1IdMock }],
+    };
+    render({ component });
 
     await user.click(overrideCollapsedButton(1));
     await user.click(overrideComponentSelect());
@@ -229,7 +298,9 @@ describe('Summary2Override', () => {
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining(args.defaultProps)]),
+        expect.objectContaining({
+          overrides: [expect.objectContaining(args.defaultProps)],
+        }),
       ),
     );
   });
@@ -287,8 +358,13 @@ const renderedTypeOptions = () => {
 };
 
 const defaultProps: Summary2OverrideProps = {
-  overrides: [],
-  target: {},
+  component: {
+    id: '1',
+    itemType: 'COMPONENT',
+    type: ComponentType.Summary2,
+    overrides: [],
+    target: {},
+  },
   onChange: jest.fn(),
 };
 const render = (props?: Partial<Summary2OverrideProps>) => {
