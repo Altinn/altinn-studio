@@ -5,7 +5,7 @@ import type { DropdownProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
 import { StudioDropdownContextProvider } from './context/StudioDropdownContext';
 import type { IconPlacement } from '../../types/IconPlacement';
-import { IconWithTextComponent } from '../IconWithTextComponent';
+import { TextWithIcon } from '../TextWithIcon';
 
 export type StudioDropdownProps = {
   icon?: ReactNode;
@@ -35,9 +35,9 @@ export function StudioDropdown({
         icon={!triggerButtonText}
         aria-expanded={open}
       >
-        <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
+        <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}
-        </IconWithTextComponent>
+        </TextWithIcon>
       </Dropdown.Trigger>
       <Dropdown data-size={dataSize} onClose={() => setOpen(false)} open={open} {...rest}>
         <StudioDropdownContextProvider setOpen={setOpen}>{children}</StudioDropdownContextProvider>

@@ -6,7 +6,7 @@ import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownButtonProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../../types/IconPlacement';
 import { useStudioDropdownContext } from '../context/StudioDropdownContext';
-import { IconWithTextComponent } from '../../IconWithTextComponent';
+import { TextWithIcon } from '../../TextWithIcon';
 
 export type StudioDropdownButtonProps = {
   icon?: ReactNode;
@@ -35,9 +35,9 @@ export function StudioDropdownButton({
       icon={!children}
       {...rest}
     >
-      <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
+      <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
         {children}
-      </IconWithTextComponent>
+      </TextWithIcon>
     </Dropdown.Button>
   );
 }

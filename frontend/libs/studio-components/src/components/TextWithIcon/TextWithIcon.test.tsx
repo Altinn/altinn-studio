@@ -1,22 +1,22 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
-import { IconWithTextComponent } from './IconWithTextComponent';
-import type { IconWithTextComponentProps } from './IconWithTextComponent';
+import { TextWithIcon } from './TextWithIcon';
+import type { TextWithIconProps } from './TextWithIcon';
 
 const mockChildren: string = 'Test Text';
 
-describe('IconWithTextComponent', () => {
+describe('TextWithIcon', () => {
   beforeEach(jest.clearAllMocks);
 
   it('renders children correctly', () => {
-    renderIconWithTextComponent();
+    renderTextWithIcon();
     expect(screen.getByText(mockChildren)).toBeInTheDocument();
   });
 
   it('renders icon on the left when iconPlacement is "left"', () => {
     const iconText: string = 'Icon';
-    const { container } = renderIconWithTextComponent({
+    const { container } = renderTextWithIcon({
       icon: <span>{iconText}</span>,
       iconPlacement: 'left',
     });
@@ -25,7 +25,7 @@ describe('IconWithTextComponent', () => {
 
   it('renders icon on the right when iconPlacement is "right"', () => {
     const iconText: string = 'Icon';
-    const { container } = renderIconWithTextComponent({
+    const { container } = renderTextWithIcon({
       icon: <span>{iconText}</span>,
       iconPlacement: 'right',
     });
@@ -33,19 +33,17 @@ describe('IconWithTextComponent', () => {
   });
 
   it('does not render icon when icon is not provided', () => {
-    const { container } = renderIconWithTextComponent();
+    const { container } = renderTextWithIcon();
 
     expect(container.childNodes[0].textContent).toBe(mockChildren);
     expect(container.childNodes[0]).not.toHaveAttribute('className', 'iconWrapper');
   });
 });
 
-const defaultProps: IconWithTextComponentProps = {
+const defaultProps: TextWithIconProps = {
   children: mockChildren,
 };
 
-const renderIconWithTextComponent = (
-  props: Partial<IconWithTextComponentProps> = {},
-): RenderResult => {
-  return render(<IconWithTextComponent {...defaultProps} {...props} />);
+const renderTextWithIcon = (props: Partial<TextWithIconProps> = {}): RenderResult => {
+  return render(<TextWithIcon {...defaultProps} {...props} />);
 };
