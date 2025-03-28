@@ -42,23 +42,6 @@ export class CodeLists extends BasePage {
       .fill(title);
   }
 
-  public async clickOnAddAlternativeButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('code_list_editor.add_option'),
-      })
-      .click();
-  }
-
-  public async verifyNewItemValueFieldIsVisible(itemNumber: number): Promise<void> {
-    const newItemValueField = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: itemNumber.toString() }),
-      exact: true,
-    });
-
-    await expect(newItemValueField).toBeVisible();
-  }
-
   public async writeCodelistValue(itemNumber: number, value: string): Promise<void> {
     await this.page
       .getByRole('textbox', {
@@ -114,14 +97,6 @@ export class CodeLists extends BasePage {
 
   public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
     await this.page.getByRole('heading', { name: codeListTitle }).click();
-  }
-
-  public async typeInSearchBox(searchTerm: string): Promise<void> {
-    await this.page
-      .getByRole('searchbox', {
-        name: this.textMock('app_content_library.code_lists.search_label'),
-      })
-      .fill(searchTerm);
   }
 
   public async clickOnDeleteCodelistButton(): Promise<void> {
