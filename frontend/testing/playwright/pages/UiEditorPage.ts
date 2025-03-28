@@ -264,6 +264,17 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
   }
 
+  public async clickOnUxEditorButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('ux_editor.task_card.ux_editor') })
+      .click();
+  }
+
+  public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
+    const addButton = this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') });
+    await expect(addButton).toBeVisible();
+  }
+
   private getDroppableList(): Locator {
     return this.page.getByTestId(DataTestId.DroppableList as string);
   }

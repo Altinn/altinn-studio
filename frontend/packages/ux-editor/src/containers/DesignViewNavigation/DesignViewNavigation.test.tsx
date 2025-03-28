@@ -6,9 +6,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('DesignViewNavigation', () => {
-  it('should render DesignViewNavigation with correct text', () => {
+
+  it('should render DesignViewNavigation with correct text', async () => {
     renderDesignViewNavigation();
-    expect(screen.getByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();
   });
 
   it('should render menu button with correct title', () => {
@@ -27,13 +28,10 @@ describe('DesignViewNavigation', () => {
     const user = userEvent.setup();
     renderDesignViewNavigation();
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perfome_another_task')),
+    expect(screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();
     await user.click(menuButton);
-
-    expect(
-      await screen.findByText(textMock('ux_editor.page_layout_perfome_another_task')),
+    expect( await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
   });
 
@@ -42,17 +40,16 @@ describe('DesignViewNavigation', () => {
     renderDesignViewNavigation();
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await user.click(menuButton);
-    expect(
-      screen.getByText(textMock('ux_editor.page_layout_perfome_another_task')),
+    expect(await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
     await user.click(document.body);
-
-    expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perfome_another_task')),
+    expect(screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();
   });
 });
 
+
+const view = renderWithProviders();
 const renderDesignViewNavigation = () => {
-  return renderWithProviders()(<DesignViewNavigation />);
+  return view(<DesignViewNavigation />);
 };

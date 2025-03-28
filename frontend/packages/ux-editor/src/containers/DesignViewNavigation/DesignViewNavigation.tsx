@@ -36,11 +36,10 @@ export const DesignViewNavigation = () => {
               <DropdownMenu.Group>
                 {/*Functionality and the number of items will be implemented based on the upcoming requirements.*/}
                 <DropdownMenu.Item onClick={undefined}>
-                  {t('ux_editor.page_layout_perfome_another_task')}
+                  {t('ux_editor.page_layout_perform_another_task')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
                   <MinusCircleIcon />
-
                   {t('ux_editor.page_layout_remove_group_division')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onClick={undefined}>
