@@ -20,26 +20,24 @@
   overflow-y: auto;
 }
 
-.taskWrapper {
-  display: flex;
-  justify-content: space-between;
-  width: var(--task-width);
-  align-items: center;
-}
-
+.taskWrapper,
 .taskContent {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-2);
+}
+
+.taskWrapper {
+  justify-content: space-between;
+}
+
+.taskTypeName {
+  font-weight: var(--font-weight-semi-bold);
+  margin-left: var(--fds-spacing-2);
 }
 
 .taskIcon {
   width: var(--icon-size);
   height: var(--icon-size);
-}
-
-.taskTypeName {
-  font-weight: var(--font-weight-semi-bold);
 }
 
 .taskIconLocker {
