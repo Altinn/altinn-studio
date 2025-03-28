@@ -1,12 +1,12 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import type { ReactElement, ReactNode, MouseEvent } from 'react';
 import cn from 'classnames';
 import classes from './StudioDropdownButton.module.css';
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownButtonProps } from '@digdir/designsystemet-react';
-import type { IconPlacement } from '../../types/IconPlacement';
-import { StudioDropdownContext } from './StudioDropdownContext';
-import { IconWithTextComponent } from '../IconWithTextComponent';
+import type { IconPlacement } from '../../../types/IconPlacement';
+import { useStudioDropdownContext } from '../context/StudioDropdownContext';
+import { TextWithIcon } from '../../TextWithIcon';
 
 export type StudioDropdownButtonProps = {
   icon?: ReactNode;
@@ -21,10 +21,10 @@ export function StudioDropdownButton({
   className,
   ...rest
 }: StudioDropdownButtonProps): ReactElement {
-  const { setOpen } = useContext(StudioDropdownContext);
+  const { setOpen } = useStudioDropdownContext();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
-    onClick && onClick(event);
+    onClick?.(event);
     setOpen(false);
   };
 
@@ -35,9 +35,9 @@ export function StudioDropdownButton({
       icon={!children}
       {...rest}
     >
-      <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
+      <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
         {children}
-      </IconWithTextComponent>
+      </TextWithIcon>
     </Dropdown.Button>
   );
 }

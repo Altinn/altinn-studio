@@ -1,1 +1,0 @@
-export { IconWithTextComponent } from './IconWithTextComponent';
