@@ -38,10 +38,15 @@ public class InstanceService(
         };
         dataTypes.ForEach(dataType =>
         {
-            if (dataType.AppLogic?.AutoCreate == true)
+            if (dataType.AppLogic?.ClassRef is not null)
             {
                 DataElement dataElement = dataService.CreateDataElement(partyId, instanceGuid, dataType.Id);
                 instance.Data.Add(dataElement);
+                if (dataType.MaxCount != 1)
+                {
+                    // Add two elments when more than 1 element is supported
+                    instance.Data.Add(dataService.CreateDataElement(partyId, instanceGuid, dataType.Id));
+                }
             }
         });
         distributedCache.SetString(instance.Id, JsonSerializer.Serialize(instance), _cacheOptions);
