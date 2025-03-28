@@ -43,7 +43,7 @@ const TaskNavigation = ({ taskType }: Partial<TaskNavigationGroup>): ReactElemen
     <div className={classes.taskWrapper}>
       <div className={classes.taskContent}>
         {taskIcon}
-        <span className={classes.taskTypeName}>{t(`${taskTypeName}`)}</span>
+        <span className={classes.taskTypeName}>{t(taskTypeName)}</span>
       </div>
       {isTaskReceipt(taskType) && (
         <PadlockLockedFillIcon data-testid='lockerIcon' className={classes.taskIconLocker} />
