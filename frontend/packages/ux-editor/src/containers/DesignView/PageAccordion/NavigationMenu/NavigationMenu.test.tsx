@@ -1,6 +1,8 @@
 import {
   layout1NameMock,
   layout2NameMock,
+  pagelayout1NameMock,
+  pagelayout2NameMock,
   pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
@@ -131,6 +133,19 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
+      groups: [
+        {
+          name: 'Sideoppsett 1',
+          type: 'Sideoppsett 1',
+          pages: [{ id: layout1NameMock }],
+        },
+        {
+          name: 'sideoppsett 2',
+          type: 'sideoppsett 2',
+          markWhenCompleted: true,
+          pages: [{ id: layout2NameMock }],
+        },
+      ],
     });
     expect(menuItemDown).not.toBeInTheDocument();
 
@@ -142,6 +157,19 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+      groups: [
+        {
+          name: pagelayout1NameMock,
+          type: 'Sideoppsett 1',
+          pages: [{ id: layout1NameMock }],
+        },
+        {
+          name: pagelayout2NameMock,
+          type: 'sideoppsett 2',
+          markWhenCompleted: true,
+          pages: [{ id: layout2NameMock }],
+        },
+      ],
     });
   });
 });

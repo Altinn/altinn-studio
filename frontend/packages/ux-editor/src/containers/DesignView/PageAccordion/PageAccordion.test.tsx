@@ -117,6 +117,27 @@ describe('PageAccordion', () => {
     await user.click(deleteButton);
     expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
+
+  it('render warning class to header when isInvalid is true', async () => {
+    await render({ isInvalid: true });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeaderWarning');
+    expect(headerContainer).not.toHaveClass('accordionHeader');
+  });
+
+  it('render warning class to header when hasDuplicatedIds is true', async () => {
+    await render({ hasDuplicatedIds: true });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeaderWarning');
+    expect(headerContainer).not.toHaveClass('accordionHeader');
+  });
+
+  it('Applies normal header class when neither isInvalid nor hasDuplicatedIds is true', async () => {
+    await render({ isInvalid: false, hasDuplicatedIds: false });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeader');
+    expect(headerContainer).not.toHaveClass('accordionHeaderWarning');
+  });
 });
 
 const waitForData = async () => {
