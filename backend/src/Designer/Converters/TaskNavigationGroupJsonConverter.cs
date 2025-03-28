@@ -13,17 +13,16 @@ public class TaskNavigationGroupJsonConverter : JsonConverter<TaskNavigationGrou
         var root = jsonDoc.RootElement;
         var json = root.GetRawText();
 
-        if (root.TryGetProperty("taskId", out JsonElement taskIdProp) && taskIdProp.GetString() is not null)
+        if (root.TryGetProperty("taskId", out _))
         {
             return JsonSerializer.Deserialize<TaskNavigationTask>(json, options);
         }
-
-        if (root.TryGetProperty("type", out JsonElement typeProp) && typeProp.GetString()?.ToLowerInvariant() == TaskNavigationReceiptType.Receipt.ToString().ToLowerInvariant())
+        else if (root.TryGetProperty("type", out _))
         {
             return JsonSerializer.Deserialize<TaskNavigationReceipt>(json, options);
         }
 
-        return JsonSerializer.Deserialize<TaskNavigationGroup>(json, options);
+        throw new JsonException("Unknown TaskNavigationGroup type");
     }
 
     public override void Write(Utf8JsonWriter writer, TaskNavigationGroup value, JsonSerializerOptions options)
