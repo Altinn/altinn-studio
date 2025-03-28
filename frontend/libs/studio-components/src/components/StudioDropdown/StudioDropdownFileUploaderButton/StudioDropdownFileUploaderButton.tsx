@@ -1,13 +1,12 @@
-// StudioDropdownFileUploaderButton
-import React, { useContext } from 'react';
+import React from 'react';
 import type { ChangeEvent, ReactElement, ReactNode } from 'react';
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownButtonProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../../types/IconPlacement';
 import cn from 'classnames';
 import classes from './StudioDropdownFileUploaderButton.module.css';
-import { StudioDropdownContext } from '../StudioDropdownContext';
-import { IconWithTextComponent } from '../../IconWithTextComponent';
+import { useStudioDropdownContext } from '../context/StudioDropdownContext';
+import { TextWithIcon } from '../../TextWithIcon';
 
 export type StudioDropdownFileUploaderButtonProps = {
   icon?: ReactNode;
@@ -23,7 +22,7 @@ export function StudioDropdownFileUploaderButton({
   onFileUpload,
   ...rest
 }: StudioDropdownFileUploaderButtonProps): ReactElement {
-  const { setOpen } = useContext(StudioDropdownContext);
+  const { setOpen } = useStudioDropdownContext();
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -36,9 +35,9 @@ export function StudioDropdownFileUploaderButton({
   return (
     <Dropdown.Button className={cn(className, classes.studioDropdownFileUploaderButton)} {...rest}>
       <label className={classes.fileUploaderLabel}>
-        <IconWithTextComponent icon={icon} iconPlacement={iconPlacement}>
+        <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {children}
-        </IconWithTextComponent>
+        </TextWithIcon>
         <input type='file' className={classes.fileInput} onChange={handleFileChange} />
       </label>
     </Dropdown.Button>
