@@ -36,6 +36,7 @@ public class ApplicationMetadataController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
     /// <returns>Application metadata</returns>
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
     [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
     public async Task<ActionResult<ApplicationMetadata>> GetAction(
         string org,

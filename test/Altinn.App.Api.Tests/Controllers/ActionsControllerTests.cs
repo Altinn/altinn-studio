@@ -54,6 +54,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        // Verify that [ResponseCache] attribute is being set by filter
+        Assert.NotNull(response.Headers.CacheControl);
+        Assert.Equal("no-store, no-cache", response.Headers.CacheControl.ToString());
     }
 
     [Fact]

@@ -39,7 +39,6 @@ namespace Altinn.App.Api.Controllers;
 /// </summary>
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [ApiController]
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
 public class DataController : ControllerBase
 {

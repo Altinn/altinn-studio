@@ -15,7 +15,6 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 [Produces(MediaTypeNames.Application.Json)]
 [Consumes(MediaTypeNames.Application.Json)]
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("{org}/{app}/api/v1/lookup/organisation")]
 public class LookupOrganisationController : ControllerBase
 {

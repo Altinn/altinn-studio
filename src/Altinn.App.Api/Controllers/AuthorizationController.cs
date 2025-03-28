@@ -36,7 +36,6 @@ public class AuthorizationController : Controller
     /// </summary>
     /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
     [Authorize]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
     public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
     {

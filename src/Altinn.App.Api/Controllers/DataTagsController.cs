@@ -17,7 +17,6 @@ namespace Altinn.App.Api.Controllers;
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [Produces(MediaTypeNames.Application.Json)]
 [Consumes(MediaTypeNames.Application.Json)]
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/tags")]
 public class DataTagsController : ControllerBase
 {

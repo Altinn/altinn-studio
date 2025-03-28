@@ -45,7 +45,6 @@ namespace Altinn.App.Api.Controllers;
 /// You can create a new instance (POST), update it (PUT) and retrieve a specific instance (GET).
 /// </summary>
 [Authorize]
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [AutoValidateAntiforgeryTokenIfAuthCookie]
 [Route("{org}/{app}/instances")]
 [ApiController]

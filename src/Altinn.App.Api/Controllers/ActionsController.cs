@@ -22,7 +22,6 @@ namespace Altinn.App.Api.Controllers;
 /// Controller that handles actions performed by users
 /// </summary>
 [AutoValidateAntiforgeryTokenIfAuthCookie]
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/actions")]
 public class ActionsController : ControllerBase
 {

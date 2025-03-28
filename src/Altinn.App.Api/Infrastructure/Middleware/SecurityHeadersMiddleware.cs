@@ -35,6 +35,7 @@ public class SecurityHeadersMiddleware
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-XSS-Protection", "0");
         context.Response.Headers.Append("Referer-Policy", "no-referer");
+        context.Response.Headers.Append("Cache-Control", "no-store,no-cache");
 
         return _next(context);
     }

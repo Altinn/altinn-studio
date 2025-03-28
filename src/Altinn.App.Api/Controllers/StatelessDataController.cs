@@ -82,7 +82,6 @@ public class StatelessDataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<ActionResult> Get(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -192,7 +191,6 @@ public class StatelessDataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [Route("anonymous")]
     public async Task<ActionResult> GetAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
     {
@@ -233,7 +231,6 @@ public class StatelessDataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<ActionResult> Post(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -305,7 +302,6 @@ public class StatelessDataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [Route("anonymous")]
     public async Task<ActionResult> PostAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
     {

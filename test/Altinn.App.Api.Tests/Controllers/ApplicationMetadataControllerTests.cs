@@ -31,9 +31,16 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         };
         var client = GetRootedClient(org, appId);
 
-        var response = await client.GetStringAsync($"/{org}/{appId}/api/v1/applicationmetadata");
-
+        using var response = await client.GetAsync($"/{org}/{appId}/api/v1/applicationmetadata");
+        var responseString = await response.Content.ReadAsStringAsync();
         // Assert that unknown parts of json is preserved
-        response.Should().ContainAll("extra_Unknown_list", "verdi\":3");
+        Assert.Contains("extra_Unknown_list", responseString);
+        Assert.Contains("verdi\":3", responseString);
+
+        // Verify that [ResponseCache] attribute is not overridden by midleware
+        Assert.NotNull(response.Headers.CacheControl);
+        var cacheControl = response.Headers.GetValues("Cache-Control").ToArray();
+        Assert.Single(cacheControl);
+        Assert.Equal("public, max-age=60", cacheControl[0]);
     }
 }
