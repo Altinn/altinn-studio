@@ -17,6 +17,5 @@
 }
 
 .editcard {
-  border: var(--fds-semantic-border-first-active) solid;
-  border-radius: var(--fds-border_radius-small);
+  border: var(--fds-border_width-active) solid var(--fds-semantic-border-first-active);
 }
