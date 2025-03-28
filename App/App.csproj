@@ -5,7 +5,11 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.775.signing-process-next-authorization.6c8434ae">
+=======
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.807.signing.d7762b9f">
+>>>>>>> master
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
