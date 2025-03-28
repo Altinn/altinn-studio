@@ -3,6 +3,7 @@ import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Columns, Rows, PaginationTexts } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
+import type { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export type LocalPaginationProps = {
   pageSizeOptions: number[];
@@ -17,6 +18,9 @@ export type StudioTableLocalPaginationProps = {
   loadingText?: string;
   emptyTableFallback?: React.ReactNode;
   pagination?: LocalPaginationProps;
+  shouldPersistSort?: boolean;
+  sortStorageKey?: TableSortStorageKey;
+  sortedRows?: Rows;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -27,29 +31,36 @@ export const StudioTableLocalPagination = forwardRef<
     {
       columns,
       rows,
+      sortedRows: externalSortedRows,
       size = 'medium',
       isLoading = false,
       loadingText,
       emptyTableFallback,
       pagination,
+      shouldPersistSort = false,
+      sortStorageKey,
     },
     ref,
   ): React.ReactElement => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const isSortable = columns.some((column) => column.sortable);
-    const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
+    const { sortedRows: internalSortedRows, handleSorting } = useTableSorting(rows, {
+      enable: true,
+      shouldPersistSort,
+      storageKey: sortStorageKey,
+    });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    const sortedRows = externalSortedRows || internalSortedRows;
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     useEffect(() => {
-      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
       setRowsToRender(newRowsToRender);
-    }, [sortedRows, rows, currentPage, pageSize]);
+    }, [sortedRows, currentPage, pageSize]);
 
-    const totalRows = rows.length;
+    const totalRows = sortedRows.length;
     const totalPages = Math.ceil(totalRows / pageSize);
 
     const studioTableRemotePaginationProps = pagination && {
