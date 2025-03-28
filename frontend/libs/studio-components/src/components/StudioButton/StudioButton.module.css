@@ -1,0 +1,8 @@
+.studioButton {
+  display: inline-flex;
+  gap: var(--ds-size-1);
+}
+
+.smallWithIconOnly {
+  min-height: var(--ds-size-8);
+}
