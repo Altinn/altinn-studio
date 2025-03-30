@@ -10,10 +10,6 @@
   gap: var(--fds-spacing-1);
 }
 
-.iconWrapper {
-  display: contents;
-}
-
 .fileInput {
   display: none;
 }

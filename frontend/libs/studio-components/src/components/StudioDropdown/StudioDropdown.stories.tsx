@@ -12,7 +12,13 @@ const ComposedComponent = (args): ReactElement => (
         <StudioDropdown.Button {...args} />
       </StudioDropdown.Item>
       <StudioDropdown.Item>
-        <StudioDropdown.FileUploaderButton icon={<UploadIcon />}>
+        <StudioDropdown.FileUploaderButton
+          icon={<UploadIcon />}
+          fileInputProps={{
+            accept: '.txt',
+            multiple: false,
+          }}
+        >
           Upload File
         </StudioDropdown.FileUploaderButton>
       </StudioDropdown.Item>
