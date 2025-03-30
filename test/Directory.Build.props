@@ -15,10 +15,4 @@
         CA1859: Use concrete types when possible for improved performance
     -->
   </PropertyGroup>
-
-  <ItemGroup>
-    <Using Include="Altinn.App.Tests.Common" />
-    <Using Include="Altinn.App.Tests.Common.Auth" />
-  </ItemGroup>
-
 </Project>

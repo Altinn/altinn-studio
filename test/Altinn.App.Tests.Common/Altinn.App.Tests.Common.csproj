@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="ModuleInitializer.cs" />
     <Content Include="TestResources/**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>/</LinkBase>
