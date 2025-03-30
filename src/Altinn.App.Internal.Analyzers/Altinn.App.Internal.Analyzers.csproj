@@ -24,17 +24,17 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
-  <!-- 
+  <!--
     NOTE:
     InternalsVisibleTo messes with PolySharp, which we use to support newer C# features in analyzer code (such as records)
-    So it is disabled currently and relevant members in analyzer code are public instead 
+    So it is disabled currently and relevant members in analyzer code are public instead
    -->
   <!-- <ItemGroup>
     <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
   </ItemGroup> -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" Version="4.1.0" />
-    <PackageReference Include="PolySharp" Version="1.14.1" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" PrivateAssets="all" />
+    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
   </ItemGroup>
 </Project>

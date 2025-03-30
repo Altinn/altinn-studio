@@ -1513,6 +1513,7 @@
             "name": "queryParams",
             "in": "query",
             "description": "Query parameteres supplied",
+            "style": "deepObject",
             "schema": {
               "type": "object",
               "additionalProperties": {
@@ -1592,6 +1593,7 @@
             "name": "queryParams",
             "in": "query",
             "description": "Query parameters supplied",
+            "style": "deepObject",
             "schema": {
               "type": "object",
               "additionalProperties": {
@@ -1987,6 +1989,7 @@
             "name": "queryParams",
             "in": "query",
             "description": "The query parameters to pass to the external api endpoint",
+            "style": "deepObject",
             "schema": {
               "type": "object",
               "additionalProperties": {
@@ -2901,6 +2904,7 @@
             "name": "queryParams",
             "in": "query",
             "description": "Query parameters supplied",
+            "style": "deepObject",
             "schema": {
               "type": "object",
               "additionalProperties": {
@@ -3006,6 +3010,7 @@
             "name": "queryParams",
             "in": "query",
             "description": "Query parameteres supplied",
+            "style": "deepObject",
             "schema": {
               "type": "object",
               "additionalProperties": {

@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Extensions;
@@ -42,14 +41,16 @@ public class CustomOpenApiController : Controller
         IAppModel appModel,
         IAppMetadata appMetadata,
         ISerializerDataContractResolver dataContractResolver,
-        IOptions<MvcOptions> mvcOptions,
         IProcessReader processReader
     )
     {
         _appModel = appModel;
         _appMetadata = appMetadata;
         _processReader = processReader;
-        _schemaGenerator = new SchemaGenerator(new SchemaGeneratorOptions(), dataContractResolver, mvcOptions);
+        _schemaGenerator = new SchemaGenerator(
+            new SchemaGeneratorOptions() { SupportNonNullableReferenceTypes = true },
+            dataContractResolver
+        );
         _schemaRepository = new SchemaRepository();
     }
 

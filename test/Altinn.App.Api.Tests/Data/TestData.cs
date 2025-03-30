@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
@@ -16,11 +17,16 @@ public static class TestData
 
     public static string GetTestDataRootDirectory()
     {
-        var assemblyPath = new Uri(typeof(TestData).Assembly.Location).LocalPath;
-        var assemblyFolder = Path.GetDirectoryName(assemblyPath);
-
-        return Path.Combine(assemblyFolder!, @"../../../Data/");
+        var file = GetCallerFilePath();
+        return (
+                Path.GetDirectoryName(file)
+                ?? throw new DirectoryNotFoundException(
+                    $"Could not find directory for file {file}. Please check the test data root directory."
+                )
+            ) + '/';
     }
+
+    private static string GetCallerFilePath([CallerFilePath] string file = "") => file;
 
     public static string GetApplicationDirectory(string org, string app)
     {

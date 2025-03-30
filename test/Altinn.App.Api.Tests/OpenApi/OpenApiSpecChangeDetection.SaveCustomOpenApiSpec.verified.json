@@ -2559,8 +2559,7 @@
             "nullable": true
           },
           "size": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -2680,8 +2679,7 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "externalApiIds": {
             "type": "array",
