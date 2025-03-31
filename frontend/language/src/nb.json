@@ -719,6 +719,7 @@
   "policy_editor.policy_rule_missing_actions": "rettigheter",
   "policy_editor.policy_rule_missing_sub_resource": "sub-ressurs",
   "policy_editor.policy_rule_missing_subjects": "roller",
+  "policy_editor.role_category.access_package": "Tilgangspakke",
   "policy_editor.role_category.altinn_org": "Organisasjon",
   "policy_editor.role_category.altinn_rolecode": "Rolle",
   "policy_editor.role_category.unknown": "Ukjent",
