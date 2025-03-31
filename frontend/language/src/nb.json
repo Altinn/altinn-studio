@@ -874,7 +874,7 @@
   "right_menu.content_empty": "Du har ikke valgt noen side",
   "right_menu.data_model_bindings": "Datamodellknytninger",
   "right_menu.data_model_bindings_delete_confirm": "Er du sikker på at du vil slette denne datamodellknytningen?",
-  "right_menu.data_model_bindings_edit": "Rediger {{binding}}",
+  "right_menu.data_model_bindings_edit": "Rediger datamodellknytning {{binding}}",
   "right_menu.dynamics": "Valg for dynamikk",
   "right_menu.dynamics_description": "Rediger dynamikk som kan brukes i reglene for beregninger og visning av felter.",
   "right_menu.dynamics_edit": "Rediger beregninger direkte i Gitea",
