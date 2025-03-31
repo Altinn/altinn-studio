@@ -12,7 +12,7 @@ import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { getComponentDef } from 'src/layout';
+import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
@@ -110,6 +110,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
     <Table
       id={componentNode.id}
       className={cn(classes.table, { [classes.responsiveTable]: isSmall })}
+      data-testid={`summary-${componentNode.id}`}
     >
       {title && (
         <caption className={classes.tableCaption}>
@@ -451,8 +452,8 @@ function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle
 function getComponentCellData(node: LayoutNode, displayData: string, textResourceBindings?: ITextResourceBindings) {
   if (node?.type === 'Custom') {
     return <ComponentSummary componentNode={node} />;
-  } else if (displayData) {
-    return displayData;
+  } else if (implementsDisplayData(node.def)) {
+    return displayData || '-';
   } else if (textResourceBindings && 'title' in textResourceBindings) {
     return <Lang id={textResourceBindings.title} />;
   } else {
