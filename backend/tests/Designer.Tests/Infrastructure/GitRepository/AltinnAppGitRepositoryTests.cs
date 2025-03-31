@@ -39,7 +39,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "hvem-er-hvem";
             string developer = "testUser";
-            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-GB");
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
