@@ -17,7 +17,7 @@ export function StudioSelect({
 }: StudioSelectProps): ReactElement {
   return (
     <StudioField data-size={dataSize}>
-      <StudioLabel data-size={dataSize}>{label}</StudioLabel>
+      <StudioLabel>{label}</StudioLabel>
       <Select data-size={dataSize} {...rest}>
         {children}
       </Select>
