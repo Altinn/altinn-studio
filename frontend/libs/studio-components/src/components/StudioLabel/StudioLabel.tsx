@@ -5,14 +5,6 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioLabelProps = WithoutAsChild<LabelProps>;
 
-export function StudioLabel({
-  children,
-  'data-size': dataSize = 'sm',
-  ...rest
-}: StudioLabelProps): ReactElement {
-  return (
-    <Label {...rest} data-size={dataSize}>
-      {children}
-    </Label>
-  );
+export function StudioLabel({ children, ...rest }: StudioLabelProps): ReactElement {
+  return <Label {...rest}>{children}</Label>;
 }

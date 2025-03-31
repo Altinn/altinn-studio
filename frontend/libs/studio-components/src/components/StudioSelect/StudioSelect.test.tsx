@@ -18,12 +18,6 @@ describe('StudioSelect', () => {
     expect(getSelect(mockLabel)).toBeInTheDocument();
   });
 
-  it('applies default data-size correctly', () => {
-    renderStudioSelect();
-    expect(getSelect(mockLabel)).toHaveAttribute('data-size', 'sm');
-    expect(getLabel(mockLabel)).toHaveAttribute('data-size', 'sm');
-  });
-
   it('applies custom data-size correctly', () => {
     renderStudioSelect({ 'data-size': 'lg' });
     expect(getSelect(mockLabel).getAttribute('data-size')).toBe('lg');

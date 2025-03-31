@@ -14,11 +14,6 @@ describe('StudioField', () => {
     expect(getText(mockText)).toBeInTheDocument();
   });
 
-  it('applies default data-size correctly', () => {
-    renderField();
-    expect(getText(mockText).getAttribute('data-size')).toBe('sm');
-  });
-
   it('applies custom data-size correctly', () => {
     renderField({ 'data-size': 'lg' });
 

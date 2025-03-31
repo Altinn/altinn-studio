@@ -13,11 +13,6 @@ describe('StudioLabel', () => {
     expect(getText(mockLabel)).toBeInTheDocument();
   });
 
-  it('applies default data-size correctly', () => {
-    renderStudioLabel();
-    expect(getText(mockLabel).getAttribute('data-size')).toBe('sm');
-  });
-
   it('applies custom data-size correctly', () => {
     renderStudioLabel({ 'data-size': 'lg' });
 

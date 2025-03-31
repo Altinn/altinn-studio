@@ -1,26 +1,19 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { Select } from '@digdir/designsystemet-react';
+import classes from './StudioSelect.module.css';
+import { Label, Select } from '@digdir/designsystemet-react';
 import type { SelectProps } from '@digdir/designsystemet-react';
 import { StudioField } from '../StudioField';
-import { StudioLabel } from '../StudioLabel';
 
 export type StudioSelectProps = {
   label: string;
 } & SelectProps;
 
-export function StudioSelect({
-  label,
-  children,
-  'data-size': dataSize = 'sm',
-  ...rest
-}: StudioSelectProps): ReactElement {
+export function StudioSelect({ label, children, ...rest }: StudioSelectProps): ReactElement {
   return (
-    <StudioField data-size={dataSize}>
-      <StudioLabel>{label}</StudioLabel>
-      <Select data-size={dataSize} {...rest}>
-        {children}
-      </Select>
+    <StudioField className={classes.field}>
+      <Label>{label}</Label>
+      <Select {...rest}>{children}</Select>
     </StudioField>
   );
 }
