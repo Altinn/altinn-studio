@@ -17,10 +17,10 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
     }
 
     [Fact]
-    public async Task GetOrgResources_GivenCodeListParameter_ShouldReturnOkWithCodeLists()
+    public async Task GetOrgContentIds_GivenCodeListParameter_ShouldReturnOkWithCodeListIds()
     {
         string apiBaseUrl = await PrepareOrgForTest();
-        const LibraryResourceType resourceType = LibraryResourceType.CodeList;
+        const LibraryContentType resourceType = LibraryContentType.CodeList;
         string apiUrlWithCodeListParameter = $"{apiBaseUrl}/{resourceType}";
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithCodeListParameter);
 
@@ -32,10 +32,10 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
     }
 
     [Fact]
-    public async Task GetOrgResources_GivenTextResourceParameter_ShouldReturnOkWithTextResources()
+    public async Task GetOrgContentIds_GivenTextResourceParameter_ShouldReturnOkWithTextResourceIds()
     {
         string apiBaseUrl = await PrepareOrgForTest();
-        const LibraryResourceType resourceType = LibraryResourceType.TextResource;
+        const LibraryContentType resourceType = LibraryContentType.TextResource;
         string apiUrlWithTextResourceParameter = $"{apiBaseUrl}/{resourceType}";
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
 
@@ -47,7 +47,7 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
     }
 
     [Fact]
-    public async Task GetOrgResources_GivenInvalidTypeParameter_ShouldReturnBadRequest()
+    public async Task GetOrgContentIds_GivenInvalidTypeParameter_ShouldReturnBadRequest()
     {
         string apiBaseUrl = await PrepareOrgForTest();
         const string invalidResourceType = "invalidResourceType";
@@ -74,6 +74,6 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
 
     private static string GetApiBaseUrl(string orgName)
     {
-        return $"designer/api/{orgName}/resources";
+        return $"designer/api/{orgName}/content";
     }
 }
