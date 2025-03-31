@@ -6,6 +6,16 @@
     "rowIndices": [1],
     "currentLayout": "Page2"
   },
+  "testCases": [
+    {
+      "expression": ["dataModel", "Mennesker.alder"],
+      "expects": null
+    },
+    {
+      "expression": ["dataModel", "Mennesker.Alder"],
+      "expects": 14
+    }
+  ],
   "expects": false,
   "layouts": {
     "Page1": {

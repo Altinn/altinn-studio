@@ -253,7 +253,10 @@ public static class ExpressionEvaluator
 
         if (targetContext is null)
         {
-            return ExpressionValue.Null;
+            var rowIndexInfo = (
+                (context.RowIndices?.Length > 0) ? " with row indices " + string.Join(", ", context.RowIndices) : null
+            );
+            throw new ArgumentException($"Unable to find component with identifier {componentId}{rowIndexInfo}");
         }
 
         if (targetContext.Component is GroupComponent)
