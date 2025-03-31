@@ -247,6 +247,27 @@ describe('AppPolicyUtils', () => {
       const actions = extractAllUniqueAccessPackages(rules);
       expect(actions).toEqual([]);
     });
+
+    it('should return an empty list if no access packages are present', () => {
+      const rules: PolicyRuleCard[] = [
+        {
+          ruleId: '1',
+          actions: [],
+          resources: [],
+          subject: [],
+          description: 'test',
+        },
+        {
+          ruleId: '2',
+          actions: [],
+          resources: [],
+          subject: [],
+          description: 'test',
+        },
+      ];
+      const actions = extractAllUniqueAccessPackages(rules);
+      expect(actions).toEqual([]);
+    });
   });
 
   describe('getSubResourceDisplayText', () => {

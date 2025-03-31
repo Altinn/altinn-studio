@@ -138,7 +138,7 @@ export const extractAllUniqueActions = (rules: PolicyRuleCard[]): string[] => {
 export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[] => {
   const accessPackageIds: string[] = [];
   rules.forEach((rule) => {
-    rule.accessPackages.forEach((accessPackage) => {
+    rule.accessPackages?.forEach((accessPackage) => {
       if (!accessPackageIds.includes(accessPackage)) {
         accessPackageIds.push(accessPackage);
       }
