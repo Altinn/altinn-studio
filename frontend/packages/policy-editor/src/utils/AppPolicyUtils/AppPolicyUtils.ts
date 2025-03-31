@@ -1,3 +1,4 @@
+import type { PolicyAccessPackageArea } from 'app-shared/types/PolicyAccessPackages';
 import type {
   AppPolicyActionMap,
   PolicyEditorUsage,
@@ -5,6 +6,7 @@ import type {
   PolicyRuleResource,
   PolicySubject,
 } from '../../types';
+import { flatMapAreaPackageList } from '../../components/PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
 
 export const APP_SUBRESOURCE_DEFAULT_LIMITATIONS = {
   'urn:altinn:org': '[org]',
@@ -30,6 +32,25 @@ export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubjec
 };
 
 /**
+ * Get the display name for an access package
+ * @param subject The subject to get the display name for
+ * @param allSubjects
+ * @returns The display name for the subject, or the subject itself if no display name is found
+ */
+export const getAccessPackageDisplayName = (
+  subject: string,
+  accessPackages: PolicyAccessPackageArea[],
+): string => {
+  const flatMappedAccessPackages = flatMapAreaPackageList(accessPackages);
+
+  return (
+    flatMappedAccessPackages.find(
+      (accessPackage) => accessPackage.urn.toLowerCase() === subject.toLowerCase(),
+    )?.name || subject
+  );
+};
+
+/**
  *
  * @param rules Filters out only the rules that have the provided subject (case-insensitive)
  * @param subject
@@ -41,6 +62,21 @@ export const filterRulesWithSubject = (
 ): PolicyRuleCard[] => {
   return rules.filter((rule) =>
     rule.subject.map((s) => s.toLowerCase()).includes(subject.toLowerCase()),
+  );
+};
+
+/**
+ *
+ * @param rules Filters out only the rules that have the provided access package (case-insensitive)
+ * @param subject
+ * @returns The filtered rules
+ */
+export const filterRulesWithAccessPackage = (
+  rules: PolicyRuleCard[],
+  subject: string,
+): PolicyRuleCard[] => {
+  return rules.filter((rule) =>
+    rule.accessPackages.map((s) => s.toLowerCase()).includes(subject.toLowerCase()),
   );
 };
 
@@ -95,6 +131,23 @@ export const extractAllUniqueActions = (rules: PolicyRuleCard[]): string[] => {
 };
 
 /**
+ * Extracts all unique access packages from a list of policy rules
+ * @param rules The policy rules to extract access packages from
+ * @returns The list of unique access packages
+ */
+export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[] => {
+  const accessPackageIds: string[] = [];
+  rules.forEach((rule) => {
+    rule.accessPackages.forEach((accessPackage) => {
+      if (!accessPackageIds.includes(accessPackage)) {
+        accessPackageIds.push(accessPackage);
+      }
+    });
+  });
+  return accessPackageIds;
+};
+
+/**
  * Get the display text key for a subject category
  * @param subject The subject to get the category text key for
  * @param subjects The list of all subjects
@@ -137,20 +190,23 @@ export const getSubResourceDisplayText = (
 };
 
 /**
- * Maps actions to the resources they cover for a specific role
+ * Maps actions to the resources they cover for a specific role or access package
  * @param policyRules The policy rules to map actions for
- * @param subject The subject to map actions for
+ * @param subject The subject to map actions for - either role or access package
  * @param usageType The usage type for the policy editor
  * @returns A map of actions to the resources they cover
  */
-export const mapActionsForRole = (
+export const mapActionsForRoleOrAccessPackage = (
   policyRules: PolicyRuleCard[],
   subject: string,
   usageType: PolicyEditorUsage,
   t: (key: string) => string,
+  isAccessPackage: boolean = false,
 ): AppPolicyActionMap => {
   const result = {};
-  filterRulesWithSubject(policyRules, subject).forEach((rule) => {
+  const filterRules = isAccessPackage ? filterRulesWithAccessPackage : filterRulesWithSubject;
+
+  filterRules(policyRules, subject).forEach((rule) => {
     const covers = rule.resources
       .map((r) => getSubResourceDisplayText(r, usageType, t).concat(` (${rule.ruleId})`))
       .join(', ');

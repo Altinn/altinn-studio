@@ -8,6 +8,11 @@ import {
 import { mockAction1, mockAction2, mockAction3 } from '../../../test/mocks/policyActionMocks';
 import type { PolicySubject } from '../../types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
+  PolicyAccessPackageAreaGroup,
+} from 'app-shared/types/PolicyAccessPackages';
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -52,18 +57,18 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
 
 describe('PolicySummary', () => {
   it('should render', () => {
-    renderPolicyRuleSubjectSummary({});
+    renderPolicySummary({});
     expect(screen.getByText(textMock('policy_editor.summary_heading'))).toBeInTheDocument();
   });
 
   it('should render subject summary for each subject in policy rule', () => {
-    renderPolicyRuleSubjectSummary({});
+    renderPolicySummary({});
     expect(screen.getByText('Subject 1')).toBeInTheDocument();
     expect(screen.getByText('Tjenesteeier')).toBeInTheDocument();
   });
 
   it('should render action heading for each unique action in policy rule', () => {
-    renderPolicyRuleSubjectSummary({});
+    renderPolicySummary({});
     expect(
       screen.getByText(textMock(`policy_editor.action_${mockAction1.actionId}`)),
     ).toBeInTheDocument();
@@ -73,16 +78,77 @@ describe('PolicySummary', () => {
   });
 
   it('should not render action heading for actions that are not in policy rule', () => {
-    renderPolicyRuleSubjectSummary({});
+    renderPolicySummary({});
     expect(
       screen.queryByText(textMock(`policy_editor.action_${mockAction3.actionId}`)),
     ).not.toBeInTheDocument();
   });
+
+  it('should render access package summary for each access package in policy rule', () => {
+    const package1: PolicyAccessPackage = {
+      id: 'package1',
+      urn: 'urn:package1',
+      name: 'Package Alpha',
+      description: 'First package',
+    };
+    const package2: PolicyAccessPackage = {
+      id: 'package2',
+      urn: 'urn:package2',
+      name: 'Package Beta',
+      description: 'Second package',
+    };
+    const package3: PolicyAccessPackage = {
+      id: 'package3',
+      urn: 'urn:package3',
+      name: 'Package Gamma',
+      description: 'Third package',
+    };
+
+    const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
+      {
+        id: 'area1',
+        name: 'Area 1',
+        urn: 'urn:area1',
+        description: '',
+        icon: '',
+        areaGroup: '',
+        packages: [package1, package2],
+      },
+      {
+        id: 'area2',
+        name: 'Area 2',
+        urn: 'urn:area2',
+        description: '',
+        icon: '',
+        areaGroup: '',
+        packages: [package3],
+      },
+    ];
+
+    const accessPackages: PolicyAccessPackageAreaGroup[] = [
+      {
+        id: 'group1',
+        name: 'Group 1',
+        urn: 'urn:group1',
+        description: '',
+        areas: groupedAccessPackagesByArea,
+        type: 'group',
+      },
+    ];
+
+    const mockRules = [...mockPolicyEditorContextValue.policyRules];
+    mockRules[0].accessPackages = [package1.urn, package2.urn];
+
+    renderPolicySummary({
+      accessPackages,
+      policyRules: [...mockPolicyEditorContextValue.policyRules],
+    });
+    expect(screen.getByText(package1.name)).toBeInTheDocument();
+    expect(screen.getByText(package2.name)).toBeInTheDocument();
+  });
 });
 
-const renderPolicyRuleSubjectSummary = (
-  policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
-) => {
+const renderPolicySummary = (policyEditorContextProps: Partial<PolicyEditorContextProps> = {}) => {
   render(
     <PolicyEditorContext.Provider
       value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}

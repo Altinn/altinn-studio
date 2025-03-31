@@ -1,6 +1,7 @@
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PolicyRuleCard, PolicyRuleResource } from '../../types';
 import {
+  extractAllUniqueAccessPackages,
   extractAllUniqueActions,
   extractAllUniqueSubjects,
   filterDefaultAppLimitations,
@@ -8,7 +9,7 @@ import {
   getSubResourceDisplayText,
   getSubjectCategoryTextKey,
   getSubjectDisplayName,
-  mapActionsForRole,
+  mapActionsForRoleOrAccessPackage,
 } from './';
 
 describe('AppPolicyUtils', () => {
@@ -209,6 +210,45 @@ describe('AppPolicyUtils', () => {
     });
   });
 
+  describe('extractAllUniqueAccessPackages', () => {
+    it('should return a list of unique access packages from a list of policy rules', () => {
+      const rules: PolicyRuleCard[] = [
+        {
+          ruleId: '1',
+          actions: [],
+          resources: [],
+          subject: [],
+          accessPackages: ['package1'],
+          description: 'test',
+        },
+        {
+          ruleId: '2',
+          actions: [],
+          resources: [],
+          subject: [],
+          accessPackages: ['package2'],
+          description: 'test',
+        },
+        {
+          ruleId: '3',
+          actions: ['write'],
+          resources: [],
+          subject: [],
+          accessPackages: ['package1', 'package3'],
+          description: 'test',
+        },
+      ];
+      const actions = extractAllUniqueAccessPackages(rules);
+      expect(actions).toEqual(['package1', 'package2', 'package3']);
+    });
+
+    it('should return an empty list if the list of policy rules is empty', () => {
+      const rules: PolicyRuleCard[] = [];
+      const actions = extractAllUniqueAccessPackages(rules);
+      expect(actions).toEqual([]);
+    });
+  });
+
   describe('getSubResourceDisplayText', () => {
     it('should return the display text for an app sub-resource with no limitations', () => {
       const resource: PolicyRuleResource[] = [
@@ -362,7 +402,7 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
+      const mappedActions = mapActionsForRoleOrAccessPackage(rules, 'subject1', 'app', textMock);
       expect(mappedActions).toEqual({
         read: '[mockedText(policy_editor._subresource_covers.whole_service)] (1)',
         write:
@@ -371,7 +411,7 @@ describe('AppPolicyUtils', () => {
       });
     });
 
-    it('should return a map of actions to the sub-resources they cover', () => {
+    it('should return a map of actions to the sub-resources they cover for a given role', () => {
       const rules: PolicyRuleCard[] = [
         {
           ruleId: '1',
@@ -446,7 +486,99 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
+      const mappedActions = mapActionsForRoleOrAccessPackage(rules, 'subject1', 'app', textMock);
+      expect(mappedActions).toEqual({
+        read: 'task_1 (1), task_2 (1)',
+        write: '[mockedText(policy_editor._subresource_covers.whole_service)] (3)',
+        instantiate: '[mockedText(policy_editor._subresource_covers.whole_service)] (2)',
+      });
+    });
+
+    it('should return a map of actions to the sub-resources they cover for a given access package', () => {
+      const rules: PolicyRuleCard[] = [
+        {
+          ruleId: '1',
+          actions: ['read'],
+          resources: [
+            [
+              {
+                type: 'urn:altinn:org',
+                id: '[org]',
+              },
+              {
+                type: 'urn:altinn:app',
+                id: '[app]',
+              },
+              {
+                type: 'urn:altinn:task',
+                id: 'task_1',
+              },
+            ],
+            [
+              {
+                type: 'urn:altinn:org',
+                id: '[org]',
+              },
+              {
+                type: 'urn:altinn:app',
+                id: '[app]',
+              },
+              {
+                type: 'urn:altinn:task',
+                id: 'task_2',
+              },
+            ],
+          ],
+          subject: ['subject1'],
+          accessPackages: ['package1'],
+          description: 'test',
+        },
+        {
+          ruleId: '2',
+          actions: ['instantiate'],
+          resources: [
+            [
+              {
+                type: 'urn:altinn:org',
+                id: '[org]',
+              },
+              {
+                type: 'urn:altinn:app',
+                id: '[app]',
+              },
+            ],
+          ],
+          subject: ['subject1'],
+          accessPackages: ['package1'],
+          description: 'test',
+        },
+        {
+          ruleId: '3',
+          actions: ['write'],
+          resources: [
+            [
+              {
+                type: 'urn:altinn:org',
+                id: '[org]',
+              },
+              {
+                type: 'urn:altinn:app',
+                id: '[app]',
+              },
+            ],
+          ],
+          subject: ['subject1'],
+          accessPackages: ['package1'],
+          description: 'test',
+        },
+      ];
+      const mappedActions = mapActionsForRoleOrAccessPackage(
+        rules,
+        'package1',
+        'app',
+        textMock,
+        true,
+      );
       expect(mappedActions).toEqual({
         read: 'task_1 (1), task_2 (1)',
         write: '[mockedText(policy_editor._subresource_covers.whole_service)] (3)',
@@ -456,7 +588,7 @@ describe('AppPolicyUtils', () => {
 
     it('should return an empty map if the list of rules is empty', () => {
       const rules: PolicyRuleCard[] = [];
-      const mappedActions = mapActionsForRole(rules, 'subject1', 'app', textMock);
+      const mappedActions = mapActionsForRoleOrAccessPackage(rules, 'subject1', 'app', textMock);
       expect(mappedActions).toEqual({});
     });
 
@@ -485,7 +617,7 @@ describe('AppPolicyUtils', () => {
           description: 'test',
         },
       ];
-      const mappedActions = mapActionsForRole(rules, 'subject2', 'app', textMock);
+      const mappedActions = mapActionsForRoleOrAccessPackage(rules, 'subject2', 'app', textMock);
       expect(mappedActions).toEqual({});
     });
   });
