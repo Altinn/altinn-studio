@@ -14,23 +14,50 @@ import { formItemContextProviderMock } from '@altinn/ux-editor/testing/formItemC
 
 const mockHandleComponentUpdate = jest.fn();
 
+const noBindingsRequired = undefined;
+const simpleBindingRequired = ['simpleBinding'];
+const multipleBindingsRequired = ['binding1', 'binding2', 'binding3'];
+
 describe('DataModelMainConfig', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('return null if the schema of component does not have data model binding prop', () => {
-    renderDataModelMainConfig({});
+  it('return null if there is no data model bindings required', () => {
+    renderDataModelMainConfig({
+      component: component1Mock,
+      requiredDataModelBindings: noBindingsRequired,
+    });
     const wrapper = screen.getByTestId('component-wrapper');
     expect(wrapper).toBeEmptyDOMElement();
   });
 
-  it('renders when dataModelBindings is defined', async () => {
+  it('renders when a single data model binding is required', async () => {
     renderDataModelMainConfig({
       component: component1Mock,
-      dataModelBindings: { simpleBinding: 'dataModelBinding' },
+      requiredDataModelBindings: simpleBindingRequired,
     });
 
-    const dataModelButton = await screen.findByRole('button');
-    expect(dataModelButton).toBeInTheDocument();
+    const dataModelBindingButton = await screen.findByRole('button');
+    expect(dataModelBindingButton).toBeInTheDocument();
+  });
+
+  it('renders when multiple data model bindings are required', async () => {
+    renderDataModelMainConfig({
+      component: component1Mock,
+      requiredDataModelBindings: multipleBindingsRequired,
+    });
+
+    const dataModelBindingButton1 = await screen.findByRole('button', {
+      name: textMock(`ux_editor.modal_properties_data_model_label.${multipleBindingsRequired[0]}`),
+    });
+    const dataModelBindingButton2 = await screen.findByRole('button', {
+      name: textMock(`ux_editor.modal_properties_data_model_label.${multipleBindingsRequired[1]}`),
+    });
+    const dataModelBindingButton3 = await screen.findByRole('button', {
+      name: textMock(`ux_editor.modal_properties_data_model_label.${multipleBindingsRequired[2]}`),
+    });
+    expect(dataModelBindingButton1).toBeInTheDocument();
+    expect(dataModelBindingButton2).toBeInTheDocument();
+    expect(dataModelBindingButton3).toBeInTheDocument();
   });
 
   it('updates data model binding when deleting the binding', async () => {
@@ -38,7 +65,7 @@ describe('DataModelMainConfig', () => {
     const user = userEvent.setup();
     renderDataModelMainConfig({
       component: component1Mock,
-      dataModelBindings: { simpleBinding: 'dataModelBinding' },
+      requiredDataModelBindings: simpleBindingRequired,
     });
 
     const dataModelButton = await screen.findByRole('button');
@@ -58,7 +85,7 @@ describe('DataModelMainConfig', () => {
 
 const renderDataModelMainConfig = ({
   component = component1Mock,
-  dataModelBindings = undefined,
+  requiredDataModelBindings = undefined,
 }) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
@@ -70,7 +97,7 @@ const renderDataModelMainConfig = ({
       <FormItemContext.Provider value={formItemContextProviderMock}>
         <DataModelMainConfig
           component={component}
-          dataModelBindings={dataModelBindings}
+          requiredDataModelBindings={requiredDataModelBindings}
           handleComponentChange={mockHandleComponentUpdate}
         />
       </FormItemContext.Provider>
