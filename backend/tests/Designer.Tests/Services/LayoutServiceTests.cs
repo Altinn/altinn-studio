@@ -70,13 +70,14 @@ public class LayoutServiceTests
         );
 
         LayoutService layoutService = GetLayoutServiceForTest();
-        PagesDto pagesBeforeConvert = await layoutService.GetPagesByLayoutSetId(
-            editingContext,
-            "layoutSet1"
+        PagesDto pagesBeforeConvert = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "layoutSet1")
         );
         await layoutService.ConvertPagesToPageGroups(editingContext, "layoutSet1");
         Assert.True(await layoutService.IsLayoutUsingPageGroups(editingContext, "layoutSet1"));
-        PagesDto pages = await layoutService.GetPagesByLayoutSetId(editingContext, "layoutSet1");
+        PagesDto pages = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "layoutSet1")
+        );
 
         Assert.Null(pages.Pages);
         Assert.Equal(
@@ -106,13 +107,14 @@ public class LayoutServiceTests
         );
 
         LayoutService layoutService = GetLayoutServiceForTest();
-        PagesDto pagesBeforeConvert = await layoutService.GetPagesByLayoutSetId(
-            editingContext,
-            "form"
+        PagesDto pagesBeforeConvert = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "form")
         );
         await layoutService.ConvertPageGroupsToPages(editingContext, "form");
         Assert.False(await layoutService.IsLayoutUsingPageGroups(editingContext, "form"));
-        PagesDto pages = await layoutService.GetPagesByLayoutSetId(editingContext, "form");
+        PagesDto pages = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "form")
+        );
         Assert.Equal(
             pages.Pages.Count,
             pagesBeforeConvert
