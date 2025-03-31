@@ -44,6 +44,7 @@ describe('TaskCardBar', () => {
     expect(screen.getByText('1')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText(/task_card_add_new_task/i)).toBeInTheDocument();
+    expect(screen.getByText(/task_card_add_new_subform/i)).toBeInTheDocument();
   });
 });
 
