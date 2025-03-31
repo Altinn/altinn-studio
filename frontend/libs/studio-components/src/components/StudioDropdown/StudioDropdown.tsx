@@ -18,7 +18,6 @@ export function StudioDropdown({
   iconPlacement = 'left',
   triggerButtonText,
   children,
-  'data-size': dataSize = 'sm',
   ...rest
 }: StudioDropdownProps): ReactElement {
   const [open, setOpen] = useState<boolean>(false);
@@ -29,17 +28,12 @@ export function StudioDropdown({
 
   return (
     <Dropdown.TriggerContext>
-      <Dropdown.Trigger
-        data-size={dataSize}
-        onClick={handleClick}
-        icon={!triggerButtonText}
-        aria-expanded={open}
-      >
+      <Dropdown.Trigger onClick={handleClick} icon={!triggerButtonText} aria-expanded={open}>
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}
         </TextWithIcon>
       </Dropdown.Trigger>
-      <Dropdown data-size={dataSize} onClose={() => setOpen(false)} open={open} {...rest}>
+      <Dropdown onClose={() => setOpen(false)} open={open} {...rest}>
         <StudioDropdownContextProvider setOpen={setOpen}>{children}</StudioDropdownContextProvider>
       </Dropdown>
     </Dropdown.TriggerContext>
