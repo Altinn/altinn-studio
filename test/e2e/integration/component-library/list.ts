@@ -1,5 +1,3 @@
-import { beforeEach } from 'mocha';
-
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
