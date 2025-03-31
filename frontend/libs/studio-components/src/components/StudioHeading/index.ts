@@ -1,0 +1,1 @@
+export { StudioHeading } from './StudioHeading';
