@@ -4,44 +4,29 @@ using System.Net.Mime;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Filters;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Moq;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using Xunit;
 
 namespace Designer.Tests.Controllers.ImageController;
 
-public class ValidateExternalImageUrlTests
-    : DesignerEndpointsTestsBase<ValidateExternalImageUrlTests>,
+public class ValidateExternalImageUrlTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<ValidateExternalImageUrlTests>(factory),
         IClassFixture<WebApplicationFactory<Program>>
 {
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
     private const string EmptyApp = "empty-app";
-    private const string NotFoundUri = "/notfound";
-    private const string ValidNonImageUri = "/index.html";
-    private const string ValidImageUri = "/image.png";
-    private readonly Altinn.Studio.Designer.Controllers.ImageController _imageController;
-
-    public ValidateExternalImageUrlTests(WebApplicationFactory<Program> factory)
-        : base(factory)
-    {
-        Mock<IImagesService> imagesService = new();
-        Mock<HttpClient> imageClient = new();
-        _imageController = new(imagesService.Object, new ImageClient(imageClient.Object));
-    }
 
     [Fact]
     public async Task ValidateExternalImageUrl_WhenUrlIsPointingToAnImage_ReturnsOk()
     {
         MockServerFixture mockServerFixture = new();
         await mockServerFixture.InitializeAsync();
-        IRequestBuilder validImageRequest = Request.Create().UsingHead().WithPath(ValidImageUri);
+        IRequestBuilder validImageRequest = Request.Create().UsingHead();
         IResponseBuilder validImageResponse = Response
             .Create()
             .WithSuccess()
@@ -50,7 +35,7 @@ public class ValidateExternalImageUrlTests
             .WithBody("image");
         mockServerFixture.MockApi.Given(validImageRequest).RespondWith(validImageResponse);
 
-        string urlPointingToImage = mockServerFixture.MockApi.Url + ValidImageUri;
+        string urlPointingToImage = mockServerFixture.MockApi.Url;
         string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToImage}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -78,20 +63,16 @@ public class ValidateExternalImageUrlTests
     {
         MockServerFixture mockServerFixture = new();
         await mockServerFixture.InitializeAsync();
-        IRequestBuilder validNonImageRequest = Request
-            .Create()
-            .UsingHead()
-            .WithPath(ValidNonImageUri);
+        IRequestBuilder validNonImageRequest = Request.Create().UsingHead();
         IResponseBuilder validNonImageResponse = Response
             .Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Text.Html);
         mockServerFixture.MockApi.Given(validNonImageRequest).RespondWith(validNonImageResponse);
 
-        string urlPointingToNonImage = mockServerFixture.MockApi.Url + ValidNonImageUri;
+        string urlPointingToNonImage = mockServerFixture.MockApi.Url;
         string path =
             $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToNonImage}";
-
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();

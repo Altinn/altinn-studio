@@ -22,7 +22,6 @@ public class ImageClient
             using var request = new HttpRequestMessage(HttpMethod.Head, url);
             var response = await _httpClient.SendAsync(request, cancellationToken: default);
 
-            System.Console.WriteLine(response.StatusCode);
             // If the response status is not successful return NotValidUrl
             if (!response.IsSuccessStatusCode)
             {
