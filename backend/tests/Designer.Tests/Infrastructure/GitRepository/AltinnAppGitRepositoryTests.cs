@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -38,6 +39,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "hvem-er-hvem";
             string developer = "testUser";
+            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-GB");
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
@@ -70,9 +72,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Equal("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES", dataField.DataTypeId);
 
             Assert.False(applicationMetadata.AutoDeleteOnProcessEnd);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z"), applicationMetadata.Created);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z").ToUniversalTime(), applicationMetadata.Created);
             Assert.Equal("Ronny", applicationMetadata.CreatedBy);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z"), applicationMetadata.LastChanged);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(), applicationMetadata.LastChanged);
             Assert.Equal("Ronny", applicationMetadata.LastChangedBy);
         }
 
