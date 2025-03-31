@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,25 +36,25 @@ public class OrgLibraryController : ControllerBase
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("resources/{resourceType}")]
-    public ActionResult<List<string>> GetResourceList(LibraryResourceType resourceType, string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<string>>> GetOrgResources([FromRoute] LibraryResourceType resourceType, [FromRoute] string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
         switch (resourceType)
         {
             case LibraryResourceType.CodeList:
                 {
-                    // Replace with call to orgCodeListService
-                    List<string> codeListResult = ["dummyCodeList1", "dummyCodeList2"];
+                    List<string> codeListResult = _orgCodeListService.GetCodeListIds(org, developer, cancellationToken);
                     return Ok(codeListResult);
                 }
             case LibraryResourceType.TextResource:
                 {
-                    // Replace with call to orgTextsService
-                    List<string> textResourceResult = ["dummyTextResource1", "dummyTextResource2"];
+                    List<string> textResourceResult = await _orgTextsService.GetTextIds(org, developer, cancellationToken);
                     return Ok(textResourceResult);
                 }
             default:
-                return BadRequest($"{resourceType} is not a valid member of {nameof(LibraryResourceType)}.");
+                return BadRequest();
         }
     }
 }
