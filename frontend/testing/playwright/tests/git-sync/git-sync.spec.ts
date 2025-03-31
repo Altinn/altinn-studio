@@ -30,6 +30,7 @@ const setupAndVerifyUiEditorPage = async (
 ): Promise<UiEditorPage> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
+  await uiEditorPage.clickOnUxEditorButton();
   await uiEditorPage.verifyUiEditorPage();
   return uiEditorPage;
 };
