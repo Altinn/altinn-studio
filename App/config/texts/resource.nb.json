@@ -390,6 +390,14 @@
     {
       "id": "fileupload-doctype",
       "value": "Last opp alle vedlegg med kilde {0} her:"
+    },
+    {
+      "id": "substatus.label",
+      "value": "Godkjent"
+    },
+    {
+      "id": "substatus.description",
+      "value": "Søknaden er godkjent og sendt til Folkeregisteret for behandling. Du vil motta en bekreftelse når søknaden er behandlet."
     }
   ]
 }

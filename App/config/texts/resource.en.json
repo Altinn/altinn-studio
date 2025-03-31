@@ -365,8 +365,15 @@
     {
       "id": "fileupload-doctype",
       "value": "Upload all attachments with source {0} here:"
+    },
+    {
+      "id": "substatus.label",
+      "value": "Approved"
+    },
+    {
+      "id": "substatus.description",
+      "value": "The application has been approved and sent to the National Registry for processing. You will receive a confirmation when the application has been processed."
     }
-
   ]
 }
 
