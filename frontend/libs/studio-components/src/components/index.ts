@@ -1,2 +1,3 @@
-// Should be removed when the first component is added.
-export const dummy = '';
+export { StudioButton } from './StudioButton';
+export { StudioHeading } from './StudioHeading';
+export { StudioParagraph } from './StudioParagraph';
