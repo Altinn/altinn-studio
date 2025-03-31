@@ -2,9 +2,9 @@ import React, { type ReactElement } from 'react';
 import {
   NavigationDataIcon,
   QuestionmarkIcon,
-  ReceiptIcon,
   NavigationSignIcon,
   NavigationPayIcon,
+  NavigationReceiptIcon,
 } from '@studio/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
@@ -20,7 +20,7 @@ export const taskNavigationIcon = (taskType: string, taskIcon?: string): ReactEl
   switch (taskType) {
     case 'receipt':
     case PROTECTED_TASK_NAME_CUSTOM_RECEIPT:
-      return <ReceiptIcon data-testid='receipt' className={taskIcon} />;
+      return <NavigationReceiptIcon data-testid='receipt' className={taskIcon} />;
     case 'data':
       return <NavigationDataIcon data-testid='data' className={taskIcon} />;
     case 'signing':

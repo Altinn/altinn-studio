@@ -29,6 +29,7 @@ export { NavigationInfoPageIcon } from './NavigationInfoPageIcon';
 export { NavigationPageGroupIcon } from './NavigationPageGroupIcon';
 export { NavigationPageIcon } from './NavigationPageIcon';
 export { NavigationPayIcon } from './NavigationPayIcon';
+export { NavigationReceiptIcon } from './NavigationReceiptIcon';
 export { NavigationSignIcon } from './NavigationSignIcon';
 export { OrgResourceIcon } from './OrgResourceIcon';
 export { OperationStatusResourceIcon } from './OperationStatusResourceIcon';
