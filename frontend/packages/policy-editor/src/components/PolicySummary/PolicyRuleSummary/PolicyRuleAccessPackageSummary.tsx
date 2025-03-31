@@ -6,7 +6,7 @@ import {
   mapActionsForRoleOrAccessPackage,
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
-import classes from './PolicyRuleAccessPackageSummary.module.css';
+import classes from './PolicyRuleSubjectSummary.module.css';
 import { ArrayUtils } from '@studio/pure-functions';
 import { groupAccessPackagesByArea } from '../../PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
 
@@ -30,6 +30,7 @@ export const PolicyRuleAccessPackageSummary = ({
     accessPackage,
     usageType,
     t,
+    true,
   );
 
   const displayName = getAccessPackageDisplayName(accessPackage, groupedAccessPackagesByArea);
