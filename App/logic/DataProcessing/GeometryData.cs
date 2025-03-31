@@ -26,6 +26,15 @@ public class GeometryData
         if (selected?.Contains("5") == true) {
             Geometries.Add(new() { Label = "Hankabakken 5", Data = "POLYGON ((16.0957778974798 67.1408466860878,16.118841539588 67.1406869499763,16.1186340551949 67.1362026617326,16.0955746880334 67.1363623630455,16.0957778974798 67.1408466860878))" });
         }
+        if (selected?.Contains("6") == true) {
+            Geometries.Add(new() { Label = "Hankabakken 6", Data = "POINT (16.098 67.140)" });
+        }
+        if (selected?.Contains("7") == true) {
+            Geometries.Add(new() { Label = "Hankabakken 7", Data = "POINT (16.092 67.138)" });
+        }
+        if (selected?.Contains("8") == true) {
+            Geometries.Add(new() { Label = "Hankabakken 8", Data = "POINT (16.100 67.1365)" });
+        }
 
         return Geometries;
     }

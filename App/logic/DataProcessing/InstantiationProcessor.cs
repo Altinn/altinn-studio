@@ -39,7 +39,7 @@ namespace Altinn.App.logic.DataProcessing
                     };
                 }
 
-                var selectedGeometries = "1,2,3,4,5";
+                var selectedGeometries = "1,2,3,4,5,6,7,8";
                 model.MapData = new() { Location = "", Geometries = GeometryData.GetGeometryData(selectedGeometries), Selected = selectedGeometries };
 
                 ConflictingOptionsReset.SetDefaultData(model);
