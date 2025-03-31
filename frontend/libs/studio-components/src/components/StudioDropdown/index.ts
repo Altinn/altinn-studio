@@ -1,21 +1,23 @@
 import { StudioDropdown as Root } from './StudioDropdown';
-import { DropdownHeading, DropdownList, DropdownItem } from '@digdir/designsystemet-react';
 import { StudioDropdownButton } from './StudioDropdownButton';
 import { StudioDropdownFileUploaderButton } from './StudioDropdownFileUploaderButton';
+import { StudioDropdownHeading } from './StudioDropdownHeading';
+import { StudioDropdownList } from './StudioDropdownList';
+import { StudioDropdownItem } from './StudioDropdownItem';
 
 type StudioDropdownComponent = typeof Root & {
-  Heading: typeof DropdownHeading;
-  List: typeof DropdownList;
-  Item: typeof DropdownItem;
+  Heading: typeof StudioDropdownHeading;
+  List: typeof StudioDropdownList;
+  Item: typeof StudioDropdownItem;
   Button: typeof StudioDropdownButton;
   FileUploaderButton: typeof StudioDropdownFileUploaderButton;
 };
 
 const StudioDropdown = Root as StudioDropdownComponent;
 
-StudioDropdown.Heading = DropdownHeading;
-StudioDropdown.List = DropdownList;
-StudioDropdown.Item = DropdownItem;
+StudioDropdown.Heading = StudioDropdownHeading;
+StudioDropdown.List = StudioDropdownList;
+StudioDropdown.Item = StudioDropdownItem;
 StudioDropdown.Button = StudioDropdownButton;
 StudioDropdown.FileUploaderButton = StudioDropdownFileUploaderButton;
 
