@@ -22,13 +22,13 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
         string apiBaseUrl = await PrepareOrgForTest();
         const LibraryContentType resourceType = LibraryContentType.CodeList;
         string apiUrlWithCodeListParameter = $"{apiBaseUrl}/{resourceType}";
-        var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithCodeListParameter);
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithCodeListParameter);
 
         var response = await HttpClient.SendAsync(request);
-        List<string> codeLists = await response.Content.ReadAsAsync<List<string>>();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<string> codeLists = await response.Content.ReadAsAsync<List<string>>();
         Assert.Equal(6, codeLists.Count);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -37,13 +37,13 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
         string apiBaseUrl = await PrepareOrgForTest();
         const LibraryContentType resourceType = LibraryContentType.TextResource;
         string apiUrlWithTextResourceParameter = $"{apiBaseUrl}/{resourceType}";
-        var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
 
         var response = await HttpClient.SendAsync(request);
-        List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
         Assert.Equal(2, textResources.Count);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
         string apiBaseUrl = await PrepareOrgForTest();
         const string invalidResourceType = "invalidResourceType";
         string apiUrlWithInvalidResourceType = $"{apiBaseUrl}/{invalidResourceType}";
-        var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithInvalidResourceType);
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithInvalidResourceType);
 
         var response = await HttpClient.SendAsync(request);
 
