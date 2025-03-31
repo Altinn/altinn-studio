@@ -44,12 +44,12 @@ public class OrgContentController : ControllerBase
         switch (contentType)
         {
             case LibraryContentType.CodeList:
-                    List<string> codeListResult = _orgCodeListService.GetCodeListIds(org, developer, cancellationToken);
-                    return Ok(codeListResult);
+                List<string> codeListResult = _orgCodeListService.GetCodeListIds(org, developer, cancellationToken);
+                return Ok(codeListResult);
 
             case LibraryContentType.TextResource:
-                    List<string> textResourceResult = await _orgTextsService.GetTextIds(org, developer, cancellationToken);
-                    return Ok(textResourceResult);
+                List<string> textResourceResult = await _orgTextsService.GetTextIds(org, developer, cancellationToken);
+                return Ok(textResourceResult);
 
             default:
                 return BadRequest($"Invalid resource type '{contentType}'.");
