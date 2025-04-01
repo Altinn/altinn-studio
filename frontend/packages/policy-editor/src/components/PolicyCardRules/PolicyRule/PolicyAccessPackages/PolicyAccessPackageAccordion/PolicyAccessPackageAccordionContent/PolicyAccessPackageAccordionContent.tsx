@@ -6,7 +6,7 @@ import { PolicyAccessPackageServices } from '../PolicyAccessPackageServices';
 import classes from './PolicyAccessPackageAccordionContent.module.css';
 
 type PolicyAccessPackageAccordionContentProps = {
-  accessPackageResourcesEnv: string;
+  accessPackageResourcesEnv: 'tt02' | 'prod';
   accessPackageUrn: string;
 };
 

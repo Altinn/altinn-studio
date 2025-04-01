@@ -66,7 +66,10 @@ const renderPolicyAccessPackageAccordionContent = (queries: Partial<ServicesCont
   };
   return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <PolicyAccessPackageAccordionContent accessPackageUrn='urn' />
+      <PolicyAccessPackageAccordionContent
+        accessPackageUrn='urn'
+        accessPackageResourcesEnv='tt02'
+      />
     </ServicesContextProvider>,
   );
 };
