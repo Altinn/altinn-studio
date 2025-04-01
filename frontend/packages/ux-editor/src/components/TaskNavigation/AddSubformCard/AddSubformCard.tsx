@@ -4,26 +4,35 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
 
-export const AddSubformCard = () => {
+export type AddSubformCardProps = {
+  onAddSubform?: () => void;
+};
+
+export const AddSubformCard = ({ onAddSubform }: AddSubformCardProps) => {
   const { t } = useTranslation();
 
-  //TODO:  Implement handleClick will be implemented in a later PR: 15032
-  const handleClick = () => {};
+  //TODO: Implement subform creation functionality in PR #15032
+  const onClick = () => {
+    if (onAddSubform) {
+      onAddSubform();
+    }
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      handleClick();
+      onClick();
     }
   };
 
   return (
     <StudioCard
-      onClick={handleClick}
+      onClick={onClick}
       className={classes.card}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role='button'
+      aria-label={t('ux_editor.task_card_add_new_subform')}
     >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
