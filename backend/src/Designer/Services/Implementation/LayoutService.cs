@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -18,7 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         IAppDevelopmentService appDevelopmentService
     ) : ILayoutService
     {
-        public async Task<PagesDto> GetPagesByLayoutSetId(
+        public async Task<LayoutSettings> GetLayoutSettings(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         )
@@ -29,25 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Repo,
                     editingContext.Developer
                 );
-            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            PagesDto pages = new(layoutSettings);
-            return pages;
-        }
-
-        public async Task<PageDto> GetPageById(
-            AltinnRepoEditingContext editingContext,
-            string layoutSetId,
-            string pageId
-        )
-        {
-            AltinnAppGitRepository appRepository =
-                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                    editingContext.Org,
-                    editingContext.Repo,
-                    editingContext.Developer
-                );
-            PagesDto pages = new(await appRepository.GetLayoutSettings(layoutSetId));
-            return pages.Pages.Find(page => page.Id == pageId);
+            return await appRepository.GetLayoutSettings(layoutSetId);
         }
 
         public async Task CreatePage(
@@ -138,11 +119,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
         }
 
-        public async Task UpdatePage(
+        public async Task RenamePage(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
             string pageId,
-            PageDto page
+            string newName
         )
         {
             AltinnAppGitRepository appRepository =
@@ -152,11 +133,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Developer
                 );
 
-            appRepository.UpdateFormLayoutName(layoutSetId, pageId, page.Id);
+            appRepository.UpdateFormLayoutName(layoutSetId, pageId, newName);
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
             int orderIndex = layoutSettings.Pages.Order.IndexOf(pageId);
-            layoutSettings.Pages.Order[orderIndex] = page.Id;
+            layoutSettings.Pages.Order[orderIndex] = newName;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             await mediatr.Publish(
@@ -164,7 +145,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     EditingContext = editingContext,
                     LayoutName = pageId,
-                    NewLayoutName = page.Id,
+                    NewLayoutName = newName,
                     LayoutSetName = layoutSetId,
                 }
             );
@@ -173,7 +154,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdatePageOrder(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
-            PagesDto pages
+            Pages pages
         )
         {
             AltinnAppGitRepository appRepository =
@@ -184,7 +165,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            layoutSettings.Pages.Order = [.. pages.Pages.Select(page => page.Id)];
+            layoutSettings.Pages.Order = pages.Order;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
 
