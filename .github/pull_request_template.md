@@ -40,7 +40,8 @@
   - [ ] The original issue (or this PR itself) has been added to the Team Apps project and to the current sprint board
   - [ ] I don't have permissions to do that, please help me out
 - Labels
-  - [ ] I have added a `kind/*` label to this PR for proper release notes grouping
+
+  - [ ] I have added a `kind/*` and `backport*` label to this PR for proper release notes grouping
   - [ ] I don't have permissions to add labels, please help me out
   <!---
     Breaking changes:       kind/breaking-change
@@ -49,4 +50,7 @@
     Dependencies:             kind/dependencies
     Other changes:            kind/other
     Not in release notes:  ignore-for-release
+
+    Backport (to patch release): backport
+    Do not backport:                   backport-ignore
   --->

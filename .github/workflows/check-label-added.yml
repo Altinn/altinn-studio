@@ -12,8 +12,11 @@ jobs:
         with:
           script: |
             const labels = context.payload.pull_request.labels;
-            const required_labels = ['kind/breaking-change', 'kind/product-feature', 'kind/bug', 'kind/other', 'kind/dependencies', 'ignore-for-release'];
-            const hasMatchingLabel = labels.some((label) => required_labels.includes(label.name));
-            if (!hasMatchingLabel) {
-              core.setFailed('The PR must have one of the following labels:\n- ' + required_labels.join('\n- '));
+            const releaseLabels = ['kind/breaking-change', 'kind/product-feature', 'kind/bug', 'kind/other', 'kind/dependencies', 'ignore-for-release'];
+            if(!releaseLabels.some(r=>labels.some(l=>l.name == r))){
+                core.setFailed(`The PR must have at least one of these labels: ${releaseLabels}`)
+            }
+            const backportLabels = ["backport", "backport-ignore"];
+            if(!backportLabels.some(r=>labels.some(l=>l.name == r))){
+                core.setFailed(`The PR must have at least one of these labels: ${backportLabels}`)
             }
