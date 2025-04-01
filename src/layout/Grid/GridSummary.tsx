@@ -59,7 +59,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
         tableSections.push(
           <Table.Body key={`tbody-${index}`}>
             {currentBodyRows.map((bodyRow, bodyIndex) => (
-              <GridRowRenderer
+              <SummaryGridRowRenderer
                 key={bodyIndex}
                 row={bodyRow}
                 mutableColumnSettings={columnSettings}
@@ -73,7 +73,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
       // Add the header row
       tableSections.push(
         <Table.Head key={`thead-${index}`}>
-          <GridRowRenderer
+          <SummaryGridRowRenderer
             key={index}
             row={row}
             mutableColumnSettings={columnSettings}
@@ -94,7 +94,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
     tableSections.push(
       <tbody key={`tbody-${rowsInternal.length}`}>
         {currentBodyRows.map((bodyRow, bodyIndex) => (
-          <GridRowRenderer
+          <SummaryGridRowRenderer
             key={bodyIndex}
             row={bodyRow}
             mutableColumnSettings={columnSettings}
@@ -137,7 +137,7 @@ interface GridRowProps {
   headerRow?: GridRowInternal;
 }
 
-export function GridRowRenderer(props: GridRowProps) {
+function SummaryGridRowRenderer(props: GridRowProps) {
   const { row } = props;
   const isMobile = useIsMobile();
   const isHiddenSelector = Hidden.useIsHiddenSelector();
@@ -153,9 +153,9 @@ export function GridRowRenderer(props: GridRowProps) {
   }
 
   return (
-    <InternalRow readOnly={row.readOnly}>
+    <SummaryInternalRow readOnly={row.readOnly}>
       {row.cells.filter(typedBoolean).map((cell, cellIdx) => (
-        <Cell
+        <SummaryCell
           key={cellIdx}
           cell={cell}
           idx={cellIdx}
@@ -180,7 +180,7 @@ export function GridRowRenderer(props: GridRowProps) {
           )}
         </Table.Cell>
       )}
-    </InternalRow>
+    </SummaryInternalRow>
   );
 }
 
@@ -218,7 +218,7 @@ function WrappedEditButton({
 
 type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
 
-function InternalRow({ header, readOnly, children }: InternalRowProps) {
+function SummaryInternalRow({ header, readOnly, children }: InternalRowProps) {
   const className = readOnly ? classes.rowReadOnly : undefined;
 
   if (header) {
@@ -256,7 +256,7 @@ interface CellProps extends GridRowProps {
   isSmall: boolean;
 }
 
-function Cell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isSmall }: CellProps) {
+function SummaryCell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isSmall }: CellProps) {
   const headerTitle = useHeaderText(headerRow, idx);
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
     mutableColumnSettings[idx] = cell.columnOptions;
@@ -276,7 +276,7 @@ function Cell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isS
 
     if ('text' in cell && cell.text) {
       return (
-        <CellWithText
+        <SummaryCellWithText
           key={`${cell.text}/${idx}`}
           cell={cell}
           columnStyleOptions={textCellSettings}
@@ -287,13 +287,13 @@ function Cell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isS
             id={cell.text}
             node={node}
           />
-        </CellWithText>
+        </SummaryCellWithText>
       );
     }
 
     if ('labelFrom' in cell && cell.labelFrom) {
       return (
-        <CellWithLabel
+        <SummaryCellWithLabel
           key={`${cell.labelFrom}/${idx}`}
           cell={cell}
           columnStyleOptions={textCellSettings}
@@ -306,7 +306,7 @@ function Cell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isS
 
   if (cell && 'nodeId' in cell) {
     return (
-      <CellWithComponent
+      <SummaryCellWithComponentNodeCheck
         key={`${cell.nodeId}/${idx}`}
         cell={cell}
         columnStyleOptions={mutableColumnSettings[idx]}
@@ -340,19 +340,28 @@ interface CellWithLabelProps extends BaseCellProps {
   cell: GridCellLabelFrom;
 }
 
-function CellWithComponent({
-  cell,
+function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
+  const node = useNode(props.cell.nodeId);
+  if (!node) {
+    return <Table.Cell />;
+  }
+
+  return (
+    <SummaryCellWithComponent
+      {...props}
+      node={node}
+    />
+  );
+}
+
+function SummaryCellWithComponent({
+  node,
   columnStyleOptions,
   isHeader = false,
   rowReadOnly,
   headerTitle,
   isSmall,
-}: CellWithComponentProps) {
-  const node = useNode(cell.nodeId);
-  if (!node) {
-    throw new Error(`Node with id ${cell.nodeId} not found`);
-  }
-
+}: CellWithComponentProps & { node: LayoutNode }) {
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
   const displayData = useDisplayData(node);
   const validations = useUnifiedValidationsForNode(node);
@@ -396,7 +405,13 @@ function CellWithComponent({
   );
 }
 
-function CellWithText({ children, columnStyleOptions, isHeader = false, headerTitle, isSmall }: CellWithTextProps) {
+function SummaryCellWithText({
+  children,
+  columnStyleOptions,
+  isHeader = false,
+  headerTitle,
+  isSmall,
+}: CellWithTextProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
@@ -416,7 +431,13 @@ function CellWithText({ children, columnStyleOptions, isHeader = false, headerTi
   );
 }
 
-function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle, isSmall }: CellWithLabelProps) {
+function SummaryCellWithLabel({
+  cell,
+  columnStyleOptions,
+  isHeader = false,
+  headerTitle,
+  isSmall,
+}: CellWithLabelProps) {
   const referenceNode = useNode(cell.labelFrom);
   const refItem = useNodeItem(referenceNode);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
