@@ -56,7 +56,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
     expect(
       await screen.findByText(
         textMock('policy_editor.access_package_no_services', {
-          environment: testEnv,
+          environment: testEnv.toUpperCase(),
         }),
       ),
     ).toBeInTheDocument();
