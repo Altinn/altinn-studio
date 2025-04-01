@@ -42,8 +42,8 @@ export class NodeRelationNotFound extends ExprRuntimeError {
     super(
       ctx.expr,
       ctx.path,
-      `Component ${id} was found, but it is inside a repeating structure. Cannot find an instance ` +
-        `of it that is a sibling or parent in relation to ${ourLocation}`,
+      `Unable to find component with identifier ${id} in the current context. This component exists inside ` +
+        `a repeating group structure, but is not sibling or parent in relation to ${ourLocation}`,
     );
   }
 }
