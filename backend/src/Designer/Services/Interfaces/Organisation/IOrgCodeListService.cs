@@ -10,6 +10,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgCodeListService
 {
     /// <summary>
+    /// Get all code list ids from the org repository
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>List of code list ids</returns>
+    public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets all code lists from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
