@@ -22,10 +22,7 @@ public static class TaskNavigationGroupMapper
                 TaskType = receipt.Type.GetJsonStringEnumMemberName(),
                 Name = receipt.Name,
             },
-            _ => new()
-            {
-                Name = taskNavigationGroup.Name,
-            }
+            _ => throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroup.Name}': {taskNavigationGroup.GetType().Name}")
         };
     }
 }
