@@ -14,7 +14,7 @@ export type StudioButtonProps = {
 export const StudioButton = ({
   icon,
   iconPlacement = 'left',
-  'data-size': dataSize = 'sm',
+  'data-size': dataSize,
   className: givenClassName,
   children,
   ...rest
