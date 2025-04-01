@@ -31,12 +31,16 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            PagesDto pages = await layoutService.GetPagesByLayoutSetId(editingContext, layoutSetId);
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+                editingContext,
+                layoutSetId
+            );
+            PagesDto pages = PagesDto.From(layoutSettings);
             return Ok(pages);
         }
 
         [EndpointSummary("Create page")]
-        [ProducesResponseType<PagesDto>(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("pages")]
         public async Task<ActionResult<PageDto>> CreatePage(
@@ -49,11 +53,11 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            PageDto existingPage = await layoutService.GetPageById(
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
                 editingContext,
-                layoutSetId,
-                page.Id
+                layoutSetId
             );
+            string existingPage = layoutSettings.Pages.Order.Find(p => p == page.Id);
             if (existingPage != null)
             {
                 return Conflict();
@@ -76,7 +80,12 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            PageDto page = await layoutService.GetPageById(editingContext, layoutSetId, pageId);
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+                editingContext,
+                layoutSetId
+            );
+            PagesDto pagesDto = PagesDto.From(layoutSettings);
+            PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
             if (page == null)
             {
                 return NotFound();
@@ -98,17 +107,18 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            PageDto existingPage = await layoutService.GetPageById(
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
                 editingContext,
-                layoutSetId,
-                pageId
+                layoutSetId
             );
+            PagesDto pagesDto = PagesDto.From(layoutSettings);
+            PageDto existingPage = pagesDto.Pages.Find(p => p.Id == pageId);
             if (existingPage == null)
             {
                 return NotFound();
             }
 
-            await layoutService.UpdatePage(editingContext, layoutSetId, pageId, page);
+            await layoutService.RenamePage(editingContext, layoutSetId, pageId, page.Id);
             return Ok();
         }
 
@@ -125,7 +135,12 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            PageDto page = await layoutService.GetPageById(editingContext, layoutSetId, pageId);
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+                editingContext,
+                layoutSetId
+            );
+            PagesDto pagesDto = PagesDto.From(layoutSettings);
+            PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
             if (page == null)
             {
                 return NotFound();
@@ -151,7 +166,7 @@ namespace Altinn.Studio.Designer.Controllers
                 app,
                 developer
             );
-            await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages);
+            await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages.ToBusiness());
             return Ok();
         }
 
