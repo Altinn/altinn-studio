@@ -38,7 +38,7 @@ describe('TaskCardBar', () => {
     expect(screen.getByText(/task_card_add_new_task/i)).toBeInTheDocument();
   });
 
-  it('should render AddSubformCard when taskNavigationSubform is enabled  ', async () => {
+  it('should render AddSubformCard when taskNavigationSubform is enabled', async () => {
     shouldDisplayFeature.mockReturnValue(true);
     renderTaskCardBar();
     expect(screen.getByText('1')).toBeInTheDocument();

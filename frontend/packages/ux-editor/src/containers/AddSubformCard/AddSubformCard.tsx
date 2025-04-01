@@ -10,8 +10,21 @@ export const AddSubformCard = () => {
   //TODO:  Implement handleClick will be implemented in a later PR: 15032
   const handleClick = () => {};
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
-    <StudioCard onClick={handleClick} className={classes.card}>
+    <StudioCard
+      onClick={handleClick}
+      className={classes.card}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role='button'
+    >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
         <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_subform')}</StudioHeading>
