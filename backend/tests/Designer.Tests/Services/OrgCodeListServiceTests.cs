@@ -249,6 +249,39 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.False(codeListExists);
     }
 
+    [Fact]
+    public async Task GetCodeListIds_ShouldReturnListOfCodeListIds_WhenCodeListsExists()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepo);
+        var service = GetOrgCodeListService();
+
+        // Act
+        List<string> codeListIds = service.GetCodeListIds(TargetOrg, Developer);
+
+        // Assert
+        Assert.Equal(6, codeListIds.Count);
+    }
+
+    [Fact]
+    public async Task GetCodeListIds_ShouldReturnEmptyList_WhenCodeListDoesNotExist()
+    {
+        // Arrange
+        const string repo = "org-content-empty";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
+        var service = GetOrgCodeListService();
+
+        // Act
+        List<string> codeListIds = service.GetCodeListIds(TargetOrg, Developer);
+
+        // Assert
+        Assert.Empty(codeListIds);
+    }
+
     private static OrgCodeListService GetOrgCodeListService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory =
