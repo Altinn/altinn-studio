@@ -3,8 +3,10 @@ export {
   filterDefaultAppLimitations,
   extractAllUniqueSubjects,
   extractAllUniqueActions,
+  extractAllUniqueAccessPackages,
+  getAccessPackageDisplayName,
   getSubResourceDisplayText,
   getSubjectCategoryTextKey,
   getSubjectDisplayName,
-  mapActionsForRole,
+  mapActionsForRoleOrAccessPackage,
 } from './AppPolicyUtils';
