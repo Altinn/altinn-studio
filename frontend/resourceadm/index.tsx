@@ -33,6 +33,7 @@ const queryClientConfig: QueryClientConfig = {
     queries: {
       retry: false,
       staleTime: 10 * 60 * 1000,
+      refetchOnMount: false,
       refetchOnWindowFocus: false,
     },
   },
