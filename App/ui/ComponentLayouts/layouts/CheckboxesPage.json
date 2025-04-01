@@ -54,9 +54,9 @@
       },
       {
         "dataModelBindings": {
-          "saveToList": "ListCheckboxExample",
+          "group": "ListCheckboxExample",
           "simpleBinding": "ListCheckboxExample.name",
-          "isDeleted": "ListCheckboxExample.isDeleted"
+          "checked": "ListCheckboxExample.isDeleted"
         },
         "deletionStrategy":"soft",
         "id": "CheckboxesPage-Checkboxes2",
@@ -77,8 +77,10 @@
           "group": "ListCheckboxExample"
         },
         "hidden": false,
+        "hiddenRow": ["dataModel", "ListCheckboxExample.isDeleted"],
         "children": [
-          "CheckboxesPage-RepeatingGroupName"
+          "CheckboxesPage-RepeatingGroupName",
+          "CheckboxesPage-RepeatingGroupAge"
         ]
       },
       {
@@ -88,6 +90,16 @@
           "title":"Name"
         },
         "value": ["dataModel","ListCheckboxExample.name"]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupAge",
+        "type": "Input",
+        "textResourceBindings": {
+          "title":"Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding":"ListCheckboxExample.age"
+        }
       },
       {
         "size": "h3",

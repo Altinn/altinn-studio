@@ -92,8 +92,10 @@
             "group": "ListCheckboxExample",
             "name": "ListCheckboxExample.name",
             "age": "ListCheckboxExample.age",
-            "profession": "ListCheckboxExample.profession"
+            "profession": "ListCheckboxExample.profession",
+            "checked": "ListCheckboxExample.isDeleted"
           },
+          "deletionStrategy": "soft",
           "textResourceBindings": {
             "title": "ListPage.List2.title"
           },
