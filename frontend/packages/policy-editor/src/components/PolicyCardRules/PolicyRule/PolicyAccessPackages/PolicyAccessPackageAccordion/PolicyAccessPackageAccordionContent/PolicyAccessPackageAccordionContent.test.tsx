@@ -27,6 +27,7 @@ const resource: AccessPackageResource = {
   },
   logoUrl: '',
 };
+const testEnv = 'tt02';
 
 describe('PolicyAccessPackageAccordionContent', () => {
   afterEach(jest.clearAllMocks);
@@ -53,7 +54,11 @@ describe('PolicyAccessPackageAccordionContent', () => {
     renderPolicyAccessPackageAccordionContent();
 
     expect(
-      await screen.findByText(textMock('policy_editor.access_package_no_services')),
+      await screen.findByText(
+        textMock('policy_editor.access_package_no_services', {
+          environment: testEnv,
+        }),
+      ),
     ).toBeInTheDocument();
   });
 });
@@ -68,7 +73,7 @@ const renderPolicyAccessPackageAccordionContent = (queries: Partial<ServicesCont
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <PolicyAccessPackageAccordionContent
         accessPackageUrn='urn'
-        accessPackageResourcesEnv='tt02'
+        accessPackageResourcesEnv={testEnv}
       />
     </ServicesContextProvider>,
   );
