@@ -565,6 +565,24 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutNames.ToArray();
         }
 
+        /// <exception cref="FileNotFoundException">
+        /// Thrown if layoutSettings file is not found
+        /// </exception>
+        public async Task<LayoutSettings> GetLayoutSettings(string layoutSetName)
+        {
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            if (!FileExistsByRelativePath(layoutSettingsPath))
+            {
+                throw new FileNotFoundException("Layout settings file not found.");
+            }
+            string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
+            LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
+                fileContent,
+                JsonOptions
+            );
+            return layoutSettings;
+        }
+
         /// <summary>
         /// Gets the Settings.json for a specific layout set
         /// </summary>
@@ -776,6 +794,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             string serializedLayoutSettings = layoutSettings.ToJsonString(JsonOptions);
+            await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
+        }
+
+        public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
+        {
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            string serializedLayoutSettings = JsonSerializer.Serialize<LayoutSettings>(
+                layoutSettings,
+                JsonOptions
+            );
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
@@ -1013,7 +1041,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="optionsListId">The name of the options list to fetch.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
-        public async Task<string> GetOptionsList(string optionsListId, CancellationToken cancellationToken = default)
+        public async Task<string> GetOptionsList(
+            string optionsListId,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
 
