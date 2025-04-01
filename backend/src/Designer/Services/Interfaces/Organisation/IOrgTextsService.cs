@@ -29,7 +29,7 @@ public interface IOrgTextsService
     public Task SaveText(string org, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates values for specified keys in the text resouce.
+    /// Updates values for specified keys in the text resource.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
@@ -38,4 +38,13 @@ public interface IOrgTextsService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
     public Task UpdateTextsForKeys(string org, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets ids for all text resources.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns></returns>
+    public Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default);
 }

@@ -1,10 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -16,22 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         IAppDevelopmentService appDevelopmentService
     ) : ILayoutService
     {
-        private static Pages GetPagesFromSettings(JsonNode settings)
-        {
-            Pages pages = new() { pages = [] };
-
-            JsonNode pagesNode = settings["pages"];
-            JsonArray pagesArray = pagesNode["order"] as JsonArray;
-            foreach (JsonNode pageNode in pagesArray)
-            {
-                string pageId = pageNode.GetValue<string>();
-                pages.pages.Add(new Page { id = pageId });
-            }
-
-            return pages;
-        }
-
-        public async Task<Pages> GetPagesByLayoutSetId(
+        public async Task<LayoutSettings> GetLayoutSettings(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
         )
@@ -42,30 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Repo,
                     editingContext.Developer
                 );
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            Pages pages = GetPagesFromSettings(jsonNode);
-            return pages;
-        }
-
-        public async Task<Page> GetPageById(
-            AltinnRepoEditingContext editingContext,
-            string layoutSetId,
-            string pageId
-        )
-        {
-            AltinnAppGitRepository appRepository =
-                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                    editingContext.Org,
-                    editingContext.Repo,
-                    editingContext.Developer
-                );
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            Pages pages = GetPagesFromSettings(jsonNode);
-            return pages.pages.Find(page => page.id == pageId);
+            return await appRepository.GetLayoutSettings(layoutSetId);
         }
 
         public async Task CreatePage(
@@ -80,34 +43,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Repo,
                     editingContext.Developer
                 );
-            JsonNode layoutSettings = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            Pages pages = GetPagesFromSettings(layoutSettings);
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
 
             AltinnPageLayout pageLayout = new();
-            if (pages.pages.Count > 0)
+            if (layoutSettings.Pages.Order.Count > 0)
             {
                 pageLayout = pageLayout.WithNavigationButtons();
             }
-            if (pages.pages.Count == 1)
+            if (layoutSettings.Pages.Order.Count == 1)
             {
-                JsonNode jsonNode = await appRepository.GetLayout(layoutSetId, pages.pages[0].id);
+                string layoutName = layoutSettings.Pages.Order.First();
+                JsonNode jsonNode = await appRepository.GetLayout(layoutSetId, layoutName);
                 AltinnPageLayout existingPage = new(jsonNode.AsObject());
                 if (!existingPage.HasComponentOfType("NavigationButtons"))
                 {
                     existingPage.WithNavigationButtons();
-                    await appRepository.SaveLayout(
-                        layoutSetId,
-                        pages.pages[0].id,
-                        existingPage.Structure
-                    );
+                    await appRepository.SaveLayout(layoutSetId, layoutName, existingPage.Structure);
                 }
             }
 
             await appRepository.CreatePageLayoutFile(layoutSetId, pageId, pageLayout);
 
-            (layoutSettings["pages"]["order"] as JsonArray).Add(pageId);
+            layoutSettings.Pages.Order.Add(pageId);
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
@@ -139,17 +96,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             appRepository.DeleteLayout(layoutSetId, pageId);
 
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            JsonArray orderArray = jsonNode["pages"]["order"] as JsonArray;
-            JsonNode orderPage = orderArray.First(node => node.GetValue<string>().Equals(pageId));
-            orderArray.Remove(orderPage);
-            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            layoutSettings.Pages.Order.Remove(pageId);
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
-            if (orderArray.Count == 1)
+            if (layoutSettings.Pages.Order.Count == 1)
             {
-                string lastLayoutName = orderArray.First().GetValue<string>();
+                string lastLayoutName = layoutSettings.Pages.Order.First();
                 JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
                 AltinnPageLayout lastPage = new(lastLayout.AsObject());
                 lastPage.RemoveAllComponentsOfType("NavigationButtons");
@@ -166,11 +119,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
         }
 
-        public async Task UpdatePage(
+        public async Task RenamePage(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
             string pageId,
-            Page page
+            string newName
         )
         {
             AltinnAppGitRepository appRepository =
@@ -180,23 +133,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Developer
                 );
 
-            appRepository.UpdateFormLayoutName(layoutSetId, pageId, page.id);
+            appRepository.UpdateFormLayoutName(layoutSetId, pageId, newName);
 
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            JsonArray orderArray = jsonNode["pages"]["order"] as JsonArray;
-            JsonNode orderPage = orderArray.First(node => node.GetValue<string>().Equals(pageId));
-            int pageIndex = orderArray.IndexOf(orderPage);
-            orderArray[pageIndex] = page.id;
-            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            int orderIndex = layoutSettings.Pages.Order.IndexOf(pageId);
+            layoutSettings.Pages.Order[orderIndex] = newName;
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             await mediatr.Publish(
                 new LayoutPageIdChangedEvent
                 {
                     EditingContext = editingContext,
                     LayoutName = pageId,
-                    NewLayoutName = page.id,
+                    NewLayoutName = newName,
                     LayoutSetName = layoutSetId,
                 }
             );
@@ -215,17 +164,96 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Developer
                 );
 
-            JsonNode jsonNode = await appRepository.GetLayoutSettingsAndCreateNewIfNotFound(
-                layoutSetId
-            );
-            if (jsonNode["pages"]["order"] is not JsonArray pageOrder)
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            layoutSettings.Pages.Order = pages.Order;
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
+        }
+
+        public async Task<bool> IsLayoutUsingPageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            return layoutSettings.Pages.Groups is not null;
+        }
+
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when layout already uses page groups
+        /// </exception>
+        public async Task ConvertPagesToPageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            if (await IsLayoutUsingPageGroups(editingContext, layoutSetId))
             {
-                pageOrder = [];
-                jsonNode["pages"]["order"] = pageOrder;
+                throw new InvalidOperationException(
+                    "Layout cannot be converted to layout with page groups. Layout already uses page groups."
+                );
             }
-            pageOrder.Clear();
-            pages.pages.ForEach((page) => pageOrder.Add(page.id));
-            await appRepository.SaveLayoutSettings(layoutSetId, jsonNode);
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            layoutSettings.Pages.Groups = [];
+            foreach (string page in layoutSettings.Pages.Order)
+            {
+                layoutSettings.Pages.Groups.Add(new Group { Order = [page] });
+            }
+            layoutSettings.Pages.Order = null;
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
+        }
+
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when layout does not use page groups
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if a group is in an invalid configuration
+        /// </exception>
+        public async Task ConvertPageGroupsToPages(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId
+        )
+        {
+            if (!await IsLayoutUsingPageGroups(editingContext, layoutSetId))
+            {
+                throw new InvalidOperationException(
+                    "Layout cannot be converted to layout without page groups. Layout does not use page groups."
+                );
+            }
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+
+            layoutSettings.Pages.Order = [];
+            foreach (Group group in layoutSettings.Pages.Groups)
+            {
+                if (group.Order is not List<string> pages)
+                {
+                    throw new InvalidOperationException($"Page group does not contain order array");
+                }
+                foreach (string page in pages)
+                {
+                    layoutSettings.Pages.Order.Add(page);
+                }
+            }
+            layoutSettings.Pages.Groups = null;
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
     }
 }
