@@ -35,7 +35,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         string apiUrl = ApiUrl(targetOrg, lang);
-        using HttpRequestMessage requestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage requestMessage = new(HttpMethod.Patch, apiUrl);
         requestMessage.Content = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
@@ -61,7 +61,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         List<TextResourceVariable> expectedVariables = originalResource.Resources.Find(e => e.Id == "TextUsingVariables").Variables;
 
         string apiUrl = ApiUrl(targetOrg, lang);
-        using HttpRequestMessage requestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage requestMessage = new(HttpMethod.Patch, apiUrl);
         requestMessage.Content = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
