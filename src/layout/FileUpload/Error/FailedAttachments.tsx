@@ -141,6 +141,12 @@ function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAtta
   }
 
   if (isRejectedFileError(error)) {
+    const { file, errors } = error.data.rejection;
+    window.logWarn(`Failed to upload attachment "${file.name}" of type "${file.type}":`);
+    for (const err of errors) {
+      window.logWarn(`- ${err.message}`);
+    }
+
     if (error.data.rejection.file.size > error.data.maxFileSizeInMB * bytesInOneMB) {
       return (
         <Lang

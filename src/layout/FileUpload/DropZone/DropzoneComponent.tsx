@@ -80,7 +80,7 @@ export function DropzoneComponent({
         disabled={readOnly}
         accept={
           hasCustomFileEndings && validFileEndings !== undefined
-            ? mapExtensionToAcceptMime({ extensionList: validFileEndings })
+            ? mapExtensionToAcceptMime(validFileEndings)
             : undefined
         }
       >
