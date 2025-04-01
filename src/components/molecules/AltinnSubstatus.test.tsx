@@ -2,14 +2,14 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { AltinnSubstatusPaper } from 'src/components/molecules/AltinnSubstatusPaper';
+import { AltinnSubstatus } from 'src/components/molecules/AltinnSubstatus';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
-describe('AltinnSubstatusPaper', () => {
+describe('AltinnSubstatus', () => {
   it('should render label and description', async () => {
     await renderWithInstanceAndLayout({
       renderer: () => (
-        <AltinnSubstatusPaper
+        <AltinnSubstatus
           label='The label'
           description='The description'
         />

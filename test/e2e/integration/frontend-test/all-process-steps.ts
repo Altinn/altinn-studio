@@ -6,14 +6,13 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
 
 describe('All process steps', () => {
   it('Should be possible to fill out all steps from beginning to end', () => {
-    interceptAndAddCustomReceipt();
-
     cy.goto('message');
 
     // Later in this test we will make sure PDFs are created, so we need to set the cookie to
@@ -35,14 +34,13 @@ describe('All process steps', () => {
 
     testConfirmationPage();
 
+    interceptAndAddInstanceSubstatus();
     cy.get(appFrontend.confirm.sendIn).click();
+    testReceipt();
 
+    interceptAndAddCustomReceipt();
+    cy.reloadAndWait();
     testCustomReceiptPage();
-
-    cy.reload();
-
-    // Assert that the custom receipt is still visible after a page reload.
-    cy.findByText('Custom kvittering').should('exist');
 
     // When the instance has been sent in, we'll test that the data models submitted are correct, and what we expect
     // according to what we filled out during all the previous steps.
@@ -83,6 +81,43 @@ function testConfirmationPage() {
   });
 }
 
+function interceptAndAddInstanceSubstatus() {
+  cy.intercept('**/instances/*/*', (req) => {
+    req.on('response', (res) => {
+      const instance = res.body as IInstance;
+      instance.status = {
+        substatus: {
+          label: 'substatus.label',
+          description: 'substatus.description',
+        },
+      };
+    });
+  }).as('Instance');
+}
+
+function testReceipt() {
+  cy.get(appFrontend.receipt.container).should('be.visible');
+  cy.findByText('Skjemaet er sendt inn').should('be.visible');
+  cy.findByRole('link', { name: 'Kopi av din kvittering er sendt til ditt arkiv' }).should('be.visible');
+
+  cy.findAllByRole('link', { name: 'Nedlasting frontend-test.pdf' }).should('have.length', 5);
+  cy.findAllByRole('link', { name: /^Nedlasting attachment-in-.*?\.pdf$/ }).should('have.length', 4);
+  cy.findByRole('link', { name: 'Nedlasting test.pdf' }).should('be.visible');
+  cy.findAllByRole('link', { name: /pdf$/ }).should('have.length', 5 + 4 + 1);
+
+  testReceiptSubStatus();
+
+  cy.snapshot('receipt');
+}
+
+function testReceiptSubStatus() {
+  cy.findByText('Godkjent').should('be.visible');
+  cy.findByText(
+    'Søknaden er godkjent og sendt til Folkeregisteret for behandling. ' +
+      'Du vil motta en bekreftelse når søknaden er behandlet.',
+  ).should('be.visible');
+}
+
 function interceptAndAddCustomReceipt() {
   cy.intercept('**/layoutsets', (req) => {
     req.on('response', (res) => {
@@ -101,7 +136,7 @@ function interceptAndAddCustomReceipt() {
   cy.intercept('**/layouts/custom-receipt', (req) => {
     req.on('response', (res) => {
       // Layouts are returned as text/plain for some reason
-      const layouts = JSON.parse(res.body);
+      const layouts = JSON.parse(res.body) as ILayoutCollection;
       layouts.receipt = { data: { layout: customReceiptPageReceipt } };
       layouts.another = { data: { layout: customReceiptPageAnother } };
       res.body = JSON.stringify(layouts);
@@ -113,6 +148,8 @@ export function testCustomReceiptPage() {
   cy.get(appFrontend.receipt.container).should('not.exist');
   cy.findByText('Custom kvittering').should('be.visible');
   cy.findByText('Takk for din innsending, dette er en veldig fin custom kvittering.').should('be.visible');
+
+  testReceiptSubStatus();
 
   const checkAttachmentSection = (sectionId: string, title: string, attachmentCount: number) => {
     cy.get(`#form-content-${sectionId}-header`).should('contain.text', title);

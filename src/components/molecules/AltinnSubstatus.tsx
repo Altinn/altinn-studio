@@ -1,24 +1,24 @@
 import React from 'react';
 
-import { Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { AltinnInformationPaper } from 'src/components/molecules/AltinnInformationPaper';
+import classes from 'src/components/molecules/AltinnSubstatus.module.css';
 
 export interface IInformationPaperProps {
   label: React.ReactNode;
   description: React.ReactNode;
 }
 
-export function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {
+export function AltinnSubstatus({ label, description }: IInformationPaperProps) {
   return (
-    <AltinnInformationPaper>
+    <div className={classes.container}>
       <Flex
         container
         direction='column'
       >
         <Flex item>
-          <Typography
+          <Paragraph
             id='substatus-label'
             style={{
               fontSize: '1.5rem',
@@ -26,17 +26,17 @@ export function AltinnSubstatusPaper({ label, description }: IInformationPaperPr
             }}
           >
             {label}
-          </Typography>
+          </Paragraph>
         </Flex>
         <Flex item>
-          <Typography
+          <Paragraph
             id='substatus-description'
             style={{ fontSize: '1.125rem' }}
           >
             {description}
-          </Typography>
+          </Paragraph>
         </Flex>
       </Flex>
-    </AltinnInformationPaper>
+    </div>
   );
 }

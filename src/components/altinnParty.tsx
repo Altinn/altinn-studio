@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Paper, Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
+import { AltinnCollapsableList } from 'src/components/AltinnCollapsable';
 import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -51,7 +51,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
 
     return (
       <AltinnCollapsableList
-        transition={subUnitsExpanded}
+        open={subUnitsExpanded}
         onClickExpand={expandSubUnits}
         listHeader={
           <Flex
@@ -75,11 +75,11 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 }}
                 aria-hidden
               />
-              <Typography>
+              <Paragraph>
                 {party.childParties.length}
                 &nbsp;
                 <Lang id='party_selection.unit_type_subunit_plural' />
-              </Typography>
+              </Paragraph>
             </Flex>
           </Flex>
         }
@@ -108,12 +108,12 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 alignItems='center'
                 className={classes.subUnitTextWrapper}
               >
-                <Typography className={classes.partyName}>{childParty.name}</Typography>
-                <Typography className={classes.partyInfo}>
+                <Paragraph className={classes.partyName}>{childParty.name}</Paragraph>
+                <Paragraph className={classes.partyInfo}>
                   &nbsp;
                   <Lang id='party_selection.unit_org_number' />
                   &nbsp;{childParty.orgNumber}
-                </Typography>
+                </Paragraph>
               </Flex>
             </Flex>
           </Flex>
@@ -123,7 +123,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
   }
 
   return (
-    <Paper className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
+    <div className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
       <Flex
         id={`party-${party.partyId}`}
         role='button'
@@ -149,16 +149,16 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
             aria-hidden
           />
         )}
-        <Typography className={classes.partyName}>
+        <Paragraph className={classes.partyName}>
           {party.name + (party.isDeleted ? ` (${langAsString('party_selection.unit_deleted')}) ` : '')}
-        </Typography>
-        <Typography className={classes.partyInfo}>
+        </Paragraph>
+        <Paragraph className={classes.partyInfo}>
           {isOrg
             ? `${langAsString('party_selection.unit_org_number')} ${party.orgNumber}`
             : `${langAsString('party_selection.unit_personal_number')} ${party.ssn}`}
-        </Typography>
+        </Paragraph>
       </Flex>
       {renderSubunits()}
-    </Paper>
+    </div>
   );
 }

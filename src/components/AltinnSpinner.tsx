@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CircularProgress, Typography } from '@material-ui/core';
+import { Paragraph, Spinner } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';
 
@@ -22,20 +22,20 @@ export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
       className={classNames(styleObj)}
       data-testid='altinn-spinner'
     >
-      <CircularProgress
+      <Spinner
         role='progressbar'
-        className={classNames(classes.spinner)}
+        title={spinnerText || langAsString('general.loading')}
         aria-label={spinnerText || langAsString('general.loading')}
         id={id}
       />
-      <Typography
+      <Paragraph
         className={classNames(classes.spinnerText)}
         role='alert'
         aria-busy={true}
         aria-label={spinnerText || langAsString('general.loading')}
       >
         {spinnerText || ''}
-      </Typography>
+      </Paragraph>
     </div>
   );
 };

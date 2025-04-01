@@ -136,7 +136,6 @@
     "@digdir/designsystemet-css": "0.10.0",
     "@digdir/designsystemet-react": "0.63.1",
     "@digdir/designsystemet-theme": "0.15.3",
-    "@material-ui/core": "4.12.4",
     "@navikt/aksel-icons": "^7.17.4",
     "@tanstack/react-query": "5.69.0",
     "ajv": "8.17.1",

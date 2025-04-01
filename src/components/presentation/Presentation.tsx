@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
-import { AltinnSubstatusPaper } from 'src/components/molecules/AltinnSubstatusPaper';
+import { AltinnSubstatus } from 'src/components/molecules/AltinnSubstatus';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
 import { Header } from 'src/components/presentation/Header';
 import { NavBar } from 'src/components/presentation/NavBar';
@@ -76,7 +76,7 @@ export const PresentationComponent = ({
             style={!showNavbar ? { marginTop: 54 } : undefined}
           >
             {isProcessStepsArchived && instanceStatus?.substatus && (
-              <AltinnSubstatusPaper
+              <AltinnSubstatus
                 label={<Lang id={instanceStatus.substatus.label} />}
                 description={<Lang id={instanceStatus.substatus.description} />}
               />

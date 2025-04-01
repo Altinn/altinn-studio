@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Collapse, List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { AltinnCollapsable } from 'src/components/AltinnCollapsable';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import classes from 'src/components/molecules/AltinnCollapsibleAttachments.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
 import type { IDisplayAttachment } from 'src/types/shared';
 
 interface IAltinnCollapsibleAttachmentsProps {
@@ -28,7 +28,6 @@ export function AltinnCollapsibleAttachments({
   hideCount,
 }: IAltinnCollapsibleAttachmentsProps) {
   const [open, setOpen] = React.useState(true);
-  const { elementAsString } = useLanguage();
 
   function handleOpenClose() {
     setOpen(!open);
@@ -37,46 +36,31 @@ export function AltinnCollapsibleAttachments({
   const attachmentCount = hideCount ? '' : `(${attachments && attachments.length})`;
 
   return collapsible ? (
-    <List
-      component='nav'
-      id='attachment-collapsible-list'
-    >
-      <ListItem
-        button={true}
+    <div id='attachment-collapsible-list'>
+      <div
+        tabIndex={0}
+        role='button'
         onClick={handleOpenClose}
-        disableGutters={true}
+        onKeyPress={handleOpenClose}
+        className={classes.container}
       >
-        <ListItemIcon
-          classes={{
-            root: cn({ [classes.transformArrowRight]: !open }, classes.transition),
-          }}
-        >
+        <div className={cn({ [classes.transformArrowRight]: !open }, classes.transition)}>
           <CaretDownFillIcon
             aria-hidden='true'
             fontSize='1.5rem'
           />
-        </ListItemIcon>
-        <ListItemText
-          primary={`${elementAsString(title)} ${attachmentCount}`}
-          classes={{
-            root: cn(classes.listItemTextPadding),
-            primary: cn(classes.collapsedTitle),
-          }}
-        />
-      </ListItem>
-      <Collapse
-        in={open}
-        timeout='auto'
-        unmountOnExit={true}
-      >
+        </div>
+        {title} {attachmentCount}
+      </div>
+      <AltinnCollapsable open={open}>
         <AltinnAttachment attachments={attachments} />
-      </Collapse>
-    </List>
+      </AltinnCollapsable>
+    </div>
   ) : (
     <>
-      <Typography style={fontStyle}>
+      <Paragraph style={fontStyle}>
         {title} {attachmentCount}
-      </Typography>
+      </Paragraph>
       <AltinnAttachment
         attachments={attachments}
         id='attachment-list'
