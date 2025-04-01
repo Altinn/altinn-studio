@@ -10,6 +10,7 @@
     "@microsoft/applicationinsights-react-js": "17.3.4",
     "@microsoft/applicationinsights-web": "3.3.4",
     "@microsoft/signalr": "8.0.7",
+    "@studio/components": "workspace:^",
     "@tanstack/react-query": "5.65.1",
     "@tanstack/react-query-devtools": "5.65.1",
     "ajv": "8.17.1",
