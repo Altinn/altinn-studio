@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -18,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/task-navigation")]
-    public class TaskNavigationController(ITaskNavigationService taskNavigationService) : Controller
+    public class TaskNavigationController(ITaskNavigationService taskNavigationService) : ControllerBase
     {
         /// <summary>
         /// Get task navigation
@@ -34,8 +36,11 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            List<TaskNavigationGroupDto> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
-            return Ok(taskNavigationGroupList);
+            List<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
+            List<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
+            IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(taskNavigationGroup => taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType));
+
+            return Ok(taskNavigationGroupDto);
         }
 
         /// <summary>
@@ -43,16 +48,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="taskNavigationGroup">The new task navigation group.</param>
+        /// <param name="taskNavigationGroupDto">The new task navigation group.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPut]
         [UseSystemTextJson]
-        public async Task<IActionResult> AddTaskNavigationGroup(string org, string app, [FromBody] TaskNavigationGroupDto taskNavigationGroup, CancellationToken cancellationToken)
+        public async Task<IActionResult> AddTaskNavigationGroup(string org, string app, [FromBody] TaskNavigationGroupDto taskNavigationGroupDto, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            await taskNavigationService.AddTaskNavigationGroup(editingContext, taskNavigationGroup, cancellationToken);
+            await taskNavigationService.AddTaskNavigationGroup(editingContext, taskNavigationGroupDto.ToDomain(), cancellationToken);
+
             return NoContent();
         }
     }

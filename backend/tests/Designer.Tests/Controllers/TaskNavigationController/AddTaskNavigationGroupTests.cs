@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -46,12 +46,7 @@ namespace Designer.Tests.Controllers.TaskNavigationController
 
             string expectedFile = TestDataHelper.GetFileFromRepo(org, app, developer, relativePath);
             JsonNode expectedData = JsonNode.Parse(expectedFile)["uiSettings"]["taskNavigation"];
-            expectedData.AsArray().Add(JsonNode.Parse(JsonSerializer.Serialize(new TaskNavigationGroup()
-            {
-                TaskId = payload.TaskId,
-                Type = payload.TaskType,
-                Name = payload.Name,
-            })));
+            expectedData.AsArray().Add(JsonNode.Parse(JsonSerializer.Serialize(payload.ToDomain())));
 
             string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
             JsonNode savedData = JsonNode.Parse(savedFile)["uiSettings"]["taskNavigation"];

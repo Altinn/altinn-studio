@@ -10,6 +10,8 @@ import { EditFormComponent } from '../config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
 import { PageConfigPanel } from './PageConfigPanel';
 import { DeprecatedCalculationsInfo } from '@altinn/ux-editor/components/Properties/DeprecatedCalculationsInfo';
+import { Summary2Override } from '../config/componentSpecificContent/Summary2/Override/Summary2Override';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -45,6 +47,16 @@ export const Properties = () => {
       />
       {isNotSubformOrHasLayoutSet && (
         <Accordion color='subtle'>
+          {formItem.type === ComponentType.Summary2 && (
+            <Accordion.Item open={openList.includes('summary2overrides')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('summary2overrides')}>
+                {t('ux_editor.component_properties.summary.override.title')}
+              </Accordion.Header>
+              <Accordion.Content>
+                <Summary2Override component={formItem} onChange={handleUpdate} />
+              </Accordion.Content>
+            </Accordion.Item>
+          )}
           <Accordion.Item open={openList.includes('text')}>
             <Accordion.Header
               aria-label={t('right_menu.text_label')}

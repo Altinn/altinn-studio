@@ -1,13 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -16,34 +13,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : ITaskNavigationService
     {
-        private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
+        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
-            return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
+            return layoutSetsFile.UiSettings?.TaskNavigation;
         }
 
-        public async Task<List<TaskNavigationGroupDto>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public List<ProcessTask> GetTasks(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
-
-            var taskNavigationGroupList = new List<TaskNavigationGroupDto>();
-            layoutSets.UiSettings?.TaskNavigation?.ForEach(taskNavigationGroup =>
-            {
-                taskNavigationGroupList.Add(new()
-                {
-                    TaskId = taskNavigationGroup.TaskId,
-                    TaskType = taskNavigationGroup.Type ?? TaskTypeFromDefinitions(definitions, taskNavigationGroup.TaskId),
-                    Name = taskNavigationGroup.Name,
-                });
-            });
-
-            return taskNavigationGroupList;
+            return definitions.Process.Tasks;
         }
 
-        public async Task AddTaskNavigationGroup(AltinnRepoEditingContext altinnRepoEditingContext, TaskNavigationGroupDto taskNavigationGroup, CancellationToken cancellationToken)
+        public async Task AddTaskNavigationGroup(AltinnRepoEditingContext altinnRepoEditingContext, TaskNavigationGroup taskNavigationGroup, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -52,12 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             layoutSets.UiSettings ??= new();
             layoutSets.UiSettings.TaskNavigation ??= [];
-            layoutSets.UiSettings.TaskNavigation.Add(new()
-            {
-                TaskId = taskNavigationGroup.TaskId,
-                Type = taskNavigationGroup.TaskType,
-                Name = taskNavigationGroup.Name,
-            });
+            layoutSets.UiSettings.TaskNavigation.Add(taskNavigationGroup);
 
             await altinnAppGitRepository.SaveLayoutSets(layoutSets);
         }
