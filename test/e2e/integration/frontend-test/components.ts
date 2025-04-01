@@ -854,6 +854,13 @@ describe('UI Components', () => {
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 3/i }).should('be.visible');
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 4/i }).should('be.visible');
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 5/i }).should('be.visible');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 7/i }).should('be.visible');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 8/i }).should('be.visible');
+
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 7/i }).should('be.visible');
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 8/i }).should('be.visible');
     }
 
     cy.get(component('mapSummary')).should('not.contain.text', 'Du har ikke lagt inn informasjon her');
@@ -865,10 +872,19 @@ describe('UI Components', () => {
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 3/i }).should('be.visible');
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 4/i }).should('be.visible');
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 5/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 7/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 8/i }).should('be.visible');
+
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 7/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 8/i }).should('be.visible');
     }
 
     cy.findByRole('checkbox', { name: /hankabakken 2/i }).dsUncheck();
     cy.findByRole('checkbox', { name: /hankabakken 4/i }).dsUncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 7/i }).dsUncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 8/i }).dsUncheck();
     cy.waitUntilSaved();
 
     // prettier-ignore
@@ -878,6 +894,13 @@ describe('UI Components', () => {
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 3/i }).should('be.visible');
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 4/i }).should('not.exist');
     cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 5/i }).should('be.visible');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 7/i }).should('not.exist');
+    cy.get(component('map')).findByRole('tooltip', { name: /hankabakken 8/i }).should('not.exist');
+
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 7/i }).should('not.exist');
+    cy.get(component('map')).findByRole('img', { description: /hankabakken 8/i }).should('not.exist');
     }
 
     cy.get(component('mapSummary')).should('not.contain.text', 'Du har ikke lagt inn informasjon her');
@@ -889,6 +912,13 @@ describe('UI Components', () => {
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 3/i }).should('be.visible');
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 4/i }).should('not.exist');
     cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 5/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 7/i }).should('not.exist');
+    cy.get(component('mapSummary')).findByRole('tooltip', { name: /hankabakken 8/i }).should('not.exist');
+
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 6/i }).should('be.visible');
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 7/i }).should('not.exist');
+    cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 8/i }).should('not.exist');
     }
 
     // Make sure tiles are not faded before taking the snapshot

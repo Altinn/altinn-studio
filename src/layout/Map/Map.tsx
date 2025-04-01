@@ -11,7 +11,7 @@ import {
 } from 'react-leaflet';
 
 import cn from 'classnames';
-import { icon, type Map as LeafletMap } from 'leaflet';
+import { icon, type Map as LeafletMap, marker } from 'leaflet';
 import Icon from 'leaflet/dist/images/marker-icon.png';
 import RetinaIcon from 'leaflet/dist/images/marker-icon-2x.png';
 import IconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -169,13 +169,16 @@ export function Map({
           key={altinnRowId}
           data={data}
           interactive={false}
+          pointToLayer={(_, position) =>
+            marker(position, { icon: markerIcon, interactive: false, draggable: false, keyboard: false })
+          }
         >
           {label && (
             <Tooltip
               permanent={true}
               content={label}
               interactive={isInteractive}
-              direction='top'
+              direction={data.type == 'Point' ? 'bottom' : 'top'}
               eventHandlers={{
                 click: (e) => e.originalEvent.preventDefault(),
               }}

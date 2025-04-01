@@ -155,7 +155,9 @@ describe('PDF', () => {
     cy.testPdf({
       snapshotName: 'changeName 2',
       enableResponseFuzzing: true,
-      callback: () => {
+      callback: () =>
+        // prettier-ignore
+        {
         cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
         cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
         cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
@@ -173,10 +175,11 @@ describe('PDF', () => {
         cy.getSummary('Referanse').should('contain.text', 'Ola Nordmann');
         cy.getSummary('Referanse 2').should('contain.text', 'Ole');
         cy.getSummary('Adresse').should('contain.text', 'Økern 1');
-        cy.getSummary('Velg lokasjon').findByAltText('Marker').should('be.visible');
-        cy.getSummary('Velg lokasjon')
-          .findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/)
-          .should('be.visible');
+        cy.getSummary('Velg lokasjon').findByRole('img', { name: 'Marker', description: '' }).should('be.visible');
+        cy.getSummary('Velg lokasjon').findByRole('tooltip', { name: 'Hankabakken 4' }).should('be.visible');
+        cy.getSummary('Velg lokasjon').findByRole('img', { name: 'Marker', description: 'Hankabakken 6' }).should('be.visible');
+        cy.getSummary('Velg lokasjon').findByRole('tooltip', { name: 'Hankabakken 6' }).should('be.visible');
+        cy.getSummary('Velg lokasjon').findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/).should('be.visible');
       },
     });
   });
