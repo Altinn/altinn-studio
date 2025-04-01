@@ -25,7 +25,12 @@ export class ExternalApp {
   }
 
   getOrgApp(): [string, string] {
-    return this.getAppMetadata().id.split('/') as [string, string];
+    try {
+      return this.getAppMetadata().id.split('/') as [string, string];
+    } catch (_e) {
+      const parts = this.getName().split('-', 3);
+      return [parts[0], parts[2]];
+    }
   }
 
   private readFile(path: string) {

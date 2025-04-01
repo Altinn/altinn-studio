@@ -31,4 +31,13 @@ export const Config = new CG.component({
         .setTitle('Data type IDs')
         .setDescription('List of data type IDs for the attachment list to show'),
     ),
+  )
+  .addProperty(
+    new CG.prop(
+      'links',
+      new CG.bool()
+        .optional({ default: true })
+        .setTitle('Link to each attachment')
+        .setDescription('Disable this to remove the link to each attachment'),
+    ),
   );

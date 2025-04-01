@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 
-import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
 import classes from 'src/components/organisms/AltinnReceipt.module.css';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
@@ -165,7 +165,7 @@ export function ReceiptComponent({
               {titleSubmitted}
             </Heading>
           )}
-          <AltinnAttachment
+          <AltinnAttachments
             attachments={pdf}
             id='attachment-list-pdf'
           />

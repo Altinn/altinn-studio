@@ -3,14 +3,18 @@
   padding-left: 0;
 }
 
-.attachmentLink {
+.attachment {
   display: flex;
   gap: 0;
-  text-decoration: none;
-  border-bottom: none;
   border-radius: 5px;
   padding: 6px;
   transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  align-items: center;
+}
+
+.attachmentLink {
+  text-decoration: none;
+  border-bottom: none;
 }
 
 .attachmentLink:hover {

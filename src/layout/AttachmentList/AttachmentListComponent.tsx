@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -17,7 +17,9 @@ const emptyDataTypeArray: IDataType[] = [];
 export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const dataTypes = useApplicationMetadata().dataTypes ?? emptyDataTypeArray;
-  const { dataTypeIds, textResourceBindings } = useNodeItem(node);
+  const dataTypeIds = useNodeItem(node, (i) => i.dataTypeIds);
+  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
+  const links = useNodeItem(node, (i) => i.links);
 
   const attachments = useLaxInstanceData((data) => {
     const instanceData = data.data ?? [];
@@ -58,9 +60,10 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
 
   return (
     <ComponentStructureWrapper node={node}>
-      <AltinnAttachment
+      <AltinnAttachments
         attachments={attachments}
         title={textResourceBindings?.title}
+        links={links}
       />
     </ComponentStructureWrapper>
   );

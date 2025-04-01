@@ -19,7 +19,7 @@ export const uploadFileAndVerify = (fileName: string) => {
     .first()
     .find('tr')
     .find('td')
-    .contains('td', 'uploadThis.pdf')
+    .contains('td', fileName)
     .should('exist');
 };
 
