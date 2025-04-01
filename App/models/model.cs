@@ -422,12 +422,12 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("surname")]
     public string surname { get; set; }
 
-    [XmlElement("isDeleted", Order = 5)]
-    [JsonProperty("isDeleted")]
-    [JsonPropertyName("isDeleted")]
-    public bool? isDeleted { get; set; }
+    [XmlElement("isChecked", Order = 5)]
+    [JsonProperty("isChecked")]
+    [JsonPropertyName("isChecked")]
+    public bool? isChecked { get; set; }
 
-    public bool ShouldSerializeisDeleted() => isDeleted.HasValue;
+    public bool ShouldSerializeisChecked() => isChecked.HasValue;
 
   }
 

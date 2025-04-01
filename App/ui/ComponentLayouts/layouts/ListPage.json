@@ -93,7 +93,7 @@
             "name": "ListCheckboxExample.name",
             "age": "ListCheckboxExample.age",
             "profession": "ListCheckboxExample.profession",
-            "checked": "ListCheckboxExample.isDeleted"
+            "checked": "ListCheckboxExample.isChecked"
           },
           "deletionStrategy": "soft",
           "textResourceBindings": {

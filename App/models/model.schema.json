@@ -261,7 +261,7 @@
           "surname": {
             "type": "string"
           },
-          "checked": {
+          "isChecked": {
             "type": "boolean"
           }
         }

@@ -99,7 +99,7 @@
               <xs:element minOccurs="0" name="age" type="xs:long" />
               <xs:element minOccurs="0" name="profession" type="xs:string" />
               <xs:element minOccurs="0" name="surname" type="xs:string" />
-              <xs:element minOccurs="0" name="isDeleted" type="xs:boolean" />
+              <xs:element minOccurs="0" name="checked" type="xs:boolean" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
