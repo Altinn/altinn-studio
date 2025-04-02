@@ -50,7 +50,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             Org = entity.Org,
             App = entity.App,
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
-            Created = entity.Created,
+            Created = entity.Created.ToUniversalTime(),
             CreatedBy = entity.CreatedBy,
             Entity = JsonSerializer.Serialize(entity, JsonOptions),
             EnvName = entity.EnvName,
@@ -63,7 +63,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             ExternalId = buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
-            Started = buildEntity.Started,
-            Finished = buildEntity.Finished
+            Started = buildEntity.Started?.ToUniversalTime(),
+            Finished = buildEntity.Finished?.ToUniversalTime()
         };
 }

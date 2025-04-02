@@ -24,7 +24,7 @@ describe('StudioField', () => {
     testRootClassNameAppending((className) => renderField({ className }));
   });
 
-  it('Appends custom attributes to the paragraph element', () => {
+  it('Appends custom attributes to the field element', () => {
     testCustomAttributes(renderField);
   });
 });
