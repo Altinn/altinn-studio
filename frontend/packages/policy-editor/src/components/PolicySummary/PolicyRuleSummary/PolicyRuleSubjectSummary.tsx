@@ -4,7 +4,7 @@ import { StudioTable, StudioTag } from '@studio/components-legacy';
 import {
   getSubjectCategoryTextKey,
   getSubjectDisplayName,
-  mapActionsForRole,
+  mapActionsForRoleOrAccessPackage,
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
@@ -22,13 +22,15 @@ export const PolicyRuleSubjectSummary = ({
   const { usageType, subjects, policyRules } = usePolicyEditorContext();
   const { t } = useTranslation();
 
-  const actionsForRole = mapActionsForRole(policyRules, subject, usageType, t);
+  const actionsForRole = mapActionsForRoleOrAccessPackage(policyRules, subject, usageType, t);
+  const displayName = getSubjectDisplayName(subject, subjects);
+  const subjectCategoryTextKey = getSubjectCategoryTextKey(subject, subjects);
 
   return (
     <StudioTable.Row>
       <StudioTable.Cell>{subject}</StudioTable.Cell>
-      <StudioTable.Cell>{getSubjectDisplayName(subject, subjects)}</StudioTable.Cell>
-      <StudioTable.Cell>{t(getSubjectCategoryTextKey(subject, subjects))}</StudioTable.Cell>
+      <StudioTable.Cell>{displayName}</StudioTable.Cell>
+      <StudioTable.Cell>{t(subjectCategoryTextKey)}</StudioTable.Cell>
       {actions.map((action) => {
         return (
           <StudioTable.Cell key={action}>

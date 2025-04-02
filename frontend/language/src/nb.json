@@ -1,6 +1,4 @@
 {
-  "api_errors.AD_01": "En annen sidegruppe har allerede dette navnet.",
-  "api_errors.AD_02": "Det finnes allerede en sidegruppe med denne oppgaven.",
   "api_errors.AD_03": "Navnet på sidegruppen er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "api_errors.DM_01": "Kunne ikke bygge datamodellen.",
   "api_errors.DM_05": "Kunne ikke lese ugyldig XML.",
@@ -719,6 +717,7 @@
   "policy_editor.policy_rule_missing_actions": "rettigheter",
   "policy_editor.policy_rule_missing_sub_resource": "sub-ressurs",
   "policy_editor.policy_rule_missing_subjects": "roller",
+  "policy_editor.role_category.access_package": "Tilgangspakke",
   "policy_editor.role_category.altinn_org": "Organisasjon",
   "policy_editor.role_category.altinn_rolecode": "Rolle",
   "policy_editor.role_category.unknown": "Ukjent",
@@ -874,7 +873,7 @@
   "right_menu.content_empty": "Du har ikke valgt noen side",
   "right_menu.data_model_bindings": "Datamodellknytninger",
   "right_menu.data_model_bindings_delete_confirm": "Er du sikker på at du vil slette denne datamodellknytningen?",
-  "right_menu.data_model_bindings_edit": "Rediger {{binding}}",
+  "right_menu.data_model_bindings_edit": "Rediger datamodellknytning {{binding}}",
   "right_menu.dynamics": "Valg for dynamikk",
   "right_menu.dynamics_description": "Rediger dynamikk som kan brukes i reglene for beregninger og visning av felter.",
   "right_menu.dynamics_edit": "Rediger beregninger direkte i Gitea",
