@@ -1,5 +1,5 @@
-:root {
-  --add-subform-card-background-color: #b3d0ea;
+.card {
+  --card-background-color: #b3d0ea;
 }
 .card {
   justify-content: center;
@@ -9,7 +9,7 @@
 }
 
 .card:hover {
-  background: var(--add-subform-card-background-color);
+  background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
 }

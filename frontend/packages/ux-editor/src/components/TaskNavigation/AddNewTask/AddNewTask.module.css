@@ -1,10 +1,9 @@
-:root {
-  --add-subform-card-background-color: #b3d0ea;
-  --add-subform-card-width: 300px;
-}
-
 .card {
-  width: var(--add-subform-card-width);
+  --card-background-color: #b3d0ea;
+  --card-width: 300px;
+}
+.card {
+  width: var(--card-width);
   justify-content: center;
   background-color: var(--fds-semantic-background-default);
   border-width: var(--fds-border_width-active);
@@ -12,7 +11,7 @@
 }
 
 .card:hover {
-  background: var(--add-subform-card-background-color);
+  background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
 }
