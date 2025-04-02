@@ -103,7 +103,6 @@ import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
-import { textResourcesMock } from '../mocks/textResourcesMock';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import { listOfAvailableCodeListTitlesToImport } from 'app-shared/mocks/codeListTitlesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
@@ -193,4 +192,4 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(textResourcesPath(org, language));
