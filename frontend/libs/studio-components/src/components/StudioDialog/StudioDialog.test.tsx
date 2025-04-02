@@ -12,7 +12,7 @@ describe('StudioDialog', () => {
   it('Displays a dialog when the button is clicked', async () => {
     const user = userEvent.setup();
     renderStudioDialog();
-    expect(getDialog()).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await openDialog(user);
     expect(getDialog()).toBeInTheDocument();
   });
@@ -61,4 +61,4 @@ const renderStudioDialog = (props?: Partial<StudioDialogProps>): RenderResult =>
   );
 };
 
-const getDialog = (): HTMLDialogElement => screen.queryByRole('dialog');
+const getDialog = (): HTMLDialogElement => screen.getByRole('dialog');
