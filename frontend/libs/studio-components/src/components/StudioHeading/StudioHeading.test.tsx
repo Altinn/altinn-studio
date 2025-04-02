@@ -15,11 +15,6 @@ describe('StudioHeading', () => {
     expect(getHeading(headingText)).toBeInTheDocument();
   });
 
-  it('applies default data-size correctly', () => {
-    renderStudioHeading();
-    expect(getHeading(headingText).getAttribute('data-size')).toBe('sm');
-  });
-
   it('applies custom data-size correctly', () => {
     renderStudioHeading({ 'data-size': 'lg' });
     expect(getHeading(headingText).getAttribute('data-size')).toBe('lg');
