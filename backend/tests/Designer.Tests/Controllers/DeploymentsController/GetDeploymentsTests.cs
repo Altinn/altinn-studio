@@ -4,7 +4,6 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
@@ -23,7 +22,6 @@ namespace Designer.Tests.Controllers.DeploymentsController;
 
 public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
 
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
@@ -64,7 +62,6 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
         Assert.Equal(2, actual.KubernetesDeploymentList.Count);
-        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         foreach (DeploymentEntity entity in actual.PipelineDeploymentList)
         {
             Assert.Equal(DateTimeKind.Utc, entity.Created.Kind);
