@@ -5,6 +5,7 @@ import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
 } from 'app-shared/types/PolicyAccessPackages';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const package1: PolicyAccessPackage = {
   id: 'package1',
@@ -23,6 +24,12 @@ const package3: PolicyAccessPackage = {
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
+};
+const unknownAccessPackage: PolicyAccessPackage = {
+  id: 'package4',
+  urn: 'urn:package4',
+  name: 'Package Zeta',
+  description: 'Fourth package',
 };
 
 const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
@@ -68,6 +75,16 @@ describe('ChosenAccessPackages', () => {
     expect(
       screen.queryByText('policy_editor.access_package_chosen_packages'),
     ).not.toBeInTheDocument();
+  });
+
+  it('should render unknown access package when a chosen access package has unknown urn', () => {
+    const chosenAccessPackages = [unknownAccessPackage.urn];
+
+    renderChosenAccessPackages({ chosenAccessPackages });
+
+    expect(
+      screen.getByText(textMock('policy_editor.access_package_unkown_heading')),
+    ).toBeInTheDocument();
   });
 });
 
