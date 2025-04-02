@@ -24,6 +24,17 @@ export const ChosenAccessPackages = ({
     groupedAccessPackagesByArea,
   );
 
+  const createUnknownAccessPackage = (urn: string): PolicyAccessPackage => {
+    return {
+      id: urn,
+      urn,
+      name: t('policy_editor.access_package_unkown_heading'),
+      description: t('policy_editor.access_package_unkown_description', {
+        accessPackageUrn: urn,
+      }),
+    };
+  };
+
   if (chosenAccessPackages.length > 0) {
     return (
       <>
@@ -45,15 +56,7 @@ export const ChosenAccessPackages = ({
                 />
               ) : (
                 <PolicyAccessPackageAccordion
-                  accessPackage={
-                    {
-                      urn: accessPackageUrn,
-                      name: t('policy_editor.access_package_unkown_heading'),
-                      description: t('policy_editor.access_package_unkown_description', {
-                        accessPackageUrn: accessPackageUrn,
-                      }),
-                    } as PolicyAccessPackage
-                  }
+                  accessPackage={createUnknownAccessPackage(accessPackageUrn)}
                   isChecked={true}
                   handleSelectChange={handleSelectAccessPackage}
                 />
