@@ -10,16 +10,17 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
-public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetOrgResourcesTests(WebApplicationFactory<Program> factory) : base(factory)
+    public GetOrgContentIdsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Fact]
     public async Task GetOrgContentIds_GivenCodeListParameter_ShouldReturnOkWithCodeListIds()
     {
-        string apiBaseUrl = await PrepareOrgForTest();
+        OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
         const LibraryContentType resourceType = LibraryContentType.CodeList;
         string apiUrlWithCodeListParameter = $"{apiBaseUrl}/{resourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithCodeListParameter);
@@ -34,7 +35,8 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
     [Fact]
     public async Task GetOrgContentIds_GivenTextResourceParameter_ShouldReturnOkWithTextResourceIds()
     {
-        string apiBaseUrl = await PrepareOrgForTest();
+        OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
         const LibraryContentType resourceType = LibraryContentType.TextResource;
         string apiUrlWithTextResourceParameter = $"{apiBaseUrl}/{resourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
@@ -49,7 +51,8 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
     [Fact]
     public async Task GetOrgContentIds_GivenInvalidTypeParameter_ShouldReturnBadRequest()
     {
-        string apiBaseUrl = await PrepareOrgForTest();
+        OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
         const string invalidResourceType = "invalidResourceType";
         string apiUrlWithInvalidResourceType = $"{apiBaseUrl}/{invalidResourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithInvalidResourceType);
@@ -59,21 +62,44 @@ public class GetOrgResourcesTests : DesignerEndpointsTestsBase<GetOrgResourcesTe
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private async Task<string> PrepareOrgForTest()
+    private async Task<OrgAndRepoName> CreateOrgWithRepository()
     {
-        const string developer = "testUser";
-        const string org = "ttd";
-        const string orgRepo = "org-content";
-
-        string targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepo = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(developer, org, orgRepo, targetOrgName, targetOrgRepo);
-
-        return GetApiBaseUrl(targetOrgName);
+        OrgAndRepoName orgAndRepoName = GenerateOrgAndRepoNames();
+        await CreateTestRepository(orgAndRepoName);
+        return orgAndRepoName;
     }
 
-    private static string GetApiBaseUrl(string orgName)
+    private static OrgAndRepoName GenerateOrgAndRepoNames()
     {
-        return $"designer/api/{orgName}/content";
+        string targetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
+
+        return new OrgAndRepoName(targetOrgName, targetRepoName);
+    }
+
+    private async Task CreateTestRepository(OrgAndRepoName orgAndRepoName)
+    {
+        const string username = "testUser";
+        const string orgName = "ttd";
+        const string repoName = "org-content";
+        await CopyOrgRepositoryForTest(
+            username,
+            orgName,
+            repoName,
+            orgAndRepoName.Org.Name,
+            orgAndRepoName.RepoName
+        );
+    }
+
+    private class OrgAndRepoName(string orgName, string repoName)
+    {
+        public Organisation Org { get; } = new(orgName);
+        public string RepoName { get; } = repoName;
+    }
+
+    private class Organisation(string name)
+    {
+        public string Name { get; } = name;
+        public string ApiBaseUrl => $"designer/api/{Name}/content";
     }
 }
