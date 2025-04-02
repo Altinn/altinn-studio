@@ -2,6 +2,7 @@
   --card-background-color: #b3d0ea;
   --card-width: 300px;
 }
+
 .card {
   width: var(--card-width);
   justify-content: center;
@@ -14,6 +15,12 @@
   background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
+}
+
+.card:focus {
+  background: var(--card-background-color);
+  border-color: var(--fds-semantic-surface-action-checked);
+  outline: none;
 }
 
 .iconContainer {

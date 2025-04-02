@@ -1,7 +1,9 @@
 .card {
   --card-background-color: #b3d0ea;
 }
+
 .card {
+  display: flex;
   justify-content: center;
   background-color: var(--fds-semantic-background-default);
   border-width: var(--fds-border_width-active);
@@ -12,6 +14,12 @@
   background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
+}
+
+.card:focus {
+  background: var(--card-background-color);
+  border-color: var(--fds-semantic-surface-action-checked);
+  outline: none;
 }
 
 .iconContainer {
