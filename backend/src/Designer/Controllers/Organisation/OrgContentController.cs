@@ -45,7 +45,7 @@ public class OrgContentController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
-        if (didParse == false)
+        if (!didParse)
         {
             return badRequestMessage;
         }
