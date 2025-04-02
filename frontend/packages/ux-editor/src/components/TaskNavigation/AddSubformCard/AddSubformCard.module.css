@@ -1,15 +1,15 @@
+:root {
+  --add-subform-card-background-color: #b3d0ea;
+}
 .card {
-  width: var(--icon-card-width);
-  min-width: var(--icon-card-width);
   justify-content: center;
   background-color: var(--fds-semantic-background-default);
-  border-color: var(--color-neutral-border-subtle, #b8bcc1);
   border-width: var(--fds-border_width-active);
   border-style: dashed;
 }
 
 .card:hover {
-  background: var(--semantic-surface-info-subtle-hover, #b3d0ea);
+  background: var(--add-subform-card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
 }

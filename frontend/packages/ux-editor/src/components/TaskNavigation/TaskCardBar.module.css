@@ -23,8 +23,6 @@
 .addCardsContainer {
   display: flex;
   flex-direction: column;
-  height: var(--icon-card-height);
-  width: var(--icon-card-width);
   gap: var(--fds-spacing-3);
   padding-left: var(--fds-spacing-1);
 }
