@@ -83,7 +83,7 @@ describe('ChosenAccessPackages', () => {
     renderChosenAccessPackages({ chosenAccessPackages });
 
     expect(
-      screen.getByText(textMock('policy_editor.access_package_unkown_heading')),
+      screen.getByText(textMock('policy_editor.access_package_unknown_heading')),
     ).toBeInTheDocument();
   });
 });

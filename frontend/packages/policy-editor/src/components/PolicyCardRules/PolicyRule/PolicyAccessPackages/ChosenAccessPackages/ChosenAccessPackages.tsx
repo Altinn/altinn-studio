@@ -28,8 +28,8 @@ export const ChosenAccessPackages = ({
     return {
       id: urn,
       urn,
-      name: t('policy_editor.access_package_unkown_heading'),
-      description: t('policy_editor.access_package_unkown_description', {
+      name: t('policy_editor.access_package_unknown_heading'),
+      description: t('policy_editor.access_package_unknown_description', {
         accessPackageUrn: urn,
       }),
     };
