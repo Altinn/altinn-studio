@@ -23,6 +23,5 @@ export const useFormLayoutsQuery = (
         dispatch(FormLayoutActions.setInvalidLayouts(invalidLayouts));
         return convertedLayouts;
       }),
-    staleTime: Infinity,
   });
 };

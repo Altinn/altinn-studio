@@ -25,8 +25,7 @@ const queryClientConfig: QueryClientConfig = {
   defaultOptions: {
     queries: {
       retry: false,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
+      staleTime: 5000,
     },
   },
 };
