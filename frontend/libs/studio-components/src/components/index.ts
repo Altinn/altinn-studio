@@ -9,4 +9,3 @@ export { StudioParagraph } from './StudioParagraph';
 export { StudioField } from './StudioField';
 export { StudioLabel } from './StudioLabel';
 export { StudioSelect } from './StudioSelect';
-export { StudioField } from './StudioField';
