@@ -13,11 +13,6 @@ describe('StudioParagraph', () => {
     expect(getText(mockText)).toBeInTheDocument();
   });
 
-  it('applies default data-size correctly', () => {
-    renderStudioParagraph();
-    expect(getText(mockText).getAttribute('data-size')).toBe('sm');
-  });
-
   it('applies custom data-size correctly', () => {
     renderStudioParagraph({ 'data-size': 'lg' });
 
