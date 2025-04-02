@@ -41,7 +41,7 @@ namespace Altinn.Studio.Designer.Helpers
                 Assembly.Load(new AssemblyName(library.Name));
                 return true;
             }
-            catch (FileNotFoundException) // On some machines there are some additional Runtime libraries with ".Reference" suffix. Skip them.
+            catch (Exception ex) when (ex is FileNotFoundException or FileLoadException)
             {
                 return false;
             }
