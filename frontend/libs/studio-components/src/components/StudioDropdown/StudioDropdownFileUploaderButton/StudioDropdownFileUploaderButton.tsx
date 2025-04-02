@@ -3,7 +3,6 @@ import type { ChangeEvent, InputHTMLAttributes, ReactElement, ReactNode } from '
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownButtonProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../../types/IconPlacement';
-import cn from 'classnames';
 import classes from './StudioDropdownFileUploaderButton.module.css';
 import { useStudioDropdownContext } from '../context/StudioDropdownContext';
 import { TextWithIcon } from '../../TextWithIcon';
@@ -21,7 +20,6 @@ export function StudioDropdownFileUploaderButton({
   children,
   icon,
   iconPlacement = 'left',
-  className,
   onFileUpload,
   fileInputProps,
   ...rest
@@ -37,7 +35,7 @@ export function StudioDropdownFileUploaderButton({
   };
 
   return (
-    <Dropdown.Button className={cn(className, classes.studioDropdownFileUploaderButton)} {...rest}>
+    <Dropdown.Button {...rest}>
       <label className={classes.fileUploaderLabel}>
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {children}
