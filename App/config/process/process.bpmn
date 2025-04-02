@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:altinn="http://altinn.no/process"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="SingleDataTask" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
@@ -66,9 +71,9 @@
             <altinn:action>reject</altinn:action>
           </altinn:actions>
           <altinn:signatureConfig>
-          <altinn:dataTypesToSign>
-            <altinn:dataType>ref-data-as-pdf</altinn:dataType>
-          </altinn:dataTypesToSign>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+            </altinn:dataTypesToSign>
             <altinn:signeeStatesDataTypeId>signatures-auditor</altinn:signeeStatesDataTypeId>
             <altinn:signatureDataType>signeeStates-auditor</altinn:signatureDataType>
             <altinn:signeeProviderId>auditor</altinn:signeeProviderId>

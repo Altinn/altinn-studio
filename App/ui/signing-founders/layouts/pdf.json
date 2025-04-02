@@ -6,7 +6,22 @@
         "id": "signeeListSummary",
         "type": "Summary2",
         "target": {
-          "type": "layoutSet"
+          "type": "component",
+          "id": "signee-list"
+        },
+        "overrides": [
+          {
+            "componentId": "signee-list",
+            "title": "signing.summary.override.title"
+          }
+        ]
+      },
+      {
+        "id": "signingDocumentsSummary",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "signing-documents"
         }
       }
     ]
