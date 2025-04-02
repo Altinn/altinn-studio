@@ -20,6 +20,7 @@ import {
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
+  orgTextResourcesPath,
   accessListsPath,
   accessListPath,
   accessListMemberPath,
@@ -192,4 +193,4 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(textResourcesPath(org, language));
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(orgTextResourcesPath(org, language));
