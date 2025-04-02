@@ -52,7 +52,7 @@ public static class DeploymentMapper
             EnvName = dbObject.EnvName,
             TagName = dbObject.Tagname,
             Build = BuildMapper.MapToModel(dbObject.Build),
-            Created = dbObject.Created,
+            Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType
         };
