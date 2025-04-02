@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,12 +37,20 @@ public class OrgContentController : ControllerBase
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content/{contentType}")]
-    public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] LibraryContentType contentType, [FromRoute] string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] string org, [FromRoute] string contentType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        ActionResult badRequestMessage = BadRequest($"Invalid content type '{contentType}'.");
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        switch (contentType)
+        bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
+        if (didParse == false)
+        {
+            return badRequestMessage;
+        }
+
+        switch (parsedContentType)
         {
             case LibraryContentType.CodeList:
                 List<string> codeListResult = _orgCodeListService.GetCodeListIds(org, developer, cancellationToken);
@@ -52,7 +61,7 @@ public class OrgContentController : ControllerBase
                 return Ok(textResourceResult);
 
             default:
-                return BadRequest($"Invalid resource type '{contentType}'.");
+                return badRequestMessage;
         }
     }
 }

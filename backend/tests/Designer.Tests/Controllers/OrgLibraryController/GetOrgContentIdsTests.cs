@@ -49,6 +49,22 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
     }
 
     [Fact]
+    public async Task GetOrgContentIds_GivenValidTypeParameterInMixedCaseString_ShouldReturnOkWithContent()
+    {
+        OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
+        const string resourceType = "textRESOURCE";
+        string apiUrlWithTextResourceParameter = $"{apiBaseUrl}/{resourceType}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
+
+        var response = await HttpClient.SendAsync(request);
+
+        List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
+        Assert.Equal(2, textResources.Count);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetOrgContentIds_GivenInvalidTypeParameter_ShouldReturnBadRequest()
     {
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
