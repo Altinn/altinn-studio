@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph } from '@studio/components-legacy';
 import { PolicyAccessPackageAccordion } from '../PolicyAccessPackageAccordion';
-import { filterAccessPackagesById, flatMapAreaPackageList } from '../policyAccessPackageUtils';
+import { flatMapAreaPackageList } from '../policyAccessPackageUtils';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
@@ -23,10 +23,6 @@ export const ChosenAccessPackages = ({
   const flatMappedAreaList: PolicyAccessPackage[] = flatMapAreaPackageList(
     groupedAccessPackagesByArea,
   );
-  const selectedAccessPackageList: PolicyAccessPackage[] = filterAccessPackagesById(
-    flatMappedAreaList,
-    chosenAccessPackages,
-  );
 
   if (chosenAccessPackages.length > 0) {
     return (
@@ -34,14 +30,35 @@ export const ChosenAccessPackages = ({
         <StudioLabelAsParagraph size='xs' spacing>
           {t('policy_editor.access_package_chosen_packages')}
         </StudioLabelAsParagraph>
-        {selectedAccessPackageList.map((accessPackage: PolicyAccessPackage) => {
+        {chosenAccessPackages.map((accessPackageUrn: string) => {
+          const chosenAccessPackage = flatMappedAreaList.find(
+            (accessPackage) => accessPackage.urn === accessPackageUrn,
+          );
+
           return (
-            <PolicyAccessPackageAccordion
-              key={accessPackage.urn}
-              accessPackage={accessPackage}
-              isChecked={true}
-              handleSelectChange={handleSelectAccessPackage}
-            />
+            <React.Fragment key={accessPackageUrn}>
+              {chosenAccessPackage ? (
+                <PolicyAccessPackageAccordion
+                  accessPackage={chosenAccessPackage}
+                  isChecked={true}
+                  handleSelectChange={handleSelectAccessPackage}
+                />
+              ) : (
+                <PolicyAccessPackageAccordion
+                  accessPackage={
+                    {
+                      urn: accessPackageUrn,
+                      name: t('policy_editor.access_package_unkown_heading'),
+                      description: t('policy_editor.access_package_unkown_description', {
+                        accessPackageUrn: accessPackageUrn,
+                      }),
+                    } as PolicyAccessPackage
+                  }
+                  isChecked={true}
+                  handleSelectChange={handleSelectAccessPackage}
+                />
+              )}
+            </React.Fragment>
           );
         })}
       </>
