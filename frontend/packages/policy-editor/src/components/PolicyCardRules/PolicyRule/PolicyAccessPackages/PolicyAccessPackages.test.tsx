@@ -21,6 +21,7 @@ const skattPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:skatt',
   name: 'Skatt',
   description: '',
+  isDelegable: true,
 };
 
 const sjofartPackage: PolicyAccessPackage = {
@@ -28,6 +29,7 @@ const sjofartPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
+  isDelegable: true,
 };
 
 const lufttransportPackage: PolicyAccessPackage = {
@@ -35,6 +37,7 @@ const lufttransportPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
+  isDelegable: true,
 };
 
 const revisorPackage: PolicyAccessPackage = {
@@ -42,6 +45,7 @@ const revisorPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:revisor',
   name: 'Revisor',
   description: '',
+  isDelegable: true,
 };
 
 const accessPackageAreaSkatt: PolicyAccessPackageArea = {
