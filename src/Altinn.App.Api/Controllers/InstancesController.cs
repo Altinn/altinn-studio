@@ -127,7 +127,7 @@ public class InstancesController : ControllerBase
     [Authorize]
     [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> Get(
         [FromRoute] string org,
@@ -161,7 +161,11 @@ public class InstancesController : ControllerBase
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
 
-            return Ok(instance);
+            var instanceOwnerParty = await _altinnPartyClientClient.GetParty(instanceOwnerPartyId);
+
+            var dto = InstanceResponse.From(instance, instanceOwnerParty);
+
+            return Ok(dto);
         }
         catch (Exception exception)
         {
@@ -183,10 +187,10 @@ public class InstancesController : ControllerBase
     [HttpPost]
     [DisableFormValueModelBinding]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(RequestSizeLimit)]
-    public async Task<ActionResult<Instance>> Post(
+    public async Task<ActionResult<InstanceResponse>> Post(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int? instanceOwnerPartyId,
@@ -381,7 +385,9 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        return Created(url, instance);
+        var dto = InstanceResponse.From(instance, party);
+
+        return Created(url, dto);
     }
 
     private ObjectResult? VerifyInstantiationPermissions(
@@ -417,10 +423,10 @@ public class InstancesController : ControllerBase
     [HttpPost("create")]
     [DisableFormValueModelBinding]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(InstanceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(RequestSizeLimit)]
-    public async Task<ActionResult<Instance>> PostSimplified(
+    public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstansiationInstance instansiationInstance
@@ -592,7 +598,9 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        return Created(url, instance);
+        var dto = InstanceResponse.From(instance, party);
+
+        return Created(url, dto);
     }
 
     /// <summary>

@@ -2303,7 +2303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Instance"
+                  "$ref": "#/components/schemas/InstanceResponse"
                 }
               }
             }
@@ -2434,7 +2434,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Instance"
+                  "$ref": "#/components/schemas/InstanceResponse"
                 }
               }
             }
@@ -2504,7 +2504,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Instance"
+                  "$ref": "#/components/schemas/InstanceResponse"
                 }
               }
             }
@@ -6977,6 +6977,164 @@
         },
         "additionalProperties": false
       },
+      "InstanceOwnerResponse": {
+        "required": [
+          "organisationNumber",
+          "party",
+          "partyId",
+          "personNumber",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "description": "Gets or sets the party id of the instance owner (also called instance owner party id).",
+            "nullable": true
+          },
+          "personNumber": {
+            "type": "string",
+            "description": "Gets or sets person number (national identification number) of the party. Null if the party is not a person.",
+            "nullable": true
+          },
+          "organisationNumber": {
+            "type": "string",
+            "description": "Gets or sets the organisation number of the party. Null if the party is not an organisation.",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "description": "Gets or sets the username of the party. Null if the party is not self identified.",
+            "nullable": true
+          },
+          "party": {
+            "$ref": "#/components/schemas/Party"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents information to identify the owner of an instance."
+      },
+      "InstanceResponse": {
+        "required": [
+          "appId",
+          "completeConfirmations",
+          "created",
+          "createdBy",
+          "data",
+          "dataValues",
+          "dueBefore",
+          "id",
+          "instanceOwner",
+          "lastChanged",
+          "lastChangedBy",
+          "org",
+          "presentationTexts",
+          "process",
+          "selfLinks",
+          "status",
+          "visibleAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Gets or sets the unique id of the instance {instanceOwnerId}/{instanceGuid}.",
+            "nullable": true
+          },
+          "instanceOwner": {
+            "$ref": "#/components/schemas/InstanceOwnerResponse"
+          },
+          "appId": {
+            "type": "string",
+            "description": "Gets or sets the id of the application this is an instance of, e.g. {org}/{app22}.",
+            "nullable": true
+          },
+          "org": {
+            "type": "string",
+            "description": "Gets or sets application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "nullable": true
+          },
+          "selfLinks": {
+            "$ref": "#/components/schemas/ResourceLinks"
+          },
+          "dueBefore": {
+            "type": "string",
+            "description": "Gets or sets the due date to submit the instance to application owner.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "visibleAfter": {
+            "type": "string",
+            "description": "Gets or sets date and time for when the instance should first become visible for the instance owner.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "process": {
+            "$ref": "#/components/schemas/ProcessState"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InstanceStatus"
+          },
+          "completeConfirmations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompleteConfirmation"
+            },
+            "description": "Gets or sets a list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements.",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataElement"
+            },
+            "description": "Gets or sets a list of data elements associated with the instance",
+            "nullable": true
+          },
+          "presentationTexts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "Gets or sets the presentation texts for the instance.",
+            "nullable": true
+          },
+          "dataValues": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "Gets or sets the data values for the instance.",
+            "nullable": true
+          },
+          "created": {
+            "type": "string",
+            "description": "Gets or sets the date and time for when the element was created.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Gets or sets the id of the user who created this element.",
+            "nullable": true
+          },
+          "lastChanged": {
+            "type": "string",
+            "description": "Gets or sets the date and time for when the element was last edited.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastChangedBy": {
+            "type": "string",
+            "description": "Gets or sets the id of the user who last changed this element.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the response from an API endpoint providing a list of key-value properties."
+      },
       "InstanceSelection": {
         "type": "object",
         "properties": {
@@ -7328,6 +7486,136 @@
         "additionalProperties": false,
         "description": "Contains details about an organisation"
       },
+      "Organization": {
+        "type": "object",
+        "properties": {
+          "orgNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitType": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "faxNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "eMailAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "internetAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "businessPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitStatus": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Party": {
+        "type": "object",
+        "properties": {
+          "partyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "partyUuid": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "partyTypeName": {
+            "$ref": "#/components/schemas/PartyType"
+          },
+          "orgNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "ssn": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitType": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "onlyHierarchyElementWithNoAccess": {
+            "type": "boolean"
+          },
+          "person": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "childParties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Party"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartyType": {
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "PartyTypesAllowed": {
         "type": "object",
         "properties": {
@@ -7596,6 +7884,85 @@
           "Skipped"
         ],
         "type": "string"
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "ssn": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mobileNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "mailingPostalCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressMunicipalNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressMunicipalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressStreetName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressHouseNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressHouseLetter": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressPostalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfDeath": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "PersonDetails": {
         "required": [

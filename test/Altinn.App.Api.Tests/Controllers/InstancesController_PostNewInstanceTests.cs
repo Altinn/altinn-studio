@@ -115,43 +115,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
-    private async Task<Instance> CreateInstanceSimplified(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        HttpClient client,
-        string token,
-        Dictionary<string, string>? prefill = null
-    )
-    {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        prefill ??= new();
-
-        // Create instance data
-        var body = $$"""
-                {
-                    "prefill": {{JsonSerializer.Serialize(prefill)}},
-                    "instanceOwner": {
-                        "partyId": "{{instanceOwnerPartyId}}"
-                    }
-                }
-            """;
-        using var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-        // Create instance
-        var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
-        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
-
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
-
-        // Verify Data id
-        var instanceId = createResponseParsed.Id;
-        instanceId.Should().NotBeNullOrWhiteSpace();
-        return createResponseParsed;
-    }
-
     [Theory]
     [ClassData(typeof(TestAuthentication.AllTokens))]
     public async Task PostNewInstance_Simplified(TestJwtToken token)
@@ -172,7 +135,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
 
-        var createResponseParsed = await CreateInstanceSimplified(org, app, instanceOwnerPartyId, client, token.Token);
+        var (createResponseParsed, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            token.Token
+        );
         var instanceId = createResponseParsed.Id;
         createResponseParsed.Data.Should().HaveCount(1, "Create instance should create a data element");
         var dataGuid = createResponseParsed.Data.First().Id;
@@ -200,7 +169,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
 
         var prefill = new Dictionary<string, string> { { "melding.name", "TestName" } };
-        var createResponseParsed = await CreateInstanceSimplified(
+        var (createResponseParsed, _) = await InstancesControllerFixture.CreateInstanceSimplified(
             org,
             app,
             instanceOwnerPartyId,
@@ -465,7 +434,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
         string userToken = TestAuthentication.GetUserToken(1337, 501337);
 
-        var sourceInstance = await CreateInstanceSimplified(org, app, instanceOwnerPartyId, client, orgToken);
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
         sourceInstance.Data.Should().HaveCount(1, "Create instance should create a data element");
         var dataGuid = sourceInstance.Data.First().Id;
         var patch = new JsonPatch(

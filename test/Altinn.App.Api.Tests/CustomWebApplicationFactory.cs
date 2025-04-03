@@ -26,7 +26,7 @@ namespace Altinn.App.Api.Tests;
 
 public class ApiTestBase
 {
-    protected static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+    internal static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,

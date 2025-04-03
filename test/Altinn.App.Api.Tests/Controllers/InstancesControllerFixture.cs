@@ -1,5 +1,10 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
@@ -13,6 +18,7 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.Common.PEP.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +33,47 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
 {
     public Mock<T> Mock<T>()
         where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
+
+    public static async Task<(InstanceResponse Instance, string Response)> CreateInstanceSimplified(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        HttpClient client,
+        string token,
+        Dictionary<string, string>? prefill = null
+    )
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        prefill ??= new();
+
+        // Create instance data
+        var body = $$"""
+                {
+                    "prefill": {{JsonSerializer.Serialize(prefill)}},
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    }
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        // Create instance
+        using var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
+
+        var createResponseParsed = JsonSerializer.Deserialize<InstanceResponse>(
+            createResponseContent,
+            ApiTestBase.JsonSerializerOptions
+        );
+        Assert.NotNull(createResponseParsed);
+
+        // Verify Data id
+        var instanceId = createResponseParsed.Id;
+        instanceId.Should().NotBeNullOrWhiteSpace();
+        return (createResponseParsed, createResponseContent);
+    }
 
     public void VerifyNoOtherCalls(
         bool verifyDataClient = true,
