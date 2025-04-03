@@ -42,6 +42,7 @@ export type StudioCodeListEditorProps = {
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   textResources?: TextResource[];
+  onCreateTextResource?: (textResource: TextResource) => void;
   texts: CodeListEditorTexts;
 };
 
@@ -64,6 +65,7 @@ function StatefulCodeListEditor({
   onChangeTextResource,
   onInvalid,
   textResources,
+  onCreateTextResource,
 }: StatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = usePropState<CodeList>(defaultCodeList);
 
@@ -95,6 +97,7 @@ function StatefulCodeListEditor({
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
       textResources={textResources}
+      onCreateTextResource={onCreateTextResource}
     />
   );
 }
@@ -112,6 +115,7 @@ function ControlledCodeListEditor({
   onChange,
   onChangeTextResource,
   textResources,
+  onCreateTextResource,
 }: ControlledCodeListEditorProps): ReactElement {
   const [codeType, setCodeType] = useCodeTypeState(codeList);
   const { texts } = useStudioCodeListEditorContext();
@@ -138,6 +142,7 @@ function ControlledCodeListEditor({
         onChangeCodeType={setCodeType}
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
+        onCreateTextResource={onCreateTextResource}
       />
       <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
       <Errors errorMap={errorMap} />
@@ -212,6 +217,7 @@ function TableBody({
   onChangeTextResource,
   errorMap,
   textResources,
+  onCreateTextResource,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
     (index: number) => {
@@ -243,6 +249,7 @@ function TableBody({
           onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           textResources={textResources}
+          onCreateTextResource={onCreateTextResource}
         />
       ))}
     </StudioInputTable.Body>

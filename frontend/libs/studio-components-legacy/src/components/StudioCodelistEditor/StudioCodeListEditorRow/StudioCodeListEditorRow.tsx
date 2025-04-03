@@ -20,6 +20,7 @@ type StudioCodeListEditorRowProps = {
   onChangeTextResource: (newTextResource: TextResource) => void;
   onDeleteButtonClick: () => void;
   textResources?: TextResource[];
+  onCreateTextResource: (newTextResource: TextResource) => void;
 };
 
 export function StudioCodeListEditorRow({
@@ -31,6 +32,7 @@ export function StudioCodeListEditorRow({
   onChangeTextResource,
   onDeleteButtonClick,
   textResources,
+  onCreateTextResource,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -85,6 +87,7 @@ export function StudioCodeListEditorRow({
         property={CodeListItemTextProperty.Label}
         required={true}
         textResources={textResources}
+        onCreateTextResource={onCreateTextResource}
       />
       <TextResourceIdCell
         currentId={item.description}
@@ -96,6 +99,7 @@ export function StudioCodeListEditorRow({
         property={CodeListItemTextProperty.Description}
         required={false}
         textResources={textResources}
+        onCreateTextResource={onCreateTextResource}
       />
       <TextResourceIdCell
         currentId={item.helpText}
@@ -107,6 +111,7 @@ export function StudioCodeListEditorRow({
         property={CodeListItemTextProperty.HelpText}
         required={false}
         textResources={textResources}
+        onCreateTextResource={onCreateTextResource}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>
@@ -224,6 +229,7 @@ type TextResourceIdCellProps = {
   property: CodeListItemTextProperty;
   required: boolean;
   textResources?: TextResource[];
+  onCreateTextResource: (newTextResource: TextResource) => void;
 };
 
 function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
@@ -244,6 +250,7 @@ function TextResourceSelectorCell({
   property,
   required,
   textResources,
+  onCreateTextResource,
 }: Required<TextResourceIdCellProps>) {
   const {
     texts: { textResourceTexts },
@@ -257,6 +264,7 @@ function TextResourceSelectorCell({
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
+      onCreateTextResource={onCreateTextResource}
     />
   );
 }

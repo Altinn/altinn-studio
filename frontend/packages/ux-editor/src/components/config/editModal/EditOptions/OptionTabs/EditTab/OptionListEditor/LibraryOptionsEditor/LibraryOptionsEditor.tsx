@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components-legacy';
-import type { CodeListEditorTexts } from '@studio/components-legacy';
+import type { CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -15,6 +15,7 @@ import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
+import { convertTextResourceToMutationArgs } from '../utils';
 import classes from './LibraryOptionsEditor.module.css';
 
 export type LibraryOptionsEditorProps = {
@@ -50,6 +51,14 @@ export function LibraryOptionsEditor({
     }
   };
 
+  const handleCreateNewTextResource = (newTextResource: TextResource) => {
+    const mutationArgs = convertTextResourceToMutationArgs({
+      textResource: newTextResource,
+      language,
+    });
+    updateTextResource(mutationArgs);
+  };
+
   const handleClick = () => {
     modalRef.current?.showModal();
   };
@@ -77,6 +86,7 @@ export function LibraryOptionsEditor({
           onBlurTextResource={handleBlurTextResource}
           texts={editorTexts}
           textResources={textResourcesForLanguage}
+          onCreateTextResource={handleCreateNewTextResource}
         />
       </StudioModal.Dialog>
     </>
