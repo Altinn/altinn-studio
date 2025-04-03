@@ -38,15 +38,15 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
   const disableDown = pageIndex === pagesModel.pages?.length - 1;
 
   const moveLayoutUp = () => {
-    const page = pagesModel.pages.splice(pageIndex, 1)[0];
-    pagesModel.pages.splice(pageIndex - 1, 0, page);
+    const page = pagesModel.pages?.splice(pageIndex, 1)[0];
+    pagesModel.pages?.splice(pageIndex - 1, 0, page);
     changePageOrder(pagesModel);
     setDropdownOpen(false);
   };
 
   const moveLayoutDown = () => {
-    const page = pagesModel.pages.splice(pageIndex, 1)[0];
-    pagesModel.pages.splice(pageIndex + 1, 0, page);
+    const page = pagesModel.pages?.splice(pageIndex, 1)[0];
+    pagesModel.pages?.splice(pageIndex + 1, 0, page);
     changePageOrder(pagesModel);
     setDropdownOpen(false);
   };

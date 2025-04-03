@@ -178,7 +178,9 @@ export const DesignView = (): ReactNode => {
             <div className={classes.buttonContainer}>
               <StudioButton
                 icon={<PlusIcon aria-hidden />}
-                onClick={() => {}}
+                onClick={() => {
+                  handleAddPage();
+                }}
                 className={classes.button}
                 disabled={isAddPageMutationPending}
               >
