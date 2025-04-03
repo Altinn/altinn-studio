@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioDropdown } from './index';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon, UploadIcon } from '@studio/icons';
 
 const ComposedComponent = (args): ReactElement => (
   <StudioDropdown triggerButtonText='My menu label'>
@@ -10,6 +10,17 @@ const ComposedComponent = (args): ReactElement => (
       <StudioDropdown.Heading>My heading</StudioDropdown.Heading>
       <StudioDropdown.Item>
         <StudioDropdown.Button {...args} />
+      </StudioDropdown.Item>
+      <StudioDropdown.Item>
+        <StudioDropdown.FileUploaderButton
+          icon={<UploadIcon />}
+          fileInputProps={{
+            accept: '.txt',
+            multiple: false,
+          }}
+        >
+          Upload File
+        </StudioDropdown.FileUploaderButton>
       </StudioDropdown.Item>
     </StudioDropdown.List>
   </StudioDropdown>
