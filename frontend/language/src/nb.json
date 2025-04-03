@@ -1961,6 +1961,7 @@
   "ux_editor.task_card.edit.confirm_data_model_change": "Er du sikker på at du vil bytte datamodell?\nFelt i skjemaet ditt kan få ugyldige knytninger hvis du gjør det. Du får feilmeldinger for felt som mister knytningen til nåværende datamodell.",
   "ux_editor.task_card.no_datamodel": "Ingen datamodell",
   "ux_editor.task_card.ux_editor": "Utform",
+  "ux_editor.task_card_add_new_subform": "Legg til underskjema",
   "ux_editor.task_card_add_new_task": "Legg til ny oppgave",
   "ux_editor.text_resource_binding_add_description": "Legg til beskrivelse",
   "ux_editor.text_resource_binding_add_help": "Legg til hjelpetekst",
