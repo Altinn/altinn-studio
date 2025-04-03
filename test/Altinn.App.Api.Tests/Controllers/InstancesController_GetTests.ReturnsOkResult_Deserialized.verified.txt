@@ -9,8 +9,7 @@
         PartyTypeName: Person,
         SSN: 01039012345,
         Name: Sophie Salt,
-        IsDeleted: false,
-        OnlyHierarchyElementWithNoAccess: false
+        IsDeleted: false
       }
     },
     AppId: tdd/contributer-restriction,
@@ -60,8 +59,7 @@
         PartyTypeName: Person,
         SSN: 01039012345,
         Name: Sophie Salt,
-        IsDeleted: false,
-        OnlyHierarchyElementWithNoAccess: false
+        IsDeleted: false
       }
     },
     AppId: tdd/contributer-restriction,

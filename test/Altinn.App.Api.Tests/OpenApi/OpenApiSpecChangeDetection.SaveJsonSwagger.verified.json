@@ -7008,7 +7008,7 @@
             "nullable": true
           },
           "party": {
-            "$ref": "#/components/schemas/Party"
+            "$ref": "#/components/schemas/PartyResponse"
           }
         },
         "additionalProperties": false,
@@ -7486,124 +7486,60 @@
         "additionalProperties": false,
         "description": "Contains details about an organisation"
       },
-      "Organization": {
-        "type": "object",
-        "properties": {
-          "orgNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "unitType": {
-            "type": "string",
-            "nullable": true
-          },
-          "telephoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "mobileNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "faxNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "eMailAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "internetAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingPostalCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingPostalCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "businessAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "businessPostalCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "businessPostalCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "unitStatus": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "Party": {
+      "PartyResponse": {
+        "required": [
+          "isDeleted",
+          "name",
+          "orgNumber",
+          "partyId",
+          "partyTypeName",
+          "partyUuid",
+          "ssn",
+          "unitType"
+        ],
         "type": "object",
         "properties": {
           "partyId": {
             "type": "integer",
+            "description": "Gets or sets the ID of the party",
             "format": "int32"
           },
           "partyUuid": {
             "type": "string",
+            "description": "Gets or sets the UUID of the party",
             "format": "uuid",
             "nullable": true
           },
           "partyTypeName": {
             "$ref": "#/components/schemas/PartyType"
           },
-          "orgNumber": {
-            "type": "string",
-            "nullable": true
-          },
           "ssn": {
             "type": "string",
+            "description": "Gets the parties ssn",
+            "nullable": true
+          },
+          "orgNumber": {
+            "type": "string",
+            "description": "Gets the parties org number",
             "nullable": true
           },
           "unitType": {
             "type": "string",
+            "description": "Gets or sets the UnitType",
             "nullable": true
           },
           "name": {
             "type": "string",
+            "description": "Gets or sets the Name",
             "nullable": true
           },
           "isDeleted": {
-            "type": "boolean"
-          },
-          "onlyHierarchyElementWithNoAccess": {
-            "type": "boolean"
-          },
-          "person": {
-            "$ref": "#/components/schemas/Person"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
-          },
-          "childParties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Party"
-            },
-            "nullable": true
+            "type": "boolean",
+            "description": "Gets or sets the IsDeleted"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Class representing a party"
       },
       "PartyType": {
         "enum": [
@@ -7884,85 +7820,6 @@
           "Skipped"
         ],
         "type": "string"
-      },
-      "Person": {
-        "type": "object",
-        "properties": {
-          "ssn": {
-            "type": "string",
-            "nullable": true
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "firstName": {
-            "type": "string",
-            "nullable": true
-          },
-          "middleName": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastName": {
-            "type": "string",
-            "nullable": true
-          },
-          "telephoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "mobileNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingPostalCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "mailingPostalCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressMunicipalNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressMunicipalName": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressStreetName": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressHouseNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressHouseLetter": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressPostalCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "dateOfDeath": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "PersonDetails": {
         "required": [

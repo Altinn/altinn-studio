@@ -10,15 +10,11 @@
         partyId: 501337,
         partyUuid: null,
         partyTypeName: 1,
-        orgNumber: null,
         ssn: 01039012345,
+        orgNumber: null,
         unitType: null,
         name: Sophie Salt,
-        isDeleted: false,
-        onlyHierarchyElementWithNoAccess: false,
-        person: null,
-        organization: null,
-        childParties: null
+        isDeleted: false
       }
     },
     appId: tdd/contributer-restriction,
@@ -102,15 +98,11 @@
         partyId: 501337,
         partyUuid: null,
         partyTypeName: 1,
-        orgNumber: null,
         ssn: 01039012345,
+        orgNumber: null,
         unitType: null,
         name: Sophie Salt,
-        isDeleted: false,
-        onlyHierarchyElementWithNoAccess: false,
-        person: null,
-        organization: null,
-        childParties: null
+        isDeleted: false
       }
     },
     appId: tdd/contributer-restriction,
