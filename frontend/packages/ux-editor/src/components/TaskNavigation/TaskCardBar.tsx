@@ -13,6 +13,7 @@ export const TaskCardBar = () => {
     org,
     app,
   );
+  const [isSubformInEditMode, setIsSubformInEditMode] = React.useState(false);
 
   const isTaskNavigationSubformEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigationSubform);
 
@@ -25,8 +26,13 @@ export const TaskCardBar = () => {
           <TaskCard key={layoutSetModel.id} layoutSetModel={layoutSetModel} />
         ))}
         <div className={classes.addCardsContainer}>
-          <AddNewTask />
-          {isTaskNavigationSubformEnabled && <AddSubformCard />}
+          {!isSubformInEditMode && <AddNewTask />}
+          {isTaskNavigationSubformEnabled && (
+            <AddSubformCard
+              isSubformInEditMode={isSubformInEditMode}
+              setIsSubformInEditMode={setIsSubformInEditMode}
+            />
+          )}
         </div>
       </div>
     </div>
