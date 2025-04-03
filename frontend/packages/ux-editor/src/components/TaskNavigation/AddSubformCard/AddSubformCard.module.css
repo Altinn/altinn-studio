@@ -1,18 +1,25 @@
 .card {
-  height: var(--icon-card-height);
-  width: var(--icon-card-width);
-  min-width: var(--icon-card-width);
+  --card-background-color: #b3d0ea;
+}
+
+.card {
+  display: flex;
   justify-content: center;
   background-color: var(--fds-semantic-background-default);
-  border-color: var(--color-neutral-border-subtle, #b8bcc1);
   border-width: var(--fds-border_width-active);
   border-style: dashed;
 }
 
 .card:hover {
-  background: var(--semantic-surface-info-subtle-hover, #b3d0ea);
+  background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
+}
+
+.card:focus {
+  background: var(--card-background-color);
+  border-color: var(--fds-semantic-surface-action-checked);
+  outline: none;
 }
 
 .iconContainer {

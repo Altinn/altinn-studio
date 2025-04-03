@@ -1,4 +1,8 @@
-import type { DefaultError, UseMutationResult } from '@tanstack/react-query';
+import type {
+  DefaultError,
+  UseMutationResult,
+  QueryKey as TanstackQueryKey,
+} from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
@@ -26,7 +30,13 @@ export const useUpdateTextResourcesForOrgMutation = (
   >({
     mutationFn: ({ language, payload }: UpdateTextResourcesForOrgMutationArgs) =>
       updateTextResourcesForOrg(org, language, payload),
-    onSuccess: (textResourcesWithLanguage) =>
-      client.setQueryData([QueryKey.TextResourcesForOrg, org], textResourcesWithLanguage),
+    onSuccess: (textResourcesWithLanguage) => {
+      const queryKey: TanstackQueryKey = [
+        QueryKey.TextResourcesForOrg,
+        org,
+        textResourcesWithLanguage.language,
+      ];
+      client.setQueryData(queryKey, textResourcesWithLanguage);
+    },
   });
 };
