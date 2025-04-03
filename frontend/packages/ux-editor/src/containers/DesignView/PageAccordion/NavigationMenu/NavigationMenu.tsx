@@ -33,9 +33,9 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const pageIndex = pagesModel.pages.findIndex((page) => page.id === pageName);
+  const pageIndex = pagesModel.pages?.findIndex((page) => page.id === pageName);
   const disableUp = pageIndex === 0;
-  const disableDown = pageIndex === pagesModel.pages.length - 1;
+  const disableDown = pageIndex === pagesModel.pages?.length - 1;
 
   const moveLayoutUp = () => {
     const page = pagesModel.pages.splice(pageIndex, 1)[0];

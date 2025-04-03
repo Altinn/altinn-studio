@@ -4,7 +4,7 @@ export type PageModel = {
 
 export type GroupModel = {
   name?: string;
-  pages: PageModel[];
+  order: PageModel[];
   type?: string;
   markWhenCompleted?: boolean;
 };

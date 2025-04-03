@@ -184,13 +184,13 @@ export const pagesModelMock: PagesModel = {
     {
       name: 'Sideoppsett 1',
       type: 'Sideoppsett 1',
-      pages: [{ id: layout1NameMock }],
+      order: [{ id: layout1NameMock }],
     },
     {
       name: 'sideoppsett 2',
       type: 'sideoppsett 2',
       markWhenCompleted: true,
-      pages: [{ id: layout2NameMock }],
+      order: [{ id: layout2NameMock }],
     },
   ],
 };
