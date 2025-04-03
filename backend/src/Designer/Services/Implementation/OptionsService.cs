@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +21,17 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IAppDevelopmentService _appDevelopmentService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="appDevelopmentService"></param>
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _appDevelopmentService = appDevelopmentService;
     }
 
     /// <inheritdoc />
@@ -78,14 +82,37 @@ public class OptionsService : IOptionsService
 
         List<RefToOptionListSpecifier> optionsListReferences = new List<RefToOptionListSpecifier>();
 
+
+
         string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
         foreach (string layoutSetName in layoutSetNames)
         {
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
-            foreach (var layoutName in layoutNames)
+            foreach (string layoutName in layoutNames)
             {
                 var layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
                 optionsListReferences = altinnAppGitRepository.FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+            }
+        }
+
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
+        List<RefToOptionListSpecifier> optionsListReferencesWithTaskData = AddTaskDataToOptionListReferences(optionsListReferences, layoutSetsModel);
+
+        return optionsListReferencesWithTaskData;
+    }
+
+    private List<RefToOptionListSpecifier> AddTaskDataToOptionListReferences(List<RefToOptionListSpecifier> optionsListReferences, LayoutSetsModel layoutSetsModel)
+    {
+        if (optionsListReferences == null || layoutSetsModel == null) return optionsListReferences;
+
+        foreach (var reference in optionsListReferences)
+        {
+            foreach (var source in reference.OptionListIdSources)
+            {
+                var matchingLayoutSetModel = layoutSetsModel.sets.FirstOrDefault(set => set.id == source.LayoutSetId);
+
+                source.TaskId = matchingLayoutSetModel?.task.id;
+                source.TaskType = matchingLayoutSetModel?.task.type;
             }
         }
 
