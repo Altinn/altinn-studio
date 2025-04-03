@@ -24,7 +24,7 @@ export const ChosenAccessPackages = ({
     groupedAccessPackagesByArea,
   );
 
-  const createUnknownAccessPackage = (urn: string): PolicyAccessPackage => {
+  const createUnknownAccessPackageData = (urn: string): PolicyAccessPackage => {
     return {
       id: urn,
       urn,
@@ -45,23 +45,16 @@ export const ChosenAccessPackages = ({
           const chosenAccessPackage = flatMappedAreaList.find(
             (accessPackage) => accessPackage.urn === accessPackageUrn,
           );
+          const accessPackageData =
+            chosenAccessPackage ?? createUnknownAccessPackageData(accessPackageUrn);
 
           return (
-            <React.Fragment key={accessPackageUrn}>
-              {chosenAccessPackage ? (
-                <PolicyAccessPackageAccordion
-                  accessPackage={chosenAccessPackage}
-                  isChecked={true}
-                  handleSelectChange={handleSelectAccessPackage}
-                />
-              ) : (
-                <PolicyAccessPackageAccordion
-                  accessPackage={createUnknownAccessPackage(accessPackageUrn)}
-                  isChecked={true}
-                  handleSelectChange={handleSelectAccessPackage}
-                />
-              )}
-            </React.Fragment>
+            <PolicyAccessPackageAccordion
+              key={accessPackageData.urn}
+              accessPackage={accessPackageData}
+              isChecked={true}
+              handleSelectChange={handleSelectAccessPackage}
+            />
           );
         })}
       </>
