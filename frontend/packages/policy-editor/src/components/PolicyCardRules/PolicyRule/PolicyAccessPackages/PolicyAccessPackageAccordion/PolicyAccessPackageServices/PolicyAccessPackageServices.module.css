@@ -19,13 +19,6 @@
   font-weight: 500;
 }
 
-.serviceContainerHeader {
-  color: var(--colors-grey-700);
-  font-size: var(--fds-sizing-3);
-  padding-top: var(--fds-spacing-2);
-  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
-}
-
 .logo {
   max-height: var(--logo-size);
   max-width: var(--logo-size);
