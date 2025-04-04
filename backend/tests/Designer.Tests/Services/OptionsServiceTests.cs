@@ -382,8 +382,8 @@ public class OptionsServiceTests : IDisposable
 
     private static OptionsService GetOptionsServiceForTest()
     {
-        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
         AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
         OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentService);
 
