@@ -192,6 +192,10 @@ export const pagesModelMock: PagesModel = {
       markWhenCompleted: true,
       order: [{ id: layout2NameMock }],
     },
+    {
+      name: 'EmptyGroup',
+      order: [],
+    },
   ],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {

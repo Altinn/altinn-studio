@@ -180,6 +180,30 @@ describe('DesignView', () => {
       expect(screen.getByRole('button', { name: page })).toBeInTheDocument();
     });
   });
+
+  it('Does not render group accordions when order is empty or undefined', () => {
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
+    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
+    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+  });
+
+  it('calls "handleAddPage" when clicking the add page button within a group', async () => {
+    const user = userEvent.setup();
+    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+    shouldDisplayFeature.mockReturnValue(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
+    await user.click(addButton);
+    expect(queriesMock.createPage).toHaveBeenCalledTimes(1);
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${3}`,
+    });
+  });
 });
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,
