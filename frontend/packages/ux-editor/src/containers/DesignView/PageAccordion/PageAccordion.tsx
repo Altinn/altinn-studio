@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
-import { pageAccordionContentId } from '@studio/testing/testids';
+import { accordionHeaderId, pageAccordionContentId } from '@studio/testing/testids';
 import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -62,36 +62,42 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item open={isOpen}>
-      <div className={classes.accordionHeaderRow}>
-        <Accordion.Header
-          className={
-            isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
-          }
-          level={3}
-          onHeaderClick={onClick}
-        >
-          {pageName}
-        </Accordion.Header>
-        <div className={classes.navigationMenu}>
-          {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
-          {showNavigationMenu && <NavigationMenu pageName={pageName} />}
-          <StudioButton
-            color='danger'
-            icon={<TrashIcon aria-hidden />}
-            onClick={handleConfirmDelete}
-            title={t('general.delete_item', { item: pageName })}
-            variant='tertiary'
-            disabled={isPending}
-          />
+    <Accordion>
+      <Accordion.Item open={isOpen}>
+        <div className={classes.accordionHeaderRow}>
+          <div
+            data-testid={accordionHeaderId(pageName)}
+            className={
+              isInvalid || hasDuplicatedIds
+                ? classes.accordionHeaderWarning
+                : classes.accordionHeader
+            }
+          >
+            <Accordion.Header level={3} onHeaderClick={onClick}>
+              {pageName}
+            </Accordion.Header>
+          </div>
+
+          <div className={classes.navigationMenu}>
+            {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
+            {showNavigationMenu && <NavigationMenu pageName={pageName} />}
+            <StudioButton
+              color='danger'
+              icon={<TrashIcon aria-hidden />}
+              onClick={handleConfirmDelete}
+              title={t('general.delete_item', { item: pageName })}
+              variant='tertiary'
+              disabled={isPending}
+            />
+          </div>
         </div>
-      </div>
-      <Accordion.Content
-        data-testid={pageAccordionContentId(pageName)}
-        className={classes.accordionContent}
-      >
-        {children}
-      </Accordion.Content>
-    </Accordion.Item>
+        <Accordion.Content
+          data-testid={pageAccordionContentId(pageName)}
+          className={classes.accordionContent}
+        >
+          {children}
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
   );
 };

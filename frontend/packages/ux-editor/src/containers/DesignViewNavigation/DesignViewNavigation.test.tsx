@@ -31,7 +31,6 @@ describe('DesignViewNavigation', () => {
       screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();
     await user.click(menuButton);
-
     expect(
       await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
@@ -46,7 +45,6 @@ describe('DesignViewNavigation', () => {
       await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).toBeInTheDocument();
     await user.click(document.body);
-
     expect(
       screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
     ).not.toBeInTheDocument();

@@ -24,9 +24,21 @@ import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn(),
+  FeatureFlag: {
+    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
+  },
+}));
+
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
+
+const setupFeatureFlag = (enabled: boolean) => {
+  const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+  shouldDisplayFeature.mockReturnValue(enabled);
+};
 
 describe('DesignView', () => {
   afterEach(() => {
@@ -58,6 +70,7 @@ describe('DesignView', () => {
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView(
       {
         ...formLayoutSettingsMock,
@@ -73,6 +86,7 @@ describe('DesignView', () => {
     expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       id: `${textMock('ux_editor.page')}${4}`,
     });
+    consoleWarnSpy.mockRestore();
   });
 
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
@@ -114,12 +128,78 @@ describe('DesignView', () => {
 
   it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
     const pdfLayoutName = 'pdfLayoutName';
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView(
       { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
       { [pdfLayoutName]: layout1Mock },
     );
     const pdfAccordionButton = screen.getByRole('button', { name: pdfLayoutName });
     expect(pdfAccordionButton).toBeInTheDocument();
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('renders DesignViewNavigation when isTaskNavigationPageGroups is true', () => {
+    setupFeatureFlag(true);
+    renderDesignView();
+    expect(screen.getByTestId('design-view-navigation')).toBeInTheDocument();
+  });
+
+  it('does not render DesignViewNavigation when isTaskNavigationPageGroups is false', () => {
+    setupFeatureFlag(false);
+    renderDesignView();
+    expect(screen.queryByTestId('design-view-navigation')).not.toBeInTheDocument();
+  });
+
+  it('does not render Accordion when pagesModel has no pages', () => {
+    setupFeatureFlag(false);
+    renderDesignView({ ...formLayoutSettingsMock, pages: { order: [] } });
+    const accordion = screen.queryByRole('group', { name: /accordion/i });
+    expect(accordion).not.toBeInTheDocument();
+  });
+
+  it('renders group accordions when isTaskNavigationPageGroups is true and there are groups', () => {
+    setupFeatureFlag(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
+  });
+
+  it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
+    setupFeatureFlag(false);
+    renderDesignView();
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('sideoppsett 2')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockPageName1 })).toBeInTheDocument();
+  });
+
+  it('renders page accordions when isTaskNavigationPageGroups is false', () => {
+    setupFeatureFlag(false);
+    renderDesignView();
+    formLayoutSettingsMock.pages.order.forEach((page) => {
+      expect(screen.getByRole('button', { name: page })).toBeInTheDocument();
+    });
+  });
+
+  it('Does not render group accordions when order is empty or undefined', () => {
+    setupFeatureFlag(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
+    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
+    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+  });
+
+  it('calls "handleAddPage" when clicking the add page button within a group', async () => {
+    const user = userEvent.setup();
+    setupFeatureFlag(true);
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
+    await user.click(addButton);
+    expect(queriesMock.createPage).toHaveBeenCalledTimes(1);
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${3}`,
+    });
   });
 });
 const renderDesignView = (

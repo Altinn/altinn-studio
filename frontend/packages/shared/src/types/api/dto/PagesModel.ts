@@ -1,5 +1,6 @@
-import type { PageModel } from './PageModel';
+import type { GroupModel, PageModel } from './PageModel';
 
 export type PagesModel = {
   pages: PageModel[];
+  groups: GroupModel[];
 };
