@@ -701,9 +701,9 @@ namespace Altinn.Studio.Designer.Controllers
         private List<string> GetEnvironmentsForOrg(string org)
         {
             List<string> environmentsForOrg = ["prod", "tt02"];
-            if (OrgUtil.IsTestEnv(org))
+            if (OrgUtil.IsTestEnv(org) || string.Equals(org, "digdir", StringComparison.OrdinalIgnoreCase))
             {
-                environmentsForOrg.AddRange(["at22", "at23", "at24", "yt01"]);
+                environmentsForOrg.AddRange(["yt01", "at22", "at23", "at24", "yt01"]);
             }
             return environmentsForOrg;
         }
