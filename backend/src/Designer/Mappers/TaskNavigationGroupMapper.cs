@@ -25,4 +25,27 @@ public static class TaskNavigationGroupMapper
             _ => throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroup.Name}': {taskNavigationGroup.GetType().Name}")
         };
     }
+
+    public static TaskNavigationGroup ToDomain(this TaskNavigationGroupDto taskNavigationGroupDto)
+    {
+        if (!string.IsNullOrEmpty(taskNavigationGroupDto.TaskId))
+        {
+            return new TaskNavigationTask
+            {
+                TaskId = taskNavigationGroupDto.TaskId,
+                Name = taskNavigationGroupDto.Name,
+            };
+        }
+
+        if (taskNavigationGroupDto.TaskType?.ToLowerInvariant() == TaskNavigationReceiptType.Receipt.GetJsonStringEnumMemberName())
+        {
+            return new TaskNavigationReceipt
+            {
+                Type = TaskNavigationReceiptType.Receipt,
+                Name = taskNavigationGroupDto.Name,
+            };
+        }
+
+        throw new ArgumentException($"Unknown TaskNavigationGroup type: {taskNavigationGroupDto.GetType().Name}");
+    }
 }

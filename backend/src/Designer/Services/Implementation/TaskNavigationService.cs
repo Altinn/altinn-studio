@@ -32,5 +32,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
             return definitions.Process.Tasks;
         }
+
+        public async Task AddTaskNavigationGroup(AltinnRepoEditingContext altinnRepoEditingContext, TaskNavigationGroup taskNavigationGroup, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
+            layoutSets.UiSettings ??= new();
+            layoutSets.UiSettings.TaskNavigation ??= [];
+            layoutSets.UiSettings.TaskNavigation.Add(taskNavigationGroup);
+
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+        }
     }
 }

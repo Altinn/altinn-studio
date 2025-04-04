@@ -42,5 +42,24 @@ namespace Altinn.Studio.Designer.Controllers
 
             return Ok(taskNavigationGroupDto);
         }
+
+        /// <summary>
+        /// Add new task navigation group
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="taskNavigationGroupDto">The new task navigation group.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpPut]
+        [UseSystemTextJson]
+        public async Task<IActionResult> AddTaskNavigationGroup(string org, string app, [FromBody] TaskNavigationGroupDto taskNavigationGroupDto, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await taskNavigationService.AddTaskNavigationGroup(editingContext, taskNavigationGroupDto.ToDomain(), cancellationToken);
+
+            return NoContent();
+        }
     }
 }
