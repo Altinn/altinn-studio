@@ -109,10 +109,10 @@ public class OptionsService : IOptionsService
         {
             foreach (var source in reference.OptionListIdSources)
             {
-                var matchingLayoutSetModel = layoutSetsModel.sets.FirstOrDefault(set => set.id == source.LayoutSetId);
+                var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
 
-                source.TaskId = matchingLayoutSetModel?.task.id;
-                source.TaskType = matchingLayoutSetModel?.task.type;
+                source.TaskId = matchingLayoutSetModel?.Task.Id;
+                source.TaskType = matchingLayoutSetModel?.Task.Type;
             }
         }
 

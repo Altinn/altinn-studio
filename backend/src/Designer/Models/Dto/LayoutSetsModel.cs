@@ -6,5 +6,5 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class LayoutSetsModel
 {
     [JsonPropertyName("sets")]
-    public List<LayoutSetModel> sets { get; set; } = [];
+    public List<LayoutSetModel> Sets { get; set; } = [];
 }
