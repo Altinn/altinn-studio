@@ -9,3 +9,5 @@ export { StudioParagraph } from './StudioParagraph';
 export { StudioField } from './StudioField';
 export { StudioLabel } from './StudioLabel';
 export { StudioDialog } from './StudioDialog';
+export { StudioSelect } from './StudioSelect';
+export { StudioValidationMessage } from './StudioValidationMessage';
