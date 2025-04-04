@@ -19,7 +19,6 @@ export const taskNavigationType = (taskType: string) => {
 export enum TaskType {
   Data = 'data',
   Confirmation = 'confirmation',
-  Feedback = 'feedback',
   Signing = 'signing',
   Payment = 'payment',
   Receipt = 'receipt',
