@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { useDataLoadingStore } from 'src/core/contexts/dataLoadingContext';
+import { useIsFetching } from '@tanstack/react-query';
+
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
-import type { DataLoading } from 'src/core/contexts/dataLoadingContext';
+
+export const loadingClassName = 'loading';
 
 type ReadyType = 'print' | 'load';
 const readyId: Record<ReadyType, string> = {
@@ -18,23 +20,25 @@ const readyId: Record<ReadyType, string> = {
  */
 export function ReadyForPrint({ type }: { type: ReadyType }) {
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
-  const dataLoadingIsDone = useDataLoadingStore((state) => state.isDone);
+
+  const isFetching = useIsFetching() > 0;
+
+  const numLoaders = useClassCount(loadingClassName);
 
   React.useLayoutEffect(() => {
     if (assetsLoaded) {
       return;
     }
 
-    const dataPromise = waitForDataLoading(dataLoadingIsDone);
     const imagePromise = waitForImages();
     const fontPromise = document.fonts.ready;
 
-    Promise.all([imagePromise, fontPromise, dataPromise]).then(() => {
+    Promise.all([imagePromise, fontPromise]).then(() => {
       setAssetsLoaded(true);
     });
-  }, [assetsLoaded, dataLoadingIsDone]);
+  }, [assetsLoaded]);
 
-  if (!assetsLoaded) {
+  if (!assetsLoaded || numLoaders > 0 || isFetching) {
     return null;
   }
 
@@ -69,11 +73,28 @@ async function waitForImages() {
   } while (nodes.some((node) => !node.complete));
 }
 
-async function waitForDataLoading(dataLoadingIsDone: DataLoading['isDone']) {
-  let done: boolean = dataLoadingIsDone();
+export function useClassCount(className: string): number {
+  const [count, setCount] = useState(() => document.getElementsByClassName(className).length);
 
-  while (!done) {
-    await new Promise((resolve) => window.requestIdleCallback(resolve, { timeout: 100 }));
-    done = dataLoadingIsDone();
-  }
+  useEffect(() => {
+    const updateCount = () => {
+      const newCount = document.getElementsByClassName(className).length;
+      setCount(newCount);
+    };
+
+    const observer = new MutationObserver(updateCount);
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    updateCount();
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [className]);
+
+  return count;
 }

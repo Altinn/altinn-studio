@@ -305,6 +305,15 @@ describe('PDF', () => {
                   textResourceBindings: { title: 'This is a custom PDF' },
                   size: 'L',
                 },
+                {
+                  id: 'datalist',
+                  type: 'Summary2',
+                  target: {
+                    taskId: 'Task_5',
+                    type: 'layoutSet',
+                  },
+                  showPageInAccordion: false,
+                },
               ],
             },
           },
@@ -316,9 +325,12 @@ describe('PDF', () => {
     cy.get(appFrontend.message.title).should('be.visible');
     cy.waitUntilSaved();
 
+    cy.gotoAndComplete('datalist');
+
     cy.testPdf({
       callback: () => {
         cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
+        cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
       },
     });
   });

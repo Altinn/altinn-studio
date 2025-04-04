@@ -22,7 +22,6 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -286,38 +285,36 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <LanguageProvider>
-        <DataLoadingProvider>
-          <TaskStoreProvider>
-            <LangToolsStoreProvider>
-              <UiConfigProvider>
-                <PageNavigationProvider>
-                  <Router>
-                    <AppRoutingProvider>
-                      <ApplicationMetadataProvider>
-                        <GlobalFormDataReadersProvider>
-                          <OrgsProvider>
-                            <ApplicationSettingsProvider>
-                              <LayoutSetsProvider>
-                                <SetShouldFetchAppLanguages />
-                                <ProfileProvider>
-                                  <PartyProvider>
-                                    <TextResourcesProvider>
-                                      <InstantiationProvider>{children}</InstantiationProvider>
-                                    </TextResourcesProvider>
-                                  </PartyProvider>
-                                </ProfileProvider>
-                              </LayoutSetsProvider>
-                            </ApplicationSettingsProvider>
-                          </OrgsProvider>
-                        </GlobalFormDataReadersProvider>
-                      </ApplicationMetadataProvider>
-                    </AppRoutingProvider>
-                  </Router>
-                </PageNavigationProvider>
-              </UiConfigProvider>
-            </LangToolsStoreProvider>
-          </TaskStoreProvider>
-        </DataLoadingProvider>
+        <TaskStoreProvider>
+          <LangToolsStoreProvider>
+            <UiConfigProvider>
+              <PageNavigationProvider>
+                <Router>
+                  <AppRoutingProvider>
+                    <ApplicationMetadataProvider>
+                      <GlobalFormDataReadersProvider>
+                        <OrgsProvider>
+                          <ApplicationSettingsProvider>
+                            <LayoutSetsProvider>
+                              <SetShouldFetchAppLanguages />
+                              <ProfileProvider>
+                                <PartyProvider>
+                                  <TextResourcesProvider>
+                                    <InstantiationProvider>{children}</InstantiationProvider>
+                                  </TextResourcesProvider>
+                                </PartyProvider>
+                              </ProfileProvider>
+                            </LayoutSetsProvider>
+                          </ApplicationSettingsProvider>
+                        </OrgsProvider>
+                      </GlobalFormDataReadersProvider>
+                    </ApplicationMetadataProvider>
+                  </AppRoutingProvider>
+                </Router>
+              </PageNavigationProvider>
+            </UiConfigProvider>
+          </LangToolsStoreProvider>
+        </TaskStoreProvider>
       </LanguageProvider>
     </AppQueriesProvider>
   );
@@ -347,13 +344,11 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <TaskStoreProvider>
-        <DataLoadingProvider>
-          <LangToolsStoreProvider>
-            <Router>
-              <AppRoutingProvider>{children}</AppRoutingProvider>
-            </Router>
-          </LangToolsStoreProvider>
-        </DataLoadingProvider>
+        <LangToolsStoreProvider>
+          <Router>
+            <AppRoutingProvider>{children}</AppRoutingProvider>
+          </Router>
+        </LangToolsStoreProvider>
       </TaskStoreProvider>
     </AppQueriesProvider>
   );

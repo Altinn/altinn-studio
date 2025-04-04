@@ -9,7 +9,6 @@ import { Button } from 'src/app-components/Button/Button';
 import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -46,18 +45,14 @@ function getDateDisplayString(timeStamp: string) {
 
 export const InstanceSelectionWrapper = () => (
   <TaskStoreProvider>
-    <DataLoadingProvider>
-      <ActiveInstancesProvider>
-        <PresentationComponent
-          type={ProcessTaskType.Unknown}
-          showNavigation={false}
-        >
-          <DataLoadingProvider>
-            <InstanceSelection />
-          </DataLoadingProvider>
-        </PresentationComponent>
-      </ActiveInstancesProvider>
-    </DataLoadingProvider>
+    <ActiveInstancesProvider>
+      <PresentationComponent
+        type={ProcessTaskType.Unknown}
+        showNavigation={false}
+      >
+        <InstanceSelection />
+      </PresentationComponent>
+    </ActiveInstancesProvider>
   </TaskStoreProvider>
 );
 

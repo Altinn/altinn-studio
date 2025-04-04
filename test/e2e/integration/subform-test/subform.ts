@@ -1,5 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { ILayoutSettings } from 'src/layout/common.generated';
+import type { ILayoutCollection } from 'src/layout/layout';
+
 const appFrontend = new AppFrontend();
 
 describe('Subform test', () => {
@@ -255,6 +258,92 @@ describe('Subform test', () => {
         cy.getSummary('Merke').eq(1).should('contain.text', 'Altinn');
         cy.getSummary('Modell').eq(1).should('contain.text', '3.0');
         cy.getSummary('Produksjonsår').eq(1).should('contain.text', '2030');
+      },
+    });
+  });
+
+  it('should render PDF with summary2 layoutset with subform and subform table', () => {
+    const pdfLayoutName = 'CustomPDF';
+    cy.intercept('GET', '**/layoutsettings/**', (req) =>
+      req.on('response', (res) => {
+        const body: ILayoutSettings = JSON.parse(res.body);
+        res.send({
+          ...body,
+          pages: { ...body.pages, pdfLayoutName },
+        });
+      }),
+    );
+
+    cy.intercept('GET', '**/layouts/**', (req) =>
+      req.on('response', (res) => {
+        const body: ILayoutCollection = JSON.parse(res.body);
+        res.send({
+          ...body,
+          [pdfLayoutName]: {
+            data: {
+              layout: [
+                {
+                  id: 'title',
+                  type: 'Header',
+                  textResourceBindings: { title: 'This is a custom PDF' },
+                  size: 'L',
+                },
+                {
+                  id: 'summary2-layoutset',
+                  type: 'Summary2',
+                  target: {
+                    taskId: 'Task_1',
+                    type: 'layoutSet',
+                  },
+                  showPageInAccordion: false,
+                  overrides: [
+                    {
+                      componentId: 'subform-mopeder',
+                      display: 'table',
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        });
+      }),
+    );
+
+    cy.waitUntilSaved();
+
+    cy.findByRole('textbox', { name: /navn/i }).type('Per');
+    cy.findByRole('textbox', { name: /alder/i }).type('28');
+
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
+    cy.findByRole('textbox', { name: /registreringsnummer/i }).type('ABC123');
+    cy.findByRole('textbox', { name: /merke/i }).type('Digdir');
+    cy.findByRole('textbox', { name: /modell/i }).type('Scooter2000');
+    cy.findByRole('textbox', { name: /produksjonsår/i }).type('2024');
+    cy.findByRole('button', { name: /ferdig/i }).clickAndGone();
+
+    cy.findByRole('button', { name: /legg til moped/i }).clickAndGone();
+    cy.findByRole('textbox', { name: /registreringsnummer/i }).type('XYZ987');
+    cy.findByRole('textbox', { name: /merke/i }).type('Altinn');
+    cy.findByRole('textbox', { name: /modell/i }).type('3.0');
+    cy.findByRole('textbox', { name: /produksjonsår/i }).type('2030');
+    cy.findByRole('button', { name: /ferdig/i }).clickAndGone();
+
+    cy.testPdf({
+      snapshotName: 'subform',
+      enableResponseFuzzing: true,
+      callback: () => {
+        cy.getSummary('Navn').should('contain.text', 'Per');
+        cy.getSummary('Alder').should('contain.text', '28 år');
+
+        cy.findByRole('columnheader', { name: 'Regnummer' });
+        cy.findByRole('columnheader', { name: 'Merke' });
+        cy.findByRole('columnheader', { name: 'Ekstra info' });
+
+        cy.findByRole('cell', { name: 'ABC123' });
+        cy.findByRole('cell', { name: 'Digdir' });
+        cy.findByRole('cell', { name: 'XYZ987' });
+        cy.findByRole('cell', { name: 'Altinn' });
       },
     });
   });

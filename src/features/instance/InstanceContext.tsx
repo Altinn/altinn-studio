@@ -8,7 +8,6 @@ import type { QueryObserverResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -128,13 +127,11 @@ function useGetInstanceDataQuery(hasResultFromInstantiation: boolean, partyId: s
 }
 
 export const InstanceProvider = ({ children }: { children: React.ReactNode }) => (
-  <DataLoadingProvider>
-    <Provider>
-      <BlockUntilLoaded>
-        <ProcessProvider>{children}</ProcessProvider>
-      </BlockUntilLoaded>
-    </Provider>
-  </DataLoadingProvider>
+  <Provider>
+    <BlockUntilLoaded>
+      <ProcessProvider>{children}</ProcessProvider>
+    </BlockUntilLoaded>
+  </Provider>
 );
 
 const BlockUntilLoaded = ({ children }: PropsWithChildren) => {

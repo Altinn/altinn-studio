@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
@@ -7,12 +7,9 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { DataLoadingState, useDataLoadingStore } from 'src/core/contexts/dataLoadingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
@@ -30,7 +27,6 @@ import { isHidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext'
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompTypes } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeData } from 'src/utils/layout/types';
 
 export const PDFView2 = () => {
@@ -45,115 +41,39 @@ export const PDFView2 = () => {
   if (pdfLayoutName) {
     // Render all components directly if given a separate PDF layout
     return (
-      <DataLoaderStoreInit>
-        <PdfWrapping>
-          <PlainPage pageKey={pdfLayoutName} />
-        </PdfWrapping>
-      </DataLoaderStoreInit>
+      <PdfWrapping>
+        <PlainPage pageKey={pdfLayoutName} />
+      </PdfWrapping>
     );
   }
 
   return (
     <DummyPresentation>
-      <DataLoaderStoreInit>
-        <PdfWrapping>
-          <div className={classes.instanceInfo}>
-            <InstanceInformation
-              elements={{
-                dateSent: true,
-                sender: true,
-                receiver: true,
-                referenceNumber: true,
-              }}
+      <PdfWrapping>
+        <div className={classes.instanceInfo}>
+          <InstanceInformation
+            elements={{
+              dateSent: true,
+              sender: true,
+              receiver: true,
+              referenceNumber: true,
+            }}
+          />
+        </div>
+        {order
+          .filter((pageKey) => !pdfSettings?.excludedPages.includes(pageKey))
+          .map((pageKey) => (
+            <PdfForPage
+              key={pageKey}
+              pageKey={pageKey}
+              pdfSettings={pdfSettings}
             />
-          </div>
-          {order
-            .filter((pageKey) => !pdfSettings?.excludedPages.includes(pageKey))
-            .map((pageKey) => (
-              <PdfForPage
-                key={pageKey}
-                pageKey={pageKey}
-                pdfSettings={pdfSettings}
-              />
-            ))}
-          <SubformSummaryComponent2 />
-        </PdfWrapping>
-      </DataLoaderStoreInit>
+          ))}
+        <SubformSummaryComponent2 />
+      </PdfWrapping>
     </DummyPresentation>
   );
 };
-
-export function DataLoaderStoreInit({ children }: PropsWithChildren) {
-  const subformIds = NodesInternal.useShallowSelector((state) =>
-    Object.values(state.nodeData)
-      .filter((node) => node.layout.type === 'Subform')
-      .map((node) => node.layout.id),
-  );
-
-  const [loadingState, setLoadingState] = React.useState(() => {
-    const initialLoadingState: Record<string, DataLoadingState> = {};
-    for (const subformId of subformIds) {
-      initialLoadingState[subformId] = DataLoadingState.Loading;
-    }
-
-    return initialLoadingState;
-  });
-
-  const handleWorkerCompletion = React.useCallback((subformId: string) => {
-    setLoadingState((prevState) => ({
-      ...prevState,
-      [subformId]: DataLoadingState.Ready,
-    }));
-  }, []);
-
-  const hasFinishedLoading = Object.values(loadingState).every((v) => v === DataLoadingState.Ready);
-
-  return (
-    <>
-      {subformIds.map((subformId, idx) => (
-        <DataLoaderStoreInitWorker
-          key={idx}
-          nodeId={subformId}
-          initComplete={handleWorkerCompletion}
-        />
-      ))}
-      {hasFinishedLoading && children}
-    </>
-  );
-}
-
-function DataLoaderStoreInitWorker({
-  nodeId,
-  initComplete,
-}: PropsWithChildren<{
-  nodeId: string;
-  initComplete: (subformId: string) => void;
-}>): React.JSX.Element | null {
-  const node = useNode(nodeId) as LayoutNode<'Subform'>;
-  const { layoutSet } = useNodeItem(node);
-  const setDataLoaderElements = useDataLoadingStore((state) => state.setDataElements);
-  const dataLoaderElements = useDataLoadingStore((state) => state.dataElements);
-
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useStrictDataElements(dataType);
-
-  useEffect(() => {
-    const elements: Record<string, DataLoadingState> = {};
-    for (const element of dataElements) {
-      if (element.id in dataLoaderElements) {
-        continue;
-      }
-      elements[element.id] = DataLoadingState.Loading;
-    }
-
-    if (Object.keys(elements).length) {
-      setDataLoaderElements(elements);
-    }
-    initComplete(node.id);
-  }, [dataElements, dataLoaderElements, setDataLoaderElements, initComplete, node.id]);
-
-  return null;
-}
 
 function PdfWrapping({ children }: PropsWithChildren) {
   const orgLogoEnabled = Boolean(useApplicationMetadata().logoOptions);

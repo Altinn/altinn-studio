@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
@@ -21,16 +20,14 @@ export function InstantiationContainer({ children }: IInstantiateContainerProps)
 
   return (
     <TaskStoreProvider>
-      <DataLoadingProvider>
-        <RenderStart>
-          <div className={classes.container}>
-            <InstantiateHeader profile={profile} />
-            <main id='main-content'>{children}</main>
-            <Footer />
-            <ReadyForPrint type='load' />
-          </div>
-        </RenderStart>
-      </DataLoadingProvider>
+      <RenderStart>
+        <div className={classes.container}>
+          <InstantiateHeader profile={profile} />
+          <main id='main-content'>{children}</main>
+          <Footer />
+          <ReadyForPrint type='load' />
+        </div>
+      </RenderStart>
     </TaskStoreProvider>
   );
 }
