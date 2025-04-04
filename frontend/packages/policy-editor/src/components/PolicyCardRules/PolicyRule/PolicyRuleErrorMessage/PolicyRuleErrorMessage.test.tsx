@@ -54,9 +54,22 @@ describe('PolicyRuleErrorMessage', () => {
   it('renders error message when three errors exist', () => {
     renderPolicyRuleErrorMessage({
       policyError: {
+        ...policyError,
         resourceError: true,
         actionsError: true,
         subjectsError: true,
+      },
+    });
+    expect(screen.getByText(errorText3)).toBeInTheDocument();
+  });
+
+  it('renders error message when four errors exist', () => {
+    renderPolicyRuleErrorMessage({
+      policyError: {
+        resourceError: true,
+        actionsError: true,
+        subjectsError: true,
+        accessPackagesError: true,
       },
     });
     expect(screen.getByText(errorText3)).toBeInTheDocument();

@@ -9,6 +9,7 @@ const policyError: PolicyError = {
   resourceError: false,
   subjectsError: false,
   actionsError: false,
+  accessPackagesError: false,
 };
 
 export const mockPolicyRuleContextValue: PolicyRuleContextProps = {

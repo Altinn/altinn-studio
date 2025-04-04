@@ -21,6 +21,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read', 'write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -28,6 +29,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read'],
           resources: [],
           subject: ['subject2'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -35,6 +37,7 @@ describe('AppPolicyUtils', () => {
           actions: ['write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -64,6 +67,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read', 'write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -71,6 +75,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read'],
           resources: [],
           subject: ['subject2'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -78,6 +83,7 @@ describe('AppPolicyUtils', () => {
           actions: ['write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -146,6 +152,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read', 'write'],
           resources: [],
           subject: [],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -153,6 +160,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read'],
           resources: [],
           subject: [],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -160,6 +168,7 @@ describe('AppPolicyUtils', () => {
           actions: ['write'],
           resources: [],
           subject: [],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -182,6 +191,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read', 'write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -189,6 +199,7 @@ describe('AppPolicyUtils', () => {
           actions: ['read'],
           resources: [],
           subject: ['subject2'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -196,6 +207,7 @@ describe('AppPolicyUtils', () => {
           actions: ['write'],
           resources: [],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -255,6 +267,7 @@ describe('AppPolicyUtils', () => {
           actions: [],
           resources: [],
           subject: [],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -262,6 +275,7 @@ describe('AppPolicyUtils', () => {
           actions: [],
           resources: [],
           subject: [],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -384,6 +398,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -402,6 +417,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject2'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -420,6 +436,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -468,6 +485,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -486,6 +504,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
         {
@@ -504,6 +523,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
@@ -635,6 +655,7 @@ describe('AppPolicyUtils', () => {
             ],
           ],
           subject: ['subject1'],
+          accessPackages: [],
           description: 'test',
         },
       ];
