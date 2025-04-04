@@ -22,7 +22,7 @@ export function StudioSelect({
   ...rest
 }: StudioSelectProps): ReactElement {
   const id: string = useId();
-  const descriptionId: string = description ? `${id}-description` : undefined;
+  const descriptionId: string | undefined = description ? `${id}-description` : undefined;
   const hasError: boolean = !!error;
 
   return (
