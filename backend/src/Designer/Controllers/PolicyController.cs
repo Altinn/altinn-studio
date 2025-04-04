@@ -191,6 +191,11 @@ namespace Altinn.Studio.Designer.Controllers
                     ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingsubject");
                 }
 
+                if (rule.AccessPackages == null || rule.AccessPackages.Count == 0)
+                {
+                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingaccesspackage");
+                }
+
                 if (rule.Actions == null || rule.Actions.Count == 0)
                 {
                     ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingaction");

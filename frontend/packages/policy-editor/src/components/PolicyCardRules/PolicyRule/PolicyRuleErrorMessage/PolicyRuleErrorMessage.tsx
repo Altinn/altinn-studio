@@ -6,13 +6,14 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 export const PolicyRuleErrorMessage = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRule, policyError } = usePolicyRuleContext();
-  const { resourceError, actionsError, subjectsError } = policyError;
+  const { resourceError, actionsError, subjectsError, accessPackagesError } = policyError;
 
   const getRuleErrorText = (): string => {
     const arr: string[] = [];
     if (resourceError) arr.push(t('policy_editor.policy_rule_missing_sub_resource'));
     if (actionsError) arr.push(t('policy_editor.policy_rule_missing_actions'));
     if (subjectsError) arr.push(t('policy_editor.policy_rule_missing_subjects'));
+    if (accessPackagesError) arr.push(t('policy_editor.policy_rule_missing_accesspackage'));
 
     if (arr.length === 1) {
       return t('policy_editor.policy_rule_missing_1', {
@@ -33,6 +34,15 @@ export const PolicyRuleErrorMessage = (): React.ReactElement => {
         missing1: arr[0],
         missing2: arr[1],
         missing3: arr[2],
+      });
+    }
+    if (arr.length === 4) {
+      return t('policy_editor.policy_rule_missing_3', {
+        ruleId: policyRule.ruleId,
+        missing1: arr[0],
+        missing2: arr[1],
+        missing3: arr[2],
+        missing4: arr[3],
       });
     }
     return '';

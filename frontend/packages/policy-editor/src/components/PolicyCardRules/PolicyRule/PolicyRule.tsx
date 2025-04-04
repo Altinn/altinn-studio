@@ -34,11 +34,12 @@ export const PolicyRule = ({
     resourceError: policyRule.resources.length === 0,
     actionsError: policyRule.actions.length === 0,
     subjectsError: policyRule.subject.length === 0,
+    accessPackagesError: policyRule.accessPackages.length === 0,
   });
-  const { resourceError, actionsError, subjectsError } = policyError;
+  const { resourceError, actionsError, subjectsError, accessPackagesError } = policyError;
 
   const getHasRuleError = () => {
-    return resourceError || actionsError || subjectsError;
+    return resourceError || actionsError || subjectsError || accessPackagesError;
   };
 
   const handleCloneRule = () => {

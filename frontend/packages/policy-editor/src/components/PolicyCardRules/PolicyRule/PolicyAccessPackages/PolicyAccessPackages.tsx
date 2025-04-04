@@ -13,12 +13,12 @@ import {
 import { ChosenAccessPackages } from './ChosenAccessPackages';
 import { AllAccessPackages } from './AllAccessPackages';
 import { PolicyAccessPackagesWarning } from './PolicyAccessPackagesWarning';
-import { Accordion } from '@digdir/designsystemet-react';
+import { Accordion, ErrorMessage } from '@digdir/designsystemet-react';
 
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule } = usePolicyRuleContext();
+  const { policyRule, showAllErrors, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
@@ -62,6 +62,10 @@ export const PolicyAccessPackages = (): ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
+    setPolicyError({
+      ...policyError,
+      accessPackagesError: newSelectedAccessPackageUrns.length === 0,
+    });
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -111,6 +115,11 @@ export const PolicyAccessPackages = (): ReactElement => {
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>
+      {showAllErrors && policyError.accessPackagesError && (
+        <ErrorMessage size='small'>
+          {t('policy_editor.rule_card_accesspackages_error')}
+        </ErrorMessage>
+      )}
     </div>
   );
 };
