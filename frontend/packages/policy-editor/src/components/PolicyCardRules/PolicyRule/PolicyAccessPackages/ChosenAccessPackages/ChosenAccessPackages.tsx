@@ -24,6 +24,17 @@ export const ChosenAccessPackages = ({
     groupedAccessPackagesByArea,
   );
 
+  const createUnknownAccessPackageData = (urn: string): PolicyAccessPackage => {
+    return {
+      id: urn,
+      urn,
+      name: t('policy_editor.access_package_unknown_heading'),
+      description: t('policy_editor.access_package_unknown_description', {
+        accessPackageUrn: urn,
+      }),
+    };
+  };
+
   if (chosenAccessPackages.length > 0) {
     return (
       <>
@@ -35,30 +46,16 @@ export const ChosenAccessPackages = ({
             (accessPackage) => accessPackage.urn === accessPackageUrn,
           );
 
+          const accessPackageData =
+            chosenAccessPackage ?? createUnknownAccessPackageData(accessPackageUrn);
+
           return (
-            <React.Fragment key={accessPackageUrn}>
-              {chosenAccessPackage ? (
-                <PolicyAccessPackageAccordion
-                  accessPackage={chosenAccessPackage}
-                  isChecked={true}
-                  handleSelectChange={handleSelectAccessPackage}
-                />
-              ) : (
-                <PolicyAccessPackageAccordion
-                  accessPackage={
-                    {
-                      urn: accessPackageUrn,
-                      name: t('policy_editor.access_package_unkown_heading'),
-                      description: t('policy_editor.access_package_unkown_description', {
-                        accessPackageUrn: accessPackageUrn,
-                      }),
-                    } as PolicyAccessPackage
-                  }
-                  isChecked={true}
-                  handleSelectChange={handleSelectAccessPackage}
-                />
-              )}
-            </React.Fragment>
+            <PolicyAccessPackageAccordion
+              key={accessPackageData.urn}
+              accessPackage={accessPackageData}
+              isChecked={true}
+              handleSelectChange={handleSelectAccessPackage}
+            />
           );
         })}
       </>
