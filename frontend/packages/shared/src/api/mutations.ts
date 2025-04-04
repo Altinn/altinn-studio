@@ -192,5 +192,5 @@ export const deleteCodeListForOrg = async (org: string, codeListId: string): Pro
 export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
-export const createTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, null>(orgTextResourcesPath(org, language), null);
+export const createTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
