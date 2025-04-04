@@ -1,4 +1,4 @@
-.card  {
+.card {
   --card-margin-inline: var(--fds-spacing-4);
 
   margin-inline: var(--card-margin-inline);
