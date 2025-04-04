@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +21,17 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IAppDevelopmentService _appDevelopmentService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="appDevelopmentService"></param>
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _appDevelopmentService = appDevelopmentService;
     }
 
     /// <inheritdoc />
@@ -76,20 +80,32 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-        List<RefToOptionListSpecifier> optionsListReferences = new List<RefToOptionListSpecifier>();
+        var optionListReferences = await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
+        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(altinnRepoEditingContext, optionListReferences, cancellationToken);
 
-        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
-        foreach (string layoutSetName in layoutSetNames)
+        return optionListReferencesWithTaskData;
+    }
+
+    private async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken)
+    {
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
+        if (layoutSetsModel == null)
         {
-            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
-            foreach (var layoutName in layoutNames)
+            return optionListReferences;
+        }
+
+        foreach (var reference in optionListReferences)
+        {
+            foreach (var source in reference.OptionListIdSources)
             {
-                var layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
-                optionsListReferences = altinnAppGitRepository.FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+                var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
+
+                source.TaskId = matchingLayoutSetModel?.Task.Id;
+                source.TaskType = matchingLayoutSetModel?.Task.Type;
             }
         }
 
-        return optionsListReferences;
+        return optionListReferences;
     }
 
     private void ValidateOption(Option option)
