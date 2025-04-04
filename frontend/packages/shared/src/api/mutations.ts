@@ -1,4 +1,4 @@
-import { del, get, post, put } from 'app-shared/utils/networking';
+import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -52,6 +52,7 @@ import {
   orgCodeListPath,
   orgCodeListUploadPath,
   layoutPagesPath,
+  orgTextResourcesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -80,7 +81,6 @@ import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
 import type { CodeList } from 'app-shared/types/CodeList';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { OptionList } from '../types/OptionList';
@@ -192,6 +192,5 @@ export const deleteCodeListForOrg = async (org: string, codeListId: string): Pro
 export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
-// Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
-export const createTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
-export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
+export const createTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
+export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
