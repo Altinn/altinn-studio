@@ -277,23 +277,29 @@ public class OptionsServiceTests : IDisposable
                     {
                         ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
                         LayoutName = "layoutWithOneOptionListIdRef",
-                        LayoutSetId = "layoutSet1"
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-same-options-id-in-another-set"],
                         LayoutName = "layoutWithTwoOptionListIdRefs",
-                        LayoutSetId = "layoutSet2"
+                        LayoutSetId = "layoutSet2",
+                        TaskId = "Task_2",
+                        TaskType = "data"
                     }
                 ]
             },
-            new()
+            new RefToOptionListSpecifier
             {
                 OptionListId = "other-options", OptionListIdSources =
                 [
@@ -301,7 +307,9 @@ public class OptionsServiceTests : IDisposable
                     {
                         ComponentIds = ["component-using-other-options-id"],
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     }
                 ]
             }
