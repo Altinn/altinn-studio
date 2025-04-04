@@ -1,7 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageServices.module.css';
-import { StudioParagraph } from '@studio/components-legacy';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
 
 const selectedLanguage = 'nb';
@@ -12,13 +10,8 @@ export type PolicyAccessPackageServicesProps = {
 export const PolicyAccessPackageServices = ({
   services,
 }: PolicyAccessPackageServicesProps): ReactElement => {
-  const { t } = useTranslation();
-
   return (
     <>
-      <StudioParagraph className={classes.serviceContainerHeader}>
-        {t('policy_editor.access_package_services')}
-      </StudioParagraph>
       {services.map((resource) => (
         <div key={resource.identifier} className={classes.serviceContainer}>
           <PolicyAccessPackageServiceLogo resource={resource} language={selectedLanguage} />
