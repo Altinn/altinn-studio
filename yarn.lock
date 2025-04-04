@@ -4318,7 +4318,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/components@workspace:^, @studio/components@workspace:frontend/libs/studio-components":
+"@studio/components@workspace:frontend/libs/studio-components":
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
@@ -6548,7 +6548,6 @@ __metadata:
     "@microsoft/applicationinsights-react-js": "npm:17.3.4"
     "@microsoft/applicationinsights-web": "npm:3.3.4"
     "@microsoft/signalr": "npm:8.0.7"
-    "@studio/components": "workspace:^"
     "@svgr/webpack": "npm:8.1.0"
     "@swc/core": "npm:1.10.12"
     "@swc/jest": "npm:0.2.37"
