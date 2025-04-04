@@ -4,7 +4,7 @@ import type { RenderResult } from '@testing-library/react';
 import { StudioDialogTrigger } from './';
 import type { StudioDialogTriggerProps } from './StudioDialogTrigger';
 
-describe('StudioDialog', () => {
+describe('StudioDialogTrigger', () => {
   it('Renders triggerbutton with icon when provided', () => {
     const iconTestId: string = 'Icon';
     renderStudioDialogTrigger({ children: <span data-testid={iconTestId} /> });
