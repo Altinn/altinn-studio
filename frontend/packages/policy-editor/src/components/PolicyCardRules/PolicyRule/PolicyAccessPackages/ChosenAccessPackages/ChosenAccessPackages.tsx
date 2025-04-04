@@ -45,7 +45,6 @@ export const ChosenAccessPackages = ({
           const chosenAccessPackage = flatMappedAreaList.find(
             (accessPackage) => accessPackage.urn === accessPackageUrn,
           );
-
           const accessPackageData =
             chosenAccessPackage ?? createUnknownAccessPackageData(accessPackageUrn);
 
