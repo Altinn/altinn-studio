@@ -284,21 +284,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 LayoutSetModel layoutSetModel = new()
                 {
-                    id = set.Id,
-                    dataType = set.DataType,
-                    type = set.Type,
+                    Id = set.Id,
+                    DataType = set.DataType,
+                    Type = set.Type,
                 };
                 string taskId = set.Tasks?[0];
                 if (taskId != null)
                 {
                     string taskType = TaskTypeFromDefinitions(definitions, taskId);
-                    layoutSetModel.task = new TaskModel
+                    layoutSetModel.Task = new TaskModel
                     {
-                        id = taskId,
-                        type = taskType
+                        Id = taskId,
+                        Type = taskType
                     };
                 }
-                layoutSetsModel.sets.Add(layoutSetModel);
+                layoutSetsModel.Sets.Add(layoutSetModel);
             });
             return layoutSetsModel;
         }
