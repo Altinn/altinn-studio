@@ -7,8 +7,10 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -372,8 +374,10 @@ public class OptionsServiceTests : IDisposable
 
     private static OptionsService GetOptionsServiceForTest()
     {
+        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentService);
 
         return optionsService;
     }

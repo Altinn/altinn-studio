@@ -609,6 +609,24 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSettings;
         }
 
+        public async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSets(CancellationToken cancellationToken)
+        {
+            List<RefToOptionListSpecifier> optionsListReferences = [];
+            string[] layoutSetNames = GetLayoutSetNames();
+
+            foreach (string layoutSetName in layoutSetNames)
+            {
+                string[] layoutNames = GetLayoutNames(layoutSetName);
+                foreach (string layoutName in layoutNames)
+                {
+                    var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
+                    optionsListReferences = FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+                }
+            }
+
+            return optionsListReferences;
+        }
+
         /// <summary>
         /// Finds all <see cref="RefToOptionListSpecifier"/> in a given layout.
         /// </summary>

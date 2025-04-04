@@ -80,32 +80,21 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-        List<RefToOptionListSpecifier> optionsListReferences = new List<RefToOptionListSpecifier>();
+        var optionListReferences = await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
+        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(altinnRepoEditingContext, optionListReferences, cancellationToken);
 
-
-
-        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
-        foreach (string layoutSetName in layoutSetNames)
-        {
-            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
-            foreach (string layoutName in layoutNames)
-            {
-                var layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
-                optionsListReferences = altinnAppGitRepository.FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
-            }
-        }
-
-        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
-        List<RefToOptionListSpecifier> optionsListReferencesWithTaskData = AddTaskDataToOptionListReferences(optionsListReferences, layoutSetsModel);
-
-        return optionsListReferencesWithTaskData;
+        return optionListReferencesWithTaskData;
     }
 
-    private List<RefToOptionListSpecifier> AddTaskDataToOptionListReferences(List<RefToOptionListSpecifier> optionsListReferences, LayoutSetsModel layoutSetsModel)
+    private async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken)
     {
-        if (optionsListReferences == null || layoutSetsModel == null) return optionsListReferences;
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
+        if (layoutSetsModel == null)
+        {
+            return optionListReferences;
+        }
 
-        foreach (var reference in optionsListReferences)
+        foreach (var reference in optionListReferences)
         {
             foreach (var source in reference.OptionListIdSources)
             {
@@ -116,7 +105,7 @@ public class OptionsService : IOptionsService
             }
         }
 
-        return optionsListReferences;
+        return optionListReferences;
     }
 
     private void ValidateOption(Option option)
