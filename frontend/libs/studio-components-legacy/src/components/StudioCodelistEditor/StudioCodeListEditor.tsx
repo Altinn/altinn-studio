@@ -73,11 +73,14 @@ function StatefulCodeListEditor({
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const handleAddOrDeleteAny = useCallback(() => {
-    if (isCodeListValid(state.codeList)) {
-      onAddOrDeleteItem?.(state.codeList);
-    }
-  }, [onAddOrDeleteItem, state.codeList]);
+  const handleAddOrDeleteAny = useCallback(
+    (newCodeList: CodeList) => {
+      if (isCodeListValid(newCodeList)) {
+        onAddOrDeleteItem?.(newCodeList);
+      }
+    },
+    [onAddOrDeleteItem],
+  );
 
   const handleBlurAny = useCallback(() => {
     isCodeListValid(state.codeList) && onBlurAny?.(state.codeList);
@@ -85,7 +88,6 @@ function StatefulCodeListEditor({
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
-      console.log('handleChange', newCodeList);
       if (isCodeListValid(newCodeList)) {
         dispatch({ type: ReducerActionType.SetCodeList, codeList: newCodeList });
         onChange?.(newCodeList);
