@@ -33,6 +33,7 @@ const unknownAccessPackage: PolicyAccessPackage = {
   urn: 'urn:package4',
   name: 'Package Zeta',
   description: 'Fourth package',
+  isDelegable: true,
 };
 
 const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
