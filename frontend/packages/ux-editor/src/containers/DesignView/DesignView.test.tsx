@@ -35,6 +35,11 @@ const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
+const setupFeatureFlag = (enabled: boolean) => {
+  const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+  shouldDisplayFeature.mockReturnValue(enabled);
+};
+
 describe('DesignView', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -134,38 +139,33 @@ describe('DesignView', () => {
   });
 
   it('renders DesignViewNavigation when isTaskNavigationPageGroups is true', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(true);
+    setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByTestId('design-view-navigation')).toBeInTheDocument();
   });
 
   it('does not render DesignViewNavigation when isTaskNavigationPageGroups is false', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(false);
+    setupFeatureFlag(false);
     renderDesignView();
     expect(screen.queryByTestId('design-view-navigation')).not.toBeInTheDocument();
   });
 
   it('does not render Accordion when pagesModel has no pages', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(false);
+    setupFeatureFlag(false);
     renderDesignView({ ...formLayoutSettingsMock, pages: { order: [] } });
     const accordion = screen.queryByRole('group', { name: /accordion/i });
     expect(accordion).not.toBeInTheDocument();
   });
 
   it('renders group accordions when isTaskNavigationPageGroups is true and there are groups', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(true);
+    setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
   });
 
   it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(false);
+    setupFeatureFlag(false);
     renderDesignView();
     expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
     expect(screen.queryByText('sideoppsett 2')).not.toBeInTheDocument();
@@ -173,8 +173,7 @@ describe('DesignView', () => {
   });
 
   it('renders page accordions when isTaskNavigationPageGroups is false', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(false);
+    setupFeatureFlag(false);
     renderDesignView();
     formLayoutSettingsMock.pages.order.forEach((page) => {
       expect(screen.getByRole('button', { name: page })).toBeInTheDocument();
@@ -182,8 +181,7 @@ describe('DesignView', () => {
   });
 
   it('Does not render group accordions when order is empty or undefined', () => {
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(true);
+    setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     expect(screen.getByText('sideoppsett 2')).toBeInTheDocument();
@@ -193,8 +191,7 @@ describe('DesignView', () => {
 
   it('calls "handleAddPage" when clicking the add page button within a group', async () => {
     const user = userEvent.setup();
-    const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-    shouldDisplayFeature.mockReturnValue(true);
+    setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
