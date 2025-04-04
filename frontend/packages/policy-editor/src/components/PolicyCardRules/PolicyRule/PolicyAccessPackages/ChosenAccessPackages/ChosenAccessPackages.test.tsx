@@ -12,24 +12,28 @@ const package1: PolicyAccessPackage = {
   urn: 'urn:package1',
   name: 'Package Alpha',
   description: 'First package',
+  isDelegable: true,
 };
 const package2: PolicyAccessPackage = {
   id: 'package2',
   urn: 'urn:package2',
   name: 'Package Beta',
   description: 'Second package',
+  isDelegable: true,
 };
 const package3: PolicyAccessPackage = {
   id: 'package3',
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
+  isDelegable: true,
 };
 const unknownAccessPackage: PolicyAccessPackage = {
   id: 'package4',
   urn: 'urn:package4',
   name: 'Package Zeta',
   description: 'Fourth package',
+  isDelegable: true,
 };
 
 const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [

@@ -32,6 +32,7 @@ export const ChosenAccessPackages = ({
       description: t('policy_editor.access_package_unknown_description', {
         accessPackageUrn: urn,
       }),
+      isDelegable: true,
     };
   };
 

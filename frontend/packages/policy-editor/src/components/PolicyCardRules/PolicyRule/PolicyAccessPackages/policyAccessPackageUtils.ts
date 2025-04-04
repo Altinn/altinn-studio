@@ -42,19 +42,21 @@ export const groupAccessPackagesByArea = (
   return accessPackageAreaGroups.flatMap((group: PolicyAccessPackageAreaGroup) => group.areas);
 };
 
+export const filterAccessPackagesByIsDelegable = (
+  areas: PolicyAccessPackageArea[],
+): PolicyAccessPackageArea[] => {
+  return areas.map((area) => {
+    return {
+      ...area,
+      packages: area.packages.filter((accessPackage) => accessPackage.isDelegable),
+    };
+  });
+};
+
 export const flatMapAreaPackageList = (
   areaList: PolicyAccessPackageArea[],
 ): PolicyAccessPackage[] => {
   return areaList.flatMap((area: PolicyAccessPackageArea) => area.packages);
-};
-
-export const filterAccessPackagesById = (
-  accessPackageList: PolicyAccessPackage[],
-  chosenAccessPackageUrns: string[],
-): PolicyAccessPackage[] => {
-  return accessPackageList.filter((accessPackage: PolicyAccessPackage) =>
-    isAccessPackageSelected(accessPackage.urn, chosenAccessPackageUrns),
-  );
 };
 
 export const isAccessPackageSelected = (
