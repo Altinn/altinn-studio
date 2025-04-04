@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { SettingsNavigation } from './SettingsNavigation';
 
 enum Tabs {
   Navigation = 'navigation',
@@ -32,7 +33,9 @@ export const SettingsTabs = (): ReactElement => {
           </StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Content value={Tabs.Navigation}>
-          {enableNavigationTab ? null : (
+          {enableNavigationTab ? (
+            <SettingsNavigation />
+          ) : (
             <StudioAlert severity='info' className={classes.wipMessage}>
               {t('ux_editor.settings.wip_message')}
             </StudioAlert>
