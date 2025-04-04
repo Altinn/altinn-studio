@@ -8,3 +8,4 @@ export { StudioHeading } from './StudioHeading';
 export { StudioParagraph } from './StudioParagraph';
 export { StudioField } from './StudioField';
 export { StudioLabel } from './StudioLabel';
+export { StudioValidationMessage } from './StudioValidationMessage';
