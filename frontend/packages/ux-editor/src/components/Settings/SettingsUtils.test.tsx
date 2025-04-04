@@ -1,4 +1,3 @@
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { isTaskReceipt, getTaskIcon, taskNavigationType, TaskType } from './SettingsUtils';
 import {
   CardIcon,
@@ -12,9 +11,6 @@ import {
 describe('taskNavigationType', () => {
   it('should return the correct text key', () => {
     expect(taskNavigationType('receipt')).toBe(
-      'process_editor.configuration_panel_custom_receipt_accordion_header',
-    );
-    expect(taskNavigationType(PROTECTED_TASK_NAME_CUSTOM_RECEIPT)).toBe(
       'process_editor.configuration_panel_custom_receipt_accordion_header',
     );
     expect(taskNavigationType('data')).toBe('process_editor.task_type.data');
@@ -32,7 +28,6 @@ describe('taskNavigationIcon', () => {
     expect(getTaskIcon(TaskType.Signing)).toBe(PencilLineIcon);
     expect(getTaskIcon(TaskType.Payment)).toBe(CardIcon);
     expect(getTaskIcon(TaskType.Receipt)).toBe(ReceiptIcon);
-    expect(getTaskIcon(TaskType.CustomReceipt)).toBe(ReceiptIcon);
     expect(getTaskIcon('unknown')).toBe(FolderIcon);
   });
 });
@@ -42,11 +37,7 @@ describe('isTaskReceipt', () => {
     expect(isTaskReceipt('receipt')).toBe(true);
   });
 
-  it('should return true if taskType is custom receipt', () => {
-    expect(isTaskReceipt(PROTECTED_TASK_NAME_CUSTOM_RECEIPT)).toBe(true);
-  });
-
-  it('should return false if taskType is not receipt or PROTECTED_TASK_NAME_CUSTOM_RECEIPT', () => {
+  it('should return false if taskType is not receipt', () => {
     expect(isTaskReceipt('data')).toBe(false);
   });
 });

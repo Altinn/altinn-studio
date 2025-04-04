@@ -9,7 +9,7 @@ import {
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export const taskNavigationType = (taskType: string) => {
-  if (taskType === 'receipt' || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
+  if (taskType === 'receipt') {
     return 'process_editor.configuration_panel_custom_receipt_accordion_header';
   } else {
     return `process_editor.task_type.${taskType}`;
@@ -19,10 +19,10 @@ export const taskNavigationType = (taskType: string) => {
 export enum TaskType {
   Data = 'data',
   Confirmation = 'confirmation',
+  Feedback = 'feedback',
   Signing = 'signing',
   Payment = 'payment',
   Receipt = 'receipt',
-  CustomReceipt = PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
 }
 
 export const getTaskIcon = (taskType: string) => {
@@ -36,7 +36,6 @@ export const getTaskIcon = (taskType: string) => {
     case TaskType.Payment:
       return CardIcon;
     case TaskType.Receipt:
-    case TaskType.CustomReceipt:
       return ReceiptIcon;
     default:
       return FolderIcon;
