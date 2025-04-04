@@ -36,6 +36,7 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
         using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
 
         using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+        xsrfResponse.EnsureSuccessStatusCode();
 
         string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.Headers.GetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie));
         request.AddXsrfToken(xsrfToken);
