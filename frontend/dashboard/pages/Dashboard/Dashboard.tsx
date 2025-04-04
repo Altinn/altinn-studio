@@ -21,7 +21,6 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { SafeErrorView } from '../../components/SafeErrorView';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
 import { useSubroute } from '../../hooks/useSubRoute';
-import { StudioButton, StudioParagraph } from '@studio/components';
 
 type DashboardProps = {
   user: User;
@@ -51,8 +50,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
     <>
       <CenterContainer>
         <div className={classes.createServiceContainer}>
-          <StudioParagraph>Test</StudioParagraph>
-          <StudioButton>Test</StudioButton>
           <div className={classes.topBar}>
             <StudioSearch
               label={t('dashboard.search')}
