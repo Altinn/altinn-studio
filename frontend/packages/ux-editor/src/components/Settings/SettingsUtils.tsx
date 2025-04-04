@@ -1,10 +1,10 @@
-import React, { type ReactElement } from 'react';
 import {
-  NavigationDataIcon,
-  QuestionmarkIcon,
-  NavigationSignIcon,
-  NavigationPayIcon,
-  NavigationReceiptIcon,
+  TasklistIcon,
+  SealCheckmarkIcon,
+  PencilLineIcon,
+  CardIcon,
+  ReceiptIcon,
+  FolderIcon,
 } from '@studio/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
@@ -16,19 +16,30 @@ export const taskNavigationType = (taskType: string) => {
   }
 };
 
-export const taskNavigationIcon = (taskType: string, taskIcon?: string): ReactElement => {
+export enum TaskType {
+  Data = 'data',
+  Confirmation = 'confirmation',
+  Signing = 'signing',
+  Payment = 'payment',
+  Receipt = 'receipt',
+  CustomReceipt = PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
+}
+
+export const getTaskIcon = (taskType: string) => {
   switch (taskType) {
-    case 'receipt':
-    case PROTECTED_TASK_NAME_CUSTOM_RECEIPT:
-      return <NavigationReceiptIcon data-testid='receipt' className={taskIcon} />;
-    case 'data':
-      return <NavigationDataIcon data-testid='data' className={taskIcon} />;
-    case 'signing':
-      return <NavigationSignIcon data-testid='signing' className={taskIcon} />;
-    case 'payment':
-      return <NavigationPayIcon data-testid='payment' className={taskIcon} />;
+    case TaskType.Data:
+      return TasklistIcon;
+    case TaskType.Confirmation:
+      return SealCheckmarkIcon;
+    case TaskType.Signing:
+      return PencilLineIcon;
+    case TaskType.Payment:
+      return CardIcon;
+    case TaskType.Receipt:
+    case TaskType.CustomReceipt:
+      return ReceiptIcon;
     default:
-      return <QuestionmarkIcon data-testid='questionMark' className={taskIcon} />;
+      return FolderIcon;
   }
 };
 

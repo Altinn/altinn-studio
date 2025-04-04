@@ -1,6 +1,7 @@
-:root {
+.taskNavigationContainer {
   --icon-size: 28px;
   --icon-size-locker: 21px;
+  --icon-border-width: 2px;
   --font-weight-semi-bold: 500;
   --container-height: 637px;
   --container-width: 541px;
@@ -36,8 +37,19 @@
 }
 
 .taskIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+
   width: var(--icon-size);
   height: var(--icon-size);
+
+  border: var(--icon-border-width) solid var(--fds-colors-grey-600);
+  border-radius: var(--fds-border_radius-interactive);
+
+  background-color: var(--fds-colors-grey-100);
+  color: var(--fds-colors-grey-800);
 }
 
 .taskIconLocker {

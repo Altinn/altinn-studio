@@ -1,6 +1,13 @@
-import { render, screen } from '@testing-library/react';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { isTaskReceipt, taskNavigationIcon, taskNavigationType } from './SettingsUtils';
+import { isTaskReceipt, getTaskIcon, taskNavigationType, TaskType } from './SettingsUtils';
+import {
+  CardIcon,
+  FolderIcon,
+  PencilLineIcon,
+  ReceiptIcon,
+  SealCheckmarkIcon,
+  TasklistIcon,
+} from '@studio/icons';
 
 describe('taskNavigationType', () => {
   it('should return the correct text key', () => {
@@ -20,20 +27,13 @@ describe('taskNavigationType', () => {
 
 describe('taskNavigationIcon', () => {
   it('should return the correct icon', () => {
-    render(taskNavigationIcon('receipt'));
-    expect(screen.getByTestId('receipt')).toBeInTheDocument();
-
-    render(taskNavigationIcon('data'));
-    expect(screen.getByTestId('data')).toBeInTheDocument();
-
-    render(taskNavigationIcon('signing'));
-    expect(screen.getByTestId('signing')).toBeInTheDocument();
-
-    render(taskNavigationIcon('payment'));
-    expect(screen.getByTestId('payment')).toBeInTheDocument();
-
-    render(taskNavigationIcon('feedback'));
-    expect(screen.getByTestId('questionMark')).toBeInTheDocument();
+    expect(getTaskIcon(TaskType.Data)).toBe(TasklistIcon);
+    expect(getTaskIcon(TaskType.Confirmation)).toBe(SealCheckmarkIcon);
+    expect(getTaskIcon(TaskType.Signing)).toBe(PencilLineIcon);
+    expect(getTaskIcon(TaskType.Payment)).toBe(CardIcon);
+    expect(getTaskIcon(TaskType.Receipt)).toBe(ReceiptIcon);
+    expect(getTaskIcon(TaskType.CustomReceipt)).toBe(ReceiptIcon);
+    expect(getTaskIcon('unknown')).toBe(FolderIcon);
   });
 });
 

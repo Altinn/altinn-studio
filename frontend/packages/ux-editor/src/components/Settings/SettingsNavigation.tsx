@@ -4,7 +4,7 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isTaskReceipt, taskNavigationIcon, taskNavigationType } from './SettingsUtils';
+import { isTaskReceipt, getTaskIcon, taskNavigationType } from './SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
 
@@ -40,13 +40,13 @@ type TaskNavigationProps = {
 const TaskNavigation = ({ taskType }: TaskNavigationProps): ReactElement => {
   const { t } = useTranslation();
 
-  const taskIcon = taskNavigationIcon(taskType, classes.taskIcon);
+  const TaskIcon = getTaskIcon(taskType);
   const taskTypeName = taskNavigationType(taskType);
 
   return (
     <div className={classes.taskWrapper}>
       <div className={classes.taskContent}>
-        {taskIcon}
+        <TaskIcon className={classes.taskIcon} />
         <span className={classes.taskTypeName}>{t(taskTypeName)}</span>
       </div>
       {isTaskReceipt(taskType) && (
