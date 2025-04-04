@@ -77,7 +77,7 @@
           "group": "ListCheckboxExample"
         },
         "hidden": false,
-        "hiddenRow": ["dataModel", "ListCheckboxExample.isChecked"],
+        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
         "children": [
           "CheckboxesPage-RepeatingGroupName",
           "CheckboxesPage-RepeatingGroupAge"

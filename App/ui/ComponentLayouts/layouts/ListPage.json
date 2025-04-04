@@ -122,6 +122,7 @@
           "dataModelBindings": {
             "group": "ListCheckboxExample"
           },
+          "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
           "hidden": false,
           "children": [
             "RepeatingGroupListWithCheckboxesAge",
