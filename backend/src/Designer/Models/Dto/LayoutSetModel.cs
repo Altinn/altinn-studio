@@ -5,12 +5,12 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class LayoutSetModel
 {
     [JsonPropertyName("id")]
-    public string id { get; set; }
+    public string Id { get; set; }
     [JsonPropertyName("dataType")]
-    public string dataType { get; set; }
+    public string DataType { get; set; }
     [JsonPropertyName("type")]
-    public string type { get; set; }
+    public string Type { get; set; } // Decides if layout set is subform
     [JsonPropertyName("task")]
-    public TaskModel task { get; set; }
+    public TaskModel Task { get; set; }
 }
 
