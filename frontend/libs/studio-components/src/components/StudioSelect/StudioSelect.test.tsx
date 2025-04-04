@@ -36,6 +36,16 @@ describe('StudioSelect', () => {
     await userEvent.selectOptions(select, mockOption2Value);
     expect(select.value).toBe(mockOption2Value);
   });
+
+  it('renders the description correctly', () => {
+    renderStudioSelect({ description: mockDescription });
+    expect(getText(mockDescription)).toBeInTheDocument();
+  });
+
+  it('renders the error message correctly', () => {
+    renderStudioSelect({ error: mockError });
+    expect(getText(mockError)).toBeInTheDocument();
+  });
 });
 
 const mockOption1Value: string = '1';
@@ -43,6 +53,8 @@ const mockOption1Text: string = 'Option 1';
 const mockOption2Value: string = '2';
 const mockOption2Text: string = 'Option 2';
 const mockLabel: string = 'Test Label';
+const mockDescription: string = 'Test description';
+const mockError: string = 'Test error';
 
 const defaultProps: StudioSelectProps = {
   label: mockLabel,
@@ -60,3 +72,4 @@ const renderStudioSelect = (props: Partial<StudioSelectProps> = {}): RenderResul
 const getLabel = (name: string): HTMLLabelElement => screen.getByLabelText(name);
 const getSelect = (name: string): HTMLSelectElement => screen.getByRole('combobox', { name });
 const getOption = (name: string): HTMLOptionElement => screen.getByRole('option', { name });
+const getText = (name: string): HTMLParagraphElement => screen.getByText(name);

@@ -42,6 +42,7 @@ export const Preview: Story = (args): React.ReactElement => <ComposedComponent {
 
 Preview.args = {
   label: 'My select label',
+  description: 'My select description',
   'data-size': 'sm',
   width: 'full',
 };
