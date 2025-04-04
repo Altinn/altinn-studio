@@ -6,11 +6,14 @@ import { PencilIcon } from '@studio/icons';
 import { StudioHeading } from '../StudioHeading';
 
 const ComposedComponent = (args): ReactElement => (
-  <StudioDialog triggerButtonText='My dialog trigger'>
-    <StudioDialog.Block>
-      <StudioHeading>My heading</StudioHeading>
-    </StudioDialog.Block>
-  </StudioDialog>
+  <StudioDialog.TriggerContext>
+    <StudioDialog.Trigger icon={<PencilIcon />}>My trigger</StudioDialog.Trigger>
+    <StudioDialog {...args}>
+      <StudioDialog.Block>
+        <StudioHeading>My heading</StudioHeading>
+      </StudioDialog.Block>
+    </StudioDialog>
+  </StudioDialog.TriggerContext>
 );
 
 type Story = StoryFn<typeof ComposedComponent>;
@@ -23,11 +26,16 @@ const meta: Meta = {
       control: 'radio',
       options: ['sm', 'md', 'lg'],
     },
+    closedBy: {
+      control: 'radio',
+      options: ['none', 'closerequest', 'any'],
+    },
   },
 };
 export const Preview: Story = (args): React.ReactElement => <ComposedComponent {...args} />;
 
 Preview.args = {
-  triggerButtonIcon: <PencilIcon />,
+  'data-size': 'sm',
+  closedBy: 'any',
 };
 export default meta;

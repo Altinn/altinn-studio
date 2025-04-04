@@ -1,39 +1,23 @@
-import React, { useState } from 'react';
-import type { ReactElement } from 'react';
+import React, { forwardRef } from 'react';
+import type { ReactElement, Ref } from 'react';
 import { Dialog } from '@digdir/designsystemet-react';
 import type { DialogProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
-import { TextWithIcon } from '../TextWithIcon';
 
-export type StudioDialogProps = {
-  triggerButtonText?: string;
-  triggerButtonIcon?: ReactElement;
-  triggerButtonIconPosition?: 'left' | 'right';
-} & WithoutAsChild<DialogProps>;
+export type StudioDialogProps = WithoutAsChild<DialogProps>;
 
-export function StudioDialog({
-  triggerButtonText,
-  triggerButtonIcon,
-  triggerButtonIconPosition = 'left',
-  children,
-  ...rest
-}: StudioDialogProps): ReactElement {
-  const [open, setOpen] = useState<boolean>(false);
-
-  const handleClick = (): void => {
-    setOpen((oldValue: boolean) => !oldValue);
-  };
-
+function StudioDialog(
+  { children, ...rest }: StudioDialogProps,
+  ref: Ref<HTMLDialogElement>,
+): ReactElement {
   return (
-    <Dialog.TriggerContext>
-      <Dialog.Trigger onClick={handleClick} icon={!triggerButtonText}>
-        <TextWithIcon icon={triggerButtonIcon} iconPlacement={triggerButtonIconPosition}>
-          {triggerButtonText}
-        </TextWithIcon>
-      </Dialog.Trigger>
-      <Dialog onClose={() => setOpen(false)} open={open} {...rest}>
-        {children}
-      </Dialog>
-    </Dialog.TriggerContext>
+    <Dialog ref={ref} {...rest}>
+      {children}
+    </Dialog>
   );
 }
+
+// Because the rest of our solution runs on React 18, we need to use the new forwardRef API until we have updated the rest of the solution to React 19.
+const ForwardedStudioDialog = forwardRef(StudioDialog);
+
+export { ForwardedStudioDialog as StudioDialog };

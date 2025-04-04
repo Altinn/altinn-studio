@@ -1,0 +1,1 @@
+export { StudioDialogTrigger } from './StudioDialogTrigger';
