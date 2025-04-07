@@ -67,8 +67,6 @@ export function reducer(state: ReducerState, action: ReducerAction): ReducerStat
       return updateTextResourceId(state, action);
     case ReducerActionType.UpdateTextResourceValue:
       return updateTextResourceValue(state, action);
-    default:
-      return state;
   }
 }
 
