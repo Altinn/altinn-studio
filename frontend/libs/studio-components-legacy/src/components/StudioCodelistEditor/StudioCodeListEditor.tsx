@@ -69,7 +69,7 @@ function StatefulCodeListEditor({
 }: StatefulCodeListEditorProps): ReactElement {
   const initialState: ReducerState = {
     codeList: defaultCodeList,
-    textResources: textResources,
+    textResources: textResources ?? [],
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 

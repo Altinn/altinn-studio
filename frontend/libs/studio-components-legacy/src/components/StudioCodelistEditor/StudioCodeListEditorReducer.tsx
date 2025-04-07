@@ -193,7 +193,8 @@ function updateTextResourceIdInList(
   const indexOfTextResource: number = newTextResources.findIndex(
     (item: TextResource): boolean => item.id === textResourceId,
   );
-  newTextResources[indexOfTextResource].id = newId;
+  const oldItem = newTextResources[indexOfTextResource];
+  newTextResources[indexOfTextResource] = { ...oldItem, id: newId };
 
   return newTextResources;
 }
@@ -203,12 +204,15 @@ function updateTextResourceValueInList(
   action: UpdateTextResourceValueAction,
 ): TextResource[] {
   const { textResourceId, newValue } = action;
-  const indexOfTextResource: number = textResources.findIndex(
+  const newTextResources = [...textResources];
+
+  const indexOfTextResource: number = newTextResources.findIndex(
     (item: TextResource): boolean => item.id === textResourceId,
   );
-  textResources[indexOfTextResource].value = newValue;
+  const oldItem = newTextResources[indexOfTextResource];
+  newTextResources[indexOfTextResource] = { ...oldItem, value: newValue };
 
-  return textResources;
+  return newTextResources;
 }
 
 type UpdateCodeListArgs = {
@@ -220,18 +224,19 @@ type UpdateCodeListArgs = {
 function updateCodeList(codeList: CodeList, updateArgs: UpdateCodeListArgs): CodeList {
   const { property, codeItemIndex, newValue } = updateArgs;
   const newCodeList = [...codeList];
+  const oldItem = newCodeList[codeItemIndex];
 
   switch (property) {
     case CodeListItemTextProperty.Label: {
-      newCodeList[codeItemIndex].label = newValue;
+      newCodeList[codeItemIndex] = { ...oldItem, label: newValue };
       break;
     }
     case CodeListItemTextProperty.Description: {
-      newCodeList[codeItemIndex].description = newValue;
+      newCodeList[codeItemIndex] = { ...oldItem, description: newValue };
       break;
     }
     case CodeListItemTextProperty.HelpText: {
-      newCodeList[codeItemIndex].helpText = newValue;
+      newCodeList[codeItemIndex] = { ...oldItem, helpText: newValue };
       break;
     }
   }
