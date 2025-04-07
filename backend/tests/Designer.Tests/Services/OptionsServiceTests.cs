@@ -319,6 +319,125 @@ public class OptionsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldAddCorrectTaskData_WhenReferencesExist()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer);
+
+        List<RefToOptionListSpecifier> referencesWithoutTaskData = new()
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    }
+                ]
+            }
+        };
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
+
+        // Assert
+        List<RefToOptionListSpecifier> expectedResult = new()
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                        TaskId = "Task_2",
+                        TaskType = "data"
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    }
+                ]
+            }
+        };
+
+        Assert.Equivalent(result, expectedResult);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenListIsEmpty()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer);
+        List<RefToOptionListSpecifier> emptyReferenceList = [];
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, emptyReferenceList);
+
+        // Assert
+        Assert.Same(result, emptyReferenceList);
+    }
+
+    [Fact]
     public async Task ImportOptionListFromOrgIfIdIsVacant_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
