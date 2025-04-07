@@ -16,11 +16,14 @@ import type {
   PolicyAccessPackageAreaGroup,
 } from 'app-shared/types/PolicyAccessPackages';
 
+const revisorPackageName = 'Revisor delegable';
+const revisorNonDelegablePackageName = 'Revisor non-delegable';
 const skattPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:skatt',
   urn: 'urn:altinn:accesspackage:skatt',
   name: 'Skatt',
   description: '',
+  isDelegable: true,
 };
 
 const sjofartPackage: PolicyAccessPackage = {
@@ -28,6 +31,7 @@ const sjofartPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
+  isDelegable: true,
 };
 
 const lufttransportPackage: PolicyAccessPackage = {
@@ -35,13 +39,23 @@ const lufttransportPackage: PolicyAccessPackage = {
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
+  isDelegable: true,
 };
 
 const revisorPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:revisor',
   urn: 'urn:altinn:accesspackage:revisor',
-  name: 'Revisor',
+  name: revisorPackageName,
   description: '',
+  isDelegable: true,
+};
+
+const revisorNonDelegablePackage: PolicyAccessPackage = {
+  id: 'urn:altinn:accesspackage:nondelegablerevisor',
+  urn: 'urn:altinn:accesspackage:nondelegablerevisor',
+  name: revisorNonDelegablePackageName,
+  description: '',
+  isDelegable: false,
 };
 
 const accessPackageAreaSkatt: PolicyAccessPackageArea = {
@@ -71,7 +85,7 @@ const accessPackageAreaOther: PolicyAccessPackageArea = {
   description: '',
   icon: 'TruckIcon',
   areaGroup: 'Vanlig',
-  packages: [revisorPackage],
+  packages: [revisorPackage, revisorNonDelegablePackage],
 };
 
 const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
@@ -127,6 +141,17 @@ describe('PolicyAccessPackages', () => {
     await user.type(searchField, 'Sjø');
 
     expect(screen.getByText('Sjøfart')).toBeInTheDocument();
+  });
+
+  it('should not show non-delegable access packages', async () => {
+    const user = userEvent.setup();
+    renderAccessPackages();
+
+    const searchField = screen.getByLabelText(textMock('policy_editor.access_package_search'));
+    await user.type(searchField, 'Revisor');
+
+    expect(screen.getByText(revisorPackageName)).toBeInTheDocument();
+    expect(screen.queryByText(revisorNonDelegablePackageName)).not.toBeInTheDocument();
   });
 });
 
