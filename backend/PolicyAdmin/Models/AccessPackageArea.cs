@@ -15,7 +15,7 @@ namespace PolicyAdmin.Models
         public string? Icon { get; set; }
 
         public string? AreaGroup { get; set; }
-        
+
         public IEnumerable<AccessPackageOption> Packages { get; set; } = [];
     }
 }
