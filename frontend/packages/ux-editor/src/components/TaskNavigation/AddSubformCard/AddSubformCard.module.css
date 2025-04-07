@@ -39,17 +39,3 @@
   box-sizing: border-box;
   word-wrap: break-word;
 }
-
-.createSubformContent * {
-  width: 100%;
-  box-sizing: border-box;
-  word-wrap: break-word;
-}
-
-.buttonContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--fds-spacing-3);
-  padding-top: var(--fds-spacing-3);
-}

@@ -1,0 +1,27 @@
+.subformCardEditMode {
+  display: flex;
+  width: 300px;
+  gap: var(--fds-spacing-2);
+  background-color: var(--fds-semantic-background-default);
+  border-width: var(--fds-border_width-active);
+  border: var(--fds-semantic-border-first-active) solid;
+}
+
+.subformTabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+  border: 1px solid #bcbfc5;
+  border-radius: var(--fds-border_radius-medium);
+  margin: var(--fds-spacing-1);
+  padding: var(--fds-spacing-2) var(--fds-spacing-5);
+}
+
+.tabContent {
+  padding: var(--fds-spacing-2) 0;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
