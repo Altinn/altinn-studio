@@ -67,11 +67,11 @@ describe('CreateNewWrapper', () => {
       const user = userEvent.setup();
       renderCreateNewWrapper({ isCreateNewOpen: true });
 
-      await user.type(queryInputField(), 'new-model');
+      await user.type(queryInputField(), 'newModel');
       await user.click(queryConfirmButton());
 
       expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
-        modelName: 'new-model',
+        modelName: 'newModel',
         relativeDirectory: undefined,
       });
     });
@@ -80,11 +80,11 @@ describe('CreateNewWrapper', () => {
       const user = userEvent.setup();
       renderCreateNewWrapper({ isCreateNewOpen: true });
 
-      await user.type(queryInputField(), 'new-model');
+      await user.type(queryInputField(), 'newModel');
       await user.keyboard('{Enter}');
 
       expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
-        modelName: 'new-model',
+        modelName: 'newModel',
         relativeDirectory: undefined,
       });
     });
@@ -93,11 +93,11 @@ describe('CreateNewWrapper', () => {
       const user = userEvent.setup();
       renderCreateNewWrapper({ isCreateNewOpen: true, createPathOption: true });
 
-      await user.type(queryInputField(), 'new-model');
+      await user.type(queryInputField(), 'newModel');
       await user.click(queryConfirmButton());
 
       expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
-        modelName: 'new-model',
+        modelName: 'newModel',
         relativeDirectory: '',
       });
     });
