@@ -89,18 +89,17 @@ public class OptionsService : IOptionsService
     private async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
-        if (layoutSetsModel == null)
+        if (optionListReferences.Count == 0)
         {
             return optionListReferences;
         }
 
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
         foreach (var reference in optionListReferences)
         {
             foreach (var source in reference.OptionListIdSources)
             {
-                var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
+                var matchingLayoutSetModel = layoutSetsModel?.Sets?.FirstOrDefault(set => set.Id == source.LayoutSetId);
 
                 source.TaskId = matchingLayoutSetModel?.Task.Id;
                 source.TaskType = matchingLayoutSetModel?.Task.Type;
