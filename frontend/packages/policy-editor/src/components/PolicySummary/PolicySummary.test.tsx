@@ -111,7 +111,6 @@ describe('PolicySummary', () => {
         urn: 'urn:area1',
         description: '',
         icon: '',
-        areaGroup: '',
         packages: [package1, package2],
       },
       {
@@ -120,7 +119,6 @@ describe('PolicySummary', () => {
         urn: 'urn:area2',
         description: '',
         icon: '',
-        areaGroup: '',
         packages: [package3],
       },
     ];
@@ -129,7 +127,6 @@ describe('PolicySummary', () => {
       {
         id: 'group1',
         name: 'Group 1',
-        urn: 'urn:group1',
         description: '',
         areas: groupedAccessPackagesByArea,
         type: 'group',

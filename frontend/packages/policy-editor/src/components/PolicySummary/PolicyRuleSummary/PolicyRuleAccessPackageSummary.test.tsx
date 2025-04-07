@@ -41,7 +41,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area1',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package1, package2],
   },
   {
@@ -50,7 +49,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area2',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package3],
   },
 ];
@@ -58,7 +56,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
 const mockAccessPackageAreaGroup: PolicyAccessPackageAreaGroup = {
   id: 'group1',
   name: 'Group 1',
-  urn: 'urn:group1',
   description: '',
   areas: groupedAccessPackagesByArea,
   type: 'group',
