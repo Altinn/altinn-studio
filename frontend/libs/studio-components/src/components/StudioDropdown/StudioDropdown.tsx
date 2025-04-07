@@ -6,17 +6,20 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 import { StudioDropdownContextProvider } from './context/StudioDropdownContext';
 import type { IconPlacement } from '../../types/IconPlacement';
 import { TextWithIcon } from '../TextWithIcon';
+import type { StudioButtonProps } from '../StudioButton';
 
 export type StudioDropdownProps = {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
   triggerButtonText?: string;
+  triggerButtonVariant?: StudioButtonProps['variant'];
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose'>;
 
 export function StudioDropdown({
   icon,
   iconPlacement = 'left',
   triggerButtonText,
+  triggerButtonVariant,
   children,
   ...rest
 }: StudioDropdownProps): ReactElement {
@@ -28,7 +31,12 @@ export function StudioDropdown({
 
   return (
     <Dropdown.TriggerContext>
-      <Dropdown.Trigger onClick={handleClick} icon={!triggerButtonText} aria-expanded={open}>
+      <Dropdown.Trigger
+        variant={triggerButtonVariant}
+        onClick={handleClick}
+        icon={!triggerButtonText}
+        aria-expanded={open}
+      >
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}
         </TextWithIcon>
