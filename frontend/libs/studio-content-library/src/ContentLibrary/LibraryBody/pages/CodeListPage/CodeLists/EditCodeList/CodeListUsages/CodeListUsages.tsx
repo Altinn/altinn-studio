@@ -16,7 +16,6 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
     <Table zebra className={classes.table}>
       <Table.Head>
         <Table.Row>
-          <Table.HeaderCell>{t('general.task')}</Table.HeaderCell>
           <Table.HeaderCell>
             {t('app_content_library.code_lists.code_list_usage_table_column_header_layout_set')}
           </Table.HeaderCell>
@@ -46,7 +45,6 @@ function CodeListUsageSourceRow({
 }: CodeListUsageSourceRowProps): React.ReactElement {
   return (
     <Table.Row>
-      <Table.Cell>{codeListSource.taskId}</Table.Cell>
       <Table.Cell>{codeListSource.layoutSetId}</Table.Cell>
       <Table.Cell>{FileNameUtils.removeExtension(codeListSource.layoutName)}</Table.Cell>
       <Table.Cell>{listComponentIds(codeListSource.componentIds)}</Table.Cell>

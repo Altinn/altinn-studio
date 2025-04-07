@@ -4,8 +4,6 @@ export type CodeListReference = {
 };
 
 export type CodeListIdSource = {
-  taskId: string;
-  taskType: string;
   layoutSetId: string;
   layoutName: string;
   componentIds: string[];
