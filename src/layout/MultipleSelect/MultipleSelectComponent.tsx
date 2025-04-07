@@ -24,7 +24,7 @@ export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSelectProps) {
   const item = useNodeItem(node);
   const isValid = useIsValid(node);
-  const { id, readOnly, textResourceBindings, alertOnChange, grid, required, autocomplete } = item;
+  const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
   const { options, isFetching, selectedValues, setData } = useGetOptions(node, 'multi');
   const debounce = FD.useDebounceImmediately();
   const { langAsString, lang } = useLanguage(node);
@@ -104,7 +104,6 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
                 ? getDescriptionId(id)
                 : undefined
             }
-            autoComplete={autocomplete}
             style={{ width: '100%' }}
           >
             <Combobox.Empty>
