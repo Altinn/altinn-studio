@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : ITaskNavigationService
     {
-        public async Task<List<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSetsFile.UiSettings?.TaskNavigation ?? [];
         }
 
-        public List<ProcessTask> GetTasks(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public IEnumerable<ProcessTask> GetTasks(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
