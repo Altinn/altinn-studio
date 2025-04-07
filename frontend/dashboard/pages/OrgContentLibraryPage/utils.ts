@@ -5,12 +5,14 @@ import type {
 import { ArrayUtils } from '@studio/pure-functions';
 import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
   textResource,
 }: LibraryTextResourceWithLanguage): UpdateTextResourcesForOrgMutationArgs {
-  return { language, payload: [textResource] };
+  const payload: KeyValuePairs<string> = { [textResource.id]: textResource.value };
+  return { language, payload };
 }
 
 export function textResourcesWithLanguageToLibraryTextResources(

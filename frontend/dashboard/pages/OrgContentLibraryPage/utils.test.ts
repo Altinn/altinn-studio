@@ -24,7 +24,7 @@ describe('utils', () => {
       };
       const expectedResult: UpdateTextResourcesForOrgMutationArgs = {
         language,
-        payload: [textResource],
+        payload: { 'some-id': 'Some value' },
       };
       const result = textResourceWithLanguageToMutationArgs(textResourceWithLanguage);
       expect(result).toEqual(expectedResult);

@@ -24,7 +24,7 @@ import {
 } from './test-data/textResources';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import type { ITextResource } from 'app-shared/types/global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 // Test data:
 const orgName: string = 'org';
@@ -172,7 +172,7 @@ describe('OrgContentLibraryPage', () => {
     await waitFor(expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalled);
 
     expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalledTimes(1);
-    const expectedPayload: ITextResource[] = [textResource];
+    const expectedPayload: KeyValuePairs<string> = { [textResource.id]: textResource.value };
     expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalledWith(
       orgName,
       language,
