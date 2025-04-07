@@ -83,9 +83,7 @@ function StatefulCodeListEditor({
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {
-      if (isCodeListValid(newCodeList)) {
-        onAddOrDeleteItem?.(newCodeList);
-      }
+      isCodeListValid(newCodeList) && onAddOrDeleteItem?.(newCodeList);
     },
     [onAddOrDeleteItem],
   );
