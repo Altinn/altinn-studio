@@ -157,8 +157,7 @@ function addTextResourceToList(
   textResources: TextResource[],
   textResource: TextResource,
 ): TextResource[] {
-  textResources.push(textResource);
-  return textResources;
+  return [...textResources, textResource];
 }
 
 function deleteTextResourceFromCodeList(
@@ -189,12 +188,14 @@ function updateTextResourceIdInList(
   action: UpdateTextResourceIdAction,
 ): TextResource[] {
   const { newId, textResourceId } = action;
-  const indexOfTextResource: number = textResources.findIndex(
+  const newTextResources = [...textResources];
+
+  const indexOfTextResource: number = newTextResources.findIndex(
     (item: TextResource): boolean => item.id === textResourceId,
   );
-  textResources[indexOfTextResource].id = newId;
+  newTextResources[indexOfTextResource].id = newId;
 
-  return textResources;
+  return newTextResources;
 }
 
 function updateTextResourceValueInList(
@@ -218,20 +219,22 @@ type UpdateCodeListArgs = {
 
 function updateCodeList(codeList: CodeList, updateArgs: UpdateCodeListArgs): CodeList {
   const { property, codeItemIndex, newValue } = updateArgs;
+  const newCodeList = [...codeList];
+
   switch (property) {
     case CodeListItemTextProperty.Label: {
-      codeList[codeItemIndex].label = newValue;
+      newCodeList[codeItemIndex].label = newValue;
       break;
     }
     case CodeListItemTextProperty.Description: {
-      codeList[codeItemIndex].description = newValue;
+      newCodeList[codeItemIndex].description = newValue;
       break;
     }
     case CodeListItemTextProperty.HelpText: {
-      codeList[codeItemIndex].helpText = newValue;
+      newCodeList[codeItemIndex].helpText = newValue;
       break;
     }
   }
 
-  return codeList;
+  return newCodeList;
 }
