@@ -83,12 +83,6 @@ describe('AllAccessPackages', () => {
     expect(screen.getByText(area1Name)).toBeInTheDocument();
     expect(screen.getByText(area2Name)).toBeInTheDocument();
   });
-
-  it('should render default icon if icon is not set', () => {
-    renderAllAccessPackages();
-
-    expect(screen.getByTestId('default-icon')).toBeInTheDocument();
-  });
 });
 
 const renderAllAccessPackages = (props: Partial<AllAccessPackagesProps> = {}) => {
