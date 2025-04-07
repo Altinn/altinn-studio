@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
-            return layoutSetsFile.UiSettings?.TaskNavigation;
+            return layoutSetsFile.UiSettings?.TaskNavigation ?? [];
         }
 
         public List<ProcessTask> GetTasks(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
