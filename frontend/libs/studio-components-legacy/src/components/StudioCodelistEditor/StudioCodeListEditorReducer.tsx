@@ -80,8 +80,9 @@ export function reducer(state: ReducerState, action: ReducerAction): ReducerStat
   }
 }
 
-function setState(state: ReducerState, action: SetTextResourcesAction): ReducerState {
+function setState(state: ReducerState, action: SetStateAction): ReducerState {
   return {
+    ...state,
     codeList: action.codeList,
     textResources: action.textResources,
   };
