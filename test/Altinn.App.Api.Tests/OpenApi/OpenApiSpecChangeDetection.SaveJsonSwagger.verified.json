@@ -6989,22 +6989,22 @@
         "properties": {
           "partyId": {
             "type": "string",
-            "description": "Gets or sets the party id of the instance owner (also called instance owner party id).",
+            "description": "The party id of the instance owner (also called instance owner party id).",
             "nullable": true
           },
           "personNumber": {
             "type": "string",
-            "description": "Gets or sets person number (national identification number) of the party. Null if the party is not a person.",
+            "description": "Person number (national identification number) of the party. Null if the party is not a person.",
             "nullable": true
           },
           "organisationNumber": {
             "type": "string",
-            "description": "Gets or sets the organisation number of the party. Null if the party is not an organisation.",
+            "description": "The organisation number of the party. Null if the party is not an organisation.",
             "nullable": true
           },
           "username": {
             "type": "string",
-            "description": "Gets or sets the username of the party. Null if the party is not self identified.",
+            "description": "The username of the party. Null if the party is not self identified.",
             "nullable": true
           },
           "party": {
@@ -7038,7 +7038,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Gets or sets the unique id of the instance {instanceOwnerId}/{instanceGuid}.",
+            "description": "The unique id of the instance {instanceOwnerId}/{instanceGuid}.",
             "nullable": true
           },
           "instanceOwner": {
@@ -7046,12 +7046,12 @@
           },
           "appId": {
             "type": "string",
-            "description": "Gets or sets the id of the application this is an instance of, e.g. {org}/{app22}.",
+            "description": "The id of the application this is an instance of, e.g. {org}/{app22}.",
             "nullable": true
           },
           "org": {
             "type": "string",
-            "description": "Gets or sets application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
             "nullable": true
           },
           "selfLinks": {
@@ -7059,13 +7059,13 @@
           },
           "dueBefore": {
             "type": "string",
-            "description": "Gets or sets the due date to submit the instance to application owner.",
+            "description": "The due date to submit the instance to application owner.",
             "format": "date-time",
             "nullable": true
           },
           "visibleAfter": {
             "type": "string",
-            "description": "Gets or sets date and time for when the instance should first become visible for the instance owner.",
+            "description": "Date and time for when the instance should first become visible for the instance owner.",
             "format": "date-time",
             "nullable": true
           },
@@ -7080,7 +7080,7 @@
             "items": {
               "$ref": "#/components/schemas/CompleteConfirmation"
             },
-            "description": "Gets or sets a list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements.",
+            "description": "A list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements.",
             "nullable": true
           },
           "data": {
@@ -7088,7 +7088,7 @@
             "items": {
               "$ref": "#/components/schemas/DataElement"
             },
-            "description": "Gets or sets a list of data elements associated with the instance",
+            "description": "A list of data elements associated with the instance",
             "nullable": true
           },
           "presentationTexts": {
@@ -7097,7 +7097,7 @@
               "type": "string",
               "nullable": true
             },
-            "description": "Gets or sets the presentation texts for the instance.",
+            "description": "The presentation texts for the instance.",
             "nullable": true
           },
           "dataValues": {
@@ -7106,29 +7106,29 @@
               "type": "string",
               "nullable": true
             },
-            "description": "Gets or sets the data values for the instance.",
+            "description": "The data values for the instance.",
             "nullable": true
           },
           "created": {
             "type": "string",
-            "description": "Gets or sets the date and time for when the element was created.",
+            "description": "The date and time for when the element was created.",
             "format": "date-time",
             "nullable": true
           },
           "createdBy": {
             "type": "string",
-            "description": "Gets or sets the id of the user who created this element.",
+            "description": "The id of the user who created this element.",
             "nullable": true
           },
           "lastChanged": {
             "type": "string",
-            "description": "Gets or sets the date and time for when the element was last edited.",
+            "description": "The date and time for when the element was last edited.",
             "format": "date-time",
             "nullable": true
           },
           "lastChangedBy": {
             "type": "string",
-            "description": "Gets or sets the id of the user who last changed this element.",
+            "description": "The id of the user who last changed this element.",
             "nullable": true
           }
         },
@@ -7501,12 +7501,12 @@
         "properties": {
           "partyId": {
             "type": "integer",
-            "description": "Gets or sets the ID of the party",
+            "description": "The ID of the party",
             "format": "int32"
           },
           "partyUuid": {
             "type": "string",
-            "description": "Gets or sets the UUID of the party",
+            "description": "The UUID of the party",
             "format": "uuid",
             "nullable": true
           },
@@ -7515,27 +7515,27 @@
           },
           "ssn": {
             "type": "string",
-            "description": "Gets the parties ssn",
+            "description": "Person number (national identification number) of the party. Null if the party is not a person.",
             "nullable": true
           },
           "orgNumber": {
             "type": "string",
-            "description": "Gets the parties org number",
+            "description": "The organisation number of the party. Null if the party is not an organisation.",
             "nullable": true
           },
           "unitType": {
             "type": "string",
-            "description": "Gets or sets the UnitType",
+            "description": "The UnitType",
             "nullable": true
           },
           "name": {
             "type": "string",
-            "description": "Gets or sets the Name",
+            "description": "The Name",
             "nullable": true
           },
           "isDeleted": {
             "type": "boolean",
-            "description": "Gets or sets the IsDeleted"
+            "description": "The IsDeleted"
           }
         },
         "additionalProperties": false,
