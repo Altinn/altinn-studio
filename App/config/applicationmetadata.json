@@ -94,7 +94,7 @@
       ],
       "taskId": "SigningTask_Founders",
       "maxCount": 10,
-      "minCount": 0,
+      "minCount": 1,
       "enablePdfCreation": false,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,

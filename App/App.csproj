@@ -5,7 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.871.signing-validate-after-user-action.9253fffa">
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.881.signing.08be950e">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />

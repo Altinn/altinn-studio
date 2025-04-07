@@ -44,6 +44,7 @@
             <altinn:signeeProviderId>founders</altinn:signeeProviderId>
             <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
             <altinn:correspondenceResource>apps-correspondence-integrasjon2</altinn:correspondenceResource>
+            <altinn:runDefaultValidator>true</altinn:runDefaultValidator>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
