@@ -594,8 +594,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             CancellationToken cancellationToken = default
         )
         {
-            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             cancellationToken.ThrowIfCancellationRequested();
+
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
             {
                 await CreateLayoutSettings(layoutSetName);
@@ -611,6 +612,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSets(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             List<RefToOptionListSpecifier> optionsListReferences = [];
             string[] layoutSetNames = GetLayoutSetNames();
 
