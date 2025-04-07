@@ -1,5 +1,5 @@
 import type { CodeList } from './types/CodeList';
-import React, { useMemo, useRef, useCallback, useReducer } from 'react';
+import React, { useMemo, useRef, useCallback, useReducer, useEffect } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
@@ -72,6 +72,14 @@ function StatefulCodeListEditor({
     textResources: textResources,
   };
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  useEffect(() => {
+    dispatch({
+      type: ReducerActionType.SetState,
+      codeList: defaultCodeList,
+      textResources: textResources,
+    });
+  }, [defaultCodeList, textResources]);
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {

@@ -8,12 +8,19 @@ export type ReducerState = {
 };
 
 export enum ReducerActionType {
+  SetState = 'SetState',
   SetCodeList = 'SetCodeList',
   AddTextResource = 'AddTextResource',
   DeleteTextResource = 'DeleteTextResource',
   UpdateTextResourceId = 'UpdateTextResourceId',
   UpdateTextResourceValue = 'UpdateTextResourceValue',
 }
+
+type SetStateAction = {
+  type: ReducerActionType.SetState;
+  codeList: CodeList;
+  textResources: TextResource[];
+};
 
 type SetCodeListAction = {
   type: ReducerActionType.SetCodeList;
@@ -50,6 +57,7 @@ type UpdateTextResourceValueAction = {
 
 export type ReducerAction =
   | SetCodeListAction
+  | SetStateAction
   | AddTextResourceAction
   | DeleteTextResourceAction
   | UpdateTextResourceIdAction
@@ -57,6 +65,8 @@ export type ReducerAction =
 
 export function reducer(state: ReducerState, action: ReducerAction): ReducerState {
   switch (action.type) {
+    case ReducerActionType.SetState:
+      return setState(state, action);
     case ReducerActionType.SetCodeList:
       return setCodeList(state, action);
     case ReducerActionType.AddTextResource:
@@ -68,6 +78,13 @@ export function reducer(state: ReducerState, action: ReducerAction): ReducerStat
     case ReducerActionType.UpdateTextResourceValue:
       return updateTextResourceValue(state, action);
   }
+}
+
+function setState(state: ReducerState, action: SetTextResourcesAction): ReducerState {
+  return {
+    codeList: action.codeList,
+    textResources: action.textResources,
+  };
 }
 
 function setCodeList(state: ReducerState, action: SetCodeListAction): ReducerState {
