@@ -32,5 +32,18 @@ namespace LocalTest.Services.Profile.Implementation
 
             return null;
         }
+
+        /// <inheritdoc />
+        public async Task<UserProfile?> GetUserByPersonId(string personId)
+        {
+            var data = await _testDataService.GetTestData();
+            var party = data.Register.Party.FirstOrDefault(p => p.Value.SSN == personId).Value;
+            if (party is null)
+                return null;
+            var user = data.Profile.User.FirstOrDefault(u => u.Value.PartyId == party.PartyId).Value;
+            if (user is not null)
+                user.Party = party;
+            return user;
+        }
     }
 }

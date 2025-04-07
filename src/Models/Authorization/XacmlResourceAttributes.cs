@@ -21,7 +21,12 @@ namespace Altinn.Platform.Authorization.Models
         public string InstanceValue { get; set; }
 
         /// <summary>
-        /// Gets or sets the value for resourceparty attribute
+        /// Gets or sets the value for a resource instance attribute
+        /// </summary>
+        public string ResourceInstanceValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value for resource party id attribute
         /// </summary>
         public string ResourcePartyValue { get; set; }
 
@@ -44,5 +49,10 @@ namespace Altinn.Platform.Authorization.Models
         /// Gets or sets the OrganizationNumber for the org owning the resource
         /// </summary>
         public string OrganizationNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ssn for the person owning the resource
+        /// </summary>
+        public string PersonId { get; set; }
     }
 }

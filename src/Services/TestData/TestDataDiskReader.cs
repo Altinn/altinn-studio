@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Authorization.Interface.Models;
 
 namespace LocalTest.Services.TestData;
@@ -8,7 +9,7 @@ public static class TestDataDiskReader
 {
     private static JsonSerializerOptions _options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
     {
-        Converters = {new System.Text.Json.Serialization.JsonStringEnumConverter()}
+        Converters = {new JsonStringEnumConverter()}
     };
 
     public static async Task<TestDataModel> ReadFromDisk(string testDataPath)

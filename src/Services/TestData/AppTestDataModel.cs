@@ -20,6 +20,8 @@ public class AppTestDataModel
     public List<AppTestPerson> Persons { get; set; } = default!;
     [JsonPropertyName("orgs")]
     public List<AppTestOrg> Orgs { get; set; } = default!;
+    [JsonPropertyName("systems")]
+    public List<AppTestSystem> Systems { get; set; } = default!;
 
     public TestDataModel GetTestDataModel()
     {
@@ -69,11 +71,31 @@ public class AppTestDataModel
                 });
         var roles = Persons.ToDictionary(p => p.UserId.ToString(), p => p.PartyRoles.ToDictionary(r => r.Key.ToString(), r => r.Value));
 
+        var systems = Systems?.ToDictionary(s => s.Id, s => new TestDataSystem(
+            s.Id,
+            s.Name,
+            s.SystemUsers?.ToDictionary(su => su.Id, su => new TestDataSystemUser(
+                su.Id,
+                s.Id,
+                su.OrgNumber,
+                su.Actions
+            )) ?? new()
+        ));
+
         return new TestDataAuthorization
         {
             Claims = claims,
             PartyList = partyList,
             Roles = roles,
+            Systems = systems ?? new(),
+            SystemUsers = Systems?
+                .SelectMany(s => s.SystemUsers.Select(su => (SystemId: s.Id, SystemUser: su)))
+                .ToDictionary(d => d.SystemUser.Id, d => new TestDataSystemUser(
+                    d.SystemUser.Id,
+                    d.SystemId,
+                    d.SystemUser.OrgNumber,
+                    d.SystemUser.Actions
+                )) ?? new()
         };
     }
 
@@ -103,6 +125,7 @@ public class AppTestDataModel
                 return new AppTestOrg()
                 {
                     PartyId = party?.PartyId ?? negativePartyId--,
+                    PartyUuid = party?.PartyUuid,
                     ParentPartyId = parentParty?.PartyId,
                     TelephoneNumber = org.TelephoneNumber,
                     UnitStatus = org.UnitStatus,
@@ -134,6 +157,7 @@ public class AppTestDataModel
                 return new AppTestPerson()
                 {
                     PartyId = party.PartyId,
+                    PartyUuid = party.PartyUuid,
                     AddressCity = p.AddressCity,
                     AddressHouseLetter = p.AddressHouseLetter,
                     AddressHouseNumber = p.AddressHouseNumber,
@@ -172,6 +196,8 @@ public class AppTestOrg
 {
     [JsonPropertyName("partyId")]
     public int PartyId { get; set; }
+    [JsonPropertyName("partyUuid")]
+    public Guid? PartyUuid { get; set; }
     [JsonPropertyName("orgNumber")]
     public string OrgNumber { get; set; } = default!;
 
@@ -217,6 +243,7 @@ public class AppTestOrg
         return new Party()
         {
             PartyId = PartyId,
+            PartyUuid = PartyUuid,
             OrgNumber = OrgNumber,
             IsDeleted = false,
             PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organisation, // TODO: consider supporting bankrupt or subUnit
@@ -256,6 +283,8 @@ public class AppTestPerson
 {
     [JsonPropertyName("partyId")]
     public int PartyId { get; set; } = default!;
+    [JsonPropertyName("partyUuid")]
+    public Guid? PartyUuid { get; set; }
     [JsonPropertyName("ssn")]
     public string SSN { get; set; } = default!;
     [JsonPropertyName("firstName")]
@@ -317,6 +346,7 @@ public class AppTestPerson
         return new Party()
         {
             PartyId = PartyId,
+            PartyUuid = PartyUuid,
             IsDeleted = false,
             SSN = string.IsNullOrEmpty(SSN) ? null : SSN,
             Name = GetFullName(),
@@ -371,4 +401,24 @@ public class AppTestPerson
         UserName = UserName,
         // UserType,
     };
+}
+
+public class AppTestSystem 
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("systemUsers")]
+    public IEnumerable<AppTestSystemUser> SystemUsers { get; set; } = default!;
+}
+
+public class AppTestSystemUser
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("orgNumber")]
+    public string OrgNumber { get; set; } = default!;
+    [JsonPropertyName("actions")]
+    public IEnumerable<string> Actions { get; set; } = default!;
 }

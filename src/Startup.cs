@@ -28,6 +28,7 @@ using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
 using LocalTest.Notifications.LocalTestNotifications;
+using LocalTest.Services.AccessManagement;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -115,6 +116,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
             services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
+            services.AddSingleton<LocalInstanceDelegationsRepository>();
 
             // Shared auth services
             services.AddSingleton<IAuthentication, AuthenticationService>();

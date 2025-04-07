@@ -6,6 +6,7 @@
   "PartyId": 512345,
   "Party": {
     "partyId": "512345",
+    "partyUuid": "48153af4-265f-4b35-8ed9-232fafbc716e",
     "ssn": "01017512345"
   },
   "UserType": 0,

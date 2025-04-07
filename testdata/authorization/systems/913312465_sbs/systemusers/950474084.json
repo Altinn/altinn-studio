@@ -1,5 +1,5 @@
 {
     "Id": "d111dbab-d619-4f15-bf29-58fe570a9ae6",
-    "AppRights": ["read", "write", "instantiate", "sign", "confirm", "reject", "delete"],
-    "PartyOrgNo": "950474084"
+    "OrgNumber": "950474084",
+    "Actions": ["read", "write", "instantiate", "sign", "confirm", "reject", "delete"]
 }

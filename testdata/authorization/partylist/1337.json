@@ -1,6 +1,7 @@
 [
   {
     "partyId": "501337",
+    "partyUuid": "e9dd7d91-32d8-4933-a108-07562762d572",
     "partyTypeName": 1,
     "ssn": "01038812345",
     "unitType": null,
@@ -13,6 +14,7 @@
   },
   {
     "partyId": "500000",
+    "partyUuid": "77cab4d6-84bb-4eb2-91bd-710415a72d8a",
     "partyTypeName": 2,
     "orgNumber": "897069650",
     "unitType": "AS",
@@ -24,6 +26,7 @@
     "childParties": [
       {
         "partyId": "500001",
+        "partyUuid": "5e5d1e4f-810b-4619-9901-093cbf1d8be3",
         "partyTypeName": 2,
         "orgNumber": "897069651",
         "unitType": "BEDR",
@@ -36,6 +39,7 @@
       },
       {
         "partyId": "500002",
+        "partyUuid": "cae55382-3065-4242-9b09-061c20e2a67d",
         "partyTypeName": 2,
         "orgNumber": "897069652",
         "unitType": "BEDR",
@@ -48,6 +52,7 @@
       },
       {
         "partyId": "500003",
+        "partyUuid": "ab831058-2fa4-4c6b-8e6f-23aadbddf44e",
         "partyTypeName": 2,
         "orgNumber": "897069653",
         "unitType": "BEDR",
@@ -62,6 +67,7 @@
   },
   {
     "partyId": "500600",
+    "partyUuid": "c25f54e6-c0a2-4298-a6b3-9cc38963f0da",
     "partyTypeName": 2,
     "orgNumber": "897069631",
     "unitType": "AS",
@@ -74,6 +80,7 @@
   },
   {
     "partyId": "500700",
+    "partyUuid": "117e86a4-117f-41b0-8f2d-c383e2a69f9e",
     "partyTypeName": 2,
     "orgNumber": "950474084",
     "unitType": "BRL",
@@ -86,6 +93,7 @@
   },
   {
     "partyId": "500800",
+    "partyUuid": "90995e9f-b100-477f-a7fb-f3ab7dd91062",
     "partyTypeName": 2,
     "orgNumber": "910457292",
     "unitType": "AS",
@@ -98,6 +106,7 @@
   },
   {
     "partyId": "500801",
+    "partyUuid": "3b10e49a-ec4c-4eb2-ba7c-995f31ce51d5",
     "partyTypeName": 2,
     "orgNumber": "910471120",
     "unitType": "AS",
@@ -110,10 +119,25 @@
   },
   {
     "partyId": "500802",
+    "partyUuid": "5de8f23d-04b8-4f98-a305-4d357c6e0b53",
     "partyTypeName": 2,
     "orgNumber": "910423495",
     "unitType": "AS",
     "name": "EAS Health Consulting Svolvær",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500004",
+    "partyUuid": "7f6e1075-50a5-456e-a720-3ebd49f82050",
+    "partyTypeName": 2,
+    "orgNumber": "043871668",
+    "ssn": "",
+    "unitType": "BEDR",
+    "name": "Skog og Fjell Consulting",
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,

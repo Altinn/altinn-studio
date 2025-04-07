@@ -1,6 +1,7 @@
 [
   {
     "partyId": "510002",
+    "partyUuid": "6714969f-8cf7-4282-bd71-7627bc9d4380",
     "partyTypeName": 1,
     "ssn": "17858296439",
     "name": "Gjentagende Forelder",
@@ -12,6 +13,7 @@
   },
   {
     "partyId": "500000",
+    "partyUuid": "77cab4d6-84bb-4eb2-91bd-710415a72d8a",
     "partyTypeName": 2,
     "orgNumber": "897069650",
     "unitType": "AS",

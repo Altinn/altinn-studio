@@ -29,15 +29,14 @@ public class TestDataAuthorization
 public sealed record TestDataSystem(
     string Id,
     string Name,
-    string ClientId,
     Dictionary<string, TestDataSystemUser> SystemUsers
 );
 
 public sealed record TestDataSystemUser(
     string Id,
     string SystemId,
-    string PartyOrgNo,
-    IEnumerable<string> AppRights
+    string OrgNumber,
+    IEnumerable<string> Actions
 );
 
 public class TestDataProfile

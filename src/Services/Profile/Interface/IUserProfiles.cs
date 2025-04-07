@@ -14,5 +14,7 @@ namespace LocalTest.Services.Profile.Interface
         /// <param name="userId">The user id</param>
         /// <returns></returns>
         Task<UserProfile?> GetUser(int userId);
+
+        Task<UserProfile?> GetUserByPersonId(string personId);
     }
 }

@@ -1,6 +1,7 @@
 [
   {
     "partyId": "510001",
+    "partyUuid": "186aaeb4-97e6-40f4-8d48-31782a66782b",
     "partyTypeName": 1,
     "ssn": "01899699552",
     "name": "Pengelens Partner",
@@ -12,6 +13,7 @@
   },
   {
     "partyId": "500000",
+    "partyUuid": "77cab4d6-84bb-4eb2-91bd-710415a72d8a",
     "partyTypeName": 2,
     "orgNumber": "897069650",
     "unitType": "AS",
