@@ -29,7 +29,14 @@ export const PolicyAccessPackageAccordion = ({
           />
         }
       >
-        <PolicyAccessPackageAccordionContent accessPackageUrn={accessPackage.urn} />
+        <PolicyAccessPackageAccordionContent
+          accessPackageUrn={accessPackage.urn}
+          accessPackageResourcesEnv='tt02'
+        />
+        <PolicyAccessPackageAccordionContent
+          accessPackageUrn={accessPackage.urn}
+          accessPackageResourcesEnv='prod'
+        />
       </PolicyAccordion>
     </div>
   );

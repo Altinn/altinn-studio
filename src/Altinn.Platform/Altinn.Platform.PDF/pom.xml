@@ -32,7 +32,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.3</version>
+    <version>3.4.4</version>
   </parent>
   <dependencies>
     <dependency>
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-secrets</artifactId>
-      <version>4.9.3</version>
+      <version>4.9.4</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.azure</groupId>
@@ -87,7 +87,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.36</version>
+      <version>1.18.38</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
