@@ -147,14 +147,29 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should allow "-" and "_" in rest of name', () => {
+    it('should allow "_" in rest of name', () => {
       const { result } = renderUseValidateSchemaName();
 
       act(() => {
-        result.current.validateName('a-_');
+        result.current.validateName('a_');
       });
 
       expect(result.current.nameError).toBe('');
+    });
+
+    it('should disallow "-" in rest of name', () => {
+      const { result } = renderUseValidateSchemaName();
+      const invalidNames = ['a-', 'a-b'];
+
+      invalidNames.forEach((name) => {
+        act(() => {
+          result.current.validateName(name);
+        });
+
+        expect(result.current.nameError).toBe(
+          textMock('schema_editor.error_invalid_datamodel_name'),
+        );
+      });
     });
 
     it('should disallow " " and "." in name', () => {
