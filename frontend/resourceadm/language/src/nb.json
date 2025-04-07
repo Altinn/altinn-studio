@@ -130,6 +130,7 @@
   "resourceadm.deploy_at22_env": "Testmiljø AT22",
   "resourceadm.deploy_at23_env": "Testmiljø AT23",
   "resourceadm.deploy_at24_env": "Testmiljø AT24",
+  "resourceadm.deploy_yt01_env": "Testmiljø YT01",
   "resourceadm.deploy_card_arrow_icon": "Ny versjon for {{env}}",
   "resourceadm.deploy_card_publish": "Publiser til {{env}}",
   "resourceadm.deploy_deploying": "Publiserer",
