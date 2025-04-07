@@ -5,18 +5,18 @@ import { StudioTag, type StudioTagProps } from './StudioTag';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
-const mockLabel: string = 'Test Label';
+const mockText: string = 'Test tag';
 
 describe('StudioTag', () => {
   it('Renders children correctly', () => {
     renderStudioTag();
-    expect(getText(mockLabel)).toBeInTheDocument();
+    expect(getText(mockText)).toBeInTheDocument();
   });
 
   it('Applies custom data-size correctly', () => {
     renderStudioTag({ 'data-size': 'lg' });
 
-    expect(getText(mockLabel).getAttribute('data-size')).toBe('lg');
+    expect(getText(mockText).getAttribute('data-size')).toBe('lg');
   });
 
   it('Appends given classname to internal classname', () => {
@@ -29,7 +29,7 @@ describe('StudioTag', () => {
 });
 
 const renderStudioTag = (props: Partial<StudioTagProps> = {}): RenderResult => {
-  return render(<StudioTag {...props}>{mockLabel}</StudioTag>);
+  return render(<StudioTag {...props}>{mockText}</StudioTag>);
 };
 
 const getText = (text: string): HTMLElement => screen.getByText(text);
