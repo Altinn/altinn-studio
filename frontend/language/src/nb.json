@@ -1010,7 +1010,7 @@
   "schema_editor.error_data_type_name_exists": "Modellen kan ikke ha samme navn som datatyper i løsningen.",
   "schema_editor.error_depth": "Du kan ikke plassere denne gruppen her, fordi skjemaet får for mange nivåer.",
   "schema_editor.error_invalid_child": "Du kan ikke plassere denne komponenttypen i denne gruppen.",
-  "schema_editor.error_invalid_datamodel_name": "Navnet er ugyldig. Det første tegnet må være en stor eller liten bokstav fra a til z. Deretter kan du bruke små eller store bokstaver fra a til z, tall, understrek og bindestrek.",
+  "schema_editor.error_invalid_datamodel_name": "Navnet er ugyldig. Det første tegnet må være en stor eller liten bokstav fra a til z. Deretter kan du bruke små eller store bokstaver fra a til z, tall og understrek.",
   "schema_editor.error_model_name_exists": "Modellnavnet {{newModelName}} er allerede i bruk.",
   "schema_editor.error_reserved_keyword": "Systemet bruker allerede dette navnet. Velg et annet navn.",
   "schema_editor.error_upload_data_model_id_exists_override_option": "Det finnes allerede en datamodell med dette navnet. Vil du overskrive den?",
