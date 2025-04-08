@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StudioCard,
   StudioTextfield,
@@ -12,6 +12,11 @@ import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries/useAppMetadataQuery';
+import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
+import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
+import { isSaveButtonDisabled, type NewSubformProps } from './AddSubformCardUtils';
 
 enum Tabs {
   Choose = 'choose',
@@ -27,11 +32,49 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const [newSubformNameError, setNewSubformNameError] = React.useState<string>();
+  const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
+  const {
+    validateName: validateDataModelName,
+    nameError: dataModelError,
+    setNameError: setDataModelError,
+  } = useValidateSchemaName(dataModelIds, dataTypeNames);
 
-  const handleSubformName = (subformName: string) => {
-    const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
-    setNewSubformNameError(subformNameValidation);
+  const [newSubform, setNewSubform] = useState<NewSubformProps>({
+    subformName: '',
+    dataModelName: '',
+  });
+  const [subformError, setSubformError] = useState('');
+
+  const handleSubformName = (newSubformName: string) => {
+    setNewSubform((prevState) => ({
+      ...prevState,
+      subformName: newSubformName,
+    }));
+    setSubformError(validateLayoutSetName(newSubformName, layoutSets));
+  };
+
+  const handleNewDataModelName = (dataModelId: string) => {
+    setNewSubform((prevState) => ({
+      ...prevState,
+      dataModelName: dataModelId,
+    }));
+    validateDataModelName(dataModelId);
+  };
+
+  const handleSelectDataModelChange = (dataModelId: string) => {
+    setNewSubform((prevState) => ({
+      ...prevState,
+      dataModelName: dataModelId,
+    }));
+  };
+  const handleChangeTab = () => {
+    setNewSubform((prevState) => ({
+      ...prevState,
+      dataModelName: '',
+    }));
+    setDataModelError('');
   };
 
   return (
@@ -40,11 +83,15 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
       <StudioTextfield
         label={t('ux_editor.component_properties.subform.created_layout_set_name')}
         size='small'
-        error={newSubformNameError}
+        error={subformError}
         className={classes.textField}
         onChange={(e) => handleSubformName(e.target.value)}
       />
-      <StudioTabs defaultValue={Tabs.Choose} className={classes.subformTabs}>
+      <StudioTabs
+        defaultValue={Tabs.Choose}
+        className={classes.subformTabs}
+        onChange={handleChangeTab}
+      >
         <StudioTabs.List>
           <StudioTabs.Tab value={Tabs.Choose}>Velg</StudioTabs.Tab>
           <StudioTabs.Tab value={Tabs.Create}>Lag ny</StudioTabs.Tab>
@@ -53,22 +100,36 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
           <StudioNativeSelect
             label={t('ux_editor.component_properties.subform.data_model_binding_label')}
             size='small'
-            // options={[]}
-            // onChange={handleSelectChange}
-            // value={selectedOption}
-          />
+            onChange={(e) => handleSelectDataModelChange(e.target.value)}
+          >
+            <option value='' hidden />
+            {dataModelIds ? (
+              dataModelIds.map((dataModelId) => (
+                <option value={dataModelId} key={dataModelId}>
+                  {dataModelId}
+                </option>
+              ))
+            ) : (
+              <option value=''>
+                {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
+              </option>
+            )}
+          </StudioNativeSelect>
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Create} className={classes.tabContent}>
           <StudioTextfield
             label={'Navn på datamodell'}
             size='small'
+            value={newSubform.dataModelName}
             className={classes.textField}
+            onChange={(e) => handleNewDataModelName(e.target.value)}
+            error={dataModelError}
           />
         </StudioTabs.Content>
       </StudioTabs>
       <div className={classes.buttonContainer}>
         <StudioButton
-          disabled={Boolean(newSubformNameError)}
+          disabled={isSaveButtonDisabled({ newSubform, subformError, dataModelError })}
           className={classes.button}
           icon={<CheckmarkIcon />}
           onClick={() => setIsCreateSubformMode(false)}
