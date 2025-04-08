@@ -36,8 +36,6 @@ export const PageGroupAccordion = ({
     [layouts],
   );
 
-  if (!groups?.length) return null;
-
   return groups.map((group) => {
     if (!group.order || group.order.length === 0) return null;
 
