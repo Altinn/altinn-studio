@@ -200,6 +200,30 @@ describe('DesignView', () => {
       id: `${textMock('ux_editor.page')}${3}`,
     });
   });
+
+  it('calls "setSelectedFormLayoutName" with page name when clicking a closed accordion in a group', async () => {
+    const user = userEvent.setup();
+    setupFeatureFlag(true);
+    appContextMock.selectedFormLayoutName = layout2NameMock;
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    const accordionButton = screen.getByRole('button', { name: layout1NameMock });
+    await user.click(accordionButton);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(layout1NameMock);
+  });
+
+  it('calls "setSelectedFormLayoutName" with undefined when clicking an open accordion in a group', async () => {
+    const user = userEvent.setup();
+    setupFeatureFlag(true);
+    appContextMock.selectedFormLayoutName = layout1NameMock;
+    renderDesignView();
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    const accordionButton = screen.getByRole('button', { name: layout1NameMock });
+    await user.click(accordionButton);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
+  });
 });
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,
