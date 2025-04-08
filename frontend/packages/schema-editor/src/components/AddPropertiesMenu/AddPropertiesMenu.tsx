@@ -6,7 +6,7 @@ import {
   ObjectIcon,
   StringIcon,
   BooleanIcon,
-  NumberIcon,
+  DivideIcon,
   IntegerIcon,
   PlusIcon,
 } from '@studio/icons';
@@ -22,7 +22,7 @@ const propertyItems = [
   { kind: ObjectKind.Field, fieldType: FieldType.Object, icon: ObjectIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.String, icon: StringIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Integer, icon: IntegerIcon },
-  { kind: ObjectKind.Field, fieldType: FieldType.Number, icon: NumberIcon },
+  { kind: ObjectKind.Field, fieldType: FieldType.Number, icon: DivideIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Boolean, icon: BooleanIcon },
   { kind: ObjectKind.Combination, icon: CombinationIcon },
   { kind: ObjectKind.Reference, icon: ReferenceIcon },
