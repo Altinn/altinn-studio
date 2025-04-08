@@ -114,6 +114,19 @@ describe('CodeListsActionsBar', () => {
     );
     expect(toastErrorText).toBeInTheDocument();
   });
+
+  it('opens the create new code list modal when clicking on the add new code list button', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const addNewCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.add_new_code_list'),
+    });
+    await user.click(addNewCodeListButton);
+    const createNewCodeListModalTitle = screen.getByText(
+      textMock('app_content_library.code_lists.create_new_code_list'),
+    );
+    expect(createNewCodeListModalTitle).toBeInTheDocument();
+  });
 });
 
 const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: string) => {

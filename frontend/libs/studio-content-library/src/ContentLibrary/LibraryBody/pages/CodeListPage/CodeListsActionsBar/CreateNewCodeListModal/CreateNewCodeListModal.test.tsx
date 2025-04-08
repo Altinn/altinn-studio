@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -14,37 +14,24 @@ const existingCodeListTitle = 'existingCodeListTitle';
 describe('CreateNewCodeListModal', () => {
   afterEach(jest.clearAllMocks);
 
-  it('open dialog when clicking "create new code list" button', async () => {
-    const user = userEvent.setup();
-    renderCreateNewCodeListModal();
-    await openDialog(user);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-  });
-
   it('renders an empty textfield for inputting code list name', async () => {
-    const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     const codeListNameInput = screen.getByRole('textbox', {
       name: textMock('app_content_library.code_lists.create_new_code_list_name'),
     });
     expect(codeListNameInput).toHaveTextContent('');
   });
 
-  it('renders the code list editor without code list', async () => {
-    const user = userEvent.setup();
+  it('renders the code list editor without code list', () => {
     renderCreateNewCodeListModal();
-    await openDialog(user);
     const typeSelector = screen.getByRole('combobox', {
       name: textMock('code_list_editor.type_selector_label'),
     });
     expect(typeSelector).toBeInTheDocument();
   });
 
-  it('renders a disabled button by default', async () => {
-    const user = userEvent.setup();
+  it('renders a disabled button by default', () => {
     renderCreateNewCodeListModal();
-    await openDialog(user);
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
     });
@@ -54,7 +41,6 @@ describe('CreateNewCodeListModal', () => {
   it('enables the save button if only title is provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user);
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
@@ -65,7 +51,6 @@ describe('CreateNewCodeListModal', () => {
   it('keeps disabling the save button if only code list content is provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await addCodeListItem(user);
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
@@ -76,7 +61,6 @@ describe('CreateNewCodeListModal', () => {
   it('renders error message if code list title is occupied', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user, existingCodeListTitle);
     const codeListTitleError = screen.getByText(textMock('validation_errors.file_name_occupied'));
     expect(codeListTitleError).toBeInTheDocument();
@@ -85,7 +69,6 @@ describe('CreateNewCodeListModal', () => {
   it('renders error message if code list title does not match regex', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user, 'æ');
     const codeListTitleError = screen.getByText(textMock('validation_errors.name_invalid'));
     expect(codeListTitleError).toBeInTheDocument();
@@ -94,7 +77,6 @@ describe('CreateNewCodeListModal', () => {
   it('disables the save button if code list title is invalid', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user, existingCodeListTitle);
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
@@ -105,7 +87,6 @@ describe('CreateNewCodeListModal', () => {
   it('disables the save button if code list content is invalid', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await addDuplicatedCodeListValues(user);
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
@@ -116,7 +97,6 @@ describe('CreateNewCodeListModal', () => {
   it('enables the save button when valid title and valid code list content are provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user);
     await addCodeListItem(user);
     const saveCodeListButton = screen.getByRole('button', {
@@ -128,7 +108,6 @@ describe('CreateNewCodeListModal', () => {
   it('calls onUpdateCodeList and closes modal when save button is clicked', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
-    await openDialog(user);
     await inputCodeListTitle(user);
     await addCodeListItem(user);
     const saveCodeListButton = screen.getByRole('button', {
@@ -143,13 +122,6 @@ describe('CreateNewCodeListModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
-
-const openDialog = async (user: UserEvent) => {
-  const createNewButton = screen.getByRole('button', {
-    name: textMock('app_content_library.code_lists.create_new_code_list'),
-  });
-  await user.click(createNewButton);
-};
 
 const inputCodeListTitle = async (
   user: UserEvent,
@@ -176,14 +148,26 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
 const renderCreateNewCodeListModal = (): RenderResult => {
   const Component = (): ReactElement => {
     const ref = useRef<HTMLDialogElement>(null);
+
+    useShowModal(ref);
+
     return (
-      <CreateNewCodeListModal
-        onUpdateCodeList={onUpdateCodeListMock}
-        codeListNames={[existingCodeListTitle]}
-        ref={ref}
-      />
+      <>
+        <button onClick={() => ref.current?.showModal()}>mockbutton</button>
+        <CreateNewCodeListModal
+          onUpdateCodeList={onUpdateCodeListMock}
+          codeListNames={[existingCodeListTitle]}
+          ref={ref}
+        />
+      </>
     );
   };
 
   return render(<Component />);
+};
+
+const useShowModal = (ref: React.RefObject<HTMLDialogElement>) => {
+  useEffect(() => {
+    ref.current?.showModal();
+  }, [ref]);
 };

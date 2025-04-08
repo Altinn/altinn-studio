@@ -30,6 +30,8 @@ export function CodeListsActionsBar({
   textResources,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
+  const addCodeListRef = useRef<HTMLDialogElement>(null);
+
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
@@ -48,8 +50,6 @@ export function CodeListsActionsBar({
     onUploadCodeList(file);
   };
 
-  const addCodeListRef = useRef<HTMLDialogElement>(null);
-
   const handleOpenAddCodeListDialog = () => {
     addCodeListRef.current?.showModal();
   };
@@ -64,7 +64,7 @@ export function CodeListsActionsBar({
       />
       <StudioDropdown
         triggerButtonVariant='secondary'
-        triggerButtonText='Legg til kodeliste'
+        triggerButtonText={t('app_content_library.code_lists.add_new_code_list')}
         icon={<PlusIcon />}
       >
         <StudioDropdown.Item>
