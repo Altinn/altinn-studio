@@ -152,14 +152,11 @@ const renderCreateNewCodeListModal = (): RenderResult => {
     useShowModal(ref);
 
     return (
-      <>
-        <button onClick={() => ref.current?.showModal()}>mockbutton</button>
-        <CreateNewCodeListModal
-          onUpdateCodeList={onUpdateCodeListMock}
-          codeListNames={[existingCodeListTitle]}
-          ref={ref}
-        />
-      </>
+      <CreateNewCodeListModal
+        onUpdateCodeList={onUpdateCodeListMock}
+        codeListNames={[existingCodeListTitle]}
+        ref={ref}
+      />
     );
   };
 
