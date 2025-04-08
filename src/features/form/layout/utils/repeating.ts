@@ -1,7 +1,7 @@
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 
-export const repeatingComponents = ['RepeatingGroup', 'Likert'] as const satisfies CompTypes[];
+const repeatingComponents = ['RepeatingGroup', 'Likert'] as const satisfies CompTypes[];
 export type RepeatingComponents = (typeof repeatingComponents)[number];
 
 export function isRepeatingComponent(component: unknown): component is CompExternal<RepeatingComponents> {

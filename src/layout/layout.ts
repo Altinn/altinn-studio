@@ -1,16 +1,10 @@
 import type { $Keys, PickByValue } from 'utility-types';
 
-import type { CompBehaviors, CompCapabilities } from 'src/codegen/Config';
+import type { CompBehaviors } from 'src/codegen/Config';
 import type { CompCategory } from 'src/layout/common';
 import type { IDataModelReference, ILayoutFile } from 'src/layout/common.generated';
 import type { ComponentTypeConfigs, getComponentConfigs } from 'src/layout/components.generated';
 import type { CompClassMapCategories } from 'src/layout/index';
-import type {
-  ActionComponent,
-  ContainerComponent,
-  FormComponent,
-  PresentationComponent,
-} from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -83,23 +77,11 @@ export type CompInternal<T extends CompTypes = CompTypes> = ReturnType<Component
  */
 export type ParentNode = LayoutNode | LayoutPage;
 
-export type TypeFromConfig<T extends CompInternal | CompExternal> = T extends { type: infer Type }
-  ? Type extends CompTypes
-    ? Type
-    : CompTypes
-  : CompTypes;
-
 export type TypeFromNode<N extends LayoutNode | undefined> = N extends undefined
   ? never
   : N extends LayoutNode<infer Type>
     ? Type
     : CompTypes;
-
-export type LayoutNodeFromObj<T> = T extends { type: infer Type }
-  ? Type extends CompTypes
-    ? LayoutNode<Type>
-    : LayoutNode
-  : LayoutNode;
 
 export type TypesFromCategory<Cat extends CompCategory> = $Keys<PickByValue<CompClassMapCategories, Cat>>;
 
@@ -107,42 +89,9 @@ export type CompWithPlugin<Plugin> = {
   [Type in CompTypes]: Extract<ComponentTypeConfigs[Type]['plugins'], Plugin> extends never ? never : Type;
 }[CompTypes];
 
-export type DefFromCategory<C extends CompCategory> = C extends 'presentation'
-  ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    PresentationComponent<any>
-  : C extends 'form'
-    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      FormComponent<any>
-    : C extends 'action'
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ActionComponent<any>
-      : C extends 'container'
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ContainerComponent<any>
-        : never;
-
 export type LayoutNodeFromCategory<Type> = Type extends CompCategory ? LayoutNode<TypesFromCategory<Type>> : LayoutNode;
 
 export type ILayoutCollection = { [pageName: string]: ILayoutFile };
-
-export type IsContainerComp<T extends CompTypes> = ComponentTypeConfigs[T]['category'] extends CompCategory.Container
-  ? true
-  : false;
-
-export type IsActionComp<T extends CompTypes> = ComponentTypeConfigs[T]['category'] extends CompCategory.Action
-  ? true
-  : false;
-
-export type IsFormComp<T extends CompTypes> = ComponentTypeConfigs[T]['category'] extends CompCategory.Form
-  ? true
-  : false;
-
-export type IsPresentationComp<T extends CompTypes> =
-  ComponentTypeConfigs[T]['category'] extends CompCategory.Presentation ? true : false;
-
-export type CompWithCap<Capability extends keyof CompCapabilities> = {
-  [Type in CompTypes]: ComponentConfigs[Type]['capabilities'][Capability] extends true ? Type : never;
-}[CompTypes];
 
 export type CompWithBehavior<Behavior extends keyof CompBehaviors> = {
   [Type in CompTypes]: ComponentConfigs[Type]['behaviors'][Behavior] extends true ? Type : never;

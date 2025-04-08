@@ -191,7 +191,7 @@ export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
 
 export type ParamValue = string | number | boolean | null;
 
-export interface IGetOptionsUrlParams {
+interface IGetOptionsUrlParams {
   optionsId: string;
   queryParameters?: Record<string, ParamValue>;
   language?: string;
@@ -219,7 +219,7 @@ export const getOptionsUrl = ({ optionsId, queryParameters, language, secure, in
 
   return url.toString();
 };
-export interface IGetDataListsUrlParams {
+interface IGetDataListsUrlParams {
   dataListId: string;
   queryParameters?: Record<string, ParamValue>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

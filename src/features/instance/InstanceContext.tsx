@@ -43,7 +43,6 @@ const {
   useLaxMemoSelector,
   useHasProvider,
   useLaxStore,
-  useLaxDelayedSelector,
   useLaxDelayedSelectorProps,
 } = createZustandContext({
   name: 'InstanceContext',
@@ -218,11 +217,6 @@ export const useLaxInstanceDataElements = (dataType: string | undefined) =>
 export type DataElementSelector = <U>(selector: (data: IData[]) => U, deps: unknown[]) => U | typeof ContextNotProvided;
 const dataElementsInnerSelector = (state: InstanceContext): [IData[]] => [state.data?.data ?? emptyArray];
 
-export const useLaxDataElementsSelector = (): DataElementSelector =>
-  useLaxDelayedSelector({
-    mode: 'innerSelector',
-    makeArgs: dataElementsInnerSelector,
-  });
 export const useLaxDataElementsSelectorProps = () =>
   useLaxDelayedSelectorProps({
     mode: 'innerSelector',
@@ -248,8 +242,6 @@ export const useStrictInstanceId = () => {
   return `${instanceOwnerPartyId}/${instanceGuid}`;
 };
 export const useStrictAppendDataElements = () => useSelector((state) => state.appendDataElements);
-export const useStrictMutateDataElement = () => useSelector((state) => state.mutateDataElement);
 export const useStrictRemoveDataElement = () => useSelector((state) => state.removeDataElement);
-export const useStrictAllDataElements = () => useMemoSelector((state) => state.data?.data) ?? emptyArray;
 export const useStrictDataElements = (dataType: string | undefined) =>
   useMemoSelector((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;

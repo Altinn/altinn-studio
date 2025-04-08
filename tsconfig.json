@@ -36,7 +36,7 @@
     "noImplicitOverride": false,
     "noImplicitThis": false,
     "noUncheckedIndexedAccess": false,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "plugins": [
       {
         "name": "typescript-plugin-css-modules",

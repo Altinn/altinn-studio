@@ -21,15 +21,3 @@ export type IFooterComponent<T extends IFooterComponentType> = IFooterComponentM
 export interface IFooterLayout {
   footer: IFooterComponent<IFooterComponentType>[];
 }
-
-export interface IFooterLayoutState {
-  footerLayout: IFooterLayout | null;
-}
-
-export interface IFetchFooterLayoutFulfilled {
-  footerLayout: IFooterLayout | null;
-}
-
-export interface IFooterLayoutActionRejected {
-  error: Error | null;
-}

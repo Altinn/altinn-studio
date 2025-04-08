@@ -201,11 +201,6 @@ export interface IProcess {
   processTasks?: Pick<ITask, 'altinnTaskType' | 'elementId'>[];
 }
 
-export interface Role {
-  type: string;
-  value: string;
-}
-
 export interface IProfile {
   userId: number;
   userName: string;

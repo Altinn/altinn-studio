@@ -44,7 +44,7 @@ interface Config<
   } & { internal: RepChildrenInternalState };
 }
 
-export interface ExternalConfig {
+interface ExternalConfig {
   componentType?: TypesFromCategory<CompCategory.Container>;
   dataModelGroupBinding?: string;
   multiPageSupport?: false | string; // Path to property that indicates if multi-page support is enabled

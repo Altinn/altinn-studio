@@ -11,23 +11,16 @@ import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useNode } from 'src/utils/layout/NodesContext';
-import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
 import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
 
-export const defaultMockQuestions = [
-  { Question: 'Hvordan trives du på skolen?', Answer: '' },
-  { Question: 'Har du det bra?', Answer: '' },
-  { Question: 'Hvor god er du i matte?', Answer: '' },
-];
-
 const groupBinding = 'Questions';
 const answerBinding = 'Answer';
 const questionBinding = 'Question';
 
-export const generateMockFormData = (likertQuestions: IQuestion[]) => ({
+const generateMockFormData = (likertQuestions: IQuestion[]) => ({
   [groupBinding]: Array.from({ length: likertQuestions.length }, (_, index) => ({
     [ALTINN_ROW_ID]: uuidv4(),
     [answerBinding]: likertQuestions[index].Answer,
@@ -77,14 +70,6 @@ const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): Com
   readOnly: false,
   required: false,
   ...props,
-});
-
-export const createFormDataUpdateProp = (index: number, optionValue: string): FDNewValue => ({
-  reference: {
-    dataType: defaultDataTypeMock,
-    field: `Questions[${index}].Answer`,
-  },
-  newValue: optionValue,
 });
 
 const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourceResult => ({

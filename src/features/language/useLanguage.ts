@@ -13,7 +13,6 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import {
   useDataModelBindingTranspose,
   useInnerDataModelBindingTranspose,
@@ -128,16 +127,6 @@ export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
       transposeSelector,
     });
   }, [sources, node, defaultDataType, formDataTypes, formDataSelector, transposeSelector]);
-}
-
-// Exactly the same as above, but returns a function accepting a node
-export function useLanguageWithForcedNodeSelector() {
-  const defaultDataType = DataModels.useLaxDefaultDataType();
-  const formDataTypes = DataModels.useLaxReadableDataTypes();
-  const formDataSelector = FD.useLaxDebouncedSelector();
-  const nodeDataSelector = NodesInternal.useLaxNodeDataSelector();
-
-  return useInnerLanguageWithForcedNodeSelector(defaultDataType, formDataTypes, formDataSelector, nodeDataSelector);
 }
 
 export function useInnerLanguageWithForcedNodeSelector(

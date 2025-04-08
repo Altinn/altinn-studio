@@ -115,13 +115,6 @@ export function backendValidationIssueGroupListToObject(
   return Object.fromEntries(groupList.map(({ source, issues }) => [source, issues]));
 }
 
-/**
- * Storage format for backend validations.
- */
-export type BackendValidatorGroups = {
-  [validator: string]: (BaseValidation | FieldValidation)[];
-};
-
 export type BackendFieldValidatorGroups = {
   [validator: string]: FieldValidation[];
 };

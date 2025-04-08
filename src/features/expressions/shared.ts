@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 
-import type { IAttachmentsMap, UploadedAttachment } from 'src/features/attachments';
 import type { ExprPositionalArgs, ExprVal, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -105,27 +104,6 @@ export function getSharedTests<Folder extends keyof TestFolders>(
       out.content.push(test);
     }
   });
-
-  return out;
-}
-
-export function convertInstanceDataToAttachments(
-  instanceData: IData[] | undefined,
-): IAttachmentsMap<UploadedAttachment> {
-  const out: IAttachmentsMap<UploadedAttachment> = {};
-  if (instanceData) {
-    for (const data of instanceData) {
-      const component = out[data.dataType] || [];
-      component.push({
-        updating: false,
-        deleting: false,
-        uploaded: true,
-        data,
-      });
-
-      out[data.dataType] = component;
-    }
-  }
 
   return out;
 }

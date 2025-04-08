@@ -2,7 +2,7 @@ import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable'
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
 
-export interface ISummaryData {
+interface ISummaryData {
   instanceOwnerParty?: IParty;
   langTools: IUseLanguage;
 }

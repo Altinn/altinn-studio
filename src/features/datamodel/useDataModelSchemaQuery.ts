@@ -41,11 +41,6 @@ export const useDataModelSchemaQuery = (enabled: boolean, dataTypeId: string) =>
   return { ...utils, enabled: queryDef.enabled };
 };
 
-export interface DataModelSchemaContext {
-  schema: JSONSchema7 | undefined;
-  lookupTool: SchemaLookupTool;
-}
-
 /**
  * Simple caching lookup tool for finding the schema for a given binding/path
  */

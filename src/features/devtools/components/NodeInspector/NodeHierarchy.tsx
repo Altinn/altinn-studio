@@ -56,7 +56,7 @@ const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
   </>
 );
 
-export const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProps) => {
+const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProps) => {
   const node = useNode(nodeId);
   const nodeType = node?.type;
   const nodeMultiPageIndex = node?.multiPageIndex;

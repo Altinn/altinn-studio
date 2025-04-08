@@ -36,15 +36,6 @@ export class MissingDataElementException extends Error {
   }
 }
 
-export class MissingDataModelException extends Error {
-  public readonly dataType: string;
-
-  constructor(dataType: string) {
-    super(`Tried to reference the data type \`${dataType}\`, but this data type is not writable or does not exist.`);
-    this.dataType = dataType;
-  }
-}
-
 /**
  * Looks through all layouts and returns a list of unique data types that are referenced in dataModelBindings,
  * it will also include the default data type, which is necessary in case there are string bindings

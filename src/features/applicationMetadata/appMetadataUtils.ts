@@ -1,6 +1,3 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ILayoutSet } from 'src/layout/common.generated';
@@ -29,17 +26,6 @@ export function getDataTypeByLayoutSetId({ layoutSetId, layoutSets, appMetaData 
   }
 
   return undefined;
-}
-
-export function useDataTypeByLayoutSetId(layoutSetId: string | undefined) {
-  const layoutSets = useLaxLayoutSets();
-  const application = useLaxApplicationMetadata();
-
-  if (layoutSets === ContextNotProvided || application === ContextNotProvided) {
-    return undefined;
-  }
-
-  return getDataTypeByLayoutSetId({ layoutSetId, layoutSets, appMetaData: application });
 }
 
 interface GetDataTypeByTaskIdProps {

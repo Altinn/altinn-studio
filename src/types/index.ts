@@ -22,10 +22,6 @@ export interface IExpandedWidthLayouts {
   [layoutKey: string]: boolean | undefined;
 }
 
-export interface IExpandedWidthLayoutsExternal {
-  [layoutKey: string]: boolean;
-}
-
 export enum ProcessTaskType {
   Unknown = 'unknown',
   Data = 'data',
@@ -45,15 +41,4 @@ export enum DateFlags {
 
 export function isProcessTaskType(taskType: string): taskType is ProcessTaskType {
   return Object.values(ProcessTaskType).includes(taskType as ProcessTaskType);
-}
-
-/**
- * This function can be used to have TypeScript enforce that we never reach the code branch in question
- * @see https://stackoverflow.com/a/39419171
- */
-export function assertUnreachable<Ret = never>(_x: never, execute?: () => Ret): Ret {
-  if (execute) {
-    return execute();
-  }
-  throw new Error('Reached unreachable code');
 }

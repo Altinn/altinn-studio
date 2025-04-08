@@ -27,4 +27,3 @@ export function LoadingProvider({ children, ...rest }: PropsWithChildren<Context
 }
 
 export const useIsLoading = () => useCtx() !== undefined;
-export const useLoadingReason = () => useCtx()?.reason;

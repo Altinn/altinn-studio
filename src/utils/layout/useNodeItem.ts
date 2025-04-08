@@ -7,7 +7,6 @@ import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { NodeData, NodeItemFromNode } from 'src/utils/layout/types';
 
 /**
@@ -122,18 +121,4 @@ function getNodeFormDataInner<T extends CompTypes>(
   }
 
   return formDataObj as IComponentFormData<T>;
-}
-
-export function getNodeFormData<Type extends CompTypes = CompTypes>(
-  nodeId: string,
-  nodeDataSelector: NodeDataSelector,
-  formDataSelector: FormDataSelector,
-): IComponentFormData<Type> | undefined {
-  const dataModelBindings = nodeDataSelector((picker) => picker(nodeId)?.layout.dataModelBindings, [nodeId]) as
-    | IDataModelBindings<Type>
-    | undefined;
-
-  return dataModelBindings
-    ? (getNodeFormDataInner(dataModelBindings, formDataSelector) as IComponentFormData<Type>)
-    : undefined;
 }

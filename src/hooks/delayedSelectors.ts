@@ -386,7 +386,7 @@ export type DSPropsMatching<Selector> = Selector extends (
   deps: unknown[],
 ) => unknown
   ? () => DSPropsMatchingInnerSelector<Args>
-  : Selector extends (...args: infer Args) => unknown
+  : Selector extends (...args: infer _Args) => unknown
     ? () => DSPropsMatchingSimple<Selector>
     : never;
 

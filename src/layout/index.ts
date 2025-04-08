@@ -1,7 +1,6 @@
 import type { MutableRefObject, ReactNode } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
-import type { CompBehaviors } from 'src/codegen/Config';
 import type { DisplayData } from 'src/features/displayData';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -67,13 +66,6 @@ export function getComponentCapabilities<T extends CompTypes>(type: T): Componen
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return undefined as any;
-}
-
-export function getComponentBehavior<T extends CompTypes, K extends keyof CompBehaviors>(
-  type: T,
-  behavior: K,
-): ComponentConfigs[T]['behaviors'][K] {
-  return getComponentConfigs()[type].behaviors[behavior];
 }
 
 type TypeFromDef<Def extends CompDef> = Def extends CompDef<infer T> ? T : CompTypes;
