@@ -16,7 +16,11 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useAppMetadataQuery } from 'app-shared/hooks/queries/useAppMetadataQuery';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
-import { isSaveButtonDisabled, type NewSubformProps } from './AddSubformCardUtils';
+import {
+  isSaveButtonDisabled,
+  RenderDataModelOptions,
+  type NewSubformProps,
+} from './AddSubformCardUtils';
 
 enum Tabs {
   Choose = 'choose',
@@ -27,7 +31,9 @@ type SubformCardEditModeProps = {
   setIsCreateSubformMode: (isSubformInEditMode: boolean) => void;
 };
 
-export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditModeProps) => {
+export const SubformCardEditMode = ({
+  setIsCreateSubformMode,
+}: SubformCardEditModeProps): React.ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -55,20 +61,17 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
     setSubformError(validateLayoutSetName(newSubformName, layoutSets));
   };
 
-  const handleNewDataModelName = (dataModelId: string) => {
+  const handleDataModelName = (dataModelId: string, isNewDataModel: boolean = false) => {
     setNewSubform((prevState) => ({
       ...prevState,
       dataModelName: dataModelId,
     }));
-    validateDataModelName(dataModelId);
+
+    if (isNewDataModel) {
+      validateDataModelName(dataModelId);
+    }
   };
 
-  const handleSelectDataModelChange = (dataModelId: string) => {
-    setNewSubform((prevState) => ({
-      ...prevState,
-      dataModelName: dataModelId,
-    }));
-  };
   const handleChangeTab = () => {
     setNewSubform((prevState) => ({
       ...prevState,
@@ -82,7 +85,7 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
       <StudioCard.Header data-size='xs'>{t('ux_editor.subform')}</StudioCard.Header>
       <StudioTextfield
         label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-        size='small'
+        size='sm'
         error={subformError}
         className={classes.textField}
         onChange={(e) => handleSubformName(e.target.value)}
@@ -99,30 +102,19 @@ export const SubformCardEditMode = ({ setIsCreateSubformMode }: SubformCardEditM
         <StudioTabs.Content value={Tabs.Choose} className={classes.tabContent}>
           <StudioNativeSelect
             label={t('ux_editor.component_properties.subform.data_model_binding_label')}
-            size='small'
-            onChange={(e) => handleSelectDataModelChange(e.target.value)}
+            size='sm'
+            onChange={(e) => handleDataModelName(e.target.value)}
           >
-            <option value='' hidden />
-            {dataModelIds ? (
-              dataModelIds.map((dataModelId) => (
-                <option value={dataModelId} key={dataModelId}>
-                  {dataModelId}
-                </option>
-              ))
-            ) : (
-              <option value=''>
-                {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
-              </option>
-            )}
+            {RenderDataModelOptions(dataModelIds)}
           </StudioNativeSelect>
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Create} className={classes.tabContent}>
           <StudioTextfield
-            label={'Navn på datamodell'}
-            size='small'
+            label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
+            size='sm'
             value={newSubform.dataModelName}
             className={classes.textField}
-            onChange={(e) => handleNewDataModelName(e.target.value)}
+            onChange={(e) => handleDataModelName(e.target.value, true)}
             error={dataModelError}
           />
         </StudioTabs.Content>

@@ -21,6 +21,10 @@
   padding: var(--fds-spacing-2) 0;
 }
 
+.tabContent select {
+  width: 100%;
+}
+
 .buttonContainer {
   display: flex;
   gap: var(--fds-spacing-2);
