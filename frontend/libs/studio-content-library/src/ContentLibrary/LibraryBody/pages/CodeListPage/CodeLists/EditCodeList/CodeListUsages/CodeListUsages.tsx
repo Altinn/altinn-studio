@@ -3,8 +3,8 @@ import type { CodeListIdSource } from '../../../types/CodeListReference';
 import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
-import { FileNameUtils } from '@studio/pure-functions';
-import { StudioTag, StudioTagProps } from '@studio/components-legacy';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { UsageBpmnTaskType } from '../../../types/UsageBpmnTaskType';
 
 export type CodeListUsagesProps = {
   codeListSources: CodeListIdSource[];
@@ -17,8 +17,12 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
     <Table zebra className={classes.table}>
       <Table.Head>
         <Table.Row>
-          <Table.HeaderCell>Oppgavetype</Table.HeaderCell>
-          <Table.HeaderCell>Oppgavenavn</Table.HeaderCell>
+          <Table.HeaderCell>
+            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_type')}
+          </Table.HeaderCell>
+          <Table.HeaderCell>
+            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_name')}
+          </Table.HeaderCell>
           <Table.HeaderCell>
             {t('app_content_library.code_lists.code_list_usage_table_column_header_layout_set')}
           </Table.HeaderCell>
@@ -46,38 +50,28 @@ type CodeListUsageSourceRowProps = {
 function CodeListUsageSourceRow({
   codeListSource,
 }: CodeListUsageSourceRowProps): React.ReactElement {
-  const translatedTaskType = translateTaskType(codeListSource.taskType);
-  const colorClass =
-    codeListSource.taskType === 'data'
-      ? classes.tagTypeData
-      : codeListSource.taskType === 'signing'
-        ? classes.tagTypeSigning
-        : undefined;
+  const { t } = useTranslation();
+  const { taskId, taskType, layoutSetId, layoutName, componentIds } = codeListSource;
+  const taskTypeTextKey = getTaskTypeTextKey(taskType);
 
   return (
     <Table.Row>
-      <Table.Cell>
-        <StudioTag className={`${classes.tag} ${colorClass}`} size={'md'}>
-          {translatedTaskType}
-        </StudioTag>
-      </Table.Cell>
-      <Table.Cell>{codeListSource.taskId}</Table.Cell>
-      <Table.Cell>{codeListSource.layoutSetId}</Table.Cell>
-      <Table.Cell>{FileNameUtils.removeExtension(codeListSource.layoutName)}</Table.Cell>
-      <Table.Cell>{listComponentIds(codeListSource.componentIds)}</Table.Cell>
+      <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
+      <Table.Cell>{taskId}</Table.Cell>
+      <Table.Cell>{layoutSetId}</Table.Cell>
+      <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
+      <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
     </Table.Row>
   );
 }
 
-const listComponentIds = (componentIds: string[]): string => {
-  return componentIds.join(', ');
-};
-
-const translateTaskType = (taskType: string): string => {
+export const getTaskTypeTextKey = (taskType: UsageBpmnTaskType): string => {
   switch (taskType) {
-    case 'data':
-      return 'Utfylling';
-    case 'signing':
-      return 'Signering';
+    case UsageBpmnTaskType.Data:
+      return 'app_content_library.code_lists.code_list_usage_table_task_type_data';
+    case UsageBpmnTaskType.Signing:
+      return 'app_content_library.code_lists.code_list_usage_table_task_type_signing';
+    default:
+      return taskType;
   }
 };

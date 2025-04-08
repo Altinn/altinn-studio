@@ -3,7 +3,7 @@
 }
 
 .tag {
-  width: 6rem;
+  width: var(--fds-sizing-22);
   display: flex;
   justify-content: center;
 }
