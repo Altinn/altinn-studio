@@ -264,9 +264,10 @@ export function en() {
     },
     party_selection: {
       error_caption_prefix: 'Error',
-      invalid_selection_first_part: 'You started this app as',
-      invalid_selection_second_part: 'This app is available for',
-      invalid_selection_third_part: 'Choose another party below.',
+      invalid_selection_non_existing_party:
+        'You have started the service with an party that either does not exist or that you do not have access to. Select a new party below to continue.',
+      invalid_selection_existing_party:
+        'You started this app as {0}. This app is available for {1}. Choose another party below.',
       no_valid_selection_first_part: 'This is a app for {0}',
       no_valid_selection_second_part: 'It looks like you do not have access to a party who is allowed to start {0}.',
       no_valid_selection_third_part: 'To start this app, you must have accesses associated with {0}.',

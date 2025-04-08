@@ -22,7 +22,6 @@ import type { IInstance, IParty } from 'src/types/shared';
 
 export interface IConfirmPageProps {
   instance: IInstance | undefined;
-  parties: IParty[] | undefined;
   instanceOwnerParty?: IParty;
   appName: string;
   applicationMetadata: ApplicationMetadata | null;

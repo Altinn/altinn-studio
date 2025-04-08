@@ -10,20 +10,14 @@ import { useHasAppTextsYet } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { Lang } from 'src/features/language/Lang';
-import { getPartyDisplayName } from 'src/utils/party';
 import type { LogoColor } from 'src/components/logo/AltinnLogo';
-import type { IParty, IProfile } from 'src/types/shared';
 
 export interface AppHeaderProps {
-  /** The party of the instance owner */
-  party: IParty | undefined;
-  /** The party of the currently logged in user */
-  user: IProfile | undefined;
   logoColor: LogoColor;
   headerBackgroundColor: string;
 }
 
-export const AppHeader = ({ logoColor, headerBackgroundColor, party, user }: AppHeaderProps) => {
+export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) => {
   const { showLanguageSelector } = usePageSettings();
 
   return (
@@ -44,12 +38,7 @@ export const AppHeader = ({ logoColor, headerBackgroundColor, party, user }: App
         <div className={classes.wrapper}>
           {showLanguageSelector && <LanguageSelector />}
           <div className={classes.wrapper}>
-            <span className={classes.partyName}>{getPartyDisplayName(party, user)}</span>
-            <AppHeaderMenu
-              party={party}
-              user={user}
-              logoColor={logoColor}
-            />
+            <AppHeaderMenu logoColor={logoColor} />
           </div>
         </div>
       </div>

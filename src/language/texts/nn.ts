@@ -264,9 +264,10 @@ export function nn(): FixedLanguageList {
     },
     party_selection: {
       error_caption_prefix: 'Feil',
-      invalid_selection_first_part: 'Du har starta tenesta som',
-      invalid_selection_second_part: 'Denne tenesta er kun tilgjengeleg for',
-      invalid_selection_third_part: 'Vel ny aktør under.',
+      invalid_selection_non_existing_party:
+        'Du har starta tenesta med ein aktør som anten ikkje finst eller som du ikkje har tilgang til. Vel ein ny aktør nedanfor for å halde fram.',
+      invalid_selection_existing_party:
+        'Du har starta tenesta som {0}. Denne tenesta er kun tilgjengeleg for {1}. Vel ny aktør under.',
       no_valid_selection_first_part: 'Dette er ei teneste for {0}',
       no_valid_selection_second_part:
         'Det ser ut som du ikkje har tilgang til ein aktør som har lov til å starte <b>{0}</b>.',

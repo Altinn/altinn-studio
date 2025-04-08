@@ -33,6 +33,17 @@ const buildInstance = (hasPdf = true) =>
     i.org = 'ttd';
     i.id = exampleInstanceId;
     i.lastChanged = '2022-02-05T09:19:32.8858042Z';
+    i.instanceOwner = {
+      partyId: '50001',
+      party: {
+        partyId: 50001,
+        name: 'Ola Privatperson',
+        partyTypeName: PartyType.Person,
+        ssn: '01017512345',
+        isDeleted: false,
+        onlyHierarchyElementWithNoAccess: false,
+      } as IParty,
+    };
     if (hasPdf) {
       i.data.push({
         id: exampleDataGuid,
@@ -203,14 +214,7 @@ describe('getSummaryDataObject', () => {
         langTools: staticUseLanguageForTests({
           language: {},
         }),
-        instanceOwnerParty: {
-          partyId: 50001,
-          name: 'Ola Privatperson',
-          partyTypeName: PartyType.Person,
-          ssn: '01017512345',
-          isDeleted: false,
-          onlyHierarchyElementWithNoAccess: false,
-        } as IParty,
+        sender: '01017512345-Ola Privatperson',
         instanceGuid: '6697de17-18c7-4fb9-a428-d6a414a797ae',
         lastChangedDateTime: '22.08.2019 / 09:08',
         receiver: 'Testdepartementet',

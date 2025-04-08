@@ -42,20 +42,12 @@ describe('presentation/AppHeader', () => {
     languageResponse?: IAppLanguage[];
     textResources?: IRawTextResource[];
   }
-  const render = async ({
-    party,
-    user = userPerson,
-    logo,
-    showLanguageSelector = false,
-    textResources = [],
-  }: IRenderComponentProps) => {
+  const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
     jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
         <AppHeader
-          party={party}
-          user={user}
           logoColor={LogoColor.blueDarker}
           headerBackgroundColor={headerBackgroundColor}
         />

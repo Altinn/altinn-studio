@@ -18,14 +18,3 @@
   align-items: center;
   gap: 0.5rem;
 }
-
-.partyName {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-@media (max-width: 768px) {
-  .partyName {
-    display: none;
-  }
-}

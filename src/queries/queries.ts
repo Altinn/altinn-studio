@@ -79,7 +79,7 @@ import type {
   IProfile,
 } from 'src/types/shared';
 
-export const doSetCurrentParty = (partyId: number) =>
+export const doSetCurrentParty = (partyId: number | string) =>
   putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>

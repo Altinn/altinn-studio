@@ -21,7 +21,7 @@ export const getInstantiateUrl = (language?: string) => {
   return `${appPath}/instances/create${queryString}`;
 };
 
-export const getSetCurrentPartyUrl = (partyId: number) => `${appPath}/api/v1/parties/${partyId}`;
+export const getSetCurrentPartyUrl = (partyId: string | number) => `${appPath}/api/v1/parties/${partyId}`;
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 

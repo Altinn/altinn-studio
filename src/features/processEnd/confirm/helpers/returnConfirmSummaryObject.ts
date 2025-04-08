@@ -7,13 +7,19 @@ export interface ISummaryData {
   langTools: IUseLanguage;
 }
 
-export const returnConfirmSummaryObject = ({ instanceOwnerParty, langTools }: ISummaryData): SummaryDataObject => {
+export function getInstanceSender(instanceOwnerParty?: IParty): string {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
+
+  return sender;
+}
+
+export const returnConfirmSummaryObject = ({ instanceOwnerParty, langTools }: ISummaryData): SummaryDataObject => {
+  const sender = getInstanceSender(instanceOwnerParty);
 
   const key = langTools.langAsString('confirm.sender');
 

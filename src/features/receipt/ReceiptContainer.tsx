@@ -20,8 +20,9 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
+import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
+import { getInstanceSender } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
@@ -32,15 +33,13 @@ import {
 } from 'src/utils/attachmentsUtils';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { getInstanceOwnerParty } from 'src/utils/party';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IParty } from 'src/types/shared';
 
 interface ReturnInstanceMetaDataObjectProps {
   langTools: IUseLanguage;
-  instanceOwnerParty: IParty | undefined;
+  sender: string;
   instanceGuid: string;
   lastChangedDateTime: string;
   receiver: string | undefined;
@@ -48,7 +47,7 @@ interface ReturnInstanceMetaDataObjectProps {
 
 export const getSummaryDataObject = ({
   langTools,
-  instanceOwnerParty,
+  sender,
   instanceGuid,
   lastChangedDateTime,
   receiver,
@@ -59,12 +58,6 @@ export const getSummaryDataObject = ({
     hideFromVisualTesting: true,
   };
 
-  let sender = '';
-  if (instanceOwnerParty?.ssn) {
-    sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
-  } else if (instanceOwnerParty?.orgNumber) {
-    sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
-  }
   obj[langTools.langAsString('receipt.sender')] = {
     value: sender,
   };
@@ -157,9 +150,9 @@ export const ReceiptContainer = () => {
   const instanceOrg = useLaxInstanceData((i) => i.org);
   const instanceOwner = useLaxInstanceData((i) => i.instanceOwner);
   const dataElements = useLaxInstanceAllDataElements();
-  const parties = usePartiesAllowedToInstantiate();
   const langTools = useLanguage();
   const receiver = useAppReceiver();
+  const instanceOwnerParty = useInstanceOwnerParty();
 
   const instanceGuid = useNavigationParam('instanceGuid');
 
@@ -193,12 +186,11 @@ export const ReceiptContainer = () => {
   }, [dataElements]);
 
   const instanceMetaObject = useMemo(() => {
-    if (instanceOrg && instanceOwner && parties && instanceGuid && lastChangedDateTime) {
-      const instanceOwnerParty = getInstanceOwnerParty(instanceOwner, parties);
-
+    if (instanceOrg && instanceOwner && instanceGuid && lastChangedDateTime) {
+      const sender = getInstanceSender(instanceOwnerParty ?? undefined);
       return getSummaryDataObject({
         langTools,
-        instanceOwnerParty,
+        sender,
         instanceGuid,
         lastChangedDateTime,
         receiver,
@@ -206,21 +198,27 @@ export const ReceiptContainer = () => {
     }
 
     return undefined;
-  }, [instanceOrg, parties, instanceGuid, lastChangedDateTime, langTools, receiver, instanceOwner]);
+  }, [instanceOrg, instanceGuid, lastChangedDateTime, langTools, receiver, instanceOwner, instanceOwnerParty]);
 
-  const requirementMissing = !attachments
-    ? 'attachments'
-    : !instanceMetaObject
-      ? 'instanceMetaObject'
-      : !lastChangedDateTime
-        ? 'lastChangedDateTime'
-        : !instanceOwner
-          ? 'instance'
-          : !parties
-            ? 'parties'
-            : undefined;
+  function getMissingRequirement() {
+    if (!attachments) {
+      return 'attachments';
+    }
+    if (!instanceMetaObject) {
+      return 'instanceMetaObject';
+    }
+    if (!lastChangedDateTime) {
+      return 'lastChangedDateTime';
+    }
+    if (!instanceOwnerParty) {
+      return 'instanceOwnerParty';
+    }
+    return undefined;
+  }
 
-  if (requirementMissing || !(instanceOwner && parties && instanceMetaObject && pdf)) {
+  const requirementMissing = getMissingRequirement();
+
+  if (requirementMissing || !(instanceMetaObject && pdf)) {
     return (
       <AltinnContentLoader
         width={705}

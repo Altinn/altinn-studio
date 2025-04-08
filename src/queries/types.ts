@@ -1,6 +1,6 @@
 import type * as queries from 'src/queries/queries';
 
-type IgnoredQueries = 'fetchApplicationMetadata' | 'fetchExternalApi' | 'fetchProcessState';
+type IgnoredQueries = keyof Pick<typeof queries, 'fetchApplicationMetadata' | 'fetchExternalApi' | 'fetchProcessState'>;
 
 export type AppQueriesContext = Omit<typeof queries, IgnoredQueries>;
 

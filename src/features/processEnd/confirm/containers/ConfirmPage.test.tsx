@@ -19,7 +19,6 @@ describe('ConfirmPage', () => {
     instance: getInstanceDataMock(),
     instanceOwnerParty: getPartyMock(),
     applicationMetadata: getApplicationMetadataMock(),
-    parties: [],
   };
   it('should present confirm information when necessary data is present', async () => {
     await renderWithInstanceAndLayout({
@@ -46,7 +45,13 @@ describe('ConfirmPage', () => {
   it('should have subunit sender name present', async () => {
     const partyMock = getPartyWithSubunitMock();
     const subunitParty = (props.instanceOwnerParty = partyMock.org.childParties[0]);
-    props.instance = getInstanceDataMock(undefined, subunitParty.partyId.toString(), undefined, subunitParty.orgNumber);
+    props.instance = getInstanceDataMock(
+      undefined,
+      subunitParty.partyId,
+      undefined,
+      subunitParty.orgNumber,
+      subunitParty,
+    );
     await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,
     });

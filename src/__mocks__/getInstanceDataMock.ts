@@ -1,16 +1,20 @@
-import type { IInstance } from 'src/types/shared';
+import type { IInstance, IParty } from 'src/types/shared';
 
 export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
 
 export function getInstanceDataMock(
   mutate?: (data: IInstance) => void,
-  partyId: string = '12345',
+  partyId: number = 12345,
   ssn: string | undefined = '01017512345',
   orgNr?: string | null,
+  party: IParty | undefined = undefined,
 ): IInstance {
+  const partyIdStr = partyId.toString();
+
   const out: IInstance = {
     instanceOwner: {
-      partyId,
+      partyId: partyIdStr,
+      party,
       personNumber: ssn,
       organisationNumber: orgNr,
     },
@@ -29,9 +33,9 @@ export function getInstanceDataMock(
         refs: [],
         isRead: true,
         created: new Date('2021-06-04T13:26:43.9100666Z').toISOString(),
-        createdBy: partyId,
+        createdBy: partyIdStr,
         lastChanged: new Date('2021-06-04T13:30:48.4307222Z').toISOString(),
-        lastChangedBy: partyId,
+        lastChangedBy: partyIdStr,
       },
       {
         id: '917e7e06-2665-4307-8c05-b0accd8964c6',
@@ -52,9 +56,9 @@ export function getInstanceDataMock(
         isRead: true,
         tags: [],
         created: new Date('2022-02-22T14:07:07.490511Z').toISOString(),
-        createdBy: partyId,
+        createdBy: partyIdStr,
         lastChanged: new Date('2022-02-22T14:07:07.490511Z').toISOString(),
-        lastChangedBy: partyId,
+        lastChangedBy: partyIdStr,
       },
     ],
     id: `${partyId}/91cefc5e-c47b-40ff-a8a4-05971205f783`,

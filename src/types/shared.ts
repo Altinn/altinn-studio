@@ -96,6 +96,7 @@ export interface IInstanceOwner {
   personNumber?: string;
   organisationNumber?: string | null;
   username?: string;
+  party?: IParty | null;
 }
 
 export interface IInstanceState {

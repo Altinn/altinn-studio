@@ -12,11 +12,10 @@ import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useLaxInstanceData, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
+import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { getInstanceOwnerParty } from 'src/utils/party';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
@@ -68,13 +67,11 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const langTools = useLanguage();
   const selectedLanguage = useCurrentLanguage();
 
-  const instanceOwner = useLaxInstanceData((data) => data.instanceOwner);
   const lastChanged = useLaxInstanceData((data) => data.lastChanged);
   const instanceId = useLaxInstanceId();
-  const parties = usePartiesAllowedToInstantiate();
   const appReceiver = useAppReceiver();
 
-  const instanceOwnerParty = getInstanceOwnerParty(instanceOwner, parties);
+  const instanceOwnerParty = useInstanceOwnerParty();
 
   const instanceDateSent =
     lastChanged &&
@@ -87,7 +84,7 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const instanceSender =
     sender !== false &&
     instanceOwnerParty &&
-    `${instanceOwnerParty.ssn ? instanceOwnerParty.ssn : instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
+    `${instanceOwnerParty.ssn ?? instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
 
   const instanceReceiver = receiver !== false ? (appReceiver ?? 'Error: Receiver org not found') : undefined;
 

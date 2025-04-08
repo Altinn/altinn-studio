@@ -103,10 +103,8 @@ export function CustomWebComponent({
     if (React.isValidElement(prop)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prop = ReactDOMServer.renderToStaticMarkup(prop as any);
-    } else if (['object', 'array'].includes(typeof prop)) {
-      if (key !== 'containerDivRef') {
-        prop = JSON.stringify(passThroughProps[key]);
-      }
+    } else if (['object', 'array'].includes(typeof prop) && key !== 'containerDivRef') {
+      prop = JSON.stringify(passThroughProps[key]);
     }
     propsAsAttributes[key] = prop;
   });
