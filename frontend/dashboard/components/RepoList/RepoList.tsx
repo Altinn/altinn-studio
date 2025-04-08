@@ -3,17 +3,14 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import {
-  StudioTableLocalPagination,
-  StudioTableRemotePagination,
-  TableSortStorageKey,
-} from '@studio/components-legacy';
+import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components-legacy';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components-legacy';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
 import { Paragraph } from '@digdir/designsystemet-react';
+import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export type RepoListProps = {
   repos: RepoIncludingStarredData[];

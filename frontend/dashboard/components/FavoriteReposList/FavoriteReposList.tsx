@@ -3,7 +3,7 @@ import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { Heading } from '@digdir/designsystemet-react';
-import { TableSortStorageKey } from '@studio/components-legacy';
+import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
