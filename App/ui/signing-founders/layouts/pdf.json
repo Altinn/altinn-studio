@@ -12,17 +12,9 @@
         "overrides": [
           {
             "componentId": "signee-list",
-            "title": "signing.summary.override.title"
+            "title": "singing.summary.title.override"
           }
         ]
-      },
-      {
-        "id": "signingDocumentsSummary",
-        "type": "Summary2",
-        "target": {
-          "type": "component",
-          "id": "signing-documents"
-        }
       }
     ]
   }

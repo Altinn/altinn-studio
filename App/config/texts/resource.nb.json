@@ -290,8 +290,14 @@
       "value": "Revisjonsoppdrag mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
     },
     {
-      "id": "signing.summary.override.title",
-      "value": "Disse har signert på vegne av Mitt Selskap AS"
+      "id": "singing.summary.title.override",
+      "value": "Disse har signert på vegne av {0}",
+      "variables": [
+        {
+          "key": "instanceOwnerName",
+          "dataSource": "instanceContext"
+        }
+      ]
     }
   ]
 }
