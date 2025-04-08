@@ -12,13 +12,11 @@ export type PolicyAccessPackageArea = {
   name: string;
   description: string;
   icon: string;
-  areaGroup: string;
   packages: PolicyAccessPackage[];
 };
 
 export type PolicyAccessPackageAreaGroup = {
   id: string;
-  urn: string;
   name: string;
   description: string;
   type: string;

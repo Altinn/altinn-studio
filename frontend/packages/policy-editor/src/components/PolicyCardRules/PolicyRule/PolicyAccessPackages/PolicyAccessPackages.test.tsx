@@ -64,7 +64,6 @@ const accessPackageAreaSkatt: PolicyAccessPackageArea = {
   name: 'Skatt',
   description: '',
   icon: '',
-  areaGroup: 'Vanlig',
   packages: [skattPackage],
 };
 
@@ -74,7 +73,6 @@ const accessPackageAreaTransport: PolicyAccessPackageArea = {
   name: 'Lagring og transport',
   description: '',
   icon: 'TruckIcon',
-  areaGroup: 'Vanlig',
   packages: [sjofartPackage, lufttransportPackage],
 };
 
@@ -84,13 +82,11 @@ const accessPackageAreaOther: PolicyAccessPackageArea = {
   name: 'Annet',
   description: '',
   icon: 'TruckIcon',
-  areaGroup: 'Vanlig',
   packages: [revisorPackage, revisorNonDelegablePackage],
 };
 
 const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
   id: 'vanlig',
-  urn: 'accesspackage:areagroup:vanlig',
   name: 'Vanlig',
   description: 'Mest vanlige pakkenegruppene',
   type: 'Organisasjon',

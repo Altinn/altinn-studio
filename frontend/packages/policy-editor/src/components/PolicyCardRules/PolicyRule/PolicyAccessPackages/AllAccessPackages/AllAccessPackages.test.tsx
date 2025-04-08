@@ -40,7 +40,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area1',
     description: '',
     icon: 'skatt_avgift_regnskap_og_toll',
-    areaGroup: '',
     packages: [package1, package2],
   },
   {
@@ -49,7 +48,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area2',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package3],
   },
 ];
