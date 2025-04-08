@@ -1,12 +1,12 @@
 import React from 'react';
 import { StudioCard, StudioHeading } from '@studio/components-legacy';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { SubformCardEditMode } from './CreateSubformMode';
 
-type AddSubformCardProps = {
+export type AddSubformCardProps = {
   isSubformInEditMode: boolean;
   setIsCreateSubformMode: (isSubformInEditMode: boolean) => void;
 };
