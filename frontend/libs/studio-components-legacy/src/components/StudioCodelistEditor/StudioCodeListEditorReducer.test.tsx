@@ -18,152 +18,115 @@ const dispatch = (action: ReducerAction, state?: Partial<ReducerState>): Reducer
 
 describe('StudioCodeListEditorReducer', () => {
   describe('SetCodeList', () => {
-    it('should update codeList property in state correctly', () => {
+    it('Updates the list of code list items', () => {
       const testCodeList: CodeList = [{ value: 'test1', label: 'test2' }];
 
-      const state: ReducerState = dispatch({
+      const result: ReducerState = dispatch({
         type: ReducerActionType.SetCodeList,
         codeList: testCodeList,
       });
 
-      expect(state.codeList).toEqual(testCodeList);
+      expect(result.codeList).toEqual(testCodeList);
     });
   });
 
   describe('setTextResources', () => {
-    it('should update textResources property in state correctly', () => {
+    it('Updates the list of text resources', () => {
       const testTextResources: TextResource[] = [{ id: 'test1', value: 'test2' }];
 
-      const state: ReducerState = dispatch({
+      const result: ReducerState = dispatch({
         type: ReducerActionType.SetTextResources,
         textResources: testTextResources,
       });
 
-      expect(state.textResources).toEqual(testTextResources);
+      expect(result.textResources).toEqual(testTextResources);
     });
   });
 
   describe('AddTextResource', () => {
-    it('should update textResources property in state correctly when adding text resource for label', () => {
-      const textResource: TextResource = {
-        id: 'newId',
-        value: 'some test value',
-      };
-      const codeItemIndex = 1;
-      const property = CodeListItemTextProperty.Label;
+    const textResource: TextResource = {
+      id: 'newId',
+      value: 'some test value',
+    };
+    const codeItemIndex = 1;
+    const property = CodeListItemTextProperty.Label;
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.AddTextResource,
-        textResource: textResource,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.textResources[state.textResources.length - 1]).toEqual(textResource);
+    const result: ReducerState = dispatch({
+      type: ReducerActionType.AddTextResource,
+      textResource,
+      codeItemIndex,
+      property,
     });
 
-    it('should update codeList property in state correctly when adding text resource for label', () => {
-      const textResource: TextResource = {
-        id: 'newId',
-        value: 'some test value',
-      };
-      const codeItemIndex = 1;
-      const property = CodeListItemTextProperty.Label;
+    it('Adds the new text resource to the list of text resources', () => {
+      expect(result.textResources).toContain(textResource);
+    });
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.AddTextResource,
-        textResource: textResource,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.codeList[codeItemIndex].label).toEqual(textResource.id);
+    it('Updates the given code item property with a reference to the new text resource', () => {
+      const updatedTextProperty = result.codeList[codeItemIndex][property];
+      expect(updatedTextProperty).toContain(textResource.id);
     });
   });
 
   describe('DeleteTextResource', () => {
-    it('should update textResources property in state correctly when deleting text resource for description', () => {
-      const textResourceId: string = textResources[0].id;
-      const codeItemIndex = 0;
-      const property = CodeListItemTextProperty.Description;
+    const textResourceId: string = textResources[0].id;
+    const codeItemIndex = 0;
+    const property = CodeListItemTextProperty.Description;
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.DeleteTextResource,
-        textResourceId: textResourceId,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.textResources.find((item) => item.id === textResourceId)).toBeFalsy();
+    const result: ReducerState = dispatch({
+      type: ReducerActionType.DeleteTextResource,
+      textResourceId,
+      codeItemIndex,
+      property,
     });
 
-    it('should update codeList property in state correctly when deleting text resource for description', () => {
-      const textResourceId: string = textResources[0].id;
-      const codeItemIndex = 0;
-      const property = CodeListItemTextProperty.Description;
+    it('Removes a text resource from the list of text resources', () => {
+      expect(result.textResources).not.toContain(textResources[0]);
+    });
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.DeleteTextResource,
-        textResourceId: textResourceId,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.codeList[codeItemIndex].description).toBeNull();
+    it('Updates the given code item property with the value null', () => {
+      expect(result.codeList[codeItemIndex].description).toBeNull();
     });
   });
 
   describe('UpdateTextResourceId', () => {
-    it('should update textResources property in state correctly when altering text resourceId for helpText', () => {
-      const textResourceId: string = textResources[2].id;
-      const newId: string = 'newId';
-      const codeItemIndex = 0;
-      const property = CodeListItemTextProperty.HelpText;
+    const textResource: TextResource = textResources[2];
+    const textResourceId: string = textResource.id;
+    const newId: string = 'newId';
+    const codeItemIndex = 0;
+    const property = CodeListItemTextProperty.HelpText;
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.UpdateTextResourceId,
-        textResourceId: textResourceId,
-        newId: newId,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.textResources.find((item) => item.id === textResourceId)).toBeFalsy();
-      expect(state.textResources.find((item) => item.id === newId)).toBeTruthy();
+    const result: ReducerState = dispatch({
+      type: ReducerActionType.UpdateTextResourceId,
+      textResourceId,
+      newId,
+      codeItemIndex,
+      property,
     });
 
-    it('should update codeList property in state correctly when altering text resourceId for helpText', () => {
-      const textResourceId: string = textResources[2].id;
-      const newId: string = 'newId';
-      const codeItemIndex = 0;
-      const property = CodeListItemTextProperty.HelpText;
+    it('Updates the id property of a text resource in the list of text resources', () => {
+      expect(result.textResources).not.toContain(textResource);
+      expect(result.textResources.find((item) => item.id === newId)).toBeTruthy();
+    });
 
-      const state: ReducerState = dispatch({
-        type: ReducerActionType.UpdateTextResourceId,
-        textResourceId: textResourceId,
-        newId: newId,
-        codeItemIndex: codeItemIndex,
-        property: property,
-      });
-
-      expect(state.codeList[codeItemIndex].helpText).toEqual(newId);
+    it('Updates the correct code item in the list with a reference to the updated text resource', () => {
+      expect(result.codeList[codeItemIndex].helpText).toEqual(newId);
     });
   });
 
   describe('UpdateTextResourceValue', () => {
-    it('should update textResources property in state correctly when altering text resource value', () => {
+    it('Updates the value property of a text resource in the list of text resources', () => {
       const textResourceId: string = textResources[2].id;
       const newValue: string = 'test value';
 
-      const state: ReducerState = dispatch({
+      const result: ReducerState = dispatch({
         type: ReducerActionType.UpdateTextResourceValue,
-        textResourceId: textResourceId,
-        newValue: newValue,
+        textResourceId,
+        newValue,
       });
 
-      expect(state.textResources.find((item) => item.id === textResourceId).value).toEqual(
-        newValue,
-      );
+      const actualTextResource = result.textResources.find((item) => item.id === textResourceId);
+      expect(actualTextResource.value).toEqual(newValue);
     });
   });
 });
