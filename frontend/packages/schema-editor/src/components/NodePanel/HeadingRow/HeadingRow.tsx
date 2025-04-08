@@ -18,7 +18,7 @@ import {
   BooleanIcon,
   CombinationIcon,
   IntegerIcon,
-  DecimalIcon,
+  NumberIcon,
   ObjectIcon,
   PlusIcon,
   StringIcon,
@@ -121,7 +121,7 @@ const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
     },
     {
       titleKey: 'schema_editor.number',
-      icon: <DecimalIcon />,
+      icon: <NumberIcon />,
       action: () => addAndSelectNode(ObjectKind.Field, FieldType.Number, schemaPointer),
     },
     {

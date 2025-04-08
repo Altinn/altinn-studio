@@ -2,7 +2,7 @@ import React from 'react';
 import { SvgTemplate } from './SvgTemplate';
 import type { IconProps } from '../types';
 
-export const DecimalIcon = (props: IconProps): React.ReactElement => (
+export const NumberIcon = (props: IconProps): React.ReactElement => (
   <SvgTemplate viewBox='0 0 36 36' {...props}>
     <path
       fill='currentColor'

@@ -5,7 +5,7 @@ import {
   BooleanIcon,
   CombinationIcon,
   IntegerIcon,
-  DecimalIcon,
+  NumberIcon,
   ObjectIcon,
   QuestionmarkIcon,
   ReferenceIcon,
@@ -44,7 +44,7 @@ const InternalIcon = ({ node, ...iconProps }: InternalIconProps) => {
         case FieldType.Integer:
           return <IntegerIcon {...iconProps} />;
         case FieldType.Number:
-          return <DecimalIcon {...iconProps} />;
+          return <NumberIcon {...iconProps} />;
         case FieldType.String:
           return <StringIcon {...iconProps} />;
         default:

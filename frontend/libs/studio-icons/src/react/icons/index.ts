@@ -20,7 +20,7 @@ export { IntegerIcon } from './IntegerIcon';
 export { LikertIcon } from './LikertIcon';
 export { LongTextIcon } from './LongTextIcon';
 export { NavBarIcon } from './NavBarIcon';
-export { DecimalIcon } from './DecimalIcon';
+export { NumberIcon } from './NumberIcon';
 export { ObjectIcon } from './ObjectIcon';
 export { MaskinportenIcon } from './MaskinportenIcon';
 export { OrgResourceIcon } from './OrgResourceIcon';
