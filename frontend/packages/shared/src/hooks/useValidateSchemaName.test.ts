@@ -107,9 +107,9 @@ describe('useValidateSchemaName', () => {
   });
 
   describe('regular expressions', () => {
-    it('should disallow numbers at start of name', () => {
+    it('should disallow numbers and underscore at start of name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+      const invalidFirstCharacters = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'];
 
       invalidFirstCharacters.forEach((char) => {
         act(() => {
@@ -122,63 +122,24 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should allow numbers in rest of name', () => {
+    it('should allow numbers and underscore in rest of name', () => {
       const { result } = renderUseValidateSchemaName();
 
       act(() => {
-        result.current.validateName('a1234567890');
+        result.current.validateName('a1_23');
       });
 
       expect(result.current.nameError).toBe('');
     });
 
-    it('should disallow "-" and "_" at start of name', () => {
+    it('should disallow hyphens, spaces and periods in name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['-', '_'];
-
-      invalidFirstCharacters.forEach((char) => {
-        act(() => {
-          result.current.validateName(char);
-        });
-
-        expect(result.current.nameError).toBe(
-          textMock('schema_editor.error_invalid_datamodel_name'),
-        );
-      });
-    });
-
-    it('should allow "_" in rest of name', () => {
-      const { result } = renderUseValidateSchemaName();
-
-      act(() => {
-        result.current.validateName('a_');
-      });
-
-      expect(result.current.nameError).toBe('');
-    });
-
-    it('should disallow "-" in rest of name', () => {
-      const { result } = renderUseValidateSchemaName();
-      const invalidNames = ['a-', 'a-b'];
+      // Covers start, middle and end for relevant chars
+      const invalidNames = ['-', ' ', '.', 'a-', 'a ', 'a.', 'a-b', 'a b', 'a.b'];
 
       invalidNames.forEach((name) => {
         act(() => {
           result.current.validateName(name);
-        });
-
-        expect(result.current.nameError).toBe(
-          textMock('schema_editor.error_invalid_datamodel_name'),
-        );
-      });
-    });
-
-    it('should disallow " " and "." in name', () => {
-      const { result } = renderUseValidateSchemaName();
-      const invalidCharacters = [' ', '.', 'a ', 'a.'];
-
-      invalidCharacters.forEach((char) => {
-        act(() => {
-          result.current.validateName('a' + char);
         });
 
         expect(result.current.nameError).toBe(
