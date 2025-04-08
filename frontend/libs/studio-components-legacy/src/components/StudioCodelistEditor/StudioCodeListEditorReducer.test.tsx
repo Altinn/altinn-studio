@@ -132,7 +132,7 @@ describe('StudioCodeListEditorReducer', () => {
       expect(state.textResources.find((item) => item.id === newId)).toBeTruthy();
     });
 
-    it('should update textResources property in state correctly when altering text resourceId for helpText', () => {
+    it('should update codeList property in state correctly when altering text resourceId for helpText', () => {
       const textResourceId: string = textResources[2].id;
       const newId: string = 'newId';
       const codeItemIndex = 0;
