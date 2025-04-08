@@ -21,8 +21,13 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   const designerApi = new DesignerApi({ app: testAppName, org: TEST_ORG });
-  const response = await designerApi.createApp(request, storageState as StorageState);
-  expect(response.ok()).toBeTruthy();
+  const createApp = designerApi.createApp(request, storageState as StorageState);
+  const createTextResources = designerApi.createDefaultOrgTextResources(
+    request,
+    storageState as StorageState,
+  ); // Todo: Replace with user actions when https://github.com/Altinn/altinn-studio/issues/15048 is implemented
+  const responses = await Promise.all([createApp, createTextResources]);
+  responses.forEach((response) => expect(response.ok()).toBeTruthy());
 });
 
 test.afterAll(async ({ request, testAppName }) => {
