@@ -54,7 +54,7 @@ export const DisplayGroupAccordions = ({
         </div>
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
-          const isInvalidLayout = layout && duplicatedIdsExistsInLayout(layout);
+          const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
 
           return (
             <div key={page.id} className={classes.groupAccordionWrapper}>
