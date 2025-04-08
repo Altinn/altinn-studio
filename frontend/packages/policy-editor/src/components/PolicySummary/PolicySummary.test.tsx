@@ -90,18 +90,21 @@ describe('PolicySummary', () => {
       urn: 'urn:package1',
       name: 'Package Alpha',
       description: 'First package',
+      isDelegable: true,
     };
     const package2: PolicyAccessPackage = {
       id: 'package2',
       urn: 'urn:package2',
       name: 'Package Beta',
       description: 'Second package',
+      isDelegable: true,
     };
     const package3: PolicyAccessPackage = {
       id: 'package3',
       urn: 'urn:package3',
       name: 'Package Gamma',
       description: 'Third package',
+      isDelegable: true,
     };
 
     const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
@@ -111,7 +114,6 @@ describe('PolicySummary', () => {
         urn: 'urn:area1',
         description: '',
         icon: '',
-        areaGroup: '',
         packages: [package1, package2],
       },
       {
@@ -120,7 +122,6 @@ describe('PolicySummary', () => {
         urn: 'urn:area2',
         description: '',
         icon: '',
-        areaGroup: '',
         packages: [package3],
       },
     ];
@@ -129,7 +130,6 @@ describe('PolicySummary', () => {
       {
         id: 'group1',
         name: 'Group 1',
-        urn: 'urn:group1',
         description: '',
         areas: groupedAccessPackagesByArea,
         type: 'group',
