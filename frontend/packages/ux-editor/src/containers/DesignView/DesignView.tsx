@@ -8,19 +8,20 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton, StudioHeading } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components-legacy';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
-import { DragVerticalIcon, FolderIcon, PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { DisplayGroupAccordions } from './PageGroupAccordion';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -127,70 +128,6 @@ export const DesignView = (): ReactNode => {
     );
   });
 
-  const displayGroupAccordions = !pagesModel?.groups?.length
-    ? null
-    : pagesModel?.groups.map((group) => {
-        if (!group.order || group.order.length === 0) {
-          return null;
-        }
-        return (
-          <div key={group.name}>
-            <div className={classes.groupHeaderWrapper}>
-              <div className={classes.container}>
-                <FolderIcon aria-hidden className={classes.liftIcon} />
-                <StudioHeading level={3} size='2xs'>
-                  {group.name}
-                </StudioHeading>
-              </div>
-              <DragVerticalIcon aria-hidden className={classes.rightIcon} />
-            </div>
-            {group.order.map((page) => {
-              const layout = layouts?.[page.id];
-              if (!layout) {
-                console.warn(`Layout not found for page: ${page.id}`);
-                return null;
-              }
-              const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
-
-              return (
-                <div key={page.id} className={classes.groupAccordionWrapper}>
-                  <PageAccordion
-                    key={page.id}
-                    pageName={page.id}
-                    isOpen={page.id === selectedFormLayoutName}
-                    onClick={() => handleClickAccordion(page.id)}
-                    isInvalid={isInvalidLayout}
-                    hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
-                      page.id,
-                    )}
-                  >
-                    {page.id === selectedFormLayoutName && (
-                      <FormLayout
-                        layout={layout}
-                        isInvalid={isInvalidLayout}
-                        duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
-                      />
-                    )}
-                  </PageAccordion>
-                </div>
-              );
-            })}
-            <div className={classes.buttonContainer}>
-              <StudioButton
-                icon={<PlusIcon aria-hidden />}
-                onClick={() => {
-                  handleAddPage();
-                }}
-                className={classes.button}
-                disabled={isAddPageMutationPending}
-              >
-                {t('ux_editor.pages_add')}
-              </StudioButton>
-            </div>
-          </div>
-        );
-      });
-
   const hasGroups = pagesModel?.groups?.length > 0;
 
   const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
@@ -201,7 +138,14 @@ export const DesignView = (): ReactNode => {
         {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
           {isTaskNavigationPageGroups && hasGroups ? (
-            <>{displayGroupAccordions}</>
+            <DisplayGroupAccordions
+              groups={pagesModel?.groups}
+              layouts={layouts}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={handleClickAccordion}
+              onAddPage={handleAddPage}
+              isAddPagePending={isAddPageMutationPending}
+            />
           ) : (
             pagesModel?.pages?.length > 0 && (
               <Accordion color='neutral'>{displayPageAccordions}</Accordion>

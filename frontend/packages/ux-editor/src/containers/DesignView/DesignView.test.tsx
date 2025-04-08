@@ -12,6 +12,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {
   externalLayoutsMock,
+  groupsPagesModelMock,
   layout1Mock,
   layout1NameMock,
   layout2NameMock,
@@ -70,7 +71,6 @@ describe('DesignView', () => {
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView(
       {
         ...formLayoutSettingsMock,
@@ -86,7 +86,6 @@ describe('DesignView', () => {
     expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       id: `${textMock('ux_editor.page')}${4}`,
     });
-    consoleWarnSpy.mockRestore();
   });
 
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
@@ -212,6 +211,7 @@ const renderDesignView = (
     convertExternalLayoutsToInternalFormat(externalLayout),
   );
   queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     layoutSettings,

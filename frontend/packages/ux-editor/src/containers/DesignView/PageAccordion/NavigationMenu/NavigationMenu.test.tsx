@@ -1,4 +1,5 @@
 import {
+  groupsPagesModelMock,
   layout1NameMock,
   layout2NameMock,
   pagelayout1NameMock,
@@ -198,6 +199,7 @@ const render = async (props: Partial<NavigationMenuProps> = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
   queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
   await waitForData();
   return renderWithProviders(
     <>

@@ -34,7 +34,6 @@ describe('StudioDropdownContext', () => {
   });
 
   it('should throw an error when useStudioDropdownContext is used outside of a StudioDropdownContextProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = (): ReactElement => {
       useStudioDropdownContext();
       return <div data-testid='context'>Test</div>;
@@ -43,6 +42,5 @@ describe('StudioDropdownContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useStudioDropdownContext must be used within a StudioDropdownContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });
