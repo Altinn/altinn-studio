@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
-import classes from './DesignView.module.css';
+import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
@@ -13,7 +13,7 @@ import {
 } from '@altinn/ux-editor/utils/formLayoutUtils';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
-interface DisplayGroupAccordionsProps {
+interface PageGroupAccordionProps {
   groups: PagesModel['groups'];
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
@@ -22,14 +22,14 @@ interface DisplayGroupAccordionsProps {
   isAddPagePending: boolean;
 }
 
-export const DisplayGroupAccordions = ({
+export const PageGroupAccordion = ({
   groups,
   layouts,
   selectedFormLayoutName,
   onAccordionClick,
   onAddPage,
   isAddPagePending,
-}: DisplayGroupAccordionsProps): ReactNode => {
+}: PageGroupAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const layoutsWithDuplicateComponents = useMemo(
     () => findLayoutsContainingDuplicateComponents(layouts),

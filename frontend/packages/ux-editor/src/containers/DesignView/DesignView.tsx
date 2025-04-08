@@ -21,7 +21,7 @@ import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { DisplayGroupAccordions } from './PageGroupAccordion';
+import { PageGroupAccordion } from './PageGroupAccordion';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -138,7 +138,7 @@ export const DesignView = (): ReactNode => {
         {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
           {isTaskNavigationPageGroups && hasGroups ? (
-            <DisplayGroupAccordions
+            <PageGroupAccordion
               groups={pagesModel?.groups}
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}

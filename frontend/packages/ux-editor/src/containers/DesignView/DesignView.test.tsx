@@ -224,6 +224,33 @@ describe('DesignView', () => {
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
   });
+
+  it('renders nothing when groups is empty', async () => {
+    setupFeatureFlag(true);
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], {
+      groups: [],
+      pages: [],
+    });
+    queryClient.setQueryData(
+      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
+      convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+    );
+    queryClient.setQueryData(
+      [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
+      formLayoutSettingsMock,
+    );
+    renderWithProviders(
+      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+        <FormItemContextProvider>
+          <DesignView />
+        </FormItemContextProvider>
+      </StudioDragAndDrop.Provider>,
+      { queryClient },
+    );
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: layout1NameMock })).not.toBeInTheDocument();
+  });
 });
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,

@@ -14,33 +14,6 @@
   margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
 }
 
-.groupHeaderWrapper {
-  display: flex;
-  margin: var(--fds-spacing-3);
-  justify-content: space-between;
-  align-items: center;
-}
-
-.liftIcon {
-  padding-right: var(--fds-spacing-3);
-  font-size: var(--fds-sizing-6);
-}
-
-.container {
-  display: flex;
-  align-items: center;
-}
-
-.rightIcon {
-  margin-right: var(--fds-spacing-2);
-  font-size: var(--fds-sizing-6);
-}
-
-.groupAccordionWrapper {
-  margin-left: var(--fds-spacing-8);
-  margin-right: var(--fds-spacing-8);
-}
-
 .buttonContainer {
   display: flex;
   justify-content: center;
