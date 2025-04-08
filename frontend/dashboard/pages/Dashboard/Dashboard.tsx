@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';
@@ -21,7 +21,6 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { SafeErrorView } from '../../components/SafeErrorView';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
 import { useSubroute } from '../../hooks/useSubRoute';
-import { StudioDialog, StudioButton } from '@studio/components';
 
 type DashboardProps = {
   user: User;
@@ -47,23 +46,9 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const shouldDisplayResources =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
 
-  const ref = useRef<HTMLDialogElement>(null);
-
-  const [showModal, setShowModal] = useState(false);
   return (
     <>
       <CenterContainer>
-        <StudioButton onClick={() => ref.current?.showModal()}>Dialog med ref</StudioButton>
-        <StudioDialog ref={ref}>Innhold</StudioDialog>
-
-        <StudioDialog.TriggerContext>
-          <StudioDialog.Trigger onClick={() => setShowModal(true)}>
-            Dialog uten ref
-          </StudioDialog.Trigger>
-          <StudioDialog open={showModal} onClose={() => setShowModal(false)}>
-            Innholdd
-          </StudioDialog>
-        </StudioDialog.TriggerContext>
         <div className={classes.createServiceContainer}>
           <div className={classes.topBar}>
             <StudioSearch
