@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal';
@@ -171,11 +173,17 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
   await addCodeListItem(user);
 };
 
-const renderCreateNewCodeListModal = () => {
-  render(
-    <CreateNewCodeListModal
-      onUpdateCodeList={onUpdateCodeListMock}
-      codeListNames={[existingCodeListTitle]}
-    />,
-  );
+const renderCreateNewCodeListModal = (): RenderResult => {
+  const Component = (): ReactElement => {
+    const ref = useRef<HTMLDialogElement>(null);
+    return (
+      <CreateNewCodeListModal
+        onUpdateCodeList={onUpdateCodeListMock}
+        codeListNames={[existingCodeListTitle]}
+        ref={ref}
+      />
+    );
+  };
+
+  return render(<Component />);
 };

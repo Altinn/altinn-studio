@@ -1,10 +1,6 @@
-import React, { createRef, useState } from 'react';
-import {
-  StudioButton,
-  StudioCodeListEditor,
-  StudioModal,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import React, { forwardRef, useState } from 'react';
+import type { RefObject, ReactElement } from 'react';
+import { StudioButton, StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
@@ -13,6 +9,7 @@ import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
+import { StudioDialog, StudioHeading } from '@studio/components';
 
 type CreateNewCodeListModalProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -21,44 +18,46 @@ type CreateNewCodeListModalProps = {
   textResources?: TextResource[];
 };
 
-export function CreateNewCodeListModal({
-  onBlurTextResource,
-  onUpdateCodeList,
-  codeListNames,
-  textResources,
-}: CreateNewCodeListModalProps) {
+function CreateNewCodeListModal(
+  {
+    onBlurTextResource,
+    onUpdateCodeList,
+    codeListNames,
+    textResources,
+  }: CreateNewCodeListModalProps,
+  ref: RefObject<HTMLDialogElement>,
+): ReactElement {
   const { t } = useTranslation();
-  const modalRef = createRef<HTMLDialogElement>();
-
   const newCodeList: CodeList = [];
 
-  const handleCloseModal = () => {
-    modalRef.current?.close();
+  const handleCloseDialog = () => {
+    ref.current?.close();
   };
 
   return (
-    <StudioModal.Root>
-      <StudioModal.Trigger variant='secondary'>
-        {t('app_content_library.code_lists.create_new_code_list')}
-      </StudioModal.Trigger>
-      <StudioModal.Dialog
-        ref={modalRef}
-        className={classes.createNewCodeListModal}
-        closeButtonTitle={t('general.close')}
-        heading={t('app_content_library.code_lists.create_new_code_list_modal_title')}
-      >
+    <StudioDialog closedby='any' ref={ref} onClose={handleCloseDialog}>
+      <StudioDialog.Block>
+        <StudioHeading level={2}>
+          {t('app_content_library.code_lists.create_new_code_list_modal_title')}
+        </StudioHeading>
+      </StudioDialog.Block>
+      <StudioDialog.Block>
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
           onBlurTextResource={onBlurTextResource}
           onUpdateCodeList={onUpdateCodeList}
-          onCloseModal={handleCloseModal}
+          onCloseModal={handleCloseDialog}
           textResources={textResources}
         />
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+      </StudioDialog.Block>
+    </StudioDialog>
   );
 }
+
+const ForwardedCreateNewCodeListModal = forwardRef(CreateNewCodeListModal);
+
+export { ForwardedCreateNewCodeListModal as CreateNewCodeListModal };
 
 type CreateNewCodeListProps = {
   codeList: CodeList;

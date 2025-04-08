@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { TextResource } from '@studio/components-legacy';
-import { StudioFileUploader, StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components-legacy';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../CodeListPage';
-import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
+import { CreateNewCodeListModal } from './CreateNewCodeListModal';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
+import { StudioDropdown } from '@studio/components';
+import { PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -46,6 +48,12 @@ export function CodeListsActionsBar({
     onUploadCodeList(file);
   };
 
+  const addCodeListRef = useRef<HTMLDialogElement>(null);
+
+  const handleOpenAddCodeListDialog = () => {
+    addCodeListRef.current?.showModal();
+  };
+
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
@@ -54,18 +62,32 @@ export function CodeListsActionsBar({
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
         onClear={handleClearSearch}
       />
+      <StudioDropdown
+        triggerButtonVariant='secondary'
+        triggerButtonText='Legg til kodeliste'
+        icon={<PlusIcon />}
+      >
+        <StudioDropdown.Item>
+          <StudioDropdown.Button onClick={handleOpenAddCodeListDialog} icon={<PlusCircleIcon />}>
+            {t('app_content_library.code_lists.create_new_code_list')}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.FileUploaderButton
+            icon={<UploadIcon />}
+            onFileUpload={onSubmit}
+            fileInputProps={{ accept: '.json' }}
+          >
+            {t('app_content_library.code_lists.upload_code_list')}
+          </StudioDropdown.FileUploaderButton>
+        </StudioDropdown.Item>
+      </StudioDropdown>
       <CreateNewCodeListModal
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
-      />
-      <StudioFileUploader
-        accept='.json'
-        size='small'
-        variant='tertiary'
-        uploaderButtonText={t('app_content_library.code_lists.upload_code_list')}
-        onSubmit={onSubmit}
+        ref={addCodeListRef}
       />
     </div>
   );
