@@ -58,28 +58,34 @@ export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorPro
 type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
-  codeList: defaultCodeList,
+  codeList: givenCodeList,
+  textResources: givenTextResources,
   onAddOrDeleteItem,
   onBlurAny,
   onBlurTextResource,
   onChange,
   onChangeTextResource,
   onInvalid,
-  textResources,
 }: StatefulCodeListEditorProps): ReactElement {
   const initialState: ReducerState = {
-    codeList: defaultCodeList,
-    textResources: textResources ?? [],
+    codeList: givenCodeList,
+    textResources: givenTextResources ?? [],
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     dispatch({
-      type: ReducerActionType.SetState,
-      codeList: defaultCodeList,
-      textResources: textResources,
+      type: ReducerActionType.SetCodeList,
+      codeList: givenCodeList,
     });
-  }, [defaultCodeList, textResources]);
+  }, [givenCodeList]);
+
+  useEffect(() => {
+    dispatch({
+      type: ReducerActionType.SetTextResources,
+      textResources: givenTextResources ?? [],
+    });
+  }, [givenTextResources]);
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {
@@ -112,7 +118,7 @@ function StatefulCodeListEditor({
       onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
-      textResources={textResources}
+      textResources={state.textResources}
     />
   );
 }

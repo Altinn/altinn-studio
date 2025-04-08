@@ -8,23 +8,22 @@ export type ReducerState = {
 };
 
 export enum ReducerActionType {
-  SetState = 'SetState',
   SetCodeList = 'SetCodeList',
+  SetTextResources = 'SetTextResources',
   AddTextResource = 'AddTextResource',
   DeleteTextResource = 'DeleteTextResource',
   UpdateTextResourceId = 'UpdateTextResourceId',
   UpdateTextResourceValue = 'UpdateTextResourceValue',
 }
 
-type SetStateAction = {
-  type: ReducerActionType.SetState;
-  codeList: CodeList;
-  textResources: TextResource[];
-};
-
 type SetCodeListAction = {
   type: ReducerActionType.SetCodeList;
   codeList: CodeList;
+};
+
+type SetTextResourcesAction = {
+  type: ReducerActionType.SetTextResources;
+  textResources: TextResource[];
 };
 
 type AddTextResourceAction = {
@@ -57,7 +56,7 @@ type UpdateTextResourceValueAction = {
 
 export type ReducerAction =
   | SetCodeListAction
-  | SetStateAction
+  | SetTextResourcesAction
   | AddTextResourceAction
   | DeleteTextResourceAction
   | UpdateTextResourceIdAction
@@ -65,10 +64,10 @@ export type ReducerAction =
 
 export function reducer(state: ReducerState, action: ReducerAction): ReducerState {
   switch (action.type) {
-    case ReducerActionType.SetState:
-      return setState(state, action);
     case ReducerActionType.SetCodeList:
       return setCodeList(state, action);
+    case ReducerActionType.SetTextResources:
+      return setTextResources(state, action);
     case ReducerActionType.AddTextResource:
       return addTextResource(state, action);
     case ReducerActionType.DeleteTextResource:
@@ -80,18 +79,17 @@ export function reducer(state: ReducerState, action: ReducerAction): ReducerStat
   }
 }
 
-function setState(state: ReducerState, action: SetStateAction): ReducerState {
-  return {
-    ...state,
-    codeList: action.codeList,
-    textResources: action.textResources,
-  };
-}
-
 function setCodeList(state: ReducerState, action: SetCodeListAction): ReducerState {
   return {
     ...state,
     codeList: action.codeList,
+  };
+}
+
+function setTextResources(state: ReducerState, action: SetTextResourcesAction): ReducerState {
+  return {
+    ...state,
+    textResources: action.textResources,
   };
 }
 
