@@ -14,7 +14,7 @@ export type AddSubformCardProps = {
 export const AddSubformCard = ({
   setIsCreateSubformMode,
   isSubformInEditMode,
-}: AddSubformCardProps) => {
+}: AddSubformCardProps): React.ReactNode => {
   const { t } = useTranslation();
 
   const handleCreateSubformMode = () => {
