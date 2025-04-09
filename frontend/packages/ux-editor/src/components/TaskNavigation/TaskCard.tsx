@@ -86,7 +86,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
       <div className={classes.details}>
         <div>
           <StudioParagraph size='sm'>{t(taskName)}</StudioParagraph>
-          <StudioHeading size='sm'>{layoutSetModel.id}</StudioHeading>
+          <StudioHeading size='xs'>{layoutSetModel.id}</StudioHeading>
         </div>
         <StudioParagraph size='sm'>
           {t('ux_editor.task_card.datamodel')}
