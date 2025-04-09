@@ -7,6 +7,10 @@
   border-radius: var(--fds-border_radius-large);
 }
 
+.cardTitle {
+  padding-bottom: var(--fds-spacing-6);
+}
+
 .subformTabs {
   display: flex;
   flex-direction: column;

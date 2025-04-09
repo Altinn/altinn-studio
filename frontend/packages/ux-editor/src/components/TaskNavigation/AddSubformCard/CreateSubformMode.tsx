@@ -6,6 +6,7 @@ import {
   StudioNativeSelect,
   StudioButton,
   StudioSpinner,
+  StudioParagraph,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
@@ -107,7 +108,9 @@ export const CreateSubformMode = ({
 
   return (
     <StudioCard className={classes.subformCardEditMode}>
-      <StudioCard.Header data-size='xs'>{t('ux_editor.subform')}</StudioCard.Header>
+      <StudioParagraph className={classes.cardTitle} size='xs'>
+        {t('ux_editor.subform')}
+      </StudioParagraph>
       <StudioTextfield
         label={t('ux_editor.task_card.new_subform')}
         error={subformError}
