@@ -4,11 +4,18 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export enum Direction {
   Asc = 'asc',
   Desc = 'desc',
 }
+
+type SortPreference = {
+  column: string;
+  direction: Direction;
+};
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
@@ -18,17 +25,22 @@ type UseRepoSearchResult = {
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick: (columnKey: string) => void;
+  sortDirection: 'asc' | 'desc';
+  sortColumn: string | null;
 };
 
 type UseReposSearchProps = {
   keyword?: string;
   uid?: number;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
+  storageKey?: TableSortStorageKey;
 };
+
 export const useReposSearch = ({
   keyword,
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
+  storageKey = TableSortStorageKey.OrgRepos,
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(
@@ -41,13 +53,29 @@ export const useReposSearch = ({
         : defaultPageSize;
     },
   );
-  const [selectedColumn, setSelectedColumn] = useState('name');
-  const [sortDirection, setSortDirection] = useState(Direction.Asc);
+
+  const savedPreference = typedLocalStorage.getItem<SortPreference>(storageKey);
+  const [selectedColumn, setSelectedColumn] = useState<string | null>(
+    savedPreference?.column || 'name',
+  );
+  const [sortDirection, setSortDirection] = useState<Direction>(
+    savedPreference?.direction || Direction.Asc,
+  );
+
+  const persistSortPreference = (column: string | null, direction: Direction) => {
+    if (column) {
+      typedLocalStorage.setItem(storageKey, { column, direction });
+    }
+  };
 
   const toggleSortDirection = () => {
-    setSortDirection((prevDirection) =>
-      prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc,
-    );
+    setSortDirection((prevDirection) => {
+      const newDirection = prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc;
+      if (selectedColumn) {
+        persistSortPreference(selectedColumn, newDirection);
+      }
+      return newDirection;
+    });
   };
 
   const onSortClick = (columnKey: string) => {
@@ -56,6 +84,7 @@ export const useReposSearch = ({
     } else {
       setSelectedColumn(columnKey);
       setSortDirection(Direction.Asc);
+      persistSortPreference(columnKey, Direction.Asc);
     }
   };
 
@@ -81,7 +110,6 @@ export const useReposSearch = ({
     return nextPageNumber <= numberOfPages ? nextPageNumber : pageNumber;
   };
 
-  // Prefetch and cache the next page, if it exists
   useSearchReposQuery({ ...cleanFilter, page: getNextExistingPageNumber() });
 
   return {
@@ -92,5 +120,7 @@ export const useReposSearch = ({
     pageSize,
     setPageSize,
     onSortClick,
+    sortDirection,
+    sortColumn: selectedColumn,
   };
 };

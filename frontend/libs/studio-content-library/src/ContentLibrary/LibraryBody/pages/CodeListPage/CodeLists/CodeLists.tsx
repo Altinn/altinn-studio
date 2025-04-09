@@ -1,5 +1,6 @@
 import React from 'react';
-import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
+import type { CodeListData } from '../CodeListPage';
+import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import { Accordion } from '@digdir/designsystemet-react';
 import { StudioAlert } from '@studio/components-legacy';
 import { EditCodeList } from './EditCodeList/EditCodeList';
