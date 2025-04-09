@@ -10,7 +10,9 @@ public class InstantiationValidator : IInstantiationValidator
 {
     public Task<InstantiationValidationResult> Validate(Instance instance)
     {
-        if (instance.InstanceOwner.OrganisationNumber is "950474084" or "310732001")
+        const string invalidLocal = "950474084"; // Oslos Vakreste borettslag
+        const string invalidTt02 = "310732001"; // Søvnig Impulsiv Tiger AS
+        if (instance.InstanceOwner.OrganisationNumber is invalidLocal or invalidTt02)
         {
             return Task.FromResult(new InstantiationValidationResult()
             {
