@@ -23,7 +23,7 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
-    public async Task UpdateTaskNavigation_WhenValidData_ReturnsNoContent(string org, string app, string developer)
+    public async Task UpdateTaskNavigation_WhenValidPayload_ReturnsNoContent(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -57,9 +57,35 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
         Assert.True(JsonUtils.DeepEquals(expectedData.ToJsonString(), savedData.ToJsonString()));
     }
+
     [Theory]
     [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
-    public async Task UpdateTaskNavigation_WhenInvalidData_ReturnsBadRequest(string org, string app, string developer)
+    public async Task UpdateTaskNavigation_WhenEmptyPayload_ReturnsNoContent(string org, string app, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = VersionPrefix(org, targetRepository);
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent("[]", Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        string relativePath = "App/ui/layout-sets.json";
+
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["uiSettings"]["taskNavigation"];
+
+        Assert.Null(savedData);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
+    public async Task UpdateTaskNavigation_WhenInvalidPayload_ReturnsBadRequest(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);

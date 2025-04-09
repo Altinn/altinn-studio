@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -40,8 +41,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
-            layoutSets.UiSettings ??= new();
-            layoutSets.UiSettings.TaskNavigation = taskNavigationGroupList;
+            if (taskNavigationGroupList.Any())
+            {
+                layoutSets.UiSettings ??= new();
+                layoutSets.UiSettings.TaskNavigation = taskNavigationGroupList;
+            }
+            else if (layoutSets.UiSettings != null)
+            {
+                layoutSets.UiSettings.TaskNavigation = null;
+            }
 
             await altinnAppGitRepository.SaveLayoutSets(layoutSets);
         }
