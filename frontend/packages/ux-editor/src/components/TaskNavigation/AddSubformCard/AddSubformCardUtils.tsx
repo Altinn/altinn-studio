@@ -10,18 +10,20 @@ type IsSaveButtonDisabledProps = {
   newSubform: NewSubformProps;
   subformError: string;
   dataModelError: string;
+  isPendingNewSubformMutation: boolean;
 };
 
 export const isSaveButtonDisabled = ({
   newSubform,
   subformError,
   dataModelError,
+  isPendingNewSubformMutation,
 }: IsSaveButtonDisabledProps): boolean => {
   const { subformName, dataModelName } = newSubform;
   const inputsAreEmpty = subformName === '' || dataModelName === '';
   const inputsAreInvalid = subformError !== '' || dataModelError !== '';
 
-  return inputsAreEmpty || inputsAreInvalid;
+  return inputsAreEmpty || inputsAreInvalid || isPendingNewSubformMutation;
 };
 
 export const RenderDataModelOptions = (dataModelIds?: string[]): React.ReactNode => {

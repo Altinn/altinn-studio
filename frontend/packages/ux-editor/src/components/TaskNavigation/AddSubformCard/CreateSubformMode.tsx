@@ -5,6 +5,7 @@ import {
   StudioTabs,
   StudioNativeSelect,
   StudioButton,
+  StudioSpinner,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
@@ -21,6 +22,7 @@ import {
   RenderDataModelOptions,
   type NewSubformProps,
 } from './AddSubformCardUtils';
+import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 
 enum Tabs {
   Choose = 'choose',
@@ -46,6 +48,7 @@ export const SubformCardEditMode = ({
     nameError: dataModelError,
     setNameError: setDataModelError,
   } = useValidateSchemaName(dataModelIds, dataTypeNames);
+  const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
 
   const [newSubform, setNewSubform] = useState<NewSubformProps>({
     subformName: '',
@@ -79,6 +82,28 @@ export const SubformCardEditMode = ({
     }));
     setDataModelError('');
   };
+
+  const handleCreateNewSubform = () => {
+    createSubform({
+      layoutSetName: newSubform.subformName,
+      onSubformCreated: () => setIsCreateSubformMode(false),
+      dataType: newSubform.dataModelName,
+      newDataModel: !dataModelIds?.includes(newSubform.dataModelName),
+    });
+  };
+
+  const saveButtonIcon = isPendingNewSubformMutation ? (
+    <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
+  ) : (
+    <CheckmarkIcon />
+  );
+
+  const disableSaveButton = isSaveButtonDisabled({
+    newSubform,
+    subformError,
+    dataModelError,
+    isPendingNewSubformMutation,
+  });
 
   return (
     <StudioCard className={classes.subformCardEditMode}>
@@ -121,16 +146,14 @@ export const SubformCardEditMode = ({
       </StudioTabs>
       <div className={classes.buttonContainer}>
         <StudioButton
-          disabled={isSaveButtonDisabled({ newSubform, subformError, dataModelError })}
-          className={classes.button}
-          icon={<CheckmarkIcon />}
-          onClick={() => setIsCreateSubformMode(false)}
+          disabled={disableSaveButton}
+          icon={saveButtonIcon}
+          onClick={handleCreateNewSubform}
         >
           {t('general.save')}
         </StudioButton>
         <StudioButton
           variant='secondary'
-          className={classes.button}
           icon={<XMarkIcon />}
           onClick={() => setIsCreateSubformMode(false)}
         >

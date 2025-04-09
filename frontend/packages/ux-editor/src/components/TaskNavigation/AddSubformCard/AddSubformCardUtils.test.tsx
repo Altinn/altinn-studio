@@ -8,6 +8,7 @@ describe('isSaveButtonDisabled', () => {
       subformError: '',
       dataModelError: '',
       newSubform: { subformName: 'fe', dataModelName: '' },
+      isPendingNewSubformMutation: false,
       expectedResult: true,
     },
     {
@@ -15,6 +16,7 @@ describe('isSaveButtonDisabled', () => {
       subformError: '',
       dataModelError: '',
       newSubform: { subformName: '', dataModelName: 'hei' },
+      isPendingNewSubformMutation: false,
       expectedResult: true,
     },
     {
@@ -22,6 +24,7 @@ describe('isSaveButtonDisabled', () => {
       subformError: '',
       dataModelError: '',
       newSubform: { subformName: 'fe', dataModelName: 'hei' },
+      isPendingNewSubformMutation: false,
       expectedResult: false,
     },
     {
@@ -29,6 +32,7 @@ describe('isSaveButtonDisabled', () => {
       subformError: 'error',
       dataModelError: '',
       newSubform: { subformName: 'fe', dataModelName: '' },
+      isPendingNewSubformMutation: false,
       expectedResult: true,
     },
     {
@@ -36,16 +40,30 @@ describe('isSaveButtonDisabled', () => {
       subformError: 'error',
       dataModelError: 'error',
       newSubform: { subformName: 'fe', dataModelName: 'hei' },
+      isPendingNewSubformMutation: false,
+      expectedResult: true,
+    },
+    {
+      description: 'pending mutation',
+      subformError: '',
+      dataModelError: '',
+      newSubform: { subformName: 'fe', dataModelName: 'hei' },
+      isPendingNewSubformMutation: true,
       expectedResult: true,
     },
   ];
 
   it.each(validationVariants)(
     'should return $expectedResult when $description',
-    ({ newSubform, subformError, dataModelError, expectedResult }) => {
-      expect(isSaveButtonDisabled({ newSubform, subformError, dataModelError })).toBe(
-        expectedResult,
-      );
+    ({ newSubform, subformError, dataModelError, isPendingNewSubformMutation, expectedResult }) => {
+      expect(
+        isSaveButtonDisabled({
+          newSubform,
+          subformError,
+          dataModelError,
+          isPendingNewSubformMutation,
+        }),
+      ).toBe(expectedResult);
     },
   );
 });
