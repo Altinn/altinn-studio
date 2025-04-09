@@ -5,8 +5,6 @@ import { PolicyAccordion } from '../PolicyAccordion';
 import { isAccessPackageSelected } from '../policyAccessPackageUtils';
 import type { PolicyAccessPackageArea } from 'app-shared/types/PolicyAccessPackages';
 import classes from './AllAccessPackages.module.css';
-import { PackageIcon } from '@studio/icons';
-import * as Icons from './Icons';
 
 export type AllAccessPackagesProps = {
   chosenAccessPackages: string[];
@@ -42,12 +40,7 @@ export const AllAccessPackages = ({
 
 type PolicyAccordionIconProps = { icon: string };
 const PolicyAccordionIcon = ({ icon }: PolicyAccordionIconProps): ReactElement => {
-  const IconComponent = Object.keys(Icons).includes(icon) ? Icons[icon] : PackageIcon;
   return (
-    <IconComponent
-      data-testid={icon || 'default-icon'}
-      className={cn(classes.accordionIcon, classes.iconContainer)}
-      aria-hidden
-    />
+    <img src={icon} className={cn(classes.accordionIcon, classes.iconContainer)} aria-hidden />
   );
 };
