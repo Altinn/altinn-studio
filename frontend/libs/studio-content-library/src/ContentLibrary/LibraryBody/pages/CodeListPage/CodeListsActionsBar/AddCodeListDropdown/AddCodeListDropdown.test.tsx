@@ -14,6 +14,19 @@ const codeListName2 = 'codeListName2';
 describe('AddCodeListDropdown', () => {
   afterEach(jest.clearAllMocks);
 
+  it('opens the create new code list modal when clicking on the add new code list button', async () => {
+    const user = userEvent.setup();
+    renderAddCodeListDropdown();
+    const addNewCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.add_new_code_list'),
+    });
+    await user.click(addNewCodeListButton);
+    const createNewCodeListModalTitle = screen.getByText(
+      textMock('app_content_library.code_lists.create_new_code_list'),
+    );
+    expect(createNewCodeListModalTitle).toBeInTheDocument();
+  });
+
   it('calls onUploadCodeList when uploading a file', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();
@@ -72,19 +85,6 @@ describe('AddCodeListDropdown', () => {
       textMock('validation_errors.upload_file_name_required'),
     );
     expect(toastErrorText).toBeInTheDocument();
-  });
-
-  it('opens the create new code list modal when clicking on the add new code list button', async () => {
-    const user = userEvent.setup();
-    renderAddCodeListDropdown();
-    const addNewCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.add_new_code_list'),
-    });
-    await user.click(addNewCodeListButton);
-    const createNewCodeListModalTitle = screen.getByText(
-      textMock('app_content_library.code_lists.create_new_code_list'),
-    );
-    expect(createNewCodeListModalTitle).toBeInTheDocument();
   });
 });
 

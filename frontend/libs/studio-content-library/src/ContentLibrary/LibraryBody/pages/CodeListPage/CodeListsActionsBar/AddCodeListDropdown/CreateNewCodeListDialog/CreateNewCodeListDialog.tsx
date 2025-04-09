@@ -5,26 +5,26 @@ import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/compon
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
-import classes from './CreateNewCodeListModal.module.css';
+import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
-type CreateNewCodeListModalProps = {
+type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
 };
 
-function CreateNewCodeListModal(
+function CreateNewCodeListDialog(
   {
     onBlurTextResource,
     onUpdateCodeList,
     codeListNames,
     textResources,
-  }: CreateNewCodeListModalProps,
+  }: CreateNewCodeListDialogProps,
   ref: RefObject<HTMLDialogElement>,
 ): ReactElement {
   const { t } = useTranslation();
@@ -60,9 +60,9 @@ function CreateNewCodeListModal(
   );
 }
 
-const ForwardedCreateNewCodeListModal = forwardRef(CreateNewCodeListModal);
+const ForwardedCreateNewCodeListDialog = forwardRef(CreateNewCodeListDialog);
 
-export { ForwardedCreateNewCodeListModal as CreateNewCodeListModal };
+export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 
 type CreateNewCodeListProps = {
   codeList: CodeList;

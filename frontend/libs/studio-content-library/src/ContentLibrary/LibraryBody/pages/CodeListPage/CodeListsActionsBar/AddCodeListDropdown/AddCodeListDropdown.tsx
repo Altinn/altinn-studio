@@ -1,13 +1,13 @@
 import React, { useRef } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CreateNewCodeListModal } from './CreateNewCodeListModal';
+import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';
 import { PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
-import type { CodeListWithMetadata } from '../../CodeListPage';
+import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import type { TextResource } from '@studio/components-legacy';
 
 export type AddCodeListDropdownProps = {
@@ -67,7 +67,7 @@ export function AddCodeListDropdown({
           </StudioDropdown.FileUploaderButton>
         </StudioDropdown.Item>
       </StudioDropdown>
-      <CreateNewCodeListModal
+      <CreateNewCodeListDialog
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
         onUpdateCodeList={onUpdateCodeList}
