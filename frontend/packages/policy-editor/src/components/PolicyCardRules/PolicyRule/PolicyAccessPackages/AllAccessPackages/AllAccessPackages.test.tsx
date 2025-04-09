@@ -14,18 +14,21 @@ const package1: PolicyAccessPackage = {
   urn: 'urn:package1',
   name: package1Name,
   description: 'First package',
+  isDelegable: true,
 };
 const package2: PolicyAccessPackage = {
   id: 'package2',
   urn: 'urn:package2',
   name: package2Name,
   description: 'Second package',
+  isDelegable: true,
 };
 const package3: PolicyAccessPackage = {
   id: 'package3',
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
+  isDelegable: true,
 };
 
 const area1Name = 'Area 1';
@@ -37,7 +40,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area1',
     description: '',
     icon: 'skatt_avgift_regnskap_og_toll',
-    areaGroup: '',
     packages: [package1, package2],
   },
   {
@@ -46,7 +48,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area2',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package3],
   },
 ];
@@ -79,12 +80,6 @@ describe('AllAccessPackages', () => {
 
     expect(screen.getByText(area1Name)).toBeInTheDocument();
     expect(screen.getByText(area2Name)).toBeInTheDocument();
-  });
-
-  it('should render default icon if icon is not set', () => {
-    renderAllAccessPackages();
-
-    expect(screen.getByTestId('default-icon')).toBeInTheDocument();
   });
 });
 

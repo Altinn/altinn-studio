@@ -44,7 +44,7 @@ public class UiSettings
 {
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<TaskNavigationGroup>? TaskNavigation { get; set; }
+    public IEnumerable<TaskNavigationGroup>? TaskNavigation { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }

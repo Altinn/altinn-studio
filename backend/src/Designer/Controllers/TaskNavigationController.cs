@@ -31,13 +31,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The list of task navigation groups</returns>
         [HttpGet]
         [UseSystemTextJson]
-        public async Task<ActionResult<List<TaskNavigationGroupDto>>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<TaskNavigationGroupDto>>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            List<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
-            List<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
+            IEnumerable<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
+            IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
             IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(taskNavigationGroup => taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType));
 
             return Ok(taskNavigationGroupDto);

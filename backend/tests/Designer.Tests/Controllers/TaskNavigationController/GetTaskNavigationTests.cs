@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.TaskNavigationController
 
         [Theory]
         [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
-        public async Task GetTaskNavigation_ShouldReturnTaskNavigation(string org, string app, string developer)
+        public async Task GetTaskNavigation_WhenExists_ReturnsTaskNavigationArray(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -48,6 +48,24 @@ namespace Designer.Tests.Controllers.TaskNavigationController
                     TaskType = "receipt"
                 }
             });
+            string actual = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-process-and-layoutsets", "testUser")]
+        public async Task GetTaskNavigation_WhenDoesNotExist_ReturnsEmptyArray(string org, string app, string developer)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string url = VersionPrefix(org, targetRepository);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string expected = "[]";
             string actual = await response.Content.ReadAsStringAsync();
             Assert.Equal(expected, actual);
         }
