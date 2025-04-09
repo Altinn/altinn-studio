@@ -16,7 +16,7 @@ export const BreadcrumbsTaskNavigation = () => {
 
   const handleClick = () => {
     removeSelectedFormLayoutSetName();
-    navigate('../' + RoutePaths.UIEditor);
+    navigate(`../${RoutePaths.UIEditor}`);
   };
 
   return (
