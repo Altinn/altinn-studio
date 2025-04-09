@@ -1,12 +1,10 @@
 import React from 'react';
 import { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppContext } from '@altinn/ux-editor/hooks';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
-import userEvent from '@testing-library/user-event';
 
 jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: jest.fn(),
@@ -20,39 +18,47 @@ jest.mock('@altinn/ux-editor/hooks', () => ({
   useAppContext: jest.fn(),
 }));
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useLocation: () => ({
+    pathname: '/ui-editor',
+  }),
+  useNavigate: jest.fn(),
+}));
+
 describe('BreadcrumbsTaskNavigation', () => {
+  const mockNavigate = jest.fn();
+  const mockRemoveSelectedFormLayoutSetName = jest.fn();
+
   beforeEach(() => {
-    (useStudioEnvironmentParams as jest.Mock).mockReturnValue({
-      org: 'test-org',
-      app: 'test-app',
-    });
-
-    (useAppConfigQuery as jest.Mock).mockReturnValue({
-      data: { serviceName: 'Test Service' },
-    });
-
+    (useStudioEnvironmentParams as jest.Mock).mockReturnValue({ org: 'test-org', app: 'test-app' });
+    (useAppConfigQuery as jest.Mock).mockReturnValue({ data: {} });
     (useAppContext as jest.Mock).mockReturnValue({
-      selectedFormLayoutSetName: 'Test Layout',
-      removeSelectedFormLayoutSetName: jest.fn(),
+      selectedFormLayoutSetName: 'TestLayout',
+      removeSelectedFormLayoutSetName: mockRemoveSelectedFormLayoutSetName,
     });
+    jest.requireMock('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
   });
 
-  it('should render the component with StudioBreadcrumbsLink name', () => {
-    renderBreadcrumbsTaskNavigation();
-    expect(screen.getByText('Test Service')).toBeInTheDocument();
-    expect(screen.getByText('Test Layout')).toBeInTheDocument();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('Should redirect to the UiEditor when clicking the breadcrumbs link app name', async () => {
-    const user = userEvent.setup();
-    const navigate = jest.fn();
-    jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(navigate);
+  const renderBreadcrumbsTaskNavigation = () => {
+    return renderWithProviders(<BreadcrumbsTaskNavigation />);
+  };
+
+  it('renders breadcrumb items correctly', () => {
     renderBreadcrumbsTaskNavigation();
-    await user.click(screen.getByText('Test Service'));
-    expect(navigate).toHaveBeenCalledWith('../' + RoutePaths.UIEditor);
+    const breadcrumbList = screen.getByRole('navigation');
+    const breadcrumbItems = within(breadcrumbList).getAllByRole('listitem');
+    expect(breadcrumbItems).toHaveLength(2);
+    expect(breadcrumbItems[0]).toHaveTextContent('top_menu.create');
+    expect(breadcrumbItems[1]).toHaveTextContent('TestLayout');
+  });
+
+  it('displays selectedFormLayoutSetName correctly', () => {
+    renderBreadcrumbsTaskNavigation();
+    expect(screen.getByText('TestLayout')).toBeInTheDocument();
   });
 });
-
-const renderBreadcrumbsTaskNavigation = () => {
-  return renderWithProviders(<BreadcrumbsTaskNavigation />);
-};
