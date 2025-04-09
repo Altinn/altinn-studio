@@ -124,11 +124,9 @@ function StatefulCodeListEditor({
 }
 
 type ControlledCodeListEditorProps = Override<
-  Pick<StudioInputTableProps, 'onBlurAny'>,
-  Omit<StatefulCodeListEditorProps, 'onInvalid' | 'textResources'>
-> & {
-  textResources: TextResource[];
-};
+  Pick<StudioInputTableProps, 'onBlurAny'> & { textResources: TextResource[] },
+  Omit<StatefulCodeListEditorProps, 'onInvalid'>
+>;
 
 function ControlledCodeListEditor({
   codeList,
