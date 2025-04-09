@@ -34,6 +34,8 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
+import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
+import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -48,10 +50,16 @@ export function AppContentLibrary(): React.ReactElement {
   );
   const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
 
+  const {
+    data: availableCodeListsToImportFromOrg,
+    status: availableCodeListsToImportFromOrgStatus,
+  } = useGetAvailableCodeListsFromOrgQuery(org, LibraryContentType.CodeList);
+
   const status = mergeQueryStatuses(
     optionListDataListStatus,
     optionListUsagesStatus,
     textResourcesStatus,
+    availableCodeListsToImportFromOrgStatus,
   );
 
   switch (status) {
@@ -65,6 +73,7 @@ export function AppContentLibrary(): React.ReactElement {
           optionListDataList={optionListDataList}
           optionListUsages={optionListUsages}
           textResources={textResources}
+          availableCodeListsToImportFromOrg={availableCodeListsToImportFromOrg}
         />
       );
   }
@@ -74,12 +83,14 @@ type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
   optionListUsages: OptionListReferences;
   textResources: ITextResources;
+  availableCodeListsToImportFromOrg: string[];
 };
 
 function AppContentLibraryWithData({
   optionListDataList,
   optionListUsages,
   textResources,
+  availableCodeListsToImportFromOrg,
 }: AppContentLibraryWithDataProps): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
@@ -120,6 +131,7 @@ function AppContentLibraryWithData({
           onUploadCodeList: handleUpload,
           codeListsUsages,
           textResources,
+          externalResourceIds: availableCodeListsToImportFromOrg,
         },
       },
       images: {

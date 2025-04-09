@@ -67,11 +67,11 @@ function ImportCodeList({ codeListIds }: ImportCodeListProps): ReactElement {
         </StudioSelect.Option>
         <CodeListIdOptions codeListIds={codeListIds} />
       </StudioSelect>
-
       <StudioButton
         icon={<FileImportIcon />}
         className={classes.importButton}
         onClick={handleImportCodeList}
+        disabled={!selectedCodeListId}
       >
         {t('app_content_library.code_lists.import_modal_import_button')}
       </StudioButton>

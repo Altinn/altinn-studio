@@ -14,6 +14,7 @@ export type CodeListsActionsBarProps = {
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
+  externalResourceIds?: string[];
 };
 
 export function CodeListsActionsBar({
@@ -23,6 +24,7 @@ export function CodeListsActionsBar({
   codeListNames,
   onSetSearchString,
   textResources,
+  externalResourceIds,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
 
@@ -45,6 +47,7 @@ export function CodeListsActionsBar({
         onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
+        externalResourceIds={externalResourceIds}
       />
     </div>
   );

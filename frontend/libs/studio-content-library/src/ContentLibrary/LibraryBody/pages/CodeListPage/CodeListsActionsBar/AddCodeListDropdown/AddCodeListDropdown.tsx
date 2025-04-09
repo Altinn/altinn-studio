@@ -18,6 +18,7 @@ export type AddCodeListDropdownProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
+  externalResourceIds?: string[];
 };
 
 export function AddCodeListDropdown({
@@ -26,10 +27,12 @@ export function AddCodeListDropdown({
   onUploadCodeList,
   onUpdateCodeList,
   textResources,
+  externalResourceIds,
 }: AddCodeListDropdownProps): ReactElement {
   const { t } = useTranslation();
   const addCodeListRef = useRef<HTMLDialogElement>(null);
   const importCodeListRef = useRef<HTMLDialogElement>(null);
+  const hasExternalResources: boolean = externalResourceIds && externalResourceIds.length > 0;
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
@@ -74,11 +77,16 @@ export function AddCodeListDropdown({
             {t('app_content_library.code_lists.upload_code_list')}
           </StudioDropdown.FileUploaderButton>
         </StudioDropdown.Item>
-        <StudioDropdown.Item>
-          <StudioDropdown.Button onClick={handleOpenImportCodeListDialog} icon={<FileImportIcon />}>
-            {t('app_content_library.code_lists.import_from_org_library')}
-          </StudioDropdown.Button>
-        </StudioDropdown.Item>
+        {hasExternalResources && (
+          <StudioDropdown.Item>
+            <StudioDropdown.Button
+              onClick={handleOpenImportCodeListDialog}
+              icon={<FileImportIcon />}
+            >
+              {t('app_content_library.code_lists.import_from_org_library')}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        )}
       </StudioDropdown>
       <CreateNewCodeListModal
         codeListNames={codeListNames}
@@ -87,7 +95,9 @@ export function AddCodeListDropdown({
         textResources={textResources}
         ref={addCodeListRef}
       />
-      <ImportFromOrgLibraryModal codeListIds={['a', 'b', 'c', 'd']} ref={importCodeListRef} />
+      {hasExternalResources && (
+        <ImportFromOrgLibraryModal codeListIds={externalResourceIds} ref={importCodeListRef} />
+      )}
     </>
   );
 }

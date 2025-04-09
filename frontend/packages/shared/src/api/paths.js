@@ -52,6 +52,7 @@ export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/option
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
+export const contentTypeListToImportPath = (org, contentType) => `${basePath}/${org}/content/${contentType}`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
