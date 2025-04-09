@@ -33,7 +33,7 @@ describe('AddSubformCard', () => {
     expect(addSubformCard).toHaveAttribute('role', 'button');
   });
 
-  it('should render SubformCardEditMode when isSubformInEditMode is true', () => {
+  it('should render CreateSubformMode when isSubformInEditMode is true', () => {
     renderAddSubformCard({ isSubformInEditMode: true });
     expect(screen.queryByText(addNewSubformText)).not.toBeInTheDocument();
     expect(screen.getByText(subformTitle)).toBeInTheDocument();
