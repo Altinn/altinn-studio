@@ -12,6 +12,7 @@
       "GroupPage",
       "AddressPage",
       "FileUploadPage",
+      "AttachmentListPage",
       "MapPage",
       "ListPage",
       "GridPage",

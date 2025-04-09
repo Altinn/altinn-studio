@@ -261,7 +261,7 @@
           "surname": {
             "type": "string"
           },
-          "isDeleted": {
+          "checked": {
             "type": "boolean"
           }
         }
