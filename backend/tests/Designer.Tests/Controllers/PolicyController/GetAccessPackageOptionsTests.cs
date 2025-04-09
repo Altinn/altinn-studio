@@ -25,17 +25,18 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             await CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/accesspackageoptions";
-            List<AccessPackageOption> accessPackageOptions;
+            List<AccessPackageAreaGroup> accessPackageOptions;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
                 HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageOption>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             }
 
             Assert.NotNull(accessPackageOptions);
+            Assert.Equal(3, accessPackageOptions.Count);
         }
     }
 }
