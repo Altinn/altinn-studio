@@ -253,6 +253,14 @@
       "id": "LikertPage",
       "value": "Likert"
     },
+    {
+      "id": "ButtonPage",
+      "value": "Knapp"
+    },
+    {
+      "id": "LinkPage",
+      "value": "Link"
+    },
     { "id": "DatepickerPage", "value": "Datepicker" },
     { "id": "NumberPage", "value": "Number" },
     { "id": "TextPage", "value": "Text" },
