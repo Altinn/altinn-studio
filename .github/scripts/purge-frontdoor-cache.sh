@@ -58,6 +58,7 @@ fi
 for path in "${fdPaths[@]}"; do
     echo "Purging ${path}"
     az afd endpoint purge \
+              --no-wait \
               --resource-group $fdResourceGroup \
               --profile-name $fdProfileName \
               --endpoint-name $fdEndpointName \
