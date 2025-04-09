@@ -4,7 +4,8 @@ import { FieldType, ObjectKind } from '@altinn/schema-model';
 import {
   BooleanIcon,
   CombinationIcon,
-  NumberIcon,
+  IntegerIcon,
+  DivideIcon,
   ObjectIcon,
   QuestionmarkIcon,
   ReferenceIcon,
@@ -41,8 +42,9 @@ const InternalIcon = ({ node, ...iconProps }: InternalIconProps) => {
         case FieldType.Boolean:
           return <BooleanIcon {...iconProps} />;
         case FieldType.Integer:
+          return <IntegerIcon {...iconProps} />;
         case FieldType.Number:
-          return <NumberIcon {...iconProps} />;
+          return <DivideIcon {...iconProps} />;
         case FieldType.String:
           return <StringIcon {...iconProps} />;
         default:

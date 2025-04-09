@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
-import type { CodeListWithMetadata } from '../../../CodeListPage';
+import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
