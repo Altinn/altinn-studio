@@ -619,12 +619,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             foreach (string layoutSetName in layoutSetNames)
             {
-                string[] layoutNames = GetLayoutNames(layoutSetName);
-                foreach (string layoutName in layoutNames)
-                {
-                    var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
-                    optionsListReferences = FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
-                }
+                optionsListReferences = await FindOptionListReferencesInLayoutSet(layoutSetName, optionsListReferences, cancellationToken);
+            }
+
+            return optionsListReferences;
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSet(string layoutSetName, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string[] layoutNames = GetLayoutNames(layoutSetName);
+            foreach (string layoutName in layoutNames)
+            {
+                var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
+                optionsListReferences = FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
             }
 
             return optionsListReferences;
