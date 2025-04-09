@@ -1,14 +1,16 @@
 import React, { useRef } from 'react';
 import type { ReactElement } from 'react';
+import classes from './AddCodeListDropdown.module.css';
 import { useTranslation } from 'react-i18next';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';
-import { PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
+import { FileImportIcon, PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import type { TextResource } from '@studio/components-legacy';
+import { ImportFromOrgLibraryModal } from './ImportFromOrgLibraryModal';
 
 export type AddCodeListDropdownProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -27,6 +29,7 @@ export function AddCodeListDropdown({
 }: AddCodeListDropdownProps): ReactElement {
   const { t } = useTranslation();
   const addCodeListRef = useRef<HTMLDialogElement>(null);
+  const importCodeListRef = useRef<HTMLDialogElement>(null);
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
@@ -45,12 +48,17 @@ export function AddCodeListDropdown({
     addCodeListRef.current?.showModal();
   };
 
+  const handleOpenImportCodeListDialog = () => {
+    importCodeListRef.current?.showModal();
+  };
+
   return (
     <>
       <StudioDropdown
         triggerButtonVariant='secondary'
         triggerButtonText={t('app_content_library.code_lists.add_new_code_list')}
         icon={<PlusIcon />}
+        className={classes.dropdown}
       >
         <StudioDropdown.Item>
           <StudioDropdown.Button onClick={handleOpenAddCodeListDialog} icon={<PlusCircleIcon />}>
@@ -66,6 +74,11 @@ export function AddCodeListDropdown({
             {t('app_content_library.code_lists.upload_code_list')}
           </StudioDropdown.FileUploaderButton>
         </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.Button onClick={handleOpenImportCodeListDialog} icon={<FileImportIcon />}>
+            {t('app_content_library.code_lists.import_from_org_library')}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
       </StudioDropdown>
       <CreateNewCodeListModal
         codeListNames={codeListNames}
@@ -74,6 +87,7 @@ export function AddCodeListDropdown({
         textResources={textResources}
         ref={addCodeListRef}
       />
+      <ImportFromOrgLibraryModal codeListIds={['a', 'b', 'c', 'd']} ref={importCodeListRef} />
     </>
   );
 }
