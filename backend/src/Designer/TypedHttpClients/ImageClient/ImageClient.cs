@@ -20,7 +20,7 @@ public class ImageClient
         {
             // Send a HEAD request to the URL to check if the resource exists and fetch the headers
             using var request = new HttpRequestMessage(HttpMethod.Head, url);
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, cancellationToken: default);
 
             // If the response status is not successful return NotValidUrl
             if (!response.IsSuccessStatusCode)
@@ -37,7 +37,8 @@ public class ImageClient
             return ImageUrlValidationResult.Ok;
         }
         // If the request fails for some other reason return NotValidUrl
-        catch (Exception ex) when (ex is UriFormatException or InvalidOperationException or HttpRequestException)
+        catch (Exception ex)
+            when (ex is UriFormatException or InvalidOperationException or HttpRequestException)
         {
             return ImageUrlValidationResult.NotValidUrl;
         }
