@@ -15,11 +15,7 @@ import {
 } from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
-
-export type CodeListWithMetadata = {
-  codeList: CodeList;
-  title: string;
-};
+import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
 
 export type CodeListData = {
   title: string;

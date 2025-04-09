@@ -4,8 +4,8 @@ import { StudioSearch } from '@studio/components-legacy';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../CodeListPage';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
+import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;

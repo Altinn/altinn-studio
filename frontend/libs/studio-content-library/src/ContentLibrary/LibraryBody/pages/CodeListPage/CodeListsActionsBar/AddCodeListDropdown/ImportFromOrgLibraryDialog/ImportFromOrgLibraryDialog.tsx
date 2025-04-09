@@ -1,16 +1,16 @@
 import React, { forwardRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, RefObject } from 'react';
-import classes from './ImportFromOrgLibraryModal.module.css';
+import classes from './ImportFromOrgLibraryDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDialog, StudioHeading, StudioSelect } from '@studio/components';
 import { BookIcon, FileImportIcon } from '@studio/icons';
 
-type ImportFromOrgLibraryModalProps = {
+type ImportFromOrgLibraryDialogProps = {
   codeListIds: string[];
 };
 
-function ImportFromOrgLibraryModal(
-  { codeListIds }: ImportFromOrgLibraryModalProps,
+function ImportFromOrgLibraryDialog(
+  { codeListIds }: ImportFromOrgLibraryDialogProps,
   ref: RefObject<HTMLDialogElement>,
 ): ReactElement {
   const { t } = useTranslation();
@@ -34,9 +34,9 @@ function ImportFromOrgLibraryModal(
   );
 }
 
-const ForwardedImportFromOrgLibraryModal = forwardRef(ImportFromOrgLibraryModal);
+const ForwardedImportFromOrgLibraryDialog = forwardRef(ImportFromOrgLibraryDialog);
 
-export { ForwardedImportFromOrgLibraryModal as ImportFromOrgLibraryModal };
+export { ForwardedImportFromOrgLibraryDialog as ImportFromOrgLibraryDialog };
 
 type ImportCodeListProps = {
   codeListIds: string[];
