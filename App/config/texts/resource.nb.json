@@ -398,6 +398,10 @@
     {
       "id": "substatus.description",
       "value": "Søknaden er godkjent og sendt til Folkeregisteret for behandling. Du vil motta en bekreftelse når søknaden er behandlet."
+    },
+    {
+      "id": "err_instantiation",
+      "value": "Aktøren du valgte kan ikke opprette en instans av dette skjemaet. Dette er en egendefinert feilmelding for akkurat denne appen. <a href='/ttd/frontend-test/#/party-selection' class='same-window'>Vennligst velg en annen aktør</a>."
     }
   ]
 }

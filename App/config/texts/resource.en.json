@@ -373,6 +373,10 @@
     {
       "id": "substatus.description",
       "value": "The application has been approved and sent to the National Registry for processing. You will receive a confirmation when the application has been processed."
+    },
+    {
+      "id": "err_instantiation",
+      "value": "The party you selected is not allowed to instantiate this form. This is a custom error message only for this app. <a href='/ttd/frontend-test/#/party-selection' class='same-window'>Please select another party</a>."
     }
   ]
 }

@@ -8,6 +8,7 @@ using Altinn.App.logic.Validation;
 using Altinn.App.Options;
 using Altinn.App.services.options;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Logic.Instantiation;
 using Altinn.App.logic.MetaData;
 using Altinn.FileAnalyzers.MimeType;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +27,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IInstanceAppOptionsProvider, TestOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
+    services.AddTransient<IInstantiationValidator, InstantiationValidator>();
     services.AddTransient<IFormDataValidator, ChangeNameValidator>();
     services.AddTransient<IFormDataValidator, GroupValidator>();
     services.AddTransient<IPdfFormatter, PdfFormatter>();
