@@ -102,16 +102,21 @@ public class OptionsService : IOptionsService
 
         foreach (var reference in optionListReferences)
         {
-            foreach (var source in reference.OptionListIdSources)
-            {
-                var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
-
-                source.TaskId = matchingLayoutSetModel?.Task.Id;
-                source.TaskType = matchingLayoutSetModel?.Task.Type;
-            }
+            AddTaskDataToOptionListReference(reference, layoutSetsModel);
         }
 
         return optionListReferences;
+    }
+
+    private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
+    {
+        foreach (var source in reference.OptionListIdSources)
+        {
+            var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
+
+            source.TaskId = matchingLayoutSetModel?.Task.Id;
+            source.TaskType = matchingLayoutSetModel?.Task.Type;
+        }
     }
 
     private void ValidateOption(Option option)
@@ -184,7 +189,6 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
-
     }
 
     /// <inheritdoc />
