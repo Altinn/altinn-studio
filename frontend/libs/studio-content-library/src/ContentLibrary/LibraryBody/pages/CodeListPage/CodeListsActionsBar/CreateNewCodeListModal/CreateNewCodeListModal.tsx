@@ -35,7 +35,12 @@ function CreateNewCodeListModal(
   };
 
   return (
-    <StudioDialog closedby='any' ref={ref} onClose={handleCloseDialog}>
+    <StudioDialog
+      closedby='any'
+      ref={ref}
+      onClose={handleCloseDialog}
+      className={classes.createNewCodeListModal}
+    >
       <StudioDialog.Block>
         <StudioHeading level={2}>
           {t('app_content_library.code_lists.create_new_code_list_modal_title')}
