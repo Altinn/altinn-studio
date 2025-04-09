@@ -1951,7 +1951,7 @@
   "ux_editor.settings.data_model_tab": "Datamodell",
   "ux_editor.settings.navigation_tab": "Navigasjon",
   "ux_editor.settings.other_settings": "Andre innstillinger",
-  "ux_editor.settings.wip_message": "Denne fanen er under utvikling ux_editor.component_properties.subform.created_layout_set_name- innhold kommer snart.",
+  "ux_editor.settings.wip_message": "Denne fanen er under utvikling - innhold kommer snart.",
   "ux_editor.show_icon": "Skal ikonet vises?",
   "ux_editor.subdomains_label": "Subdomener (kommaseparert)",
   "ux_editor.subdomains_placeholder": "domene1, domene2, domene3",

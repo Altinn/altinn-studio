@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-// import { renderWithProviders } from 'app-development/test/mocks';
 import { renderWithProviders } from '../../../testing/mocks';
 import { AddSubformCard, type AddSubformCardProps } from './AddSubformCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
