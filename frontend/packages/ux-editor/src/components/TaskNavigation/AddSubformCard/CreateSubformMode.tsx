@@ -4,10 +4,9 @@ import {
   StudioTextfield,
   StudioTabs,
   StudioNativeSelect,
-  StudioButton,
   StudioSpinner,
-  StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -108,7 +107,7 @@ export const CreateSubformMode = ({
 
   return (
     <StudioCard className={classes.subformCardEditMode}>
-      <StudioParagraph className={classes.cardTitle} size='xs'>
+      <StudioParagraph className={classes.cardTitle} data-size='xs'>
         {t('ux_editor.subform')}
       </StudioParagraph>
       <StudioTextfield

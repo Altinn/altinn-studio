@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components-legacy';
+import { StudioCard } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +44,7 @@ export const AddSubformCard = ({
     >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
-        <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_subform')}</StudioHeading>
+        <StudioHeading data-size='2xs'>{t('ux_editor.task_card_add_new_subform')}</StudioHeading>
       </div>
     </StudioCard>
   );
