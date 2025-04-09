@@ -32,7 +32,9 @@ export const BreadcrumbsTaskNavigation = () => {
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
-            <div className={isOnUIEditor && classes.layoutSet}>{selectedFormLayoutSetName}</div>
+            <div className={isOnUIEditor ? classes.layoutSet : undefined}>
+              {selectedFormLayoutSetName}
+            </div>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
