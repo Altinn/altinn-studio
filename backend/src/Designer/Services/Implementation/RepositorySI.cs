@@ -289,6 +289,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{targetOrg}/{targetRepository}";
+            appMetadata.Org = targetOrg;
             appMetadata.CreatedBy = developer;
             appMetadata.LastChangedBy = developer;
             appMetadata.Created = DateTime.UtcNow;

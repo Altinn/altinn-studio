@@ -11,6 +11,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { DATA_MODEL_REPO_IDENTIFIER, DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useSearchReposQuery, useStarredReposQuery } from 'dashboard/hooks/queries';
+import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 type OrgReposListProps = {
   user: User;
@@ -30,7 +31,13 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     pageSize,
     setPageSize,
     onSortClick,
-  } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
+    sortDirection,
+    sortColumn,
+  } = useReposSearch({
+    uid: uid as number,
+    defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE,
+    storageKey: TableSortStorageKey.OrgRepos,
+  });
 
   const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
@@ -61,6 +68,8 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         pageNumber={pageNumber}
         onPageChange={setPageNumber}
         onSortClick={onSortClick}
+        sortDirection={sortDirection}
+        sortColumn={sortColumn}
       />
     </div>
   );
