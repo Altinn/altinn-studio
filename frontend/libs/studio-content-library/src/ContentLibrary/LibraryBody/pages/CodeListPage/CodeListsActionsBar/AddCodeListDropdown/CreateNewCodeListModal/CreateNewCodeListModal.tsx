@@ -3,12 +3,12 @@ import type { RefObject, ReactElement } from 'react';
 import { StudioButton, StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
+import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
-import type { CodeListWithMetadata } from '../../CodeListPage';
+import type { CodeListWithMetadata } from '../../../CodeListPage';
 import { FileNameUtils } from '@studio/pure-functions';
-import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
+import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
 type CreateNewCodeListModalProps = {
