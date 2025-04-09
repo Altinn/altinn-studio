@@ -4,6 +4,13 @@ import { CreateSubformMode, type CreateSubformModeProps } from './CreateSubformM
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { app, org } from '@studio/testing/testids';
+import { QueryKey } from 'app-shared/types/QueryKey';
+
+const dataModelIds = ['dataModel1', 'dataModel2'];
+const subformName = 'subformName';
+const invalidName = 'invalid name';
 
 describe('CreateSubformMode', () => {
   it('should render CreateSubformMode', () => {
@@ -24,14 +31,9 @@ describe('CreateSubformMode', () => {
   });
 
   it('should display error if subform name is invalid', async () => {
-    const user = userEvent.setup();
     renderCreateSubformMode();
-    const invalidSubformName = 'invalid name';
 
-    const subformNameInput = screen.getByLabelText(subformNameLabel);
-    await user.type(subformNameInput, invalidSubformName);
-    expect(subformNameInput).toHaveValue(invalidSubformName);
-
+    await writeSubformName(invalidName);
     const errorMessage = screen.getByText(textMock('validation_errors.name_invalid'));
     expect(errorMessage).toBeInTheDocument();
   });
@@ -39,7 +41,6 @@ describe('CreateSubformMode', () => {
   it('should display error if data model name is invalid', async () => {
     const user = userEvent.setup();
     renderCreateSubformMode();
-    const invalidDataModelName = 'invalid name';
 
     const createNewDataModelTab = screen.getByText(textMock('general.create_new'));
     await user.click(createNewDataModelTab);
@@ -47,23 +48,22 @@ describe('CreateSubformMode', () => {
     const dataModelNameInput = screen.getByLabelText(
       textMock('ux_editor.task_card.new_data_model'),
     );
-    await user.type(dataModelNameInput, invalidDataModelName);
-    expect(dataModelNameInput).toHaveValue(invalidDataModelName);
+    await user.type(dataModelNameInput, invalidName);
+    expect(dataModelNameInput).toHaveValue(invalidName);
 
     const errorMessage = screen.getByText(textMock('schema_editor.error_invalid_datamodel_name'));
     expect(errorMessage).toBeInTheDocument();
   });
 
-  it('should create new subform when save button is clicked', async () => {
+  it('should be possible to create a new subform with a new datamodel', async () => {
     const user = userEvent.setup();
     const setIsCreateSubformMode = jest.fn();
-    const newSubformName = 'subformName';
+
     renderCreateSubformMode({
       setIsCreateSubformMode,
     });
 
-    const subformNameInput = screen.getByLabelText(subformNameLabel);
-    await user.type(subformNameInput, newSubformName);
+    await writeSubformName(subformName);
 
     const createNewDataModelTab = screen.getByText(textMock('general.create_new'));
     await user.click(createNewDataModelTab);
@@ -71,17 +71,50 @@ describe('CreateSubformMode', () => {
     const dataModelNameInput = screen.getByLabelText(
       textMock('ux_editor.task_card.new_data_model'),
     );
+    await user.type(dataModelNameInput, subformName);
 
-    await user.type(dataModelNameInput, newSubformName);
-    const saveButton = screen.getByText(textMock('general.save'));
-    await user.click(saveButton);
+    await clickOnSaveButton();
+    expect(setIsCreateSubformMode).toHaveBeenCalledWith(false);
+  });
 
+  it('should be possible to create a new subform with existing data model', async () => {
+    const user = userEvent.setup();
+    const setIsCreateSubformMode = jest.fn();
+    renderCreateSubformMode({
+      setIsCreateSubformMode,
+    });
+
+    await writeSubformName(subformName);
+
+    const chooseDataModelTab = screen.getByText(textMock('general.select'));
+    await user.click(chooseDataModelTab);
+
+    const dataModelSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.task_card.select_data_model'),
+    });
+    await user.selectOptions(dataModelSelect, [dataModelIds[0]]);
+
+    await clickOnSaveButton();
     expect(setIsCreateSubformMode).toHaveBeenCalledWith(false);
   });
 });
 
 const subformNameLabel = textMock('ux_editor.task_card.new_subform');
+const writeSubformName = async (inputName: string) => {
+  const subformNameInput = screen.getByLabelText(subformNameLabel);
+  await userEvent.type(subformNameInput, inputName);
+  expect(subformNameInput).toHaveValue(inputName);
+};
+const clickOnSaveButton = async () => {
+  const saveButton = screen.getByText(textMock('general.save'));
+  await userEvent.click(saveButton);
+};
 
 const renderCreateSubformMode = (props?: CreateSubformModeProps) => {
-  return renderWithProviders(<CreateSubformMode {...props} />);
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, false], dataModelIds);
+
+  return renderWithProviders(<CreateSubformMode {...props} />, {
+    queryClient,
+  });
 };
