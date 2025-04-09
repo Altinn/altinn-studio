@@ -5,6 +5,8 @@ import { renderWithProviders } from 'dashboard/testing/mocks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppContext } from '@altinn/ux-editor/hooks';
+import userEvent from '@testing-library/user-event';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: jest.fn(),
@@ -60,5 +62,14 @@ describe('BreadcrumbsTaskNavigation', () => {
   it('displays selectedFormLayoutSetName correctly', () => {
     renderBreadcrumbsTaskNavigation();
     expect(screen.getByText('TestLayout')).toBeInTheDocument();
+  });
+
+  it('navigates to UIEditor when clicking the create breadcrumb', async () => {
+    const user = userEvent.setup();
+    renderBreadcrumbsTaskNavigation();
+    const createLink = screen.getByText(textMock('top_menu.create'));
+    await user.click(createLink);
+    expect(mockNavigate).toHaveBeenCalledWith('../ui-editor');
+    expect(mockRemoveSelectedFormLayoutSetName).toHaveBeenCalled();
   });
 });
