@@ -4,7 +4,7 @@ import { PlusIcon } from '@studio/icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { SubformCardEditMode } from './CreateSubformMode';
+import { CreateSubformMode } from './CreateSubformMode';
 
 export type AddSubformCardProps = {
   isSubformInEditMode: boolean;
@@ -29,7 +29,7 @@ export const AddSubformCard = ({
   };
 
   if (isSubformInEditMode) {
-    return <SubformCardEditMode setIsCreateSubformMode={setIsCreateSubformMode} />;
+    return <CreateSubformMode setIsCreateSubformMode={setIsCreateSubformMode} />;
   }
 
   return (

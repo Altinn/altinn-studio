@@ -29,13 +29,13 @@ enum Tabs {
   Create = 'create',
 }
 
-type SubformCardEditModeProps = {
+export type CreateSubformModeProps = {
   setIsCreateSubformMode: (isSubformInEditMode: boolean) => void;
 };
 
-export const SubformCardEditMode = ({
+export const CreateSubformMode = ({
   setIsCreateSubformMode,
-}: SubformCardEditModeProps): React.ReactNode => {
+}: CreateSubformModeProps): React.ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -109,8 +109,7 @@ export const SubformCardEditMode = ({
     <StudioCard className={classes.subformCardEditMode}>
       <StudioCard.Header data-size='xs'>{t('ux_editor.subform')}</StudioCard.Header>
       <StudioTextfield
-        label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-        size='sm'
+        label={t('ux_editor.task_card.new_subform')}
         error={subformError}
         className={classes.textField}
         onChange={(e) => handleSubformName(e.target.value)}
@@ -121,12 +120,12 @@ export const SubformCardEditMode = ({
         onChange={handleChangeTab}
       >
         <StudioTabs.List>
-          <StudioTabs.Tab value={Tabs.Choose}>Velg</StudioTabs.Tab>
-          <StudioTabs.Tab value={Tabs.Create}>Lag ny</StudioTabs.Tab>
+          <StudioTabs.Tab value={Tabs.Choose}>{t('general.select')}</StudioTabs.Tab>
+          <StudioTabs.Tab value={Tabs.Create}>{t('general.create_new')}</StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Content value={Tabs.Choose} className={classes.tabContent}>
           <StudioNativeSelect
-            label={t('ux_editor.component_properties.subform.data_model_binding_label')}
+            label={t('ux_editor.task_card.select_data_model')}
             size='sm'
             onChange={(e) => handleDataModelName(e.target.value)}
           >
@@ -135,8 +134,7 @@ export const SubformCardEditMode = ({
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Create} className={classes.tabContent}>
           <StudioTextfield
-            label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
-            size='sm'
+            label={t('ux_editor.task_card.new_data_model')}
             value={newSubform.dataModelName}
             className={classes.textField}
             onChange={(e) => handleDataModelName(e.target.value, true)}
