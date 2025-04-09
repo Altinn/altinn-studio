@@ -4,7 +4,7 @@ import type { CodeListsProps } from './CodeLists';
 import { CodeLists } from './CodeLists';
 import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { CodeListWithMetadata } from '../CodeListPage';
+import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
