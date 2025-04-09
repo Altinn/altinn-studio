@@ -126,15 +126,14 @@ describe('useValidateSchemaName', () => {
       const { result } = renderUseValidateSchemaName();
 
       act(() => {
-        result.current.validateName('a1_23');
+        result.current.validateName('a1234567890_');
       });
 
       expect(result.current.nameError).toBe('');
     });
 
-    it('should disallow hyphens, spaces and periods in name', () => {
+    it('should disallow hyphens, spaces and periods anywhere in name', () => {
       const { result } = renderUseValidateSchemaName();
-      // Covers start, middle and end for relevant chars
       const invalidNames = ['-', ' ', '.', 'a-', 'a ', 'a.', 'a-b', 'a b', 'a.b'];
 
       invalidNames.forEach((name) => {
@@ -148,9 +147,34 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should disallow Norwegian special characters in name', () => {
+    it('should disallow Norwegian special characters anywhere in name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidNames = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å', 'aæ', 'aø', 'aå', 'aÆ', 'aØ', 'aÅ'];
+      const invalidNames = [
+        'æ',
+        'ø',
+        'å',
+        'Æ',
+        'Ø',
+        'Å',
+        'aæ',
+        'aø',
+        'aå',
+        'aÆ',
+        'aØ',
+        'aÅ',
+        'æa',
+        'øa',
+        'åa',
+        'Æa',
+        'Øa',
+        'Åa',
+        'aæb',
+        'aøb',
+        'aåb',
+        'aÆb',
+        'aØb',
+        'aÅb',
+      ];
 
       invalidNames.forEach((name) => {
         act(() => {
