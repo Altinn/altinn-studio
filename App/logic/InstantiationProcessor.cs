@@ -5,7 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
-namespace Altinn.App.AppLogic.DataProcessing
+namespace Altinn.App.logic
 {
     /// <summary>
     /// Represents a business logic class responsible for running logic related to instantiation.

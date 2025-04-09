@@ -5,7 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Altinn.App.Models;
 
-namespace Altinn.App.AppLogic.DataProcessing
+namespace Altinn.App.logic
 {
   public class DataProcessor: IDataProcessor
   {

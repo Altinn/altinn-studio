@@ -1,6 +1,6 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.AppLogic.DataProcessing;
+using Altinn.App.logic;
 using Altinn.App.Core.Features;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
