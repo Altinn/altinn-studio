@@ -213,12 +213,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSettings.Pages is PagesWithGroups;
         }
 
-        public async Task UpdateLayoutSettings(
+        public async Task UpdatePageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
-            LayoutSettings layoutSettings
+            PagesWithGroups pagesWithGroups
         )
         {
+            ArgumentNullException.ThrowIfNull(editingContext);
+            ArgumentException.ThrowIfNullOrEmpty(layoutSetId);
+            ArgumentNullException.ThrowIfNull(pagesWithGroups);
+
             AltinnAppGitRepository appRepository =
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     editingContext.Org,
@@ -228,20 +232,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
                 layoutSetId
             );
-            if (
-                layoutSettings.Pages is PagesWithGroups pagesWithGroups
-                && originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups
-            )
+            if (originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups)
             {
-                IEnumerable<string> pages = pagesWithGroups.Groups.SelectMany(
+                IEnumerable<string> order = pagesWithGroups.Groups.SelectMany(
                     (group) => group.Order
                 );
-                IEnumerable<string> originalPages = originalPagesWithGroups.Groups.SelectMany(
+                IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany(
                     (group) => group.Order
                 );
-                IEnumerable<string> deletedPages = originalPages.Where(
-                    (page) => !pages.Contains(page)
-                );
+                var deletedPages = originalOrder.Except(order).ToList();
                 foreach (string pageId in deletedPages)
                 {
                     appRepository.DeleteLayout(layoutSetId, pageId);
@@ -255,7 +254,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     );
                 }
             }
-            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
+            originalLayoutSettings.Pages = pagesWithGroups;
+            await appRepository.SaveLayoutSettings(layoutSetId, originalLayoutSettings);
         }
 
         /// <exception cref="InvalidOperationException">

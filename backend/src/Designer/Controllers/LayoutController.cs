@@ -236,7 +236,7 @@ namespace Altinn.Studio.Designer.Controllers
         )]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost("page-groups")]
-        public async Task<ActionResult> UpdatePages(
+        public async Task<ActionResult> UpdatePageGroups(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] string layoutSetId,
@@ -245,12 +245,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
-            layoutSettings.Pages = pages.ToBusiness();
-            await layoutService.UpdateLayoutSettings(editingContext, layoutSetId, layoutSettings);
+
+            PagesWithGroups pagesWithGroups = pages.ToBusiness() as PagesWithGroups;
+            await layoutService.UpdatePageGroups(editingContext, layoutSetId, pagesWithGroups);
             return Ok();
         }
     }

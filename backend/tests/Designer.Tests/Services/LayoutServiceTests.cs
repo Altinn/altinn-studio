@@ -127,8 +127,11 @@ public class LayoutServiceTests
         List<PageDto> deletedPages = pagesDto.Groups[0].Pages;
         List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
         pagesDto.Groups.RemoveAt(0);
-        layoutSettings.Pages = pagesDto.ToBusiness();
-        await layoutService.UpdateLayoutSettings(editingContext, "form", layoutSettings);
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
         LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
             "form"
@@ -172,8 +175,11 @@ public class LayoutServiceTests
         int originalGroupCount = pagesDto.Groups.Count;
         List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
         pagesDto.Groups.ForEach((group) => group.Name = $"{group.Name}-newName");
-        layoutSettings.Pages = pagesDto.ToBusiness();
-        await layoutService.UpdateLayoutSettings(editingContext, "form", layoutSettings);
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
         LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
             "form"

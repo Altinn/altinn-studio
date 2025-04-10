@@ -38,10 +38,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// It's main motivation is for when we cannot easily
         /// identify the specific values being changed.
         /// </summary>
-        public Task UpdateLayoutSettings(
+        public Task UpdatePageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId,
-            LayoutSettings layoutSettings
+            PagesWithGroups pagesWithGroups
         );
 
         public Task<bool> IsLayoutUsingPageGroups(
