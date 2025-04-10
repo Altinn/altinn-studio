@@ -6,12 +6,9 @@ import { FilePdfIcon } from '@navikt/aksel-icons';
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ProcessTaskType } from 'src/types';
-import { isLocalOrStaging } from 'src/utils/isDev';
 import { getPdfPreviewUrl } from 'src/utils/urls/appUrlHelper';
 
 export function PDFGeneratorPreview({
@@ -27,11 +24,9 @@ export function PDFGeneratorPreview({
   const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
   const [errorText, setErrorText] = React.useState<string | null>(null);
 
-  const taskType = useTaskTypeFromBackend();
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
-
-  const disabled = taskType !== ProcessTaskType.Data || !instanceId || !isLocalOrStaging();
+  const disabled = !instanceId;
 
   const { langAsString } = useLanguage();
 
