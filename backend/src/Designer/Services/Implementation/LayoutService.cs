@@ -232,27 +232,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
                 layoutSetId
             );
-            if (originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups)
+            if (originalLayoutSettings.Pages is not PagesWithGroups originalPagesWithGroups)
             {
-                IEnumerable<string> order = pagesWithGroups.Groups.SelectMany(
-                    (group) => group.Order
+                throw new InvalidOperationException(
+                    "Cannot update page groups in layout using order."
                 );
-                IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany(
-                    (group) => group.Order
+            }
+            IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
+            IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany(
+                (group) => group.Order
+            );
+            var deletedPages = originalOrder.Except(order).ToList();
+            foreach (string pageId in deletedPages)
+            {
+                appRepository.DeleteLayout(layoutSetId, pageId);
+                await mediatr.Publish(
+                    new LayoutPageDeletedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutName = pageId,
+                        LayoutSetName = layoutSetId,
+                    }
                 );
-                var deletedPages = originalOrder.Except(order).ToList();
-                foreach (string pageId in deletedPages)
-                {
-                    appRepository.DeleteLayout(layoutSetId, pageId);
-                    await mediatr.Publish(
-                        new LayoutPageDeletedEvent
-                        {
-                            EditingContext = editingContext,
-                            LayoutName = pageId,
-                            LayoutSetName = layoutSetId,
-                        }
-                    );
-                }
             }
             originalLayoutSettings.Pages = pagesWithGroups;
             await appRepository.SaveLayoutSettings(layoutSetId, originalLayoutSettings);
