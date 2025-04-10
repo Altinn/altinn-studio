@@ -1,9 +1,11 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Converters;
 
 namespace Altinn.Studio.Designer.Models;
 
+[JsonConverter(typeof(PagesJsonConverter))]
 public class Pages
 {
     [JsonPropertyName("hideCloseButton")]
@@ -42,14 +44,54 @@ public class Pages
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PdfLayoutName { get; set; }
 
-    [JsonPropertyName("order")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? Order { get; set; }
+    [JsonExtensionData]
+    public IDictionary<string, object?>? UnknownProperties { get; set; }
 
+    public PagesWithOrder ToPagesWithOrder()
+    {
+        return new PagesWithOrder
+        {
+            HideCloseButton = HideCloseButton,
+            ShowLanguageSelector = ShowLanguageSelector,
+            ShowExpandWidthButton = ShowExpandWidthButton,
+            ExpandedWidth = ExpandedWidth,
+            ShowProgress = ShowProgress,
+            AutoSaveBehaviour = AutoSaveBehaviour,
+            TaskNavigation = TaskNavigation,
+            ExcludeFromPdf = ExcludeFromPdf,
+            PdfLayoutName = PdfLayoutName,
+            UnknownProperties = UnknownProperties,
+        };
+    }
+
+    public PagesWithGroups ToPagesWithGroups()
+    {
+        return new PagesWithGroups
+        {
+            HideCloseButton = HideCloseButton,
+            ShowLanguageSelector = ShowLanguageSelector,
+            ShowExpandWidthButton = ShowExpandWidthButton,
+            ExpandedWidth = ExpandedWidth,
+            ShowProgress = ShowProgress,
+            AutoSaveBehaviour = AutoSaveBehaviour,
+            TaskNavigation = TaskNavigation,
+            ExcludeFromPdf = ExcludeFromPdf,
+            PdfLayoutName = PdfLayoutName,
+            UnknownProperties = UnknownProperties,
+        };
+    }
+}
+
+public class PagesWithGroups : Pages
+{
     [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<Group>? Groups { get; set; }
+}
 
-    [JsonExtensionData]
-    public IDictionary<string, object?>? UnknownProperties { get; set; }
+public class PagesWithOrder : Pages
+{
+    [JsonPropertyName("order")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Order { get; set; }
 }

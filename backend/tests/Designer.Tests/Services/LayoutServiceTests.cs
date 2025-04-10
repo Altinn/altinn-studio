@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
@@ -21,15 +23,9 @@ public class LayoutServiceTests
     public async Task UsesGroup_ShouldReturnTrue_IfUsingGroups()
     {
         const string repo = "app-with-groups-and-taskNavigation";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            Org,
-            targetRepository,
-            Developer
-        );
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
 
-        LayoutService layoutService = GetLayoutServiceForTest();
         bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
             editingContext,
             "form"
@@ -41,15 +37,9 @@ public class LayoutServiceTests
     public async Task UsesGroup_ShouldReturnFalse_IfNotUsingGroups()
     {
         const string repo = "app-with-layoutsets";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            Org,
-            targetRepository,
-            Developer
-        );
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
 
-        LayoutService layoutService = GetLayoutServiceForTest();
         bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
             editingContext,
             "layoutSet1"
@@ -61,15 +51,9 @@ public class LayoutServiceTests
     public async Task OrderToPageGroupConversion_ShouldIncludeAllPages()
     {
         const string repo = "app-with-layoutsets";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            Org,
-            targetRepository,
-            Developer
-        );
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
 
-        LayoutService layoutService = GetLayoutServiceForTest();
         PagesDto pagesBeforeConvert = PagesDto.From(
             await layoutService.GetLayoutSettings(editingContext, "layoutSet1")
         );
@@ -98,15 +82,9 @@ public class LayoutServiceTests
     public async Task PageGroupToOrderConversion_ShouldIncludeAllPages()
     {
         const string repo = "app-with-groups-and-taskNavigation";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            Org,
-            targetRepository,
-            Developer
-        );
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
 
-        LayoutService layoutService = GetLayoutServiceForTest();
         PagesDto pagesBeforeConvert = PagesDto.From(
             await layoutService.GetLayoutSettings(editingContext, "form")
         );
@@ -129,13 +107,62 @@ public class LayoutServiceTests
         Assert.Null(pages.Groups);
     }
 
-    private static LayoutService GetLayoutServiceForTest()
+    [Fact]
+    public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        PagesDto pagesBeforeConvert = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "form")
+        );
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPagesToPageGroups(editingContext, "form")
+        );
+    }
+
+    [Fact]
+    public async Task PageOrderToGroupConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-layoutsets";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        PagesDto pagesBeforeConvert = PagesDto.From(
+            await layoutService.GetLayoutSettings(editingContext, "layoutSet1")
+        );
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")
+        );
+    }
+
+
+    private async Task<(
+        AltinnRepoEditingContext editingContext,
+        LayoutService layoutService,
+        Mock<IPublisher> mock
+    )> PrepareTestForRepo(string repo)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            Org,
+            targetRepository,
+            Developer
+        );
+
+        Mock<IPublisher> mediatr = new();
+        LayoutService layoutService = GetLayoutServiceForTest(mediatr);
+        return (editingContext, layoutService, mediatr);
+    }
+
+    private static LayoutService GetLayoutServiceForTest(Mock<IPublisher> mediatr)
     {
         var appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        var mediatr = new Mock<IPublisher>();
         LayoutService layoutService = new(
             altinnGitRepositoryFactory,
             mediatr.Object,
