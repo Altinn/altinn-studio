@@ -154,6 +154,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
             }
             int orderIndex = pages.Order.IndexOf(pageId);
+            if (orderIndex == -1)
+            {
+                throw new InvalidOperationException($"Page '{pageId}' not found.");
+            }
             pages.Order[orderIndex] = newName;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
