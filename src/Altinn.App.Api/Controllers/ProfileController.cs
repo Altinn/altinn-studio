@@ -37,11 +37,6 @@ public class ProfileController : Controller
                 var details = await user.LoadDetails(validateSelectedParty: false);
                 return Ok(details.Profile);
             }
-            case Authenticated.SelfIdentifiedUser selfIdentifiedUser:
-            {
-                var details = await selfIdentifiedUser.LoadDetails();
-                return Ok(details.Profile);
-            }
             default:
                 return BadRequest($"Unknown authentication context: {context.GetType().Name}");
         }

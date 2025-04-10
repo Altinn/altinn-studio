@@ -83,8 +83,6 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
                 bool unauthorized = context.Authentication switch
                 {
                     Authenticated.User a => a.UserId.ToString(CultureInfo.InvariantCulture) == signee?.UserId,
-                    Authenticated.SelfIdentifiedUser a => a.UserId.ToString(CultureInfo.InvariantCulture)
-                        == signee?.UserId,
                     Authenticated.SystemUser a => a.SystemUserId[0] == signee?.SystemUserId,
                     _ => false,
                 };

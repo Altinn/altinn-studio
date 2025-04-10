@@ -150,7 +150,7 @@ public class AuthenticatedTests
                 details = await user.LoadDetails(validateSelectedParty: true);
                 break;
             case AuthenticationTypes.SelfIdentifiedUser:
-                var selfIdentifiedUser = Assert.IsType<Authenticated.SelfIdentifiedUser>(auth);
+                var selfIdentifiedUser = Assert.IsType<Authenticated.User>(auth);
                 Assert.Equal(token, auth.Token);
                 details = await selfIdentifiedUser.LoadDetails();
                 break;
@@ -303,7 +303,8 @@ public class AuthenticatedTests
                         tokenStr: token,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
-                        getSelectedParty: null!,
+                        getSelectedParty: () =>
+                            ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
                         getUserProfile: userId =>
                         {
                             Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
@@ -316,10 +317,23 @@ public class AuthenticatedTests
                                 }
                             );
                         },
-                        lookupUserParty: null!,
+                        lookupUserParty: partyId =>
+                        {
+                            Assert.Equal(partyId, ReadClaimInt(AltinnCoreClaimTypes.PartyID));
+                            return Task.FromResult<Party?>(party);
+                        },
                         lookupOrgParty: null!,
-                        getPartyList: null!,
-                        validateSelectedParty: null!
+                        getPartyList: userId =>
+                        {
+                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
+                            return Task.FromResult<List<Party>?>([party]);
+                        },
+                        validateSelectedParty: (userId, partyId) =>
+                        {
+                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
+                            Assert.Equal(partyId, ReadClaimInt(AltinnCoreClaimTypes.PartyID));
+                            return Task.FromResult<bool?>(true);
+                        }
                     );
                 }
                 break;

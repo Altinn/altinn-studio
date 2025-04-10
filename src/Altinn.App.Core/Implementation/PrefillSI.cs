@@ -93,7 +93,6 @@ public class PrefillSI : IPrefill
         Party? party = currentAuth switch
         {
             Authenticated.User user when user.SelectedPartyId == partyIdNum => await user.LookupSelectedParty(),
-            Authenticated.SelfIdentifiedUser user when user.PartyId == partyIdNum => (await user.LoadDetails()).Party,
             Authenticated.SystemUser systemUser
                 when await systemUser.LoadDetails() is { } details && details.Party.PartyId == partyIdNum =>
                 details.Party,
@@ -123,12 +122,6 @@ public class PrefillSI : IPrefill
                     case Authenticated.User user:
                     {
                         var details = await user.LoadDetails(validateSelectedParty: false);
-                        userProfile = details.Profile;
-                        break;
-                    }
-                    case Authenticated.SelfIdentifiedUser user:
-                    {
-                        var details = await user.LoadDetails();
                         userProfile = details.Profile;
                         break;
                     }

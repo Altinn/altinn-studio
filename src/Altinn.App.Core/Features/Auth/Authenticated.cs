@@ -58,13 +58,12 @@ public abstract class Authenticated
     {
         string language = LanguageConst.Nb;
 
-        if (this is not User and not SelfIdentifiedUser)
+        if (this is not User)
             return language;
 
         var profile = this switch
         {
             User user => await user.LookupProfile(),
-            SelfIdentifiedUser selfIdentifiedUser => (await selfIdentifiedUser.LoadDetails()).Profile,
             _ => throw new InvalidOperationException($"Unexpected case: {this.GetType().Name}"),
         };
 
@@ -94,12 +93,22 @@ public abstract class Authenticated
         public int UserId { get; }
 
         /// <summary>
+        /// Username of the registered user, only relevant for self-identified/self-registered users.
+        /// E.g. BankID doesn't operate based on usernames, so this property would be null in that case.
+        /// </summary>
+        public string? Username { get; }
+
+        /// <summary>
         /// Party ID
         /// </summary>
         public int UserPartyId { get; }
 
         /// <summary>
         /// The party the user has selected through party selection
+        /// If the current request is related to an active instance, this value is not relevant.
+        /// The selected party ID is always whatever the user has selected in the party selection screen.
+        /// Party selection is used for instantiating new instances. The selected party ID becomes the instance owner party ID
+        /// when instantiating.
         /// </summary>
         public int SelectedPartyId { get; }
 
@@ -118,6 +127,11 @@ public abstract class Authenticated
         /// </summary>
         public bool InAltinnPortal { get; }
 
+        /// <summary>
+        /// True if the user is self-identified/self-registered.
+        /// </summary>
+        public bool IsSelfIdentified => AuthenticationLevel == 0;
+
         private Details? _extra;
         private readonly Func<int, Task<UserProfile?>> _getUserProfile;
         private readonly Func<int, Task<Party?>> _lookupParty;
@@ -127,6 +141,7 @@ public abstract class Authenticated
 
         internal User(
             int userId,
+            string? username,
             int userPartyId,
             int authenticationLevel,
             string authenticationMethod,
@@ -136,6 +151,7 @@ public abstract class Authenticated
             : base(ref context)
         {
             UserId = userId;
+            Username = username;
             UserPartyId = userPartyId;
             SelectedPartyId = selectedPartyId;
             AuthenticationLevel = authenticationLevel;
@@ -303,90 +319,6 @@ public abstract class Authenticated
                 partiesAllowedToInstantiate,
                 canRepresent
             );
-            return _extra;
-        }
-    }
-
-    /// <summary>
-    /// The logged in client is a user (e.g. Altinn portal/ID-porten) with auth level 0.
-    /// This means that the user has authenticated with a username/password, which can happen using
-    /// * Altinn "self registered users"
-    /// * ID-porten through Ansattporten ("low"), MinID self registered eID
-    /// These have limited access to Altinn and can only represent themselves.
-    /// </summary>
-    public sealed class SelfIdentifiedUser : Authenticated
-    {
-        /// <summary>
-        /// Username
-        /// </summary>
-        public string Username { get; }
-
-        /// <summary>
-        /// User ID
-        /// </summary>
-        public int UserId { get; }
-
-        /// <summary>
-        /// Party ID
-        /// </summary>
-        public int PartyId { get; }
-
-        /// <summary>
-        /// Method of authentication, e.g. "idporten" or "maskinporten"
-        /// </summary>
-        public string AuthenticationMethod { get; }
-
-        private Details? _extra;
-        private readonly Func<int, Task<UserProfile?>> _getUserProfile;
-        private readonly ApplicationMetadata _appMetadata;
-
-        internal SelfIdentifiedUser(
-            string username,
-            int userId,
-            int partyId,
-            string authenticationMethod,
-            ref ParseContext context
-        )
-            : base(ref context)
-        {
-            Username = username;
-            UserId = userId;
-            PartyId = partyId;
-            AuthenticationMethod = authenticationMethod;
-            // Since they are self-identified, they are always 0
-            AuthenticationLevel = 0;
-            _getUserProfile = context.GetUserProfile;
-            _appMetadata = context.AppMetadata;
-        }
-
-        /// <summary>
-        /// Authentication level
-        /// </summary>
-        public int AuthenticationLevel { get; }
-
-        /// <summary>
-        /// Detailed information about a logged in user
-        /// </summary>
-        public sealed record Details(Party Party, UserProfile Profile, bool RepresentsSelf, bool CanInstantiate);
-
-        /// <summary>
-        /// Load the details for the current user.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Details> LoadDetails()
-        {
-            if (_extra is not null)
-                return _extra;
-
-            var userProfile =
-                await _getUserProfile(UserId)
-                ?? throw new AuthenticationContextException(
-                    $"Could not get user profile for logged in self identified user: {UserId}"
-                );
-
-            var party = userProfile.Party;
-            var canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(party, _appMetadata.PartyTypesAllowed);
-            _extra = new Details(party, userProfile, RepresentsSelf: true, canInstantiate);
             return _extra;
         }
     }
@@ -690,13 +622,6 @@ public abstract class Authenticated
             throw new AuthenticationContextException("Missing party ID for user token");
 
         ParseAuthLevel(context.AuthLevelClaim, out authLevel);
-        if (authLevel == 0)
-        {
-            if (!context.UsernameClaim.IsValidString(out var usernameClaimValue))
-                throw new AuthenticationContextException("Missing username claim for self-identified user token");
-
-            return new SelfIdentifiedUser(usernameClaimValue, userId, partyId.Value, "localtest", ref context);
-        }
 
         int selectedPartyId = partyId.Value;
         if (getSelectedParty() is { } selectedPartyStr)
@@ -706,8 +631,17 @@ public abstract class Authenticated
 
             selectedPartyId = selectedParty;
         }
+        context.UsernameClaim.IsValidString(out var usernameClaimValue);
 
-        return new User(userId, partyId.Value, authLevel, "localtest", selectedPartyId, ref context);
+        return new User(
+            userId,
+            usernameClaimValue,
+            partyId.Value,
+            authLevel,
+            "localtest",
+            selectedPartyId,
+            ref context
+        );
     }
 
     internal record struct ParseContext(
@@ -936,7 +870,7 @@ public abstract class Authenticated
         return NewUser(ref context);
     }
 
-    static Authenticated NewUser(ref ParseContext context)
+    static Authenticated.User NewUser(ref ParseContext context)
     {
         if (!context.UserIdClaim.Exists)
             throw new AuthenticationContextException("Missing user ID claim for user token");
@@ -959,19 +893,6 @@ public abstract class Authenticated
             throw new AuthenticationContextException("Missing or invalid authentication method claim for user token");
 
         ParseAuthLevel(context.AuthLevelClaim, out var authLevel);
-        if (authLevel == 0)
-        {
-            if (!context.UsernameClaim.IsValidString(out var usernameClaimValue))
-                throw new AuthenticationContextException("Missing username claim for self-identified user token");
-
-            return new SelfIdentifiedUser(
-                usernameClaimValue,
-                userId.Value,
-                partyId.Value,
-                authMethodClaimValue,
-                ref context
-            );
-        }
 
         int selectedPartyId = partyId.Value;
         if (context.GetSelectedParty() is { } selectedPartyStr)
@@ -982,7 +903,17 @@ public abstract class Authenticated
             selectedPartyId = selectedParty;
         }
 
-        return new User(userId.Value, partyId.Value, authLevel, authMethodClaimValue, selectedPartyId, ref context);
+        context.UsernameClaim.IsValidString(out var usernameClaimValue);
+
+        return new User(
+            userId.Value,
+            usernameClaimValue,
+            partyId.Value,
+            authLevel,
+            authMethodClaimValue,
+            selectedPartyId,
+            ref context
+        );
     }
 
     static Org NewOrg(ref ParseContext context)

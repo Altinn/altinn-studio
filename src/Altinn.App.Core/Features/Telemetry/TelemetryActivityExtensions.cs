@@ -373,14 +373,6 @@ public static class TelemetryActivityExtensions
                 activity.SetTag(Labels.UserAuthenticationInAltinnPortal, auth.InAltinnPortal);
                 break;
             }
-            case Authenticated.SelfIdentifiedUser auth:
-            {
-                activity.SetUserId(auth.UserId);
-                activity.SetUserPartyId(auth.PartyId);
-                activity.SetAuthenticationMethod(auth.AuthenticationMethod);
-                activity.SetAuthenticationLevel(auth.AuthenticationLevel);
-                break;
-            }
             case Authenticated.Org auth:
             {
                 activity.SetOrganisationNumber(auth.OrgNo);

@@ -8,6 +8,7 @@
     AuthenticationLevel: 3,
     AuthenticationMethod: NotDefined,
     InAltinnPortal: false,
+    IsSelfIdentified: false,
     TokenIssuer: IDporten,
     TokenIsExchanged: true,
     Scopes: altinn:instances.read openid profile,

@@ -121,8 +121,7 @@ public sealed class ProcessEngineTest
         using var fixture = Fixture.Create(withTelemetry: true, token: token);
         var instanceOwnerPartyId = token.Auth switch
         {
-            Authenticated.User auth when await auth.LoadDetails() is { } details => details.SelectedParty.PartyId,
-            Authenticated.SelfIdentifiedUser auth => auth.PartyId,
+            Authenticated.User auth => auth.SelectedPartyId,
             Authenticated.ServiceOwner => _instanceOwnerPartyId,
             Authenticated.SystemUser auth when await auth.LoadDetails() is { } details => details.Party.PartyId,
             _ => throw new NotImplementedException(),
@@ -171,11 +170,6 @@ public sealed class ProcessEngineTest
             {
                 UserId = auth.UserId,
                 NationalIdentityNumber = details.SelectedParty.SSN,
-                AuthenticationLevel = auth.AuthenticationLevel,
-            },
-            Authenticated.SelfIdentifiedUser auth => new()
-            {
-                UserId = auth.UserId,
                 AuthenticationLevel = auth.AuthenticationLevel,
             },
             Authenticated.ServiceOwner auth => new()

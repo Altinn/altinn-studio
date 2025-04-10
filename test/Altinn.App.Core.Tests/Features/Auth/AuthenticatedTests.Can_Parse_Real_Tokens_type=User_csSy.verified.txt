@@ -8,6 +8,7 @@
     AuthenticationLevel: 3,
     AuthenticationMethod: IdportenTestId,
     InAltinnPortal: true,
+    IsSelfIdentified: false,
     TokenIssuer: Altinn,
     TokenIsExchanged: false,
     Scopes: altinn:portal/enduser,

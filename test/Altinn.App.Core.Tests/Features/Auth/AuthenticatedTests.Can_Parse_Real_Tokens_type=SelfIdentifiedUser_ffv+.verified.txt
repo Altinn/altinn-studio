@@ -1,11 +1,14 @@
 ﻿{
   Description: Altinn portal tt02 self identified, token extracted from AltinnStudioRuntime cookie,
-  AuthType: Altinn.App.Core.Features.Auth.Authenticated+SelfIdentifiedUser,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+User,
   Auth: {
-    Username: martinothamar,
     UserId: 1428813,
-    PartyId: 53328660,
+    Username: martinothamar,
+    UserPartyId: 53328660,
+    SelectedPartyId: 53328660,
     AuthenticationMethod: SelfIdentified,
+    InAltinnPortal: true,
+    IsSelfIdentified: true,
     TokenIssuer: Altinn,
     TokenIsExchanged: false,
     Scopes: altinn:portal/enduser,
@@ -25,13 +28,23 @@
     urn:altinn:username: martinothamar
   },
   Details: {
-    Party: {
+    UserParty: {
       PartyId: 53328660,
       PartyTypeName: Person,
       SSN: 12345678901,
       Name: Test Testesen,
       IsDeleted: false,
-      OnlyHierarchyElementWithNoAccess: false
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
+    },
+    SelectedParty: {
+      PartyId: 53328660,
+      PartyTypeName: Person,
+      SSN: 12345678901,
+      Name: Test Testesen,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
     },
     Profile: {
       UserId: 1428813,
@@ -43,10 +56,33 @@
         SSN: 12345678901,
         Name: Test Testesen,
         IsDeleted: false,
-        OnlyHierarchyElementWithNoAccess: false
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
       }
     },
     RepresentsSelf: true,
-    CanInstantiate: true
+    Parties: [
+      {
+        PartyId: 53328660,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    PartiesAllowedToInstantiate: [
+      {
+        PartyId: 53328660,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    CanRepresent: true
   }
 }

@@ -286,7 +286,7 @@ public static class TestAuthentication
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "mock"));
     }
 
-    public static SelfIdentifiedUser GetSelfIdentifiedUserAuthentication(
+    public static User GetSelfIdentifiedUserAuthentication(
         string username = DefaultUsername,
         int userId = DefaultUserId,
         int partyId = DefaultUserPartyId,
@@ -329,10 +329,19 @@ public static class TestAuthentication
                 return Task.FromResult<Party?>(party);
             },
             lookupOrgParty: _ => throw new NotImplementedException(),
-            getPartyList: _ => throw new NotImplementedException(),
-            validateSelectedParty: (_, __) => throw new NotImplementedException()
+            getPartyList: uid =>
+            {
+                Assert.Equal(userId, uid);
+                return Task.FromResult<List<Party>?>([party]);
+            },
+            validateSelectedParty: (uid, pid) =>
+            {
+                Assert.Equal(userId, uid);
+                Assert.Equal(partyId, pid);
+                return Task.FromResult<bool?>(true);
+            }
         );
-        return Assert.IsType<SelfIdentifiedUser>(auth);
+        return Assert.IsType<User>(auth);
     }
 
     public static ClaimsPrincipal GetOrgPrincipal(string orgNumber = DefaultOrgNumber, string scope = DefaultOrgScope)

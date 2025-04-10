@@ -49,12 +49,6 @@ public class PartiesController : ControllerBase
                 var details = await user.LoadDetails(validateSelectedParty: false);
                 return allowedToInstantiateFilter ? Ok(details.PartiesAllowedToInstantiate) : Ok(details.Parties);
             }
-            case Authenticated.SelfIdentifiedUser selfIdentified:
-            {
-                var details = await selfIdentified.LoadDetails();
-                IReadOnlyList<Party> parties = [details.Party];
-                return Ok(parties);
-            }
             case Authenticated.Org orgInfo:
             {
                 var details = await orgInfo.LoadDetails();
@@ -117,34 +111,6 @@ public class PartiesController : ControllerBase
                             Valid = false,
                             Message = "The supplied party is not allowed to instantiate the application",
                             ValidParties = details.PartiesAllowedToInstantiate.ToList(),
-                        }
-                    );
-                }
-
-                return Ok(new InstantiationValidationResult { Valid = true });
-            }
-            case Authenticated.SelfIdentifiedUser auth:
-            {
-                var details = await auth.LoadDetails();
-                if (details.Party.PartyId != partyId)
-                {
-                    return Ok(
-                        new InstantiationValidationResult
-                        {
-                            Valid = false,
-                            Message = "The user does not represent the supplied party",
-                            ValidParties = new List<Party> { details.Party },
-                        }
-                    );
-                }
-                if (!details.CanInstantiate)
-                {
-                    return Ok(
-                        new InstantiationValidationResult
-                        {
-                            Valid = false,
-                            Message = "The supplied party is not allowed to instantiate the application",
-                            ValidParties = new List<Party> { details.Party },
                         }
                     );
                 }
@@ -231,19 +197,6 @@ public class PartiesController : ControllerBase
             {
                 var details = await auth.LoadDetails(validateSelectedParty: false);
                 if (!details.CanRepresentParty(partyId))
-                    return BadRequest($"User {auth.UserId} cannot represent party {partyId}.");
-
-                Response.Cookies.Append(
-                    _settings.GetAltinnPartyCookieName,
-                    partyId.ToString(CultureInfo.InvariantCulture),
-                    new CookieOptions { Domain = _settings.HostName }
-                );
-
-                return Ok("Party successfully updated");
-            }
-            case Authenticated.SelfIdentifiedUser auth:
-            {
-                if (auth.PartyId != partyId)
                     return BadRequest($"User {auth.UserId} cannot represent party {partyId}.");
 
                 Response.Cookies.Append(

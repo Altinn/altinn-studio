@@ -76,30 +76,6 @@ public class SigningUserActionTests
                     signClientMock.VerifyNoOtherCalls();
                 }
                 break;
-            case Authenticated.SelfIdentifiedUser selfIdentifiedUser:
-                {
-                    SignatureContext expected = new SignatureContext(
-                        new InstanceIdentifier(instance),
-                        instance.Process.CurrentTask.ElementId,
-                        "signature",
-                        new Signee()
-                        {
-                            UserId = selfIdentifiedUser.UserId.ToString(CultureInfo.InvariantCulture),
-                            PersonNumber = null,
-                        },
-                        new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
-                    );
-                    signClientMock.Verify(
-                        s =>
-                            s.SignDataElements(
-                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))
-                            ),
-                        Times.Once
-                    );
-                    result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
-                    signClientMock.VerifyNoOtherCalls();
-                }
-                break;
             case Authenticated.SystemUser systemUser:
                 {
                     SignatureContext expected = new SignatureContext(

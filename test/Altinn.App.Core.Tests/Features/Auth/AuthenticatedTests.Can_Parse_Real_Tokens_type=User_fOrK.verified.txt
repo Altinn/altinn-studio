@@ -8,6 +8,7 @@
     AuthenticationLevel: 3,
     AuthenticationMethod: NotDefined,
     InAltinnPortal: true,
+    IsSelfIdentified: false,
     TokenIssuer: Altinn,
     TokenIsExchanged: false,
     Scopes: altinn:instances.read altinn:instances.write,

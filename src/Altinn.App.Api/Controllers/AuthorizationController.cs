@@ -79,16 +79,6 @@ public class AuthorizationController : Controller
                 }
                 return Ok(reportee.PartyId);
             }
-            case Authenticated.SelfIdentifiedUser selfIdentified:
-            {
-                var details = await selfIdentified.LoadDetails();
-                if (returnPartyObject)
-                {
-                    return Ok(details.Party);
-                }
-
-                return Ok(details.Party.PartyId);
-            }
             case Authenticated.Org org:
             {
                 var details = await org.LoadDetails();

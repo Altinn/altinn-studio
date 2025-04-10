@@ -347,7 +347,6 @@ public class StatelessDataController : ControllerBase
             Party? party = currentAuth switch
             {
                 Authenticated.User auth => await auth.LookupSelectedParty(),
-                Authenticated.SelfIdentifiedUser auth => (await auth.LoadDetails()).Party,
                 Authenticated.Org auth => (await auth.LoadDetails()).Party,
                 Authenticated.ServiceOwner auth => (await auth.LoadDetails()).Party,
                 Authenticated.SystemUser auth => (await auth.LoadDetails()).Party,

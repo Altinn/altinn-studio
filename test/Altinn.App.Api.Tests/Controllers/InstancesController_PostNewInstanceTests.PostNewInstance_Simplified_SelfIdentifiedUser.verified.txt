@@ -28,6 +28,9 @@
           url.scheme: http
         },
         {
+          user.authentication.inAltinnPortal: True
+        },
+        {
           user.authentication.level: 0
         },
         {
@@ -40,7 +43,7 @@
           user.authentication.token.issuer: Altinn
         },
         {
-          user.authentication.type: SelfIdentifiedUser
+          user.authentication.type: User
         },
         {
           user.id: 1337

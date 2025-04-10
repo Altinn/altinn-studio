@@ -109,7 +109,6 @@ public class ActionsController : ControllerBase
         {
             case Authenticated.User:
             case Authenticated.SystemUser:
-            case Authenticated.SelfIdentifiedUser:
                 break;
             default:
                 return Unauthorized();
