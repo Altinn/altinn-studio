@@ -837,6 +837,7 @@
   "process_editor.configuration_view_panel_name_label": "Navn: ",
   "process_editor.configuration_view_panel_no_task": "Du har ikke valgt noen oppgave",
   "process_editor.configuration_view_panel_please_choose_task": "Velg en oppgave for å se detaljer om valgt oppgave.",
+  "process_editor.delete_task_warning": "Er du sikker på at du vil slette oppgaven?\n\nDen kan ha komponenter, oppsett og innstillinger som også blir slettet.",
   "process_editor.fetch_bpmn_error_message": "Kunne ikke laste inn BPMN for denne appen. Prøv igjen senere.",
   "process_editor.fetch_bpmn_error_title": "En feil oppstod ved innlasting av BPMN",
   "process_editor.help_text_and_links": "Trenger du hjelp til å oppgradere, kan du <0>lese mer om oppgradering her</0> eller <1>ta kontakt med oss</1>.",

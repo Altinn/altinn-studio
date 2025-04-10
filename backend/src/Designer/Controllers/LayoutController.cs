@@ -57,10 +57,13 @@ namespace Altinn.Studio.Designer.Controllers
                 editingContext,
                 layoutSetId
             );
-            string existingPage = layoutSettings.Pages.Order.Find(p => p == page.Id);
-            if (existingPage != null)
+            if (layoutSettings.Pages is PagesWithOrder pages)
             {
-                return Conflict();
+                string existingPage = pages.Order.Find(p => p == page.Id);
+                if (existingPage != null)
+                {
+                    return Conflict("Page already exists.");
+                }
             }
             await layoutService.CreatePage(editingContext, layoutSetId, page.Id);
             return Created();
