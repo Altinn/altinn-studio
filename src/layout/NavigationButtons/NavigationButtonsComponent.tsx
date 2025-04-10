@@ -9,7 +9,6 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
@@ -22,7 +21,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const returnToView = useReturnToView();
   const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
   const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'previous' | 'backToSummary'>();
-  const parentIsPage = node.parent instanceof LayoutPage;
 
   const nextTextKey = textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
@@ -96,7 +94,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       <div
         data-testid='NavigationButtons'
         className={classes.container}
-        style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
       >
         {showBackToSummaryButton && (
           <Button

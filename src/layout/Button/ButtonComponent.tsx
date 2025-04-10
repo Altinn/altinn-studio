@@ -12,7 +12,6 @@ import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ProcessTaskType } from 'src/types';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
@@ -45,8 +44,6 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
-  const parentIsPage = node.parent instanceof LayoutPage;
-
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
     if (!GenericButton) {
@@ -54,11 +51,9 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     }
 
     return (
-      <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
-        <GenericButton {...props}>
-          <Lang id={item.textResourceBindings?.title} />
-        </GenericButton>
-      </div>
+      <GenericButton {...props}>
+        <Lang id={item.textResourceBindings?.title} />
+      </GenericButton>
     );
   }
 
@@ -74,20 +69,21 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
 
   return (
     <ComponentStructureWrapper node={node}>
-      <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
-        <Button
-          id={node.id}
-          onClick={submitTask}
-          isLoading={isThisProcessing}
-          disabled={disabled}
-          color='success'
-        >
-          <Lang id={item.textResourceBindings?.title} />
-        </Button>
-        {attachmentsPending && (
-          <span style={{ position: 'absolute' }}>{langAsString('general.wait_for_attachments')}</span>
-        )}
-      </div>
+      <Button
+        textAlign={item.textAlign}
+        size={item.size}
+        fullWidth={item.fullWidth}
+        id={node.id}
+        onClick={submitTask}
+        isLoading={isThisProcessing}
+        disabled={disabled}
+        color='success'
+      >
+        <Lang id={item.textResourceBindings?.title} />
+      </Button>
+      {attachmentsPending && (
+        <span style={{ position: 'absolute' }}>{langAsString('general.wait_for_attachments')}</span>
+      )}
     </ComponentStructureWrapper>
   );
 };

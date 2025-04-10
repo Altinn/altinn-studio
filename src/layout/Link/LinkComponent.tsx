@@ -6,7 +6,6 @@ import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
@@ -20,14 +19,21 @@ export const buttonStyles: {
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;
 
 export function LinkComponent({ node }: ILinkComponent) {
-  const { id, style: linkStyle, openInNewTab, textResourceBindings } = useNodeItem(node);
+  const {
+    id,
+    style: linkStyle,
+    openInNewTab,
+    textResourceBindings,
+    size,
+    fullWidth,
+    linkButtonTextAlign,
+  } = useNodeItem(node);
   const { langAsString } = useLanguage();
-  const parentIsPage = node.parent instanceof LayoutPage;
-  const style = { marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined };
+
   const downloadName = textResourceBindings?.download;
 
   const Link = () => (
-    <div style={style}>
+    <div>
       <a
         id={`link-${id}`}
         download={downloadName !== undefined ? (downloadName === '' ? true : langAsString(downloadName)) : undefined}
@@ -42,11 +48,13 @@ export function LinkComponent({ node }: ILinkComponent) {
 
   const LinkButton = () => (
     <Button
+      textAlign={linkButtonTextAlign}
       id={`link-${id}`}
-      style={style}
       color={buttonStyles[linkStyle].color}
       variant={buttonStyles[linkStyle].variant}
       onClick={LinkButtonOnClick()}
+      size={size}
+      fullWidth={fullWidth}
     >
       <Lang id={textResourceBindings?.title} />
     </Button>
