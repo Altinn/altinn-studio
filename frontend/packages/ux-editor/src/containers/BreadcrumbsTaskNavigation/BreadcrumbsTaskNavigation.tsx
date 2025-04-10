@@ -28,7 +28,7 @@ export const BreadcrumbsTaskNavigation = () => {
               className={`${classes.homePage} ${isOnUIEditor && classes.homePageActive}`}
               onClick={handleClick}
             >
-              {t('left_navigation_breadcrumbs')}
+              {t('ux_editor.breadcrumbs.front_page')}
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
