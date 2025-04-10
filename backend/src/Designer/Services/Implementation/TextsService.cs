@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -95,21 +93,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await altinnAppGitRepository.SaveText(languageCode, textResource);
-        }
-
-        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
-        {
-            foreach (string key in keysToMerge)
-            {
-                if (currentSetOfKeys.Contains(key))
-                {
-                    continue;
-                }
-
-                currentSetOfKeys.Add(key);
-            }
-
-            return currentSetOfKeys;
         }
 
         public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
@@ -338,95 +321,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return keysToUpdate.Count > 0;
-        }
-
-        /// <summary>
-        /// Extracts language code from path to language file.
-        /// </summary>
-        /// <param name="filePath">Path to language file</param>
-        /// <returns>A two letter language code</returns>
-        private static string GetLanguageCodeFromFilePath(string filePath)
-        {
-            string fileName = Path.GetFileName(filePath);
-            string languageCode = fileName.Split(".")[1];
-            return languageCode;
-        }
-
-        /// <summary>
-        /// Converts a single text resource element in the
-        /// old texts format to a key:value pair.
-        /// </summary>
-        /// <param name="text">The text resource element from the old texts format.</param>
-        /// <returns>The new string that will be the value in the new texts format.</returns>
-        private static string ConvertText(TextResourceElement text)
-        {
-            string newText = string.Empty;
-
-            StringBuilder builder = new StringBuilder(text.Value);
-
-            foreach (TextResourceVariable variable in text.Variables)
-            {
-                string variableNumber = text.Variables.IndexOf(variable).ToString();
-                string oldString = "{" + variableNumber + "}";
-                string newString = "${{" + GetDatasourceAlias(variable.DataSource) + "::" + variable.Key + "}}";
-                builder.Replace(oldString, newString);
-                newText = builder.ToString();
-            }
-
-            return newText;
-        }
-
-        /// <summary>
-        /// Converts the longer datasource values, applicationSettings,
-        /// instanceContext and dataModel to the short alias versions; as, ic and dm.
-        /// </summary>
-        /// <param name="datasource">The datasource value from a variable connected to a text</param>
-        /// <returns>The short version of the datasource.</returns>
-        private static string GetDatasourceAlias(string datasource)
-        {
-            if (datasource.ToLower() == "applicationsettings")
-            {
-                return "as";
-            }
-            if (datasource.ToLower() == "instancecontext")
-            {
-                return "ic";
-            }
-            if (datasource.ToLower().StartsWith("datamodel"))
-            {
-                return datasource.ToLower().Replace("datamodel", "dm");
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(datasource), $"{datasource} is not an expected datasource value.");
-        }
-
-        /// <summary>
-        /// Helper method for extracting the markdown filenames from values in a texts objects.
-        /// </summary>
-        /// <param name="texts">Json object consisting of texts with key:value pairs id:text</param>
-        /// <returns>List of markdown filenames</returns>
-        private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
-        {
-            List<string> markdownFileNames = new();
-            foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
-            {
-                int fileNameStart = 7;
-                int fileNameEnd = text.Value.Length - 9;
-                string fileName = text.Value.Substring(fileNameStart, fileNameEnd);
-                markdownFileNames.Add(fileName);
-            }
-
-            return markdownFileNames;
-        }
-
-        /// <summary>
-        /// Checks if value text from texts file is a reference to a filename.
-        /// </summary>
-        /// <param name="textValue">A value in the key:value pair from a texts file</param>
-        /// <returns>boolean value indicating if value is a filename reference or not</returns>
-        private static bool IsFileReference(string textValue)
-        {
-            return textValue.StartsWith("${{md::") && textValue.EndsWith(".md}}");
         }
 
         /// <summary>
