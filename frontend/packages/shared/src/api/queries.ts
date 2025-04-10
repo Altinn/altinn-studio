@@ -107,7 +107,7 @@ import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));

@@ -11,6 +11,7 @@ import React, { useCallback } from 'react';
 import {
   useOptionListsQuery,
   useOptionListsReferencesQuery,
+  useRepoMetadataQuery,
   useTextResourcesQuery,
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -49,7 +50,6 @@ export function AppContentLibrary(): React.ReactElement {
     app,
   );
   const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
-
   const {
     data: availableCodeListsToImportFromOrg,
     status: availableCodeListsToImportFromOrgStatus,
@@ -61,6 +61,22 @@ export function AppContentLibrary(): React.ReactElement {
     textResourcesStatus,
     availableCodeListsToImportFromOrgStatus,
   );
+  /*
+  const {
+    data: orgs,
+    isPending: isOrgsPending,
+    isError: isOrgsError,
+  } = useOrgListQuery({ hideDefaultError: true });
+
+  const {
+    data: repository,
+    isPending: repositoryIsPending,
+    isError: repositoryIsError,
+  } = useRepoMetadataQuery(org, app, { hideDefaultError: true });
+
+  // If repo-owner is an organisation
+  const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);
+*/
 
   switch (status) {
     case 'pending':
@@ -68,12 +84,21 @@ export function AppContentLibrary(): React.ReactElement {
     case 'error':
       return <StudioPageError message={t('app_content_library.fetch_error')} />;
     case 'success':
+      /*if (availableCodeListsToImportFromOrgIsPending) {
+        return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
+      }
+      if (
+        availableCodeListsToImportFromOrgError &&
+        availableCodeListsToImportFromOrgError.status !== 404
+      ) {
+        return <StudioPageError message={t('app_content_library.fetch_error')} />;
+      }*/
       return (
         <AppContentLibraryWithData
           optionListDataList={optionListDataList}
           optionListUsages={optionListUsages}
           textResources={textResources}
-          availableCodeListsToImportFromOrg={availableCodeListsToImportFromOrg}
+          availableCodeListsToImportFromOrg={availableCodeListsToImportFromOrg ?? []}
         />
       );
   }
@@ -83,7 +108,7 @@ type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
   optionListUsages: OptionListReferences;
   textResources: ITextResources;
-  availableCodeListsToImportFromOrg: string[];
+  availableCodeListsToImportFromOrg?: string[];
 };
 
 function AppContentLibraryWithData({
@@ -131,7 +156,7 @@ function AppContentLibraryWithData({
           onUploadCodeList: handleUpload,
           codeListsUsages,
           textResources,
-          externalResourceIds: availableCodeListsToImportFromOrg,
+          externalResourceIds: availableCodeListsToImportFromOrg ?? [],
         },
       },
       images: {
