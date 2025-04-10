@@ -615,6 +615,7 @@
   "left_menu.no_components_selected": "Velg en side for å se komponenter",
   "left_menu.open_components": "Åpne komponenter",
   "left_navigation_bar.back_button": "Tilbake til dashbordet",
+  "left_navigation_breadcrumbs": "Forside utforming",
   "local_changes.modal_close_delete_modal": "Lukk sletting",
   "local_changes.modal_confirm_delete_button": "Slett mine endringer",
   "local_changes.modal_delete_button": "Slett lokale endringer",

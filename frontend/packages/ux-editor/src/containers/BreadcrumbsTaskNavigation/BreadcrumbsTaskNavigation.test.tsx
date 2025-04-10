@@ -55,7 +55,7 @@ describe('BreadcrumbsTaskNavigation', () => {
     const breadcrumbList = screen.getByRole('navigation');
     const breadcrumbItems = within(breadcrumbList).getAllByRole('listitem');
     expect(breadcrumbItems).toHaveLength(2);
-    expect(breadcrumbItems[0]).toHaveTextContent('top_menu.create');
+    expect(breadcrumbItems[0]).toHaveTextContent('left_navigation_breadcrumbs');
     expect(breadcrumbItems[1]).toHaveTextContent('TestLayout');
   });
 
@@ -64,10 +64,10 @@ describe('BreadcrumbsTaskNavigation', () => {
     expect(screen.getByText('TestLayout')).toBeInTheDocument();
   });
 
-  it('navigates to UIEditor when clicking the create breadcrumb', async () => {
+  it('navigates back to the front page when clicking the "Forside Utforming" breadcrumb', async () => {
     const user = userEvent.setup();
     renderBreadcrumbsTaskNavigation();
-    const createLink = screen.getByText(textMock('top_menu.create'));
+    const createLink = screen.getByText(textMock('left_navigation_breadcrumbs'));
     await user.click(createLink);
     expect(mockNavigate).toHaveBeenCalledWith('../ui-editor');
     expect(mockRemoveSelectedFormLayoutSetName).toHaveBeenCalled();
