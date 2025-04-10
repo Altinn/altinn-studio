@@ -228,31 +228,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
                 layoutSetId
             );
-            if (layoutSettings.Pages is PagesWithGroups pagesWithGroups)
+            if (
+                layoutSettings.Pages is PagesWithGroups pagesWithGroups
+                && originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups
+            )
             {
-                if (originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups)
+                IEnumerable<string> pages = pagesWithGroups.Groups.SelectMany(
+                    (group) => group.Order
+                );
+                IEnumerable<string> originalPages = originalPagesWithGroups.Groups.SelectMany(
+                    (group) => group.Order
+                );
+                IEnumerable<string> deletedPages = originalPages.Where(
+                    (page) => !pages.Contains(page)
+                );
+                foreach (string pageId in deletedPages)
                 {
-                    IEnumerable<string> pages = pagesWithGroups.Groups.SelectMany(
-                        (group) => group.Order
+                    appRepository.DeleteLayout(layoutSetId, pageId);
+                    await mediatr.Publish(
+                        new LayoutPageDeletedEvent
+                        {
+                            EditingContext = editingContext,
+                            LayoutName = pageId,
+                            LayoutSetName = layoutSetId,
+                        }
                     );
-                    IEnumerable<string> originalPages = originalPagesWithGroups.Groups.SelectMany(
-                        (group) => group.Order
-                    );
-                    IEnumerable<string> deletedPages = originalPages.Where(
-                        (page) => !pages.Contains(page)
-                    );
-                    foreach (string pageId in deletedPages)
-                    {
-                        appRepository.DeleteLayout(layoutSetId, pageId);
-                        await mediatr.Publish(
-                            new LayoutPageDeletedEvent
-                            {
-                                EditingContext = editingContext,
-                                LayoutName = pageId,
-                                LayoutSetName = layoutSetId,
-                            }
-                        );
-                    }
                 }
             }
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
