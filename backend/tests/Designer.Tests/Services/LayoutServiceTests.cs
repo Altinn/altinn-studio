@@ -179,21 +179,23 @@ public class LayoutServiceTests
             "form"
         );
 
-        foreach (PageDto page in allPages)
-        {
-            string fileContent = TestDataHelper.GetFileFromRepo(
-                editingContext.Org,
-                editingContext.Repo,
-                editingContext.Developer,
-                $"App/ui/form/layouts/{page.Id}.json"
-            );
-            Assert.NotEqual(string.Empty, fileContent);
-        }
+        allPages
+            .Select(
+                (pagesDto) =>
+                    TestDataHelper.GetFileFromRepo(
+                        editingContext.Org,
+                        editingContext.Repo,
+                        editingContext.Developer,
+                        $"App/ui/form/layouts/{pagesDto.Id}.json"
+                    )
+            )
+            .ToList()
+            .ForEach((fileContent) => Assert.NotEqual(string.Empty, fileContent));
         int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
         Assert.Equal(originalGroupCount, newGroupCount);
     }
 
-    private async Task<(
+    private static async Task<(
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,
         Mock<IPublisher> mock
