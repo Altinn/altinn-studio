@@ -19,7 +19,7 @@ type StudioCodeListEditorRowProps = {
   onChange: (newItem: CodeListItem) => void;
   onChangeTextResource: (newTextResource: TextResource) => void;
   onDeleteButtonClick: () => void;
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 export function StudioCodeListEditorRow({
@@ -223,12 +223,12 @@ type TextResourceIdCellProps = {
   onChangeTextResource: (newTextResource: TextResource) => void;
   property: CodeListItemTextProperty;
   required: boolean;
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
   const { currentId, onChangeCurrentId, textResources, label } = props;
-  if (textResources) {
+  if (textResources.length !== 0) {
     return <TextResourceSelectorCell {...props} textResources={textResources} />;
   } else {
     return <TypedInputCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
