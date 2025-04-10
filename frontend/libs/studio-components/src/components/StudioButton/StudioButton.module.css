@@ -1,27 +1,8 @@
 .studioButton {
   display: inline-flex;
-  gap: var(--fds-spacing-1);
-}
-
-.innerContainer {
-  display: flex;
-  align-items: center;
-  gap: var(--fds-spacing-2);
-}
-
-.iconWrapper {
-  display: contents;
-}
-
-.inverted {
-  color: var(--fds-semantic-text-neutral-on_inverted);
-  background: transparent;
-}
-
-.inverted:hover {
-  background: var(--fds-semantic-surface-on_inverted-no_fill-hover);
+  gap: var(--ds-size-1);
 }
 
 .smallWithIconOnly {
-  min-height: var(--fds-sizing-8);
+  min-height: var(--ds-size-8);
 }

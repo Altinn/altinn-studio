@@ -1,6 +1,6 @@
 import React, { type ChangeEvent } from 'react';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type CompactViewSwitchProps = {

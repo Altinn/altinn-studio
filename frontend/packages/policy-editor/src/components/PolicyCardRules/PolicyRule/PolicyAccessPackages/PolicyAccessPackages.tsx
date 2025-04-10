@@ -1,11 +1,12 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import {
+  filterAccessPackagesByIsDelegable,
   filterAccessPackagesBySearchString,
   groupAccessPackagesByArea,
   isAccessPackageSelected,
@@ -25,8 +26,9 @@ export const PolicyAccessPackages = (): ReactElement => {
     policyRule.accessPackages,
   );
 
-  const groupedAccessPackagesByArea = useMemo(() => {
-    return groupAccessPackagesByArea(accessPackages);
+  const groupedDelegableAccessPackagesByArea = useMemo(() => {
+    const areas = groupAccessPackagesByArea(accessPackages);
+    return filterAccessPackagesByIsDelegable(areas);
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
@@ -69,7 +71,7 @@ export const PolicyAccessPackages = (): ReactElement => {
   };
 
   const accessPackagesToRender = filterAccessPackagesBySearchString(
-    groupedAccessPackagesByArea,
+    groupedDelegableAccessPackagesByArea,
     searchValue,
   );
 
@@ -80,7 +82,7 @@ export const PolicyAccessPackages = (): ReactElement => {
       </StudioLabelAsParagraph>
       <ChosenAccessPackages
         chosenAccessPackages={chosenAccessPackages}
-        groupedAccessPackagesByArea={groupedAccessPackagesByArea}
+        groupedAccessPackagesByArea={groupedDelegableAccessPackagesByArea}
         handleSelectAccessPackage={handleSelectAccessPackage}
       />
       <Accordion>

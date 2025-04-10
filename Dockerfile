@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine AS generate-studio-frontend
+FROM node:lts-alpine@sha256:9bef0ef1e268f60627da9ba7d7605e8831d5b56ad07487d24d1aa386336d1944 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -12,6 +12,7 @@ COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
 COPY ./frontend/language/package.json ./frontend/language/
 COPY ./frontend/libs/studio-components/package.json ./frontend/libs/studio-components/
+COPY ./frontend/libs/studio-components-legacy/package.json ./frontend/libs/studio-components-legacy/
 COPY ./frontend/libs/studio-content-library/package.json ./frontend/libs/studio-content-library/
 COPY ./frontend/libs/studio-feedback-form/package.json ./frontend/libs/studio-feedback-form/
 COPY ./frontend/libs/studio-hooks/package.json ./frontend/libs/studio-hooks/
@@ -37,7 +38,7 @@ COPY . .
 RUN yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:2303ad5956875eb82d3c6195e43f0e8e1378a6252869f2d4d200e067130ff5b5 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY backend .
@@ -53,7 +54,7 @@ WORKDIR /version
 RUN echo "{\"designerVersion\":\"$DESIGNER_VERSION\",\"appTemplateVersion\":\"$(curl -s https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq -r .tag_name)\"}" > version.json
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:374a0ebc32ae59692470070a8bbcdef1186250d446836bf6ec8ac08a5c623667 AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

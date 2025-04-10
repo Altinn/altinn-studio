@@ -1,11 +1,22 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
-import { StudioAlert, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
+import {
+  StudioAlert,
+  StudioHeading,
+  StudioParagraph,
+  StudioTable,
+} from '@studio/components-legacy';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
-import { extractAllUniqueActions, extractAllUniqueSubjects } from '../../utils/AppPolicyUtils';
+import {
+  extractAllUniqueActions,
+  extractAllUniqueAccessPackages,
+  extractAllUniqueSubjects,
+} from '../../utils/AppPolicyUtils';
 import { FeedbackForm } from './FeedbackForm/FeedbackForm';
 import classes from './PolicySummary.module.css';
+import { PolicyRuleAccessPackageSummary } from './PolicyRuleSummary/PolicyRuleAccessPackageSummary';
+import type { PolicyRuleCard } from '../../types';
 
 export function PolicySummary(): React.ReactElement {
   const { policyRules } = usePolicyEditorContext();
@@ -27,38 +38,103 @@ export function PolicySummary(): React.ReactElement {
       <StudioParagraph spacing={true}>{t('policy_editor.summary_info_about')}</StudioParagraph>
       <StudioParagraph spacing={true}>{t('policy_editor.summary_info_edit')}</StudioParagraph>
       <StudioTable>
-        <StudioTable.Head>
-          <StudioTable.Row>
-            <StudioTable.HeaderCell>
-              {t('policy_editor.summary_table.header_rolecode')}
-            </StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>
-              {t('policy_editor.summary_table.header_rolename')}
-            </StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>
-              {t('policy_editor.summary_table.header_rolecategory')}
-            </StudioTable.HeaderCell>
-            {extractAllUniqueActions(policyRules).map((action) => {
-              return (
-                <StudioTable.HeaderCell key={action}>
-                  {t(`policy_editor.action_${action}`)}
-                </StudioTable.HeaderCell>
-              );
-            })}
-          </StudioTable.Row>
-        </StudioTable.Head>
-        <StudioTable.Body>
-          {extractAllUniqueSubjects(policyRules).map((subject) => {
-            return (
-              <PolicyRuleSubjectSummary
-                subject={subject}
-                actions={extractAllUniqueActions(policyRules)}
-                key={subject}
-              />
-            );
-          })}
-        </StudioTable.Body>
+        <PolicySummaryTableHead uniqueActions={extractAllUniqueActions(policyRules)} />
+        <PolicySummaryTableBody
+          policyRules={policyRules}
+          uniqueActions={extractAllUniqueActions(policyRules)}
+        />
       </StudioTable>
     </div>
+  );
+}
+
+function PolicySummaryTableHead({
+  uniqueActions,
+}: {
+  uniqueActions: string[];
+}): React.ReactElement {
+  const { t } = useTranslation();
+  return (
+    <StudioTable.Head>
+      <StudioTable.Row>
+        <StudioTable.HeaderCell>
+          {t('policy_editor.summary_table.header_rolecode')}
+        </StudioTable.HeaderCell>
+        <StudioTable.HeaderCell>
+          {t('policy_editor.summary_table.header_rolename')}
+        </StudioTable.HeaderCell>
+        <StudioTable.HeaderCell>
+          {t('policy_editor.summary_table.header_rolecategory')}
+        </StudioTable.HeaderCell>
+        {uniqueActions.map((action) => {
+          return (
+            <StudioTable.HeaderCell key={action}>
+              {t(`policy_editor.action_${action}`)}
+            </StudioTable.HeaderCell>
+          );
+        })}
+      </StudioTable.Row>
+    </StudioTable.Head>
+  );
+}
+
+type PolicySummaryTableBodyProps = {
+  policyRules: PolicyRuleCard[];
+  uniqueActions: string[];
+};
+
+function PolicySummaryTableBody({
+  policyRules,
+  uniqueActions,
+}: PolicySummaryTableBodyProps): React.ReactElement {
+  return (
+    <StudioTable.Body>
+      <PolicySummaryAccessPackageRows
+        uniqueAccessPackages={extractAllUniqueAccessPackages(policyRules)}
+        uniqueActions={uniqueActions}
+      />
+      <PolicySummarySubjectRows
+        uniqueSubjects={extractAllUniqueSubjects(policyRules)}
+        uniqueActions={uniqueActions}
+      />
+    </StudioTable.Body>
+  );
+}
+
+function PolicySummarySubjectRows({
+  uniqueSubjects,
+  uniqueActions,
+}: {
+  uniqueSubjects: string[];
+  uniqueActions: string[];
+}): React.ReactElement {
+  return (
+    <>
+      {uniqueSubjects.map((subject) => {
+        return <PolicyRuleSubjectSummary subject={subject} actions={uniqueActions} key={subject} />;
+      })}
+    </>
+  );
+}
+
+function PolicySummaryAccessPackageRows({
+  uniqueAccessPackages,
+  uniqueActions,
+}: {
+  uniqueAccessPackages: string[];
+  uniqueActions: string[];
+}): React.ReactElement {
+  return (
+    <>
+      {uniqueAccessPackages.map((accessPackage) => {
+        return (
+          <PolicyRuleAccessPackageSummary
+            accessPackage={accessPackage}
+            actions={uniqueActions}
+            key={accessPackage}
+          />
+        );
+      })}
+    </>
   );
 }

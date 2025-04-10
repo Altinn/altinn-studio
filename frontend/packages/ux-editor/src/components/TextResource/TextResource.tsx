@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
-import { StudioButton, StudioDeleteButton, StudioProperty, usePrevious } from '@studio/components';
+import {
+  StudioButton,
+  StudioDeleteButton,
+  StudioProperty,
+  usePrevious,
+} from '@studio/components-legacy';
 import { XMarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';

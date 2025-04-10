@@ -80,19 +80,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IList<AltinnCoreFile> GetAllSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false)
+        public IList<AltinnCoreFile> GetSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            return altinnAppGitRepository.GetAllSchemaFiles(xsd);
-        }
-
-        /// <inheritdoc/>
-        public IList<AltinnCoreFile> GetAppSchemaFiles(AltinnRepoEditingContext altinnRepoEditingContext, bool xsd = false)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-
-            return altinnAppGitRepository.GetAppSchemaFiles(xsd);
+            return altinnAppGitRepository.GetSchemaFiles(xsd);
         }
 
         /// <inheritdoc/>

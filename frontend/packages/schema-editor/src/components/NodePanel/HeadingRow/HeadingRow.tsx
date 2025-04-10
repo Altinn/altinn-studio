@@ -13,11 +13,12 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components-legacy';
 import {
   BooleanIcon,
   CombinationIcon,
-  NumberIcon,
+  IntegerIcon,
+  DivideIcon,
   ObjectIcon,
   PlusIcon,
   StringIcon,
@@ -115,12 +116,12 @@ const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
     },
     {
       titleKey: 'schema_editor.integer',
-      icon: <NumberIcon />,
+      icon: <IntegerIcon />,
       action: () => addAndSelectNode(ObjectKind.Field, FieldType.Integer, schemaPointer),
     },
     {
       titleKey: 'schema_editor.number',
-      icon: <NumberIcon />,
+      icon: <DivideIcon />,
       action: () => addAndSelectNode(ObjectKind.Field, FieldType.Number, schemaPointer),
     },
     {

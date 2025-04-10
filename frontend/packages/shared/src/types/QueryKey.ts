@@ -7,6 +7,7 @@ export enum QueryKey {
   AppVersion = 'AppVersion',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
+  CodeListTitles = 'CodeListTitles',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
@@ -53,6 +54,7 @@ export enum QueryKey {
   DataType = 'DataType',
   TextResourcesForOrg = 'TextResourcesForOrg',
   Pages = 'Pages',
+  TaskNavigationGroup = 'TaskNavigationGroup',
 
   // Resourceadm
   ResourceList = 'ResourceList',

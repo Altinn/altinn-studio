@@ -1,10 +1,10 @@
 import React from 'react';
-import type { TextResource } from '@studio/components';
-import { StudioFileUploader, StudioSearch } from '@studio/components';
+import type { TextResource } from '@studio/components-legacy';
+import { StudioFileUploader, StudioSearch } from '@studio/components-legacy';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../CodeListPage';
+import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';

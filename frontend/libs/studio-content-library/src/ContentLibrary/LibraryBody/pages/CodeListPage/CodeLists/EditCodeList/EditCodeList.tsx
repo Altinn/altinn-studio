@@ -1,14 +1,14 @@
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioModal,
   StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../../CodeListPage';
+import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';

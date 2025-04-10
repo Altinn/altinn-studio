@@ -45,12 +45,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           repository: ${{ inputs.checkout-repository }}
 
       - name: 'Azure login'
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
             client-id: ${{ secrets.client-id }}
             tenant-id: ${{ secrets.tenant-id }}

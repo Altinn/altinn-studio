@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { CodeList, TextResource } from '@studio/components';
-import { StudioHeading } from '@studio/components';
+import type { CodeList, TextResource } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
@@ -15,11 +15,7 @@ import {
 } from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
-
-export type CodeListWithMetadata = {
-  codeList: CodeList;
-  title: string;
-};
+import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
 
 export type CodeListData = {
   title: string;

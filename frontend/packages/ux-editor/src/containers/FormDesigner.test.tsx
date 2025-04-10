@@ -81,7 +81,9 @@ const dragAndDrop = (src: Element, dst: Element) => {
 };
 
 describe('FormDesigner', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should render the spinner', () => {
     render();

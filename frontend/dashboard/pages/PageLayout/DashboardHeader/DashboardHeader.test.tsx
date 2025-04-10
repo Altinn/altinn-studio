@@ -1,7 +1,7 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DashboardHeader, type DashboardHeaderProps } from './DashboardHeader';
+import { DashboardHeader } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useLocation, useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,7 +13,10 @@ import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
-import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { repoStatus } from 'app-shared/mocks/mocks';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockOrgTtd: string = 'ttd';
 const mockPathnameOrgLibraryTtd: string = `${StringUtils.removeLeadingSlash(Subroute.OrgLibrary)}/${mockOrgTtd}`;
@@ -30,7 +33,7 @@ jest.mock('react-router-dom', () => ({
   useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
-jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(() => {
@@ -211,7 +214,7 @@ describe('DashboardHeader', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it('should not render the submenu when showSubMenu is false', () => {
+  it('should not render the submenu when there is a merge conflict', () => {
     typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
 
     (useParams as jest.Mock).mockReturnValue({
@@ -220,12 +223,15 @@ describe('DashboardHeader', () => {
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
 
-    renderDashboardHeader({ showSubMenu: false, isRepoError: false });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
+    renderDashboardHeader({ getRepoStatus });
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
-  it('should not render the submenu when isRepoError is true', () => {
+  it('should not render the submenu when there is a repo error', () => {
     typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
 
     (useParams as jest.Mock).mockReturnValue({
@@ -234,8 +240,9 @@ describe('DashboardHeader', () => {
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
 
-    renderDashboardHeader({ showSubMenu: true, isRepoError: true });
+    const getRepoStatus = jest.fn().mockImplementation(() => Promise.reject(new Error('error')));
 
+    renderDashboardHeader({ getRepoStatus });
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
@@ -248,8 +255,11 @@ describe('DashboardHeader', () => {
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: 'notOrgLibraryPath' });
 
-    renderDashboardHeader({ showSubMenu: true, isRepoError: false });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
+    renderDashboardHeader({ getRepoStatus });
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
@@ -259,8 +269,11 @@ describe('DashboardHeader', () => {
       subroute: Subroute.OrgLibrary,
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
-    renderDashboardHeader({ showSubMenu: true, isRepoError: false });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
+    renderDashboardHeader({ getRepoStatus });
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
@@ -272,13 +285,15 @@ describe('DashboardHeader', () => {
       subroute: Subroute.OrgLibrary,
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
-    renderDashboardHeader({ showSubMenu: true, isRepoError: false });
-
+    renderDashboardHeader({ getRepoStatus });
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
-  it('should render the submenu when showSubMenu is true, there is no repo error, page is orgLibrary and feature flag is on', () => {
+  it('should render the submenu when showSubMenu is true, there is no repo error, page is orgLibrary and feature flag is on', async () => {
     typedLocalStorage.setItem('featureFlags', [FeatureFlag.OrgLibrary]);
 
     (useParams as jest.Mock).mockReturnValue({
@@ -286,9 +301,13 @@ describe('DashboardHeader', () => {
       subroute: Subroute.OrgLibrary,
     });
     (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
+    const getRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
-    renderDashboardHeader({ showSubMenu: true, isRepoError: false });
+    renderDashboardHeader({ getRepoStatus });
 
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(getFetchChangesButton()).toBeInTheDocument();
   });
 
@@ -324,16 +343,13 @@ describe('DashboardHeader', () => {
   });
 });
 
-const renderDashboardHeader = (props: Partial<DashboardHeaderProps> = {}) => {
+const renderDashboardHeader = (queries: Partial<ServicesContextProps> = {}) => {
   return renderWithProviders(
     <HeaderContextProvider {...headerContextValueMock}>
-      <DashboardHeader {...defaultProps} {...props} />
+      <DashboardHeader />
     </HeaderContextProvider>,
+    { queries: { ...queries, ...queriesMock } },
   );
-};
-
-const defaultProps: DashboardHeaderProps = {
-  showSubMenu: false,
 };
 
 function getFetchChangesButton(): HTMLElement | null {
