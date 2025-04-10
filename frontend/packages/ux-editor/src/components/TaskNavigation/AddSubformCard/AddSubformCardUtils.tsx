@@ -28,7 +28,8 @@ export const isSaveButtonDisabled = ({
 
 export const RenderDataModelOptions = (dataModelIds?: string[]): React.ReactNode => {
   const { t } = useTranslation();
-  if (!dataModelIds) {
+
+  if (!dataModelIds?.length) {
     return (
       <option value=''>
         {t('ux_editor.component_properties.subform.data_model_empty_message')}
