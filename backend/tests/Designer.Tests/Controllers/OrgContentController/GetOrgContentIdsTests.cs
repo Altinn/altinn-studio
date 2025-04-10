@@ -8,7 +8,7 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.OrgLibraryController;
+namespace Designer.Tests.Controllers.OrgContentController;
 
 public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
@@ -62,6 +62,21 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
         Assert.Equal(2, textResources.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetOrgContentIds_GivenInvalidOrg_ShouldReturnNoContentWithHeaderMessage()
+    {
+        string apiBaseUrl = new Organisation("invalidOrg").ApiBaseUrl;
+        const LibraryContentType resourceType = LibraryContentType.CodeList;
+        string  apiUrlWithTextInvalidOrg = $"{apiBaseUrl}/{resourceType}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextInvalidOrg);
+
+        var response = await HttpClient.SendAsync(request);
+
+        var responseHeaderReasonMessage = response.Headers.GetValues("Reason");
+        Assert.NotNull(responseHeaderReasonMessage);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Fact]

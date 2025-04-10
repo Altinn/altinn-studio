@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +18,19 @@ public class OrgContentController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
+    private readonly IOrgService _orgService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgContentController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The code list service</param>
     /// <param name="orgTextsService">The texts service</param>
-    public OrgContentController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
+    /// <param name="orgService">The texts service</param>
+    public OrgContentController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService, IOrgService orgService)
     {
         _orgCodeListService = orgCodeListService;
         _orgTextsService = orgTextsService;
+        _orgService = orgService;
     }
 
     /// <summary>
@@ -40,16 +44,20 @@ public class OrgContentController : ControllerBase
     public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] string org, [FromRoute] string contentType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (!await _orgService.IsOrg(org))
+        {
+            HttpContext.Response.Headers["Reason"] = $"{org} is not a valid organisation.";
+            return NoContent();
+        }
 
-        ActionResult badRequestMessage = BadRequest($"Invalid content type '{contentType}'.");
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
+        ActionResult badRequestResponse = BadRequest($"Invalid content type '{contentType}'.");
         bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
         if (!didParse)
         {
-            return badRequestMessage;
+            return badRequestResponse;
         }
 
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         switch (parsedContentType)
         {
             case LibraryContentType.CodeList:
@@ -61,7 +69,7 @@ public class OrgContentController : ControllerBase
                 return Ok(textResourceResult);
 
             default:
-                return badRequestMessage;
+                return badRequestResponse;
         }
     }
 }
