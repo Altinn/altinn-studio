@@ -15,6 +15,7 @@ export type CodeListsActionsBarProps = {
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
   externalResourceIds?: string[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListsActionsBar({
@@ -25,6 +26,7 @@ export function CodeListsActionsBar({
   onSetSearchString,
   textResources,
   externalResourceIds,
+  onImportCodeListFromOrg,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
 
@@ -48,6 +50,7 @@ export function CodeListsActionsBar({
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
         externalResourceIds={externalResourceIds}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
     </div>
   );

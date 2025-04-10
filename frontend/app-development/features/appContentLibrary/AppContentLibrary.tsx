@@ -11,7 +11,6 @@ import React, { useCallback } from 'react';
 import {
   useOptionListsQuery,
   useOptionListsReferencesQuery,
-  useRepoMetadataQuery,
   useTextResourcesQuery,
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -37,6 +36,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
 import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -61,22 +61,6 @@ export function AppContentLibrary(): React.ReactElement {
     textResourcesStatus,
     availableCodeListsToImportFromOrgStatus,
   );
-  /*
-  const {
-    data: orgs,
-    isPending: isOrgsPending,
-    isError: isOrgsError,
-  } = useOrgListQuery({ hideDefaultError: true });
-
-  const {
-    data: repository,
-    isPending: repositoryIsPending,
-    isError: repositoryIsError,
-  } = useRepoMetadataQuery(org, app, { hideDefaultError: true });
-
-  // If repo-owner is an organisation
-  const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);
-*/
 
   switch (status) {
     case 'pending':
@@ -84,15 +68,6 @@ export function AppContentLibrary(): React.ReactElement {
     case 'error':
       return <StudioPageError message={t('app_content_library.fetch_error')} />;
     case 'success':
-      /*if (availableCodeListsToImportFromOrgIsPending) {
-        return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
-      }
-      if (
-        availableCodeListsToImportFromOrgError &&
-        availableCodeListsToImportFromOrgError.status !== 404
-      ) {
-        return <StudioPageError message={t('app_content_library.fetch_error')} />;
-      }*/
       return (
         <AppContentLibraryWithData
           optionListDataList={optionListDataList}
@@ -122,6 +97,8 @@ function AppContentLibraryWithData({
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
   const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
   const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
+  const { mutate: importCodeListFromOrg } = useImportCodeListFromOrgToAppMutation(org, app);
+
   const handleUpload = useUploadOptionList(org, app);
 
   const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
@@ -134,6 +111,10 @@ function AppContentLibraryWithData({
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateOptionList({ optionListId: title, optionList: codeList });
+  };
+
+  const handleImportCodeListFromOrg = (codeListId: string): void => {
+    importCodeListFromOrg(codeListId);
   };
 
   const handleUpdateTextResource = useCallback(
@@ -157,6 +138,7 @@ function AppContentLibraryWithData({
           codeListsUsages,
           textResources,
           externalResourceIds: availableCodeListsToImportFromOrg ?? [],
+          onImportCodeListFromOrg: handleImportCodeListFromOrg,
         },
       },
       images: {

@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDialog, StudioHeading, StudioSelect } from '@studio/components';
 import { BookIcon, FileImportIcon } from '@studio/icons';
 
-type ImportFromOrgLibraryDialogProps = {
+export type ImportFromOrgLibraryDialogProps = {
   codeListIds: string[];
+  onImportCodeListFromOrg: (codeListId: string) => void;
 };
 
 function ImportFromOrgLibraryDialog(
-  { codeListIds }: ImportFromOrgLibraryDialogProps,
+  { codeListIds, onImportCodeListFromOrg }: ImportFromOrgLibraryDialogProps,
   ref: RefObject<HTMLDialogElement>,
 ): ReactElement {
   const { t } = useTranslation();
@@ -19,8 +20,13 @@ function ImportFromOrgLibraryDialog(
     ref.current?.close();
   };
 
+  const handleImportCodeListFromOrg = (codeListId: string) => {
+    onImportCodeListFromOrg(codeListId);
+    handleCloseDialog();
+  };
+
   return (
-    <StudioDialog open closedby='any' ref={ref} onClose={handleCloseDialog}>
+    <StudioDialog closedby='any' ref={ref} onClose={handleCloseDialog}>
       <StudioDialog.Block className={classes.headingBlock}>
         <BookIcon className={classes.headingIcon} />
         <StudioHeading level={2}>
@@ -28,7 +34,10 @@ function ImportFromOrgLibraryDialog(
         </StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block>
-        <ImportCodeList codeListIds={codeListIds} />
+        <ImportCodeList
+          codeListIds={codeListIds}
+          onImportCodeListFromOrg={handleImportCodeListFromOrg}
+        />
       </StudioDialog.Block>
     </StudioDialog>
   );
@@ -40,8 +49,13 @@ export { ForwardedImportFromOrgLibraryDialog as ImportFromOrgLibraryDialog };
 
 type ImportCodeListProps = {
   codeListIds: string[];
+  onImportCodeListFromOrg: (codeListId: string) => void;
 };
-function ImportCodeList({ codeListIds }: ImportCodeListProps): ReactElement {
+
+function ImportCodeList({
+  codeListIds,
+  onImportCodeListFromOrg,
+}: ImportCodeListProps): ReactElement {
   const { t } = useTranslation();
 
   const [selectedCodeListId, setSelectedCodeListId] = useState<string>('');
@@ -52,7 +66,8 @@ function ImportCodeList({ codeListIds }: ImportCodeListProps): ReactElement {
   };
 
   const handleImportCodeList = () => {
-    console.log('selectedCodeListId', selectedCodeListId);
+    setSelectedCodeListId('');
+    onImportCodeListFromOrg(selectedCodeListId);
   };
 
   return (
@@ -63,7 +78,7 @@ function ImportCodeList({ codeListIds }: ImportCodeListProps): ReactElement {
         onChange={handleSelectCodeListId}
       >
         <StudioSelect.Option value='' disabled>
-          Ingen valgt
+          {t('app_content_library.code_lists.no_code_list_selected')}
         </StudioSelect.Option>
         <CodeListIdOptions codeListIds={codeListIds} />
       </StudioSelect>

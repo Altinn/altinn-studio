@@ -19,6 +19,7 @@ export type AddCodeListDropdownProps = {
   codeListNames: string[];
   textResources?: TextResource[];
   externalResourceIds?: string[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function AddCodeListDropdown({
@@ -28,6 +29,7 @@ export function AddCodeListDropdown({
   onUpdateCodeList,
   textResources,
   externalResourceIds,
+  onImportCodeListFromOrg,
 }: AddCodeListDropdownProps): ReactElement {
   const { t } = useTranslation();
   const addCodeListRef = useRef<HTMLDialogElement>(null);
@@ -96,7 +98,11 @@ export function AddCodeListDropdown({
         ref={addCodeListRef}
       />
       {hasExternalResources && (
-        <ImportFromOrgLibraryDialog codeListIds={externalResourceIds} ref={importCodeListRef} />
+        <ImportFromOrgLibraryDialog
+          codeListIds={externalResourceIds}
+          ref={importCodeListRef}
+          onImportCodeListFromOrg={onImportCodeListFromOrg}
+        />
       )}
     </>
   );
