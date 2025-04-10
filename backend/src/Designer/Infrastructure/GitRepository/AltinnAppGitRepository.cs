@@ -304,7 +304,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<TextResource> GetTextV1(
+        public async Task<TextResource> GetText(
             string language,
             CancellationToken cancellationToken = default
         )
@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return textResource;
         }
 
-        public async Task SaveTextV1(string languageCode, TextResource jsonTexts)
+        public async Task SaveText(string languageCode, TextResource jsonTexts)
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);

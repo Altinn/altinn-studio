@@ -39,7 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (!string.IsNullOrEmpty(repo))
             {
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-                TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                TextResource textResource = await altinnAppGitRepository.GetText("nb");
                 if (textResource?.Resources == null)
                 {
                     textResource = new TextResource();
@@ -48,7 +48,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
 
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = repo });
-                await altinnAppGitRepository.SaveTextV1("nb", textResource);
+                await altinnAppGitRepository.SaveText("nb", textResource);
             }
         }
 
@@ -62,17 +62,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<TextResource> GetTextV1(string org, string repo, string developer, string languageCode)
+        public async Task<TextResource> GetText(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
+            TextResource texts = await altinnAppGitRepository.GetText(languageCode);
 
             return texts;
         }
 
         /// <inheritdoc />
-        public async Task SaveTextV1(string org, string repo, string developer, TextResource textResource, string languageCode)
+        public async Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -94,7 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new ArgumentException("The application name must be a value.");
             }
 
-            await altinnAppGitRepository.SaveTextV1(languageCode, textResource);
+            await altinnAppGitRepository.SaveText(languageCode, textResource);
         }
 
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
@@ -115,7 +115,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            TextResource textResourceObject = await altinnAppGitRepository.GetTextV1(languageCode);
+            TextResource textResourceObject = await altinnAppGitRepository.GetText(languageCode);
 
             // handle if file not already exist
 
@@ -146,7 +146,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            await altinnAppGitRepository.SaveTextV1(languageCode, textResourceObject);
+            await altinnAppGitRepository.SaveText(languageCode, textResourceObject);
         }
 
         /// <inheritdoc />
