@@ -235,7 +235,7 @@ namespace Altinn.Studio.Designer.Controllers
             i.e. use `DeletePage` instead if possible."
         )]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPost("page-groups")]
+        [HttpPut("page-groups")]
         public async Task<ActionResult> UpdatePageGroups(
             [FromRoute] string org,
             [FromRoute] string app,
