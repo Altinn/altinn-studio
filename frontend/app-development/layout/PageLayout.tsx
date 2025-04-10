@@ -9,7 +9,8 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
-import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
+import { PageHeaderContextProvider } from '../contexts/PageHeaderContext';
+import { PagesContextProvider } from '../contexts/PagesContext';
 import { useOpenSettingsModalBasedQueryParam } from '../hooks/useOpenSettingsModalBasedQueryParam';
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
@@ -52,7 +53,9 @@ export const PageLayout = (): React.ReactNode => {
           isRepoError={repoStatusError !== null}
         />
       </PageHeaderContextProvider>
-      <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
+      <PagesContextProvider repoOwnerIsOrg={repoOwnerIsOrg}>
+        <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
+      </PagesContextProvider>
     </>
   );
 };
