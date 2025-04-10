@@ -10,9 +10,9 @@ describe('useImportCodeListFromOrgToAppMutation', () => {
 
   it('should call importCodeListFromOrgToApp with correct parameters', async () => {
     const { result } = renderHookWithProviders(() =>
-      useImportCodeListFromOrgToAppMutation(org, app, codeListId),
+      useImportCodeListFromOrgToAppMutation(org, app),
     );
-    await result.current.mutateAsync();
+    await result.current.mutateAsync(codeListId);
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledWith(org, app, codeListId);
   });

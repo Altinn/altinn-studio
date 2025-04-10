@@ -19,6 +19,7 @@ import type {
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
+import { codeListTitles } from './test-data/codeListTitles';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -72,6 +73,12 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const textResourcesData = retrieveConfig().codeList.props.textResources;
     expect(textResourcesData).toEqual(textResources);
+  });
+
+  it('Renders with the given code list titles', () => {
+    renderAppContentLibraryWithData();
+    const codeListTitlesData = retrieveConfig().codeList.props.externalResourceIds;
+    expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
   it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
@@ -165,6 +172,17 @@ describe('AppContentLibrary', () => {
       expectedPayload,
     );
   });
+
+  it('calls importCodeListFromOrg with correct data when onImportCodeListFromOrg is triggered', async () => {
+    const codeListId = 'codeListId';
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onImportCodeListFromOrg(codeListId);
+    await waitFor(expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled);
+
+    expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);
+    expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledWith(org, app, codeListId);
+  });
 });
 
 type RenderAppContentLibraryProps = {
@@ -191,6 +209,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  queryClient.setQueryData([QueryKey.CodeListTitles, org], codeListTitles);
   return queryClient;
 }
 
