@@ -66,7 +66,7 @@ import {
   orgCodeListsPath,
   layoutPagesPath,
   taskNavigationGroupPath,
-  contentTypeListToImportPath,
+  availableResourcesInOrgLibraryPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -137,7 +137,7 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getAvailbleResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(contentTypeListToImportPath(owner, contentType));
+export const getAvailbleResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
