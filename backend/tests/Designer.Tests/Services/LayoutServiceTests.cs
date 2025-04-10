@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -156,7 +157,13 @@ public class LayoutServiceTests
                 Assert.NotEqual(string.Empty, fileContent);
             }
         }
-        Assert.Equal(mediatr.Invocations.Count, deletedPages.Count);
+        Assert.Equal(
+            deletedPages.Count,
+            mediatr.Invocations.Count(i =>
+                i.Method.Name == nameof(IPublisher.Publish)
+                && i.Arguments[0] is LayoutPageDeletedEvent
+            )
+        );
     }
 
     [Fact]
