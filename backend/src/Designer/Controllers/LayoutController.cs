@@ -234,8 +234,7 @@ namespace Altinn.Studio.Designer.Controllers
             @"This endpoint should not be preferred over a more explicit endpoint.
             i.e. use `DeletePage` or instead of calling this if you are just deleting a page (not a page group)."
         )]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost("page-groups")]
         public async Task<ActionResult> UpdatePages(
             [FromRoute] string org,
