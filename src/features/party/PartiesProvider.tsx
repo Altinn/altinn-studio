@@ -11,6 +11,7 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
+import { flattenParties } from 'src/features/party/partyUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -189,7 +190,8 @@ export const useCurrentParty = () => useCurrentPartyCtx().party;
 export const useCurrentPartyIsValid = () => useCurrentPartyCtx().currentIsValid;
 export const useSetCurrentParty = () => useCurrentPartyCtx().setParty;
 
-export const useValidParties = () => usePartiesAllowedToInstantiateCtx()?.filter((party) => party.isDeleted === false);
+export const useValidParties = () =>
+  flattenParties(usePartiesAllowedToInstantiateCtx() ?? [])?.filter((party) => party.isDeleted === false);
 
 export const useHasSelectedParty = () => useCurrentPartyCtx().userHasSelectedParty;
 
@@ -212,7 +214,5 @@ export function useInstanceOwnerParty(): IParty | null {
   // Backwards compatibility: if the backend returns only the partyId, we need to find the party in the list of parties.
   // This logic assumes that the current logged in user has "access" to the party of the instance owner,
   // as the parties array comes from the current users party list.
-  const flattenedParties = [...parties, ...parties.flatMap((party) => party.childParties ?? [])];
-
-  return flattenedParties?.find((party) => party.partyId.toString() === instanceOwner.partyId) ?? null;
+  return flattenParties(parties)?.find((party) => party.partyId.toString() === instanceOwner.partyId) ?? null;
 }
