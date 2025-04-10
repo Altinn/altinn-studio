@@ -228,5 +228,31 @@ namespace Altinn.Studio.Designer.Controllers
             }
             return Ok();
         }
+
+        [EndpointSummary("Update pages")]
+        [EndpointDescription(
+            @"This endpoint should not be preferred over a more explicit endpoint.
+            i.e. use `DeletePage` or instead of calling this if you are just deleting a page (not a page group)."
+        )]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [HttpPost("page-groups")]
+        public async Task<ActionResult> UpdatePages(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromBody] PagesDto pages
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+                editingContext,
+                layoutSetId
+            );
+            layoutSettings.Pages = pages.ToBusiness();
+            await layoutService.UpdateLayoutSettings(editingContext, layoutSetId, layoutSettings);
+            return Ok();
+        }
     }
 }

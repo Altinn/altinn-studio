@@ -213,6 +213,51 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSettings.Pages is PagesWithGroups;
         }
 
+        public async Task UpdateLayoutSettings(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            LayoutSettings layoutSettings
+        )
+        {
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
+                layoutSetId
+            );
+            if (layoutSettings.Pages is PagesWithGroups pagesWithGroups)
+            {
+                if (originalLayoutSettings.Pages is PagesWithGroups originalPagesWithGroups)
+                {
+                    IEnumerable<string> pages = pagesWithGroups.Groups.SelectMany(
+                        (group) => group.Order
+                    );
+                    IEnumerable<string> originalPages = originalPagesWithGroups.Groups.SelectMany(
+                        (group) => group.Order
+                    );
+                    IEnumerable<string> deletedPages = originalPages.Where(
+                        (page) => !pages.Contains(page)
+                    );
+                    foreach (string pageId in deletedPages)
+                    {
+                        appRepository.DeleteLayout(layoutSetId, pageId);
+                        await mediatr.Publish(
+                            new LayoutPageDeletedEvent
+                            {
+                                EditingContext = editingContext,
+                                LayoutName = pageId,
+                                LayoutSetName = layoutSetId,
+                            }
+                        );
+                    }
+                }
+            }
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
+        }
+
         /// <exception cref="InvalidOperationException">
         /// Thrown when layout already uses page groups
         /// </exception>

@@ -107,6 +107,92 @@ public class LayoutServiceTests
         Assert.Null(pages.Groups);
     }
 
+    [Fact]
+    public async Task DeletingPageGroup_ShouldDeletePagesInGroup()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (
+            AltinnRepoEditingContext editingContext,
+            LayoutService layoutService,
+            Mock<IPublisher> mediatr
+        ) = await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> deletedPages = pagesDto.Groups[0].Pages;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.RemoveAt(0);
+        layoutSettings.Pages = pagesDto.ToBusiness();
+        await layoutService.UpdateLayoutSettings(editingContext, "form", layoutSettings);
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount - 1, newGroupCount);
+        foreach (PageDto page in allPages)
+        {
+            string fileContent = TestDataHelper.GetFileFromRepo(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer,
+                $"App/ui/form/layouts/{page.Id}.json"
+            );
+            if (deletedPages.Any((deletedPage) => deletedPage.Id == page.Id))
+            {
+                Assert.Equal(string.Empty, fileContent);
+            }
+            else
+            {
+                Assert.NotEqual(string.Empty, fileContent);
+            }
+        }
+        Assert.Equal(mediatr.Invocations.Count, deletedPages.Count);
+    }
+
+    [Fact]
+    public async Task RenamingPageGroups_ShouldNotDeletePagesInGroup()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.ForEach((group) => group.Name = $"{group.Name}-newName");
+        layoutSettings.Pages = pagesDto.ToBusiness();
+        await layoutService.UpdateLayoutSettings(editingContext, "form", layoutSettings);
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        foreach (PageDto page in allPages)
+        {
+            string fileContent = TestDataHelper.GetFileFromRepo(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer,
+                $"App/ui/form/layouts/{page.Id}.json"
+            );
+            Assert.NotEqual(string.Empty, fileContent);
+        }
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount, newGroupCount);
+    }
+
     private async Task<(
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,
