@@ -12,6 +12,8 @@ import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
+export const pagelayout1NameMock = 'Sideoppsett 1';
+export const pagelayout2NameMock = 'Sideoppsett 2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = componentMocks[ComponentType.Input].id;
 export const component1TypeMock = ComponentType.Input;
@@ -177,6 +179,28 @@ const layout2Mock: ExternalFormLayout = {
   },
 };
 export const pagesModelMock: PagesModel = {
+  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+  groups: [],
+};
+
+export const groupsPagesModelMock: PagesModel = {
+  groups: [
+    {
+      name: pagelayout1NameMock,
+      type: pagelayout1NameMock,
+      order: [{ id: layout1NameMock }],
+    },
+    {
+      name: pagelayout2NameMock,
+      type: pagelayout2NameMock,
+      markWhenCompleted: true,
+      order: [{ id: layout2NameMock }],
+    },
+    {
+      name: 'EmptyGroup',
+      order: [],
+    },
+  ],
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
