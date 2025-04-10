@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -18,40 +19,62 @@ public class PagesDto
 
     public static PagesDto From(LayoutSettings layoutSettings)
     {
-        PagesDto pagesDto = new();
-        if (layoutSettings.Pages.Order != null)
+        PagesDto pagesDto = layoutSettings.Pages switch
         {
-            pagesDto.Pages =
-            [
-                .. layoutSettings.Pages.Order.Select(pageId => new PageDto { Id = pageId }),
-            ];
-        }
-        if (layoutSettings.Pages.Groups != null)
-        {
-            pagesDto.Groups =
-            [
-                .. layoutSettings.Pages.Groups.Select(group => new GroupDto
-                {
-                    Name = group.Name,
-                    Pages = [.. group.Order.Select(pageId => new PageDto { Id = pageId })],
-                }),
-            ];
-        }
+            PagesWithOrder pagesWithOrder => new PagesDto
+            {
+                Pages = pagesWithOrder
+                    .Order?.Select(pageId => new PageDto { Id = pageId })
+                    .ToList(),
+            },
+            PagesWithGroups pagesWithGroups => new PagesDto
+            {
+                Groups = pagesWithGroups
+                    .Groups?.Select(group => new GroupDto
+                    {
+                        Name = group.Name,
+                        Pages = group.Order?.Select(pageId => new PageDto { Id = pageId }).ToList(),
+                    })
+                    .ToList(),
+            },
+            _ => throw new NotSupportedException("Unsupported layout settings type"),
+        };
         return pagesDto;
     }
 
+    /// <exception cref="InvalidOperationException">
+    /// Throws if the DTO would result in an invalid business object
+    /// </exception>
     public Pages ToBusiness()
     {
-        Pages pages = new()
+        if (Pages != null && Groups != null)
         {
-            Order = Pages?.Select(page => page.Id).ToList(),
-            Groups = Groups
-                ?.Select(group => new Group
-                {
-                    Name = group.Name,
-                    Order = [.. group.Pages.Select(page => page.Id)],
-                })
-                .ToList(),
+            throw new InvalidOperationException(
+                "Cannot convert to business object: `Pages` and `Groups` are defined"
+            );
+        }
+        if (Pages == null && Groups == null)
+        {
+            throw new InvalidOperationException(
+                "Cannot convert to business object: `Pages` and `Groups` are not defined"
+            );
+        }
+        Pages pages = this switch
+        {
+            { Pages: not null } => new PagesWithOrder
+            {
+                Order = Pages.Select(page => page.Id).ToList(),
+            },
+            { Groups: not null } => new PagesWithGroups
+            {
+                Groups = Groups
+                    .Select(group => new Group
+                    {
+                        Name = group.Name,
+                        Order = [.. group.Pages.Select(page => page.Id)],
+                    })
+                    .ToList(),
+            },
         };
         return pages;
     }
