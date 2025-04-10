@@ -8,10 +8,10 @@ export const useGetAvailableCodeListsFromOrgQuery = (
   org: string,
   contentType: LibraryContentType,
 ): UseQueryResult<string[], Error> => {
-  const { getAvailbleResourcesFromOrg } = useServicesContext();
+  const { getAvailableResourcesFromOrg } = useServicesContext();
 
   return useQuery<string[]>({
     queryKey: [QueryKey.CodeListTitles, org],
-    queryFn: () => getAvailbleResourcesFromOrg(org, contentType),
+    queryFn: () => getAvailableResourcesFromOrg(org, contentType),
   });
 };
