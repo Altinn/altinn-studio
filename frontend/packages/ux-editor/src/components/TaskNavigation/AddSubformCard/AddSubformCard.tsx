@@ -1,34 +1,42 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components-legacy';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { StudioCard } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
+import { PlusIcon } from '@studio/icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
+import { CreateSubformMode } from './CreateSubformMode';
 
 export type AddSubformCardProps = {
-  onAddSubform?: () => void;
+  isSubformInEditMode: boolean;
+  setIsCreateSubformMode: (isSubformInEditMode: boolean) => void;
 };
 
-export const AddSubformCard = ({ onAddSubform }: AddSubformCardProps) => {
+export const AddSubformCard = ({
+  setIsCreateSubformMode,
+  isSubformInEditMode,
+}: AddSubformCardProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  //TODO: Implement subform creation functionality in PR #15032
-  const onClick = () => {
-    if (onAddSubform) {
-      onAddSubform();
-    }
+  const handleCreateSubformMode = () => {
+    setIsCreateSubformMode(true);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onClick();
+      handleCreateSubformMode();
     }
   };
 
+  if (isSubformInEditMode) {
+    return <CreateSubformMode setIsCreateSubformMode={setIsCreateSubformMode} />;
+  }
+
   return (
     <StudioCard
-      onClick={onClick}
-      className={classes.card}
+      className={cn(classes.card, classes.cardDefault)}
+      onClick={handleCreateSubformMode}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role='button'
@@ -36,7 +44,7 @@ export const AddSubformCard = ({ onAddSubform }: AddSubformCardProps) => {
     >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
-        <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_subform')}</StudioHeading>
+        <StudioHeading data-size='2xs'>{t('ux_editor.task_card_add_new_subform')}</StudioHeading>
       </div>
     </StudioCard>
   );
