@@ -594,8 +594,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             CancellationToken cancellationToken = default
         )
         {
-            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             cancellationToken.ThrowIfCancellationRequested();
+
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
             {
                 await CreateLayoutSettings(layoutSetName);
@@ -607,6 +608,35 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var layoutSettings = JsonNode.Parse(fileContent);
 
             return layoutSettings;
+        }
+
+        public async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSets(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            List<RefToOptionListSpecifier> optionsListReferences = [];
+            string[] layoutSetNames = GetLayoutSetNames();
+
+            foreach (string layoutSetName in layoutSetNames)
+            {
+                optionsListReferences = await FindOptionListReferencesInLayoutSet(layoutSetName, optionsListReferences, cancellationToken);
+            }
+
+            return optionsListReferences;
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSet(string layoutSetName, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string[] layoutNames = GetLayoutNames(layoutSetName);
+            foreach (string layoutName in layoutNames)
+            {
+                var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
+                optionsListReferences = FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+            }
+
+            return optionsListReferences;
         }
 
         /// <summary>

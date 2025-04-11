@@ -41,7 +41,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-options")]
+        [InlineData("ttd", "app-without-layoutsets")]
         public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(string org, string app)
         {
             string url = VersionPrefix(org, app);
