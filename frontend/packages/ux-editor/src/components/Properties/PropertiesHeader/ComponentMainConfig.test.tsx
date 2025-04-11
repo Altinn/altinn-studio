@@ -11,20 +11,29 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
-const summary2ComponentMock: FormItem = {
-  id: '0',
-  type: ComponentType.Summary2,
-  itemType: 'COMPONENT',
-  target: {},
-};
+const mainConfigComponentMock = (type: ComponentType) =>
+  ({
+    id: '0',
+    type,
+    itemType: 'COMPONENT',
+    target: {},
+  }) as FormItem;
 
 describe('ComponentMainConfig', () => {
   afterEach(() => jest.clearAllMocks);
 
   it('should render summary2 config when the component type matches', async () => {
-    renderComponentMainConfig(summary2ComponentMock);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Summary2));
     const targetHeader = screen.getByText(textMock('ux_editor.component_properties.target'));
     expect(targetHeader).toBeInTheDocument();
+  });
+
+  it('should render subform config when the component type matches', async () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Subform));
+    const subformHeader = screen.getByText(
+      textMock('ux_editor.properties_panel.subform_table_columns.heading'),
+    );
+    expect(subformHeader).toBeInTheDocument();
   });
 
   it('should not render any config when the component type does not match', async () => {

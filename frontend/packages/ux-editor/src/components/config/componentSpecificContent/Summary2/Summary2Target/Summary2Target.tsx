@@ -23,13 +23,15 @@ import {
   getTargetLayoutSetName,
 } from './targetUtils';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import cn from 'classnames';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
   onChange: (target: Summary2TargetConfig) => void;
+  mainConfigClass?: string;
 };
 
-export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
+export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -69,7 +71,12 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   };
 
   return (
-    <div className={classes.targetConfig}>
+    <div
+      className={cn(
+        mainConfigClass ? mainConfigClass : classes.targetConfig,
+        classes.wrapperConfig,
+      )}
+    >
       <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}

@@ -11,12 +11,16 @@ import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
 import { useSubformLayoutValidation } from './hooks/useSubformLayoutValidation';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning/SubformMissingContentWarning';
+import cn from 'classnames';
 
-export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform>;
+export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform> & {
+  mainConfigClass?: string;
+};
 
 export const EditSubformTableColumns = ({
   component,
   handleComponentChange,
+  mainConfigClass,
 }: EditSubformTableColumnsProps): ReactElement => {
   const [newColumnNumber, setNewColumnNumber] = useState<number>();
   const { t } = useTranslation();
@@ -50,14 +54,14 @@ export const EditSubformTableColumns = ({
 
   if (subformLayoutIsConfigured === false) {
     return (
-      <EditSubformTableColumnsWrapper>
+      <EditSubformTableColumnsWrapper mainConfigClass={mainConfigClass}>
         <SubformMissingContentWarning subformLayoutSetName={component.layoutSet} />
       </EditSubformTableColumnsWrapper>
     );
   }
 
   return (
-    <EditSubformTableColumnsWrapper>
+    <EditSubformTableColumnsWrapper mainConfigClass={mainConfigClass}>
       {tableColumns.length > 0 &&
         tableColumns.map((tableColumn: TableColumn, index: number) => (
           <ColumnElement
@@ -84,12 +88,16 @@ export const EditSubformTableColumns = ({
 
 type EditSubformTableColumnsWrapperProps = {
   children: ReactNode;
+  mainConfigClass?: string;
 };
 
-const EditSubformTableColumnsWrapper = ({ children }: EditSubformTableColumnsWrapperProps) => {
+const EditSubformTableColumnsWrapper = ({
+  children,
+  mainConfigClass,
+}: EditSubformTableColumnsWrapperProps) => {
   const { t } = useTranslation();
   return (
-    <div className={classes.wrapper}>
+    <div className={cn(mainConfigClass ? mainConfigClass : classes.wrapper)}>
       <StudioHeading size='2xs' level={2}>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
