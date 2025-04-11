@@ -1,11 +1,12 @@
 *
 !frontend
 !backend
-!development/azure-devops-mock
 !package.json
-!environments.json
 !yarn.lock
 !.yarn*
+frontend/dist
+frontend/scripts
+frontend/testing
 **/node_modules
 **/bin
 **/obj
