@@ -32,8 +32,12 @@ export const Variables = ({ variables }: VariablesProps) => {
           className={classes.infoButton}
           title={t('text_editor.variables_editing_not_supported')}
         >
-          <HelpText size='sm' title={t('text_editor.variables_editing_not_supported_title')}>
-            <StudioParagraph spacing size='sm'>
+          <HelpText
+            size='sm'
+            placement='top'
+            title={t('text_editor.variables_editing_not_supported_title')}
+          >
+            <StudioParagraph size='sm'>
               {t('text_editor.variables_editing_not_supported')}
             </StudioParagraph>
           </HelpText>
