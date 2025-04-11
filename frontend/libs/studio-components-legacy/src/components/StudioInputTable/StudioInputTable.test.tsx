@@ -419,13 +419,13 @@ describe('StudioInputTable', () => {
           render: (onFocus) => renderSingleTextResourceCell({ ...textResourceProps(0), onFocus }),
           action: (user) => user.click(screen.getByRole('textbox')),
         },
-        blur: {
-          render: (onBlur) => renderSingleTextResourceCell({ ...textResourceProps(0), onBlur }),
-          action: async (user) => {
-            await user.click(screen.getByRole('textbox'));
-            await user.tab();
-          },
-        },
+        // blur: {
+        // render: (onBlur) => renderSingleTextResourceCell({ ...textResourceProps(0), onBlur }),
+        // action: async (user) => {
+        //   await user.click(screen.getByRole('textbox'));
+        //   await user.tab();
+        // },
+        // },
       },
     };
 

@@ -52,6 +52,18 @@ export function EditCodeList({
 
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
 
+  const handleUpdateCodeList = (newCodeList: CodeList): void => {
+    console.log('onUpdateCodeList, codeList', newCodeList);
+  };
+
+  const handleCreateTextResource = (newTextResource: TextResource): void => {
+    console.log('onCreateTextResource, textResource', newTextResource);
+  };
+
+  const handleUpdateTextResource = (newTextResource: TextResource): void => {
+    console.log('onUpdateTextResource, textResource', newTextResource);
+  };
+
   const codeListHasUsages = codeListSources.length > 0;
   const isCodeListEditable = codeListSources.length === 0;
 
@@ -70,6 +82,9 @@ export function EditCodeList({
         onBlurTextResource={onBlurTextResource}
         texts={editorTexts}
         textResources={textResources}
+        onUpdateCodeList={handleUpdateCodeList}
+        onCreateTextResource={handleCreateTextResource}
+        onUpdateTextResource={handleUpdateTextResource}
       />
       <CodeListButtons
         codeListHasUsages={codeListHasUsages}

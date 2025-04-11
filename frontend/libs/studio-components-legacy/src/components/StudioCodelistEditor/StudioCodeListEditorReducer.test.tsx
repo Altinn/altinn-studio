@@ -50,21 +50,32 @@ describe('StudioCodeListEditorReducer', () => {
     };
     const codeItemIndex = 1;
     const property = CodeListItemTextProperty.Label;
+    const onCreateTextResource = jest.fn();
+    const onUpdateCodeList = jest.fn();
 
     const result: ReducerState = dispatch({
       type: ReducerActionType.AddTextResource,
       textResource,
       codeItemIndex,
       property,
+      onCreateTextResource,
+      onUpdateCodeList,
     });
 
     it('Adds the new text resource to the list of text resources', () => {
       expect(result.textResources).toContain(textResource);
+      expect(onCreateTextResource).toBeCalledTimes(1);
+      expect(onCreateTextResource).toBeCalledWith(textResource);
     });
 
     it('Updates the given code item property with a reference to the new text resource', () => {
       const updatedTextProperty = result.codeList[codeItemIndex][property];
       expect(updatedTextProperty).toContain(textResource.id);
+
+      const expectedCodeList = [...codeListWithTextResources];
+      expectedCodeList[codeItemIndex][property] = textResource.id;
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenCalledWith(expectedCodeList);
     });
   });
 
@@ -116,6 +127,7 @@ describe('StudioCodeListEditorReducer', () => {
 
   describe('UpdateTextResourceValue', () => {
     it('Updates the value property of a text resource in the list of text resources', () => {
+      const onUpdateTextResource = jest.fn();
       const textResourceId: string = textResources[2].id;
       const newValue: string = 'test value';
 
@@ -123,10 +135,13 @@ describe('StudioCodeListEditorReducer', () => {
         type: ReducerActionType.UpdateTextResourceValue,
         textResourceId,
         newValue,
+        onUpdateTextResource,
       });
 
       const actualTextResource = result.textResources.find((item) => item.id === textResourceId);
       expect(actualTextResource.value).toEqual(newValue);
+      expect(onUpdateTextResource).toBeCalledTimes(1);
+      expect(onUpdateTextResource).toBeCalledWith({ id: textResourceId, value: newValue });
     });
   });
 });

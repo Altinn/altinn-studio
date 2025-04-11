@@ -3,6 +3,7 @@ import {
   editTextResourceValue,
   getTextResourceById,
   determineDefaultMode,
+  createNewTextResource,
 } from './utils';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { TextResource } from '../../types/TextResource';
@@ -69,6 +70,15 @@ describe('utils', () => {
     ])('Returns "search" when the ID is %s', (_, id) => {
       const result = determineDefaultMode(id);
       expect(result).toBe(Mode.Search);
+    });
+  });
+
+  describe('createNewTextResource', () => {
+    it('Returns a text resource with a generated id', () => {
+      const value: string = 'Lorem ipsum';
+      const result: TextResource = createNewTextResource(value);
+      expect(result.value).toBe('Lorem ipsum');
+      expect(result.id).toMatch(/^id_[1-9][0-9]{3}$/);
     });
   });
 });

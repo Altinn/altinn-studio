@@ -30,3 +30,15 @@ export function changeTextResourceInList(
 export function determineDefaultMode(currentId?: string | null): Mode {
   return currentId ? Mode.EditValue : Mode.Search;
 }
+
+export function createNewTextResource(value: string): TextResource {
+  return {
+    id: generateRandomTextResourceId(),
+    value: value,
+  };
+}
+
+function generateRandomTextResourceId(min = 1000, max = 9999): string {
+  const randomNumber: number = Math.floor(Math.random() * (max - min + 1) + min);
+  return `id_${randomNumber}`;
+}
