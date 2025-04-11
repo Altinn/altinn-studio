@@ -1,4 +1,3 @@
- 
 const env = require('dotenv').config().parsed ?? {};
 const path = require('path');
 const fs = require('fs');
@@ -102,6 +101,10 @@ module.exports = {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'X-Altinn-Frontend-Branch': branchName,
+    },
+    // https://github.com/webpack/webpack-dev-server/issues/5446#issuecomment-2768816082
+    setupMiddlewares: (middlewares) => {
+      return middlewares.filter((middleware) => middleware.name !== 'cross-origin-header-check');
     },
     client: {
       overlay: {
