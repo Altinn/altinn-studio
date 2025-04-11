@@ -17,6 +17,14 @@ export class CodeLists extends BasePage {
     await expect(heading).toBeVisible();
   }
 
+  public async clickOnAddNewCodeListDropdown(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.add_new_code_list'),
+      })
+      .click();
+  }
+
   public async clickOnCreateNewCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -159,12 +167,8 @@ export class CodeLists extends BasePage {
   }
 
   public async clickOnUploadButtonAndSelectFileToUpload(fileName: string): Promise<void> {
-    const fileChooserPromise = this.page.waitForEvent('filechooser');
-
     await this.clickOnUploadCodelistButton();
-
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles(path.join(__dirname, fileName));
+    await this.page.setInputFiles('input[type="file"]', path.join(__dirname, fileName));
   }
 
   public async listenToAndWaitForConfirmDeleteCodeList(codeListTitle: string): Promise<void> {

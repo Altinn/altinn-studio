@@ -1,4 +1,4 @@
-.createNewCodeListModal[open] {
+.createNewCodeListModal {
   max-width: unset;
   width: 80vw;
 }
