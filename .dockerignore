@@ -6,7 +6,8 @@
 !.yarn*
 frontend/dist
 frontend/scripts
-frontend/testing
+frontend/testing/cypress
+frontend/testing/playwright
 **/node_modules
 **/bin
 **/obj
