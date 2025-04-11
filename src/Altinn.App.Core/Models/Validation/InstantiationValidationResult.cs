@@ -12,6 +12,11 @@ public class InstantiationValidationResult
     /// </summary>
     public bool Valid { get; set; }
 
+    /// <summary>
+    /// Text key to used for translation if Message is null, can be used by frontend directly
+    /// </summary>
+    public string? CustomTextKey { get; set; }
+
 #nullable disable
     /// <summary>
     /// Gets or sets a message

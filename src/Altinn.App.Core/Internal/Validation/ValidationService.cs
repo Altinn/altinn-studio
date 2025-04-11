@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ namespace Altinn.App.Core.Internal.Validation;
 public class ValidationService : IValidationService
 {
     private readonly IValidatorFactory _validatorFactory;
+    private readonly ITranslationService _translationService;
     private readonly ILogger<ValidationService> _logger;
     private readonly Telemetry? _telemetry;
 
@@ -19,11 +21,13 @@ public class ValidationService : IValidationService
     /// </summary>
     public ValidationService(
         IValidatorFactory validatorFactory,
+        ITranslationService translationService,
         ILogger<ValidationService> logger,
         Telemetry? telemetry = null
     )
     {
         _validatorFactory = validatorFactory;
+        _translationService = translationService;
         _logger = logger;
         _telemetry = telemetry;
     }
@@ -62,6 +66,7 @@ public class ValidationService : IValidationService
             {
                 var issues = await v.Validate(dataAccessor, taskId, language);
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
+                await TranslateValidationIssues(issues, language);
                 return KeyValuePair.Create(
                     v.ValidationSource,
                     issues.Select(issue =>
@@ -126,6 +131,7 @@ public class ValidationService : IValidationService
                 {
                     var issues = await validator.Validate(dataAccessor, taskId, language);
                     validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
+                    await TranslateValidationIssues(issues, language);
                     var issuesWithSource = issues
                         .Select(i =>
                             ValidationIssueWithSource.FromIssue(
@@ -161,6 +167,17 @@ public class ValidationService : IValidationService
         var errorCount = lists.Sum(k => k?.Issues.Count ?? 0);
         activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, errorCount);
         return lists.OfType<ValidationSourcePair>().ToList();
+    }
+
+    private async Task TranslateValidationIssues(IEnumerable<ValidationIssue> issues, string? language)
+    {
+        foreach (var issue in issues)
+        {
+            if (String.IsNullOrEmpty(issue.Description) && !String.IsNullOrEmpty(issue.CustomTextKey))
+            {
+                issue.Description = await _translationService.TranslateTextKey(issue.CustomTextKey, language);
+            }
+        }
     }
 
     private static void ThrowIfDuplicateValidators(IValidator[] validators, string taskId)

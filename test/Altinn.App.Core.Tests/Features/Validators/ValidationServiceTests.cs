@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -30,6 +31,7 @@ public class ValidationServiceTests : IAsyncLifetime
     };
 
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Loose);
     private readonly InstanceDataAccessorFake _instanceDataAccessor;
     private readonly IServiceCollection _services = new ServiceCollection();
     private readonly Lazy<ServiceProvider> _serviceProvider;
@@ -42,6 +44,7 @@ public class ValidationServiceTests : IAsyncLifetime
         _services.AddFakeLoggingWithXunit(output);
         _services.AddTransient<IValidatorFactory, ValidatorFactory>();
         _services.AddSingleton(_appMetadataMock.Object);
+        _services.AddSingleton(_translationServiceMock.Object);
         _services.AddAppImplementationFactory();
 
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_appMetadata);

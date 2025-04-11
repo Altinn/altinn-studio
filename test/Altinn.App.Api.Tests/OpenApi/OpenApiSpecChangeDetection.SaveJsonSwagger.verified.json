@@ -2476,6 +2476,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently active user language",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
