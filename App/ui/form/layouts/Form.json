@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "hidden": false,
@@ -101,36 +101,27 @@
         }
       },
       {
+        "id": "sources",
+        "type": "RepeatingGroup",
         "dataModelBindings": {
           "group": {
             "field": "form.sources",
             "dataType": "data"
           }
         },
-        "id": "sources",
-        "type": "RepeatingGroup",
         "textResourceBindings": {
           "title": "Form.sources.title"
         },
         "maxCount": 99999,
-        "children": [
-          "sourceType"
-        ]
+        "children": ["sourceType"]
       },
       {
-        "id": "Button-submit",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Form.Button-submit.title"
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": ""
-        },
-        "optionsId": "",
         "id": "sourceType",
         "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "form.sources.type"
+        },
+        "optionsId": "",
         "textResourceBindings": {
           "title": "Form.sourceType.title"
         },
@@ -153,6 +144,13 @@
             "value": "d"
           }
         ]
+      },
+      {
+        "id": "Button-submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Form.Button-submit.title"
+        }
       }
     ]
   }
