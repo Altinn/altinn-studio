@@ -25,7 +25,7 @@ public class OrgContentController : ControllerBase
     /// </summary>
     /// <param name="orgCodeListService">The code list service</param>
     /// <param name="orgTextsService">The texts service</param>
-    /// <param name="orgService">The texts service</param>
+    /// <param name="orgService">The org service</param>
     public OrgContentController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService, IOrgService orgService)
     {
         _orgCodeListService = orgCodeListService;
