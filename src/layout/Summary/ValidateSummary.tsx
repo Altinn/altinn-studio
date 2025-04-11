@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function ValidateSummary({ node, externalItem }: NodeValidationProps<'Summary'>) {
   const addError = NodesInternal.useAddError();
-  const targetType = NodesInternal.useTypeFromId(externalItem.componentRef);
+  const targetType = useLayoutLookups().allComponents[externalItem.componentRef]?.type;
 
   useEffect(() => {
     if (!targetType) {
