@@ -1,6 +1,7 @@
-﻿{
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
+    "hidden": false,
     "layout": [
       {
         "id": "Header-form",
@@ -100,13 +101,59 @@
         }
       },
       {
+        "dataModelBindings": {
+          "group": {
+            "field": "form.sources",
+            "dataType": "data"
+          }
+        },
+        "id": "sources",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Form.sources.title"
+        },
+        "maxCount": 99999,
+        "children": [
+          "sourceType"
+        ]
+      },
+      {
         "id": "Button-submit",
         "type": "Button",
         "textResourceBindings": {
           "title": "Form.Button-submit.title"
         }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": ""
+        },
+        "optionsId": "",
+        "id": "sourceType",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Form.sourceType.title"
+        },
+        "hidden": false,
+        "options": [
+          {
+            "label": "xpwJMabXnhVc",
+            "value": "a"
+          },
+          {
+            "label": "zDPIE9JdO5sk",
+            "value": "b"
+          },
+          {
+            "label": "9mU0XbuSAKU3",
+            "value": "c"
+          },
+          {
+            "label": "7HWbT5AzqSE1",
+            "value": "d"
+          }
+        ]
       }
-    ],
-    "hidden": false
+    ]
   }
 }

@@ -1,6 +1,30 @@
-﻿{
+{
   "language": "nb",
   "resources": [
+    {
+      "id": "7HWbT5AzqSE1",
+      "value": "Utleie av undervannsdrone for inspeksjon av saltvannsinstallasjoner"
+    },
+    {
+      "id": "9mU0XbuSAKU3",
+      "value": "Varesalg"
+    },
+    {
+      "id": "zDPIE9JdO5sk",
+      "value": "Væpnet ran"
+    },
+    {
+      "id": "xpwJMabXnhVc",
+      "value": "Kryptosvindel"
+    },
+    {
+      "id": "Form.sourceType.title",
+      "value": "Kilde"
+    },
+    {
+      "id": "Form.sources.title",
+      "value": "Inntektskilder"
+    },
     {
       "id": "Form.Button-submit.title",
       "value": "Send til bekreftelse"

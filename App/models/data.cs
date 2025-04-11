@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -47,6 +47,28 @@ namespace Altinn.App.Models
     [JsonPropertyName("income")]
     [Required]
     public decimal? income { get; set; }
+
+    [XmlElement("sources", Order = 5)]
+    [JsonProperty("sources")]
+    [JsonPropertyName("sources")]
+    public List<sources> sources { get; set; }
+
+  }
+
+  public class sources
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("type", Order = 1)]
+    [JsonProperty("type")]
+    [JsonPropertyName("type")]
+    public string type { get; set; }
 
   }
 }

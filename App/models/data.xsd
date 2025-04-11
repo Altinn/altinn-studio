@@ -6,6 +6,13 @@
       <xs:element name="orgNumber" type="xs:string" />
       <xs:element name="year" type="xs:long" />
       <xs:element name="income" type="xs:long" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="sources">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="type" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:element name="data">
