@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -107,7 +108,107 @@ public class LayoutServiceTests
         Assert.Null(pages.Groups);
     }
 
-    private async Task<(
+    [Fact]
+    public async Task DeletingPageGroup_ShouldDeletePagesInGroup()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (
+            AltinnRepoEditingContext editingContext,
+            LayoutService layoutService,
+            Mock<IPublisher> mediatr
+        ) = await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> deletedPages = pagesDto.Groups[0].Pages;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.RemoveAt(0);
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount - 1, newGroupCount);
+        foreach (PageDto page in allPages)
+        {
+            string fileContent = TestDataHelper.GetFileFromRepo(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer,
+                $"App/ui/form/layouts/{page.Id}.json"
+            );
+            if (deletedPages.Any((deletedPage) => deletedPage.Id == page.Id))
+            {
+                Assert.Equal(string.Empty, fileContent);
+            }
+            else
+            {
+                Assert.NotEqual(string.Empty, fileContent);
+            }
+        }
+        Assert.Equal(
+            deletedPages.Count,
+            mediatr.Invocations.Count(i =>
+                i.Method.Name == nameof(IPublisher.Publish)
+                && i.Arguments[0] is LayoutPageDeletedEvent
+            )
+        );
+    }
+
+    [Fact]
+    public async Task RenamingPageGroups_ShouldNotDeletePagesInGroup()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.ForEach((group) => group.Name = $"{group.Name}-newName");
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        allPages
+            .Select(
+                (pagesDto) =>
+                    TestDataHelper.GetFileFromRepo(
+                        editingContext.Org,
+                        editingContext.Repo,
+                        editingContext.Developer,
+                        $"App/ui/form/layouts/{pagesDto.Id}.json"
+                    )
+            )
+            .ToList()
+            .ForEach((fileContent) => Assert.NotEqual(string.Empty, fileContent));
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount, newGroupCount);
+    }
+
+    private static async Task<(
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,
         Mock<IPublisher> mock
