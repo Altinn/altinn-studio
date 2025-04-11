@@ -107,9 +107,9 @@ describe('useValidateSchemaName', () => {
   });
 
   describe('regular expressions', () => {
-    it('should disallow numbers at start of name', () => {
+    it('should disallow numbers and underscore at start of name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+      const invalidFirstCharacters = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'];
 
       invalidFirstCharacters.forEach((char) => {
         act(() => {
@@ -122,23 +122,23 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should allow numbers in rest of name', () => {
+    it('should allow numbers and underscore in rest of name', () => {
       const { result } = renderUseValidateSchemaName();
 
       act(() => {
-        result.current.validateName('a1234567890');
+        result.current.validateName('a1234567890_');
       });
 
       expect(result.current.nameError).toBe('');
     });
 
-    it('should disallow "-" and "_" at start of name', () => {
+    it('should disallow hyphens, spaces and periods anywhere in name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['-', '_'];
+      const invalidNames = ['-', ' ', '.', 'a-', 'a ', 'a.', 'a-b', 'a b', 'a.b'];
 
-      invalidFirstCharacters.forEach((char) => {
+      invalidNames.forEach((name) => {
         act(() => {
-          result.current.validateName(char);
+          result.current.validateName(name);
         });
 
         expect(result.current.nameError).toBe(
@@ -147,34 +147,34 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should allow "-" and "_" in rest of name', () => {
+    it('should disallow Norwegian special characters anywhere in name', () => {
       const { result } = renderUseValidateSchemaName();
-
-      act(() => {
-        result.current.validateName('a-_');
-      });
-
-      expect(result.current.nameError).toBe('');
-    });
-
-    it('should disallow " " and "." in name', () => {
-      const { result } = renderUseValidateSchemaName();
-      const invalidCharacters = [' ', '.', 'a ', 'a.'];
-
-      invalidCharacters.forEach((char) => {
-        act(() => {
-          result.current.validateName('a' + char);
-        });
-
-        expect(result.current.nameError).toBe(
-          textMock('schema_editor.error_invalid_datamodel_name'),
-        );
-      });
-    });
-
-    it('should disallow Norwegian special characters in name', () => {
-      const { result } = renderUseValidateSchemaName();
-      const invalidNames = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å', 'aæ', 'aø', 'aå', 'aÆ', 'aØ', 'aÅ'];
+      const invalidNames = [
+        'æ',
+        'ø',
+        'å',
+        'Æ',
+        'Ø',
+        'Å',
+        'aæ',
+        'aø',
+        'aå',
+        'aÆ',
+        'aØ',
+        'aÅ',
+        'æa',
+        'øa',
+        'åa',
+        'Æa',
+        'Øa',
+        'Åa',
+        'aæb',
+        'aøb',
+        'aåb',
+        'aÆb',
+        'aØb',
+        'aÅb',
+      ];
 
       invalidNames.forEach((name) => {
         act(() => {
