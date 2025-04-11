@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -31,6 +32,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             Definitions definitions = altinnAppGitRepository.GetDefinitions();
             return definitions.Process.Tasks;
+        }
+
+        public async Task UpdateTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, IEnumerable<TaskNavigationGroup> taskNavigationGroupList, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
+            if (taskNavigationGroupList.Any())
+            {
+                layoutSets.UiSettings ??= new();
+                layoutSets.UiSettings.TaskNavigation = taskNavigationGroupList;
+            }
+            else if (layoutSets.UiSettings != null)
+            {
+                layoutSets.UiSettings.TaskNavigation = null;
+            }
+
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
         }
     }
 }

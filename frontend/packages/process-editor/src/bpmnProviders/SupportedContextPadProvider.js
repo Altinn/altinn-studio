@@ -1,3 +1,5 @@
+import i18next from 'i18next';
+
 class SupportedContextPadProvider {
   constructor(contextPad) {
     contextPad.registerProvider(this);
@@ -15,9 +17,7 @@ class SupportedContextPadProvider {
               return;
             }
 
-            const isConfirmed = confirm(
-              'Prosess-steget du vil slette kan være knyttet til en sidegruppe. Den kan inneholde visningsoppsett eller skjema du har satt opp. Hvis du sletter steget, sletter du også hele sidegruppen og alt som hører til.\nAlle Summary2-komponenter knyttet til dette prosess-steget vil også bli slettet.',
-            );
+            const isConfirmed = confirm(i18next.t('process_editor.delete_task_warning'));
 
             if (isConfirmed) {
               deleteEntry.action.click(event, element);
