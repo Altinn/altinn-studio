@@ -27,7 +27,11 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
       label={{
         node,
         renderLabelAs: 'span',
-        className: cn(classes.textComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
+        className: cn(
+          classes.label,
+          classes.textComponent,
+          direction === 'vertical' ? classes.vertical : classes.horizontal,
+        ),
       }}
     >
       <DisplayText

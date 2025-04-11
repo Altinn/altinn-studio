@@ -32,7 +32,11 @@ export const OptionComponent = ({ node }: PropsFromGenericComponent<'Option'>) =
       label={{
         node,
         renderLabelAs: 'span',
-        className: cn(classes.optionComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
+        className: cn(
+          classes.label,
+          classes.optionComponent,
+          direction === 'vertical' ? classes.vertical : classes.horizontal,
+        ),
       }}
     >
       <Text

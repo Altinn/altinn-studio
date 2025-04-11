@@ -40,7 +40,11 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
       label={{
         node,
         renderLabelAs: 'span',
-        className: cn(classes.numberComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
+        className: cn(
+          classes.label,
+          classes.numberComponent,
+          direction === 'vertical' ? classes.vertical : classes.horizontal,
+        ),
       }}
     >
       <DisplayNumber

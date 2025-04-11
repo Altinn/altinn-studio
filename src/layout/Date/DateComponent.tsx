@@ -46,7 +46,11 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
       label={{
         node,
         renderLabelAs: 'span',
-        className: cn(classes.dateComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
+        className: cn(
+          classes.label,
+          classes.dateComponent,
+          direction === 'vertical' ? classes.vertical : classes.horizontal,
+        ),
       }}
     >
       <DisplayDate
