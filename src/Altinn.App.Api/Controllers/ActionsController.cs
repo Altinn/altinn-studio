@@ -255,7 +255,7 @@ public class ActionsController : ControllerBase
         return PartitionValidationIssuesByDataElement(validationIssues);
     }
 
-    private static Dictionary<
+    internal static Dictionary<
         string,
         Dictionary<string, List<ValidationIssueWithSource>>
     > PartitionValidationIssuesByDataElement(List<ValidationSourcePair> validationIssues)
@@ -263,22 +263,43 @@ public class ActionsController : ControllerBase
         var updatedValidationIssues = new Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>>();
         foreach (var (validationSource, issuesFromSource) in validationIssues)
         {
+            // Ensure that the empty list is created for the validation source for the "" data element
+            if (issuesFromSource.Count == 0)
+            {
+                AddIssueToPartitionedResponse(updatedValidationIssues, null, validationSource);
+                continue;
+            }
+
             foreach (var issue in issuesFromSource)
             {
-                if (!updatedValidationIssues.TryGetValue(issue.DataElementId ?? "", out var elementIssues))
-                {
-                    elementIssues = [];
-                    updatedValidationIssues[issue.DataElementId ?? ""] = elementIssues;
-                }
-                if (!elementIssues.TryGetValue(validationSource, out var sourceIssues))
-                {
-                    sourceIssues = [];
-                    elementIssues[validationSource] = sourceIssues;
-                }
-                sourceIssues.Add(issue);
+                AddIssueToPartitionedResponse(updatedValidationIssues, issue, validationSource);
             }
         }
 
         return updatedValidationIssues;
+    }
+
+    private static void AddIssueToPartitionedResponse(
+        Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>> partitionedResponse,
+        ValidationIssueWithSource? issue,
+        string validationSource
+    )
+    {
+        if (!partitionedResponse.TryGetValue(issue?.DataElementId ?? "", out var elementIssues))
+        {
+            elementIssues = [];
+            partitionedResponse[issue?.DataElementId ?? ""] = elementIssues;
+        }
+
+        if (!elementIssues.TryGetValue(validationSource, out var sourceIssues))
+        {
+            sourceIssues = [];
+            elementIssues[validationSource] = sourceIssues;
+        }
+
+        if (issue is not null)
+        {
+            sourceIssues.Add(issue);
+        }
     }
 }

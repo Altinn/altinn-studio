@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.task_action.config.models;
@@ -10,6 +11,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
+using Altinn.App.Core.Models.Validation;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -548,6 +550,104 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         mutator?.Invoke(expected);
         actual.Should().BeEquivalentTo(expected);
     }
+
+    [Theory]
+    [MemberData(nameof(PartitionValidationIssuesByDataElement))]
+    public void TestPartitionCodeForCompatibility(List<ValidationSourcePair> validationIssues, string expectedJson)
+    {
+        var partitionedIssues = ActionsController.PartitionValidationIssuesByDataElement(validationIssues);
+        var json = JsonSerializer.Serialize(partitionedIssues);
+        Assert.Equal(expectedJson, json);
+    }
+
+    public static TheoryData<List<ValidationSourcePair>, string> PartitionValidationIssuesByDataElement =>
+        new()
+        {
+            { [new ValidationSourcePair("source", new List<ValidationIssueWithSource>())], """{"":{"source":[]}}""" },
+            {
+                [new ValidationSourcePair("source", []), new ValidationSourcePair("source2", [])],
+                """{"":{"source":[],"source2":[]}}"""
+            },
+            {
+                [
+                    new ValidationSourcePair(
+                        "source",
+                        [
+                            new()
+                            {
+                                DataElementId = "123445",
+                                Severity = ValidationIssueSeverity.Unspecified,
+                                Code = null,
+                                Description = null,
+                                Source = "null",
+                            },
+                        ]
+                    ),
+                ],
+                """{"123445":{"source":[{"severity":0,"dataElementId":"123445","field":null,"code":null,"description":null,"source":"null"}]}}"""
+            },
+            {
+                [
+                    new ValidationSourcePair(
+                        "source",
+                        [
+                            new()
+                            {
+                                DataElementId = "123445",
+                                Severity = ValidationIssueSeverity.Unspecified,
+                                Code = null,
+                                Description = null,
+                                Source = "null",
+                            },
+                        ]
+                    ),
+                    new ValidationSourcePair(
+                        "source2",
+                        [
+                            new()
+                            {
+                                DataElementId = "123445",
+                                Severity = ValidationIssueSeverity.Unspecified,
+                                Code = null,
+                                Description = null,
+                                Source = "null",
+                            },
+                        ]
+                    ),
+                ],
+                """{"123445":{"source":[{"severity":0,"dataElementId":"123445","field":null,"code":null,"description":null,"source":"null"}],"source2":[{"severity":0,"dataElementId":"123445","field":null,"code":null,"description":null,"source":"null"}]}}"""
+            },
+            {
+                [
+                    new ValidationSourcePair(
+                        "source",
+                        [
+                            new()
+                            {
+                                Severity = ValidationIssueSeverity.Unspecified,
+                                Code = null,
+                                Description = null,
+                                Source = "null",
+                            },
+                        ]
+                    ),
+                    new ValidationSourcePair(
+                        "source2",
+                        [
+                            new()
+                            {
+                                DataElementId = "123445",
+                                Severity = ValidationIssueSeverity.Unspecified,
+                                Code = null,
+                                Description = null,
+                                Source = "null",
+                            },
+                        ]
+                    ),
+                ],
+                """{"":{"source":[{"severity":0,"dataElementId":null,"field":null,"code":null,"description":null,"source":"null"}]},"123445":{"source2":[{"severity":0,"dataElementId":"123445","field":null,"code":null,"description":null,"source":"null"}]}}"""
+            },
+        };
 }
 
 public class FillAction : IUserAction
