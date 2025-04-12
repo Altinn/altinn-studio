@@ -2,7 +2,6 @@ import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/r
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import type {
   AddLayoutSetResponse,
   LayoutSetsResponse,
@@ -30,7 +29,6 @@ const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {
 export const useAddLayoutSetMutation = (org: string, app: string) => {
   const { addLayoutSet } = useServicesContext();
   const queryClient = useQueryClient();
-  const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   return useMutation({
     mutationFn: ({ layoutSetIdToUpdate, taskType, layoutSetConfig }: AddLayoutSetMutationPayload) =>
@@ -41,7 +39,6 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
         }),
       ),
     onSuccess: ({ layoutSets, layoutSetConfig }) => {
-      setSelectedLayoutSet(layoutSetConfig.id);
       // Need this check since endpoint might return 200 OK, but with info details
       // when process-editor renders the tasks and 'adds' them on first mount, when they already exists.
       if (isLayoutSets(layoutSets)) {
