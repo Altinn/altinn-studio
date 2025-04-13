@@ -2,14 +2,14 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { getUidFilter } from './filterUtils';
 
 describe('getUidFilter', () => {
-  it('should return undefined when selectedContext is All', () => {
+  it('should return number zero when selectedContext is All', () => {
     const result = getUidFilter({
       selectedContext: SelectedContextType.All,
       userId: 1,
       organizations: [],
     });
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(0);
   });
 
   it('should return userId when selectedContext is Self', () => {
