@@ -40,6 +40,7 @@ export enum ComponentType {
   Summary = 'Summary',
   Summary2 = 'Summary2',
   TextArea = 'TextArea',
+  Divider = 'Divider',
 }
 
 export enum CustomComponentType {
