@@ -344,6 +344,74 @@ describe('StudioCodeListEditor', () => {
     });
   });
 
+  describe('onCreateTextResource', () => {
+    it('Calls the onCreateTextResource callback with the new text resource when a help text is changed and there is no text resource linked to it', async () => {
+      const user = userEvent.setup();
+      const onCreateTextResource = jest.fn();
+      renderCodeListEditor({
+        ...propsWithTextResources,
+        codeList: codeListWithoutTextResources,
+        onCreateTextResource,
+      });
+      const testRowNumber = 1;
+      const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
+      const newValue = 'new text';
+
+      await user.type(getTextResourceValueInput(propertyCoords), newValue);
+      await user.tab();
+
+      expect(onCreateTextResource).toHaveBeenCalledTimes(1);
+      expect(onCreateTextResource).toHaveBeenCalledWith({
+        value: expect.stringContaining(newValue),
+        id: expect.stringMatching(/^id_[1-9][0-9]{3}$/),
+      });
+    });
+  });
+
+  describe('onUpdateTextResource', () => {
+    it('Calls the onUpdateTextResource callback with the updated text resource when a description is changed', async () => {
+      const user = userEvent.setup();
+      const onUpdateTextResource = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onUpdateTextResource });
+      const testRowNumber = 1;
+      const propertyCoords: TextPropertyCoords = [
+        testRowNumber,
+        CodeListItemTextProperty.Description,
+      ];
+      const newValue = 'new text';
+
+      await user.type(getTextResourceValueInput(propertyCoords), newValue);
+      await user.tab();
+
+      expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+      expect(onUpdateTextResource).toHaveBeenCalledWith({
+        ...description1Resource,
+        value: expect.stringContaining(newValue),
+      });
+    });
+  });
+
+  describe('onUpdateCodeList', () => {
+    it('Calls the onUpdateCodeList callback with the new code list item when a value is changed', async () => {
+      const user = userEvent.setup();
+      const onUpdateCodeList = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onUpdateCodeList });
+      const testRowNumber = 1;
+      const newValue = 'new text';
+      const expectedCodeList = [...codeListWithTextResources];
+      expectedCodeList[testRowNumber - 1].value = newValue;
+
+      await user.type(
+        screen.getByRole('textbox', { name: texts.itemValue(testRowNumber) }),
+        newValue,
+      );
+      await user.tab();
+
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenCalledWith(expectedCodeList);
+    });
+  });
+
   it('Calls the onChange callback with the new code list when an item is removed', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
