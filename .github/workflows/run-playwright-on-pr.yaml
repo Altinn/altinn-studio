@@ -23,6 +23,8 @@ jobs:
     name: Build environment and run e2e test
     timeout-minutes: 25
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.51.1-noble
 
     steps:
       - name: 'Checking Out Code'
@@ -45,22 +47,6 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: modules-${{ hashFiles('package-lock.json') }}
-
-      - name: Cache Playwright Binaries
-        id: cache-playwright
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/ms-playwright
-          key: playwright-${{ hashFiles('package-lock.json') }}
-
       - name: Run setup.js script
         run: |
           node ./development/setup.js
@@ -78,9 +64,7 @@ jobs:
         working-directory: frontend/testing/playwright
         env:
           environment: local
-        run: |
-          yarn setup:playwright
-          yarn test:all
+        run: yarn test:all
 
       - name: Store artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
