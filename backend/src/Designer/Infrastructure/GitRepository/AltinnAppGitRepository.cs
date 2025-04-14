@@ -613,10 +613,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSets(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            List<RefToOptionListSpecifier> optionsListReferences = [];
             string[] layoutSetNames = GetLayoutSetNames();
 
+            return await FindOptionListReferencesInGivenLayoutSets(layoutSetNames, cancellationToken);
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInGivenLayoutSets(string[] layoutSetNames, CancellationToken cancellationToken)
+        {
+            List<RefToOptionListSpecifier> optionsListReferences = [];
             foreach (string layoutSetName in layoutSetNames)
             {
                 optionsListReferences = await FindOptionListReferencesInLayoutSet(layoutSetName, optionsListReferences, cancellationToken);
@@ -628,8 +632,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSet(string layoutSetName, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             string[] layoutNames = GetLayoutNames(layoutSetName);
+
+            return await FindOptionListReferencesInGivenLayouts(layoutSetName, layoutNames, optionsListReferences, cancellationToken);
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInGivenLayouts(string layoutSetName, string[] layoutNames, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
+        {
             foreach (string layoutName in layoutNames)
             {
                 var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
