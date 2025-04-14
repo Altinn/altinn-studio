@@ -23,9 +23,6 @@ jobs:
     name: Build environment and run e2e test
     timeout-minutes: 25
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend/testing/playwright
 
     steps:
       - name: 'Checking Out Code'
@@ -74,9 +71,11 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
+        working-directory: frontend/testing/playwright
         run: yarn install --immutable --inline-builds
 
       - name: Playwright run
+        working-directory: frontend/testing/playwright
         env:
           environment: local
         run: |
