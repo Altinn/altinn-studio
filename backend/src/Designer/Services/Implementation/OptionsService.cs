@@ -100,23 +100,42 @@ public class OptionsService : IOptionsService
             return optionListReferences;
         }
 
+        AddTaskDataToOptionListReference(optionListReferences, layoutSetsModel);
+
+        return optionListReferences;
+    }
+
+    private static void AddTaskDataToOptionListReference(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
+    {
         foreach (var reference in optionListReferences)
         {
             AddTaskDataToOptionListReference(reference, layoutSetsModel);
         }
-
-        return optionListReferences;
     }
 
     private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
     {
         foreach (var source in reference.OptionListIdSources)
         {
-            var matchingLayoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == source.LayoutSetId);
-
-            source.TaskId = matchingLayoutSetModel?.Task.Id;
-            source.TaskType = matchingLayoutSetModel?.Task.Type;
+            AddTaskDataToSourceFromLayoutSetModels(source, layoutSetsModel);
         }
+    }
+
+    private static void AddTaskDataToSourceFromLayoutSetModels(OptionListIdSource source, LayoutSetsModel layoutSetsModel)
+    {
+        var layoutSetModel = FindLayoutSetModelBySourceId(layoutSetsModel, source.LayoutSetId);
+        AddTaskDataToSource(source, layoutSetModel);
+    }
+
+    private static LayoutSetModel FindLayoutSetModelBySourceId(LayoutSetsModel layoutSetsModels, string sourceId)
+    {
+        return layoutSetsModels.Sets.FirstOrDefault(set => set.Id == sourceId);
+    }
+
+    private static void AddTaskDataToSource(OptionListIdSource source, LayoutSetModel layoutSetModel)
+    {
+        source.TaskId = layoutSetModel?.Task.Id;
+        source.TaskType = layoutSetModel?.Task.Type;
     }
 
     private void ValidateOption(Option option)
