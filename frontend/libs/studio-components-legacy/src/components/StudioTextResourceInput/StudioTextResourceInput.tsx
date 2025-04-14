@@ -31,8 +31,8 @@ type TextResourceInputPropsBase = {
   onChangeTextResource?: (textResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
-  onCreateTextResource: (newTextResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
+  onCreateTextResource?: (newTextResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   texts: TextResourceInputTexts;
   toggleClass?: string;
 };
@@ -175,7 +175,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
 InputBox.displayName = 'InputBox';
 
 type ValueFieldProps = StudioTextfieldProps & {
-  textResource: TextResource | null;
+  textResource?: TextResource;
   textResources: TextResource[];
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
@@ -236,7 +236,7 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   ): ReactElement => {
     const handleCreateTextResource = (value: string): void => {
       const newTextResource: TextResource = createNewTextResource(value);
-      onCreateTextResource?.(newTextResource);
+      onCreateTextResource(newTextResource);
     };
 
     const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {

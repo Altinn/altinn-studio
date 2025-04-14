@@ -241,13 +241,13 @@ type TextResourceIdCellProps = {
   currentId: string;
   label: string;
   number: number;
-  onBlurTextResource: (newTextResource: TextResource) => void;
+  onBlurTextResource: (textResource: TextResource) => void;
   onChangeCurrentId: (newId: string) => void;
-  onChangeTextResource: (newTextResource: TextResource) => void;
+  onChangeTextResource: (textResource: TextResource) => void;
   property: CodeListItemTextProperty;
   required: boolean;
   textResources: TextResource[];
-  onCreateTextResource: (newTextResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
   onUpdateTextResource: (textResource: TextResource) => void;
   onUpdateCodeList: (codeList: CodeList) => void;
   dispatch: Dispatch<ReducerAction>;
