@@ -57,10 +57,13 @@ namespace Altinn.Studio.Designer.Controllers
                 editingContext,
                 layoutSetId
             );
-            string existingPage = layoutSettings.Pages.Order.Find(p => p == page.Id);
-            if (existingPage != null)
+            if (layoutSettings.Pages is PagesWithOrder pages)
             {
-                return Conflict();
+                string existingPage = pages.Order.Find(p => p == page.Id);
+                if (existingPage != null)
+                {
+                    return Conflict("Page already exists.");
+                }
             }
             await layoutService.CreatePage(editingContext, layoutSetId, page.Id);
             return Created();
@@ -223,6 +226,28 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return Conflict(e.Message);
             }
+            return Ok();
+        }
+
+        [EndpointSummary("Update pages")]
+        [EndpointDescription(
+            @"This endpoint should not be preferred over a more explicit endpoint.
+            i.e. use `DeletePage` instead if possible."
+        )]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPut("page-groups")]
+        public async Task<ActionResult> UpdatePageGroups(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromBody] PagesDto pages
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            PagesWithGroups pagesWithGroups = pages.ToBusiness() as PagesWithGroups;
+            await layoutService.UpdatePageGroups(editingContext, layoutSetId, pagesWithGroups);
             return Ok();
         }
     }
