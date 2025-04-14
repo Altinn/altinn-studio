@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { SubApp } from './SubApp';
+import SubApp from './SubApp';
 import { render, screen, within } from '@testing-library/react';
 import { appContextMock } from './testing/appContextMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

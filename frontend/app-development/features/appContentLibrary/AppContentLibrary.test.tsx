@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { AppContentLibrary } from './AppContentLibrary';
+import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

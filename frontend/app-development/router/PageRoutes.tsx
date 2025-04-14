@@ -38,7 +38,7 @@ const router = createBrowserRouter(
             path={route.path}
             element={
               <Suspense fallback={'Loading...'}>
-                <route.subapp {...route.props} />
+                <route.subapp />
               </Suspense>
             }
             errorElement={<RouteErrorBoundary />}

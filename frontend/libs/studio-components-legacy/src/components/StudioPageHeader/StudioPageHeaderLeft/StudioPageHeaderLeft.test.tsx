@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioPageHeaderLeft, type StudioPageHeaderLeftProps } from './StudioPageHeaderLeft';
+import { StudioPageHeaderLeft } from './';
 import { StudioPageHeaderContext } from '../context';
+import type { StudioPageHeaderLeftProps } from './StudioPageHeaderLeft';
 
 describe('StudioPageHeaderLeft', () => {
   it('should render children when provided', () => {

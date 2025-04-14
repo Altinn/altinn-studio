@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { SubApp } from './SubApp';
+import SubApp from './SubApp';
 import { render, screen, within } from '@testing-library/react';
 
 const providerTestId = 'provider';

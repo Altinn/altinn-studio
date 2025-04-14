@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { Overview } from './Overview';
+import Overview from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
