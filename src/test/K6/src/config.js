@@ -16,7 +16,7 @@ export var authCookieNames = {
   at22: '.AspxAuthCloud',
   at23: '.ASPXAUTH', // '.AspxAuthCloud',
   at24: '.AspxAuthCloud',
-  tt02: '.ASPXAUTH', // '.AspxAuthTT02',
+  tt02: '.AspxAuthTT02', // '.AspxAuthTT02',
   yt01: '.ASPXAUTH', // '.AspxAuthYt',
   prod: '.ASPXAUTH', // '.AspxAuthProd'
 };
