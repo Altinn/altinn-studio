@@ -77,10 +77,14 @@ describe('StudioTextResourceInput', () => {
   it('Calls the onCreateTextResource callback when current id is undefined and the field is blurred', async () => {
     const user = userEvent.setup();
     renderTextResourceInput({ currentId: undefined });
-    const additionalText = 'a';
-    await user.type(getValueField(), additionalText);
+    const text = 'a test text';
+    await user.type(getValueField(), text);
     await user.tab();
     expect(onCreateTextResource).toBeCalledTimes(1);
+    expect(onCreateTextResource).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^id_[1-9][0-9]{3}$/),
+      value: text,
+    });
   });
 
   it('Renders the text resource picker when the search button is clicked', async () => {

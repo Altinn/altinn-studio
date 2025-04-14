@@ -27,10 +27,6 @@ export function changeTextResourceInList(
   );
 }
 
-export function determineDefaultMode(currentId?: string | null): Mode {
-  return currentId ? Mode.EditValue : Mode.Search;
-}
-
 export function createNewTextResource(value: string): TextResource {
   return {
     id: generateRandomTextResourceId(),
