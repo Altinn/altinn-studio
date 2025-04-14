@@ -105,7 +105,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         const string orgName = "invalidOrg";
         string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
         const LibraryContentType resourceType = LibraryContentType.CodeList;
-        string  apiUrlWithTextInvalidOrg = $"{apiBaseUrl}/{resourceType}";
+        string apiUrlWithTextInvalidOrg = $"{apiBaseUrl}/{resourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextInvalidOrg);
 
         // Act

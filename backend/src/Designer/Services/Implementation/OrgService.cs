@@ -23,9 +23,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _generalSettings = generalSettingsOptions;
         }
 
-        /// <summary>
-        /// Returns configured org list
-        /// </summary>
+        /// <inheritdoc />
         public async Task<OrgList> GetOrgList()
         {
             HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl);
@@ -35,6 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return orgList;
         }
 
+        /// <inheritdoc />
         public async Task<bool> IsOrg(string nameToCheck)
         {
             var orgList = await GetOrgList();
