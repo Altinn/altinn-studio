@@ -19,12 +19,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  playwright-tests:
-    name: Build environment and run e2e test
-    timeout-minutes: 25
+  build-app:
+    name: Build environment
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.51.1-noble
 
     steps:
       - name: 'Checking Out Code'
@@ -51,6 +48,14 @@ jobs:
         run: |
           node ./development/setup.js
 
+  playwright-tests:
+    name: Run e2e test
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.51.1-noble
+
+    steps:
       - name: Use node LTS and yarn cache
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
         with:
