@@ -14,12 +14,14 @@ import {
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
-import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
 import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { DesignViewNavigation } from '../DesignViewNavigation';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { PageGroupAccordion } from './PageGroupAccordion';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -52,8 +54,6 @@ export const DesignView = (): ReactNode => {
   const { getPdfLayoutName } = usePdf();
 
   const { t } = useTranslation();
-
-  const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
 
   /**
    * Handles the click of an accordion. It updates the URL and sets the
@@ -100,13 +100,13 @@ export const DesignView = (): ReactNode => {
    * Displays the pages as an ordered list
    */
   const displayPageAccordions = pagesModel?.pages?.map((pageModel) => {
-    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageModel.id);
+    const layout = layouts?.[pageModel.id];
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
 
     return (
       <PageAccordion
@@ -115,11 +115,11 @@ export const DesignView = (): ReactNode => {
         isOpen={pageModel.id === selectedFormLayoutName}
         onClick={() => handleClickAccordion(pageModel.id)}
         isInvalid={isInvalidLayout}
-        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
+        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(pageModel.id)}
       >
-        {layout.page === selectedFormLayoutName && (
+        {pageModel.id === selectedFormLayoutName && (
           <FormLayout
-            layout={layout.data}
+            layout={layout}
             isInvalid={isInvalidLayout}
             duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
           />
@@ -128,11 +128,29 @@ export const DesignView = (): ReactNode => {
     );
   });
 
+  const hasGroups = pagesModel?.groups?.length > 0;
+
+  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+
   return (
     <div className={classes.root}>
       <div className={classes.wrapper}>
+        {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
-          <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+          {isTaskNavigationPageGroups && hasGroups ? (
+            <PageGroupAccordion
+              groups={pagesModel?.groups}
+              layouts={layouts}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={handleClickAccordion}
+              onAddPage={handleAddPage}
+              isAddPagePending={isAddPageMutationPending}
+            />
+          ) : (
+            pagesModel?.pages?.length > 0 && (
+              <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+            )
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>
