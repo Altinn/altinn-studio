@@ -51,13 +51,13 @@ jobs:
 
       - name: Build
         run: |
-          dotnet build AppLibDotnet.sln -v m -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+          dotnet build -v m -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Test
         run: |
-          dotnet test AppLibDotnet.sln -v m --no-restore --no-build -c Release
+          dotnet test -v m --no-restore --no-build -c Release
       - name: Pack PR release
         run: |
-          dotnet pack AppLibDotnet.sln -v m --no-restore --no-build -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+          dotnet pack -v m --no-restore --no-build -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Versions
         run: |
           dotnet --version

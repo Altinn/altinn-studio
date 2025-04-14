@@ -17,10 +17,10 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: dotnet build
-        run: dotnet build AppLibDotnet.sln -v m
+        run: dotnet build solutions/All.sln -v m
 
       - name: dotnet test
-        run: dotnet test AppLibDotnet.sln --results-directory TestResults/ --collect:"XPlat Code Coverage" -v m
+        run: dotnet test solutions/All.sln --no-restore --no-build --results-directory TestResults/ --collect:"XPlat Code Coverage" -v m
 
       - name: Generate coverage results
         run: |

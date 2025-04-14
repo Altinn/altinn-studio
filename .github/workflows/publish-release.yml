@@ -48,8 +48,7 @@ jobs:
           dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Pack
         run: |
-          dotnet pack AppLibDotnet.sln --configuration Release --no-restore --no-build \
-            -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+          dotnet pack --configuration Release --no-restore --no-build -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Versions
         run: |
           dotnet --version

@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
-          dotnet build AppLibDotnet.sln -v m
+          dotnet build solutions/All.sln -v m
       - name: Test
         run: |
-          dotnet test AppLibDotnet.sln -v m --no-restore --no-build
+          dotnet test solutions/All.sln -v m --no-restore --no-build
