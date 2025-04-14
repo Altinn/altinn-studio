@@ -18,7 +18,11 @@
       {
         "id": "textWithoutLabel",
         "type": "Text",
-        "value": "Dette er helt vanlig tekst uten noe merkelapp eller datamodell."
+        "value": [
+          "externalApi",
+          "testId",
+          "details[0].id"
+        ]
       },
       {
         "id": "firstName",
@@ -26,7 +30,11 @@
         "textResourceBindings": {
           "title": "Fornavn"
         },
-        "value": "Espen"
+        "value": [
+          "externalApi",
+          "testId",
+          "details[0].id"
+        ]
       },
       {
         "id": "lastName",

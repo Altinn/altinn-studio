@@ -4,6 +4,8 @@
     "order": [
       "InputPage",
       "TextareaPage",
+      "ButtonPage",
+      "LinkPage",
       "RadioButtonsPage",
       "CheckboxesPage",
       "DropdownPage",
