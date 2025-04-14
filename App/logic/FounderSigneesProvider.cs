@@ -12,25 +12,20 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.logic;
 
-public class FounderSigneesProvider : ISigneeProvider
+public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
 {
-    private readonly IDataClient _dataClient;
-
-    public FounderSigneesProvider(IDataClient dataClient)
-    {
-        _dataClient = dataClient;
-    }
+    private readonly IDataClient _dataClient = dataClient;
 
     public string Id { get; init; } = "founders";
 
-    public async Task<SigneesResult> GetSigneesAsync(Instance instance)
+    public async Task<SigneeProviderResult> GetSigneesAsync(Instance instance)
     {
         Skjemadata formData = await GetFormData(instance);
 
         List<ProvidedSignee> providedSignees = [];
         foreach (StifterPerson stifterPerson in formData.StifterPerson)
         {
-            var personSignee = new PersonSignee
+            var personSignee = new ProvidedSignee.Person
             {
                 FullName = string.Join(
                     " ",
@@ -61,10 +56,10 @@ public class FounderSigneesProvider : ISigneeProvider
 
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
         {
-            var organisationSignee = new OrganisationSignee
+            var organisationSignee = new ProvidedSignee.Organization
             {
                 Name = stifterVirksomhet.Navn,
-                OrganisationNumber =
+                OrganizationNumber =
                     stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
                 Notifications = new Notifications
                 {
@@ -94,7 +89,7 @@ public class FounderSigneesProvider : ISigneeProvider
             providedSignees.Add(organisationSignee);
         }
 
-        return new SigneesResult { Signees = providedSignees };
+        return new SigneeProviderResult { Signees = providedSignees };
     }
 
     private async Task<Skjemadata> GetFormData(Instance instance)

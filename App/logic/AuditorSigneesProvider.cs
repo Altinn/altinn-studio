@@ -18,20 +18,20 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
 
     public string Id { get; init; } = "auditor";
 
-    public async Task<SigneesResult> GetSigneesAsync(Instance instance)
+    public async Task<SigneeProviderResult> GetSigneesAsync(Instance instance)
     {
         Skjemadata formData = await GetFormData(instance);
         Revisor revisor = formData.Revisor;
 
         if (formData.Revisor.HarRevisor == "nei")
         {
-            return new SigneesResult { Signees = [] };
+            return new SigneeProviderResult { Signees = [] };
         }
 
-        var organisationSignee = new OrganisationSignee
+        var organisationSignee = new ProvidedSignee.Organization
         {
             Name = revisor.Navn,
-            OrganisationNumber = revisor.Organisasjonsnummer,
+            OrganizationNumber = revisor.Organisasjonsnummer,
             Notifications = new Notifications
             {
                 OnSignatureAccessRightsDelegated = new Notification
@@ -46,7 +46,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
             }
         };
 
-        return new SigneesResult { Signees = [organisationSignee] };
+        return new SigneeProviderResult { Signees = [organisationSignee] };
     }
 
     private async Task<Skjemadata> GetFormData(Instance instance)
