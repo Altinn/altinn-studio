@@ -376,7 +376,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1(languageCode, cancellationToken);
+            Models.TextResource textResource = await altinnAppGitRepository.GetText(languageCode, cancellationToken);
             return Ok(textResource);
         }
 
@@ -412,7 +412,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb", cancellationToken);
+            Models.TextResource textResource = await altinnAppGitRepository.GetText("nb", cancellationToken);
             return Ok(textResource);
         }
 

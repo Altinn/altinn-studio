@@ -84,7 +84,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            var textResource = await altinnAppGitRepository.GetTextV1("nb");
+            var textResource = await altinnAppGitRepository.GetText("nb");
 
             Assert.NotNull(textResource);
             Assert.Equal("Hvem er hvem?", textResource.Resources.First(r => r.Id == "ServiceName").Value);
