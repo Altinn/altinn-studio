@@ -1,6 +1,5 @@
 import type { TextResource } from '../../types/TextResource';
 import { ArrayUtils } from '@studio/pure-functions';
-import { Mode } from './types/Mode';
 
 export function getTextResourceById(
   textResources: TextResource[],
