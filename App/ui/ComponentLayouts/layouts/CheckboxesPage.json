@@ -53,55 +53,6 @@
         "required": false
       },
       {
-        "dataModelBindings": {
-          "group": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.name",
-          "checked": "ListCheckboxExample.isChecked"
-        },
-        "deletionStrategy":"soft",
-        "id": "CheckboxesPage-Checkboxes2",
-        "type": "Checkboxes",
-        "textResourceBindings": {
-          "title": "CheckboxesPage.Checkboxes.title"
-        },
-        "optionsId": "persons",
-        "required": false
-      },
-      {
-        "id": "CheckboxesPage-RepeatingGroup",
-        "type": "RepeatingGroup",
-        "textResourceBindings": {
-          "title": "Repeterende Gruppe"
-        },
-        "dataModelBindings": {
-          "group": "ListCheckboxExample"
-        },
-        "hidden": false,
-        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
-        "children": [
-          "CheckboxesPage-RepeatingGroupName",
-          "CheckboxesPage-RepeatingGroupAge"
-        ]
-      },
-      {
-        "id": "CheckboxesPage-RepeatingGroupName",
-        "type": "Text",
-        "textResourceBindings": {
-          "title":"Name"
-        },
-        "value": ["dataModel","ListCheckboxExample.name"]
-      },
-      {
-        "id": "CheckboxesPage-RepeatingGroupAge",
-        "type": "Input",
-        "textResourceBindings": {
-          "title":"Age"
-        },
-        "dataModelBindings": {
-          "simpleBinding":"ListCheckboxExample.age"
-        }
-      },
-      {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary",
         "type": "Header",
@@ -187,6 +138,62 @@
         ]
       },
       {
+        "size": "h2",
+        "id": "CheckboxesPage-Header2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Avkryssningsbokser mot datamodell"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "group": "ListCheckboxExample",
+          "simpleBinding": "ListCheckboxExample.name",
+          "checked": "ListCheckboxExample.isChecked"
+        },
+        "deletionStrategy":"soft",
+        "id": "CheckboxesPage-Checkboxes2",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "CheckboxesPage.Checkboxes.title"
+        },
+        "optionsId": "persons",
+        "required": false
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroup",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Repeterende Gruppe"
+        },
+        "dataModelBindings": {
+          "group": "ListCheckboxExample"
+        },
+        "hidden": false,
+        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
+        "children": [
+          "CheckboxesPage-RepeatingGroupName",
+          "CheckboxesPage-RepeatingGroupAge"
+        ]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupName",
+        "type": "Text",
+        "textResourceBindings": {
+          "title":"Name"
+        },
+        "value": ["dataModel","ListCheckboxExample.name"]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupAge",
+        "type": "Input",
+        "textResourceBindings": {
+          "title":"Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding":"ListCheckboxExample.age"
+        }
+      }, {
         "id": "CheckboxesPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},

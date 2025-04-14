@@ -32,6 +32,7 @@
         "textResourceBindings": {
           "title": "MultipleSelectPage.MultipleSelect.title"
         },
+        "alertOnChange": true,
         "options": [
           {
             "label": "Kjøre til hytta på fjellet",
@@ -51,57 +52,6 @@
           }
         ],
         "required": false
-      },
-
-      {
-        "dataModelBindings": {
-          "group": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.name",
-          "checked": "ListCheckboxExample.isChecked"
-        },
-        "deletionStrategy":"soft",
-        "id": "MultipleSelectPage-Checkboxes2",
-        "type": "MultipleSelect",
-        "textResourceBindings": {
-          //"title": "CheckboxesPage.Checkboxes.title",
-          "title": "MultipleSelectPage.MultipleSelect.title"
-        },
-        "optionsId": "persons",
-        "required": false
-      },
-      {
-        "id": "MultipleSelectPage-RepeatingGroup",
-        "type": "RepeatingGroup",
-        "textResourceBindings": {
-          "title": "Repeterende Gruppe"
-        },
-        "dataModelBindings": {
-          "group": "ListCheckboxExample"
-        },
-        "hidden": false,
-        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
-        "children": [
-          "MultipleSelectPage-RepeatingGroupName",
-          "MultipleSelectPage-RepeatingGroupAge"
-        ]
-      },
-      {
-        "id": "MultipleSelectPage-RepeatingGroupName",
-        "type": "Text",
-        "textResourceBindings": {
-          "title":"Name"
-        },
-        "value": ["dataModel","ListCheckboxExample.name"]
-      },
-      {
-        "id": "MultipleSelectPage-RepeatingGroupAge",
-        "type": "Input",
-        "textResourceBindings": {
-          "title":"Age"
-        },
-        "dataModelBindings": {
-          "simpleBinding":"ListCheckboxExample.age"
-        }
       },
       {
         "id": "MultipleSelectPage-Header-Summary",
@@ -187,6 +137,63 @@
             "displayType": "list"
           }
         ]
+      },
+      {
+        "id": "MultipleSelectPage-Header2",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Avkryssningsbokser mot datamodell"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "group": "ListCheckboxExample",
+          "simpleBinding": "ListCheckboxExample.name",
+          "checked": "ListCheckboxExample.isChecked"
+        },
+        "deletionStrategy":"soft",
+        "id": "MultipleSelectPage-Checkboxes2",
+        "type": "MultipleSelect",
+        "textResourceBindings": {
+          "title": "Velg personer"
+        },
+        "optionsId": "persons",
+        "required": false
+      },
+      {
+        "id": "MultipleSelectPage-RepeatingGroup",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Repeterende Gruppe"
+        },
+        "dataModelBindings": {
+          "group": "ListCheckboxExample"
+        },
+        "hidden": false,
+        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
+        "children": [
+          "MultipleSelectPage-RepeatingGroupName",
+          "MultipleSelectPage-RepeatingGroupAge"
+        ]
+      },
+      {
+        "id": "MultipleSelectPage-RepeatingGroupName",
+        "type": "Text",
+        "textResourceBindings": {
+          "title":"Name"
+        },
+        "value": ["dataModel","ListCheckboxExample.name"]
+      },
+      {
+        "id": "MultipleSelectPage-RepeatingGroupAge",
+        "type": "Input",
+        "textResourceBindings": {
+          "title":"Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding":"ListCheckboxExample.age"
+        }
       },
       {
         "id": "MultipleSelectPage-NavigationButtons",
