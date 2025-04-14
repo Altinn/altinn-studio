@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/{org}")]
+[Route("designer/api/{orgName}")]
 public class OrgContentController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
@@ -36,17 +36,17 @@ public class OrgContentController : ControllerBase
     /// <summary>
     /// Returns names of available resources from an organisation, based on the requested type.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="orgName">Unique identifier of the organisation.</param>
     /// <param name="contentType">The type of resource to return the names of. For example code lists or text resources. </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content/{contentType}")]
-    public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] string org, [FromRoute] string contentType, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] string orgName, [FromRoute] string contentType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!await _orgService.IsOrg(org))
+        if (!await _orgService.IsOrg(orgName))
         {
-            HttpContext.Response.Headers["Reason"] = $"{org} is not a valid organisation.";
+            HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation.";
             return NoContent();
         }
 
@@ -61,11 +61,11 @@ public class OrgContentController : ControllerBase
         switch (parsedContentType)
         {
             case LibraryContentType.CodeList:
-                List<string> codeListResult = _orgCodeListService.GetCodeListIds(org, developer, cancellationToken);
+                List<string> codeListResult = _orgCodeListService.GetCodeListIds(orgName, developer, cancellationToken);
                 return Ok(codeListResult);
 
             case LibraryContentType.TextResource:
-                List<string> textResourceResult = await _orgTextsService.GetTextIds(org, developer, cancellationToken);
+                List<string> textResourceResult = await _orgTextsService.GetTextIds(orgName, developer, cancellationToken);
                 return Ok(textResourceResult);
 
             default:

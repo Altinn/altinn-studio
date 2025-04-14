@@ -102,7 +102,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         // Arrange
         _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(false);
 
-        const string orgName = "invalidOrg";
+        const string orgName = "invalidOrgName";
         string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
         const LibraryContentType resourceType = LibraryContentType.CodeList;
         string apiUrlWithTextInvalidOrg = $"{apiBaseUrl}/{resourceType}";
