@@ -75,6 +75,44 @@ class SupportedPaletteProvider {
       };
     }
 
+    function createUserControlledSigningTask() {
+      const taskType = 'userControlledSigning';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: [
+                  bpmnFactory.create('altinn:Action', { action: 'sign' }),
+                  bpmnFactory.create('altinn:Action', { action: 'reject' }),
+                ],
+              }),
+              signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
+                dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
+                  dataTypes: [],
+                }),
+                signatureDataType: `userControlledSignatureInformation-${generateRandomId(4)}`,
+                signeeStatesDataTypeId: `signeeStates-${generateRandomId(4)}`,
+                signeeProviderId: `signees`, // Default implementation in app-backend
+                signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
+                correspondenceResource: '', // No default
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
     function createCustomConfirmationTask() {
       const taskType = 'confirmation';
 
@@ -184,6 +222,15 @@ class SupportedPaletteProvider {
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
+          },
+        },
+        'create.altinn-user-controlled-signing-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
+          title: translate('Create Altinn user-controllerd-signing Task'),
+          action: {
+            click: createUserControlledSigningTask(),
+            dragstart: createUserControlledSigningTask(),
           },
         },
         'create.altinn-confirmation-task': {

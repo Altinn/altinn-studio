@@ -19,6 +19,8 @@ import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedActio
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { EditImplementationInterfaceId } from './EditImplementationInterfaceId/EditImplementationInterfaceId';
+import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -27,6 +29,7 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
+  const isUserControlledSigningTask = bpmnDetails.taskType === 'userControlledSigning';
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
     (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
@@ -63,12 +66,18 @@ export const ConfigContent = (): React.ReactElement => {
           className={classes.displayTile}
           showPadlock={false}
         />
-        {isSigningTask && (
+        {(isSigningTask || isUserControlledSigningTask) && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
             )}
+          </>
+        )}
+        {isUserControlledSigningTask && (
+          <>
+            <EditImplementationInterfaceId key={`${bpmnDetails.id}-uniqueSignature`} />
+            <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
           </>
         )}
         <Accordion color='neutral'>
