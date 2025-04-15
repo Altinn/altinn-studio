@@ -36,7 +36,7 @@ describe('DeleteModal', () => {
     expect(getNameField()).toHaveValue('a');
   });
 
-  it('calls the handleDelete function when the Delete button is clicked with a matching app name', async () => {
+  it('calls on a full refresh of the page when the delete button is clicked and deletion is a success', async () => {
     Object.defineProperty(window, 'location', {
       value: {
         ...window.location,

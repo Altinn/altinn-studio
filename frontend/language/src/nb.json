@@ -626,7 +626,6 @@
   "local_changes.modal_delete_modal_textfield_description": "Appen heter: {{appName}}",
   "local_changes.modal_delete_modal_textfield_label": "Skriv inn navnet på appen for å bekrefte.",
   "local_changes.modal_delete_modal_title": "Vil du slette endringene?",
-  "local_changes.modal_deleted_success": "Alle endringene er nå slettet",
   "local_changes.modal_download_all_files_label": "Last ned hele repoet",
   "local_changes.modal_download_only_changed_button": "Last ned en zip-fil med bare filer som er endret",
   "local_changes.modal_download_your_files_description": "Du kan laste ned alle filene du har gjort endringer på, fra din lokale maskin.",

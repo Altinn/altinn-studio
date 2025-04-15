@@ -74,7 +74,7 @@ test('That it is possible to delete local changes', async ({ page, testAppName }
   await localChangesModal.clickOnDeleteLocalChangesButton();
   await localChangesModal.writeAppNameInConfirmTextfield(testAppName);
   await localChangesModal.clickOnDeleteMyChangesButton();
-  await localChangesModal.verifyThatDeleteLocalChangesSuccessMessageIsVisible();
+  await localChangesModal.verifyThatDeleteLocalChangesSuccessPageReload();
 });
 
 test('That it is possible to download repo zip', async ({ page, testAppName }) => {
