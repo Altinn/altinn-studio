@@ -19,7 +19,7 @@ import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedActio
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { EditImplementationInterfaceId } from './EditImplementationInterfaceId/EditImplementationInterfaceId';
+import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
 
 export const ConfigContent = (): React.ReactElement => {
@@ -76,7 +76,7 @@ export const ConfigContent = (): React.ReactElement => {
         )}
         {isUserControlledSigningTask && (
           <>
-            <EditImplementationInterfaceId key={`${bpmnDetails.id}-uniqueSignature`} />
+            <EditUserControlledImplementation key={`${bpmnDetails.id}-interfaceImplementation`} />
             <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
           </>
         )}

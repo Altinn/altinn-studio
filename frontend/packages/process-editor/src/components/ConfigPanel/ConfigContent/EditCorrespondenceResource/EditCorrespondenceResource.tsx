@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 
-export const EditCorrespondenceResource = () => {
+export const EditCorrespondenceResource = (): ReactElement => {
   const { t } = useTranslation();
   const updateCorrespondenceResource = useUpdateCorrespondenceResource();
   const defaultCorrespondenceResource = useGetCorrespondenceResource();
