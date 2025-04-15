@@ -5,6 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
 const emptyLayout: IFormLayouts = {
   page1: {
@@ -23,12 +24,17 @@ const nonEmptyLayout: IFormLayouts = {
   page1: {
     ...emptyLayout.page1,
     components: {
-      component2: {
-        type: ComponentType.Input,
-        id: 'component2',
-        itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'simpleBinding' },
-      },
+      component2: componentMocks.Input,
+    },
+  },
+};
+
+const excludedLayout: IFormLayouts = {
+  ...emptyLayout,
+  page1: {
+    ...emptyLayout.page1,
+    components: {
+      component2: componentMocks.CustomButton,
     },
   },
 };
@@ -40,9 +46,17 @@ describe('useSubformLayoutValidation', () => {
     });
     expect(result.current).toBe(true);
   });
+
   it('should return false if form layout has no components', () => {
     const { result } = renderHook({
       layout: emptyLayout,
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it('should return false if form layout has only excluded components', () => {
+    const { result } = renderHook({
+      layout: excludedLayout,
     });
     expect(result.current).toBe(false);
   });
