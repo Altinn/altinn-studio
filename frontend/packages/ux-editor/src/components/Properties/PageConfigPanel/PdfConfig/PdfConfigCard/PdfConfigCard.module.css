@@ -2,7 +2,7 @@
   --card-margin-inline: var(--fds-spacing-4);
 
   margin-inline: var(--card-margin-inline);
-  width: calc(auto - var(--card-margin-inline));
+  width: auto;
 }
 
 .headerWrapper {
