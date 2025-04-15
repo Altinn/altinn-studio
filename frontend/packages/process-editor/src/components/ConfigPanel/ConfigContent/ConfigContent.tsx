@@ -17,8 +17,10 @@ import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesI
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
-import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
+import { EditLayoutSetName } from './EditLayoutSetName';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
+import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -27,6 +29,7 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
+  const isUserControlledSigningTask = bpmnDetails.taskType === 'userControlledSigning';
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
     (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
@@ -63,12 +66,18 @@ export const ConfigContent = (): React.ReactElement => {
           className={classes.displayTile}
           showPadlock={false}
         />
-        {isSigningTask && (
+        {(isSigningTask || isUserControlledSigningTask) && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
             )}
+          </>
+        )}
+        {isUserControlledSigningTask && (
+          <>
+            <EditUserControlledImplementation key={`${bpmnDetails.id}-interfaceImplementation`} />
+            <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
           </>
         )}
         <Accordion color='neutral'>
