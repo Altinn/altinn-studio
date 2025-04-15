@@ -65,19 +65,18 @@ describe('FormComponentConfig', () => {
   });
 
   it('Should render the rest of the components when show-button is clicked and show hide-button', async () => {
-    const use = userEvent.setup();
+    const user = userEvent.setup();
     render({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
     expect(button).toBeInTheDocument();
-    await use.click(button);
+    await user.click(button);
     const properties = [
       'renderAsSummary',
       'variant',
       'autocomplete',
       'maxLength',
-      'labelSettings',
       'pageBreak',
       'formatting',
     ];
@@ -86,6 +85,9 @@ describe('FormComponentConfig', () => {
         await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
     }
+    expect(
+      await screen.findByText(textMock('ux_editor.component_properties.optionalIndicator')),
+    ).toBeInTheDocument();
     const hideButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_hide_many_settings'),
     });
@@ -375,7 +377,8 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  it('should show description from schema for objects if key is not defined', () => {
+  it('should show description from schema for objects if key is not defined', async () => {
+    const user = userEvent.setup();
     const descriptionFromSchema = 'Some description for some object property';
     render({
       props: {
@@ -392,6 +395,11 @@ describe('FormComponentConfig', () => {
         },
       },
     });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_properties.somePropertyName'),
+      }),
+    );
     expect(screen.getByText(descriptionFromSchema)).toBeInTheDocument();
   });
 
