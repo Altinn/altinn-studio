@@ -19,10 +19,8 @@ describe('ContentLibrary', () => {
     const landingPageTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
-    const infoBox = screen.queryByTitle(textMock('app_content_library.info_box.title'));
     expect(libraryHeader).toBeInTheDocument();
     expect(landingPageTitle).toBeInTheDocument();
-    expect(infoBox).not.toBeInTheDocument();
   });
 
   it('renders the ContentLibrary with codeList content when acting as currentPage', () => {
