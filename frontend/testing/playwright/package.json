@@ -7,10 +7,13 @@
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
+    "@altinn-studio/language": "file:../../language",
     "@playwright/test": "^1.41.1",
+    "@testing-library/dom": "10.4.0",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^22.0.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "5.7.3"
   },
   "scripts": {
     "setup:playwright": "playwright install --with-deps && yarn setup:local:env",
