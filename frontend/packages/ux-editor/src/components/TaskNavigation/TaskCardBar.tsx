@@ -12,6 +12,7 @@ export const TaskCardBar = () => {
     org,
     app,
   );
+  const [isCreateSubformMode, setIsCreateSubformMode] = React.useState(false);
 
   if (layoutSetsPending) return null;
 
@@ -22,8 +23,11 @@ export const TaskCardBar = () => {
           <TaskCard key={layoutSetModel.id} layoutSetModel={layoutSetModel} />
         ))}
         <div className={classes.addCardsContainer}>
-          <AddNewTask />
-          <AddSubformCard />
+          {!isCreateSubformMode && <AddNewTask />}
+          <AddSubformCard
+            isSubformInEditMode={isCreateSubformMode}
+            setIsCreateSubformMode={setIsCreateSubformMode}
+          />
         </div>
       </div>
     </div>
