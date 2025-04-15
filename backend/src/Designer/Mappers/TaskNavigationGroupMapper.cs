@@ -19,10 +19,33 @@ public static class TaskNavigationGroupMapper
             },
             TaskNavigationReceipt receipt => new()
             {
-                TaskType = receipt.Type.GetJsonStringEnumMemberName(),
+                TaskType = receipt.Type.ToStringValue(),
                 Name = receipt.Name,
             },
             _ => throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroup.Name}': {taskNavigationGroup.GetType().Name}")
         };
+    }
+
+    public static TaskNavigationGroup ToDomain(this TaskNavigationGroupDto taskNavigationGroupDto)
+    {
+        if (!string.IsNullOrEmpty(taskNavigationGroupDto.TaskId))
+        {
+            return new TaskNavigationTask
+            {
+                TaskId = taskNavigationGroupDto.TaskId,
+                Name = taskNavigationGroupDto.Name,
+            };
+        }
+
+        if (!string.IsNullOrEmpty(taskNavigationGroupDto.TaskType))
+        {
+            return new TaskNavigationReceipt
+            {
+                Type = taskNavigationGroupDto.TaskType.ToEnumValue<TaskNavigationReceiptType>(),
+                Name = taskNavigationGroupDto.Name,
+            };
+        }
+
+        throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroupDto.Name}': {taskNavigationGroupDto.GetType().Name}");
     }
 }

@@ -11,9 +11,9 @@ export const getUidFilter = ({
   selectedContext,
   userId,
   organizations,
-}: GetUidFilter): undefined | number | SelectedContextType => {
+}: GetUidFilter): number | SelectedContextType => {
   if (selectedContext === SelectedContextType.All) {
-    return undefined;
+    return 0; // 0 will make backend not include uid in the search query
   }
 
   if (selectedContext === SelectedContextType.Self) {

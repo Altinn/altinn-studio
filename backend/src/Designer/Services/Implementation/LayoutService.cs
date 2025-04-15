@@ -44,15 +44,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Developer
                 );
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+            if (layoutSettings.Pages is not PagesWithOrder pages)
+            {
+                throw new InvalidOperationException(
+                    "Cannot add order page to layout using groups."
+                );
+            }
 
             AltinnPageLayout pageLayout = new();
-            if (layoutSettings.Pages.Order.Count > 0)
+            if (pages.Order.Count > 0)
             {
                 pageLayout = pageLayout.WithNavigationButtons();
             }
-            if (layoutSettings.Pages.Order.Count == 1)
+            if (pages.Order.Count == 1)
             {
-                string layoutName = layoutSettings.Pages.Order.First();
+                string layoutName = pages.Order.First();
                 JsonNode jsonNode = await appRepository.GetLayout(layoutSetId, layoutName);
                 AltinnPageLayout existingPage = new(jsonNode.AsObject());
                 if (!existingPage.HasComponentOfType("NavigationButtons"))
@@ -61,10 +67,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     await appRepository.SaveLayout(layoutSetId, layoutName, existingPage.Structure);
                 }
             }
-
             await appRepository.CreatePageLayoutFile(layoutSetId, pageId, pageLayout);
 
-            layoutSettings.Pages.Order.Add(pageId);
+            pages.Order.Add(pageId);
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
@@ -97,12 +102,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appRepository.DeleteLayout(layoutSetId, pageId);
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            layoutSettings.Pages.Order.Remove(pageId);
+            if (layoutSettings.Pages is not PagesWithOrder pages)
+            {
+                throw new InvalidOperationException(
+                    "Cannot delete order page from layout using groups."
+                );
+            }
+            pages.Order.Remove(pageId);
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
-            if (layoutSettings.Pages.Order.Count == 1)
+            if (pages.Order.Count == 1)
             {
-                string lastLayoutName = layoutSettings.Pages.Order.First();
+                string lastLayoutName = pages.Order.First();
                 JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
                 AltinnPageLayout lastPage = new(lastLayout.AsObject());
                 lastPage.RemoveAllComponentsOfType("NavigationButtons");
@@ -136,8 +147,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appRepository.UpdateFormLayoutName(layoutSetId, pageId, newName);
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            int orderIndex = layoutSettings.Pages.Order.IndexOf(pageId);
-            layoutSettings.Pages.Order[orderIndex] = newName;
+            if (layoutSettings.Pages is not PagesWithOrder pages)
+            {
+                throw new InvalidOperationException(
+                    "Cannot rename order page in layout using groups."
+                );
+            }
+            int orderIndex = pages.Order.IndexOf(pageId);
+            if (orderIndex == -1)
+            {
+                throw new InvalidOperationException($"Page '{pageId}' not found.");
+            }
+            pages.Order[orderIndex] = newName;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             await mediatr.Publish(
@@ -165,7 +186,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            layoutSettings.Pages.Order = pages.Order;
+            if (layoutSettings.Pages is not PagesWithOrder pagesWithOrder2)
+            {
+                throw new InvalidOperationException("Cannot update order in layout using groups.");
+            }
+            if (pages is not PagesWithOrder pagesWithOrder)
+            {
+                throw new InvalidOperationException("Cannot update order in layout using groups.");
+            }
+            pagesWithOrder2.Order = pagesWithOrder.Order;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
 
@@ -181,7 +210,53 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Developer
                 );
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            return layoutSettings.Pages.Groups is not null;
+            return layoutSettings.Pages is PagesWithGroups;
+        }
+
+        public async Task UpdatePageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            PagesWithGroups pagesWithGroups
+        )
+        {
+            ArgumentNullException.ThrowIfNull(editingContext);
+            ArgumentException.ThrowIfNullOrEmpty(layoutSetId);
+            ArgumentNullException.ThrowIfNull(pagesWithGroups);
+
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
+                layoutSetId
+            );
+            if (originalLayoutSettings.Pages is not PagesWithGroups originalPagesWithGroups)
+            {
+                throw new InvalidOperationException(
+                    "Cannot update page groups in layout using order."
+                );
+            }
+            IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
+            IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany(
+                (group) => group.Order
+            );
+            var deletedPages = originalOrder.Except(order).ToList();
+            foreach (string pageId in deletedPages)
+            {
+                appRepository.DeleteLayout(layoutSetId, pageId);
+                await mediatr.Publish(
+                    new LayoutPageDeletedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutName = pageId,
+                        LayoutSetName = layoutSetId,
+                    }
+                );
+            }
+            originalLayoutSettings.Pages = pagesWithGroups;
+            await appRepository.SaveLayoutSettings(layoutSetId, originalLayoutSettings);
         }
 
         /// <exception cref="InvalidOperationException">
@@ -192,12 +267,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutSetId
         )
         {
-            if (await IsLayoutUsingPageGroups(editingContext, layoutSetId))
-            {
-                throw new InvalidOperationException(
-                    "Layout cannot be converted to layout with page groups. Layout already uses page groups."
-                );
-            }
             AltinnAppGitRepository appRepository =
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     editingContext.Org,
@@ -206,12 +275,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            layoutSettings.Pages.Groups = [];
-            foreach (string page in layoutSettings.Pages.Order)
+            if (layoutSettings.Pages is not PagesWithOrder pages)
             {
-                layoutSettings.Pages.Groups.Add(new Group { Order = [page] });
+                throw new InvalidOperationException(
+                    "Cannot convert layout to use page groups. Layout does not use order."
+                );
             }
-            layoutSettings.Pages.Order = null;
+            List<string> pageOrder = pages.Order;
+            var pagesWithGroups = layoutSettings.Pages.ToPagesWithGroups();
+            pagesWithGroups.Groups = [];
+            foreach (string page in pageOrder)
+            {
+                pagesWithGroups.Groups.Add(new Group { Order = [page] });
+            }
+            layoutSettings.Pages = pagesWithGroups;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
 
@@ -226,12 +303,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutSetId
         )
         {
-            if (!await IsLayoutUsingPageGroups(editingContext, layoutSetId))
-            {
-                throw new InvalidOperationException(
-                    "Layout cannot be converted to layout without page groups. Layout does not use page groups."
-                );
-            }
             AltinnAppGitRepository appRepository =
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     editingContext.Org,
@@ -240,19 +311,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
 
-            layoutSettings.Pages.Order = [];
-            foreach (Group group in layoutSettings.Pages.Groups)
+            if (layoutSettings.Pages is not PagesWithGroups pages)
             {
-                if (group.Order is not List<string> pages)
+                throw new InvalidOperationException(
+                    "Cannot convert layout to use page groups. Layout does not use page groups."
+                );
+            }
+            List<Group> pageGroups = pages.Groups;
+            var pagesWithOrder = layoutSettings.Pages.ToPagesWithOrder();
+            pagesWithOrder.Order = [];
+            foreach (Group group in pageGroups)
+            {
+                foreach (string page in group.Order)
                 {
-                    throw new InvalidOperationException($"Page group does not contain order array");
-                }
-                foreach (string page in pages)
-                {
-                    layoutSettings.Pages.Order.Add(page);
+                    pagesWithOrder.Order.Add(page);
                 }
             }
-            layoutSettings.Pages.Groups = null;
+            layoutSettings.Pages = pagesWithOrder;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
     }
