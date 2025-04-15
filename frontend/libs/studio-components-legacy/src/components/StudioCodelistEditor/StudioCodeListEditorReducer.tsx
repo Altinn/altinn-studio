@@ -31,8 +31,6 @@ type AddTextResourceAction = {
   textResource: TextResource;
   codeItemIndex: number;
   property: CodeListItemTextProperty;
-  onCreateTextResource?: (textResource: TextResource) => void;
-  onUpdateCodeList?: (codeList: CodeList) => void;
 };
 
 type DeleteTextResourceAction = {
@@ -54,7 +52,6 @@ type UpdateTextResourceValueAction = {
   type: ReducerActionType.UpdateTextResourceValue;
   textResourceId: string;
   newValue: string;
-  onUpdateTextResource?: (textResource: TextResource) => void;
 };
 
 export type ReducerAction =
@@ -102,8 +99,6 @@ function addTextResource(state: ReducerState, action: AddTextResourceAction): Re
     state.textResources,
     action.textResource,
   );
-  action.onUpdateCodeList?.(updatedCodeList);
-  action.onCreateTextResource?.(action.textResource);
   return {
     textResources: updatedTextResources,
     codeList: updatedCodeList,
@@ -145,12 +140,6 @@ function updateTextResourceValue(
     state.textResources,
     action,
   );
-
-  const textResource = updatedTextResources.find(
-    (item: TextResource) => item.id === action.textResourceId,
-  );
-  action.onUpdateTextResource?.(textResource);
-
   return {
     ...state,
     textResources: updatedTextResources,

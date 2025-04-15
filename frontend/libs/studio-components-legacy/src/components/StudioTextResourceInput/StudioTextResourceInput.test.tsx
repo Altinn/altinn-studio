@@ -82,7 +82,7 @@ describe('StudioTextResourceInput', () => {
     await user.tab();
     expect(onCreateTextResource).toBeCalledTimes(1);
     expect(onCreateTextResource).toHaveBeenCalledWith({
-      id: expect.stringMatching(/^id_[1-9][0-9]{3}$/),
+      id: expect.any(String),
       value: text,
     });
   });

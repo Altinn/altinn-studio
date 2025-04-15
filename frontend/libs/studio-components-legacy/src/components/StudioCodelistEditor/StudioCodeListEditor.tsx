@@ -29,11 +29,23 @@ import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
 import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
+import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import type { TypeSelectorProps } from './TypeSelector';
 import { TypeSelector } from './TypeSelector';
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import type { ReducerState, ReducerAction } from './StudioCodeListEditorReducer';
 import classes from './StudioCodeListEditor.module.css';
+
+export type CreateTextResourceArgs = {
+  textResource: TextResource;
+  codeList: CodeList;
+};
+
+export type CreateTextResourceInternalArgs = {
+  textResource: TextResource;
+  codeItemIndex: number;
+  property: CodeListItemTextProperty;
+};
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -44,7 +56,7 @@ export type StudioCodeListEditorProps = {
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   textResources?: TextResource[];
-  onCreateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: ({}: CreateTextResourceArgs) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
@@ -128,6 +140,15 @@ function StatefulCodeListEditor({
     [onChange, onInvalid, dispatch],
   );
 
+  const handleCreateTextResource = useCallback(
+    ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
+      const codeList = [...state.codeList];
+      codeList[codeItemIndex][property] = textResource.id;
+      onCreateTextResource?.({ textResource, codeList });
+    },
+    [onCreateTextResource, state.codeList],
+  );
+
   return (
     <ControlledCodeListEditor
       codeList={state.codeList}
@@ -137,9 +158,8 @@ function StatefulCodeListEditor({
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
       textResources={state.textResources}
-      onCreateTextResource={onCreateTextResource}
+      onCreateTextResource={handleCreateTextResource}
       onUpdateTextResource={onUpdateTextResource}
-      onUpdateCodeList={onUpdateCodeList}
       dispatch={dispatch}
     />
   );
@@ -149,8 +169,9 @@ type ControlledCodeListEditorProps = Override<
   Pick<StudioInputTableProps, 'onBlurAny'> & {
     textResources: TextResource[];
     dispatch: Dispatch<ReducerAction>;
+    onCreateTextResource: ({}: CreateTextResourceInternalArgs) => void;
   },
-  Omit<StatefulCodeListEditorProps, 'onInvalid'>
+  Omit<StatefulCodeListEditorProps, 'onInvalid' | 'onUpdateCodeList'>
 >;
 
 function ControlledCodeListEditor({
@@ -163,7 +184,6 @@ function ControlledCodeListEditor({
   textResources,
   onCreateTextResource,
   onUpdateTextResource,
-  onUpdateCodeList,
   dispatch,
 }: ControlledCodeListEditorProps): ReactElement {
   const [codeType, setCodeType] = useCodeTypeState(codeList);
@@ -193,7 +213,6 @@ function ControlledCodeListEditor({
         textResources={textResources}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
         dispatch={dispatch}
       />
       <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
@@ -271,7 +290,6 @@ function TableBody({
   textResources,
   onCreateTextResource,
   onUpdateTextResource,
-  onUpdateCodeList,
   dispatch,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
@@ -306,7 +324,6 @@ function TableBody({
           textResources={textResources}
           onCreateTextResource={onCreateTextResource}
           onUpdateTextResource={onUpdateTextResource}
-          onUpdateCodeList={onUpdateCodeList}
           dispatch={dispatch}
         />
       ))}

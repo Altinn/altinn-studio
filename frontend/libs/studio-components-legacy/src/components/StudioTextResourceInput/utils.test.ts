@@ -3,6 +3,8 @@ import {
   editTextResourceValue,
   getTextResourceById,
   createNewTextResource,
+  generateRandomTextResourceId,
+  getTextResourceValueIfTextResourceExists,
 } from './utils';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { TextResource } from '../../types/TextResource';
@@ -60,7 +62,55 @@ describe('utils', () => {
       const value: string = 'Lorem ipsum';
       const result: TextResource = createNewTextResource(value);
       expect(result.value).toBe('Lorem ipsum');
-      expect(result.id).toMatch(/^id_[1-9][0-9]{3}$/);
+      expect(result.id).toEqual(expect.any(String));
+    });
+  });
+
+  describe('generateRandomTextResourceId', () => {
+    const numberOfIds = 1000;
+    const ids: string[] = [];
+    for (let i = 0; i < numberOfIds; i++) {
+      ids.push(generateRandomTextResourceId());
+    }
+
+    it('Returns a string with the correct format', () => {
+      ids.forEach((id: string) => {
+        expect(id).toMatch(/^id_[A-Za-z0-9]{12}$/);
+      });
+    });
+
+    it('Returns a different ID each time', () => {
+      const idSet = new Set(ids);
+      expect(idSet.size).toBe(numberOfIds);
+    });
+  });
+
+  describe('getTextResourceValueIfTextResourceExists', () => {
+    const textResource = { id: 'id1', value: 'Test 1' };
+    const textResources = [textResource];
+
+    it('Returns the value of a text resource when it exists', () => {
+      const currentId = textResource.id;
+
+      const result: string = getTextResourceValueIfTextResourceExists(
+        textResources,
+        textResource,
+        currentId,
+      );
+
+      expect(result).toEqual(textResource.value);
+    });
+
+    it('Returns an empty string if the text resource does not exist', () => {
+      const currentId = 'some-id';
+
+      const result: string = getTextResourceValueIfTextResourceExists(
+        textResources,
+        textResource,
+        currentId,
+      );
+
+      expect(result).toBe('');
     });
   });
 });

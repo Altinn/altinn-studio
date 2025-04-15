@@ -13,6 +13,7 @@ import {
   editTextResourceValue,
   getTextResourceById,
   createNewTextResource,
+  getTextResourceValueIfTextResourceExists,
 } from './utils';
 import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
@@ -259,9 +260,7 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       onChange?.(event);
     };
 
-    const isCurrentIdTextResource: boolean =
-      textResources.filter((item: TextResource) => item.id === currentId).length !== 0;
-    const value: string = isCurrentIdTextResource ? textResource.value : '';
+    const value = getTextResourceValueIfTextResourceExists(textResources, textResource, currentId);
 
     return (
       <StudioTextfield

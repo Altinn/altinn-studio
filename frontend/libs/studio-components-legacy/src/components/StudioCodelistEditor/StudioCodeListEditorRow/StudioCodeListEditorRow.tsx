@@ -1,4 +1,3 @@
-import type { CodeList } from '../types/CodeList';
 import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
@@ -12,6 +11,7 @@ import type { TextResource } from '../../../types/TextResource';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 import { ReducerActionType } from '../StudioCodeListEditorReducer';
 import type { ReducerAction } from '../StudioCodeListEditorReducer';
+import type { CreateTextResourceInternalArgs } from '../StudioCodeListEditor';
 import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
@@ -23,9 +23,8 @@ type StudioCodeListEditorRowProps = {
   onChangeTextResource: (textResource: TextResource) => void;
   onDeleteButtonClick: () => void;
   textResources: TextResource[];
-  onCreateTextResource: (newTextResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeList: CodeList) => void;
+  onCreateTextResource?: ({}: CreateTextResourceInternalArgs) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   dispatch: Dispatch<ReducerAction>;
 };
 
@@ -40,7 +39,6 @@ export function StudioCodeListEditorRow({
   textResources,
   onCreateTextResource,
   onUpdateTextResource,
-  onUpdateCodeList,
   dispatch,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
@@ -98,7 +96,6 @@ export function StudioCodeListEditorRow({
         textResources={textResources}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
         dispatch={dispatch}
       />
       <TextResourceIdCell
@@ -113,7 +110,6 @@ export function StudioCodeListEditorRow({
         textResources={textResources}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
         dispatch={dispatch}
       />
       <TextResourceIdCell
@@ -128,7 +124,6 @@ export function StudioCodeListEditorRow({
         textResources={textResources}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
-        onUpdateCodeList={onUpdateCodeList}
         dispatch={dispatch}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
@@ -247,9 +242,8 @@ type TextResourceIdCellProps = {
   property: CodeListItemTextProperty;
   required: boolean;
   textResources: TextResource[];
-  onCreateTextResource: (textResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeList: CodeList) => void;
+  onCreateTextResource?: ({}: CreateTextResourceInternalArgs) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   dispatch: Dispatch<ReducerAction>;
 };
 
@@ -273,25 +267,24 @@ function TextResourceSelectorCell({
   textResources,
   onCreateTextResource,
   onUpdateTextResource,
-  onUpdateCodeList,
   dispatch,
-}: Required<TextResourceIdCellProps>) {
+}: TextResourceIdCellProps) {
   const {
     texts: { textResourceTexts },
   } = useStudioCodeListEditorContext();
 
   const handleCreateTextResource = useCallback(
     (textResource: TextResource) => {
+      const codeItemIndex = number - 1;
       dispatch({
         type: ReducerActionType.AddTextResource,
-        textResource: textResource,
-        codeItemIndex: number - 1,
+        textResource,
+        codeItemIndex,
         property,
-        onCreateTextResource: onCreateTextResource,
-        onUpdateCodeList: onUpdateCodeList,
       });
+      onCreateTextResource?.({ textResource, codeItemIndex, property });
     },
-    [dispatch, onCreateTextResource, number, property, onUpdateCodeList],
+    [dispatch, onCreateTextResource, number, property],
   );
 
   const handleUpdateTextResource = useCallback(
@@ -300,8 +293,8 @@ function TextResourceSelectorCell({
         type: ReducerActionType.UpdateTextResourceValue,
         textResourceId: textResource.id,
         newValue: textResource.value,
-        onUpdateTextResource: onUpdateTextResource,
       });
+      onUpdateTextResource?.(textResource);
     },
     [dispatch, onUpdateTextResource],
   );
