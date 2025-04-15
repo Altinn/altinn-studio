@@ -108,6 +108,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      allowedContributers: ['app:owned'],
       dataTypeId: 'paymentInformation-1234',
       taskId: 'testElementId',
     });
@@ -138,6 +139,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributers: ['app:owned'],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
