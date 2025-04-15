@@ -11,6 +11,8 @@ import { FileImportIcon, PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/ic
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import type { TextResource } from '@studio/components-legacy';
 import { ImportFromOrgLibraryDialog } from './ImportFromOrgLibraryDialog';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { getCodeListIdsFromExternalResources } from './utils';
 
 export type AddCodeListDropdownProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -18,7 +20,7 @@ export type AddCodeListDropdownProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
-  externalResourceIds?: string[];
+  externalResourceIds?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
@@ -34,6 +36,7 @@ export function AddCodeListDropdown({
   const { t } = useTranslation();
   const addCodeListRef = useRef<HTMLDialogElement>(null);
   const importCodeListRef = useRef<HTMLDialogElement>(null);
+  const codeListIds: string[] = getCodeListIdsFromExternalResources(externalResourceIds);
   const hasExternalResources: boolean = externalResourceIds && externalResourceIds.length > 0;
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
@@ -99,7 +102,7 @@ export function AddCodeListDropdown({
       />
       {hasExternalResources && (
         <ImportFromOrgLibraryDialog
-          codeListIds={externalResourceIds}
+          codeListIds={codeListIds}
           ref={importCodeListRef}
           onImportCodeListFromOrg={onImportCodeListFromOrg}
         />

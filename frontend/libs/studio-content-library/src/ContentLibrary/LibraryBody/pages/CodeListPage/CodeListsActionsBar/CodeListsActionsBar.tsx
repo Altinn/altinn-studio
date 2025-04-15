@@ -6,6 +6,7 @@ import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -14,7 +15,7 @@ export type CodeListsActionsBarProps = {
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
-  externalResourceIds?: string[];
+  externalResourceIds?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 

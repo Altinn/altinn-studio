@@ -37,6 +37,7 @@ import { convertTextResourceToMutationArgs } from './utils/convertTextResourceTo
 import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
+import { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -83,7 +84,7 @@ type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
   optionListUsages: OptionListReferences;
   textResources: ITextResources;
-  availableCodeListsToImportFromOrg?: string[];
+  availableCodeListsToImportFromOrg?: ExternalResource[];
 };
 
 function AppContentLibraryWithData({
