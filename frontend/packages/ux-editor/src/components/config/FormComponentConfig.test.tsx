@@ -959,6 +959,85 @@ describe('FormComponentConfig', () => {
     });
   });
 
+  it('should call handleComponentUpdate when a nested string property in an object is updated and propagate to parent', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'someObjectProperty';
+    const nestedPropKey = 'nestedStringProp';
+
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          id: 'test-id',
+          itemType: 'COMPONENT',
+          type: ComponentType.Input,
+          [propertyKey]: {
+            [nestedPropKey]: 'initial value',
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await waitFor(async () => {
+      await user.click(objectButton);
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+        }),
+      ).toBeInTheDocument();
+    });
+    const nestedPropButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await waitFor(async () => {
+      await user.click(nestedPropButton);
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole('textbox', {
+          name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+        }),
+      ).toBeInTheDocument();
+    });
+    const nestedInput = screen.getByRole('textbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await waitFor(async () => {
+      await user.clear(nestedInput);
+      await user.type(nestedInput, 'updated value');
+    });
+    await waitFor(() => {
+      expect(nestedInput).toHaveValue('updated value');
+    });
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [propertyKey]: expect.objectContaining({
+            [nestedPropKey]: 'updated value',
+          }),
+        }),
+      );
+    });
+  });
+
   const render = ({
     props = {},
     queries = {},
