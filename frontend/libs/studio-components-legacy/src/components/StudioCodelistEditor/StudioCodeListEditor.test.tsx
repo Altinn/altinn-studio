@@ -363,13 +363,15 @@ describe('StudioCodeListEditor', () => {
           onCreateTextResource,
         });
         const propertyCoords: TextPropertyCoords = [testRowNumber, property];
+        const expectedCodeList = [...codeListWithoutTextResources];
+        expectedCodeList[testRowNumber][property] = newValue;
 
         await user.type(getTextResourceValueInput(propertyCoords), newValue);
         await user.tab();
 
         expect(onCreateTextResource).toHaveBeenCalledTimes(1);
         expect(onCreateTextResource).toHaveBeenCalledWith({
-          codeList: expect.any(Array),
+          codeList: expectedCodeList,
           textResource: {
             value: expect.stringContaining(newValue),
             id: expect.any(String),
