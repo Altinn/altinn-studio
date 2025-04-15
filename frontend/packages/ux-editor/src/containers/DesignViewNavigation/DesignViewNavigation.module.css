@@ -1,4 +1,8 @@
-.container {
-  background: var(--fds-semantic-surface-neutral-subtle);
-  flex: var(--properties-width-fraction);
+.menu {
+  --menu-height: 20px;
+}
+
+.menu {
+  height: var(--menu-height);
+  align-items: center;
 }

@@ -304,7 +304,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<TextResource> GetTextV1(
+        public async Task<TextResource> GetText(
             string language,
             CancellationToken cancellationToken = default
         )
@@ -324,86 +324,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return textResource;
         }
 
-        public async Task SaveTextV1(string languageCode, TextResource jsonTexts)
+        public async Task SaveText(string languageCode, TextResource jsonTexts)
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
             string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
-        }
-
-        /// <summary>
-        /// Reads text file from disk written in the new text format
-        /// identified by the languageCode in filename.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <returns>Texts as a string</returns>
-        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
-        {
-            string fileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<
-                Dictionary<string, string>
-            >(texts, JsonOptions);
-
-            return jsonTexts;
-        }
-
-        /// <summary>
-        /// Overwrite a V2 texts file with an updated V2 texts file
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="jsonTexts">Text file for language as string</param>
-        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
-        {
-            string fileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
-            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
-        }
-
-        /// <summary>
-        /// Overwrite or creates a markdown file for a specific text for a specific language.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="text">KeyValuePair containing markdown text</param>
-        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
-        {
-            string fileName = $"{text.Key}.{languageCode}.texts.md";
-            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
-            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
-        }
-
-        /// <summary>
-        /// Get the markdown text specific for a key identified in the filename.
-        /// </summary>
-        /// <param name="markdownFileName">Filename for file with markdown text for a key</param>
-        /// <returns>Markdown text as a string</returns>
-        public async Task<string> GetTextMarkdown(string markdownFileName)
-        {
-            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
-            string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-
-            return text;
-        }
-
-        /// <summary>
-        /// Deletes the texts file for a specific languageCode.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        public void DeleteTexts(string languageCode)
-        {
-            string textsFileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
-            DeleteFileByRelativePath(textsFileRelativeFilePath);
-            IEnumerable<string> fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
-            foreach (string fileNamePath in fileNames)
-            {
-                string fileName = Path.GetFileName(fileNamePath);
-                textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
-                DeleteFileByRelativePath(textsFileRelativeFilePath);
-            }
         }
 
         public async Task CreatePageLayoutFile(
@@ -1295,19 +1221,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files in repository.
-        /// </summary>
-        public IList<AltinnCoreFile> GetAllSchemaFiles(bool xsd = false)
-        {
-            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
-
-            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
-            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
-
-            return altinnCoreSchemaFiles;
-        }
-
-        /// <summary>
         /// Finds all schema files in App/models directory.
         /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
@@ -1367,16 +1280,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return string.IsNullOrEmpty(fileName)
                 ? Path.Combine(ConfigFolderPath, LanguageResourceFolderName)
                 : Path.Combine(ConfigFolderPath, LanguageResourceFolderName, fileName);
-        }
-
-        private static string GetPathToMarkdownTextFile(string fileName)
-        {
-            return Path.Combine(
-                ConfigFolderPath,
-                LanguageResourceFolderName,
-                MarkdownTextsFolderName,
-                fileName
-            );
         }
 
         // can be null if app does not use layout set

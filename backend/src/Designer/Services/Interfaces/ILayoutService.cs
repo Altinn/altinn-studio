@@ -32,6 +32,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             string layoutSetId
         );
 
+        /// <summary>
+        /// This method should not be used if an explicit way
+        /// to do the operation is available.
+        /// It's main motivation is for when we cannot easily
+        /// identify the specific values being changed.
+        /// </summary>
+        public Task UpdatePageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            PagesWithGroups pagesWithGroups
+        );
+
         public Task<bool> IsLayoutUsingPageGroups(
             AltinnRepoEditingContext editingContext,
             string layoutSetId
