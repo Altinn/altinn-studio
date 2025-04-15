@@ -62,6 +62,14 @@ describe('AppContentLibrary', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
+  it('Renders an error message when getAvailableResourcesFromOrg fails', async () => {
+    const getAvailableResourcesFromOrg = () => Promise.reject(new Error('Test error'));
+    renderAppContentLibrary({ queries: { getAvailableResourcesFromOrg } });
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
   it('Renders with the given code lists', () => {
     renderAppContentLibraryWithData();
     const codeListDataList = retrieveConfig().codeList.props.codeListsData;

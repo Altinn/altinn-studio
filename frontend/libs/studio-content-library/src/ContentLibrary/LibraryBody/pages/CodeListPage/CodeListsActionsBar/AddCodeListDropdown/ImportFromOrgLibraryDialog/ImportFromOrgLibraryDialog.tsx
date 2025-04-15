@@ -74,6 +74,7 @@ function ImportCodeList({
     <div className={classes.dialogContent}>
       <StudioSelect
         label={t('app_content_library.code_lists.import_modal_select_label')}
+        description={t('app_content_library.code_lists.import_modal_select_description')}
         value={selectedCodeListId}
         onChange={handleSelectCodeListId}
       >
