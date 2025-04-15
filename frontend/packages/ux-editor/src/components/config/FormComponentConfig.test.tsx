@@ -1038,6 +1038,113 @@ describe('FormComponentConfig', () => {
     });
   });
 
+  it('should spread component properties when updating nested object properties', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'testObjectProperty';
+    const nestedPropKey = 'testField';
+
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: { type: 'string' },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          id: 'test-id',
+          type: ComponentType.Input,
+          [propertyKey]: { [nestedPropKey]: 'initial' },
+          someOtherProperty: 'should-be-preserved',
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+      }),
+    );
+    const input = screen.getByRole('textbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await user.clear(input);
+    await user.type(input, 'updated-value');
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'test-id',
+          type: ComponentType.Input,
+          someOtherProperty: 'should-be-preserved',
+          [propertyKey]: expect.objectContaining({
+            [nestedPropKey]: 'updated-value',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('should spread component properties when updating nested boolean properties', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'testObjectProperty';
+    const nestedPropKey = 'testBooleanField';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: { type: 'boolean', default: false },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          id: 'test-id',
+          type: ComponentType.Input,
+          [propertyKey]: { [nestedPropKey]: false },
+          someOtherProperty: 'should-be-preserved',
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      }),
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await user.click(checkbox);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'test-id',
+          type: ComponentType.Input,
+          someOtherProperty: 'should-be-preserved',
+          [propertyKey]: expect.objectContaining({
+            [nestedPropKey]: true,
+          }),
+        }),
+      );
+    });
+  });
+
   const render = ({
     props = {},
     queries = {},

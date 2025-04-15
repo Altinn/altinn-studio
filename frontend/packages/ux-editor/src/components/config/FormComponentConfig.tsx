@@ -240,7 +240,7 @@ export const FormComponentConfig = ({
       {grid && (
         <>
           {showGrid ? (
-            <StudioCard>
+            <StudioCard className={classes.objectPropertyContainer}>
               <StudioCard.Header className={classes.gridHeader}>
                 <div className={classes.flexContainer}>
                   <Heading size='xs' className={classes.heading}>
