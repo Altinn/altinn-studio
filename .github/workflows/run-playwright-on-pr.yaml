@@ -62,7 +62,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          working-directory: frontend/testing/playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('./yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
