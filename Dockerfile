@@ -54,7 +54,7 @@ WORKDIR /version
 RUN echo "{\"designerVersion\":\"$DESIGNER_VERSION\",\"appTemplateVersion\":\"$(curl -s https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq -r .tag_name)\"}" > version.json
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:374a0ebc32ae59692470070a8bbcdef1186250d446836bf6ec8ac08a5c623667 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:3fce6771d84422e2396c77267865df61174a3e503c049f1fe242224c012fde65 AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

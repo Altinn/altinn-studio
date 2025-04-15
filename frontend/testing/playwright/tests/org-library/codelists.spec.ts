@@ -65,6 +65,7 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
     await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
   }
 
+  await orgLibraryPage.codeLists.clickOnAddNewCodeListDropdown();
   await orgLibraryPage.codeLists.clickOnCreateNewCodelistButton();
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
   await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
@@ -120,6 +121,8 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
     await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_UPLOADED);
     await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
   }
+
+  await orgLibraryPage.codeLists.clickOnAddNewCodeListDropdown();
 
   const codelistFileName: string = `${CODELIST_TITLE_UPLOADED}.json`;
   await orgLibraryPage.codeLists.clickOnUploadButtonAndSelectFileToUpload(codelistFileName);
