@@ -32,7 +32,7 @@ describe('ImportFromOrgLibraryDialog', () => {
     expect(button).toBeDisabled();
   });
 
-  it('enables the import button when an option is selecte', async () => {
+  it('enables the import button when an option is selected', async () => {
     const user = userEvent.setup();
     renderImportFromOrgLibraryDialog();
     const button = getButton(textMock('app_content_library.code_lists.import_modal_import_button'));
