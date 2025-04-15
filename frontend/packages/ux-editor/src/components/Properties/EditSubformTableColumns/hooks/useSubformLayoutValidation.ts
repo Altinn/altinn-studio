@@ -6,7 +6,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 export const useSubformLayoutValidation = (subformLayoutSetName: string): boolean => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayout } = useFormLayoutsQuery(org, app, subformLayoutSetName);
-  console.log('useSubformLayoutValidation', formLayout);
 
   const excludedComponents = [ComponentType.CustomButton];
 
