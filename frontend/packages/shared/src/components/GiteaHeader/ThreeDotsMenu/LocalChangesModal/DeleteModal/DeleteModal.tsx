@@ -10,18 +10,15 @@ import {
 import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
-import { toast } from 'react-toastify';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { useQueryClient } from '@tanstack/react-query';
 
 export type DeleteModalProps = {
   org: string;
   app: string;
-  onDelete: () => void;
 };
 
 export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
-  ({ app, org, onDelete }, ref): JSX.Element => {
+  ({ app, org }, ref): JSX.Element => {
     const { t } = useTranslation();
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
@@ -29,7 +26,6 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
       useResetRepositoryMutation(org, app);
 
     const [nameToDelete, setNameToDelete] = useState('');
-    const queryClient = useQueryClient();
 
     const closeDialog = () => {
       dialogRef.current?.close();
@@ -42,12 +38,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
 
     const handleDelete = () => {
       deleteLocalChanges(undefined, {
-        onSuccess: async () => {
-          closeDialog();
-          onDelete();
-          toast.success(t('local_changes.modal_deleted_success'));
-          await queryClient.invalidateQueries();
-        },
+        onSuccess: async () => location.reload(),
       });
     };
 
