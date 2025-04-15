@@ -207,14 +207,22 @@ export const FormComponentConfig = ({
           {labelSettings && (
             <EditBooleanValue
               propertyKey='optionalIndicator'
-              component={component['labelSettings'] || {}}
-              handleComponentChange={(updatedLabelSettings) => {
+              component={'labelSettings' in component ? component.labelSettings || {} : {}}
+              handleComponentChange={(updatedLabelSettingsComponent) => {
+                const labelSettingsKey = 'labelSettings';
                 handleComponentUpdate({
                   ...component,
-                  [labelSettings]: updatedLabelSettings,
-                });
+                  [labelSettingsKey]: {
+                    ...('labelSettings' in component ? component.labelSettings || {} : {}),
+                    optionalIndicator: (
+                      updatedLabelSettingsComponent as { optionalIndicator?: boolean }
+                    ).optionalIndicator,
+                  },
+                } as FormItem);
               }}
-              defaultValue={properties[labelSettings]?.properties?.showLabelIndicator?.default}
+              defaultValue={
+                properties.labelSettings?.properties?.optionalIndicator?.default ?? false
+              }
             />
           )}
         </>

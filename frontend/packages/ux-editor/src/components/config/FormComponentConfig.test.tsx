@@ -617,6 +617,96 @@ describe('FormComponentConfig', () => {
     expect(widthText).not.toBeInTheDocument();
   });
 
+  it('should call handleComponentUpdate when optionalIndicator in labelSettings is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            labelSettings: {
+              type: 'object',
+              properties: {
+                optionalIndicator: {
+                  type: 'boolean',
+                  default: true,
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          labelSettings: {
+            optionalIndicator: true,
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+
+    const showMoreButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    await user.click(showMoreButton);
+    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.optionalIndicator'),
+    });
+    expect(optionalIndicatorSwitch).toBeChecked();
+    await user.click(optionalIndicatorSwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelSettings: expect.objectContaining({
+            optionalIndicator: false,
+          }),
+        }),
+      );
+    });
+  });
+
+  it('should call toggleObjectCard when object property button is clicked', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'someObjectProperty';
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                someField: { type: 'string' },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+
+          [propertyKey]: {},
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    expect(objectButton).toBeInTheDocument();
+    await user.click(objectButton);
+    await waitFor(() => {
+      const cardHeader = screen.getByText(
+        textMock(`ux_editor.component_properties.${propertyKey}`),
+      );
+      expect(cardHeader).toBeInTheDocument();
+    });
+  });
+
   const render = ({
     props = {},
     queries = {},
