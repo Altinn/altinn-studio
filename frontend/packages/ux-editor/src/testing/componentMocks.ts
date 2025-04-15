@@ -73,6 +73,13 @@ const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   dataModelBindings: { simpleBinding: '' },
   timeStamp: true,
 };
+
+const dividerComponent: FormComponent<ComponentType.Divider> = {
+  ...commonProps(ComponentType.Divider),
+  id: ComponentType.Divider,
+  type: ComponentType.Divider,
+  dataModelBindings: {},
+};
 const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
   ...commonProps(ComponentType.Dropdown),
   type: ComponentType.Dropdown,
@@ -201,6 +208,7 @@ export const componentMocks = {
   [ComponentType.CustomButton]: customButton,
   [CustomComponentType.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
+  [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
