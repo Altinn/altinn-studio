@@ -56,7 +56,7 @@ export type StudioCodeListEditorProps = {
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   textResources?: TextResource[];
-  onCreateTextResource?: ({}: CreateTextResourceArgs) => void;
+  onCreateTextResource?: (args: CreateTextResourceArgs) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
@@ -169,7 +169,7 @@ type ControlledCodeListEditorProps = Override<
   Pick<StudioInputTableProps, 'onBlurAny'> & {
     textResources: TextResource[];
     dispatch: Dispatch<ReducerAction>;
-    onCreateTextResource: ({}: CreateTextResourceInternalArgs) => void;
+    onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
   },
   Omit<StatefulCodeListEditorProps, 'onInvalid' | 'onUpdateCodeList'>
 >;

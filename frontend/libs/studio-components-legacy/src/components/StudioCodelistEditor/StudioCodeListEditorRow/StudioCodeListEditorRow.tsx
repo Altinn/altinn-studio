@@ -23,7 +23,7 @@ type StudioCodeListEditorRowProps = {
   onChangeTextResource: (textResource: TextResource) => void;
   onDeleteButtonClick: () => void;
   textResources: TextResource[];
-  onCreateTextResource?: ({}: CreateTextResourceInternalArgs) => void;
+  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   dispatch: Dispatch<ReducerAction>;
 };
@@ -242,7 +242,7 @@ type TextResourceIdCellProps = {
   property: CodeListItemTextProperty;
   required: boolean;
   textResources: TextResource[];
-  onCreateTextResource?: ({}: CreateTextResourceInternalArgs) => void;
+  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   dispatch: Dispatch<ReducerAction>;
 };
