@@ -9,6 +9,6 @@ export type LayoutSet = {
   type?: LayoutSetType;
 };
 
-export type LayoutSetConfig = LayoutSet;
-
 export type LayoutSetType = 'subform';
+
+export type LayoutSetConfig = LayoutSet;
