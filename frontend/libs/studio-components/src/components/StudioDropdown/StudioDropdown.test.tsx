@@ -116,6 +116,16 @@ describe('StudioDropdown', () => {
     expect(fileInputElement).toBeDisabled();
   });
 
+  it('calls inputRef.current.click when button is clicked', async () => {
+    const user = userEvent.setup();
+    renderStudioDropdown();
+
+    const input = screen.getByLabelText(fileUploaderWithoutOnClick);
+    input.click = onFileUpload;
+    await user.click(screen.getByRole('button', { name: fileUploaderWithoutOnClick }));
+    expect(onFileUpload).toHaveBeenCalledTimes(1);
+  });
+
   const openDropdown = (user: UserEvent): Promise<void> =>
     user.click(screen.getByRole('button', { name: triggerButtonText }));
 });
@@ -130,6 +140,7 @@ const list2Item3Text: string = 'Group 2 Item 3';
 const fileUploaderEnabledText: string = 'Upload file 1';
 const fileUploaderDisabledText: string = 'Upload file 2';
 const fileUploaderButtonDisabledText: string = 'Upload file 3';
+const fileUploaderWithoutOnClick: string = 'Upload file 4';
 const onFileUpload = jest.fn();
 const list1Item1Action = jest.fn();
 const icon1TestId: string = 'Icon 1';
@@ -196,6 +207,9 @@ const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResul
             uploadButtonText={fileUploaderButtonDisabledText}
             disabled={true}
           />
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.FileUploaderButton uploadButtonText={fileUploaderWithoutOnClick} />
         </StudioDropdown.Item>
       </StudioDropdown.List>
     </StudioDropdown>,
