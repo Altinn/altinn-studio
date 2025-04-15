@@ -1602,7 +1602,7 @@
   "ux_editor.component_title.Custom": "Egendefinert",
   "ux_editor.component_title.CustomButton": "Egendefinert knapp",
   "ux_editor.component_title.Datepicker": "Dato",
-  "ux_editor.component_title.Divider": "Delelinje ",
+  "ux_editor.component_title.Divider": "Delelinje",
   "ux_editor.component_title.Dropdown": "Nedtrekksliste",
   "ux_editor.component_title.FileUpload": "Vedlegg",
   "ux_editor.component_title.FileUploadWithTag": "Vedlegg med merking",
