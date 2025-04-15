@@ -95,7 +95,7 @@ public class OptionsService : IOptionsService
         }
 
         LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
-        if (layoutSetsModel?.Sets == null || layoutSetsModel.Sets.Count == 0)
+        if (layoutSetsModel.Sets.Count == 0)
         {
             return optionListReferences;
         }
