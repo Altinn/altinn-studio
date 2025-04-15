@@ -45,14 +45,6 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
       - name: Run setup.js script
         run: |
           node ./development/setup.js
@@ -66,11 +58,22 @@ jobs:
         working-directory: frontend/testing/playwright
         run: yarn install --immutable --inline-builds
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          working-directory: frontend/testing/playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('./yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Playwright run
         working-directory: frontend/testing/playwright
         env:
           environment: local
-        run: yarn test:all
+        run: |
+          yarn setup:playwright
+          yarn test:all
 
       - name: Store artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
