@@ -7,7 +7,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
-    /// Client responsible for collection 
+    /// Client responsible for collection
     /// </summary>
     public class OrgService : IOrgService
     {
@@ -23,9 +23,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _generalSettings = generalSettingsOptions;
         }
 
-        /// <summary>
-        /// Returns configured org list
-        /// </summary>
+        /// <inheritdoc />
         public async Task<OrgList> GetOrgList()
         {
             HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl);
@@ -33,6 +31,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string orgListString = await response.Content.ReadAsStringAsync();
             OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(orgListString, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
             return orgList;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsOrg(string nameToCheck)
+        {
+            var orgList = await GetOrgList();
+            return orgList.Orgs.ContainsKey(nameToCheck);
         }
     }
 }
