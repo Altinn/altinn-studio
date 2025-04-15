@@ -19,8 +19,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-app:
-    name: Build environment
+  playwright-tests:
+    name: Build environment and run e2e test
+    timeout-minutes: 25
     runs-on: ubuntu-latest
 
     steps:
@@ -44,23 +45,17 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
+      - name: Cache playwright binaries
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
       - name: Run setup.js script
         run: |
           node ./development/setup.js
-
-  playwright-tests:
-    name: Run e2e test
-    timeout-minutes: 25
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.51.1-noble
-    defaults:
-      run:
-        working-directory: frontend/testing/playwright
-
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Use node LTS and yarn cache
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
@@ -68,9 +63,11 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
+        working-directory: frontend/testing/playwright
         run: yarn install --immutable --inline-builds
 
       - name: Playwright run
+        working-directory: frontend/testing/playwright
         env:
           environment: local
         run: yarn test:all
