@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,25 +13,24 @@ namespace Altinn.Studio.Designer.Controllers;
 /// <summary>
 /// Controller containing actions related to feedback form
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="FeedbackFormController"/> class.
+/// </remarks>
+/// <param name="slackClient">A http client to send messages to slack</param>
+/// <param name="generalSettings">the general settings</param>
 [Authorize]
 [ApiController]
 [ValidateAntiForgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform")]
-public class FeedbackFormController : ControllerBase
+public class FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings) : ControllerBase
 {
-    private readonly ISlackClient _slackClient;
-    private readonly GeneralSettings _generalSettings;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="FeedbackFormController"/> class.
-    /// </summary>
-    /// <param name="slackClient">A http client to send messages to slack</param>
-    /// <param name="generalSettings">the general settings</param>
-    public FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings)
+    private readonly ISlackClient _slackClient = slackClient;
+    private readonly GeneralSettings _generalSettings = generalSettings;
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
-        _slackClient = slackClient;
-        _generalSettings = generalSettings;
-    }
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     /// <summary>
     /// Endpoint for submitting feedback
@@ -66,7 +66,7 @@ public class FeedbackFormController : ControllerBase
 
         await _slackClient.SendMessage(new SlackRequest
         {
-            Text = JsonSerializer.Serialize(feedback.Answers, new JsonSerializerOptions { WriteIndented = true })
+            Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions),
         }, cancellationToken);
 
         return Ok();
