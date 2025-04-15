@@ -1,6 +1,6 @@
 import classes from './Variables.module.css';
 import { HelpText } from '@digdir/designsystemet-react';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import React from 'react';
 import type { TextResourceVariable } from './types';
 import { useTranslation, Trans } from 'react-i18next';
@@ -37,9 +37,7 @@ export const Variables = ({ variables }: VariablesProps) => {
             placement='top'
             title={t('text_editor.variables_editing_not_supported_title')}
           >
-            <StudioParagraph size='sm'>
-              {t('text_editor.variables_editing_not_supported')}
-            </StudioParagraph>
+            <StudioParagraph>{t('text_editor.variables_editing_not_supported')}</StudioParagraph>
           </HelpText>
         </span>
       )}
