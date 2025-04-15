@@ -10,7 +10,7 @@
   border-style: dashed;
 }
 
-.card:hover {
+.cardDefault:hover {
   background: var(--card-background-color);
   border-color: var(--fds-semantic-surface-action-checked);
   cursor: pointer;
@@ -36,4 +36,6 @@
   flex-direction: column;
   padding: var(--fds-spacing-6);
   text-align: center;
+  box-sizing: border-box;
+  word-wrap: break-word;
 }
