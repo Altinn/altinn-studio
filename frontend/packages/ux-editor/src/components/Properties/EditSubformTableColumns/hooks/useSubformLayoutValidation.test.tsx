@@ -4,7 +4,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
 const emptyLayout: IFormLayouts = {
