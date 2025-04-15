@@ -1,6 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Converters;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -43,18 +44,34 @@ public class UiSettings
 {
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<TaskNavigationGroup>? TaskNavigation { get; set; }
+    public IEnumerable<TaskNavigationGroup>? TaskNavigation { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
 
-public class TaskNavigationGroup
+[JsonConverter(typeof(TaskNavigationGroupJsonConverter))]
+public abstract class TaskNavigationGroup
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+}
+
+public class TaskNavigationTask : TaskNavigationGroup
 {
     [JsonPropertyName("taskId")]
     public string? TaskId { get; set; }
+}
+
+public class TaskNavigationReceipt : TaskNavigationGroup
+{
     [JsonPropertyName("type")]
-    public string? Type { get; set; }
-    [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public TaskNavigationReceiptType? Type { get; set; }
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum TaskNavigationReceiptType
+{
+    [JsonStringEnumMemberName("receipt")]
+    Receipt
 }

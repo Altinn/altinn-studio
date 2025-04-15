@@ -35,14 +35,14 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
                     return false;
                 }
 
-                TextResource jsonTexts = await repository.GetTextV1("nb");
+                TextResource jsonTexts = await repository.GetText("nb");
                 int initialCount = jsonTexts.Resources.Count;
                 AddTextResourceIfNotExists(jsonTexts.Resources, "next", "Neste");
                 AddTextResourceIfNotExists(jsonTexts.Resources, "back", "Forrige");
 
                 if (jsonTexts.Resources.Count != initialCount)
                 {
-                    await repository.SaveTextV1("nb", jsonTexts);
+                    await repository.SaveText("nb", jsonTexts);
                     return true;
                 }
                 return false;

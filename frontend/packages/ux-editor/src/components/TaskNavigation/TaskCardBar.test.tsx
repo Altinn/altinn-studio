@@ -21,6 +21,11 @@ describe('TaskCardBar', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText(/task_card_add_new_task/i)).toBeInTheDocument();
   });
+
+  it('should render AddSubformCard', () => {
+    renderTaskCardBar();
+    expect(screen.getByText(/task_card_add_new_subform/i)).toBeInTheDocument();
+  });
 });
 
 const renderTaskCardBar = ({ queryClient = createQueryClientMock() } = {}) => {

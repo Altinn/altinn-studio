@@ -5,14 +5,6 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioParagraphProps = WithoutAsChild<ParagraphProps>;
 
-export function StudioParagraph({
-  children,
-  'data-size': dataSize = 'sm',
-  ...rest
-}: StudioParagraphProps): ReactElement {
-  return (
-    <Paragraph {...rest} data-size={dataSize}>
-      {children}
-    </Paragraph>
-  );
+export function StudioParagraph({ children, ...rest }: StudioParagraphProps): ReactElement {
+  return <Paragraph {...rest}>{children}</Paragraph>;
 }

@@ -6,7 +6,7 @@ export var baseUrls = {
   at24: 'at24.altinn.cloud',
   tt02: 'tt02.altinn.no',
   yt01: 'yt01.altinn.cloud',
-  prod: 'altinn.no'
+  prod: 'altinn.no',
 };
 
 // Auth cookie names in the different environments. NB: Must be updated until changes
@@ -16,9 +16,9 @@ export var authCookieNames = {
   at22: '.AspxAuthCloud',
   at23: '.ASPXAUTH', // '.AspxAuthCloud',
   at24: '.AspxAuthCloud',
-  tt02: '.ASPXAUTH', // '.AspxAuthTT02',
+  tt02: '.AspxAuthTT02',
   yt01: '.ASPXAUTH', // '.AspxAuthYt',
-  prod: '.ASPXAUTH' // '.AspxAuthProd'
+  prod: '.ASPXAUTH', // '.AspxAuthProd'
 };
 
 //Get values from environment

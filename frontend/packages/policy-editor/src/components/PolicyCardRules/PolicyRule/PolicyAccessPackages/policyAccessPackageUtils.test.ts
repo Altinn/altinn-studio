@@ -1,10 +1,10 @@
 import type { PolicyAccessPackageArea } from 'app-shared/types/PolicyAccessPackages';
 import {
   filterAccessPackagesBySearchString,
-  filterAccessPackagesById,
   groupAccessPackagesByArea,
   flatMapAreaPackageList,
   isAccessPackageSelected,
+  filterAccessPackagesByIsDelegable,
 } from './policyAccessPackageUtils';
 
 const area1: PolicyAccessPackageArea = {
@@ -13,19 +13,27 @@ const area1: PolicyAccessPackageArea = {
   urn: 'urn:area1',
   description: '',
   icon: '',
-  areaGroup: '',
   packages: [
     {
       id: 'package1',
       urn: 'urn:package1',
       name: 'Package Alpha',
       description: 'First package',
+      isDelegable: true,
     },
     {
       id: 'package2',
       urn: 'urn:package2',
       name: 'Package Beta',
       description: 'Second package',
+      isDelegable: true,
+    },
+    {
+      id: 'package3',
+      urn: 'urn:package3',
+      name: 'Package Delta',
+      description: 'Third non-delegable package',
+      isDelegable: false,
     },
   ],
 };
@@ -36,13 +44,13 @@ const area2: PolicyAccessPackageArea = {
   urn: 'urn:area2',
   description: '',
   icon: '',
-  areaGroup: '',
   packages: [
     {
-      id: 'package3',
-      urn: 'urn:package3',
+      id: 'package4',
+      urn: 'urn:package4',
       name: 'Package Gamma',
-      description: 'Third package',
+      description: 'Fourth package',
+      isDelegable: true,
     },
   ],
 };
@@ -57,23 +65,6 @@ describe('policyAccessPackageUtils', () => {
 
     it('returns false if the access package URN is not in the list', () => {
       expect(isAccessPackageSelected('urn:package3', ['urn:package1', 'urn:package2'])).toBe(false);
-    });
-  });
-
-  describe('filterAccessPackagesById', () => {
-    const accessPackages = [
-      { id: 'package1', urn: 'urn:package1', name: 'Package 1', description: '' },
-      { id: 'package2', urn: 'urn:package2', name: 'Package 2', description: '' },
-    ];
-
-    it('filters access packages by chosen URNs', () => {
-      const result = filterAccessPackagesById(accessPackages, ['urn:package1']);
-      expect(result).toEqual([accessPackages[0]]);
-    });
-
-    it('returns an empty array if no URNs match', () => {
-      const result = filterAccessPackagesById(accessPackages, ['urn:package3']);
-      expect(result).toEqual([]);
     });
   });
 
@@ -125,10 +116,22 @@ describe('policyAccessPackageUtils', () => {
     });
   });
 
+  describe('filterAccessPackagesByIsDelegable', () => {
+    it('filters away non-delegable access packages', () => {
+      const result = filterAccessPackagesByIsDelegable([area1]);
+      expect(result).toEqual([{ ...area1, packages: [area1.packages[0], area1.packages[1]] }]);
+    });
+  });
+
   describe('flatMapAreaPackageList', () => {
     it('flattens packages from all areas into a single array', () => {
       const result = flatMapAreaPackageList(areas);
-      expect(result).toEqual([area1.packages[0], area1.packages[1], area2.packages[0]]);
+      expect(result).toEqual([
+        area1.packages[0],
+        area1.packages[1],
+        area1.packages[2],
+        area2.packages[0],
+      ]);
     });
   });
 });

@@ -20,6 +20,7 @@ import {
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
+  orgTextResourcesPath,
   accessListsPath,
   accessListPath,
   accessListMemberPath,
@@ -65,6 +66,7 @@ import {
   orgCodeListsPath,
   layoutPagesPath,
   taskNavigationGroupPath,
+  availableResourcesInOrgLibraryPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -103,10 +105,9 @@ import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
-import { textResourcesMock } from '../mocks/textResourcesMock';
 import type { PagesModel } from '../types/api/dto/PagesModel';
-import { listOfAvailableCodeListTitlesToImport } from 'app-shared/mocks/codeListTitlesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -136,7 +137,7 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getAvailableCodeListTitlesInOrg = (owner: string): Promise<string[]> => Promise.resolve(listOfAvailableCodeListTitlesToImport); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14885
+export const getAvailableResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
@@ -193,4 +194,4 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => Promise.resolve(textResourcesMock); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(orgTextResourcesPath(org, language));
