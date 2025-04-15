@@ -17,7 +17,7 @@ export const SettingsNavigation = (): ReactElement => {
   if (isPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
 
-  if (!taskNavigationGroups.length)
+  if (!taskNavigationGroups?.length)
     return (
       <StudioAlert className={classes.warningMessage} severity='warning'>
         {t('ux_editor.settings.navigation_warning')}
