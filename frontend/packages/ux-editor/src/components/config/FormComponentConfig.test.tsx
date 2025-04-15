@@ -667,9 +667,8 @@ describe('FormComponentConfig', () => {
     });
   });
 
-  it('should call toggleObjectCard when object property button is clicked', async () => {
+  it('should toggle object card when object property button is clicked', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
     const propertyKey = 'someObjectProperty';
     render({
       props: {
@@ -687,24 +686,93 @@ describe('FormComponentConfig', () => {
         },
         component: {
           ...componentMocks.Input,
-
           [propertyKey]: {},
+        },
+      },
+    });
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    expect(objectButton).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
+        selector: 'h3',
+      }),
+    ).not.toBeInTheDocument();
+    await user.click(objectButton);
+    const cardHeader = await screen.findByText(
+      textMock(`ux_editor.component_properties.${propertyKey}`),
+      { selector: 'h3' },
+    );
+    expect(cardHeader).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
+        selector: 'h3',
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should handle undefined object properties when updating', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'someObjectProperty';
+    const nestedPropKey = 'nestedProp';
+
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: {
+                  type: 'string',
+                  description: 'Nested property description',
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {
+            [nestedPropKey]: undefined,
+          },
         },
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
 
-    const objectButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      }),
+    );
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+      }),
+    );
+    const nestedInput = await screen.findByRole('textbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
     });
-    expect(objectButton).toBeInTheDocument();
-    await user.click(objectButton);
-    await waitFor(() => {
-      const cardHeader = screen.getByText(
-        textMock(`ux_editor.component_properties.${propertyKey}`),
-      );
-      expect(cardHeader).toBeInTheDocument();
-    });
+    await user.type(nestedInput, 'test value');
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [propertyKey]: expect.objectContaining({
+          [nestedPropKey]: 'test value',
+        }),
+      }),
+    );
   });
 
   const render = ({
