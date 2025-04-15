@@ -1,4 +1,4 @@
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
 export const useGetCorrespondenceResource = (): string | null => {
   const { bpmnDetails } = useBpmnContext();

@@ -1,6 +1,6 @@
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-import { type BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
+import { type BpmnDetails } from '../../../../types/BpmnDetails';
 
 export const useUpdateCorrespondenceResource = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();

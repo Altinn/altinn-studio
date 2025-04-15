@@ -17,7 +17,7 @@ import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesI
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
-import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
+import { EditLayoutSetName } from './EditLayoutSetName';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
