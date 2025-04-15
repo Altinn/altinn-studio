@@ -857,6 +857,108 @@ describe('FormComponentConfig', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it('should call handleComponentUpdate when a nested property in an object is updated', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'someObjectProperty';
+    const nestedPropKey = 'nestedStringProp';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {
+            [nestedPropKey]: 'initial value',
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(objectButton);
+    const nestedPropButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await user.click(nestedPropButton);
+    const nestedInput = screen.getByRole('textbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await user.clear(nestedInput);
+    await user.type(nestedInput, 'updated value');
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [propertyKey]: expect.objectContaining({
+            [nestedPropKey]: 'updated value',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('should call handleComponentUpdate when a nested boolean property in an object is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'someObjectProperty';
+    const nestedPropKey = 'nestedBooleanProp';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                [nestedPropKey]: {
+                  type: 'boolean',
+                  default: false,
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {
+            [nestedPropKey]: false,
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(objectButton);
+    const nestedBooleanSwitch = screen.getByRole('checkbox', {
+      name: textMock(`ux_editor.component_properties.${nestedPropKey}`),
+    });
+    await user.click(nestedBooleanSwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [propertyKey]: expect.objectContaining({
+            [nestedPropKey]: true,
+          }),
+        }),
+      );
+    });
+  });
+
   const render = ({
     props = {},
     queries = {},
