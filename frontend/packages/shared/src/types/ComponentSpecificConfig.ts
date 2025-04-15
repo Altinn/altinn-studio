@@ -303,6 +303,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       bindingToShowInSummary?: string;
       tableHeadersMobile?: string[];
     };
+
   [ComponentType.Map]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
@@ -395,4 +396,5 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       autocomplete?: HTMLAutoCompleteValue;
       maxLength?: number;
     };
+  [ComponentType.Divider]: {};
 }[T];
