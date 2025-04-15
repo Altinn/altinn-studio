@@ -45,13 +45,13 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Cache playwright binaries
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
-        id: playwright-cache
         with:
-          path: |
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Run setup.js script
         run: |
