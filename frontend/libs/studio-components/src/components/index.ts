@@ -5,6 +5,7 @@ import '@digdir/designsystemet-theme/altinn.css';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioButton } from './StudioButton';
 export { StudioHeading } from './StudioHeading';
+export { StudioHelpText } from './StudioHelpText';
 export { StudioParagraph } from './StudioParagraph';
 export { StudioField } from './StudioField';
 export { StudioLabel } from './StudioLabel';

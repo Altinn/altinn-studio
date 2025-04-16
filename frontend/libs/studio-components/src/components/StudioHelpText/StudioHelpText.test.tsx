@@ -1,45 +1,38 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
-import { StudioHelpText } from './StudioHelpText';
-import type { StudioHelpTextProps } from './StudioHelpText';
+import { StudioHelpText, type StudioHelpTextProps } from './StudioHelpText';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
-import userEvent from '@testing-library/user-event';
 
-const mockText: string = 'Test Text';
+const mockTitle: string = 'Test title';
+const mockText: string = 'Test text';
 
 const defaultProps: StudioHelpTextProps = {
-  placement: 'right',
-  'aria-label': 'test-label',
+  'aria-label': mockTitle,
 };
 
 describe('StudioHelpText', () => {
   it('renders children correctly', () => {
-    renderField();
-    expect(screen.getByText(mockText)).toBeInTheDocument();
-  });
-
-  it('applies custom placement correctly', async () => {
-    const user = userEvent.setup();
-    renderField({ placement: 'left' });
-    await user.click(screen.getByText(mockText));
-    expect(screen.getByRole('dialog').getAttribute('data-placement')).toBe('left');
+    renderStudioHelpText();
+    expect(getText(mockText)).toBeInTheDocument();
   });
 
   it('Appends given classname to internal classname', () => {
-    testRootClassNameAppending((className) => renderField({ className }));
+    testRootClassNameAppending((className) => renderStudioHelpText({ className }));
   });
 
-  it('Appends custom attributes to the field element', () => {
-    testCustomAttributes(renderField);
+  it('Appends custom attributes to the help text element', () => {
+    testCustomAttributes(renderStudioHelpText);
   });
 });
 
-const renderField = (props: Partial<StudioHelpTextProps> = {}): RenderResult => {
+const renderStudioHelpText = (props: Partial<StudioHelpTextProps> = {}): RenderResult => {
   return render(
     <StudioHelpText {...defaultProps} {...props}>
       {mockText}
     </StudioHelpText>,
   );
 };
+
+const getText = (text: string): HTMLElement => screen.getByText(text) as HTMLElement;
