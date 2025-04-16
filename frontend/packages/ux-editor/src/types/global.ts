@@ -6,9 +6,6 @@ import type { FormContainer } from './FormContainer';
 import type { BooleanExpression } from '@studio/components-legacy';
 import type React from 'react';
 
-export interface IFormDesignerNameSpace<T1> {
-  formDesigner: T1;
-}
 export interface IOption {
   label: string;
   value: any;
@@ -49,12 +46,6 @@ export interface IInternalLayoutWithName {
 }
 
 export type IFormLayoutOrder = KeyValuePairs<string[]>;
-
-export interface IRuleModelFieldElement {
-  type: 'rule' | 'condition';
-  name: string;
-  inputs: any;
-}
 
 export interface IWidget {
   components: any[];
