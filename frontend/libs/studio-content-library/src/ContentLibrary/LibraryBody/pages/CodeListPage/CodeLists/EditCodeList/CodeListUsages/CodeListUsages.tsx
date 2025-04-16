@@ -24,9 +24,6 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
             {t('app_content_library.code_lists.code_list_usage_table_column_header_task_name')}
           </Table.HeaderCell>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_layout_set')}
-          </Table.HeaderCell>
-          <Table.HeaderCell>
             {t('app_content_library.code_lists.code_list_usage_table_column_header_layout')}
           </Table.HeaderCell>
           <Table.HeaderCell>
@@ -51,14 +48,13 @@ function CodeListUsageSourceRow({
   codeListSource,
 }: CodeListUsageSourceRowProps): React.ReactElement {
   const { t } = useTranslation();
-  const { taskId, taskType, layoutSetId, layoutName, componentIds } = codeListSource;
+  const { taskId, taskType, layoutName, componentIds } = codeListSource;
   const taskTypeTextKey = getTaskTypeTextKey(taskType);
 
   return (
     <Table.Row>
       <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
       <Table.Cell>{taskId}</Table.Cell>
-      <Table.Cell>{layoutSetId}</Table.Cell>
       <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
       <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
     </Table.Row>

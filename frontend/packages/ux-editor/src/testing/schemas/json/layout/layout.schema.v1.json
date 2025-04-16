@@ -51,6 +51,7 @@
             "Checkboxes",
             "Custom",
             "Datepicker",
+            "Divider",
             "Dropdown",
             "FileUpload",
             "FileUploadWithTag",
@@ -243,6 +244,18 @@
           },
           "then": {
             "$ref": "#/definitions/datepickerComponent"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Divider"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/dividerComponent"
           }
         },
         {
@@ -642,6 +655,11 @@
         }
       },
       "required": []
+    },
+    "dividerComponent": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
     },
     "navigationButtonsComponent": {
       "properties": {
