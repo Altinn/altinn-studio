@@ -65,19 +65,18 @@ describe('FormComponentConfig', () => {
   });
 
   it('Should render the rest of the components when show-button is clicked and show hide-button', async () => {
-    const use = userEvent.setup();
+    const user = userEvent.setup();
     render({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
     expect(button).toBeInTheDocument();
-    await use.click(button);
+    await user.click(button);
     const properties = [
       'renderAsSummary',
       'variant',
       'autocomplete',
       'maxLength',
-      'labelSettings',
       'pageBreak',
       'formatting',
     ];
@@ -86,6 +85,9 @@ describe('FormComponentConfig', () => {
         await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
     }
+    expect(
+      await screen.findByText(textMock('ux_editor.component_properties.optionalIndicator')),
+    ).toBeInTheDocument();
     const hideButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_hide_many_settings'),
     });
@@ -308,7 +310,6 @@ describe('FormComponentConfig', () => {
       name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
     await user.click(arrayPropertyButton);
-
     const combobox = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
@@ -375,7 +376,8 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  it('should show description from schema for objects if key is not defined', () => {
+  it('should show description from schema for objects if key is not defined', async () => {
+    const user = userEvent.setup();
     const descriptionFromSchema = 'Some description for some object property';
     render({
       props: {
@@ -392,6 +394,11 @@ describe('FormComponentConfig', () => {
         },
       },
     });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_properties.somePropertyName'),
+      }),
+    );
     expect(screen.getByText(descriptionFromSchema)).toBeInTheDocument();
   });
 
@@ -607,6 +614,285 @@ describe('FormComponentConfig', () => {
     await user.click(closeGridButton);
     expect(closeGridButton).not.toBeInTheDocument();
     expect(widthText).not.toBeInTheDocument();
+  });
+
+  it('should call handleComponentUpdate when optionalIndicator in labelSettings is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            labelSettings: {
+              type: 'object',
+              properties: {
+                optionalIndicator: {
+                  type: 'boolean',
+                  default: true,
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          labelSettings: {
+            optionalIndicator: true,
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+
+    const showMoreButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    await user.click(showMoreButton);
+    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.optionalIndicator'),
+    });
+    expect(optionalIndicatorSwitch).toBeChecked();
+    await user.click(optionalIndicatorSwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelSettings: expect.objectContaining({
+            optionalIndicator: false,
+          }),
+        }),
+      );
+    });
+  });
+
+  it('should toggle object card when object property button is clicked', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'someObjectProperty';
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                someField: { type: 'string' },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {},
+        },
+      },
+    });
+    const objectButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    expect(objectButton).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
+        selector: 'h3',
+      }),
+    ).not.toBeInTheDocument();
+    await user.click(objectButton);
+    const cardHeader = await screen.findByText(
+      textMock(`ux_editor.component_properties.${propertyKey}`),
+      { selector: 'h3' },
+    );
+    expect(cardHeader).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
+        selector: 'h3',
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should call toggleObjectCard when property button is clicked', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'testObjectProperty';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                testField: { type: 'string' },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: { testField: 'initial' },
+        },
+      },
+    });
+    const toggleButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(toggleButton);
+    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+  });
+
+  it('should handle toggle when property is undefined', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'undefinedProperty';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {},
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+        },
+      },
+    });
+    const toggleButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(toggleButton);
+    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+  });
+
+  it('should toggle object property card when clicked', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'grid';
+    render({
+      props: {
+        schema: InputSchema,
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {},
+        },
+      },
+    });
+    const openButton = await screen.findByRole('button', {
+      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+    });
+    await user.click(openButton);
+    const closeButton = await screen.findByRole('button', {
+      name: textMock('general.close'),
+    });
+    expect(closeButton).toBeInTheDocument();
+    await user.click(closeButton);
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('general.close'),
+        }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('should handle optionalIndicator when labelSettings is undefined in component', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            labelSettings: {
+              type: 'object',
+              properties: {
+                optionalIndicator: {
+                  type: 'boolean',
+                  default: false,
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const showMoreButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    await user.click(showMoreButton);
+    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.optionalIndicator'),
+    });
+    expect(optionalIndicatorSwitch).not.toBeChecked();
+    await user.click(optionalIndicatorSwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelSettings: expect.objectContaining({
+            optionalIndicator: true,
+          }),
+        }),
+      );
+    });
+  });
+
+  it('should handle optionalIndicator when labelSettings is null in component', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            labelSettings: {
+              type: 'object',
+              properties: {
+                optionalIndicator: {
+                  type: 'boolean',
+                  default: false,
+                },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          labelSettings: null,
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const showMoreButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    await user.click(showMoreButton);
+    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.optionalIndicator'),
+    });
+    expect(optionalIndicatorSwitch).not.toBeChecked();
+    await user.click(optionalIndicatorSwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelSettings: expect.objectContaining({
+            optionalIndicator: true,
+          }),
+        }),
+      );
+    });
   });
 
   const render = ({
