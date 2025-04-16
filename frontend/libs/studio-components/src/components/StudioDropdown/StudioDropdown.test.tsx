@@ -98,17 +98,32 @@ describe('StudioDropdown', () => {
     expect(fileInputElement).toHaveAttribute('accept', fileAcceptApplicationJson);
   });
 
-  it('Does not trigger file selection when disabled', async () => {
+  it('Renders the upload button as disabled when file input is disabled', async () => {
     const user = userEvent.setup();
     renderStudioDropdown();
     await openDropdown(user);
 
-    const file = new File(['test'], 'test.json', { type: fileAcceptApplicationJson });
-    const fileInputElement = screen.getByLabelText(fileUploaderDisabledText);
+    const fileInputElement = screen.getByRole('button', { name: fileUploaderDisabledText });
+    expect(fileInputElement).toBeDisabled();
+  });
 
-    await user.upload(fileInputElement, file);
+  it('Renders the upload button as disabled when button is disabled', async () => {
+    const user = userEvent.setup();
+    renderStudioDropdown();
+    await openDropdown(user);
 
-    expect(onFileUpload).not.toHaveBeenCalled();
+    const fileInputElement = screen.getByRole('button', { name: fileUploaderButtonDisabledText });
+    expect(fileInputElement).toBeDisabled();
+  });
+
+  it('calls inputRef.current.click when button is clicked', async () => {
+    const user = userEvent.setup();
+    renderStudioDropdown();
+
+    const input = screen.getByLabelText(fileUploaderWithoutOnClick);
+    input.click = onFileUpload;
+    await user.click(screen.getByRole('button', { name: fileUploaderWithoutOnClick }));
+    expect(onFileUpload).toHaveBeenCalledTimes(1);
   });
 
   const openDropdown = (user: UserEvent): Promise<void> =>
@@ -124,6 +139,8 @@ const list2Item2Text: string = 'Group 2 Item 2';
 const list2Item3Text: string = 'Group 2 Item 3';
 const fileUploaderEnabledText: string = 'Upload file 1';
 const fileUploaderDisabledText: string = 'Upload file 2';
+const fileUploaderButtonDisabledText: string = 'Upload file 3';
+const fileUploaderWithoutOnClick: string = 'Upload file 4';
 const onFileUpload = jest.fn();
 const list1Item1Action = jest.fn();
 const icon1TestId: string = 'Icon 1';
@@ -137,7 +154,6 @@ const icon3: ReactElement = <span data-testid={icon3TestId} />;
 const icon4: ReactElement = <span data-testid={icon4TestId} />;
 const icon5: ReactElement = <span data-testid={icon5TestId} />;
 const fileAcceptApplicationJson: string = 'application/json';
-const fileUploaderDisabled: boolean = true;
 
 const defaultProps: StudioDropdownProps = {
   triggerButtonText: triggerButtonText,
@@ -172,9 +188,8 @@ const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResul
             icon={icon4}
             iconPlacement='right'
             onFileUpload={onFileUpload}
-          >
-            {fileUploaderEnabledText}
-          </StudioDropdown.FileUploaderButton>
+            uploadButtonText={fileUploaderEnabledText}
+          />
         </StudioDropdown.Item>
         <StudioDropdown.Item>
           <StudioDropdown.FileUploaderButton
@@ -182,11 +197,19 @@ const renderStudioDropdown = (props?: Partial<StudioDropdownProps>): RenderResul
             onFileUpload={onFileUpload}
             fileInputProps={{
               accept: fileAcceptApplicationJson,
-              disabled: fileUploaderDisabled,
+              disabled: true,
             }}
-          >
-            {fileUploaderDisabledText}
-          </StudioDropdown.FileUploaderButton>
+            uploadButtonText={fileUploaderDisabledText}
+          />
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.FileUploaderButton
+            uploadButtonText={fileUploaderButtonDisabledText}
+            disabled={true}
+          />
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.FileUploaderButton uploadButtonText={fileUploaderWithoutOnClick} />
         </StudioDropdown.Item>
       </StudioDropdown.List>
     </StudioDropdown>,

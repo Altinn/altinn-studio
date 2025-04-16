@@ -18,9 +18,8 @@ const ComposedComponent = (args): ReactElement => (
             accept: '.txt',
             multiple: false,
           }}
-        >
-          Upload File
-        </StudioDropdown.FileUploaderButton>
+          uploadButtonText='Upload File'
+        />
       </StudioDropdown.Item>
     </StudioDropdown.List>
   </StudioDropdown>
