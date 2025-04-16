@@ -11,7 +11,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 const somePropertyName = 'somePropertyName';
 const customTextMockToHandleUndefined = (
