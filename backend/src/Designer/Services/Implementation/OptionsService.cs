@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +21,17 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IAppDevelopmentService _appDevelopmentService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="appDevelopmentService"></param>
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _appDevelopmentService = appDevelopmentService;
     }
 
     /// <inheritdoc />
@@ -76,20 +80,62 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-        List<RefToOptionListSpecifier> optionsListReferences = new List<RefToOptionListSpecifier>();
+        var optionListReferences = await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
+        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(altinnRepoEditingContext, optionListReferences, cancellationToken);
 
-        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
-        foreach (string layoutSetName in layoutSetNames)
+        return optionListReferencesWithTaskData;
+    }
+
+    public async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (optionListReferences.Count == 0)
         {
-            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
-            foreach (var layoutName in layoutNames)
-            {
-                var layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
-                optionsListReferences = altinnAppGitRepository.FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
-            }
+            return optionListReferences;
         }
 
-        return optionsListReferences;
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
+        if (layoutSetsModel.Sets.Count == 0)
+        {
+            return optionListReferences;
+        }
+
+        AddTaskDataToOptionListReference(optionListReferences, layoutSetsModel);
+
+        return optionListReferences;
+    }
+
+    private static void AddTaskDataToOptionListReference(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
+    {
+        foreach (var reference in optionListReferences)
+        {
+            AddTaskDataToOptionListReference(reference, layoutSetsModel);
+        }
+    }
+
+    private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
+    {
+        foreach (var source in reference.OptionListIdSources)
+        {
+            AddTaskDataToSourceFromLayoutSetModels(source, layoutSetsModel);
+        }
+    }
+
+    private static void AddTaskDataToSourceFromLayoutSetModels(OptionListIdSource source, LayoutSetsModel layoutSetsModel)
+    {
+        var layoutSetModel = FindLayoutSetModelBySourceId(layoutSetsModel, source.LayoutSetId);
+        AddTaskDataToSource(source, layoutSetModel);
+    }
+
+    private static LayoutSetModel FindLayoutSetModelBySourceId(LayoutSetsModel layoutSetsModels, string sourceId)
+    {
+        return layoutSetsModels.Sets.FirstOrDefault(set => set.Id == sourceId);
+    }
+
+    private static void AddTaskDataToSource(OptionListIdSource source, LayoutSetModel layoutSetModel)
+    {
+        source.TaskId = layoutSetModel?.Task.Id;
+        source.TaskType = layoutSetModel?.Task.Type;
     }
 
     private void ValidateOption(Option option)
@@ -162,7 +208,6 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
-
     }
 
     /// <inheritdoc />

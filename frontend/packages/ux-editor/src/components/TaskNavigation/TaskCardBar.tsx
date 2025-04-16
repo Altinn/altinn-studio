@@ -4,7 +4,6 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { TaskCard } from './TaskCard';
 import classes from './TaskCardBar.module.css';
 import { AddNewTask } from '@altinn/ux-editor/components/TaskNavigation/AddNewTask';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { AddSubformCard } from '@altinn/ux-editor/components/TaskNavigation/AddSubformCard';
 
 export const TaskCardBar = () => {
@@ -13,8 +12,7 @@ export const TaskCardBar = () => {
     org,
     app,
   );
-
-  const isTaskNavigationSubformEnabled = shouldDisplayFeature(FeatureFlag.TaskNavigationSubform);
+  const [isCreateSubformMode, setIsCreateSubformMode] = React.useState(false);
 
   if (layoutSetsPending) return null;
 
@@ -25,8 +23,11 @@ export const TaskCardBar = () => {
           <TaskCard key={layoutSetModel.id} layoutSetModel={layoutSetModel} />
         ))}
         <div className={classes.addCardsContainer}>
-          <AddNewTask />
-          {isTaskNavigationSubformEnabled && <AddSubformCard />}
+          {!isCreateSubformMode && <AddNewTask />}
+          <AddSubformCard
+            isSubformInEditMode={isCreateSubformMode}
+            setIsCreateSubformMode={setIsCreateSubformMode}
+          />
         </div>
       </div>
     </div>
