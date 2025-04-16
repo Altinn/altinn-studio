@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Label, Paragraph, HelpText, Link } from '@digdir/designsystemet-react';
+import { Heading, Label, Paragraph, Link } from '@digdir/designsystemet-react';
 import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 
@@ -43,7 +44,7 @@ export const SecurityLevelSelect = ({
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
             {t('policy_editor.select_auth_level_label')}
           </Label>
-          <HelpText size='small' title={t('policy_editor.select_auth_level_help_text')}>
+          <StudioHelpText aria-label={t('policy_editor.select_auth_level_help_text')}>
             <Link
               href={URL_TO_SECURITY_LEVEL_PAGE}
               target='_newTab'
@@ -52,7 +53,7 @@ export const SecurityLevelSelect = ({
             >
               {t('policy_editor.select_auth_level_help_text_content')}
             </Link>
-          </HelpText>
+          </StudioHelpText>
         </div>
         <StudioNativeSelect
           onChange={(event) => {

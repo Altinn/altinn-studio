@@ -1,17 +1,14 @@
 import classes from './Variables.module.css';
-import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
-import { StudioButton } from '@studio/components-legacy';
-import { InformationSquareFillIcon } from '@studio/icons';
-import React, { useState } from 'react';
+import React from 'react';
 import type { TextResourceVariable } from './types';
 import { useTranslation, Trans } from 'react-i18next';
+import { StudioHelpText } from '@studio/components';
 
 export type VariablesProps = {
   variables: TextResourceVariable[];
 };
 
 export const Variables = ({ variables }: VariablesProps) => {
-  const [infoboxOpen, setInfoboxOpen] = useState(false);
   const { t } = useTranslation();
   return (
     <div>
@@ -34,15 +31,12 @@ export const Variables = ({ variables }: VariablesProps) => {
           className={classes.infoButton}
           title={t('text_editor.variables_editing_not_supported')}
         >
-          <PopoverPanel
-            title={'Kun for visning'}
-            variant={PanelVariant.Info}
-            trigger={<StudioButton icon={<InformationSquareFillIcon />} variant='tertiary' />}
-            open={infoboxOpen}
-            onOpenChange={setInfoboxOpen}
+          <StudioHelpText
+            aria-label={t('text_editor.variables_editing_not_supported_title')}
+            placement='top'
           >
-            <div>{t('text_editor.variables_editing_not_supported')}</div>
-          </PopoverPanel>
+            {t('text_editor.variables_editing_not_supported')}
+          </StudioHelpText>
         </span>
       )}
     </div>
