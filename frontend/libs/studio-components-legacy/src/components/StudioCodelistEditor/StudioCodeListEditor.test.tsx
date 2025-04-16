@@ -344,6 +344,92 @@ describe('StudioCodeListEditor', () => {
     });
   });
 
+  describe('onCreateTextResource', () => {
+    const testRowNumber = 1;
+    const newValue = 'new text';
+    const onCreateTextResource = jest.fn();
+
+    it.each([
+      [CodeListItemTextProperty.Label],
+      [CodeListItemTextProperty.Description],
+      [CodeListItemTextProperty.HelpText],
+    ])(
+      'Calls the onCreateTextResource callback with the new text resource when a  %s field loses focus and there is no text resource linked to it',
+      async (property: CodeListItemTextProperty) => {
+        const user = userEvent.setup();
+        renderCodeListEditor({
+          ...propsWithTextResources,
+          codeList: codeListWithoutTextResources,
+          onCreateTextResource,
+        });
+        const propertyCoords: TextPropertyCoords = [testRowNumber, property];
+        const expectedCodeList = [...codeListWithoutTextResources];
+        expectedCodeList[testRowNumber][property] = newValue;
+
+        await user.type(getTextResourceValueInput(propertyCoords), newValue);
+        await user.tab();
+
+        expect(onCreateTextResource).toHaveBeenCalledTimes(1);
+        expect(onCreateTextResource).toHaveBeenCalledWith({
+          codeList: expectedCodeList,
+          textResource: {
+            value: expect.stringContaining(newValue),
+            id: expect.any(String),
+          },
+        });
+      },
+    );
+  });
+
+  describe('onUpdateTextResource', () => {
+    const testRowNumber = 1;
+    const newValue = 'new text';
+    const onUpdateTextResource = jest.fn();
+
+    it.each([
+      [CodeListItemTextProperty.Label],
+      [CodeListItemTextProperty.Description],
+      [CodeListItemTextProperty.HelpText],
+    ])(
+      'Calls the onUpdateTextResource callback with the updated text resource when a %s field loses focus',
+      async (property: CodeListItemTextProperty) => {
+        const user = userEvent.setup();
+        renderCodeListEditor({ ...propsWithTextResources, onUpdateTextResource });
+        const propertyCoords: TextPropertyCoords = [testRowNumber, property];
+
+        await user.type(getTextResourceValueInput(propertyCoords), newValue);
+        await user.tab();
+
+        expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+        expect(onUpdateTextResource).toHaveBeenCalledWith({
+          id: expect.any(String),
+          value: expect.stringContaining(newValue),
+        });
+      },
+    );
+  });
+
+  describe('onUpdateCodeList', () => {
+    it('Calls the onUpdateCodeList callback with the new code list item when a value field loses focus', async () => {
+      const user = userEvent.setup();
+      const onUpdateCodeList = jest.fn();
+      renderCodeListEditor({ ...propsWithTextResources, onUpdateCodeList });
+      const testRowNumber = 1;
+      const newValue = 'new text';
+      const expectedCodeList = [...codeListWithTextResources];
+      expectedCodeList[testRowNumber - 1].value = newValue;
+
+      await user.type(
+        screen.getByRole('textbox', { name: texts.itemValue(testRowNumber) }),
+        newValue,
+      );
+      await user.tab();
+
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenCalledWith(expectedCodeList);
+    });
+  });
+
   it('Calls the onChange callback with the new code list when an item is removed', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
