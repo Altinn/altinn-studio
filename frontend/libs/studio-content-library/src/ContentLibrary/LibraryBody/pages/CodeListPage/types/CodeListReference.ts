@@ -6,9 +6,8 @@ export type CodeListReference = {
 };
 
 export type CodeListIdSource = {
-  taskId: string;
+  taskName: string;
   taskType: UsageBpmnTaskType;
-  layoutSetId: string;
   layoutName: string;
   componentIds: string[];
 };

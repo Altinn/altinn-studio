@@ -48,13 +48,13 @@ function CodeListUsageSourceRow({
   codeListSource,
 }: CodeListUsageSourceRowProps): React.ReactElement {
   const { t } = useTranslation();
-  const { taskId, taskType, layoutName, componentIds } = codeListSource;
+  const { taskName, taskType, layoutName, componentIds } = codeListSource;
   const taskTypeTextKey = getTaskTypeTextKey(taskType);
 
   return (
     <Table.Row>
       <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
-      <Table.Cell>{taskId}</Table.Cell>
+      <Table.Cell>{taskName}</Table.Cell>
       <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
       <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
     </Table.Row>
