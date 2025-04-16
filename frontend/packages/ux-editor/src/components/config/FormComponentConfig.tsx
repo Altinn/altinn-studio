@@ -370,12 +370,7 @@ export const FormComponentConfig = ({
                   <FormComponentConfig
                     schema={properties[propertyKey]}
                     component={component[propertyKey] || {}}
-                    handleComponentUpdate={(updatedComponent: FormComponent) => {
-                      handleComponentUpdate({
-                        ...component,
-                        [propertyKey]: updatedComponent,
-                      });
-                    }}
+                    handleComponentUpdate={handleComponentUpdate}
                     editFormId={editFormId}
                     hideUnsupported
                   />
