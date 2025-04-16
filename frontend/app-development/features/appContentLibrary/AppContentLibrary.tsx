@@ -90,7 +90,7 @@ function AppContentLibraryWithData({
   optionListDataList,
   optionListUsages,
   textResources,
-  availableCodeListsToImportFromOrg,
+  availableCodeListsToImportFromOrg = [],
 }: AppContentLibraryWithDataProps): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
@@ -137,7 +137,7 @@ function AppContentLibraryWithData({
           onUploadCodeList: handleUpload,
           codeListsUsages,
           textResources,
-          externalResourceIds: availableCodeListsToImportFromOrg ?? [],
+          externalResourceIds: availableCodeListsToImportFromOrg,
           onImportCodeListFromOrg: handleImportCodeListFromOrg,
         },
       },
