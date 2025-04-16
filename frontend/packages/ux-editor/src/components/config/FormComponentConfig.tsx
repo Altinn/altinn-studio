@@ -204,6 +204,7 @@ export const FormComponentConfig = ({
               key={propertyKey}
             />
           ))}
+
           {labelSettings && (
             <EditBooleanValue
               propertyKey='optionalIndicator'
