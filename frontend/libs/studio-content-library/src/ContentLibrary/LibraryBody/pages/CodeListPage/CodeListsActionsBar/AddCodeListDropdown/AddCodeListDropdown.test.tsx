@@ -10,6 +10,7 @@ import type { UserEvent } from '@testing-library/user-event';
 const onUploadCodeListMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
+const externalResourceIds = ['externalResourceId1', 'externalResourceId2'];
 
 describe('AddCodeListDropdown', () => {
   afterEach(jest.clearAllMocks);
@@ -86,6 +87,27 @@ describe('AddCodeListDropdown', () => {
     );
     expect(toastErrorText).toBeInTheDocument();
   });
+
+  it('opens the import code list dialog when clicking on the import menu button', async () => {
+    const user = userEvent.setup();
+    renderAddCodeListDropdown({ externalResourceIds });
+    const importCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.import_from_org_library'),
+    });
+    await user.click(importCodeListButton);
+    const importCodeListDialogTitle = screen.getByRole('heading', {
+      name: textMock('app_content_library.code_lists.import_modal_heading'),
+    });
+    expect(importCodeListDialogTitle).toBeInTheDocument();
+  });
+
+  it('does not display the import button when there are no external resources', () => {
+    renderAddCodeListDropdown();
+    const importButton = screen.queryByRole('button', {
+      name: textMock('app_content_library.code_lists.import_from_org_library'),
+    });
+    expect(importButton).not.toBeInTheDocument();
+  });
 });
 
 const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: string) => {
@@ -102,6 +124,6 @@ const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   codeListNames: [codeListName1, codeListName2],
 };
 
-const renderAddCodeListDropdown = () => {
-  return renderWithProviders(<AddCodeListDropdown {...defaultCodeListActionBarProps} />);
+const renderAddCodeListDropdown = (props: Partial<AddCodeListDropdownProps> = {}) => {
+  return renderWithProviders(<AddCodeListDropdown {...defaultCodeListActionBarProps} {...props} />);
 };
