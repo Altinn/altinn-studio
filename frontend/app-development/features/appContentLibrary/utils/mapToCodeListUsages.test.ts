@@ -5,7 +5,8 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 const optionListId: string = 'optionListId';
 const optionListIdSources: CodeListIdSource[] = [
   {
-    layoutSetId: 'layoutSetId',
+    taskType: 'data',
+    taskName: 'taskName',
     layoutName: 'layoutName',
     componentIds: ['componentId1', 'componentId2'],
   },
