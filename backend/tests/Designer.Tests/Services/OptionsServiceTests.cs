@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -265,47 +268,60 @@ public class OptionsServiceTests : IDisposable
         // Act
         List<RefToOptionListSpecifier> optionListsReferences = await optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer));
 
-        List<RefToOptionListSpecifier> expectedResponseList = new()
-        {
-            new RefToOptionListSpecifier
-            {
-                OptionListId = "test-options", OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
-                        LayoutName = "layoutWithOneOptionListIdRef",
-                        LayoutSetId = "layoutSet1"
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-another-set"],
-                        LayoutName = "layoutWithTwoOptionListIdRefs",
-                        LayoutSetId = "layoutSet2"
-                    }
-                ]
-            },
-            new()
-            {
-                OptionListId = "other-options", OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-other-options-id"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
-                    }
-                ]
-            }
-        };
         // Assert
+        List<RefToOptionListSpecifier> expectedResponseList = OptionListReferenceTestDataWithTaskData();
         Assert.Equivalent(optionListsReferences, expectedResponseList);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldAddCorrectTaskData_WhenReferencesExist()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer);
+        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
+
+        // Assert
+        List<RefToOptionListSpecifier> expectedResult = OptionListReferenceTestDataWithTaskData();
+        Assert.Equivalent(result, expectedResult);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenGivenListIsEmpty()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer);
+        List<RefToOptionListSpecifier> emptyReferenceList = [];
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, emptyReferenceList);
+
+        // Assert
+        Assert.Same(result, emptyReferenceList);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenLayoutSetsModelIsEmpty()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer);
+        var appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
+        appDevelopmentServiceMock.Setup(s => s.GetLayoutSetsExtended(repoEditingContext, new CancellationToken())).ReturnsAsync(new LayoutSetsModel());
+        var optionsService = GetOptionsServiceForTestWithMockedAppDevelopmentService(appDevelopmentServiceMock);
+        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
+
+        // Assert
+        Assert.Same(result, referencesWithoutTaskData);
     }
 
     [Fact]
@@ -370,10 +386,120 @@ public class OptionsServiceTests : IDisposable
         Assert.Null(optionList);
     }
 
+    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithoutTaskData()
+    {
+        return new List<RefToOptionListSpecifier>
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    }
+                ]
+            }
+        };
+    }
+
+    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithTaskData()
+    {
+        return new List<RefToOptionListSpecifier>
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                        TaskId = "Task_2",
+                        TaskType = "data"
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    }
+                ]
+            }
+        };
+    }
+
     private static OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
+        AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentService);
+
+        return optionsService;
+    }
+
+
+
+    private static OptionsService GetOptionsServiceForTestWithMockedAppDevelopmentService(Mock<IAppDevelopmentService> appDevelopmentServiceMock)
+    {
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentServiceMock.Object);
 
         return optionsService;
     }
