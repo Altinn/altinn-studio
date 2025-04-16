@@ -1,15 +1,16 @@
 import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
 import { CodeLists } from './CodeLists';
 import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
-import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components-legacy';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
+import { UsageBpmnTaskType } from '../types/UsageBpmnTaskType';
 
 const codeListName = codeListsDataMock[0].title;
 const onDeleteCodeListMock = jest.fn();
@@ -62,7 +63,12 @@ describe('CodeLists', () => {
         {
           codeListId: codeListName,
           codeListIdSources: [
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'taskName',
+              layoutName: 'layoutName',
+              componentIds: ['componentId'],
+            },
           ],
         },
       ],
@@ -82,11 +88,17 @@ describe('CodeLists', () => {
           codeListId: codeListName,
           codeListIdSources: [
             {
-              layoutSetId: 'layoutSetId',
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId1', 'componentId2'],
             },
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'layoutSetId',
+              layoutName: 'layoutName',
+              componentIds: ['componentId'],
+            },
           ],
         },
       ],
@@ -105,7 +117,12 @@ describe('CodeLists', () => {
         {
           codeListId: codeListName,
           codeListIdSources: [
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'taskName',
+              layoutName: 'layoutName',
+              componentIds: ['componentId'],
+            },
           ],
         },
       ],
@@ -123,7 +140,12 @@ describe('CodeLists', () => {
         {
           codeListId: codeListName,
           codeListIdSources: [
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'taskName',
+              layoutName: 'layoutName',
+              componentIds: ['componentId'],
+            },
           ],
         },
       ],
@@ -144,7 +166,12 @@ describe('CodeLists', () => {
         {
           codeListId: codeListName,
           codeListIdSources: [
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              taskType: UsageBpmnTaskType.Data,
+              taskName: 'taskName',
+              layoutName: 'layoutName',
+              componentIds: ['componentId'],
+            },
           ],
         },
       ],
@@ -202,7 +229,9 @@ describe('CodeLists', () => {
       codeListsUsages: [
         {
           codeListId: codeListsDataMock[0].title,
-          codeListIdSources: [{ layoutSetId: '', layoutName: '', componentIds: [''] }],
+          codeListIdSources: [
+            { taskType: UsageBpmnTaskType.Data, taskName: '', layoutName: '', componentIds: [''] },
+          ],
         },
       ],
     });
