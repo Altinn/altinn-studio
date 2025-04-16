@@ -310,7 +310,6 @@ describe('FormComponentConfig', () => {
       name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
     await user.click(arrayPropertyButton);
-
     const combobox = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_properties.${propertyKey}`),
     });
