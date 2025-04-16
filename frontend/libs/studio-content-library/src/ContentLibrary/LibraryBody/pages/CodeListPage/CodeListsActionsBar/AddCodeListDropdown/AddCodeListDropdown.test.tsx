@@ -6,11 +6,13 @@ import { AddCodeListDropdown } from './AddCodeListDropdown';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { externalResources } from '../../../../../../test-data/externalResources';
 
 const onUploadCodeListMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
-const externalResourceIds = ['externalResourceId1', 'externalResourceId2'];
+const externalResourceIds: ExternalResource[] = externalResources;
 
 describe('AddCodeListDropdown', () => {
   afterEach(jest.clearAllMocks);

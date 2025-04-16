@@ -16,6 +16,7 @@ import {
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListData = {
   title: string;
@@ -32,7 +33,7 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
-  externalResourceIds?: string[];
+  externalResourceIds?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
