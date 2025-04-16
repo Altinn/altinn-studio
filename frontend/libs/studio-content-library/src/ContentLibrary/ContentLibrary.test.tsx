@@ -19,10 +19,8 @@ describe('ContentLibrary', () => {
     const landingPageTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
-    const infoBox = screen.queryByTitle(textMock('app_content_library.info_box.title'));
     expect(libraryHeader).toBeInTheDocument();
     expect(landingPageTitle).toBeInTheDocument();
-    expect(infoBox).not.toBeInTheDocument();
   });
 
   it('renders the ContentLibrary with codeList content when acting as currentPage', () => {
@@ -30,9 +28,7 @@ describe('ContentLibrary', () => {
     const codeListTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.code_lists.page_name'),
     });
-    const infoBox = screen.getByTitle(textMock('app_content_library.info_box.title'));
     expect(codeListTitle).toBeInTheDocument();
-    expect(infoBox).toBeInTheDocument();
   });
 
   it('navigates to images content when clicking on images navigation', async () => {

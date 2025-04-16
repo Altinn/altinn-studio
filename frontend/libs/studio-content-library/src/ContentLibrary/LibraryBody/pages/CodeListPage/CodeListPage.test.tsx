@@ -220,6 +220,18 @@ describe('CodeListPage', () => {
     expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
     expect(onUpdateTextResource).toHaveBeenCalledWith(expectedObject);
   });
+
+  it('renders an info box when no code lists are passed', () => {
+    renderCodeListPage({ codeListsData: [] });
+    const alert = screen.getByText(textMock('app_content_library.code_lists.info_box.title'));
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('does not render an info box when code lists are passed', () => {
+    renderCodeListPage();
+    const alert = screen.queryByText(textMock('app_content_library.code_lists.info_box.title'));
+    expect(alert).not.toBeInTheDocument();
+  });
 });
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
