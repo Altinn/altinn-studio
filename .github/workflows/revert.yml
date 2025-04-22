@@ -40,7 +40,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
           subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
 
-      - name: Run roll back script
+      - name: Run roll back script (dry run)
         working-directory: app-frontend
         env:
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
@@ -50,6 +50,5 @@ jobs:
         run: |
           bash .github/scripts/revert.sh \
            --tag "${{ inputs.tag }}" \
-           --azure-sync-cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
