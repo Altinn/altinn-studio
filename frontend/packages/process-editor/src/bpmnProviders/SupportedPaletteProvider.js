@@ -1,4 +1,3 @@
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];

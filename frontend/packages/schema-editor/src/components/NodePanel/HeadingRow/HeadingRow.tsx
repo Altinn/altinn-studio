@@ -17,7 +17,8 @@ import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/co
 import {
   BooleanIcon,
   CombinationIcon,
-  NumberIcon,
+  IntegerIcon,
+  DivideIcon,
   ObjectIcon,
   PlusIcon,
   StringIcon,
@@ -115,12 +116,12 @@ const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
     },
     {
       titleKey: 'schema_editor.integer',
-      icon: <NumberIcon />,
+      icon: <IntegerIcon />,
       action: () => addAndSelectNode(ObjectKind.Field, FieldType.Integer, schemaPointer),
     },
     {
       titleKey: 'schema_editor.number',
-      icon: <NumberIcon />,
+      icon: <DivideIcon />,
       action: () => addAndSelectNode(ObjectKind.Field, FieldType.Number, schemaPointer),
     },
     {

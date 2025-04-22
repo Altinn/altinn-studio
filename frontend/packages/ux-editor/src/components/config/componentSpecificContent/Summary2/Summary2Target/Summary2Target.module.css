@@ -5,6 +5,6 @@
   border-bottom: 2px solid var(--fds-semantic-border-divider-subtle);
 }
 
-.targetConfig > * {
+.wrapperConfig > * {
   padding-bottom: var(--fds-spacing-2);
 }

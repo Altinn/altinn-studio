@@ -5,24 +5,35 @@ import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
 } from 'app-shared/types/PolicyAccessPackages';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const package1: PolicyAccessPackage = {
   id: 'package1',
   urn: 'urn:package1',
   name: 'Package Alpha',
   description: 'First package',
+  isDelegable: true,
 };
 const package2: PolicyAccessPackage = {
   id: 'package2',
   urn: 'urn:package2',
   name: 'Package Beta',
   description: 'Second package',
+  isDelegable: true,
 };
 const package3: PolicyAccessPackage = {
   id: 'package3',
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
+  isDelegable: true,
+};
+const unknownAccessPackage: PolicyAccessPackage = {
+  id: 'package4',
+  urn: 'urn:package4',
+  name: 'Package Zeta',
+  description: 'Fourth package',
+  isDelegable: true,
 };
 
 const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
@@ -32,7 +43,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area1',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package1, package2],
   },
   {
@@ -41,7 +51,6 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     urn: 'urn:area2',
     description: '',
     icon: '',
-    areaGroup: '',
     packages: [package3],
   },
 ];
@@ -68,6 +77,16 @@ describe('ChosenAccessPackages', () => {
     expect(
       screen.queryByText('policy_editor.access_package_chosen_packages'),
     ).not.toBeInTheDocument();
+  });
+
+  it('should render unknown access package when a chosen access package has unknown urn', () => {
+    const chosenAccessPackages = [unknownAccessPackage.urn];
+
+    renderChosenAccessPackages({ chosenAccessPackages });
+
+    expect(
+      screen.getByText(textMock('policy_editor.access_package_unknown_heading')),
+    ).toBeInTheDocument();
   });
 });
 

@@ -52,8 +52,10 @@ export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/option
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
+export const importCodeListFromOrgPath = (org, app, codeListId) => `${basePath}/${org}/${app}/options/import/${codeListId}`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
+export const availableResourcesInOrgLibraryPath = (org, contentType) => `${basePath}/${org}/content/${contentType}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
@@ -90,6 +92,7 @@ export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/im
 export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
+export const orgTextResourcesPath = (org, language) => `${basePath}/${org}/text/language/${language}`; // Get, patch, post
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
