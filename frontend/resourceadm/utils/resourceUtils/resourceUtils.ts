@@ -22,6 +22,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
+  Consentresource: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -376,6 +377,16 @@ export const validateResource = (
     }
   }
 
+  // validate consentTemplate
+  if (resourceData.resourceType === 'Consentresource') {
+    if (!resourceData.consentTemplate) {
+      errors.push({
+        field: 'consentTemplate',
+        error: 'Samtykkemal må velges',
+      });
+    }
+  }
+
   // validate contactPoints
   // if there are no contactPoints, an empty contactPoint is added in the contactPoints component
   if (!resourceData.contactPoints?.length) {
@@ -452,3 +463,16 @@ export const getMigrationErrorMessage = (
   }
   return null;
 };
+
+const getConsentMetadataValuesFromText = (text: string) => {
+  return text.match(/{(.*?)}/g) ?? [];
+};
+export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
+  const metadataValues = [
+    ...getConsentMetadataValuesFromText(consentTexts['nb']),
+    ...getConsentMetadataValuesFromText(consentTexts['nn']),
+    ...getConsentMetadataValuesFromText(consentTexts['en']),
+  ].map((match) => match.slice(1, -1));
+  return [...new Set(metadataValues)];
+};
+1;

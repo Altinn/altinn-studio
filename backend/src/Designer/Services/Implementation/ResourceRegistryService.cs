@@ -646,6 +646,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return responseContent.Data;
         }
 
+        public async Task<List<ConsentTemplate>> GetConsentTemplates()
+        {
+            // Temp location. Will be moved to CDN
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/consent-templates/content/authorization/architecture/resourceregistry/consent_templates.json";
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                string consentTemplatesString = await response.Content.ReadAsStringAsync();
+                List<ConsentTemplate> consentTemplates = JsonSerializer.Deserialize<List<ConsentTemplate>>(consentTemplatesString, _serializerOptions);
+                return consentTemplates;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving consent templates", ex);
+            }
+        }
+
         private async Task<List<BrregParty>> GetBrregParties(string url)
         {
             HttpResponseMessage enheterResponse = await _httpClient.GetAsync(url);

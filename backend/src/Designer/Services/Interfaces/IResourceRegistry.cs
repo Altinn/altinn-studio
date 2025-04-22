@@ -171,5 +171,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<HttpStatusCode> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
 
         Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env);
+
+        Task<List<ConsentTemplate>> GetConsentTemplates();
     }
 }

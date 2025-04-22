@@ -12,6 +12,8 @@ import type {
   SupportedLanguage,
   ResourceReference,
   ResourceFormError,
+  ConsentTemplate,
+  ConsentMetadata,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -19,6 +21,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
+  getConsentMetadataValues,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -31,10 +34,12 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
+import { ConsentMetadataField } from 'resourceadm/components/ResourcePageInputs/ConsentMetadataField';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
   validationErrors: ResourceFormError[];
+  consentTemplates?: ConsentTemplate[];
   onSaveResource: (r: Resource) => void;
   id: string;
 };
@@ -52,6 +57,7 @@ export type AboutResourcePageProps = {
 export const AboutResourcePage = ({
   resourceData,
   validationErrors,
+  consentTemplates,
   onSaveResource,
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
@@ -170,6 +176,60 @@ export const AboutResourcePage = ({
           required
           errors={validationErrors.filter((error) => error.field === 'description')}
         />
+        {resourceData.resourceType === 'Consentresource' && (
+          <>
+            <div>
+              <ResourceLanguageTextField
+                id='consentText'
+                label={t('resourceadm.about_resource_consent_text_label')}
+                description={t('resourceadm.about_resource_consent_text_text')}
+                translationDescription='Samtykketekst'
+                isTranslationPanelOpen={translationType === 'consentText'}
+                useTextArea
+                value={resourceData.consentText}
+                onFocus={() => setTranslationType('consentText')}
+                onBlur={(consentTexts: SupportedLanguage) => {
+                  const uniqueMetadataValues = getConsentMetadataValues(consentTexts);
+                  const metadataValuesToSave: ConsentMetadata = {};
+                  uniqueMetadataValues.forEach((key) => {
+                    metadataValuesToSave[key] = {
+                      optional: resourceData.consentMetadata?.[key]?.optional ?? false,
+                    };
+                  });
+                  handleSave({
+                    ...resourceData,
+                    consentText: consentTexts,
+                    consentMetadata: metadataValuesToSave,
+                  });
+                }}
+                required
+                errors={validationErrors.filter((error) => error.field === 'consentText')}
+              />
+              <ConsentMetadataField
+                value={resourceData.consentMetadata ?? {}}
+                onFocus={() => setTranslationType('none')}
+                onChange={(newMetadata: ConsentMetadata) =>
+                  handleSave({ ...resourceData, consentMetadata: newMetadata })
+                }
+              />
+            </div>
+            <ResourceRadioGroup
+              id='consentTemplate'
+              label={t('resourceadm.about_resource_consent_template_label')}
+              description={t('resourceadm.about_resource_consent_template_text')}
+              value={resourceData.consentTemplate}
+              options={(consentTemplates ?? []).map((template) => {
+                return { value: template.id, label: template.title };
+              })}
+              onFocus={() => setTranslationType('none')}
+              onChange={(selected: string) =>
+                handleSave({ ...resourceData, consentTemplate: selected })
+              }
+              required
+              errors={validationErrors.filter((error) => error.field === 'consentTemplate')}
+            />
+          </>
+        )}
         <ResourceTextField
           id='homepage'
           label={t('resourceadm.about_resource_homepage_label')}
