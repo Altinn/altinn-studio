@@ -14,9 +14,8 @@ const updateCorrespondenceResource = (
   modeling: Modeling,
   value: string,
   bpmnDetails: BpmnDetails,
-) => {
+): void => {
   BpmnGuard.ensureHasSignatureConfig(bpmnDetails.element);
-
   modeling.updateModdleProperties(
     bpmnDetails.element,
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,

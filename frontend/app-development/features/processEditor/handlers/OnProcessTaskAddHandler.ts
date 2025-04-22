@@ -102,38 +102,16 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
-    this.addDataTypeToAppMetadata({
-      dataTypeId,
-      taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
-    });
+    this.handleGenericSigningTaskAdd(taskMetadata);
   }
 
   /**
-   * Adds a dataType and layoutset to the added signing task
+   * Adds a dataType and layoutset to the added user-controlled-signing task
    * @param taskMetadata
    * @private
    */
   private handleUserControlledSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
-    this.addDataTypeToAppMetadata({
-      dataTypeId,
-      taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
-    });
+    this.handleGenericSigningTaskAdd(taskMetadata);
   }
 
   /**
@@ -148,5 +126,20 @@ export class OnProcessTaskAddHandler {
       taskType: taskMetadata.taskType,
       layoutSetConfig: { id: elementId, tasks: [elementId] },
     };
+  }
+
+  private handleGenericSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.addDataTypeToAppMetadata({
+      dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+      allowedContributers: [AllowedContributor.AppOwned],
+    });
   }
 }
