@@ -29,7 +29,7 @@ export function StudioDropdownFileUploaderButton({
   const { setOpen } = useStudioDropdownContext();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const fileInputDisabled: boolean = fileInputProps?.disabled ?? disabled ?? false;
+  const isFileInputDisabled: boolean = fileInputProps?.disabled ?? disabled ?? false;
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -45,14 +45,14 @@ export function StudioDropdownFileUploaderButton({
 
   return (
     <>
-      <Dropdown.Button {...rest} onClick={handleClick} disabled={fileInputDisabled}>
+      <Dropdown.Button {...rest} onClick={handleClick} disabled={isFileInputDisabled}>
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {uploadButtonText}
         </TextWithIcon>
       </Dropdown.Button>
       <input
         aria-label={uploadButtonText}
-        disabled={fileInputDisabled}
+        disabled={isFileInputDisabled}
         type='file'
         ref={inputRef}
         className={classes.fileInput}
