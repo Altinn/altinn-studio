@@ -27,7 +27,7 @@ export interface Resource {
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
-  consentTemplate: string;
+  consentTemplate?: string;
   consentText?: SupportedLanguage;
   consentMetadata?: ConsentMetadata;
 }
