@@ -1,11 +1,12 @@
 import type { CodeListIdSource } from '@studio/content-library';
 import { mapToCodeListUsages } from './mapToCodeListUsages';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
+import { CodeListUsageTaskType } from '@studio/content-library';
 
 const optionListId: string = 'optionListId';
 const optionListIdSources: CodeListIdSource[] = [
   {
-    taskType: 'data',
+    taskType: CodeListUsageTaskType.Data,
     taskName: 'taskName',
     layoutName: 'layoutName',
     componentIds: ['componentId1', 'componentId2'],

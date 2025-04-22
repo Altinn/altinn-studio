@@ -3,9 +3,9 @@ import type { CodeListUsagesProps } from './CodeListUsages';
 import { CodeListUsages } from './CodeListUsages';
 import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { UsageBpmnTaskType } from '../../../types/UsageBpmnTaskType';
+import { CodeListUsageTaskType } from '../../../../../../../types/CodeListUsageTaskType';
 
-const taskType = UsageBpmnTaskType.Data;
+const taskType = CodeListUsageTaskType.Data;
 const taskName = 'taskName';
 const layoutName = 'layoutName';
 const componentId = 'componentId';

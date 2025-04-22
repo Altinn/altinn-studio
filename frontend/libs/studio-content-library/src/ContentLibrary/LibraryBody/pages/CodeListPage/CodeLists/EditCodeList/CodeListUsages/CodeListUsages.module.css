@@ -1,17 +1,3 @@
 .table {
   width: 100%;
 }
-
-.tag {
-  width: var(--fds-sizing-22);
-  display: flex;
-  justify-content: center;
-}
-
-.tagTypeData {
-  background-color: var(--fds-colors-blue-200);
-}
-
-.tagTypeSigning {
-  background-color: var(--fds-colors-red-200);
-}

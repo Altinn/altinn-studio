@@ -13,12 +13,14 @@ import {
   textResourcesNb,
 } from '../../../../../test-data/textResources';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
+import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 
 const codeListId1: string = 'codeListId1';
 const codeListId2: string = 'codeListId2';
 const componentIds: string[] = ['componentId1', 'componentId2'];
 const codeListIdSource: CodeListIdSource = {
-  layoutSetId: 'layoutSetId',
+  taskType: CodeListUsageTaskType.Data,
+  taskName: 'taskName',
   layoutName: 'layoutName',
   componentIds,
 };

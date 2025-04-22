@@ -4,7 +4,7 @@ import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
-import { UsageBpmnTaskType } from '../../../types/UsageBpmnTaskType';
+import { CodeListUsageTaskType } from '../../../../../../../types/CodeListUsageTaskType';
 
 export type CodeListUsagesProps = {
   codeListSources: CodeListIdSource[];
@@ -61,11 +61,11 @@ function CodeListUsageSourceRow({
   );
 }
 
-export const getTaskTypeTextKey = (taskType: UsageBpmnTaskType): string => {
+export const getTaskTypeTextKey = (taskType: CodeListUsageTaskType): string => {
   switch (taskType) {
-    case UsageBpmnTaskType.Data:
+    case CodeListUsageTaskType.Data:
       return 'app_content_library.code_lists.code_list_usage_table_task_type_data';
-    case UsageBpmnTaskType.Signing:
+    case CodeListUsageTaskType.Signing:
       return 'app_content_library.code_lists.code_list_usage_table_task_type_signing';
     default:
       return taskType;
