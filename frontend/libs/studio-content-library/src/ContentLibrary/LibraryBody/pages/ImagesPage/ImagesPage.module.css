@@ -1,6 +1,6 @@
 .noImagesWrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: var(--ds-size-2);
+  width: fit-content;
 }
