@@ -1,4 +1,4 @@
-import type { UsageBpmnTaskType } from './UsageBpmnTaskType';
+import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 
 export type CodeListReference = {
   codeListId: string;
@@ -7,7 +7,7 @@ export type CodeListReference = {
 
 export type CodeListIdSource = {
   taskName: string;
-  taskType: UsageBpmnTaskType;
+  taskType: CodeListUsageTaskType;
   layoutName: string;
   componentIds: string[];
 };
