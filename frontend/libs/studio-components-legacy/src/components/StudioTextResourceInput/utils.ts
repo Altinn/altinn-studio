@@ -47,9 +47,9 @@ export function generateRandomTextResourceId(length: number = 12): string {
 export function getTextResourceValueIfTextResourceExists(
   textResources: TextResource[],
   textResource: TextResource,
-  currentId: string,
 ): string {
-  const isCurrentIdATextResource: boolean =
-    textResources.filter((item: TextResource) => item.id === currentId).length !== 0;
+  const isCurrentIdATextResource: boolean = textResources.some(
+    (item: TextResource) => item.id === textResource?.id,
+  );
   return isCurrentIdATextResource ? textResource.value : '';
 }

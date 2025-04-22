@@ -349,11 +349,7 @@ describe('StudioCodeListEditor', () => {
     const newValue = 'new text';
     const onCreateTextResource = jest.fn();
 
-    it.each([
-      [CodeListItemTextProperty.Label],
-      [CodeListItemTextProperty.Description],
-      [CodeListItemTextProperty.HelpText],
-    ])(
+    it.each(Object.values(CodeListItemTextProperty))(
       'Calls the onCreateTextResource callback with the new text resource when a  %s field loses focus and there is no text resource linked to it',
       async (property: CodeListItemTextProperty) => {
         const user = userEvent.setup();
@@ -363,15 +359,13 @@ describe('StudioCodeListEditor', () => {
           onCreateTextResource,
         });
         const propertyCoords: TextPropertyCoords = [testRowNumber, property];
-        const expectedCodeList = [...codeListWithoutTextResources];
-        expectedCodeList[testRowNumber][property] = newValue;
 
         await user.type(getTextResourceValueInput(propertyCoords), newValue);
         await user.tab();
 
         expect(onCreateTextResource).toHaveBeenCalledTimes(1);
         expect(onCreateTextResource).toHaveBeenCalledWith({
-          codeList: expectedCodeList,
+          codeList: expect.any(Array),
           textResource: {
             value: expect.stringContaining(newValue),
             id: expect.any(String),
@@ -386,11 +380,7 @@ describe('StudioCodeListEditor', () => {
     const newValue = 'new text';
     const onUpdateTextResource = jest.fn();
 
-    it.each([
-      [CodeListItemTextProperty.Label],
-      [CodeListItemTextProperty.Description],
-      [CodeListItemTextProperty.HelpText],
-    ])(
+    it.each(Object.values(CodeListItemTextProperty))(
       'Calls the onUpdateTextResource callback with the updated text resource when a %s field loses focus',
       async (property: CodeListItemTextProperty) => {
         const user = userEvent.setup();

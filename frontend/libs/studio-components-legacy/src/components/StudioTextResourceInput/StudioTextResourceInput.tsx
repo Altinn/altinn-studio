@@ -30,10 +30,10 @@ type TextResourceInputPropsBase = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
-  required?: boolean;
-  textResources: TextResource[];
   onCreateTextResource?: (newTextResource: TextResource) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
+  required?: boolean;
+  textResources: TextResource[];
   texts: TextResourceInputTexts;
   toggleClass?: string;
 };
@@ -48,11 +48,11 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onBlurTextResource,
       onChangeTextResource,
       onChangeCurrentId,
+      onCreateTextResource,
+      onUpdateTextResource,
       onKeyDown,
       textResources: givenTextResources,
       texts,
-      onCreateTextResource,
-      onUpdateTextResource,
       toggleClass,
       ...rest
     },
@@ -68,7 +68,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     };
 
     const handleCreateTextResource = (textResource: TextResource): void => {
-      handleChangeCurrentId(textResource.id);
+      setCurrentId(textResource.id);
       onCreateTextResource?.(textResource);
     };
 
@@ -150,7 +150,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             textResources={textResources}
             onCreateTextResource={onCreateTextResource}
             onUpdateTextResource={onUpdateTextResource}
-            currentId={currentId}
             {...rest}
           />
         );
@@ -182,7 +181,7 @@ type ValueFieldProps = StudioTextfieldProps & {
   onChangeTextResource: (textResource: TextResource) => void;
   onCreateTextResource: (textResource: TextResource) => void;
   onUpdateTextResource: (textResource: TextResource) => void;
-} & Pick<StudioTextResourceInputProps, 'currentId'>;
+};
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
@@ -193,6 +192,8 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       onChangeTextResource,
       onCreateTextResource,
       onUpdateTextResource,
+      onBlur,
+      onChange,
       ...rest
     },
     ref,
@@ -202,39 +203,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       ...rest,
     };
 
-    return (
-      <EnabledValueField
-        ref={ref}
-        onBlurTextResource={onBlurTextResource}
-        onChangeTextResource={onChangeTextResource}
-        textResource={textResource}
-        textResources={textResources}
-        onCreateTextResource={onCreateTextResource}
-        onUpdateTextResource={onUpdateTextResource}
-        {...generalProps}
-      />
-    );
-  },
-);
-
-ValueField.displayName = 'ValueField';
-
-const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
-  (
-    {
-      textResource,
-      textResources,
-      onBlur,
-      onChange,
-      onBlurTextResource,
-      onChangeTextResource,
-      onCreateTextResource,
-      onUpdateTextResource,
-      currentId,
-      ...rest
-    },
-    ref,
-  ): ReactElement => {
     const handleCreateTextResource = (value: string): void => {
       const newTextResource: TextResource = createNewTextResource(value);
       onCreateTextResource(newTextResource);
@@ -249,8 +217,8 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         const updatedTextResource = editTextResourceValue(textResource, value);
         onBlurTextResource(updatedTextResource);
         onUpdateTextResource(updatedTextResource);
-        onBlur?.(event);
       }
+      onBlur?.(event);
     };
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -260,7 +228,7 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       onChange?.(event);
     };
 
-    const value = getTextResourceValueIfTextResourceExists(textResources, textResource, currentId);
+    const value = getTextResourceValueIfTextResourceExists(textResources, textResource);
 
     return (
       <StudioTextfield
@@ -268,13 +236,13 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         onChange={handleChange}
         ref={ref}
         value={value}
-        {...rest}
+        {...generalProps}
       />
     );
   },
 );
 
-EnabledValueField.displayName = 'EnabledValueField';
+ValueField.displayName = 'ValueField';
 
 type InputModeToggleProps = {
   className?: string;

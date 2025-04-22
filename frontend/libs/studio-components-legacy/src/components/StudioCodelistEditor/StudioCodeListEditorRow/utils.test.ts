@@ -1,6 +1,12 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
-import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
+import {
+  changeDescription,
+  changeHelpText,
+  changeLabel,
+  changeValue,
+  convertStringToNumber,
+} from './utils';
 
 // Test data:
 const testItem: CodeListItem = {
@@ -68,6 +74,15 @@ describe('StudioCodeListEditorRow utils', () => {
       const item = createTestItem();
       const updatedItem = changeHelpText(item, 'Updated help text');
       expect(updatedItem).not.toBe(item);
+    });
+  });
+
+  describe('convertStringToNumber', () => {
+    it('should return number', () => {
+      expect(convertStringToNumber('123.456')).toBe(123.456);
+      expect(convertStringToNumber('123,456')).toBe(123.456);
+      expect(convertStringToNumber('123')).toBe(123);
+      expect(convertStringToNumber('')).toBe(null);
     });
   });
 });

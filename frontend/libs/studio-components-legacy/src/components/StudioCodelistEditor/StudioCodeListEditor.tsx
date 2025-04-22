@@ -11,6 +11,7 @@ import {
   isCodeListEmpty,
   evaluateDefaultType,
   isCodeLimitReached,
+  updateCodeList,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -121,9 +122,8 @@ function StatefulCodeListEditor({
   const handleBlurAny = useCallback(() => {
     if (isCodeListValid(state.codeList)) {
       onBlurAny?.(state.codeList);
-      onUpdateCodeList?.(state.codeList);
     }
-  }, [onBlurAny, onUpdateCodeList, state.codeList]);
+  }, [onBlurAny, state.codeList]);
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
@@ -142,8 +142,11 @@ function StatefulCodeListEditor({
 
   const handleCreateTextResource = useCallback(
     ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
-      const codeList = [...state.codeList];
-      codeList[codeItemIndex][property] = textResource.id;
+      const codeList: CodeList = updateCodeList(state.codeList, {
+        newValue: textResource.id,
+        codeItemIndex,
+        property,
+      });
       onCreateTextResource?.({ textResource, codeList });
     },
     [onCreateTextResource, state.codeList],
@@ -328,6 +331,14 @@ function TableBody({
     [codeList, onChange],
   );
 
+  const handleUpdateCodeListItem = useCallback(
+    (index: number, newItem: CodeListItem) => {
+      const updatedCodeList = changeCodeListItem(codeList, index, newItem);
+      onUpdateCodeList?.(updatedCodeList);
+    },
+    [codeList, onUpdateCodeList],
+  );
+
   return (
     <StudioInputTable.Body>
       {codeList.map((item, index) => (
@@ -341,6 +352,7 @@ function TableBody({
           onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           textResources={textResources}
+          onUpdateCodeListItem={(newItem) => handleUpdateCodeListItem(index, newItem)}
           onCreateTextResource={onCreateTextResource}
           onUpdateTextResource={onUpdateTextResource}
           dispatch={dispatch}

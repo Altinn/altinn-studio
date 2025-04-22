@@ -90,24 +90,18 @@ describe('utils', () => {
     const textResources = [textResource];
 
     it('Returns the value of a text resource when it exists', () => {
-      const currentId = textResource.id;
-
-      const result: string = getTextResourceValueIfTextResourceExists(
-        textResources,
-        textResource,
-        currentId,
-      );
+      const result: string = getTextResourceValueIfTextResourceExists(textResources, textResource);
 
       expect(result).toEqual(textResource.value);
     });
 
     it('Returns an empty string if the text resource does not exist', () => {
-      const currentId = 'some-id';
+      const alteredTextResource = { ...textResource };
+      alteredTextResource.id = 'some-id';
 
       const result: string = getTextResourceValueIfTextResourceExists(
         textResources,
-        textResource,
-        currentId,
+        alteredTextResource,
       );
 
       expect(result).toBe('');
