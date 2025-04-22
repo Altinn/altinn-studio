@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -40,8 +41,17 @@ export function useFormDataQueryKey(url: string | undefined) {
   return useMemoDeepEqual(() => getFormDataQueryKey(url), [url]);
 }
 
+const formDataQueryKeys = {
+  all: ['fetchFormData'] as const,
+  withUrl: (url: string | undefined) => [...formDataQueryKeys.all, url ? getFormDataCacheKeyUrl(url) : url] as const,
+};
+
 export function getFormDataQueryKey(url: string | undefined) {
-  return ['fetchFormData', getFormDataCacheKeyUrl(url)];
+  return formDataQueryKeys.withUrl(url);
+}
+
+export async function invalidateFormDataQueries(queryClient: QueryClient) {
+  await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
 }
 
 export function useFormDataQueryOptions() {
@@ -58,7 +68,7 @@ export function useFormDataQueryOptions() {
 
 // We dont want to include the current language in the cacheKey url, but for stateless we still need to keep
 // the 'dataType' query parameter in the cacheKey url to avoid caching issues.
-export function getFormDataCacheKeyUrl(url: string | undefined) {
+function getFormDataCacheKeyUrl(url: string | undefined) {
   if (!url) {
     return undefined;
   }

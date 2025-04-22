@@ -332,6 +332,7 @@ export class AppFrontend {
     incomeField: '#Input-income',
     incomeSummary: '[data-testid="summary-Input-income"]',
     submitButton: '#Button-submit',
+    rejectButton: '#action-button-RejectButton',
     signingButton: '#action-button-SigningButton',
     managerConfirmPanel: '#form-content-Panel-confirm1',
     auditorConfirmPanel: '#form-content-Panel-confirm2',

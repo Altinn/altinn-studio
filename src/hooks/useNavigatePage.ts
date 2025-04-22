@@ -3,6 +3,7 @@ import type { NavigateOptions } from 'react-router-dom';
 
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -20,6 +21,7 @@ import { useRefetchInitialValidations } from 'src/features/validation/backendVal
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';
+import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NavigationEffectCb } from 'src/features/routing/AppRoutingContext';
 
@@ -163,23 +165,29 @@ export const useStartUrl = (forcedTaskId?: string) => {
 };
 
 export function useNavigateToTask() {
-  const processTasks = useLaxProcessData()?.processTasks;
-  const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
   const navigate = useNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useQueryKeysAsStringAsRef();
+  const layoutSets = useLayoutSets();
 
   return useCallback(
-    (newTaskId?: string, options?: NavigateOptions & { runEffect?: boolean }) => {
+    (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
       const { runEffect = true } = options ?? {};
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
       }
-      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeysRef.current}`;
+      let realTaskId = newTaskId;
+      if (newTaskId === TaskKeys.ProcessEnd || newTaskId === TaskKeys.CustomReceipt) {
+        // Go to the correct receipt, no matter what we're actually given
+        realTaskId = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets)
+          ? TaskKeys.CustomReceipt
+          : TaskKeys.ProcessEnd;
+      }
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
       navigate(url, undefined, options, runEffect ? () => focusMainContent(options) : undefined);
     },
-    [lastTaskId, navParams, navigate, queryKeysRef],
+    [navParams, navigate, queryKeysRef, layoutSets],
   );
 }
 

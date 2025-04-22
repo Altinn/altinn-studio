@@ -40,20 +40,19 @@ export function ProcessProvider({ children }: PropsWithChildren) {
 
   const { isLoading, data, error, refetch } = useQuery<IProcess, HttpClientError>(getProcessQueryDef(instanceId));
 
+  const ended = data?.ended;
   useEffect(() => {
-    const elementId = data?.currentTask?.elementId;
-    if (data?.ended) {
+    if (ended) {
+      // Catch cases where there is a custom receipt, but we've navigated
+      // to the wrong one (i.e. mocking in all-process-steps.ts)
       const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
-      if (hasCustomReceipt) {
+      if (taskId === TaskKeys.ProcessEnd && hasCustomReceipt) {
         navigateToTask(TaskKeys.CustomReceipt);
-      } else {
+      } else if (taskId === TaskKeys.CustomReceipt && !hasCustomReceipt) {
         navigateToTask(TaskKeys.ProcessEnd);
       }
-    } else if (elementId && elementId !== taskId) {
-      navigateToTask(elementId, { replace: true, runEffect: taskId !== undefined });
     }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [ended, layoutSets, navigateToTask, taskId]);
 
   useEffect(() => {
     error && window.logError('Fetching process state failed:\n', error);
