@@ -33,13 +33,6 @@ jobs:
           sparse-checkout: |
             .github
 
-      - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          repository: 'Altinn/altinn-cdn'
-          token: ${{secrets.ALTINN_CDN_TOKEN}}
-          path: cdn
-
       - name: Azure login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
@@ -48,23 +41,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
 
       - name: Run roll back script
+        working-directory: app-frontend
         env:
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
           FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
           FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
         run: |
-          bash app-frontend/.github/scripts/revert.sh \
+          bash .github/scripts/revert.sh \
            --tag "${{ inputs.tag }}" \
-           --actor "${{ github.actor }}" \
-           --actor_id "${{ github.actor_id }}" \
-           --frontend ./app-frontend \
-           --cdn ./cdn \
-           --commit \
            --azure-sync-cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
-
-      - name: Push to CDN
-        working-directory: cdn
-        run: git push

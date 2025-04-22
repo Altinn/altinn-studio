@@ -66,14 +66,6 @@ jobs:
         working-directory: app-frontend
         run: yarn build
 
-      - name: Checkout Altinn-CDN repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        if: '!env.ACT'
-        with:
-          repository: 'Altinn/altinn-cdn'
-          token: ${{secrets.ALTINN_CDN_TOKEN}}
-          path: cdn
-
       - name: Azure login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         if: '!env.ACT'
@@ -92,18 +84,24 @@ jobs:
           FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
         run: |
           bash .github/scripts/release.sh \
-            --frontend . \
-            --cdn ../cdn \
-            --commit \
             --pre-release \
             --azure-sync-cdn \
             --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
             --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
-      - name: Push to CDN
-        working-directory: cdn
+      - name: Run sync-index script
+        working-directory: app-frontend
         if: '!env.ACT'
-        run: git push
+        env:
+          FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
+          FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
+          FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
+          FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
+        run: |
+          bash .github/scripts/sync-index.sh \
+           --azure-sync-cdn \
+           --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+           --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
       - name: Update PR comment - failure
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
