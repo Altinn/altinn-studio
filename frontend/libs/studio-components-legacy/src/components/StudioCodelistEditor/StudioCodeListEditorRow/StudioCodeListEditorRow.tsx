@@ -195,7 +195,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
     const handleNumberBlur = useCallback(
       (event: FocusEvent<HTMLInputElement>) => {
         const numberValue = convertStringToNumber(event.target.value);
-        onUpdateValue(numberValue);
+        onUpdateValue?.(numberValue);
       },
       [onUpdateValue],
     );
@@ -226,7 +226,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
 
     const handleBooleanBlur = useCallback(
       (event: FocusEvent<HTMLInputElement>): void => {
-        onUpdateValue(event.target.checked);
+        onUpdateValue?.(event.target.checked);
       },
       [onUpdateValue],
     );
@@ -258,7 +258,7 @@ const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
 
     const handleTextBlur = useCallback(
       (event: FocusEvent<HTMLInputElement>) => {
-        onUpdateValue(event.target.value);
+        onUpdateValue?.(event.target.value);
       },
       [onUpdateValue],
     );
