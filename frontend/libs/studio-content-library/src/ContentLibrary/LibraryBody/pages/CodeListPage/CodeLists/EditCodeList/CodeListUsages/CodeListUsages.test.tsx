@@ -6,7 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { CodeListUsageTaskType } from '../../../../../../../types/CodeListUsageTaskType';
 
 const taskType = CodeListUsageTaskType.Data;
-const taskName = 'taskName';
+const taskId = 'taskId';
 const layoutName = 'layoutName';
 const componentId = 'componentId';
 const componentIds = [componentId];
@@ -44,7 +44,7 @@ describe('CodeListUsages', () => {
       name: textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
     });
     expect(codeListSourceTaskType).toBeInTheDocument();
-    const codeListSourceTaskName = screen.getByRole('cell', { name: taskName });
+    const codeListSourceTaskName = screen.getByRole('cell', { name: taskId });
     expect(codeListSourceTaskName).toBeInTheDocument();
     const codeListSourceLayout = screen.getByRole('cell', { name: layoutName });
     expect(codeListSourceLayout).toBeInTheDocument();
@@ -55,15 +55,13 @@ describe('CodeListUsages', () => {
   it('renders a row with the code list usage sources with multiple component ids', () => {
     const multipleComponentIds = [componentId, 'componentId2'];
     renderCodeListUsages({
-      codeListSources: [
-        { taskType, taskId: taskName, layoutName, componentIds: multipleComponentIds },
-      ],
+      codeListSources: [{ taskType, taskId, layoutName, componentIds: multipleComponentIds }],
     });
     const codeListSourceTaskType = screen.getByRole('cell', {
       name: textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
     });
     expect(codeListSourceTaskType).toBeInTheDocument();
-    const codeListSourceTaskName = screen.getByRole('cell', { name: taskName });
+    const codeListSourceTaskName = screen.getByRole('cell', { name: taskId });
     expect(codeListSourceTaskName).toBeInTheDocument();
     const codeListSourceLayout = screen.getByRole('cell', { name: layoutName });
     expect(codeListSourceLayout).toBeInTheDocument();
@@ -76,8 +74,8 @@ describe('CodeListUsages', () => {
   it('renders multiple rows with code list usage sources', () => {
     renderCodeListUsages({
       codeListSources: [
-        { taskType, taskId: taskName, layoutName, componentIds },
-        { taskType, taskId: taskName, layoutName, componentIds },
+        { taskType, taskId, layoutName, componentIds },
+        { taskType, taskId, layoutName, componentIds },
       ],
     });
     const codeListSources = screen.getAllByRole('row');
@@ -86,7 +84,7 @@ describe('CodeListUsages', () => {
 });
 
 const defaultCodeListUsagesProps: CodeListUsagesProps = {
-  codeListSources: [{ taskType, taskId: taskName, layoutName, componentIds }],
+  codeListSources: [{ taskType, taskId, layoutName, componentIds }],
 };
 
 const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}) => {
