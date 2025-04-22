@@ -4,7 +4,7 @@ import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
-import { CodeListUsageTaskType } from '../../../../../../../types/CodeListUsageTaskType';
+import { getUsageTaskTypeTextKey } from '../../../utils';
 
 export type CodeListUsagesProps = {
   codeListSources: CodeListIdSource[];
@@ -49,7 +49,7 @@ function CodeListUsageSourceRow({
 }: CodeListUsageSourceRowProps): React.ReactElement {
   const { t } = useTranslation();
   const { taskName, taskType, layoutName, componentIds } = codeListSource;
-  const taskTypeTextKey = getTaskTypeTextKey(taskType);
+  const taskTypeTextKey = getUsageTaskTypeTextKey(taskType);
 
   return (
     <Table.Row>
@@ -60,14 +60,3 @@ function CodeListUsageSourceRow({
     </Table.Row>
   );
 }
-
-export const getTaskTypeTextKey = (taskType: CodeListUsageTaskType): string => {
-  switch (taskType) {
-    case CodeListUsageTaskType.Data:
-      return 'app_content_library.code_lists.code_list_usage_table_task_type_data';
-    case CodeListUsageTaskType.Signing:
-      return 'app_content_library.code_lists.code_list_usage_table_task_type_signing';
-    default:
-      return taskType;
-  }
-};

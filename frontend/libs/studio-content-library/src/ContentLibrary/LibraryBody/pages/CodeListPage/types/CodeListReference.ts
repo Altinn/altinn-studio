@@ -1,4 +1,4 @@
-import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
+import type { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 
 export type CodeListReference = {
   codeListId: string;
