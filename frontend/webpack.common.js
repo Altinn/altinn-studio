@@ -6,6 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist', process.env.npm_package_name),
     filename: `${process.env.npm_package_name}.js`,
+    chunkFormat: false,
   },
 
   resolve: {
