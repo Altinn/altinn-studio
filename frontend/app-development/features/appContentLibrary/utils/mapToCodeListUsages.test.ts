@@ -7,7 +7,7 @@ const optionListId: string = 'optionListId';
 const optionListIdSources: CodeListIdSource[] = [
   {
     taskType: CodeListUsageTaskType.Data,
-    taskName: 'taskName',
+    taskId: 'taskName',
     layoutName: 'layoutName',
     componentIds: ['componentId1', 'componentId2'],
   },

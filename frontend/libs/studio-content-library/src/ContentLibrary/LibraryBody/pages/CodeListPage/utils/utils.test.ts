@@ -21,7 +21,7 @@ const codeListId2: string = 'codeListId2';
 const componentIds: string[] = ['componentId1', 'componentId2'];
 const codeListIdSource: CodeListIdSource = {
   taskType: CodeListUsageTaskType.Data,
-  taskName: 'taskName',
+  taskId: 'taskName',
   layoutName: 'layoutName',
   componentIds,
 };

@@ -65,7 +65,7 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'taskName',
+              taskId: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId'],
             },
@@ -89,13 +89,13 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'taskName',
+              taskId: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId1', 'componentId2'],
             },
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'layoutSetId',
+              taskId: 'layoutSetId',
               layoutName: 'layoutName',
               componentIds: ['componentId'],
             },
@@ -119,7 +119,7 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'taskName',
+              taskId: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId'],
             },
@@ -142,7 +142,7 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'taskName',
+              taskId: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId'],
             },
@@ -168,7 +168,7 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: 'taskName',
+              taskId: 'taskName',
               layoutName: 'layoutName',
               componentIds: ['componentId'],
             },
@@ -232,7 +232,7 @@ describe('CodeLists', () => {
           codeListIdSources: [
             {
               taskType: CodeListUsageTaskType.Data,
-              taskName: '',
+              taskId: '',
               layoutName: '',
               componentIds: [''],
             },
