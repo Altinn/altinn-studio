@@ -563,16 +563,6 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   ...confOnScreenComponents,
 ];
 
-export type ComponentCategory =
-  | 'form'
-  | 'select'
-  | 'button'
-  | 'text'
-  | 'info'
-  | 'container'
-  | 'attachment'
-  | 'advanced';
-
 export const defaultComponents: ComponentType[] = [
   ComponentType.Input,
   ComponentType.TextArea,
