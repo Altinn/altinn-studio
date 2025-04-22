@@ -10,6 +10,7 @@ import CheckboxesSchema from './schemas/json/component/Checkboxes.schema.v1.json
 import CustomSchema from './schemas/json/component/Custom.schema.v1.json';
 import CustomButtonSchema from './schemas/json/component/CustomButton.schema.v1.json';
 import DatepickerSchema from './schemas/json/component/Datepicker.schema.v1.json';
+import Divider from './schemas/json/component/Divider.schema.v1.json';
 import DropdownSchema from './schemas/json/component/Dropdown.schema.v1.json';
 import FileUploadSchema from './schemas/json/component/FileUpload.schema.v1.json';
 import FileUploadWithTagSchema from './schemas/json/component/FileUploadWithTag.schema.v1.json';
@@ -84,4 +85,5 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.Summary2]: Summary2Schema,
   [ComponentType.TextArea]: TextAreaSchema,
+  [ComponentType.Divider]: Divider,
 };
