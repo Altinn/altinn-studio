@@ -11,7 +11,7 @@ import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components-legacy';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
-import { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
+import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
