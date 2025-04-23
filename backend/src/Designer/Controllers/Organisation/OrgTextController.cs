@@ -43,16 +43,8 @@ public class OrgTextController : ControllerBase
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        try
-        {
-            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
-            return Ok(textResource);
-        }
-        catch (NotFoundException)
-        {
-            return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
-        }
-
+        TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
+        return Ok(textResource);
     }
 
     /// <summary>
