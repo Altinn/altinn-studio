@@ -1,4 +1,4 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
 export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T> {
@@ -36,8 +36,4 @@ export async function patch<T = void, D = any>(
 export async function del<T = void>(url: string, config?: AxiosRequestConfig): Promise<T> {
   const response = await axios.delete<T>(url, config || undefined);
   return response.data;
-}
-
-export function checkIfAxiosError(error: Error): boolean {
-  return (error as AxiosError).config !== undefined;
 }
