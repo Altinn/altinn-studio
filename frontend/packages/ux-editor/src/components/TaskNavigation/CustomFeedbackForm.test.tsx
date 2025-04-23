@@ -14,10 +14,6 @@ describe('CustomFeedbackForm', () => {
   });
 
   afterEach(() => {
-    jest.spyOn(console, 'error').mockRestore();
-  });
-
-  afterAll(() => {
     jest.clearAllMocks();
   });
 
