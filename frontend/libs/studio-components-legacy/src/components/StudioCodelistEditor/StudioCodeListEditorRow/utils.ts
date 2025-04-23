@@ -16,6 +16,3 @@ export function changeValue(item: CodeListItem, value: CodeListItemValue): CodeL
 export function changeHelpText(item: CodeListItem, helpText: string): CodeListItem {
   return { ...item, helpText };
 }
-
-export const convertStringToNumber = (value: string): number | null =>
-  value ? Number(value.replace(',', '.')) : null;

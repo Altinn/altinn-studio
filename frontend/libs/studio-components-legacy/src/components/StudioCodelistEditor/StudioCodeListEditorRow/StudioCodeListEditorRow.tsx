@@ -4,13 +4,7 @@ import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import type { FocusEvent, HTMLInputAutoCompleteAttribute, ReactElement, Dispatch } from 'react';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
-import {
-  changeDescription,
-  changeHelpText,
-  changeLabel,
-  changeValue,
-  convertStringToNumber,
-} from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
 import type { TextResource } from '../../../types/TextResource';
@@ -193,8 +187,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
     );
 
     const handleNumberBlur = useCallback(
-      (event: FocusEvent<HTMLInputElement>) => {
-        const numberValue = convertStringToNumber(event.target.value);
+      (numberValue: number | undefined): void => {
         onUpdateValue?.(numberValue);
       },
       [onUpdateValue],
@@ -205,7 +198,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
         className={classes.textfieldCell}
         aria-label={label}
         onChange={handleNumberChange}
-        onBlur={handleNumberBlur}
+        onBlurNumber={handleNumberBlur}
         ref={ref}
         {...rest}
       />
@@ -220,15 +213,9 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
     const handleBooleanChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
         onChange(event.target.checked);
-      },
-      [onChange],
-    );
-
-    const handleBooleanBlur = useCallback(
-      (event: FocusEvent<HTMLInputElement>): void => {
         onUpdateValue?.(event.target.checked);
       },
-      [onUpdateValue],
+      [onChange, onUpdateValue],
     );
 
     return (
@@ -237,7 +224,6 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
         checked={value}
         aria-label={label}
         onChange={handleBooleanChange}
-        onBlur={handleBooleanBlur}
         ref={ref}
         {...rest}
       />

@@ -198,11 +198,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     },
     ref,
   ): ReactElement => {
-    const generalProps: StudioTextfieldProps = {
-      hideLabel: true,
-      ...rest,
-    };
-
     const handleCreateTextResource = (value: string): void => {
       const newTextResource: TextResource = createNewTextResource(value);
       onCreateTextResource(newTextResource);
@@ -236,7 +231,8 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         onChange={handleChange}
         ref={ref}
         value={value}
-        {...generalProps}
+        hideLabel={true}
+        {...rest}
       />
     );
   },

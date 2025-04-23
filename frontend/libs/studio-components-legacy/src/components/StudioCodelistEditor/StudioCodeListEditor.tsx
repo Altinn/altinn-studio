@@ -155,14 +155,10 @@ function StatefulCodeListEditor({
   const handleUpdateCodeList = useCallback(
     (codeList: CodeList) => {
       if (isCodeListValid(codeList)) {
-        dispatch({
-          type: ReducerActionType.SetCodeList,
-          codeList,
-        });
         onUpdateCodeList?.(codeList);
       }
     },
-    [onUpdateCodeList, dispatch],
+    [onUpdateCodeList],
   );
 
   return (

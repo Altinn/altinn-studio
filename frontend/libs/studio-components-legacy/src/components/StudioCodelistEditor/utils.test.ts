@@ -152,7 +152,7 @@ describe('StudioCodelistEditor utils', () => {
     const newValue = 'new text';
 
     it.each(Object.values(CodeListItemTextProperty))(
-      'Returns updated codeList item at the given index',
+      'Returns updated codeList when the %s property is updated',
       (property: CodeListItemTextProperty) => {
         const expectedCodeList = [...codeListWithStrings];
         expectedCodeList[testRowNumber][property] = newValue;
