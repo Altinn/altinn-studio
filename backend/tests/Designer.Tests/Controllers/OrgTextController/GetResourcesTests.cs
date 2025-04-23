@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -39,25 +42,38 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
 
     [Theory]
     [InlineData("ttd", "testUser", "org-content-empty", "sr")]
-    public async Task GetResources_Returns404NotFound_WithNonExistingLang(string org, string developer, string repo, string languageCode)
+    public async Task GetResources_Returns200Ok_WithNonExistingLang(string org, string developer, string repo, string languageCode)
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
+        TextResource expectedTextResource = new() { Language = languageCode, Resources = [] };
+        string expectedTextResourceString = JsonSerializer.Serialize(expectedTextResource, JsonOptions);
+
         string apiUrl = ApiUrl(targetOrg, languageCode);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"Text resource, resource.{languageCode}.json, could not be found.", await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(JsonUtils.DeepEquals(expectedTextResourceString, responseBody));
     }
 
     private static string ApiUrl(string org, string languageCode) => $"/designer/api/{org}/text/language/{languageCode}";
 
     private static string RelativePath(string language) => $"Texts/resource.{language}.json";
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
 }
