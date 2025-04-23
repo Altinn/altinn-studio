@@ -21,9 +21,21 @@ describe('ImagesPage', () => {
   });
 
   it('renders an alert when no images are passed', () => {
-    renderImages({ images: [], onUpdateImage: onUpdateImageMock });
+    renderImages({ images: [] });
     const alert = screen.getByText(textMock('app_content_library.images.coming_soon'));
     expect(alert).toBeInTheDocument();
+  });
+
+  it('renders an info box when no images are passed', () => {
+    renderImages({ images: [] });
+    const alert = screen.getByText(textMock('app_content_library.images.info_box.title'));
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('does not render an info box when images are passed', () => {
+    renderImages();
+    const alert = screen.queryByText(textMock('app_content_library.images.info_box.title'));
+    expect(alert).not.toBeInTheDocument();
   });
 
   it('calls onUpdateImagesMock when clicking the button to update', async () => {
@@ -41,6 +53,6 @@ const defaultImagesProps: ImagesPageProps = {
   onUpdateImage: onUpdateImageMock,
 };
 
-const renderImages = (imagesProps: ImagesPageProps = defaultImagesProps) => {
-  render(<ImagesPage {...imagesProps} />);
+const renderImages = (props: Partial<ImagesPageProps> = {}) => {
+  render(<ImagesPage {...defaultImagesProps} {...props} />);
 };
