@@ -31,6 +31,7 @@ public class OrgTextsService : IOrgTextsService
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
+
         return texts;
     }
 

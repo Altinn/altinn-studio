@@ -10,6 +10,7 @@ using Designer.Tests.Utils;
 using LibGit2Sharp;
 using SharedResources.Tests;
 using Xunit;
+using TextResource = Altinn.Studio.Designer.Models.TextResource;
 
 namespace Designer.Tests.Services;
 
