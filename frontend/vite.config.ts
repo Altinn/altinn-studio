@@ -9,6 +9,9 @@ export default {
     include: ['react-dom'],
     exclude: ['@digdir/designsystemet-react'],
   },
+  css: {
+    transformer: 'lightningcss',
+  },
   plugins: [
     react(),
     {
@@ -35,6 +38,7 @@ export default {
     alias: aliases,
   },
   build: {
+    cssMinify: 'lightningcss',
     rollupOptions: {
       plugins: [
         alias({
