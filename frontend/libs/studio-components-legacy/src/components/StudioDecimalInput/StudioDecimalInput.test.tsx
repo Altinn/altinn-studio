@@ -8,13 +8,11 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 const description = 'description';
 const onChange = jest.fn();
-const onBlurNumber = jest.fn();
 const validationErrorMessage: string = 'error';
 
 const defaultProps: StudioDecimalInputProps = {
   description,
   onChange,
-  onBlurNumber,
   value: undefined,
   validationErrorMessage,
 };
@@ -105,11 +103,23 @@ describe('StudioDecimalInput', () => {
 
   it('should call onBlurNumber with correct value when input is valid', async () => {
     const user = userEvent.setup();
-    render();
+    const onBlurNumber = jest.fn();
+    render({ onBlurNumber });
     const inputElement = screen.getByRole('textbox');
     await user.type(inputElement, '123.456');
     await user.tab();
-    expect(defaultProps.onBlurNumber).toHaveBeenCalledWith(123.456);
+    expect(onBlurNumber).toHaveBeenCalledTimes(1);
+    expect(onBlurNumber).toHaveBeenCalledWith(123.456);
+  });
+
+  it('should call onBlur when the prop is provided', async () => {
+    const user = userEvent.setup();
+    const onBlur = jest.fn();
+    render({ onBlur });
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, '123');
+    await user.tab();
+    expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
   it('should update input value on change', async () => {

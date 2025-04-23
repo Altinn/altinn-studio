@@ -25,6 +25,7 @@ export const StudioDecimalInput = forwardRef(
   (
     {
       description,
+      onBlur,
       onBlurNumber,
       onChange,
       value,
@@ -53,8 +54,9 @@ export const StudioDecimalInput = forwardRef(
       (e: React.FocusEvent<HTMLInputElement>) => {
         const input = e.target.value;
         if (isStringValidDecimalNumber(input)) onBlurNumber?.(convertStringToNumber(input));
+        onBlur?.(e);
       },
-      [onBlurNumber],
+      [onBlur, onBlurNumber],
     );
 
     const errorMessage = useMemo(
