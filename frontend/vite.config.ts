@@ -5,6 +5,10 @@ import type { UserConfig } from 'vite';
 import colors from 'picocolors';
 
 export default {
+  optimizeDeps: {
+    include: ['react-dom'],
+    exclude: ['@digdir/designsystemet-react'],
+  },
   plugins: [
     react(),
     {
@@ -14,7 +18,7 @@ export default {
         server.printUrls = () => {
           const { logger } = server.config;
           printUrls();
-          const url = 'http://studio.localhost/';
+          const url = 'http://studio.localhost' + server.config.base;
           logger.info(`  ${colors.green('➜')}  ${colors.bold('Studio running on:')}`);
           logger.info(`  ${colors.green('➜')}  ${colors.bold('URL')}:     ${colors.cyan(url)}`);
         };
@@ -22,13 +26,11 @@ export default {
     },
   ],
   server: {
-    port: 2004,
-    allowedHosts: ['vite_dev_server'],
+    allowedHosts: ['host.docker.internal'],
   },
   preview: {
-    port: 2004,
+    allowedHosts: ['host.docker.internal'],
   },
-  base: '/editor/',
   resolve: {
     alias: aliases,
   },
@@ -39,16 +41,6 @@ export default {
           entries: aliases,
         }),
       ],
-      output: {
-        manualChunks(id) {
-          if (id.includes('@digdir_designsystemet-react')) {
-            return 'designsystemet';
-          }
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
-      },
     },
   },
 } satisfies UserConfig;
