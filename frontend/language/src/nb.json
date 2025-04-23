@@ -1230,6 +1230,7 @@
   "text_editor.toggle_edit_mode": "Rediger tekstnøkkel {{textKey}}",
   "text_editor.variables_default_value": "<bold>Standardverdi:</bold> {{defaultValue}}",
   "text_editor.variables_editing_not_supported": "Det, er ikke lagt til støtte for redigering av variabler i Studio.",
+  "text_editor.variables_editing_not_supported_title": "Kun for visning",
   "top_bar.group_other": "Annet",
   "top_bar.group_overview": "Oversikt",
   "top_bar.group_tools": "Verktøy",
