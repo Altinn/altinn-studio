@@ -48,20 +48,22 @@ describe('CodeLists', () => {
 
   it('renders the code list accordion closed by default', () => {
     renderCodeLists();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: false });
+    const isExpanded = false;
+    const codeListAccordion = getButton(codeListName, isExpanded);
     expect(codeListAccordion).toBeInTheDocument();
     expect(codeListAccordion).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('renders the code list accordion open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: true });
+    const isExpanded = true;
+    const codeListAccordion = getButton(codeListName, isExpanded);
     expect(codeListAccordion).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('renders the accordion header title without usage information if not in use', () => {
     renderCodeLists();
-    const codeListAccordionHeaderSubTitleSingle = screen.queryByText(
+    const codeListAccordionHeaderSubTitleSingle = queryButton(
       textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
         codeListUsagesCount: 0,
       }),
@@ -77,9 +79,9 @@ describe('CodeLists', () => {
 
   it('does not render a button to view code list usages if not in use', () => {
     renderCodeLists();
-    const viewCodeListUsagesButton = screen.queryByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_show_usage'),
-    });
+    const viewCodeListUsagesButton = queryButton(
+      textMock('app_content_library.code_lists.code_list_show_usage'),
+    );
     expect(viewCodeListUsagesButton).not.toBeInTheDocument();
   });
 
@@ -105,18 +107,18 @@ describe('CodeLists', () => {
 
   it('renders button to view code list usages if code list is in use', () => {
     renderCodeLists({ codeListsUsages: codeListSingleUsageMock });
-    const viewCodeListUsagesButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_show_usage'),
-    });
+    const viewCodeListUsagesButton = getButton(
+      textMock('app_content_library.code_lists.code_list_show_usage'),
+    );
     expect(viewCodeListUsagesButton).toBeInTheDocument();
   });
 
   it('renders modal to see code list usages if clicking button to view code list usages', async () => {
     const user = userEvent.setup();
     renderCodeLists({ codeListsUsages: codeListSingleUsageMock });
-    const viewCodeListUsagesButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_show_usage'),
-    });
+    const viewCodeListUsagesButton = getButton(
+      textMock('app_content_library.code_lists.code_list_show_usage'),
+    );
     await user.click(viewCodeListUsagesButton);
     const codeListUsagesModalTitle = screen.getByText(
       textMock('app_content_library.code_lists.code_list_show_usage_modal_title'),
@@ -126,9 +128,9 @@ describe('CodeLists', () => {
 
   it('renders button to delete code list as disabled when code list is used', async () => {
     renderCodeLists({ codeListsUsages: codeListSingleUsageMock });
-    const deleteCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_delete'),
-    });
+    const deleteCodeListButton = getButton(
+      textMock('app_content_library.code_lists.code_list_delete'),
+    );
     expect(deleteCodeListButton).toBeDisabled();
     expect(deleteCodeListButton.title).toBe(
       textMock('app_content_library.code_lists.code_list_delete_disabled_title'),
@@ -221,9 +223,9 @@ describe('CodeLists', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
 
     renderCodeLists();
-    const deleteCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_delete'),
-    });
+    const deleteCodeListButton = getButton(
+      textMock('app_content_library.code_lists.code_list_delete'),
+    );
     expect(deleteCodeListButton.title).toBe(
       textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
     );
@@ -237,9 +239,9 @@ describe('CodeLists', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
 
     renderCodeLists();
-    const deleteCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.code_list_delete'),
-    });
+    const deleteCodeListButton = getButton(
+      textMock('app_content_library.code_lists.code_list_delete'),
+    );
     expect(deleteCodeListButton.title).toBe(
       textMock('app_content_library.code_lists.code_list_delete_enabled_title'),
     );
@@ -305,3 +307,8 @@ describe('updateCodeListWithMetadata', () => {
     });
   });
 });
+
+const getButton = (name: string, expanded?: boolean) =>
+  screen.getByRole('button', { name, expanded });
+
+const queryButton = (name: string) => screen.queryByRole('button', { name });
