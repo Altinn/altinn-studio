@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChangeEvent, InputHTMLAttributes, ReactElement, ReactNode } from 'react';
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownButtonProps } from '@digdir/designsystemet-react';
@@ -14,17 +14,22 @@ export type StudioDropdownFileUploaderButtonProps = {
   iconPlacement?: IconPlacement;
   onFileUpload?: (file: File) => void;
   fileInputProps?: FileInputProps;
+  uploadButtonText?: string;
 } & Omit<DropdownButtonProps, 'icon'>;
 
 export function StudioDropdownFileUploaderButton({
-  children,
   icon,
   iconPlacement = 'left',
   onFileUpload,
   fileInputProps,
+  uploadButtonText,
+  disabled,
   ...rest
 }: StudioDropdownFileUploaderButtonProps): ReactElement {
   const { setOpen } = useStudioDropdownContext();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isFileInputDisabled: boolean = fileInputProps?.disabled ?? disabled ?? false;
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -34,20 +39,27 @@ export function StudioDropdownFileUploaderButton({
     }
   };
 
+  const handleClick = (): void => {
+    inputRef.current?.click();
+  };
+
   return (
-    <Dropdown.Button {...rest}>
-      <label className={classes.fileUploaderLabel}>
+    <>
+      <Dropdown.Button {...rest} onClick={handleClick} disabled={isFileInputDisabled}>
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
-          {children}
+          {uploadButtonText}
         </TextWithIcon>
-        <input
-          type='file'
-          className={classes.fileInput}
-          onChange={handleFileChange}
-          {...fileInputProps}
-        />
-      </label>
-    </Dropdown.Button>
+      </Dropdown.Button>
+      <input
+        aria-label={uploadButtonText}
+        disabled={isFileInputDisabled}
+        type='file'
+        ref={inputRef}
+        className={classes.fileInput}
+        onChange={handleFileChange}
+        {...fileInputProps}
+      />
+    </>
   );
 }
 
