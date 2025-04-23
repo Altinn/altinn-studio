@@ -210,8 +210,8 @@ export interface MigrateDelegationsRequest {
 export interface ConsentTemplate {
   id: string;
   title: string;
-  isFullmakt: boolean;
-  hasCustomMessage: boolean;
+  isPoa: boolean;
+  isMessageSetInRequest: boolean;
   texts: {
     title: {
       person: SupportedLanguage;

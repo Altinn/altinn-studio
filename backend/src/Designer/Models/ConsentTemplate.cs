@@ -15,9 +15,19 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string Title { get; set; }
 
-        public bool IsFullmakt { get; set; }
-        public bool HasCustomMessage { get; set; }
+        /// <summary>
+        /// If template is used for a power of attorney (POA) or consent
+        /// </summary>
+        public bool IsPoa { get; set; }
 
+        /// <summary>
+        /// If custom message is set when sending consent request
+        /// </summary>
+        public bool IsMessageSetInRequest { get; set; }
+
+        /// <summary>
+        /// Texts for consent content and history
+        /// </summary>
         public ConsentTemplateTexts Texts { get; set; }
     }
 }
