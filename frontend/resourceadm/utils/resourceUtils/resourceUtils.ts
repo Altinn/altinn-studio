@@ -382,7 +382,37 @@ export const validateResource = (
     if (!resourceData.consentTemplate) {
       errors.push({
         field: 'consentTemplate',
-        error: 'Samtykkemal må velges',
+        error: t('resourceadm.about_resource_consent_template_missing'),
+      });
+    }
+    const consentTextError = getMissingInputLanguageString(
+      {
+        nb: resourceData.consentText?.nb,
+        nn: resourceData.consentText?.nn,
+        en: resourceData.consentText?.en,
+      },
+      t('resourceadm.about_resource_error_usage_string_consent_text'),
+      t,
+    );
+    if (consentTextError) {
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextError,
+      });
+    }
+    if (!resourceData.consentText?.nn) {
+      errors.push({
+        field: 'consentText',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
+      });
+    }
+    if (!resourceData.consentText?.en) {
+      errors.push({
+        field: 'consentText',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
       });
     }
   }

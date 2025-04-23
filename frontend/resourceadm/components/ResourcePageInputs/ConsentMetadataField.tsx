@@ -32,8 +32,7 @@ export const ConsentMetadataField = ({
         <StudioLabelAsParagraph size='sm'>Metadata</StudioLabelAsParagraph>
         <StudioLabelAsParagraph size='sm'>Er valgfritt?</StudioLabelAsParagraph>
       </div>
-      {Object.keys(value).map((key) => {
-        const metadataName = key as string;
+      {Object.keys(value).map((metadataName) => {
         const isOptional = value[metadataName].optional ?? false;
 
         return (
