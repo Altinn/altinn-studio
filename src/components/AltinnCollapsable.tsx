@@ -30,6 +30,7 @@ export const AltinnCollapsableList = ({ open, listHeader, onClickExpand, childre
       <Flex
         container
         direction='row'
+        role='button'
         onClick={onClickExpand}
         onKeyPress={onKeyPress}
         tabIndex={0}

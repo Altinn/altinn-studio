@@ -12,13 +12,13 @@ describe('Party selection', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
     cy.get(appFrontend.reporteeSelection.error).contains(texts.selectNewReportee);
-    cy.findByText('underenheter').click();
+    cy.findByText('underenhet').click();
     cy.contains(appFrontend.reporteeSelection.subUnits, 'Bergen').should('be.visible');
     cy.contains(appFrontend.reporteeSelection.reportee, 'slettet').should('not.exist');
     cy.findByRole('checkbox', { name: /Vis slettede/i }).dsCheck();
     cy.contains(appFrontend.reporteeSelection.reportee, 'slettet').should('be.visible');
     cy.findByRole('checkbox', { name: /Vis underenheter/i }).dsCheck();
-    cy.findByText('underenheter').click();
+    cy.findByText('underenhet').click();
     cy.get(appFrontend.reporteeSelection.searchReportee).type('DDG');
     cy.get(appFrontend.reporteeSelection.reportee).should('have.length', 1).contains('DDG');
   });

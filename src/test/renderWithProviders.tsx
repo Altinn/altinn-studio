@@ -572,6 +572,13 @@ export const renderWithMinimalProviders = async (props: ExtendedRenderOptions) =
     Providers: MinimalProviders,
   });
 
+export const renderWithDefaultProviders = async (props: ExtendedRenderOptions) =>
+  await renderBase({
+    ...props,
+    router: props.router ?? DefaultRouter,
+    Providers: DefaultProviders,
+  });
+
 export const renderWithoutInstanceAndLayout = async ({
   withFormProvider = false,
   ...rest

@@ -1,7 +1,7 @@
 import { PartyType } from 'src/types/shared';
 import type { IParty } from 'src/types/shared';
 
-export const getPartyMock = (): IParty => ({
+export const getPartyMock = (overrides?: Partial<IParty>): IParty => ({
   partyId: 12345,
   name: 'Ola Privatperson',
   ssn: '01017512345',
@@ -11,10 +11,11 @@ export const getPartyMock = (): IParty => ({
   isDeleted: false,
   onlyHierarchyElementWithNoAccess: false,
   childParties: undefined,
+  ...overrides,
 });
 
 export const ServiceOwnerPartyId = 414234123;
-export const getServiceOwnerPartyMock = (): IParty => ({
+export const getServiceOwnerPartyMock = (overrides?: Partial<IParty>): IParty => ({
   partyId: ServiceOwnerPartyId,
   name: 'Brønnøysundregistrene',
   ssn: null,
@@ -24,6 +25,7 @@ export const getServiceOwnerPartyMock = (): IParty => ({
   isDeleted: false,
   onlyHierarchyElementWithNoAccess: false,
   childParties: undefined,
+  ...overrides,
 });
 
 export type PartyWithSubunit = { org: IParty & { childParties: IParty[] }; person: IParty };

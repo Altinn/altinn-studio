@@ -78,7 +78,13 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
               <Paragraph>
                 {party.childParties.length}
                 &nbsp;
-                <Lang id='party_selection.unit_type_subunit_plural' />
+                <Lang
+                  id={
+                    party.childParties.length === 1
+                      ? 'party_selection.unit_type_subunit'
+                      : 'party_selection.unit_type_subunit_plural'
+                  }
+                />
               </Paragraph>
             </Flex>
           </Flex>

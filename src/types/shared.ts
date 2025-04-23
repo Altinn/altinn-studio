@@ -156,7 +156,7 @@ export interface IParty {
 }
 
 /**
- * @see https://github.com/Altinn/altinn-platform/blob/main/Altinn.Platform.Models/src/Register/Enums/PartyType.cs
+ * @see https://github.com/Altinn/altinn-register/blob/main/src/Altinn.Platform.Models/src/Altinn.Platform.Models/Register/PartyType.cs
  */
 export enum PartyType {
   Person = 1,
