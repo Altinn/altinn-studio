@@ -14,41 +14,41 @@ const componentIds = [componentId];
 describe('CodeListUsages', () => {
   it('renders table with column titles', () => {
     renderCodeListUsages();
-    const taskTypeColumnTitle = screen.getByRole('columnheader', {
-      name: textMock(
-        'app_content_library.code_lists.code_list_usage_table_column_header_task_type',
-      ),
-    });
+    const taskTypeColumnTitle = getColumnHeader(
+      textMock('app_content_library.code_lists.code_list_usage_table_column_header_task_type'),
+    );
     expect(taskTypeColumnTitle).toBeInTheDocument();
-    const taskNameColumnTitle = screen.getByRole('columnheader', {
-      name: textMock(
-        'app_content_library.code_lists.code_list_usage_table_column_header_task_name',
-      ),
-    });
+
+    const taskNameColumnTitle = getColumnHeader(
+      textMock('app_content_library.code_lists.code_list_usage_table_column_header_task_name'),
+    );
     expect(taskNameColumnTitle).toBeInTheDocument();
-    const layoutColumnTitle = screen.getByRole('columnheader', {
-      name: textMock('app_content_library.code_lists.code_list_usage_table_column_header_layout'),
-    });
+
+    const layoutColumnTitle = getColumnHeader(
+      textMock('app_content_library.code_lists.code_list_usage_table_column_header_layout'),
+    );
     expect(layoutColumnTitle).toBeInTheDocument();
-    const componentIdsColumnTitle = screen.getByRole('columnheader', {
-      name: textMock(
-        'app_content_library.code_lists.code_list_usage_table_column_header_components',
-      ),
-    });
+
+    const componentIdsColumnTitle = getColumnHeader(
+      textMock('app_content_library.code_lists.code_list_usage_table_column_header_components'),
+    );
     expect(componentIdsColumnTitle).toBeInTheDocument();
   });
 
   it('renders a row with the code list usage source', () => {
     renderCodeListUsages();
-    const codeListSourceTaskType = screen.getByRole('cell', {
-      name: textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
-    });
+    const codeListSourceTaskType = getCell(
+      textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
+    );
     expect(codeListSourceTaskType).toBeInTheDocument();
-    const codeListSourceTaskName = screen.getByRole('cell', { name: taskId });
+
+    const codeListSourceTaskName = getCell(taskId);
     expect(codeListSourceTaskName).toBeInTheDocument();
-    const codeListSourceLayout = screen.getByRole('cell', { name: layoutName });
+
+    const codeListSourceLayout = getCell(layoutName);
     expect(codeListSourceLayout).toBeInTheDocument();
-    const codeListSourceComponentIds = screen.getByRole('cell', { name: componentId });
+
+    const codeListSourceComponentIds = getCell(componentId);
     expect(codeListSourceComponentIds).toBeInTheDocument();
   });
 
@@ -57,17 +57,19 @@ describe('CodeListUsages', () => {
     renderCodeListUsages({
       codeListSources: [{ taskType, taskId, layoutName, componentIds: multipleComponentIds }],
     });
-    const codeListSourceTaskType = screen.getByRole('cell', {
-      name: textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
-    });
+
+    const codeListSourceTaskType = getCell(
+      textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
+    );
     expect(codeListSourceTaskType).toBeInTheDocument();
-    const codeListSourceTaskName = screen.getByRole('cell', { name: taskId });
+
+    const codeListSourceTaskName = getCell(taskId);
     expect(codeListSourceTaskName).toBeInTheDocument();
-    const codeListSourceLayout = screen.getByRole('cell', { name: layoutName });
+
+    const codeListSourceLayout = getCell(layoutName);
     expect(codeListSourceLayout).toBeInTheDocument();
-    const codeListSourceComponentIds = screen.getByRole('cell', {
-      name: multipleComponentIds.join(', '),
-    });
+
+    const codeListSourceComponentIds = getCell(multipleComponentIds.join(', '));
     expect(codeListSourceComponentIds).toBeInTheDocument();
   });
 
@@ -90,3 +92,6 @@ const defaultCodeListUsagesProps: CodeListUsagesProps = {
 const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}) => {
   render(<CodeListUsages {...defaultCodeListUsagesProps} {...props} />);
 };
+
+const getCell = (name: string): HTMLElement => screen.getByRole('cell', { name });
+const getColumnHeader = (name: string): HTMLElement => screen.getByRole('columnheader', { name });
