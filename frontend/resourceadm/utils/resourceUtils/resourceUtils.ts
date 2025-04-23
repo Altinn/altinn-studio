@@ -505,4 +505,3 @@ export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
   ].map((match) => match.slice(1, -1));
   return [...new Set(metadataValues)];
 };
-
