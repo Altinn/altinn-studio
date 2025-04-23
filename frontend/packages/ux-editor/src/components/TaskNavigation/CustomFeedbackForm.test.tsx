@@ -8,6 +8,15 @@ jest.mock('axios');
 var mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('CustomFeedbackForm', () => {
+  beforeEach(() => {
+    mockedAxios.post.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.spyOn(console, 'error').mockRestore();
+  });
+
   afterAll(() => {
     jest.clearAllMocks();
   });
@@ -33,6 +42,26 @@ describe('CustomFeedbackForm', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Send' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockedAxios.post).toHaveBeenCalled();
+  });
+
+  it('should submit form data correctly', async () => {
+    const user = userEvent.setup({ delay: 100 });
+    mockedAxios.post.mockResolvedValueOnce({});
+    renderCustomFeedbackForm();
+    await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
+    await user.click(screen.getByRole('button', { name: 'Ja' }));
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect.any(String),
+      {
+        answers: {
+          feedbackFormId: 'custom-feedback-form',
+          likerUtformingJaNei: 'yes',
+        },
+      },
+      undefined,
+    );
   });
 });
 
