@@ -249,9 +249,6 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
           "age": {
             "type": "integer"
           },
@@ -261,8 +258,21 @@
           "surname": {
             "type": "string"
           },
-          "isChecked": {
-            "type": "boolean"
+          "internal": {
+            "type": "object",
+            "properties": {
+              "isChecked": {
+                "type": "boolean"
+              }
+            }
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "firstname": {
+                "type": "string"
+              }
+            }
           }
         }
       }
