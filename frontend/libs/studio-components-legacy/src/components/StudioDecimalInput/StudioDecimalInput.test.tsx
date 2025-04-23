@@ -103,7 +103,7 @@ describe('StudioDecimalInput', () => {
     expect(defaultProps.onChange).toHaveBeenCalledWith(123.456);
   });
 
-  it('should call onBlur with correct value when input is valid', async () => {
+  it('should call onBlurNumber with correct value when input is valid', async () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
