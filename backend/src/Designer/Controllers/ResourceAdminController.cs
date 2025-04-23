@@ -568,6 +568,18 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
+            if (resource.ResourceType == ResourceType.Consentresource)
+            {
+                if (string.IsNullOrWhiteSpace(resource.ConsentTemplate))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentTemplate", "resourceerror.missingconsenttemplate");
+                }
+                if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.ConsentText))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentText", "resourceerror.missingconsenttext");
+                }
+            }
+
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
