@@ -50,7 +50,7 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
         TextResource expectedTextResource = new() { Language = languageCode, Resources = [] };
-        string expectedTextResourceString = JsonSerializer.Serialize(expectedTextResource, JsonOptions);
+        string expectedTextResourceString = JsonSerializer.Serialize(expectedTextResource, _jsonOptions);
 
         string apiUrl = ApiUrl(targetOrg, languageCode);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -68,7 +68,7 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
 
     private static string RelativePath(string language) => $"Texts/resource.{language}.json";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

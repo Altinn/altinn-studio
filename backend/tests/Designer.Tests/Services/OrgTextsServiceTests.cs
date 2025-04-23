@@ -45,7 +45,7 @@ public class OrgTextsServiceTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "sr")]
-    public async Task GetText_ShouldReturnNotFoundException_WhenFileDoesNotExist(string repo, string lang)
+    public async Task GetText_ShouldReturnEmptyTextResource_WhenFileDoesNotExist(string repo, string lang)
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -53,8 +53,12 @@ public class OrgTextsServiceTests : IDisposable
         await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
-        // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.GetText(TargetOrg, Developer, lang));
+        // Act
+        TextResource fetchedTexts = await service.GetText(TargetOrg, Developer, lang);
+
+        // Assert
+        Assert.Equal(lang, fetchedTexts.Language);
+        Assert.Empty(fetchedTexts.Resources);
     }
 
     [Theory]
