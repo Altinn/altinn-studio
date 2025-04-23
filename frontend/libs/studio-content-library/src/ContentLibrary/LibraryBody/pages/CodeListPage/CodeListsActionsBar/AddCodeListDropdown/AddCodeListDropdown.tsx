@@ -78,9 +78,8 @@ export function AddCodeListDropdown({
             icon={<UploadIcon />}
             onFileUpload={onSubmit}
             fileInputProps={{ accept: '.json' }}
-          >
-            {t('app_content_library.code_lists.upload_code_list')}
-          </StudioDropdown.FileUploaderButton>
+            uploadButtonText={t('app_content_library.code_lists.upload_code_list')}
+          />
         </StudioDropdown.Item>
         {hasExternalResources && (
           <StudioDropdown.Item>
