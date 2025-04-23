@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
-using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
@@ -31,16 +30,8 @@ public class OrgTextsService : IOrgTextsService
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-
-        try
-        {
-            TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
-            return texts;
-        }
-        catch (NotFoundException)
-        {
-            return new TextResource { Language = languageCode, Resources = [] };
-        }
+        TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
+        return texts;
     }
 
     /// <inheritdoc />
