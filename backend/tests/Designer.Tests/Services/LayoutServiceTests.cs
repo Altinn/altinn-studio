@@ -208,6 +208,30 @@ public class LayoutServiceTests
         Assert.Equal(originalGroupCount, newGroupCount);
     }
 
+    [Fact]
+    public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPagesToPageGroups(editingContext, "form")
+        );
+    }
+
+    [Fact]
+    public async Task PageOrderToGroupConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-layoutsets";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")
+        );
+    }
+
     private static async Task<(
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,

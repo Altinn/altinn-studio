@@ -17,8 +17,8 @@ export var authCookieNames = {
   at23: '.AspxAuthCloud',
   at24: '.AspxAuthCloud',
   tt02: '.AspxAuthTT02',
-  yt01: '.ASPXAUTH', // '.AspxAuthYt',
-  prod: '.ASPXAUTH', // '.AspxAuthProd'
+  yt01: '.AspxAuthYt',
+  prod: '.AspxAuthProd',
 };
 
 //Get values from environment
