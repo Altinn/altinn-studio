@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
@@ -535,7 +536,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                     },
                 }
             );
-        FileStream fileStream = File.OpenRead(Path.Combine("Features", "Action", "TestData", signatureFileToRead));
+        FileStream fileStream = File.OpenRead(
+            Path.Combine(PathUtils.GetCoreTestsPath(), "Features", "Action", "TestData", signatureFileToRead)
+        );
         _dataClientMock
             .Setup(d =>
                 d.GetBinaryData(

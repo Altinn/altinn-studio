@@ -8,6 +8,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -70,7 +71,7 @@ public static class LayoutTestUtils
 
         var resources = new Mock<IAppResources>();
         var pages = new List<PageComponent>();
-        var layoutsPath = Path.Join("LayoutExpressions", "FullTests", folder);
+        var layoutsPath = Path.Join(PathUtils.GetCoreTestsPath(), "LayoutExpressions", "FullTests", folder);
         foreach (var layoutFile in Directory.GetFiles(layoutsPath, "*.json"))
         {
             var layoutBytes = await File.ReadAllBytesAsync(layoutFile);

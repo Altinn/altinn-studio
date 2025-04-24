@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -198,7 +199,7 @@ public class MultiDecisionHelperTests
     private static List<XacmlJsonResult> GetXacmlJsonRespons(string filename)
     {
         var xacmlJesonRespons = File.ReadAllText(
-            Path.Join("Helpers", "TestData", "MultiDecisionHelper", filename + ".json")
+            Path.Join(PathUtils.GetCoreTestsPath(), "Helpers", "TestData", "MultiDecisionHelper", filename + ".json")
         );
         return JsonSerializer.Deserialize<List<XacmlJsonResult>>(xacmlJesonRespons)
             ?? throw new Exception("Deserialization failed for XacmlJsonRespons");

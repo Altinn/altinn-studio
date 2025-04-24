@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
@@ -56,6 +57,16 @@ public static class JwtTokenMock
         return handler.WriteToken(securityToken);
     }
 
+    public static SecurityKey GetPublicKey()
+    {
+        string unitTestFolder = Path.GetDirectoryName(GetCallerPath())!;
+
+        string certPath = Path.Join(unitTestFolder, "TestResources", "JWTValidationCert.cer");
+
+        X509Certificate2 cert = new(certPath);
+        return new X509SecurityKey(cert);
+    }
+
     /// <summary>
     /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
     /// and is included in the integration test project as a separate file.
@@ -64,12 +75,7 @@ public static class JwtTokenMock
     /// <returns>ClaimsPrincipal</returns>
     public static ClaimsPrincipal ValidateToken(string token)
     {
-        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.Location).LocalPath)!;
-
-        string certPath = Path.Combine(unitTestFolder, "JWTValidationCert.cer");
-
-        X509Certificate2 cert = new(certPath);
-        SecurityKey key = new X509SecurityKey(cert);
+        var key = GetPublicKey();
 
         TokenValidationParameters validationParameters = new TokenValidationParameters
         {
@@ -88,10 +94,15 @@ public static class JwtTokenMock
 
     private static SigningCredentials GetSigningCredentials()
     {
-        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.Location).LocalPath)!;
+        string unitTestFolder = Path.GetDirectoryName(GetCallerPath())!;
 
-        string certPath = Path.Combine(unitTestFolder, "jwtselfsignedcert.pfx");
+        string certPath = Path.Combine(unitTestFolder, "TestResources", "jwtselfsignedcert.pfx");
         X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+    }
+
+    private static string GetCallerPath([CallerFilePath] string filePath = "")
+    {
+        return Path.GetDirectoryName(filePath)!;
     }
 }

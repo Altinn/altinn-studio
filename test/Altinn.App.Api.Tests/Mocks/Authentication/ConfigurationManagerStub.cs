@@ -22,18 +22,13 @@ public class ConfigurationManagerStub : IConfigurationManager<OpenIdConnectConfi
     ) { }
 
     /// <inheritdoc />
-    public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
+    public Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
     {
-        SigningKeysRetrieverStub signingKeysRetriever = new SigningKeysRetrieverStub();
-        ICollection<SecurityKey> signingKeys = await signingKeysRetriever.GetSigningKeys(string.Empty);
-
         OpenIdConnectConfiguration configuration = new OpenIdConnectConfiguration();
-        foreach (var securityKey in signingKeys)
-        {
-            configuration.SigningKeys.Add(securityKey);
-        }
 
-        return configuration;
+        configuration.SigningKeys.Add(JwtTokenMock.GetPublicKey());
+
+        return Task.FromResult(configuration);
     }
 
     /// <inheritdoc />

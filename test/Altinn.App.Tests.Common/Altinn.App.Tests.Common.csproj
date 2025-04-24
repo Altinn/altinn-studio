@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="TestResources/**">
+    <Content Include="TestResources/**/*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>/</LinkBase>
       <Link>/%(RecursiveDir)%(Filename)%(Extension)</Link>

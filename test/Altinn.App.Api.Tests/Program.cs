@@ -98,7 +98,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IAuthorizationClient, AuthorizationMock>();
     services.AddTransient<IInstanceClient, InstanceClientMockSi>();
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
-    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
     services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
     services.AddSingleton<IEventSecretCodeProvider, EventSecretCodeProviderStub>();

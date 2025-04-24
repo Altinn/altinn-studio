@@ -1,4 +1,5 @@
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Tests.TestUtils;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.TestUtils;
@@ -19,7 +20,11 @@ internal static class ProcessTestUtils
         }
 
         Mock<IProcessClient> processServiceMock = new Mock<IProcessClient>();
-        var s = new FileStream(Path.Combine(testDataPath, bpmnfile), FileMode.Open, FileAccess.Read);
+        var s = new FileStream(
+            Path.Combine(PathUtils.GetCoreTestsPath(), testDataPath, bpmnfile),
+            FileMode.Open,
+            FileAccess.Read
+        );
         processServiceMock.Setup(p => p.GetProcessDefinition()).Returns(s);
         return new ProcessReader(processServiceMock.Object, telemetrySink?.Object);
     }

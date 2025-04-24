@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,8 @@ namespace Altinn.App.Core.Tests.Implementation;
 
 public class AppResourcesSITests
 {
-    private readonly string _appBasePath = Path.Combine("Implementation", "TestData") + Path.DirectorySeparatorChar;
+    private readonly string _appBasePath =
+        Path.Combine(PathUtils.GetCoreTestsPath(), "Implementation", "TestData") + Path.DirectorySeparatorChar;
     private readonly TelemetrySink _telemetry = new();
 
     [Fact]

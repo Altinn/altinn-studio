@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -8,6 +9,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -71,16 +73,15 @@ public class PdfServiceTests
     [Fact]
     public async Task ValidRequest_ShouldReturnPdf()
     {
+        using var stream = File.Open(
+            Path.Join(PathUtils.GetCoreTestsPath(), "Internal", "Pdf", "TestData", "example.pdf"),
+            FileMode.Open
+        );
         DelegatingHandlerStub delegatingHandler = new(
             async (HttpRequestMessage request, CancellationToken token) =>
             {
                 await Task.CompletedTask;
-                return new HttpResponseMessage()
-                {
-                    Content = new StreamContent(
-                        EmbeddedResource.LoadDataAsStream("Altinn.App.Core.Tests.Internal.Pdf.TestData.example.pdf")
-                    ),
-                };
+                return new HttpResponseMessage() { Content = new StreamContent(stream) };
             }
         );
 

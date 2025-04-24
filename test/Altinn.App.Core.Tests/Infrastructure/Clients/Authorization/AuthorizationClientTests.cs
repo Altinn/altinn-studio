@@ -3,6 +3,7 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
@@ -126,7 +127,14 @@ public class AuthorizationClientTests
     private static XacmlJsonResponse GetXacmlJsonRespons(string filename)
     {
         var xacmlJesonRespons = File.ReadAllText(
-            Path.Join("Infrastructure", "Clients", "Authorization", "TestData", $"{filename}.json")
+            Path.Join(
+                PathUtils.GetCoreTestsPath(),
+                "Infrastructure",
+                "Clients",
+                "Authorization",
+                "TestData",
+                $"{filename}.json"
+            )
         );
         var response = JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJesonRespons);
         Assert.NotNull(response);

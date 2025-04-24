@@ -139,7 +139,15 @@ public class TestBackendExclusiveFunctions
     {
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
-            .GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions"))
+            .GetDirectories(
+                Path.Join(
+                    PathUtils.GetCoreTestsPath(),
+                    "LayoutExpressions",
+                    "CommonTests",
+                    "exclusive-tests",
+                    "functions"
+                )
+            )
             .Select(d => Path.GetFileName(d))
             .ToArray();
         var testMethods = this.GetType()
