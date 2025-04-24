@@ -435,4 +435,23 @@ describe('AboutResourcePage', () => {
       screen.getByText(textMock('resourceadm.about_resource_references', { index: 1 })),
     ).toBeInTheDocument();
   });
+
+  it('should display correct fields for resourceType ConsentResource', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[]}
+        consentTemplates={[]}
+        resourceData={{ ...mockResource1, resourceType: 'Consentresource' }}
+      />,
+    );
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_text_label')),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_template_label')),
+    ).toBeInTheDocument();
+  });
 });
