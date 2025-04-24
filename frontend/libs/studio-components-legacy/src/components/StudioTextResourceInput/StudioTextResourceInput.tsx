@@ -215,7 +215,7 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       const { value } = event.target;
       const newTextResource = editTextResourceValue(textResource, value);
       onBlurTextResource(newTextResource);
-      onUpdateTextResource(newTextResource);
+      onUpdateTextResource?.(newTextResource);
       onBlur?.(event);
     };
 
