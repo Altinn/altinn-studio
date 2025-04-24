@@ -14,8 +14,6 @@ namespace Altinn.App.logic;
 
 public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
 {
-    private readonly IDataClient _dataClient = dataClient;
-
     public string Id { get; init; } = "founders";
 
     public async Task<SigneeProviderResult> GetSigneesAsync(Instance instance)
@@ -98,7 +96,7 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
         InstanceIdentifier instanceIdentifier = new(instance);
 
         return (Skjemadata)
-            await _dataClient.GetFormData(
+            await dataClient.GetFormData(
                 instanceIdentifier.InstanceGuid,
                 typeof(Skjemadata),
                 instance.Org,

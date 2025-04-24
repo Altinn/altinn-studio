@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features.Signing.Interfaces;
@@ -14,8 +13,6 @@ namespace Altinn.App.logic;
 
 public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
 {
-    private readonly IDataClient _dataClient = dataClient;
-
     public string Id { get; init; } = "auditor";
 
     public async Task<SigneeProviderResult> GetSigneesAsync(Instance instance)
@@ -55,7 +52,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
         InstanceIdentifier instanceIdentifier = new(instance);
 
         return (Skjemadata)
-            await _dataClient.GetFormData(
+            await dataClient.GetFormData(
                 instanceIdentifier.InstanceGuid,
                 typeof(Skjemadata),
                 instance.Org,
