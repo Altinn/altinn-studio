@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
+/// <summary>
+/// Controller for handling general organisation content library operations.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("designer/api/{orgName}")]
