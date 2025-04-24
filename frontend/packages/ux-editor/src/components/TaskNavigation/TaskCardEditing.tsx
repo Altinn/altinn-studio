@@ -1,5 +1,6 @@
 import {
   StudioButton,
+  StudioCard,
   StudioNativeSelect,
   StudioParagraph,
   StudioSpinner,
@@ -75,7 +76,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
   };
 
   return (
-    <>
+    <StudioCard className={classes.editCard}>
       <StudioParagraph size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
         label={t('ux_editor.component_properties.layoutSet')}
@@ -111,6 +112,6 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
           {t('general.close')}
         </StudioButton>
       </div>
-    </>
+    </StudioCard>
   );
 };

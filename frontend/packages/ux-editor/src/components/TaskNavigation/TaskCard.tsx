@@ -62,15 +62,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     ) : null;
 
   if (editing) {
-    return (
-      <StudioIconCard
-        icon={taskIcon.icon}
-        iconColor={taskIcon.iconColor}
-        className={classes.editcard}
-      >
-        <TaskCardEditing layoutSetModel={layoutSetModel} onClose={() => setEditing(false)} />
-      </StudioIconCard>
-    );
+    return <TaskCardEditing layoutSetModel={layoutSetModel} onClose={() => setEditing(false)} />;
   }
 
   const goToFormEditor = () => {
