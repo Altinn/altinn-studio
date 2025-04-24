@@ -17,6 +17,7 @@ import React, { type ChangeEvent } from 'react';
 import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 
 export type TaskCardEditingProps = {
   layoutSetModel: LayoutSetModel;
@@ -105,11 +106,21 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         ))}
       </StudioNativeSelect>
       <div className={classes.btnGroup}>
-        <StudioButton disabled={disableSaveButton} onClick={() => saveChanges()} variant='primary'>
+        <StudioButton
+          disabled={disableSaveButton}
+          icon={<CheckmarkIcon />}
+          onClick={() => saveChanges()}
+          variant='primary'
+        >
           {pendingMutation ? <StudioSpinner size='xs' spinnerTitle='' /> : t('general.save')}
         </StudioButton>
-        <StudioButton disabled={pendingMutation} onClick={() => onClose()} variant='secondary'>
-          {t('general.close')}
+        <StudioButton
+          disabled={pendingMutation}
+          icon={<XMarkIcon />}
+          onClick={() => onClose()}
+          variant='secondary'
+        >
+          {t('general.cancel')}
         </StudioButton>
       </div>
     </StudioCard>
