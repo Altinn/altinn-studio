@@ -344,37 +344,6 @@ describe('StudioCodeListEditor', () => {
     });
   });
 
-  describe('onCreateTextResource', () => {
-    const testRowNumber = 1;
-    const newValue = 'new text';
-    const onCreateTextResource = jest.fn();
-
-    it.each(Object.values(CodeListItemTextProperty))(
-      'Calls the onCreateTextResource callback with the new text resource when a  %s field loses focus and there is no text resource linked to it',
-      async (property: CodeListItemTextProperty) => {
-        const user = userEvent.setup();
-        renderCodeListEditor({
-          ...propsWithTextResources,
-          codeList: codeListWithoutTextResources,
-          onCreateTextResource,
-        });
-        const propertyCoords: TextPropertyCoords = [testRowNumber, property];
-
-        await user.type(getTextResourceValueInput(propertyCoords), newValue);
-        await user.tab();
-
-        expect(onCreateTextResource).toHaveBeenCalledTimes(1);
-        expect(onCreateTextResource).toHaveBeenCalledWith({
-          codeList: expect.any(Array),
-          textResource: {
-            value: expect.stringContaining(newValue),
-            id: expect.any(String),
-          },
-        });
-      },
-    );
-  });
-
   describe('onUpdateTextResource', () => {
     const testRowNumber = 1;
     const newValue = 'new text';

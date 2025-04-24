@@ -29,7 +29,6 @@ const currentId = 'land.NO';
 const onBlurTextResource = jest.fn();
 const onChangeCurrentId = jest.fn();
 const onChangeTextResource = jest.fn();
-const onCreateTextResource = jest.fn();
 const onUpdateTextResource = jest.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
@@ -37,11 +36,15 @@ const defaultProps: StudioTextResourceInputProps = {
   onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
-  onCreateTextResource,
   onUpdateTextResource,
   currentId,
 };
 const currentTextResource = getTextResourceById(textResources, currentId);
+const noCurrentIdCases: Array<[string, StudioTextResourceInputProps['currentId']]> = [
+  ['an empty string', ''],
+  ['null', null],
+  ['undefined', undefined],
+];
 
 describe('StudioTextResourceInput', () => {
   afterEach(jest.clearAllMocks);
@@ -50,6 +53,14 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
     expect(getValueField()).toBeInTheDocument();
   });
+
+  it.each(noCurrentIdCases)(
+    'Renders the search field by default when the current ID is %s',
+    (_, id) => {
+      renderTextResourceInput({ currentId: id });
+      expect(getTextResourcePicker()).toBeInTheDocument();
+    },
+  );
 
   it('Calls the onChangeTextResource callback with the updated text resource when the value is changed', async () => {
     const user = userEvent.setup();
@@ -72,19 +83,6 @@ describe('StudioTextResourceInput', () => {
     expect(onBlurTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
     expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
     expect(onUpdateTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
-  });
-
-  it('Calls the onCreateTextResource callback when current id is undefined and the field is blurred', async () => {
-    const user = userEvent.setup();
-    renderTextResourceInput({ currentId: undefined });
-    const text = 'a test text';
-    await user.type(getValueField(), text);
-    await user.tab();
-    expect(onCreateTextResource).toBeCalledTimes(1);
-    expect(onCreateTextResource).toHaveBeenCalledWith({
-      id: expect.any(String),
-      value: text,
-    });
   });
 
   it('Renders the text resource picker when the search button is clicked', async () => {
@@ -141,6 +139,13 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
     await switchToSearchMode(user);
     expect(screen.getByText(currentId)).toBeInTheDocument();
+  });
+
+  it.each(noCurrentIdCases)('Disables the value field when the ID is %s', async (_, id) => {
+    const user = userEvent.setup();
+    renderTextResourceInput({ currentId: id });
+    await switchToEditMode(user);
+    expect(getValueField()).toBeDisabled();
   });
 
   it('Forwards the ref if given', () => {
