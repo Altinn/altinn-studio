@@ -137,7 +137,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             onKeyDown={onKeyDown}
             ref={ref}
             textResource={currentTextResource}
-            textResources={textResources}
             onUpdateTextResource={onUpdateTextResource}
             {...rest}
           />
@@ -165,7 +164,6 @@ InputBox.displayName = 'InputBox';
 
 type ValueFieldProps = StudioTextfieldProps & {
   textResource?: TextResource;
-  textResources: TextResource[];
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
   onUpdateTextResource: (textResource: TextResource) => void;
@@ -173,16 +171,7 @@ type ValueFieldProps = StudioTextfieldProps & {
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
-    {
-      textResource,
-      textResources,
-      onBlur,
-      onBlurTextResource,
-      onChange,
-      onChangeTextResource,
-      onUpdateTextResource,
-      ...rest
-    },
+    { textResource, onBlurTextResource, onChangeTextResource, onUpdateTextResource, ...rest },
     ref,
   ): ReactElement => {
     const generalProps: StudioTextfieldProps = {
@@ -198,7 +187,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
           onChangeTextResource={onChangeTextResource}
           onUpdateTextResource={onUpdateTextResource}
           textResource={textResource}
-          textResources={textResources}
           {...generalProps}
         />
       );
@@ -214,7 +202,6 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
     {
       textResource,
-      textResources,
       onBlur,
       onBlurTextResource,
       onChange,
@@ -245,7 +232,6 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         onChange={handleChange}
         ref={ref}
         value={textResource.value}
-        hideLabel={true}
         {...rest}
       />
     );
