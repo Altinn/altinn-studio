@@ -213,9 +213,9 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   ): ReactElement => {
     const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {
       const { value } = event.target;
-      const updatedTextResource = editTextResourceValue(textResource, value);
-      onBlurTextResource(updatedTextResource);
-      onUpdateTextResource(updatedTextResource);
+      const newTextResource = editTextResourceValue(textResource, value);
+      onBlurTextResource(newTextResource);
+      onUpdateTextResource(newTextResource);
       onBlur?.(event);
     };
 
