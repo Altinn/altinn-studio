@@ -39,7 +39,7 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
 
     [Theory]
     [InlineData("ttd", "testUser", "org-content-empty", "sr")]
-    public async Task GetResources_Returns404NotFound_WithNonExistingLang(string org, string developer, string repo, string languageCode)
+    public async Task GetResources_Returns204NoContent_WithNonExistingLang(string org, string developer, string repo, string languageCode)
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();
@@ -53,8 +53,7 @@ public class GetResourcesTests : DesignerEndpointsTestsBase<GetResourcesTests>, 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"Text resource, resource.{languageCode}.json, could not be found.", await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     private static string ApiUrl(string org, string languageCode) => $"/designer/api/{org}/text/language/{languageCode}";
