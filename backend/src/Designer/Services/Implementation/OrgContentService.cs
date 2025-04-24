@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
+/// <inheritdoc />
 public class OrgContentService : IOrgContentService
 {
     private readonly IOrgCodeListService _orgCodeListService;
@@ -20,56 +21,43 @@ public class OrgContentService : IOrgContentService
     }
 
     /// <inheritdoc />
-    public async Task<List<ExternalContentLibraryResource>> GetResourceList(LibraryContentType? type, AltinnOrgContext context, CancellationToken cancellationToken = default)
+    public async Task<List<ExternalContentLibraryResource>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
-        if (type == null) return await GetCombinedResourceList(context, cancellationToken);
-
-        switch (type)
+        switch (contentType)
         {
             case LibraryContentType.CodeList:
-                return GetCodeListResourceList(context, cancellationToken);
+                return GetCodeListContentList(context, cancellationToken);
 
             case LibraryContentType.TextResource:
-                return await GetTextResourceList(context, cancellationToken);
+                return await GetTextContentList(context, cancellationToken);
 
             default:
                 return [];
         }
     }
 
-    private async Task<List<ExternalContentLibraryResource>> GetCombinedResourceList(AltinnOrgContext context, CancellationToken cancellationToken = default)
-    {
-        var codeListResourceList = GetCodeListResourceList(context, cancellationToken);
-        var textResourceList = await GetTextResourceList(context, cancellationToken);
-
-        var result = new List<ExternalContentLibraryResource>(codeListResourceList.Count + textResourceList.Count);
-        result.AddRange(codeListResourceList);
-        result.AddRange(textResourceList);
-        return result;
-    }
-
-    private List<ExternalContentLibraryResource> GetCodeListResourceList(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private List<ExternalContentLibraryResource> GetCodeListContentList(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
         List<string> codeListIds = _orgCodeListService.GetCodeListIds(context.Org, context.DeveloperName, cancellationToken);
-        return CreateResourceList(LibraryContentType.CodeList, codeListIds, context.Org);
+        return CreateContentList(LibraryContentType.CodeList, codeListIds, context.Org);
     }
 
-    private async Task<List<ExternalContentLibraryResource>> GetTextResourceList(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<ExternalContentLibraryResource>> GetTextContentList(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
         List<string> textIds = await _orgTextsService.GetTextIds(context.Org, context.DeveloperName, cancellationToken);
-        return CreateResourceList(LibraryContentType.TextResource, textIds, context.Org);
+        return CreateContentList(LibraryContentType.TextResource, textIds, context.Org);
     }
 
-    private static List<ExternalContentLibraryResource> CreateResourceList(LibraryContentType type, List<string> ids, string orgName)
+    private static List<ExternalContentLibraryResource> CreateContentList(LibraryContentType contentType, List<string> contentIds, string orgName)
     {
         var resourceList = new List<ExternalContentLibraryResource>();
-        foreach (string id in ids)
+        foreach (string contentId in contentIds)
         {
             var newResource = new ExternalContentLibraryResource
             {
                 Source = ContentSource(orgName),
-                Type = type,
-                Id = id
+                Type = contentType,
+                Id = contentId
             };
             resourceList.Add(newResource);
         }

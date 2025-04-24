@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -29,10 +30,10 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
     }
 
     [Fact]
-    public async Task GetOrgContentIds_GivenCodeListParameter_ShouldReturnOkWithCodeListIds()
+    public async Task GetOrgContentList_GivenCodeListParameter_ShouldReturnOkWithCodeListIds()
     {
         // Arrange
-        _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
@@ -44,15 +45,19 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        _orgServiceMock.Verify(s => s.IsOrg(It.IsAny<string>()), Times.Once);
-        List<string> codeLists = await response.Content.ReadAsAsync<List<string>>();
-        Assert.Equal(6, codeLists.Count);
+        _orgServiceMock.Verify(service => service.IsOrg(It.IsAny<string>()), Times.Once);
+        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        Assert.Equal(6, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
+        foreach (var contentItem in contentList)
+        {
+            Assert.Equal(LibraryContentType.CodeList, contentItem.Type);
+            Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source);
+        }
     }
 
     [Fact]
-    public async Task GetOrgContentIds_GivenTextResourceParameter_ShouldReturnOkWithTextResourceIds()
+    public async Task GetOrgContentList_GivenTextResourceParameter_ShouldReturnOkWithTextResourceIds()
     {
         // Arrange
         _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
@@ -68,17 +73,21 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
 
         // Assert
         _orgServiceMock.Verify(s => s.IsOrg(orgAndRepoName.Org.Name), Times.Once);
-        List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
-        Assert.Equal(2, textResources.Count);
+        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
+        foreach (var contentItem in contentList)
+        {
+            Assert.Equal(LibraryContentType.TextResource, contentItem.Type);
+            Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source);
+        }
     }
 
     [Fact]
-    public async Task GetOrgContentIds_GivenValidTypeParameterInMixedCaseString_ShouldReturnOkWithContent()
+    public async Task GetOrgContentList_GivenValidTypeParameterInMixedCaseString_ShouldReturnOkWithContent()
     {
         // Arrange
-        _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
@@ -90,17 +99,22 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        _orgServiceMock.Verify(s => s.IsOrg(orgAndRepoName.Org.Name), Times.Once);
-        List<string> textResources = await response.Content.ReadAsAsync<List<string>>();
-        Assert.Equal(2, textResources.Count);
+        _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
+        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        foreach (var contentItem in contentList)
+        {
+            Assert.Equal(LibraryContentType.TextResource, contentItem.Type);
+            Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source);
+        }
     }
 
     [Fact]
-    public async Task GetOrgContentIds_GivenInvalidOrg_ShouldReturnNoContentWithHeaderMessage()
+    public async Task GetOrgContentList_GivenInvalidOrg_ShouldReturnNoContentWithHeaderMessage()
     {
         // Arrange
-        _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(false);
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(false);
 
         const string orgName = "invalidOrgName";
         string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
@@ -112,16 +126,16 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        _orgServiceMock.Verify(s => s.IsOrg(orgName), Times.Once);
+        _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.NotNull(response.Headers.GetValues("Reason"));
     }
 
     [Fact]
-    public async Task GetOrgContentIds_GivenInvalidTypeParameter_ShouldReturnBadRequest()
+    public async Task GetOrgContentList_GivenInvalidTypeParameter_ShouldReturnBadRequest()
     {
         // Arrange
-        _orgServiceMock.Setup(s => s.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
@@ -133,7 +147,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        _orgServiceMock.Verify(s => s.IsOrg(orgAndRepoName.Org.Name), Times.Once);
+        _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 

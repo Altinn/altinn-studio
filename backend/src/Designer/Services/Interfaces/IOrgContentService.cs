@@ -14,9 +14,9 @@ public interface IOrgContentService
     /// <summary>
     /// Retrieves a list of content resources based on the specified type and organisation context.
     /// </summary>
-    /// <param name="type">The type of content to retrieve. If null, all types are retrieved.</param>
+    /// <param name="contentType">The type of content to retrieve.</param>
     /// <param name="context">The organisation context.</param>
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<ExternalContentLibraryResource>> GetResourceList(LibraryContentType? type, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<ExternalContentLibraryResource>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
 }
