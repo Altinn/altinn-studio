@@ -53,12 +53,16 @@ const renderHook = async ({
   services = {
     getPages: jest.fn().mockResolvedValue(mockPages),
   },
+  appContext = { selectedFormLayoutSetName: layoutSetId },
 }: {
   queryClient?: QueryClient;
-  services?: {
-    getPages: jest.Mock;
-  };
+  services?: { getPages: jest.Mock };
+  appContext?: { selectedFormLayoutSetName: string | undefined };
 } = {}) => {
+  jest
+    .spyOn(require('../../../packages/ux-editor/src/hooks'), 'useAppContext')
+    .mockReturnValue(appContext);
+
   const addGroupResult = renderHookWithProviders(
     services,
     queryClient,
@@ -137,6 +141,82 @@ describe('useAddGroupMutation', () => {
         {
           name: 'Layout Set 3',
           order: [{ id: 'page4' }],
+        },
+      ],
+      pages: [],
+    });
+  });
+
+  it('handles groups with undefined order when calculating next page number', async () => {
+    const queryClient = createQueryClientMock();
+    const pagesWithUndefinedOrder: PagesModel = {
+      groups: [
+        { name: 'Layout Set 1', order: undefined },
+        { name: 'Layout Set 2', order: [{ id: 'page1' }] },
+      ],
+      pages: [],
+    };
+    const services = {
+      getPages: jest.fn().mockResolvedValue(pagesWithUndefinedOrder),
+    };
+    const { changePageGroups } = require('app-shared/api/mutations');
+
+    await renderHook({ queryClient, services });
+
+    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
+      groups: [
+        ...pagesWithUndefinedOrder.groups,
+        {
+          name: 'Layout Set 3',
+          order: [{ id: 'page2' }],
+        },
+      ],
+      pages: [],
+    });
+  });
+
+  it('handles page IDs that do not match the regex when calculating next page number', async () => {
+    const queryClient = createQueryClientMock();
+    const pagesWithNonMatchingId: PagesModel = {
+      groups: [
+        { name: 'Layout Set 1', order: [{ id: 'customPage' }] },
+        { name: 'Layout Set 2', order: [{ id: 'page1' }] },
+      ],
+      pages: [],
+    };
+    const services = {
+      getPages: jest.fn().mockResolvedValue(pagesWithNonMatchingId),
+    };
+    const { changePageGroups } = require('app-shared/api/mutations');
+    await renderHook({ queryClient, services });
+    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
+      groups: [
+        ...pagesWithNonMatchingId.groups,
+        {
+          name: 'Layout Set 3',
+          order: [{ id: 'page2' }],
+        },
+      ],
+      pages: [],
+    });
+  });
+
+  it('handles undefined groups in updatedPages when adding a new group', async () => {
+    const queryClient = createQueryClientMock();
+    const pagesWithUndefinedGroups: PagesModel = {
+      groups: undefined,
+      pages: [],
+    };
+    const services = {
+      getPages: jest.fn().mockResolvedValue(pagesWithUndefinedGroups),
+    };
+    const { changePageGroups } = require('app-shared/api/mutations');
+    await renderHook({ queryClient, services });
+    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
+      groups: [
+        {
+          name: 'Layout Set 1',
+          order: [{ id: 'page1' }],
         },
       ],
       pages: [],

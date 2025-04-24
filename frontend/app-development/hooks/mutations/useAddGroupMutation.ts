@@ -15,13 +15,11 @@ export const useAddGroupMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      const layoutSetId = selectedFormLayoutSetName;
-      if (!layoutSetId) throw new Error('No layout set selected');
-      const updatedPages = await getPages(org, app, layoutSetId);
+      const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
       const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
       const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
       const finalPayload = addGroupsWithPages(updatedPages, newGroup);
-      return await changePageGroups(org, app, layoutSetId, finalPayload);
+      return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -32,7 +30,7 @@ export const useAddGroupMutation = (org: string, app: string) => {
 };
 
 const getNextPageNumber = (groups: GroupModel[], t: (key: string) => string): number => {
-  const maxPageNumber = groups
+  const maxPageNumber = (groups || [])
     ?.flatMap((group) => group.order?.map((page) => page.id) || [])
     .reduce((max, id) => {
       const match = id?.match(new RegExp(`${t('general.page')}(\\d+)`));
