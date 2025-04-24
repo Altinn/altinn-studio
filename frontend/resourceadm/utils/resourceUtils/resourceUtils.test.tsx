@@ -6,6 +6,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   validateResource,
   getMigrationErrorMessage,
+  getConsentMetadataValues,
 } from './';
 import type { EnvId } from './resourceUtils';
 import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
@@ -203,6 +204,22 @@ describe('deepCompare', () => {
       expect(validationErrors.length).toBe(13);
     });
 
+    it('should return all possible errors for consentResource', () => {
+      const resource: Resource = {
+        identifier: 'res',
+        resourceType: 'Consentresource',
+        title: null,
+        description: null,
+        delegable: true,
+        rightDescription: null,
+        status: null,
+        availableForType: null,
+        contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
+      };
+      const validationErrors = validateResource(resource, () => 'test');
+      expect(validationErrors.length).toBe(16);
+    });
+
     it('should show empty errors for contactPoints and resourceReferences', () => {
       const resource: Resource = {
         identifier: 'res',
@@ -261,5 +278,17 @@ describe('getMigrationErrorMessage', () => {
   it('returns error when resource is not published', () => {
     const error = getMigrationErrorMessage(null, null, false);
     expect(error.errorMessage).toEqual('resourceadm.migration_not_published');
+  });
+});
+
+describe('getConsentMetadataValues', () => {
+  it('returns consent metadata values', () => {
+    const consentText = {
+      nb: '{org} vil få tilgang til dine data fra {year}',
+      nn: '{org} vil få tilgong til dine data frå {year}',
+      en: '{org} vil have access to your data from {year}',
+    };
+    const metadataValues = getConsentMetadataValues(consentText);
+    expect(metadataValues).toEqual(['org', 'year']);
   });
 });
