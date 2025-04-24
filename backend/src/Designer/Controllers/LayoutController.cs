@@ -73,7 +73,6 @@ namespace Altinn.Studio.Designer.Controllers
         [EndpointSummary("Retrieve page")]
         [ProducesResponseType<PageDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType<PageDto>(StatusCodes.Status200OK)]
         [HttpGet("pages/{pageId}")]
         [UseSystemTextJson]
         public async Task<ActionResult<PageDto>> GetPage(
