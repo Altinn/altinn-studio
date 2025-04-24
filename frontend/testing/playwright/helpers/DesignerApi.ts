@@ -20,20 +20,6 @@ export class DesignerApi extends StudioEnvironment {
     );
   }
 
-  public async createDefaultOrgTextResources(
-    request: APIRequestContext,
-    storageState: StorageState,
-  ): Promise<APIResponse> {
-    const headers: Record<string, string> = this.generateHeaders(storageState);
-    const defaultLanguage = 'nb';
-    const data = {
-      language: defaultLanguage,
-      resources: [],
-    };
-    const url = this.textResourcesUrl(defaultLanguage);
-    return request.post(url, { headers, data });
-  }
-
   private generateHeaders(storageState: StorageState): Record<string, string> {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
     return {
@@ -48,9 +34,5 @@ export class DesignerApi extends StudioEnvironment {
     const formattedStorageState: StorageState = JSON.parse(jsonData);
     return formattedStorageState.cookies.find((cookie: Cookie) => cookie.name === 'XSRF-TOKEN')
       .value;
-  }
-
-  private textResourcesUrl(language: string): string {
-    return `/designer/api/${this.org}/text/language/${language}`;
   }
 }
