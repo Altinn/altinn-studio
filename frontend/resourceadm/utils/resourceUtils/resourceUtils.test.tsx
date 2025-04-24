@@ -286,7 +286,7 @@ describe('getConsentMetadataValues', () => {
     const consentText = {
       nb: '{org} vil få tilgang til dine data fra {year}',
       nn: '{org} vil få tilgong til dine data frå {year}',
-      en: '{org} vil have access to your data from {year}',
+      en: 'Not available in english',
     };
     const metadataValues = getConsentMetadataValues(consentText);
     expect(metadataValues).toEqual(['org', 'year']);

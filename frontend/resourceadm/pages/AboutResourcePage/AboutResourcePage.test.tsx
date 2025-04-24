@@ -5,6 +5,7 @@ import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
+  ConsentTemplate,
   Resource,
   ResourceContactPoint,
   ResourceStatusOption,
@@ -53,6 +54,16 @@ const mockResource2: Resource = {
   delegable: true,
   rightDescription: { nb: '', nn: '', en: '' },
 };
+const mockConsentResource: Resource = {
+  ...mockResource1,
+  resourceType: 'Consentresource',
+  consentText: {
+    nb: 'Du samtykker til å dele dine data med {org}',
+    nn: 'consentNn',
+    en: 'consentEn',
+  },
+};
+
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
 ) as ResourceTypeOption;
@@ -63,6 +74,7 @@ const mockNewDescriptionInput: string = ' test';
 const mockNewHomepageInput: string = 'google.com';
 const mockNewKeyboardInput: string = ', key 3';
 const mockNewRightDescriptionInput: string = 'mock';
+const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
 jest.mock('react-router-dom', () => ({
@@ -304,6 +316,57 @@ describe('AboutResourcePage', () => {
       ...mockResource1,
       visible: true,
     });
+  });
+
+  it('handles consentText changes', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_text_label'),
+      { exact: false },
+    );
+    expect(consentTextNbInput).toHaveValue(mockConsentResource.consentText.nb);
+
+    await user.type(consentTextNbInput, mockNewConsentTextInput);
+    await waitFor(() => consentTextNbInput.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentMetadata: {
+        org: { optional: false },
+      },
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${mockConsentResource.consentText.nb}${mockNewConsentTextInput}`,
+      },
+    });
+  });
+
+  it('handles consentTemplate changes', async () => {
+    const user = userEvent.setup();
+    const consentTemplateTitle = 'Fullmakt til å utføre en tjeneste';
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
+        consentTemplates={[
+          {
+            id: 'poa',
+            title: consentTemplateTitle,
+          } as ConsentTemplate,
+          {
+            id: 'sblanesoknad',
+            title: 'Samtykkebasert lånesøknad',
+          } as ConsentTemplate,
+        ]}
+      />,
+    );
+
+    const consentTemplateRadio = screen.getByLabelText(consentTemplateTitle);
+    await user.click(consentTemplateRadio);
+
+    expect(consentTemplateRadio).toBeChecked();
   });
 
   it('displays errors for the required translation fields', async () => {
