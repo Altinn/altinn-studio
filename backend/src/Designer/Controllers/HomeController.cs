@@ -75,28 +75,6 @@ namespace Altinn.Studio.Designer.Controllers
             return View("StartPage");
         }
 
-        [Route("/{*AllValues:regex(^(?!designer|editor).*$)}")]
-        public IActionResult Index()
-        {
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "studio-root";
-            return View();
-        }
-
-        /// <summary>
-        /// The default action presenting a list of available apps when the user is logged in
-        /// </summary>
-        /// <returns>The front page</returns>
-        [Route("/[controller]/[action]")]
-        [Authorize]
-        [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
-        public ActionResult Dashboard()
-        {
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "dashboard";
-            return View("Index");
-        }
-
         /// <summary>
         /// Login
         /// </summary>

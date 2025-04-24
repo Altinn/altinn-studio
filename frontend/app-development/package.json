@@ -23,12 +23,9 @@
     "react-router-dom": "6.29.0"
   },
   "devDependencies": {
-    "cross-env": "7.0.3",
     "jest": "29.7.0",
     "typescript": "5.7.3",
-    "vite": "^6.3.2",
-    "webpack": "5.97.1",
-    "webpack-dev-server": "5.2.1"
+    "vite": "^6.3.2"
   },
   "license": "3-Clause BSD",
   "private": true,
@@ -37,8 +34,6 @@
     "start": "vite serve --host 0.0.0.0",
     "vitest": "vitest",
     "preview": "vite preview --host 0.0.0.0",
-    "build-with-profile": "yarn build --profile --json > stats.json",
-    "bundle-size": "npx webpack-bundle-analyzer ./stats.json",
     "test": "jest --maxWorkers=50%",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"

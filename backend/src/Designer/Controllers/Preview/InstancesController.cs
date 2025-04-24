@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("{org:regex(^(?!designer|editor))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
+[Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|studio-root))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
 public class InstancesController(IHttpContextAccessor httpContextAccessor,
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
