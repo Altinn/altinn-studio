@@ -50,9 +50,8 @@ public class OrgTextController : ControllerBase
         }
         catch (NotFoundException)
         {
-            return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
+            return NoContent();
         }
-
     }
 
     /// <summary>
