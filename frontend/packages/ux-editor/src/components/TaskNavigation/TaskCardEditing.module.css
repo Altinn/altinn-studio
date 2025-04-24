@@ -9,6 +9,10 @@
   justify-content: space-between;
 }
 
+.editCard select {
+  width: 100%;
+}
+
 .btnGroup {
   display: flex;
   gap: var(--fds-spacing-2);
