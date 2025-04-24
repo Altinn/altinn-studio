@@ -22,7 +22,7 @@ import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
-import { useAddGroupMutation } from '../../../../../app-development/hooks/mutations/useAddGroupMutation';
+import { useAddGroupMutation } from 'app-development/hooks/mutations';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

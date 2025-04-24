@@ -28,9 +28,6 @@ export const useAddGroupMutation = (org: string, app: string) => {
         queryKey: [QueryKey.Pages, org, app, selectedFormLayoutSetName],
       });
     },
-    onError: (error) => {
-      console.error('Error adding group:', error);
-    },
   });
 };
 
@@ -54,6 +51,6 @@ const createNewGroup = (
 });
 
 const addGroupsWithPages = (updatedPages: PagesModel, newGroup: GroupModel): PagesModel => ({
-  groups: [...updatedPages.groups, newGroup],
+  groups: [...(updatedPages.groups || []), newGroup],
   pages: updatedPages.pages,
 });
