@@ -170,6 +170,7 @@ export const DesignView = (): ReactNode => {
         >
           {t('ux_editor.pages_add')}
         </StudioButton>
+
         <StudioButton
           icon={<PlusIcon aria-hidden />}
           onClick={handleAddGroup}
