@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,11 @@ public class PagesDto
 {
     [JsonPropertyName("pages")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public List<PageDto> Pages { get; set; }
+    public List<PageDto>? Pages { get; set; }
 
     [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public List<GroupDto> Groups { get; set; }
+    public List<GroupDto>? Groups { get; set; }
 
     public PagesDto() { }
 
@@ -33,7 +34,7 @@ public class PagesDto
                     .Groups?.Select(group => new GroupDto
                     {
                         Name = group.Name,
-                        Pages = group.Order?.Select(pageId => new PageDto { Id = pageId }).ToList(),
+                        Pages = group.Order.Select(pageId => new PageDto { Id = pageId }).ToList(),
                     })
                     .ToList(),
             },
@@ -53,12 +54,6 @@ public class PagesDto
                 "Cannot convert to business object: `Pages` and `Groups` are defined"
             );
         }
-        if (Pages == null && Groups == null)
-        {
-            throw new InvalidOperationException(
-                "Cannot convert to business object: `Pages` and `Groups` are not defined"
-            );
-        }
         Pages pages = this switch
         {
             { Pages: not null } => new PagesWithOrder
@@ -75,6 +70,9 @@ public class PagesDto
                     })
                     .ToList(),
             },
+            _ => throw new InvalidOperationException(
+                "Cannot convert to business object: `Pages` and `Groups` are not defined"
+            ),
         };
         return pages;
     }
