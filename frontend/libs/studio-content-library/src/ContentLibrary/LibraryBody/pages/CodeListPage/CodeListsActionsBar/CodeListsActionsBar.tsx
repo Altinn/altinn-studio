@@ -1,14 +1,11 @@
 import React from 'react';
 import type { TextResource } from '@studio/components-legacy';
-import { StudioFileUploader, StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components-legacy';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../CodeListPage';
-import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
-import { FileNameUtils } from '@studio/pure-functions';
-import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
-import { toast } from 'react-toastify';
+import { AddCodeListDropdown } from './AddCodeListDropdown';
+import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -17,6 +14,8 @@ export type CodeListsActionsBarProps = {
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
+  externalResourceIds?: string[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListsActionsBar({
@@ -26,25 +25,15 @@ export function CodeListsActionsBar({
   codeListNames,
   onSetSearchString,
   textResources,
+  externalResourceIds,
+  onImportCodeListFromOrg,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
-  const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     onSetSearchString(event.target.value);
 
   const handleClearSearch = () => onSetSearchString('');
-
-  const onSubmit = (file: File) => {
-    const fileNameError = FileNameUtils.findFileNameError(
-      FileNameUtils.removeExtension(file.name),
-      codeListNames,
-    );
-    if (fileNameError) {
-      return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
-    }
-    onUploadCodeList(file);
-  };
 
   return (
     <div className={classes.actionsBar}>
@@ -54,18 +43,14 @@ export function CodeListsActionsBar({
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
         onClear={handleClearSearch}
       />
-      <CreateNewCodeListModal
+      <AddCodeListDropdown
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
+        onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
-      />
-      <StudioFileUploader
-        accept='.json'
-        size='small'
-        variant='tertiary'
-        uploaderButtonText={t('app_content_library.code_lists.upload_code_list')}
-        onSubmit={onSubmit}
+        externalResourceIds={externalResourceIds}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
     </div>
   );

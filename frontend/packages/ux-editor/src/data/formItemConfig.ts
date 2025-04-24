@@ -19,6 +19,7 @@ import {
   LikertIcon,
   LinkIcon,
   LongTextIcon,
+  MinusIcon,
   NavBarIcon,
   PaperclipIcon,
   PaymentDetailsIcon,
@@ -490,6 +491,16 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
   },
+  [ComponentType.Divider]: {
+    name: ComponentType.Divider,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      id: '',
+      type: ComponentType.Divider,
+    },
+    propertyPath: 'definitions/dividerComponent',
+    icon: MinusIcon,
+  },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
@@ -517,6 +528,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.MultipleSelect],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
+  formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
@@ -551,16 +563,6 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   ...confOnScreenComponents,
 ];
 
-export type ComponentCategory =
-  | 'form'
-  | 'select'
-  | 'button'
-  | 'text'
-  | 'info'
-  | 'container'
-  | 'attachment'
-  | 'advanced';
-
 export const defaultComponents: ComponentType[] = [
   ComponentType.Input,
   ComponentType.TextArea,
@@ -575,7 +577,13 @@ export const defaultComponents: ComponentType[] = [
 
 export const allComponents: KeyValuePairs<ComponentType[]> = {
   form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
-  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
+  text: [
+    ComponentType.Header,
+    ComponentType.Paragraph,
+    ComponentType.Panel,
+    ComponentType.Alert,
+    ComponentType.Divider,
+  ],
   select: [
     ComponentType.Checkboxes,
     ComponentType.RadioButtons,

@@ -50,9 +50,8 @@ public class OrgTextController : ControllerBase
         }
         catch (NotFoundException)
         {
-            return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
+            return NoContent();
         }
-
     }
 
     /// <summary>
@@ -92,7 +91,7 @@ public class OrgTextController : ControllerBase
     /// <param name="languageCode">The languageCode for the text resource file that is being edited.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The updated resource file</returns>
-    [HttpPut]
+    [HttpPatch]
     [Route("language/{languageCode}")]
     public async Task<ActionResult<TextResource>> UpdateResource(string org, [FromBody] Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
     {

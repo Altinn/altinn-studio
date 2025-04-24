@@ -3,7 +3,12 @@
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   overflow: hidden;
   height: fit-content;
-  margin: var(--padding-library);
+  max-width: 75ch;
+}
+
+.imageWrapper {
+  display: flex;
+  justify-content: center;
 }
 
 .infoBoxContainer img {

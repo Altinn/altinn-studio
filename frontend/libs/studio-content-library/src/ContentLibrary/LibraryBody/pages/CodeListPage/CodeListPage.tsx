@@ -15,11 +15,8 @@ import {
 } from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
-
-export type CodeListWithMetadata = {
-  codeList: CodeList;
-  title: string;
-};
+import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
+import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
   title: string;
@@ -36,6 +33,8 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
+  externalResourceIds?: string[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListPage({
@@ -47,10 +46,14 @@ export function CodeListPage({
   onUploadCodeList,
   codeListsUsages,
   textResources,
+  externalResourceIds,
+  onImportCodeListFromOrg,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+
+  const codeListIsEmpty: boolean = codeListsData.length === 0;
 
   const filteredCodeLists: CodeListData[] = useMemo(
     () => filterCodeLists(codeListsData, searchString),
@@ -93,6 +96,8 @@ export function CodeListPage({
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}
+        externalResourceIds={externalResourceIds}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
         codeListsData={filteredCodeLists}
@@ -105,6 +110,7 @@ export function CodeListPage({
         codeListsUsages={codeListsUsages}
         textResources={textResourcesForLanguage}
       />
+      {codeListIsEmpty && <InfoBox pageName='codeList' />}
     </div>
   );
 }

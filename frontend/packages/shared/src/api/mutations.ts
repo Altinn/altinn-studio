@@ -1,4 +1,4 @@
-import { del, get, post, put } from 'app-shared/utils/networking';
+import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -52,6 +52,8 @@ import {
   orgCodeListPath,
   orgCodeListUploadPath,
   layoutPagesPath,
+  orgTextResourcesPath,
+  importCodeListFromOrgPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -60,7 +62,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResource, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -80,11 +82,10 @@ import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
 import type { CodeList } from 'app-shared/types/CodeList';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { OptionList } from '../types/OptionList';
-import { optionListMock } from '../mocks/optionListsResponseMocks';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const headers = {
   Accept: 'application/json',
@@ -140,7 +141,7 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
-export const importCodeListFromOrgToApp = async (org: string, app: string, codeListId: string): Promise<OptionList> => Promise.resolve(optionListMock);
+export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string) => post<OptionList>(importCodeListFromOrgPath(org, app, codeListId));
 
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
@@ -191,6 +192,5 @@ export const deleteCodeListForOrg = async (org: string, codeListId: string): Pro
 export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
-// Todo: Replace these with real API calls when endpoints are ready. https://github.com/Altinn/altinn-studio/issues/14503
-export const createTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage[]> => Promise.resolve([textResourcesMock]); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
-export const updateTextResourcesForOrg = async (org: string, language: string, payload: ITextResource[]): Promise<ITextResourcesWithLanguage[]> => Promise.resolve([textResourcesMock]); // Todo: Replace with real API call when endpoint is ready. https://github.com/Altinn/altinn-studio/issues/14503
+export const createTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
+export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);

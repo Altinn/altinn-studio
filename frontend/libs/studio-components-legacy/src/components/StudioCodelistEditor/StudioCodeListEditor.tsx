@@ -1,6 +1,6 @@
 import type { CodeList } from './types/CodeList';
+import React, { useMemo, useRef, useCallback, useReducer, useEffect } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
-import React, { useMemo, useRef, useCallback } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
@@ -32,6 +32,8 @@ import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
 import type { TypeSelectorProps } from './TypeSelector';
 import { TypeSelector } from './TypeSelector';
+import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
+import type { ReducerState } from './StudioCodeListEditorReducer';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -56,16 +58,34 @@ export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorPro
 type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
-  codeList: defaultCodeList,
+  codeList: givenCodeList,
+  textResources: givenTextResources,
   onAddOrDeleteItem,
   onBlurAny,
   onBlurTextResource,
   onChange,
   onChangeTextResource,
   onInvalid,
-  textResources,
 }: StatefulCodeListEditorProps): ReactElement {
-  const [codeList, setCodeList] = usePropState<CodeList>(defaultCodeList);
+  const initialState: ReducerState = {
+    codeList: givenCodeList,
+    textResources: givenTextResources ?? [],
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  useEffect(() => {
+    dispatch({
+      type: ReducerActionType.SetCodeList,
+      codeList: givenCodeList,
+    });
+  }, [givenCodeList]);
+
+  useEffect(() => {
+    dispatch({
+      type: ReducerActionType.SetTextResources,
+      textResources: givenTextResources ?? [],
+    });
+  }, [givenTextResources]);
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {
@@ -75,32 +95,36 @@ function StatefulCodeListEditor({
   );
 
   const handleBlurAny = useCallback(() => {
-    isCodeListValid(codeList) && onBlurAny?.(codeList);
-  }, [onBlurAny, codeList]);
+    isCodeListValid(state.codeList) && onBlurAny?.(state.codeList);
+  }, [onBlurAny, state.codeList]);
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
-      setCodeList(newCodeList);
-      isCodeListValid(newCodeList) ? onChange?.(newCodeList) : onInvalid?.();
+      if (isCodeListValid(newCodeList)) {
+        dispatch({ type: ReducerActionType.SetCodeList, codeList: newCodeList });
+        onChange?.(newCodeList);
+      } else {
+        onInvalid?.();
+      }
     },
-    [onChange, onInvalid, setCodeList],
+    [onChange, onInvalid, dispatch],
   );
 
   return (
     <ControlledCodeListEditor
-      codeList={codeList}
+      codeList={state.codeList}
       onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
       onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
-      textResources={textResources}
+      textResources={state.textResources}
     />
   );
 }
 
 type ControlledCodeListEditorProps = Override<
-  Pick<StudioInputTableProps, 'onBlurAny'>,
+  Pick<StudioInputTableProps, 'onBlurAny'> & { textResources: TextResource[] },
   Omit<StatefulCodeListEditorProps, 'onInvalid'>
 >;
 
