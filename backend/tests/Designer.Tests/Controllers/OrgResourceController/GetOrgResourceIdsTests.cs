@@ -175,6 +175,6 @@ public class GetOrgResourceIdsTests : DesignerEndpointsTestsBase<GetOrgResourceI
     private class Organisation(string name)
     {
         public string Name { get; } = name;
-        public string ApiBaseUrl => $"designer/api/{Name}/content";
+        public string ApiBaseUrl => $"designer/api/{Name}/resources";
     }
 }

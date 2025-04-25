@@ -6,11 +6,11 @@ import type { LibraryResourceType } from 'app-shared/enums/LibraryResourceType';
 
 export const useGetAvailableCodeListsFromOrgQuery = (
   org: string,
-  contentType: LibraryResourceType,
+  resourceType: LibraryResourceType,
 ): UseQueryResult<string[], Error> => {
   const { getAvailableResourcesFromOrg } = useServicesContext();
   return useQuery<string[]>({
     queryKey: [QueryKey.CodeListTitles, org],
-    queryFn: () => getAvailableResourcesFromOrg(org, contentType),
+    queryFn: () => getAvailableResourcesFromOrg(org, resourceType),
   });
 };

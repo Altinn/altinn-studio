@@ -40,7 +40,7 @@ public class OrgResourceController : ControllerBase
     /// <param name="resourceType">The type of resource to return the names of. For example code lists or text resources. </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
-    [Route("resource/{resourceType}")]
+    [Route("resources/{resourceType}")]
     public async Task<ActionResult<List<string>>> GetOrgResourceIds([FromRoute] string orgName, [FromRoute] string resourceType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
