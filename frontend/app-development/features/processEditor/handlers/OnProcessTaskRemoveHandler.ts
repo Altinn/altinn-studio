@@ -32,6 +32,10 @@ export class OnProcessTaskRemoveHandler {
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskRemove(taskMetadata);
     }
+
+    if (taskMetadata.taskType === 'userControlledSigning') {
+      this.handleUserControlledSigningTaskRemove(taskMetadata);
+    }
   }
 
   /**
@@ -105,27 +109,16 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId,
-    });
+    this.handleGenericSigningTaskRemove(taskMetadata);
+  }
 
-    const layoutSetId = getLayoutSetIdFromTaskId(
-      taskMetadata.taskEvent.element.id,
-      this.layoutSets,
-    );
-
-    if (layoutSetId) {
-      this.deleteLayoutSet({
-        layoutSetIdToUpdate: layoutSetId,
-      });
-    }
-
-    this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
+  /**
+   * Deletes layoutSet and dataType from the deleted user-controlled-signing task
+   * @param taskMetadata
+   * @private
+   */
+  private handleUserControlledSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    this.handleGenericSigningTaskRemove(taskMetadata);
   }
 
   /**
@@ -168,5 +161,29 @@ export class OnProcessTaskRemoveHandler {
         (dataType) => dataType.dataType !== signatureDataType,
       );
     });
+  }
+
+  private handleGenericSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId,
+    });
+
+    const layoutSetId = getLayoutSetIdFromTaskId(
+      taskMetadata.taskEvent.element.id,
+      this.layoutSets,
+    );
+
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
+    }
+
+    this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
   }
 }
