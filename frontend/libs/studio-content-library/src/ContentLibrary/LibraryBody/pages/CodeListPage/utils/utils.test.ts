@@ -4,6 +4,7 @@ import {
   filterCodeLists,
   getCodeListSourcesById,
   getCodeListUsageCount,
+  getUsageTaskTypeTextKey,
   getTextResourcesForLanguage,
 } from './';
 import type { CodeListData } from '../CodeListPage';
@@ -13,12 +14,14 @@ import {
   textResourcesNb,
 } from '../../../../../test-data/textResources';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
+import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 
 const codeListId1: string = 'codeListId1';
 const codeListId2: string = 'codeListId2';
 const componentIds: string[] = ['componentId1', 'componentId2'];
 const codeListIdSource: CodeListIdSource = {
-  layoutSetId: 'layoutSetId',
+  taskType: CodeListUsageTaskType.Data,
+  taskId: 'taskName',
   layoutName: 'layoutName',
   componentIds,
 };
@@ -104,6 +107,24 @@ describe('utils', () => {
       const usageCount = getCodeListUsageCount(codeListSources);
 
       expect(usageCount).toBe(0);
+    });
+  });
+
+  describe('getUsageTaskTypeTextKey', () => {
+    it('returns correct text key for Data task type', () => {
+      const result = getUsageTaskTypeTextKey(CodeListUsageTaskType.Data);
+      expect(result).toBe('app_content_library.code_lists.code_list_usage_table_task_type_data');
+    });
+
+    it('returns correct text key for Signing task type', () => {
+      const result = getUsageTaskTypeTextKey(CodeListUsageTaskType.Signing);
+      expect(result).toBe('app_content_library.code_lists.code_list_usage_table_task_type_signing');
+    });
+
+    it('falls back to input string when given parameter does not match a valid task type', () => {
+      // @ts-expect-error
+      const result = getUsageTaskTypeTextKey('confirmation');
+      expect(result).toBe('confirmation');
     });
   });
 
