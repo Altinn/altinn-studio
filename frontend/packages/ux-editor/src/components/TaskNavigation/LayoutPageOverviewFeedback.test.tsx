@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CustomFeedbackForm } from './CustomFeedbackForm';
+import { LayoutPageOverviewFeedback } from './LayoutPageOverviewFeedback';
 import axios from 'axios';
 
 jest.mock('axios');
 var mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe('CustomFeedbackForm', () => {
+describe('LayoutPageOverviewFeedback', () => {
   beforeEach(() => {
     mockedAxios.post.mockClear();
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -18,13 +18,13 @@ describe('CustomFeedbackForm', () => {
   });
 
   it('should render feedback form', () => {
-    renderCustomFeedbackForm();
+    renderLayoutPageOverviewFeedback();
     expect(screen.getByRole('button', { name: 'Gi tilbakemelding' })).toBeInTheDocument();
   });
 
   it('should open the feedback form when clicking trigger', async () => {
     const user = userEvent.setup();
-    renderCustomFeedbackForm();
+    renderLayoutPageOverviewFeedback();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('CustomFeedbackForm', () => {
   it('should close the feedback form when clicking send', async () => {
     const user = userEvent.setup();
     mockedAxios.post.mockResolvedValueOnce({});
-    renderCustomFeedbackForm();
+    renderLayoutPageOverviewFeedback();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Send' }));
@@ -44,7 +44,7 @@ describe('CustomFeedbackForm', () => {
   it('should submit form data correctly', async () => {
     const user = userEvent.setup({ delay: 100 });
     mockedAxios.post.mockResolvedValueOnce({});
-    renderCustomFeedbackForm();
+    renderLayoutPageOverviewFeedback();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     await user.click(screen.getByRole('button', { name: 'Ja' }));
     await user.click(screen.getByRole('button', { name: 'Send' }));
@@ -61,6 +61,6 @@ describe('CustomFeedbackForm', () => {
   });
 });
 
-const renderCustomFeedbackForm = () => {
-  return render(<CustomFeedbackForm />);
+const renderLayoutPageOverviewFeedback = () => {
+  return render(<LayoutPageOverviewFeedback />);
 };

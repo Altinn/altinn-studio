@@ -7,7 +7,7 @@ import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
 import { StudioAlert } from '@studio/components-legacy';
-import { CustomFeedbackForm } from '../../components/TaskNavigation/CustomFeedbackForm';
+import { LayoutPageOverviewFeedback } from '../../components/TaskNavigation/LayoutPageOverviewFeedback';
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();
@@ -28,7 +28,7 @@ export const FormDesignerNavigation = () => {
           </div>
           <footer className={classes.footer}>
             <Link href='/contact'>{t('general.contact')}</Link>
-            <CustomFeedbackForm />
+            <LayoutPageOverviewFeedback />
           </footer>
         </div>
       </main>
