@@ -1962,6 +1962,8 @@
   "ux_editor.search_text_resources_none": "Ingen",
   "ux_editor.settings.data_model_tab": "Datamodell",
   "ux_editor.settings.navigation_tab": "Navigasjon",
+  "ux_editor.settings.navigation_tab_description": "Her setter du rekkefølgen på oppgavene i navigasjonen. Sjekk at navigasjonen følger arbeidsflyten. For utfyllingsoppgaver kan du sette opp flere detaljer for navigasjon. Det gjør du når du utformer sider på selve oppgaven.",
+  "ux_editor.settings.navigation_tab_header": "Navigasjonsmeny",
   "ux_editor.settings.navigation_tab_loading": "Laster inn navigasjonsoppgaver",
   "ux_editor.settings.navigation_warning": "Det er ingen tilgjengelige oppgaver i navigasjonen.",
   "ux_editor.settings.other_settings": "Andre innstillinger",
