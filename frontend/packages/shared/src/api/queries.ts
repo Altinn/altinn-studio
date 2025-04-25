@@ -194,4 +194,4 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
+export const getTextResourcesForOrg = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
