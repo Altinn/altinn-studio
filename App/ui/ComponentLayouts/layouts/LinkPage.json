@@ -44,7 +44,7 @@
         "fullWidth": true,
         "openInNewTab": true,
         "style": "secondary",
-        "linkButtonTextAlign": "left"
+        "textAlign": "left"
       },
 
       {
@@ -57,7 +57,7 @@
         "fullWidth": true,
         "openInNewTab": true,
         "style": "secondary",
-        "linkButtonTextAlign": "center"
+        "textAlign": "center"
       },
 
       {
@@ -70,7 +70,7 @@
         "fullWidth": true,
         "openInNewTab": true,
         "style": "secondary",
-        "linkButtonTextAlign": "right"
+        "textAlign": "right"
       },
 
 
