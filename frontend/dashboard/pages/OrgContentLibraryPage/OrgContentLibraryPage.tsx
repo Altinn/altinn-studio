@@ -23,6 +23,7 @@ import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
+  textResourcesWithLanguageFromResponse,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
 } from './utils';
@@ -88,7 +89,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
           orgName={orgName}
-          textResources={textResources}
+          textResources={textResourcesWithLanguageFromResponse(textResources)}
         />
       );
   }

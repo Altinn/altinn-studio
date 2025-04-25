@@ -6,6 +6,7 @@ import { ArrayUtils } from '@studio/pure-functions';
 import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -21,3 +22,14 @@ export function textResourcesWithLanguageToLibraryTextResources(
   const list: ITextResourcesWithLanguage[] = [textResourcesWithLanguage];
   return ArrayUtils.extractKeyValuePairs(list, 'language', 'resources');
 }
+
+export function textResourcesWithLanguageFromResponse(
+  textResourcesWithLanguage: ITextResourcesWithLanguage | null,
+): ITextResourcesWithLanguage {
+  return textResourcesWithLanguage || defaultTextResources;
+}
+
+const defaultTextResources: ITextResourcesWithLanguage = {
+  language: DEFAULT_LANGUAGE,
+  resources: [],
+};

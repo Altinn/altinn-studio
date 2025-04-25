@@ -12,6 +12,7 @@ import type {
   PagesConfig,
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
+  TextResources,
 } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
@@ -97,6 +98,15 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData();
     const textResourcesData = retrieveConfig().codeList.props.textResources;
     expect(textResourcesData).toEqual(textResources);
+  });
+
+  it('Renders with fallback text resources when text resources are missing', () => {
+    renderOrgContentLibraryWithMissingTextResources();
+    const textResourcesData = retrieveConfig().codeList.props.textResources;
+    const expectedTextResources: TextResources = {
+      [DEFAULT_LANGUAGE]: [],
+    };
+    expect(textResourcesData).toEqual(expectedTextResources);
   });
 
   it('calls updateCodeListForOrg with correct data when onUpdateCodeList is triggered', async () => {
@@ -223,6 +233,18 @@ function createQueryClientWithData(): QueryClient {
     [QueryKey.TextResourcesForOrg, orgName, DEFAULT_LANGUAGE],
     textResourcesWithLanguage,
   );
+  return queryClient;
+}
+
+function renderOrgContentLibraryWithMissingTextResources(): void {
+  const queryClient = createQueryClientWithMissingTextResources();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function createQueryClientWithMissingTextResources(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
+  queryClient.setQueryData([QueryKey.TextResourcesForOrg, orgName, DEFAULT_LANGUAGE], null);
   return queryClient;
 }
 

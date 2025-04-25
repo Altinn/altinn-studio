@@ -1,4 +1,5 @@
 import {
+  textResourcesWithLanguageFromResponse,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
 } from './utils';
@@ -9,6 +10,7 @@ import type {
 } from '@studio/content-library';
 import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 describe('utils', () => {
   describe('textResourceWithLanguageToMutationArgs', () => {
@@ -43,6 +45,28 @@ describe('utils', () => {
       const expectedResult: TextResources = { nb: textResources };
       const result = textResourcesWithLanguageToLibraryTextResources(textResourcesWithLanguage);
       expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('textResourcesWithLanguageFromResponse', () => {
+    it('Returns default text resources when response is null', () => {
+      const result = textResourcesWithLanguageFromResponse(null);
+      expect(result).toEqual({
+        language: DEFAULT_LANGUAGE,
+        resources: [],
+      });
+    });
+
+    it('Returns given data when not null', () => {
+      const data: ITextResourcesWithLanguage = {
+        language: 'fr',
+        resources: [
+          { id: '1', value: 'Bonjour' },
+          { id: '2', value: 'Au revoir' },
+        ],
+      };
+      const result = textResourcesWithLanguageFromResponse(data);
+      expect(result).toEqual(data);
     });
   });
 });
