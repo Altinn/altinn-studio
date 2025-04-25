@@ -93,13 +93,7 @@ function StatefulCodeListEditor({
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {
-      if (isCodeListValid(newCodeList)) {
-        dispatch({
-          type: ReducerActionType.SetCodeList,
-          codeList: newCodeList,
-        });
-        onAddOrDeleteItem?.(newCodeList);
-      }
+      isCodeListValid(newCodeList) && onAddOrDeleteItem?.(newCodeList);
     },
     [onAddOrDeleteItem],
   );

@@ -20,7 +20,7 @@ type StudioCodeListEditorRowProps = {
   number: number;
   onBlurTextResource: (textResource: TextResource) => void;
   onChange: (newItem: CodeListItem) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   onDeleteButtonClick: () => void;
   onUpdateCodeListItem: (newItem: CodeListItem) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
@@ -265,7 +265,7 @@ type TextResourceIdCellProps = {
   number: number;
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeCurrentId: (newId: string) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   property: CodeListItemTextProperty;
   required: boolean;
@@ -298,15 +298,22 @@ function TextResourceSelectorCell({
   } = useStudioCodeListEditorContext();
 
   const handleUpdateTextResource = useCallback(
-    (textResource: TextResource) => {
+    (newTextResource: TextResource) => {
+      onUpdateTextResource?.(newTextResource);
+    },
+    [onUpdateTextResource],
+  );
+
+  const handleChangeTextResource = useCallback(
+    (newTextResource: TextResource) => {
       dispatch({
         type: ReducerActionType.UpdateTextResourceValue,
-        textResourceId: textResource.id,
-        newValue: textResource.value,
+        textResourceId: newTextResource.id,
+        newValue: newTextResource.value,
       });
-      onUpdateTextResource?.(textResource);
+      onChangeTextResource?.(newTextResource);
     },
-    [dispatch, onUpdateTextResource],
+    [dispatch, onChangeTextResource],
   );
 
   return (
@@ -314,7 +321,7 @@ function TextResourceSelectorCell({
       currentId={currentId}
       onBlurTextResource={onBlurTextResource}
       onChangeCurrentId={onChangeCurrentId}
-      onChangeTextResource={onChangeTextResource}
+      onChangeTextResource={handleChangeTextResource}
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
