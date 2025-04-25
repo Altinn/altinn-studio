@@ -75,7 +75,7 @@ describe('utils', () => {
 
     it('Returns a string with the correct format', () => {
       ids.forEach((id: string) => {
-        expect(id).toMatch(/^id_[A-Za-z0-9]{12}$/);
+        expect(id).toMatch(/^id_[a-zA-Z0-9]{12}$/);
       });
     });
 

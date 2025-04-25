@@ -55,11 +55,11 @@ export type StudioCodeListEditorProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
-  onInvalid?: () => void;
-  textResources?: TextResource[];
   onCreateTextResource?: (args: CreateTextResourceArgs) => void;
+  onInvalid?: () => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
+  textResources?: TextResource[];
   texts: CodeListEditorTexts;
 };
 
