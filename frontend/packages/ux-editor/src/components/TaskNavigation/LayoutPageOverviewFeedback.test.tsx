@@ -52,7 +52,7 @@ describe('LayoutPageOverviewFeedback', () => {
       expect.any(String),
       {
         answers: {
-          feedbackFormId: 'custom-feedback-form',
+          feedbackFormId: 'utforming-overview',
           likerUtformingJaNei: 'yes',
         },
       },
