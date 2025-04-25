@@ -1,0 +1,29 @@
+.tasksTable {
+  max-width: 744px;
+}
+
+.tasksHiddenTable {
+  background-color: var(--fds-semantic-background-subtle);
+}
+.tasksHiddenTable .taskTypeCell,
+.tasksHiddenTable .nameCell,
+.tasksHiddenTable .pagesCell {
+  opacity: 0.5;
+}
+
+.taskRow td {
+  border: none;
+}
+
+.taskTypeCell,
+.pagesCell {
+  width: 25%;
+}
+
+.actionCell {
+  width: 1px;
+}
+
+.taskFooterContent {
+  text-align: end;
+}

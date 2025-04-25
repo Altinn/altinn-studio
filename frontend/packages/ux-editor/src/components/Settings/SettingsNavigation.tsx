@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { isTaskReceipt, getTaskIcon, taskNavigationType } from './SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
+import { TasksTable } from './SettingsNavigation/TasksTable';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
@@ -25,11 +26,14 @@ export const SettingsNavigation = (): ReactElement => {
     );
 
   return (
-    <div className={classes.taskNavigationContainer}>
-      {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
-        <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
-      ))}
-    </div>
+    <>
+      <TasksTable />
+      <div className={classes.taskNavigationContainer}>
+        {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
+          <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
+        ))}
+      </div>
+    </>
   );
 };
 
