@@ -57,8 +57,8 @@ export type StudioCodeListEditorProps = {
   onChangeTextResource?: (textResource: TextResource) => void;
   onCreateTextResource?: (args: CreateTextResourceArgs) => void;
   onInvalid?: () => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   textResources?: TextResource[];
   texts: CodeListEditorTexts;
 };
