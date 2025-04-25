@@ -107,7 +107,7 @@ import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import type { LibraryResourceType } from 'app-shared/enums/LibraryResourceType';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -137,7 +137,7 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getAvailableResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableResourcesFromOrg = (owner: string, resourceType: LibraryResourceType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, resourceType));
 
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());

@@ -35,7 +35,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
 import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
-import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import { LibraryResourceType } from 'app-shared/enums/LibraryResourceType';
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 
 export function AppContentLibrary(): React.ReactElement {
@@ -53,7 +53,7 @@ export function AppContentLibrary(): React.ReactElement {
   const {
     data: availableCodeListsToImportFromOrg,
     status: availableCodeListsToImportFromOrgStatus,
-  } = useGetAvailableCodeListsFromOrgQuery(org, LibraryContentType.CodeList);
+  } = useGetAvailableCodeListsFromOrgQuery(org, LibraryResourceType.CodeList);
 
   const status = mergeQueryStatuses(
     optionListDataListStatus,
