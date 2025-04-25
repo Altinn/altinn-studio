@@ -85,9 +85,7 @@ describe('FormComponentConfig', () => {
         await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
     }
-    expect(
-      await screen.findByText(textMock('ux_editor.component_properties.optionalIndicator')),
-    ).toBeInTheDocument();
+
     const hideButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_hide_many_settings'),
     });
@@ -616,56 +614,6 @@ describe('FormComponentConfig', () => {
     expect(widthText).not.toBeInTheDocument();
   });
 
-  it('should call handleComponentUpdate when optionalIndicator in labelSettings is toggled', async () => {
-    const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
-    render({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            labelSettings: {
-              type: 'object',
-              properties: {
-                optionalIndicator: {
-                  type: 'boolean',
-                  default: true,
-                },
-              },
-            },
-          },
-        },
-        component: {
-          ...componentMocks.Input,
-          labelSettings: {
-            optionalIndicator: true,
-          },
-        },
-        handleComponentUpdate: handleComponentUpdateMock,
-      },
-    });
-
-    const showMoreButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_other_properties_show_many_settings'),
-    });
-    await user.click(showMoreButton);
-    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.optionalIndicator'),
-    });
-    expect(optionalIndicatorSwitch).toBeChecked();
-    await user.click(optionalIndicatorSwitch);
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelSettings: expect.objectContaining({
-            optionalIndicator: false,
-          }),
-        }),
-      );
-    });
-  });
-
   it('should toggle object card when object property button is clicked', async () => {
     const user = userEvent.setup();
     const propertyKey = 'someObjectProperty';
@@ -799,99 +747,6 @@ describe('FormComponentConfig', () => {
           name: textMock('general.close'),
         }),
       ).not.toBeInTheDocument();
-    });
-  });
-
-  it('should handle optionalIndicator when labelSettings is undefined in component', async () => {
-    const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
-    render({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            labelSettings: {
-              type: 'object',
-              properties: {
-                optionalIndicator: {
-                  type: 'boolean',
-                  default: false,
-                },
-              },
-            },
-          },
-        },
-        component: {
-          ...componentMocks.Input,
-        },
-        handleComponentUpdate: handleComponentUpdateMock,
-      },
-    });
-    const showMoreButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_other_properties_show_many_settings'),
-    });
-    await user.click(showMoreButton);
-    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.optionalIndicator'),
-    });
-    expect(optionalIndicatorSwitch).not.toBeChecked();
-    await user.click(optionalIndicatorSwitch);
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelSettings: expect.objectContaining({
-            optionalIndicator: true,
-          }),
-        }),
-      );
-    });
-  });
-
-  it('should handle optionalIndicator when labelSettings is null in component', async () => {
-    const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
-    render({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            labelSettings: {
-              type: 'object',
-              properties: {
-                optionalIndicator: {
-                  type: 'boolean',
-                  default: false,
-                },
-              },
-            },
-          },
-        },
-        component: {
-          ...componentMocks.Input,
-          labelSettings: null,
-        },
-        handleComponentUpdate: handleComponentUpdateMock,
-      },
-    });
-    const showMoreButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_other_properties_show_many_settings'),
-    });
-    await user.click(showMoreButton);
-    const optionalIndicatorSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.optionalIndicator'),
-    });
-    expect(optionalIndicatorSwitch).not.toBeChecked();
-    await user.click(optionalIndicatorSwitch);
-    await waitFor(() => {
-      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelSettings: expect.objectContaining({
-            optionalIndicator: true,
-          }),
-        }),
-      );
     });
   });
 

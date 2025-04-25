@@ -70,7 +70,7 @@ export const FormComponentConfig = ({
   if (!schema?.properties) return null;
 
   const { properties } = schema;
-  const { hasCustomFileEndings, grid, layoutSet, labelSettings } = properties;
+  const { hasCustomFileEndings, grid, layoutSet } = properties;
 
   // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
   const customProperties = [
@@ -83,7 +83,6 @@ export const FormComponentConfig = ({
     'target',
     'tableColumns',
     'overrides',
-    'labelSettings',
   ];
 
   const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
@@ -193,41 +192,16 @@ export const FormComponentConfig = ({
         </>
       )}
 
-      {showOtherComponents && (
-        <>
-          {restOfBooleanKeys.map((propertyKey) => (
-            <EditBooleanValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              defaultValue={properties[propertyKey].default}
-              key={propertyKey}
-            />
-          ))}
-
-          {labelSettings && (
-            <EditBooleanValue
-              propertyKey='optionalIndicator'
-              component={'labelSettings' in component ? component.labelSettings || {} : {}}
-              handleComponentChange={(updatedLabelSettingsComponent) => {
-                const labelSettingsKey = 'labelSettings';
-                handleComponentUpdate({
-                  ...component,
-                  [labelSettingsKey]: {
-                    ...('labelSettings' in component ? component.labelSettings || {} : {}),
-                    optionalIndicator: (
-                      updatedLabelSettingsComponent as { optionalIndicator?: boolean }
-                    ).optionalIndicator,
-                  },
-                } as FormItem);
-              }}
-              defaultValue={
-                properties.labelSettings?.properties?.optionalIndicator?.default ?? false
-              }
-            />
-          )}
-        </>
-      )}
+      {showOtherComponents &&
+        restOfBooleanKeys.map((propertyKey) => (
+          <EditBooleanValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            defaultValue={properties[propertyKey].default}
+            key={propertyKey}
+          />
+        ))}
 
       {restOfBooleanKeys.length > 0 && (
         <StudioProperty.Button
