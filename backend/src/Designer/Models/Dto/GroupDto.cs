@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -7,8 +8,8 @@ public class GroupDto
 {
     [JsonPropertyName("name")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [JsonPropertyName("order")]
-    public List<PageDto> Pages { get; set; }
+    public required List<PageDto> Pages { get; set; }
 }

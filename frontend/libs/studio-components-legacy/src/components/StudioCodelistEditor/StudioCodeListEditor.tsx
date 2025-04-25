@@ -75,16 +75,16 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: givenCodeList,
-  textResources: givenTextResources,
   onAddOrDeleteItem,
   onBlurAny,
   onBlurTextResource,
   onChange,
   onChangeTextResource,
   onCreateTextResource,
-  onUpdateTextResource,
-  onUpdateCodeList,
   onInvalid,
+  onUpdateCodeList,
+  onUpdateTextResource,
+  textResources: givenTextResources,
 }: StatefulCodeListEditorProps): ReactElement {
   const initialState: ReducerState = {
     codeList: givenCodeList,
@@ -108,21 +108,13 @@ function StatefulCodeListEditor({
 
   const handleAddOrDeleteAny = useCallback(
     (newCodeList: CodeList) => {
-      if (isCodeListValid(newCodeList)) {
-        dispatch({
-          type: ReducerActionType.SetCodeList,
-          codeList: newCodeList,
-        });
-        onAddOrDeleteItem?.(newCodeList);
-      }
+      isCodeListValid(newCodeList) && onAddOrDeleteItem?.(newCodeList);
     },
     [onAddOrDeleteItem],
   );
 
   const handleBlurAny = useCallback(() => {
-    if (isCodeListValid(state.codeList)) {
-      onBlurAny?.(state.codeList);
-    }
+    isCodeListValid(state.codeList) && onBlurAny?.(state.codeList);
   }, [onBlurAny, state.codeList]);
 
   const handleChange = useCallback(
@@ -164,16 +156,16 @@ function StatefulCodeListEditor({
   return (
     <ControlledCodeListEditor
       codeList={state.codeList}
+      dispatch={dispatch}
       onAddOrDeleteItem={handleAddOrDeleteAny}
       onBlurAny={handleBlurAny}
       onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
-      textResources={state.textResources}
       onCreateTextResource={handleCreateTextResource}
-      onUpdateTextResource={onUpdateTextResource}
       onUpdateCodeList={handleUpdateCodeList}
-      dispatch={dispatch}
+      onUpdateTextResource={onUpdateTextResource}
+      textResources={state.textResources}
     />
   );
 }
@@ -189,16 +181,16 @@ type ControlledCodeListEditorProps = Override<
 
 function ControlledCodeListEditor({
   codeList,
+  dispatch,
   onAddOrDeleteItem,
   onBlurAny,
   onBlurTextResource,
   onChange,
   onChangeTextResource,
-  textResources,
   onCreateTextResource,
-  onUpdateTextResource,
   onUpdateCodeList,
-  dispatch,
+  onUpdateTextResource,
+  textResources,
 }: ControlledCodeListEditorProps): ReactElement {
   const [codeType, setCodeType] = useCodeTypeState(codeList);
   const { texts } = useStudioCodeListEditorContext();
@@ -218,6 +210,7 @@ function ControlledCodeListEditor({
       <CodeListTable
         codeList={codeList}
         codeType={codeType}
+        dispatch={dispatch}
         errorMap={errorMap}
         onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
@@ -225,11 +218,10 @@ function ControlledCodeListEditor({
         onChange={onChange}
         onChangeCodeType={setCodeType}
         onChangeTextResource={onChangeTextResource}
-        textResources={textResources}
         onCreateTextResource={onCreateTextResource}
-        onUpdateTextResource={onUpdateTextResource}
         onUpdateCodeList={onUpdateCodeList}
-        dispatch={dispatch}
+        onUpdateTextResource={onUpdateTextResource}
+        textResources={textResources}
       />
       <AddButton onClick={handleAddButtonClick} disabled={shouldDisableAddButton} />
       <Errors errorMap={errorMap} />
@@ -298,16 +290,16 @@ function TableHeadings(): ReactElement {
 
 function TableBody({
   codeList,
+  dispatch,
+  errorMap,
   onAddOrDeleteItem,
   onBlurTextResource,
   onChange,
   onChangeTextResource,
-  errorMap,
-  textResources,
   onCreateTextResource,
-  onUpdateTextResource,
   onUpdateCodeList,
-  dispatch,
+  onUpdateTextResource,
+  textResources,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
     (index: number) => {
@@ -339,6 +331,7 @@ function TableBody({
     <StudioInputTable.Body>
       {codeList.map((item, index) => (
         <StudioCodeListEditorRow
+          dispatch={dispatch}
           error={errorMap[index]}
           item={item}
           key={index}
@@ -346,12 +339,11 @@ function TableBody({
           onBlurTextResource={onBlurTextResource}
           onChange={(newItem) => handleChange(index, newItem)}
           onChangeTextResource={onChangeTextResource}
-          onDeleteButtonClick={() => handleDeleteButtonClick(index)}
-          textResources={textResources}
-          onUpdateCodeListItem={(newItem) => handleUpdateCodeListItem(index, newItem)}
           onCreateTextResource={onCreateTextResource}
+          onDeleteButtonClick={() => handleDeleteButtonClick(index)}
+          onUpdateCodeListItem={(newItem) => handleUpdateCodeListItem(index, newItem)}
           onUpdateTextResource={onUpdateTextResource}
-          dispatch={dispatch}
+          textResources={textResources}
         />
       ))}
     </StudioInputTable.Body>
