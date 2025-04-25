@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -18,5 +19,5 @@ public interface IOrgContentService
     /// <param name="context">The organisation context.</param>
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<ExternalContentLibraryResource>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<LibraryContentReference>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
 }

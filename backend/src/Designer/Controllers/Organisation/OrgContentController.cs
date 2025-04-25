@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ public class OrgContentController : ControllerBase
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content/{contentType}")]
-    public async Task<ActionResult<List<ExternalContentLibraryResource>>> GetOrgContentList([FromRoute] string orgName, [FromRoute] string contentType, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgContentList([FromRoute] string orgName, [FromRoute] string contentType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))

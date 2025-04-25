@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -45,7 +46,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
         Assert.Equal(6, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.CodeList, contentItem.Type));
@@ -70,7 +71,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
         Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type));
@@ -95,7 +96,7 @@ public class GetOrgContentIdsTests : DesignerEndpointsTestsBase<GetOrgContentIds
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<ExternalContentLibraryResource> contentList = await response.Content.ReadAsAsync<List<ExternalContentLibraryResource>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
         Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type));

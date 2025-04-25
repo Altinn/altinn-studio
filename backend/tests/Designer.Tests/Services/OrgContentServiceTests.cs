@@ -37,14 +37,14 @@ public class OrgContentServiceTests
             .Returns(codeListIds);
 
         // Act
-        var result = await _orgContentService.GetContentList(LibraryContentType.CodeList, _context);
+        var contentList = await _orgContentService.GetContentList(LibraryContentType.CodeList, _context);
 
         // Assert
-        Assert.Equal(2, result.Count);
-        Assert.All(result, r => Assert.Equal(LibraryContentType.CodeList, r.Type));
-        Assert.All(result, r => Assert.Equal($"org.{OrgName}", r.Source));
-        Assert.Contains(result, r => r.Id == "codelist1");
-        Assert.Contains(result, r => r.Id == "codelist2");
+        Assert.Equal(2, contentList.Count);
+        Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.CodeList, contentItem.Type));
+        Assert.All(contentList, contentItem => Assert.Equal($"org.{OrgName}", contentItem.Source));
+        Assert.Contains(contentList, contentItem => contentItem.Id == "codelist1");
+        Assert.Contains(contentList, contentItem => contentItem.Id == "codelist2");
 
         _mockOrgCodeListService.Verify(s =>
             s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None), Times.Once);
@@ -60,15 +60,15 @@ public class OrgContentServiceTests
             .ReturnsAsync(textIds);
 
         // Act
-        var result = await _orgContentService.GetContentList(LibraryContentType.TextResource, _context);
+        var contentList = await _orgContentService.GetContentList(LibraryContentType.TextResource, _context);
 
         // Assert
-        Assert.Equal(3, result.Count);
-        Assert.All(result, r => Assert.Equal(LibraryContentType.TextResource, r.Type));
-        Assert.All(result, r => Assert.Equal($"org.{OrgName}", r.Source));
-        Assert.Contains(result, r => r.Id == "text1");
-        Assert.Contains(result, r => r.Id == "text2");
-        Assert.Contains(result, r => r.Id == "text3");
+        Assert.Equal(3, contentList.Count);
+        Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type));
+        Assert.All(contentList, contentItem => Assert.Equal($"org.{OrgName}", contentItem.Source));
+        Assert.Contains(contentList, contentItem => contentItem.Id == "text1");
+        Assert.Contains(contentList, contentItem => contentItem.Id == "text2");
+        Assert.Contains(contentList, contentItem => contentItem.Id == "text3");
 
         _mockOrgTextsService.Verify(s =>
             s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()), Times.Once);
