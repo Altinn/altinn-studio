@@ -81,6 +81,7 @@ describe('InputComponent', () => {
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'some.field', dataType: defaultDataTypeMock },
       newValue: finalValuePlainText,
+      callback: expect.any(Function),
     });
   });
 
@@ -163,6 +164,7 @@ describe('InputComponent', () => {
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'some.field', dataType: defaultDataTypeMock },
       newValue: typedValue,
+      callback: expect.any(Function),
     });
     expect(inputComponent).toHaveValue(formattedValue);
   });

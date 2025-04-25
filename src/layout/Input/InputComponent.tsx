@@ -72,11 +72,14 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     maxLength,
   } = useNodeItem(node);
   const {
-    formData: { simpleBinding: formValue },
+    formData: { simpleBinding: realFormValue },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const { langAsString } = useLanguage();
   const characterLimit = useCharacterLimit(maxLength);
+
+  const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
+  const formValue = localValue ?? realFormValue;
 
   const inputProps: InputProps = {
     id,
@@ -133,13 +136,33 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
           {...variant.format}
           value={formValue}
           type='text'
+          onBlur={() => {
+            setLocalValue(undefined);
+          }}
           onValueChange={(values, sourceInfo) => {
             if (sourceInfo.source === 'prop') {
               // Do not update the value if the change is from props (i.e. let's not send form data updates when
               // visual-only decimalScale changes)
               return;
             }
-            setValue('simpleBinding', values.value);
+            setValue('simpleBinding', values.value, (result) => {
+              const noZeroesAfterComma = values.value.replace(/[.,]0+$/, '');
+              const converted = typeof result === 'object' ? result.convertedValue?.toString() : undefined;
+              const hasError = typeof result === 'object' ? result.error : true;
+              if (
+                !hasError &&
+                converted !== undefined &&
+                values.value !== converted &&
+                noZeroesAfterComma === converted
+              ) {
+                // Use local state temporarily when the value can be converted to a number, but the user is not
+                // yet sure if they're going to type more digits after zero-only decimals. I.e. they've typed
+                // '123.000' or similar. This will be stored as '123'.
+                setLocalValue(values.value);
+              } else {
+                setLocalValue(undefined);
+              }
+            });
           }}
           onPaste={(event: React.ClipboardEvent<HTMLInputElement>) => {
             /* This is a workaround for a react-number-format bug that

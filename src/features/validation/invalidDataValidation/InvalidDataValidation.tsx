@@ -18,26 +18,27 @@ export function InvalidDataValidation({ dataType }: { dataType: string }) {
   const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   useEffect(() => {
-    let validations = {};
+    const validations = {};
 
     if (Object.keys(invalidData).length > 0) {
-      validations = Object.entries(dot.dot(invalidData))
-        .filter(([_, value]) => isScalar(value))
-        .reduce((validations, [field, _]) => {
-          if (!validations[field]) {
-            validations[field] = [];
-          }
+      const flattened = dot.dot(invalidData);
+      for (const [field, value] of Object.entries(flattened)) {
+        if (!isScalar(value)) {
+          continue;
+        }
 
-          validations[field].push({
-            field,
-            source: FrontendValidationSource.InvalidData,
-            message: { key: 'validation_errors.pattern' },
-            severity: 'error',
-            category: ValidationMask.Schema, // Use same visibility as schema validations
-          });
+        if (!validations[field]) {
+          validations[field] = [];
+        }
 
-          return validations;
-        }, {});
+        validations[field].push({
+          field,
+          source: FrontendValidationSource.InvalidData,
+          message: { key: 'validation_errors.pattern' },
+          severity: 'error',
+          category: ValidationMask.Schema, // Use same visibility as schema validations
+        });
+      }
     }
     updateDataModelValidations('invalidData', dataElementId, validations);
   }, [dataElementId, invalidData, updateDataModelValidations]);

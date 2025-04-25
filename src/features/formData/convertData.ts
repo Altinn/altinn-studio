@@ -120,14 +120,20 @@ function asNumber(value: string, type: 'float' | 'int', isValid: (n: number) => 
   if (toStr !== trimmed) {
     // Remove leading zeros and check again (0001 === 1)
     const trimmedNoLeadingZeros = trimmed.replace(/^(-?)0+/, '$1');
-    if (parsedValue.toString() === trimmedNoLeadingZeros) {
+    if (toStr === trimmedNoLeadingZeros) {
       return parsedValue;
     }
     // If the number is a decimal, try to remove trailing zeros (1.2000 === 1.2)
     const trimmedNoTrailingZeros = trimmed.replace(/(\.\d+?)0+$/, '$1');
-    if (parsedValue.toString() === trimmedNoTrailingZeros) {
+    if (toStr === trimmedNoTrailingZeros) {
       return parsedValue;
     }
+    // Special case for numbers like 123.00, which are valid, but the decimal part is redundant.
+    const withoutZeroes = trimmed.replace(/\.0+$/, '');
+    if (toStr === withoutZeroes) {
+      return parsedValue;
+    }
+
     return NaN;
   }
 

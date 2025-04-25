@@ -100,6 +100,7 @@ export interface FDChange {
   // timeout is used. The debouncing may also happen sooner than you think, if the user continues typing in
   // a form field that has a lower timeout. This is because the debouncing is global, not per field.
   debounceTimeout?: number;
+  callback?: (result: FDSetValueResult) => void;
 }
 
 export interface FDNewValue extends FDChange {
@@ -168,6 +169,23 @@ export interface FDSaveFinished extends FDSaveResult {
     [dataType: string]: object;
   };
 }
+
+export interface FDSetValueSuccessful {
+  newValue: FDLeafValue;
+  convertedValue: FDLeafValue;
+  error: boolean;
+  hadError: boolean;
+}
+
+export const FDSetValueReadOnly = Symbol('FDSetValueReadOnly');
+export const FDSetValueEqual = Symbol('FDSetValueEqual');
+export const FDSetValueUnset = Symbol('FDSetValueUnset');
+
+export type FDSetValueResult =
+  | FDSetValueSuccessful
+  | typeof FDSetValueEqual
+  | typeof FDSetValueReadOnly
+  | typeof FDSetValueUnset;
 
 export interface FormDataMethods {
   // Methods used for updating the data model. These methods will update the currentData model, and after
@@ -303,7 +321,11 @@ function makeActions(
     }
   }
 
-  function setValue(props: { reference: IDataModelReference; newValue: FDLeafValue; state: FormDataContext }) {
+  function setValue(props: {
+    reference: IDataModelReference;
+    newValue: FDLeafValue;
+    state: FormDataContext;
+  }): FDSetValueSuccessful | typeof FDSetValueUnset {
     const { reference, newValue, state } = props;
     if (newValue === '' || newValue === null || newValue === undefined) {
       const prevValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
@@ -317,7 +339,9 @@ function makeActions(
       if (prevInvalidValue !== null && prevInvalidValue !== undefined) {
         dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
       }
+      return FDSetValueUnset;
     } else {
+      const hadError = dot.pick(reference.field, state.dataModels[reference.dataType].invalidCurrentData) !== undefined;
       const schema = schemaLookup[reference.dataType].getSchemaForPath(reference.field)[0];
       const { newValue: convertedValue, error } = convertData(newValue, schema);
       if (error) {
@@ -327,6 +351,7 @@ function makeActions(
         dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
         dot.str(reference.field, convertedValue, state.dataModels[reference.dataType].currentData);
       }
+      return { newValue, convertedValue, error, hadError };
     }
   }
 
@@ -344,19 +369,22 @@ function makeActions(
       set((state) => {
         processChanges(state, props);
       }),
-    setLeafValue: ({ reference, newValue, ...rest }) =>
+    setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+          callback?.(FDSetValueReadOnly);
           return;
         }
         const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
         if (existingValue === newValue) {
+          callback?.(FDSetValueEqual);
           return;
         }
 
         setDebounceTimeout(state, rest);
-        setValue({ newValue, reference, state });
+        const result = setValue({ newValue, reference, state });
+        callback?.(result);
       }),
 
     // All the list methods perform their work immediately, without debouncing, so that UI updates for new/removed

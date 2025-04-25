@@ -4,7 +4,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
-import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
+import type { FDNewValue, FDSetValueResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IDataModelReference, SaveWhileTyping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
@@ -22,7 +22,11 @@ interface Output<B extends IDataModelBindings | undefined, DA extends DataAs> ex
 }
 
 interface SaveOutput<B extends IDataModelBindings | undefined> {
-  setValue: (key: keyof Exclude<B, undefined>, value: FDLeafValue) => void;
+  setValue: (
+    key: keyof Exclude<B, undefined>,
+    value: FDLeafValue,
+    callback?: (result: FDSetValueResult) => void,
+  ) => void;
   setValues: (values: Partial<{ [key in keyof B]: FDLeafValue }>) => void;
 }
 
@@ -72,10 +76,11 @@ export function useSaveDataModelBindings<B extends IDataModelBindings | undefine
   );
 
   const setValue = useCallback(
-    (key: keyof B, newValue: FDLeafValue) =>
+    (key: keyof B, newValue: FDLeafValue, callback?: (result: FDSetValueResult) => void) =>
       setLeafValue({
         reference: bindings[key] as IDataModelReference,
         newValue,
+        callback,
         ...saveOptions,
       }),
     [bindings, saveOptions, setLeafValue],

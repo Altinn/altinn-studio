@@ -645,6 +645,7 @@ describe('UI Components', () => {
     withoutLeading?: string; // The number as it should appear in the string-formatted field, if different from the number we typed
     formatted: string; // The number as it should appear in the number-formatted field
     invalidFor: string[]; // Which types the number should be invalid for
+    afterBlur?: string; // The number as it should appear after blurring the field
   }
 
   it('number conversion in regular form fields and number-formatted fields', () => {
@@ -659,6 +660,13 @@ describe('UI Components', () => {
     };
 
     const testNumbers: TestNumber[] = [
+      {
+        number: '123.00',
+        formatted: '123,00',
+        invalidFor: ['int32', 'int16', 'int64'],
+        withoutTrailing: '123',
+        afterBlur: '123', // This is a special case, as redundant zeroes after will be removed on blur
+      },
       { number: '123', formatted: '123', invalidFor: [] },
       { number: '123.456', formatted: '123,456', invalidFor: ['int32', 'int16', 'int64'] },
       { number: '0', formatted: '0', invalidFor: [] },
@@ -706,7 +714,7 @@ describe('UI Components', () => {
     cy.get('#int16AsString').should('have.value', '0');
     cy.get('#int16AsNumber').should('have.value', '0 stikk');
 
-    for (const { number, withoutTrailing, withoutLeading, formatted, invalidFor } of testNumbers) {
+    for (const { number, withoutTrailing, withoutLeading, formatted, invalidFor, afterBlur } of testNumbers) {
       for (const [type, value] of Object.entries(fields)) {
         const { targets, suffix } = value;
         const [asNumber, asString] = targets;
@@ -715,6 +723,8 @@ describe('UI Components', () => {
         // Type into the number-formatted field
         cy.get(asNumber).type(`{selectall}${number}`);
         cy.get(asNumber).should('have.value', formatted + suffix);
+        cy.get(asNumber).blur();
+        cy.get(asNumber).should('have.value', (afterBlur && isValid ? afterBlur : formatted) + suffix);
 
         // Test that the string-formatted field is updated correctly
         if (isValid) {
