@@ -5,7 +5,6 @@ import type {
 import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -21,14 +20,3 @@ export function textResourcesWithLanguageToLibraryTextResources({
 }: ITextResourcesWithLanguage): LibraryTextResources {
   return { [language]: resources };
 }
-
-export function textResourcesWithLanguageFromResponse(
-  textResourcesWithLanguage: ITextResourcesWithLanguage | null,
-): ITextResourcesWithLanguage {
-  return textResourcesWithLanguage || defaultTextResources;
-}
-
-const defaultTextResources: ITextResourcesWithLanguage = {
-  language: DEFAULT_LANGUAGE,
-  resources: [],
-};
