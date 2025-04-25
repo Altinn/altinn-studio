@@ -300,8 +300,9 @@ function TextResourceSelectorCell({
   const handleUpdateTextResource = useCallback(
     (newTextResource: TextResource) => {
       onUpdateTextResource?.(newTextResource);
+      onBlurTextResource?.(newTextResource);
     },
-    [onUpdateTextResource],
+    [onUpdateTextResource, onBlurTextResource],
   );
 
   const handleChangeTextResource = useCallback(
@@ -319,13 +320,12 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
-      onBlurTextResource={onBlurTextResource}
+      onBlurTextResource={handleUpdateTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
-      onUpdateTextResource={handleUpdateTextResource}
     />
   );
 }

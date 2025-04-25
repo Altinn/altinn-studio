@@ -5,6 +5,7 @@ import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
 import { StudioCodeFragment } from '../StudioCodeFragment';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { PencilIcon, MagnifyingGlassIcon } from '@studio/icons';
+import classes from './StudioTextResourceInput.module.css';
 import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
 import {
@@ -17,7 +18,6 @@ import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import cn from 'classnames';
 import { Mode } from './types/Mode';
-import classes from './StudioTextResourceInput.module.css';
 
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &
   HTMLAttributes<HTMLInputElement>;
@@ -29,7 +29,6 @@ type TextResourceInputPropsBase = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -47,7 +46,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeTextResource,
       onChangeCurrentId,
       onKeyDown,
-      onUpdateTextResource,
       textResources: givenTextResources,
       texts,
       toggleClass,
@@ -88,7 +86,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           onKeyDown={onKeyDown}
           ref={ref}
           textResources={textResources}
-          onUpdateTextResource={onUpdateTextResource}
           texts={texts}
           {...rest}
         />
@@ -115,7 +112,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       onChangeCurrentId,
       onChangeTextResource,
       onKeyDown,
-      onUpdateTextResource,
       required,
       textResources,
       texts,
@@ -137,7 +133,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             onKeyDown={onKeyDown}
             ref={ref}
             textResource={currentTextResource}
-            onUpdateTextResource={onUpdateTextResource}
             {...rest}
           />
         );
@@ -166,14 +161,10 @@ type ValueFieldProps = StudioTextfieldProps & {
   textResource?: TextResource;
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
 };
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
-  (
-    { textResource, onBlurTextResource, onChangeTextResource, onUpdateTextResource, ...rest },
-    ref,
-  ): ReactElement => {
+  ({ textResource, onBlurTextResource, onChangeTextResource, ...rest }, ref): ReactElement => {
     const generalProps: StudioTextfieldProps = {
       hideLabel: true,
       ...rest,
@@ -185,7 +176,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
           ref={ref}
           onBlurTextResource={onBlurTextResource}
           onChangeTextResource={onChangeTextResource}
-          onUpdateTextResource={onUpdateTextResource}
           textResource={textResource}
           {...generalProps}
         />
@@ -200,22 +190,13 @@ ValueField.displayName = 'ValueField';
 
 const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
-    {
-      textResource,
-      onBlur,
-      onBlurTextResource,
-      onChange,
-      onChangeTextResource,
-      onUpdateTextResource,
-      ...rest
-    },
+    { textResource, onBlur, onBlurTextResource, onChange, onChangeTextResource, ...rest },
     ref,
   ): ReactElement => {
     const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {
       const { value } = event.target;
       const newTextResource = editTextResourceValue(textResource, value);
       onBlurTextResource(newTextResource);
-      onUpdateTextResource?.(newTextResource);
       onBlur?.(event);
     };
 
