@@ -1,6 +1,6 @@
 namespace Altinn.Studio.Designer.Enums
 {
-    public enum LibraryContentType
+    public enum LibraryResourceType
     {
         CodeList,
         TextResource

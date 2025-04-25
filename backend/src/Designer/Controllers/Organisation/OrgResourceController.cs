@@ -14,19 +14,19 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [ApiController]
 [Authorize]
 [Route("designer/api/{orgName}")]
-public class OrgContentController : ControllerBase
+public class OrgResourceController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
     private readonly IOrgService _orgService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OrgContentController"/> class.
+    /// Initializes a new instance of the <see cref="OrgResourceController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The code list service</param>
     /// <param name="orgTextsService">The texts service</param>
     /// <param name="orgService">The org service</param>
-    public OrgContentController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService, IOrgService orgService)
+    public OrgResourceController(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService, IOrgService orgService)
     {
         _orgCodeListService = orgCodeListService;
         _orgTextsService = orgTextsService;
@@ -37,11 +37,11 @@ public class OrgContentController : ControllerBase
     /// Returns names of available resources from an organisation, based on the requested type.
     /// </summary>
     /// <param name="orgName">Unique identifier of the organisation.</param>
-    /// <param name="contentType">The type of resource to return the names of. For example code lists or text resources. </param>
+    /// <param name="resourceType">The type of resource to return the names of. For example code lists or text resources. </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
-    [Route("content/{contentType}")]
-    public async Task<ActionResult<List<string>>> GetOrgContentIds([FromRoute] string orgName, [FromRoute] string contentType, CancellationToken cancellationToken = default)
+    [Route("content/{resourceType}")]
+    public async Task<ActionResult<List<string>>> GetOrgResourceIds([FromRoute] string orgName, [FromRoute] string resourceType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
@@ -50,21 +50,21 @@ public class OrgContentController : ControllerBase
             return NoContent();
         }
 
-        ActionResult badRequestResponse = BadRequest($"Invalid content type '{contentType}'.");
-        bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
+        ActionResult badRequestResponse = BadRequest($"Invalid resource type '{resourceType}'.");
+        bool didParse = Enum.TryParse<LibraryResourceType>(resourceType, ignoreCase: true, out var parsedResourceType);
         if (!didParse)
         {
             return badRequestResponse;
         }
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        switch (parsedContentType)
+        switch (parsedResourceType)
         {
-            case LibraryContentType.CodeList:
+            case LibraryResourceType.CodeList:
                 List<string> codeListResult = _orgCodeListService.GetCodeListIds(orgName, developer, cancellationToken);
                 return Ok(codeListResult);
 
-            case LibraryContentType.TextResource:
+            case LibraryResourceType.TextResource:
                 List<string> textResourceResult = await _orgTextsService.GetTextIds(orgName, developer, cancellationToken);
                 return Ok(textResourceResult);
 
