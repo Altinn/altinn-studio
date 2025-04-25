@@ -71,7 +71,6 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         onChangeTextResource={() => {}}
         texts={textResourceTexts(rn)}
         onCreateTextResource={() => {}}
-        onUpdateTextResource={() => {}}
       />
       <StudioInputTable.Cell.Button>{testData.buttonLabel(rn)}</StudioInputTable.Cell.Button>
     </StudioInputTable.Row>
