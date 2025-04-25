@@ -2,7 +2,6 @@ import type {
   TextResources as LibraryTextResources,
   TextResourceWithLanguage as LibraryTextResourceWithLanguage,
 } from '@studio/content-library';
-import { ArrayUtils } from '@studio/pure-functions';
 import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -16,11 +15,11 @@ export function textResourceWithLanguageToMutationArgs({
   return { language, payload };
 }
 
-export function textResourcesWithLanguageToLibraryTextResources(
-  textResourcesWithLanguage: ITextResourcesWithLanguage,
-): LibraryTextResources {
-  const list: ITextResourcesWithLanguage[] = [textResourcesWithLanguage];
-  return ArrayUtils.extractKeyValuePairs(list, 'language', 'resources');
+export function textResourcesWithLanguageToLibraryTextResources({
+  language,
+  resources,
+}: ITextResourcesWithLanguage): LibraryTextResources {
+  return { [language]: resources };
 }
 
 export function textResourcesWithLanguageFromResponse(
