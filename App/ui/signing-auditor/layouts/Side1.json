@@ -27,7 +27,7 @@
           "description": "Dokumenter som skal signeres beskrivelse"
         }
       },
-      { "id": "signing-state", "type": "SigningStatusPanel" }
+      { "id": "signing-state", "type": "SigningActions" }
     ]
   }
 }

@@ -29,7 +29,7 @@
       },
       {
         "id": "signing-state",
-        "type": "SigningStatusPanel"
+        "type": "SigningActions"
       }
     ]
   }
