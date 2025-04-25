@@ -297,7 +297,7 @@ function TextResourceSelectorCell({
     texts: { textResourceTexts },
   } = useStudioCodeListEditorContext();
 
-  const handleUpdateTextResource = useCallback(
+  const handleBlurTextResource = useCallback(
     (newTextResource: TextResource) => {
       onUpdateTextResource?.(newTextResource);
       onBlurTextResource?.(newTextResource);
@@ -320,7 +320,7 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
-      onBlurTextResource={handleUpdateTextResource}
+      onBlurTextResource={handleBlurTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
       required={required}
