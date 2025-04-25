@@ -101,6 +101,27 @@ describe('StudioDecimalInput', () => {
     expect(defaultProps.onChange).toHaveBeenCalledWith(123.456);
   });
 
+  it('should call onBlurNumber with correct value when input is valid', async () => {
+    const user = userEvent.setup();
+    const onBlurNumber = jest.fn();
+    render({ onBlurNumber });
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, '123.456');
+    await user.tab();
+    expect(onBlurNumber).toHaveBeenCalledTimes(1);
+    expect(onBlurNumber).toHaveBeenCalledWith(123.456);
+  });
+
+  it('should call onBlur when the prop is provided', async () => {
+    const user = userEvent.setup();
+    const onBlur = jest.fn();
+    render({ onBlur });
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, '123');
+    await user.tab();
+    expect(onBlur).toHaveBeenCalledTimes(1);
+  });
+
   it('should update input value on change', async () => {
     const user = userEvent.setup();
     render();

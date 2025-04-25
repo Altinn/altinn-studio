@@ -190,7 +190,7 @@ ValueField.displayName = 'ValueField';
 
 const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
-    { textResource, onBlur, onChange, onBlurTextResource, onChangeTextResource, ...rest },
+    { textResource, onBlur, onBlurTextResource, onChange, onChangeTextResource, ...rest },
     ref,
   ): ReactElement => {
     const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {

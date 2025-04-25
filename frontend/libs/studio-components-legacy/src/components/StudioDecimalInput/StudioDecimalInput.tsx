@@ -14,6 +14,7 @@ export type StudioDecimalInputProps = Override<
   {
     description?: string;
     onChange: (value: number | null) => void;
+    onBlurNumber?: (value: number | null) => void;
     value?: number;
     validationErrorMessage?: string;
   },
@@ -22,7 +23,15 @@ export type StudioDecimalInputProps = Override<
 
 export const StudioDecimalInput = forwardRef(
   (
-    { description, onChange, value, validationErrorMessage, ...rest }: StudioDecimalInputProps,
+    {
+      description,
+      onBlur,
+      onBlurNumber,
+      onChange,
+      value,
+      validationErrorMessage,
+      ...rest
+    }: StudioDecimalInputProps,
     ref: RefObject<HTMLInputElement>,
   ) => {
     const [inputValue, setInputValue] = useState('');
@@ -41,6 +50,15 @@ export const StudioDecimalInput = forwardRef(
       [setInputValue, onChange],
     );
 
+    const handleInputBlur = useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        const input = e.target.value;
+        if (isStringValidDecimalNumber(input)) onBlurNumber?.(convertStringToNumber(input));
+        onBlur?.(e);
+      },
+      [onBlur, onBlurNumber],
+    );
+
     const errorMessage = useMemo(
       () => (!isStringValidDecimalNumber(inputValue) ? validationErrorMessage : undefined),
       [inputValue, validationErrorMessage],
@@ -50,6 +68,7 @@ export const StudioDecimalInput = forwardRef(
       <StudioTextfield
         description={description}
         value={inputValue}
+        onBlur={handleInputBlur}
         onChange={handleInputChange}
         error={errorMessage}
         inputMode='decimal'
