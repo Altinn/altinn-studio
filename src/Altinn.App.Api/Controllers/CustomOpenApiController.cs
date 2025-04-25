@@ -58,6 +58,15 @@ public class CustomOpenApiController : Controller
     internal static readonly OpenApiFormat SpecFormat = OpenApiFormat.Json;
 
     /// <summary>
+    /// Shared text that should be shown in the description of the OpenAPI documentation.
+    /// </summary>
+    public static string InfoDescriptionWarningText =>
+        """
+            App API description for both enduser and serviceowner users, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href="https://docs.altinn.studio/authentication/guides">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personal identifiable information (national identity numbers and names).</strong><br><br>For more information about this product, see <a href="https://docs.altinn.studio/api/apps">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs
+
+            """;
+
+    /// <summary>
     /// Generate the custom OpenAPI documentation for the app
     /// </summary>
     [HttpGet("/{org}/{app}/v1/customOpenapi.json")]
@@ -129,6 +138,8 @@ public class CustomOpenApiController : Controller
     private string GetIntroDoc(ApplicationMetadata appMetadata)
     {
         StringBuilder sb = new();
+        sb.AppendLine(InfoDescriptionWarningText);
+
         sb.AppendLine("This is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.");
         sb.AppendLine("This app has the following data types:");
         sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskId |");

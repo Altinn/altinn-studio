@@ -1,3 +1,4 @@
+using Altinn.App.Api.Controllers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -22,6 +23,7 @@ internal class DocumentFilter : IDocumentFilter
 {
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
+        swaggerDoc.Info.Description = CustomOpenApiController.InfoDescriptionWarningText;
         // Remove path from swagger that is used only for backwards compatibility.
         swaggerDoc.Paths.Remove("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataType}");
 

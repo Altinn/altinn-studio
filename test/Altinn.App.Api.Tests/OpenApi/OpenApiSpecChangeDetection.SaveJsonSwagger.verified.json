@@ -2,6 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Altinn App Api",
+    "description": "App API description for both enduser and serviceowner users, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personal identifiable information (national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs\n",
     "version": ""
   },
   "paths": {
