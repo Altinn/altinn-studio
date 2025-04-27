@@ -38,6 +38,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           Prøv nytt design
         </StudioSwitch>
         <StudioHelpText
+          data-size='md'
           aria-label='Prøv vårt nye design for å legge til komponenter'
           placement='bottom'
         >
@@ -45,7 +46,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
             Vi jobber med brukeropplevelsen i Studio. Vil du prøve vårt forslag til nytt design for
             å legge til komponenter?
           </StudioParagraph>
-          <StudioParagraph spacing size='sm'>
+          <StudioParagraph size='sm'>
             Du kan fortelle oss hva du synes om det nye designet ved å trykke på &quot;Gi
             tilbakemelding&quot; nederst til høyre på siden.
           </StudioParagraph>

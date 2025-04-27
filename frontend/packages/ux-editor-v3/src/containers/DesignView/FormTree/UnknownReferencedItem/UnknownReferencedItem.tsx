@@ -34,6 +34,7 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           variant='tertiary'
         />
         <StudioHelpText
+          data-size='md'
           aria-label={t('ux_editor.unknown_group_reference_help_text_title')}
           className={classes.helpText}
         >

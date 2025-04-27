@@ -53,8 +53,8 @@ export const AccessControlTab = (): ReactNode => {
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
         <StudioHelpText
+          data-size='md'
           aria-label={t('settings_modal.access_control_tab_help_text_title')}
-          className={classes.helpText}
         >
           {t('settings_modal.access_control_tab_help_text_heading')}
         </StudioHelpText>

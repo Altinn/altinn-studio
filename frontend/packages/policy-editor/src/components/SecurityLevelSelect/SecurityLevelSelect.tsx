@@ -44,7 +44,10 @@ export const SecurityLevelSelect = ({
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
             {t('policy_editor.select_auth_level_label')}
           </Label>
-          <StudioHelpText aria-label={t('policy_editor.select_auth_level_help_text')}>
+          <StudioHelpText
+            data-size='md'
+            aria-label={t('policy_editor.select_auth_level_help_text')}
+          >
             <Link
               href={URL_TO_SECURITY_LEVEL_PAGE}
               target='_newTab'
