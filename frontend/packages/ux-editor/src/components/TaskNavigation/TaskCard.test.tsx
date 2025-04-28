@@ -79,7 +79,7 @@ describe('taskCard', () => {
     render();
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
-    await user.click(screen.getByRole('button', { name: /general.close/ }));
+    await user.click(screen.getByRole('button', { name: /general.cancel/ }));
     expect(screen.queryByRole('button', { name: /general.save/ })).not.toBeInTheDocument();
   });
 

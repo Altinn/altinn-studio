@@ -62,15 +62,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     ) : null;
 
   if (editing) {
-    return (
-      <StudioIconCard
-        icon={taskIcon.icon}
-        iconColor={taskIcon.iconColor}
-        className={classes.editcard}
-      >
-        <TaskCardEditing layoutSetModel={layoutSetModel} onClose={() => setEditing(false)} />
-      </StudioIconCard>
-    );
+    return <TaskCardEditing layoutSetModel={layoutSetModel} onClose={() => setEditing(false)} />;
   }
 
   const goToFormEditor = () => {
@@ -86,9 +78,11 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
       <div className={classes.details}>
         <div>
           <StudioParagraph size='sm'>{t(taskName)}</StudioParagraph>
-          <StudioHeading size='xs'>{layoutSetModel.id}</StudioHeading>
+          <StudioHeading size='xs' title={layoutSetModel.id}>
+            {layoutSetModel.id}
+          </StudioHeading>
         </div>
-        <StudioParagraph size='sm'>
+        <StudioParagraph size='sm' title={layoutSetModel.dataType}>
           {t('ux_editor.task_card.datamodel')}
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
