@@ -369,6 +369,30 @@ describe('AboutResourcePage', () => {
     expect(consentTemplateRadio).toBeChecked();
   });
 
+  it('handles consentMetadata changes', async () => {
+    const user = userEvent.setup();
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentMetadata: { org: { optional: false } } }}
+      />,
+    );
+
+    const consentMetadataSwitch = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_metadata_optional_label', {
+        metadataName: 'org',
+      }),
+    );
+    await user.click(consentMetadataSwitch);
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentMetadata: {
+        org: { optional: true },
+      },
+    });
+  });
+
   it('displays errors for the required translation fields', async () => {
     render(
       <AboutResourcePage

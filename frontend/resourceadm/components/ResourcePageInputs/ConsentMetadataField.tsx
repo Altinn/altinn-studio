@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioSwitch, StudioLabelAsParagraph } from '@studio/components-legacy';
 import type { ConsentMetadata } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next';
 
 type ConsentMetadataFieldProps = {
   /**
@@ -26,11 +27,17 @@ export const ConsentMetadataField = ({
   onFocus,
   onChange,
 }: ConsentMetadataFieldProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
   return (
     <div className={classes.inputWrapper}>
       <div className={classes.consentMetadata}>
-        <StudioLabelAsParagraph size='sm'>Metadata</StudioLabelAsParagraph>
-        <StudioLabelAsParagraph size='sm'>Er valgfritt?</StudioLabelAsParagraph>
+        <StudioLabelAsParagraph size='sm'>
+          {t('resourceadm.about_resource_consent_metadata_text')}
+        </StudioLabelAsParagraph>
+        <StudioLabelAsParagraph size='sm'>
+          {t('resourceadm.about_resource_consent_metadata_optional')}
+        </StudioLabelAsParagraph>
       </div>
       {Object.keys(value).map((metadataName) => {
         const isOptional = value[metadataName].optional ?? false;
@@ -41,6 +48,9 @@ export const ConsentMetadataField = ({
             <StudioSwitch
               size='sm'
               checked={isOptional}
+              aria-label={t('resourceadm.about_resource_consent_metadata_optional_label', {
+                metadataName,
+              })}
               onFocus={onFocus}
               onChange={(event) => {
                 const isChecked = event.target.checked;
