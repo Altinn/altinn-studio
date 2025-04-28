@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioSpinner } from '@studio/components';
+import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { getAccessListPageUrl } from '../../utils/urlUtils';
@@ -23,7 +22,9 @@ export const AccessListPage = (): React.JSX.Element => {
   }
 
   if (isLoadListError) {
-    return <Alert severity='danger'>{t('resourceadm.listadmin_list_load_error')}</Alert>;
+    return (
+      <StudioAlert severity='danger'>{t('resourceadm.listadmin_list_load_error')}</StudioAlert>
+    );
   }
 
   return (

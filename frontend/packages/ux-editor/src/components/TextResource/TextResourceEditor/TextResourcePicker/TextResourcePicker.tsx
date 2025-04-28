@@ -4,7 +4,7 @@ import { useTextResourcesSelector } from '../../../../hooks';
 import { allTextResourceIdsWithTextSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export type TextResourcePickerProps = {
   textResourceId?: string;

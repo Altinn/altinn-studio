@@ -1,6 +1,6 @@
 import React, { type ChangeEvent } from 'react';
 import type { QuestionsProps } from '../../types/QuestionsProps';
-import { StudioTextarea } from '@studio/components';
+import { StudioTextarea } from '@studio/components-legacy';
 import { useDebounce } from '@studio/hooks';
 
 export function TextQuestion({ id, label, value, onChange }: QuestionsProps): React.ReactElement {
@@ -8,7 +8,6 @@ export function TextQuestion({ id, label, value, onChange }: QuestionsProps): Re
   const debouncedOnChange = (newValue: string) => debounce(() => onChange(id, newValue));
   return (
     <StudioTextarea
-      size='sm'
       id={id}
       label={label}
       value={value}

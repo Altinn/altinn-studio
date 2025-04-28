@@ -1,17 +1,16 @@
 import React from 'react';
-import { Textfield, Fieldset } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
   component,
   handleComponentChange,
-  layoutName,
 }: IGenericEditComponent<ComponentType.Image>) => {
   const t = useText();
   const alignOptions = [
@@ -57,7 +56,7 @@ export const ImageComponent = ({
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
         renderField={({ fieldProps }) => (
-          <Textfield
+          <StudioTextfield
             {...fieldProps}
             name={`image_src-input-${component.id}`}
             onChange={(e) => fieldProps.onChange({ nb: e.target.value }, e)}

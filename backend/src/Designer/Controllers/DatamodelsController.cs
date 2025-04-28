@@ -24,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to data modelling
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
@@ -112,15 +113,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all JSON schema data models within repository.
+        /// Method that returns all JSON schema data models within App/models.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("all-json")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetDataModels(string org, string repository)
+        [Route("json")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetJsonDataModels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
@@ -130,15 +131,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all xsd models within repository.
+        /// Method that returns all xsd models within App/models.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("all-xsd")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDataModels(string org, string repository)
+        [Route("xsd")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXsdDataModels(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);

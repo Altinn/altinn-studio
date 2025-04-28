@@ -3,15 +3,15 @@ import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
 import {
-  Textfield,
-  Spinner,
-  Heading,
-  Label,
-  Paragraph,
-  Link,
-  Alert,
-  ErrorMessage,
-} from '@digdir/designsystemet-react';
+  StudioTextfield,
+  StudioSpinner,
+  StudioHeading,
+  StudioLabelAsParagraph,
+  StudioParagraph,
+  StudioLink,
+  StudioAlert,
+  StudioErrorMessage,
+} from '@studio/components-legacy';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {
@@ -25,6 +25,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { UrlConstants } from 'resourceadm/utils/urlUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -198,19 +199,29 @@ export const DeployResourcePage = ({
       case 'pending': {
         return (
           <div>
-            <Spinner size='xlarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
+            <StudioSpinner
+              size='xl'
+              variant='interaction'
+              spinnerTitle={t('resourceadm.deploy_spinner')}
+            />
           </div>
         );
       }
       case 'error': {
         return (
-          <Alert severity='danger'>
-            <Paragraph>{t('general.fetch_error_message')}</Paragraph>
-            <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-            {publishStatusError && <ErrorMessage>{publishStatusError.message}</ErrorMessage>}
-            {validatePolicyError && <ErrorMessage>{validatePolicyError.message}</ErrorMessage>}
-            {validateResourceError && <ErrorMessage>{validateResourceError.message}</ErrorMessage>}
-          </Alert>
+          <StudioAlert severity='danger'>
+            <StudioParagraph size='md'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph size='md'>{t('general.error_message_with_colon')}</StudioParagraph>
+            {publishStatusError && (
+              <StudioErrorMessage size='md'>{publishStatusError.message}</StudioErrorMessage>
+            )}
+            {validatePolicyError && (
+              <StudioErrorMessage size='md'>{validatePolicyError.message}</StudioErrorMessage>
+            )}
+            {validateResourceError && (
+              <StudioErrorMessage size='md'>{validateResourceError.message}</StudioErrorMessage>
+            )}
+          </StudioAlert>
         );
       }
       case 'success': {
@@ -223,31 +234,30 @@ export const DeployResourcePage = ({
 
         return (
           <>
-            <Heading size='large' spacing level={1}>
+            <StudioHeading size='lg' spacing level={1}>
               {t('resourceadm.deploy_title')}
-            </Heading>
+            </StudioHeading>
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
-              <Paragraph size='small' className={classes.informationText}>
+              <StudioParagraph size='sm' className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
-                  <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
+                  <StudioLink href={UrlConstants.ALTINN} rel='noopener noreferrer' target='_blank'>
                     Altinn.no
-                  </Link>
+                  </StudioLink>
                 </Trans>
-              </Paragraph>
+              </StudioParagraph>
               <div className={classes.newVersionWrapper}>
-                <Textfield
+                <StudioTextfield
                   label={t('resourceadm.deploy_version_label')}
                   description={t('resourceadm.deploy_version_text')}
-                  size='small'
                   value={newVersionText}
                   onChange={(e) => onVersionFieldChanged(e.target.value)}
                   error={resourceVersionText === ''}
                 />
               </div>
-              <Label size='medium' spacing>
+              <StudioLabelAsParagraph size='md' spacing>
                 {t('resourceadm.deploy_select_env_label')}
-              </Label>
+              </StudioLabelAsParagraph>
               <div className={classes.environmentWrapper}>
                 {getAvailableEnvironments(org).map((env) => {
                   const versionString = getVersionString(env.id);

@@ -8,7 +8,7 @@ import {
   type StudioProfileMenuGroup,
   useMediaQuery,
   type StudioProfileMenuItem,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -24,7 +24,8 @@ interface ResourceAdmHeaderProps {
 }
 
 export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProps) => {
-  const { org, resourceId } = useUrlParams();
+  const { org, app, resourceId } = useUrlParams();
+
   const resourcePath = resourceId ? ` / ${resourceId}` : '';
   const pageHeaderTitle: string = `${getOrgNameByUsername(org, organizations)}${resourcePath}`;
 
@@ -37,7 +38,12 @@ export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProp
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
       <StudioPageHeader.Sub>
-        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
+        <GiteaHeader
+          menuOnlyHasRepository
+          rightContentClassName={classes.extraPadding}
+          owner={org}
+          repoName={app}
+        />
       </StudioPageHeader.Sub>
     </StudioPageHeader>
   );

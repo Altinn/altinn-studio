@@ -9,12 +9,15 @@ const mockAppLibVersion8: string = '8.0.3';
 
 export const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
+  initialBpmnXml: mockBPMNXML,
   appLibVersion: mockAppLibVersion8,
   getUpdatedXml: jest.fn(),
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
   modelerRef: mockModelerRef as any,
+  isInitialized: true,
+  setIsInitialized: jest.fn(),
 };
 
 export const mockLayoutSets: LayoutSets = {

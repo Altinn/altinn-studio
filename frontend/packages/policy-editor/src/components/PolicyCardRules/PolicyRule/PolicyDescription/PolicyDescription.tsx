@@ -4,7 +4,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioTextarea } from '@studio/components';
+import { StudioTextarea } from '@studio/components-legacy';
 
 export const PolicyDescription = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -25,7 +25,6 @@ export const PolicyDescription = (): React.ReactElement => {
     <div className={classes.textAreaWrapper}>
       <StudioTextarea
         label={t('policy_editor.rule_card_description_title')}
-        size='small'
         value={policyRule.description}
         onChange={handleChangeDescription}
         rows={5}

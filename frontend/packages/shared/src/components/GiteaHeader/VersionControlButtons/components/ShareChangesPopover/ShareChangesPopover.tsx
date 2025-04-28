@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
@@ -21,8 +21,8 @@ export const ShareChangesPopover = () => {
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
-  const { org, app } = useStudioEnvironmentParams();
-  const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
+  const { owner, repoName } = useGiteaHeaderContext();
+  const { refetch: refetchRepoStatus } = useRepoStatusQuery(owner, repoName);
 
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);

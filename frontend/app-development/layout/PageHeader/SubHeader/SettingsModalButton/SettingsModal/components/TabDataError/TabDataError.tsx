@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter, StudioError } from '@studio/components';
+import { StudioCenter, StudioError } from '@studio/components-legacy';
 
 export type TabDataErrorProps = {
   children: ReactNode;

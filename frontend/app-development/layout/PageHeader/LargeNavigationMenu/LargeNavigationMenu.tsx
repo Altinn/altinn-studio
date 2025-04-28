@@ -2,8 +2,8 @@ import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
-import { StudioBetaTag, StudioPageHeader } from '@studio/components';
-import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { StudioPageHeader } from '@studio/components-legacy';
+import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
@@ -29,23 +29,24 @@ type HeaderButtonListItemProps = {
 const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
   const { variant } = usePageHeaderContext();
   const location = useLocation();
-  const currentRoutePath: string = extractLastRouterParam(location.pathname);
+  const currentRoutePath: string = UrlUtils.extractLastRouterParam(location.pathname);
 
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
         color='dark'
         variant={variant}
+        isBeta={menuItem.isBeta}
         renderLink={(props) => (
           <NavLink to={menuItem.link} {...props}>
             <span
               className={cn({
-                [classes.active]: extractLastRouterParam(menuItem.link) === currentRoutePath,
+                [classes.active]:
+                  UrlUtils.extractLastRouterParam(menuItem.link) === currentRoutePath,
               })}
             >
               {menuItem.name}
             </span>
-            {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
           </NavLink>
         )}
       />

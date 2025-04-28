@@ -1,21 +1,43 @@
-import { StudioButton, StudioCard, StudioHeading, StudioParagraph } from '@studio/components';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import { StudioButton } from '@studio/components-legacy';
+import type {
+  Summary2OverrideConfig,
+  Summary2TargetConfig,
+} from 'app-shared/types/ComponentSpecificConfig';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
+import { PlusIcon } from '@studio/icons';
+import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
+import { useAppContext, useComponentTitle } from '../../../../../hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export type Summary2OverrideProps = {
-  overrides: Summary2OverrideConfig[];
-  onChange: (overrides: Summary2OverrideConfig[]) => void;
+  component: FormItem<ComponentType.Summary2>;
+  onChange: (component: FormItem) => void;
 };
 
-export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps) => {
+export const Summary2Override = ({ component, onChange }: Summary2OverrideProps) => {
   const { t } = useTranslation();
+  const [openOverrides, setOpenOverrides] = React.useState([]);
+  const { overrides, target } = component;
+
+  const componentOptions = useTargetComponentOptions(target);
+
+  const handleOverridesChange = (updatedOverrides: Summary2OverrideConfig[]): void => {
+    const updatedComponent = { ...component };
+    updatedComponent.overrides = updatedOverrides;
+    onChange(updatedComponent);
+  };
 
   const addOverride = (): void => {
     const updatedOverrides = [...(overrides || [])];
+    setOpenOverrides([...openOverrides, updatedOverrides.length]);
     updatedOverrides.push({ componentId: '' });
-    onChange(updatedOverrides);
+    handleOverridesChange(updatedOverrides);
   };
 
   const onChangeOverride =
@@ -23,7 +45,7 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
     (override: any) => {
       const updatedOverrides = [...overrides];
       updatedOverrides[index] = override;
-      onChange(updatedOverrides);
+      handleOverridesChange(updatedOverrides);
     };
 
   const onDeleteOverride =
@@ -31,31 +53,64 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
     () => {
       const updatedOverrides = [...overrides];
       updatedOverrides.splice(index, 1);
-      onChange(updatedOverrides);
+      setOpenOverrides((prev) => {
+        return prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i));
+      });
+      handleOverridesChange(updatedOverrides);
     };
 
   return (
-    <StudioCard>
-      <StudioCard.Header>
-        <StudioHeading size='2xs'>{t('ux_editor.component_properties.overrides')}</StudioHeading>
-      </StudioCard.Header>
-      <StudioParagraph size='sm'>
-        {t('ux_editor.component_properties.summary.override.description')}
-      </StudioParagraph>
-      <StudioCard.Content>
-        {overrides &&
-          overrides.map((override, index) => (
+    <>
+      {overrides?.length > 0 && (
+        <div style={{ marginBottom: 'var(--fds-spacing-4)' }}>
+          {overrides.map((override, index) => (
             <Summary2OverrideEntry
+              index={index + 1}
+              open={openOverrides.includes(index)}
+              setOpen={(open) =>
+                open
+                  ? setOpenOverrides([...openOverrides, index])
+                  : setOpenOverrides(openOverrides.filter((i) => i !== index))
+              }
+              componentOptions={componentOptions}
               key={`${index}${override.componentId}`}
               override={override}
               onChange={onChangeOverride(index)}
               onDelete={onDeleteOverride(index)}
             ></Summary2OverrideEntry>
           ))}
-        <StudioButton size='sm' variant='primary' onClick={addOverride}>
-          {t('ux_editor.component_properties.summary.add_override')}
-        </StudioButton>
-      </StudioCard.Content>
-    </StudioCard>
+        </div>
+      )}
+      <StudioButton icon={<PlusIcon />} size='sm' variant='secondary' onClick={addOverride}>
+        {t('ux_editor.component_properties.summary.add_override')}
+      </StudioButton>
+    </>
   );
+};
+
+const useTargetComponentOptions = (target: Summary2TargetConfig): any[] => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const layoutSetName = getTargetLayoutSetName({
+    target,
+    layoutSets,
+    selectedFormLayoutSetName: useAppContext().selectedFormLayoutSetName,
+  });
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, layoutSetName);
+  const getComponentTitle = useComponentTitle();
+
+  if (!formLayoutsData) return [];
+  if (target?.type === 'page' && target.id) {
+    const formPage = formLayoutsData[target.id];
+    if (!formPage) return [];
+    return getComponentOptions({
+      formLayoutsData: [formPage],
+      getComponentTitle,
+    });
+  }
+  const components = getComponentOptions({ formLayoutsData, getComponentTitle });
+  if (target?.type === 'component') {
+    return components.filter(({ id }) => id === target.id);
+  }
+  return components;
 };

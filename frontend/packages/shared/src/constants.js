@@ -1,14 +1,14 @@
 // TODO: Extract/Centralize react-router routes (https://github.com/Altinn/altinn-studio/issues/12624)
 export const APP_DEVELOPMENT_BASENAME = '/editor';
+export const APP_DASHBOARD_BASENAME = '/app-dashboard';
 export const DASHBOARD_BASENAME = '/dashboard';
 export const DASHBOARD_ROOT_ROUTE = '/';
 export const RESOURCEADM_BASENAME = '/resourceadm';
-export const STUDIO_LIBRARY_BASENAME = '/library';
+export const ORG_LIBRARY_BASENAME = '/org-library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/';
 export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
-export const DEPLOYMENTS_REFETCH_INTERVAL = 15000;
 export const AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS = 400;
 export const NEWS_EXPIRATION_TIME_IN_DAYS = 30;
 export const APP_NAME = 'appName';
@@ -20,4 +20,4 @@ export const PROTECTED_TASK_NAME_CUSTOM_RECEIPT = 'CustomReceipt';
 export const PREVIEW_MOCK_PARTY_ID = '51001';
 export const PREVIEW_MOCK_INSTANCE_GUID = 'f1e23d45-6789-1bcd-8c34-56789abcdef0';
 export const MEDIA_QUERY_MAX_WIDTH = '(max-width: 1024px)';
-export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_\-]*$/;
+export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]*$/;

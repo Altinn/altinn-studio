@@ -1,12 +1,12 @@
-import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
+import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import {
-  StudioCard,
   StudioHeading,
   StudioParagraph,
   StudioNativeSelect,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import React from 'react';
+import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type {
   Summary2TargetConfig,
@@ -16,22 +16,31 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useTargetTypes } from './useTargetTypes';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { getComponentOptions, getLayoutSetOptions, getPageOptions } from './targetUtils';
+import {
+  getComponentOptions,
+  getLayoutSetOptions,
+  getPageOptions,
+  getTargetLayoutSetName,
+} from './targetUtils';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import cn from 'classnames';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
   onChange: (target: Summary2TargetConfig) => void;
+  mainConfigClass?: string;
 };
 
-export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
+export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const selectedLayoutSetTargetName = target.taskId
-    ? layoutSets?.sets?.find((set) => set.tasks?.[0] === target.taskId).id
-    : selectedFormLayoutSetName;
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const selectedLayoutSetTargetName = getTargetLayoutSetName({
+    target,
+    layoutSets,
+    selectedFormLayoutSetName,
+  });
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetTargetName);
   const getComponentTitle = useComponentTitle();
   const targetTypes = useTargetTypes();
@@ -62,66 +71,69 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   };
 
   return (
-    <StudioCard>
-      <StudioCard.Header>
-        <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      </StudioCard.Header>
+    <div
+      className={cn(
+        mainConfigClass ? mainConfigClass : classes.targetConfig,
+        classes.wrapperConfig,
+      )}
+    >
+      <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
-      <StudioCard.Content>
-        <StudioNativeSelect
-          size='sm'
-          label={t('ux_editor.component_properties.target_layoutSet_id')}
-          value={target.taskId}
-          onChange={(e) => handleLayoutSetChange(e.target.value)}
-        >
-          {layoutSetOptions.map((layoutSet) => (
-            <option key={layoutSet.id} value={layoutSet.tasks[0]}>
-              {layoutSet.id}
-            </option>
-          ))}
-        </StudioNativeSelect>
-        <StudioNativeSelect
-          size='sm'
-          label={t('ux_editor.component_properties.target_type')}
-          value={target.type}
-          onChange={handleTypeChange}
-        >
-          {targetTypes.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </StudioNativeSelect>
-        {target.type === 'page' && (
-          <Summmary2ComponentReferenceSelector
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('ux_editor.component_properties.target_unit_page')}
-            value={target.id}
-            options={pageOptions}
-            onValueChange={handleTargetIdChange}
-          />
-        )}
-        {target.type === 'component' && (
-          <Summmary2ComponentReferenceSelector
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('ux_editor.component_properties.target_unit_component')}
-            value={target.id}
-            options={componentOptions}
-            onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentReferenceSelector>
-        )}
-        {target.type === 'layoutSet' && (
-          <StudioTextfield
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            size='sm'
-            label={t('ux_editor.component_properties.target_unit_layout_set')}
-            value={selectedLayoutSetTargetName}
-            disabled={true}
-          />
-        )}
-      </StudioCard.Content>
-    </StudioCard>
+      <StudioNativeSelect
+        size='sm'
+        label={t('ux_editor.component_properties.target_layoutSet_id')}
+        value={target.taskId}
+        onChange={(e) => handleLayoutSetChange(e.target.value)}
+      >
+        {layoutSetOptions.map((layoutSet) => (
+          <option
+            key={layoutSet.id}
+            value={layoutSet.id === selectedFormLayoutSetName ? '' : layoutSet.task.id}
+          >
+            {layoutSet.id}
+          </option>
+        ))}
+      </StudioNativeSelect>
+      <StudioNativeSelect
+        size='sm'
+        label={t('ux_editor.component_properties.target_type')}
+        value={target.type}
+        onChange={handleTypeChange}
+      >
+        {targetTypes.map((type) => (
+          <option key={type.value} value={type.value}>
+            {type.label}
+          </option>
+        ))}
+      </StudioNativeSelect>
+      {target.type === 'page' && (
+        <Summary2ComponentReferenceSelector
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+          label={t('ux_editor.component_properties.target_unit_page')}
+          value={target.id}
+          options={pageOptions}
+          onValueChange={handleTargetIdChange}
+        />
+      )}
+      {target.type === 'component' && (
+        <Summary2ComponentReferenceSelector
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+          label={t('ux_editor.component_properties.target_unit_component')}
+          value={target.id}
+          options={componentOptions}
+          onValueChange={handleTargetIdChange}
+        />
+      )}
+      {target.type === 'layoutSet' && (
+        <StudioTextfield
+          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+          label={t('ux_editor.component_properties.target_unit_layout_set')}
+          value={selectedLayoutSetTargetName}
+          disabled={true}
+        />
+      )}
+    </div>
   );
 };

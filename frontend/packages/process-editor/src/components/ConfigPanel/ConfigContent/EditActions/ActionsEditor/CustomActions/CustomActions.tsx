@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
 import { useDebounce } from '@studio/hooks';
 import { HelpText, Switch } from '@digdir/designsystemet-react';
 import {
@@ -40,7 +40,6 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
     <>
       <StudioTextfield
         onChange={onCustomActionChange}
-        size='small'
         label={t('process_editor.configuration_panel_actions_action_card_custom_label')}
         className={classes.customActionTextfield}
         value={isCustomAction ? actionElement.action : ''}

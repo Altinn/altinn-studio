@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypes } from './SelectDataTypes';
-import classes from './EditDataTypes.module.css';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
 export type EditDataTypesProps = {
@@ -27,19 +26,12 @@ export const EditDataTypes = ({
     setDataModelSelectVisible(false);
   }, [bpmnDetails.id]);
 
-  const definedValueWithLinkIcon = (
-    <span className={classes.definedValue}>
-      <LinkIcon /> {existingDataTypeForTask}
-    </span>
-  );
-
   return (
     <>
       {!existingDataTypeForTask && !dataModelSelectVisible ? (
         <StudioProperty.Button
           onClick={() => setDataModelSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_model_link')}
-          size='small'
           icon={<LinkIcon />}
         />
       ) : dataModelSelectVisible ? (
@@ -55,9 +47,10 @@ export const EditDataTypes = ({
           aria-label={t('process_editor.configuration_panel_set_data_model', {
             dataModelName: existingDataTypeForTask,
           })}
+          icon={<LinkIcon />}
           onClick={() => setDataModelSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_model_label')}
-          value={definedValueWithLinkIcon}
+          value={existingDataTypeForTask}
         />
       )}
     </>

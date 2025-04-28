@@ -6,7 +6,7 @@ import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
@@ -41,6 +41,9 @@ const setupAndVerifyUiEditorPage = async (
       localStorage.setItem('featureFlags', JSON.stringify(flag));
     }, featureFlag);
   }
+
+  await uiEditorPage.clickOnUxEditorButton();
+  await uiEditorPage.verifyThatAddNewPageButtonIsVisible();
 
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(pageName);
@@ -77,7 +80,7 @@ test('That it is possible to navigate to Gitea and that data model bindings are 
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnThreeDotsMenu();
@@ -95,9 +98,10 @@ test('That it is possible to navigate to datamodel page and create a new data mo
   testAppName,
 }): Promise<void> => {
   await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
@@ -110,8 +114,9 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnPageAccordion(pageName);
@@ -133,7 +138,7 @@ test('That it is possible to upload the changes to Gitea and view the changes in
   testAppName,
 }): Promise<void> => {
   await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();
@@ -154,9 +159,10 @@ test('That it is possible to navigate to data model page and create another data
   testAppName,
 }): Promise<void> => {
   await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await createNewDataModel(dataModelPage, newDataModel);
 });
@@ -166,8 +172,9 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnPageAccordion(pageName);
@@ -189,7 +196,7 @@ test('That it is possible to upload to Gitea and that files are updated correctl
   testAppName,
 }): Promise<void> => {
   await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
-import { StudioButton, StudioNativeSelect } from '@studio/components';
-import type { StudioButtonProps } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components-legacy';
+import type { StudioButtonProps } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export interface ILangSelectorProps {

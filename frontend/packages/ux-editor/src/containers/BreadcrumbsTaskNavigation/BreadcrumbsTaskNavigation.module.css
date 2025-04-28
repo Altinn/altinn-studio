@@ -1,0 +1,18 @@
+.container {
+  --homePage-link-color: #663299;
+  --layoutSet-link-color: #0061b8;
+  margin-left: var(--fds-spacing-1);
+}
+
+.homePage {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.homePageActive {
+  color: var(--homePage-link-color);
+}
+
+.layoutSet {
+  color: var(--layoutSet-link-color);
+}

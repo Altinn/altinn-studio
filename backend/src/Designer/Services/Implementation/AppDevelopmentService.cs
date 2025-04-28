@@ -68,7 +68,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutName, JsonNode formLayout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -79,14 +78,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout, cancellationToken);
+            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayout, cancellationToken);
         }
 
         /// <inheritdoc />
         public void DeleteFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
             string layoutName)
         {
-            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -97,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
+            altinnAppGitRepository.DeleteLayout(layoutSetName, layoutName);
         }
 
         /// <inheritdoc />
@@ -114,7 +112,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
+            altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, layoutName, newName);
         }
 
         /// <inheritdoc />
@@ -224,7 +222,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // Fallback to first model in app metadata if no layout set is provided
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
                 ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))?.Id ?? string.Empty;
             }
 
             LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
@@ -286,21 +284,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 LayoutSetModel layoutSetModel = new()
                 {
-                    id = set.Id,
-                    dataType = set.DataType,
-                    type = set.Type,
+                    Id = set.Id,
+                    DataType = set.DataType,
+                    Type = set.Type,
                 };
                 string taskId = set.Tasks?[0];
                 if (taskId != null)
                 {
                     string taskType = TaskTypeFromDefinitions(definitions, taskId);
-                    layoutSetModel.task = new TaskModel
+                    layoutSetModel.Task = new TaskModel
                     {
-                        id = taskId,
-                        type = taskType
+                        Id = taskId,
+                        Type = taskType
                     };
                 }
-                layoutSetsModel.sets.Add(layoutSetModel);
+                layoutSetsModel.Sets.Add(layoutSetModel);
             });
             return layoutSetsModel;
         }
@@ -586,7 +584,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 editingContext.Repo,
                 editingContext.Developer
             );
-            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, $"{layoutName}.json", cancellationToken);
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
             if (formLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
             {
                 throw new InvalidOperationException("Invalid form layout structure");
@@ -613,10 +611,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             bool hasChanges = false;
 
             var deletedReferences = referencesToUpdate.Where(item => string.IsNullOrEmpty(item.NewId)).ToList();
+            var updatedReferences = referencesToUpdate.Where(item => !string.IsNullOrEmpty(item.NewId)).ToList();
 
             var deletedLayoutsSetIds = deletedReferences.Where(item => item.Type == ReferenceType.LayoutSet).Select(item => item.Id).ToList();
             var deletedLayouts = deletedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
             var deletedComponents = deletedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
+
+            var updatedTasks = updatedReferences.Where(item => item.Type == ReferenceType.Task).ToList();
+            var updatedLayoutsSets = updatedReferences.Where(item => item.Type == ReferenceType.LayoutSet).ToList();
+            var updatedLayouts = updatedReferences.Where(item => item.Type == ReferenceType.Layout).ToList();
+            var updatedComponents = updatedReferences.Where(item => item.Type == ReferenceType.Component).ToList();
 
             foreach (LayoutSetConfig layoutSet in layoutSets ?? [new() { Id = null }])
             {
@@ -637,6 +641,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     }
 
                     var deletedComponentIdsFromCurrentLayoutSet = deletedComponents.Where(item => item.LayoutSetName == layoutSet.Id && string.IsNullOrEmpty(item.NewId)).Select(item => item.Id).ToList();
+                    var updatedComponentsFromCurrentLayoutSet = updatedComponents.Where(item => item.LayoutSetName == layoutSet.Id && !string.IsNullOrEmpty(item.NewId)).ToList();
 
                     if (data["layout"] is JsonArray componentList)
                     {
@@ -661,6 +666,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                 componentList.RemoveAt(i);
                                 hasLayoutChanges = true;
                             }
+                            else
+                            {
+                                Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item => item.Id == componentId);
+                                if (updatedReference != null)
+                                {
+                                    component["id"] = updatedReference.NewId;
+                                    hasLayoutChanges = true;
+                                }
+                            }
 
                             if (isLayoutSetDeleted || isLayoutDeleted || isComponentDeleted)
                             {
@@ -683,6 +697,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         componentList.RemoveAt(i);
                                         hasLayoutChanges = true;
                                     }
+                                    else
+                                    {
+                                        Reference updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Id == subformLayoutSet);
+                                        if (updatedReference != null)
+                                        {
+                                            component["layoutSet"] = updatedReference.NewId;
+                                            hasLayoutChanges = true;
+                                        }
+                                    }
+
                                     break;
                                 case "Summary2":
                                     if (component["target"] is JsonObject target)
@@ -702,6 +726,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                             componentList.RemoveAt(i);
                                             hasLayoutChanges = true;
                                         }
+                                        else
+                                        {
+                                            Reference updatedReference = null;
+                                            switch (type)
+                                            {
+                                                case "page":
+                                                    updatedReference = updatedLayouts.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    break;
+                                                case "component":
+                                                    updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    break;
+                                            }
+                                            if (updatedReference != null)
+                                            {
+                                                target["id"] = updatedReference.NewId;
+                                                hasLayoutChanges = true;
+                                            }
+
+                                            if (!string.IsNullOrEmpty(taskId))
+                                            {
+                                                updatedReference = updatedTasks.FirstOrDefault(item => item.Id == taskId);
+                                                if (updatedReference != null)
+                                                {
+                                                    target["taskId"] = updatedReference.NewId;
+                                                    hasLayoutChanges = true;
+                                                }
+                                            }
+                                        }
 
                                         if (component["overrides"] is JsonArray overrideList)
                                         {
@@ -713,6 +765,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                                 {
                                                     overrideList.RemoveAt(j);
                                                     hasLayoutChanges = true;
+                                                }
+                                                else
+                                                {
+                                                    Reference updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == overrideComponentId);
+                                                    if (updatedReference != null)
+                                                    {
+                                                        overrideItem["componentId"] = updatedReference.NewId;
+                                                        hasLayoutChanges = true;
+                                                    }
                                                 }
 
                                                 if (overrideList.Count == 0)
@@ -739,7 +800,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     if (hasLayoutChanges)
                     {
-                        await altinnAppGitRepository.SaveLayout(layoutSet.Id, $"{layout.Key}.json", layout.Value, cancellationToken);
+                        await altinnAppGitRepository.SaveLayout(layoutSet.Id, layout.Key, layout.Value, cancellationToken);
                         hasChanges = true;
                     }
                 }

@@ -8,9 +8,12 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
+import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
+export const pagelayout1NameMock = 'Sideoppsett 1';
+export const pagelayout2NameMock = 'Sideoppsett 2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = componentMocks[ComponentType.Input].id;
 export const component1TypeMock = ComponentType.Input;
@@ -52,6 +55,26 @@ export const componentWithOptionsMock: FormComponent = {
   optionsId: '',
   propertyPath: 'definitions/radioAndCheckboxComponents',
 };
+
+export const componentWithMultipleSelectMock: FormComponent = {
+  id: 'ComponentWithMultipleSelectMock',
+  type: ComponentType.MultipleSelect,
+  dataModelBindings: { simpleBinding: 'some-path' },
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  optionsId: '',
+  propertyPath: 'definitions/multipleSelectComponent',
+};
+
+export const subformComponentMock: FormComponent = {
+  id: 'SubformComponent',
+  type: ComponentType.Subform,
+  dataModelBindings: { simpleBinding: 'some-path' },
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  propertyPath: 'definitions/subformComponent',
+};
+
 export const container1IdMock = 'Container-1';
 export const container2IdMock = 'Container-2';
 export const customRootPropertiesMock: KeyValuePairs = {
@@ -154,6 +177,31 @@ const layout2Mock: ExternalFormLayout = {
   data: {
     layout: [],
   },
+};
+export const pagesModelMock: PagesModel = {
+  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+  groups: [],
+};
+
+export const groupsPagesModelMock: PagesModel = {
+  groups: [
+    {
+      name: pagelayout1NameMock,
+      type: pagelayout1NameMock,
+      order: [{ id: layout1NameMock }],
+    },
+    {
+      name: pagelayout2NameMock,
+      type: pagelayout2NameMock,
+      markWhenCompleted: true,
+      order: [{ id: layout2NameMock }],
+    },
+    {
+      name: 'EmptyGroup',
+      order: [],
+    },
+  ],
+  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,

@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
@@ -29,8 +30,8 @@ public class TextsServiceTest : IDisposable
     private const string developer = "testUser";
     private const string layoutSetName1 = "layoutSet1";
     private const string layoutSetName2 = "layoutSet2";
-    private const string layoutName1 = "layoutFile1InSet1.json";
-    private const string layoutName2 = "layoutFile1InSet2.json";
+    private const string layoutName1 = "layoutFile1InSet1";
+    private const string layoutName2 = "layoutFile1InSet2";
 
     private async Task<(string targetRepository, AltinnGitRepositoryFactory altinnGitRepositoryFactory, TextsService textsService)>
         SetupRepository()
@@ -243,7 +244,9 @@ public class TextsServiceTest : IDisposable
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
         AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
         ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, new IGiteaMock());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
+        AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentService);
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService, optionsService);
 
         return textsService;

@@ -16,7 +16,7 @@ import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 import type { AppContextProps } from '../../../AppContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { LogicalTupleOperator } from '@studio/components';
+import { LogicalTupleOperator } from '@studio/components-legacy';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:

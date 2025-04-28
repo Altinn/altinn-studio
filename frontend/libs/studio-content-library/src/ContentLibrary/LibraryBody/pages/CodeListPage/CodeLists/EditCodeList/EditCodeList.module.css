@@ -8,6 +8,11 @@
   display: contents;
 }
 
+.codeListUsageModal[open] {
+  width: min(80rem, 100%);
+  max-width: unset;
+}
+
 .seeUsageIcon {
   font-size: var(--fds-sizing-5);
 }
@@ -16,4 +21,8 @@
   display: flex;
   flex-direction: row;
   gap: var(--fds-spacing-3);
+}
+
+.displayTitle {
+  padding-inline: var(--fds-spacing-5);
 }

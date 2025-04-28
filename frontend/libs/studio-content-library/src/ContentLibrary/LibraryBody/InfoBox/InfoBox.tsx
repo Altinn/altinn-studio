@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './InfoBox.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { PageName } from '../../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
@@ -18,10 +18,12 @@ export function InfoBox({ pageName }: InfoBoxProps): React.ReactElement {
 
   return (
     <div className={classes.infoBoxContainer} title={t('app_content_library.info_box.title')}>
-      <img
-        src={infoBoxConfigForPage.illustrationReference}
-        alt={t(infoBoxConfigForPage.titleTextKey)}
-      />
+      <div className={classes.imageWrapper}>
+        <img
+          src={infoBoxConfigForPage.illustrationReference}
+          alt={t(infoBoxConfigForPage.titleTextKey)}
+        />
+      </div>
       <div className={classes.description}>
         <StudioParagraph size='medium'>{t(infoBoxConfigForPage.titleTextKey)}</StudioParagraph>
         <StudioParagraph size='xsmall'>

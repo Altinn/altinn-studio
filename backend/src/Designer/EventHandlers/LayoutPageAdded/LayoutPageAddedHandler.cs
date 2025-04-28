@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
-using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -35,14 +35,14 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
                     return false;
                 }
 
-                TextResource jsonTexts = await repository.GetTextV1("nb");
+                TextResource jsonTexts = await repository.GetText("nb");
                 int initialCount = jsonTexts.Resources.Count;
                 AddTextResourceIfNotExists(jsonTexts.Resources, "next", "Neste");
-                AddTextResourceIfNotExists(jsonTexts.Resources, "back", "Tilbake");
+                AddTextResourceIfNotExists(jsonTexts.Resources, "back", "Forrige");
 
                 if (jsonTexts.Resources.Count != initialCount)
                 {
-                    await repository.SaveTextV1("nb", jsonTexts);
+                    await repository.SaveText("nb", jsonTexts);
                     return true;
                 }
                 return false;

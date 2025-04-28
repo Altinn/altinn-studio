@@ -9,9 +9,22 @@ export var baseUrls = {
   prod: 'altinn.no',
 };
 
+// Auth cookie names in the different environments. NB: Must be updated until changes
+// are rolled out to all environments
+export var authCookieNames = {
+  at21: '.AspxAuthCloud',
+  at22: '.AspxAuthCloud',
+  at23: '.AspxAuthCloud',
+  at24: '.AspxAuthCloud',
+  tt02: '.AspxAuthTT02',
+  yt01: '.AspxAuthYt',
+  prod: '.AspxAuthProd',
+};
+
 //Get values from environment
 const environment = __ENV.env.toLowerCase();
 export let baseUrl = baseUrls[environment];
+export let authCookieName = authCookieNames[environment];
 
 //Altinn API
 export var authentication = {

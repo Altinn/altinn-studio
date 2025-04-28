@@ -1,89 +1,109 @@
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { type ReactElement } from 'react';
+import classes from './DashboardHeader.module.css';
+import cn from 'classnames';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAvatar,
-  StudioPageHeader,
-  type StudioProfileMenuGroup,
-  useMediaQuery,
-  type StudioProfileMenuItem,
-} from '@studio/components';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { type Organization } from 'app-shared/types/Organization';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
-import { useRepoPath } from 'dashboard/hooks/useRepoPath';
-import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
+import { useHeaderContext } from '../../../context/HeaderContext';
+import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
+import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { StringUtils, UrlUtils } from '@studio/pure-functions';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { SubHeader } from './SubHeader';
+import { Subroute } from '../../../enums/Subroute';
+import { isOrg } from '../../../utils/orgUtils';
+import { SmallHeaderMenu } from './SmallHeaderMenu';
+import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
-export const DashboardHeader = () => {
+export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();
+  const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const selectedContext = useSelectedContext();
+  const location = useLocation();
+  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+
+  const isOrgLibraryPage: boolean =
+    currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
+  const shouldShowSubMenu: boolean =
+    isOrg(selectedContext) && isOrgLibraryPage && shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
+        <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
+        {shouldDisplayDesktopMenu && <CenterContent />}
         <StudioPageHeader.Right>
-          <DashboardHeaderMenu />
+          <RightContent />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
+      {shouldShowSubMenu && (
+        <StudioPageHeader.Sub>
+          <SubHeader />
+        </StudioPageHeader.Sub>
+      )}
     </StudioPageHeader>
   );
 };
 
-const DashboardHeaderMenu = () => {
+function CenterContent(): ReactElement {
+  const { menuItems } = useHeaderContext();
+  return (
+    <StudioPageHeader.Center>
+      {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
+        menuItems.map((menuItem: HeaderMenuItem) => (
+          <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
+        ))}
+    </StudioPageHeader.Center>
+  );
+}
+
+type TopNavigationMenuProps = {
+  menuItem: HeaderMenuItem;
+};
+
+function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactElement {
+  const selectedContext: string = useSelectedContext();
   const { t } = useTranslation();
-  const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const selectedContext = useSelectedContext();
-  const { mutate: logout } = useLogoutMutation();
-  const { user, selectableOrgs } = useContext(HeaderContext);
-  const navigate = useNavigate();
+  const location = useLocation();
+  const path: string = `${menuItem.link}/${selectedContext}`;
+  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
 
+  return (
+    <StudioPageHeader.HeaderLink
+      color='dark'
+      variant='regular'
+      renderLink={(props) => (
+        <NavLink to={path} {...props}>
+          <span
+            className={cn({
+              [classes.active]: StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
+            })}
+          >
+            {t(menuItem.name)}
+          </span>
+        </NavLink>
+      )}
+    />
+  );
+}
+
+function RightContent(): ReactElement {
+  const { t } = useTranslation();
+  const { user, profileMenuGroups } = useHeaderContext();
+
+  const isSmallScreen = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const triggerButtonText = useProfileMenuTriggerButtonText();
-  const repoPath = useRepoPath();
 
-  const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate('/' + context + location.search);
-  };
-
-  const allMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
-    itemName: t('shared.header_all'),
-    isActive: selectedContext === SelectedContextType.All,
-  };
-
-  const selectableOrgMenuItems: StudioProfileMenuItem[] =
-    selectableOrgs?.map((selectableOrg: Organization) => ({
-      action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
-      itemName: selectableOrg?.full_name || selectableOrg.username,
-      isActive: selectedContext === selectableOrg.username,
-    })) ?? [];
-
-  const selfMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
-    itemName: user?.full_name || user?.login,
-    isActive: selectedContext === SelectedContextType.Self,
-  };
-
-  const giteaMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: repoPath },
-    itemName: t('shared.header_go_to_gitea'),
-  };
-
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
-
-  const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem] },
-    { items: [giteaMenuItem, logOutMenuItem] },
-  ];
+  if (isSmallScreen) {
+    return <SmallHeaderMenu />;
+  }
 
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={showButtonText && triggerButtonText}
+      triggerButtonText={!isSmallScreen ? triggerButtonText : undefined}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
@@ -94,7 +114,7 @@ const DashboardHeaderMenu = () => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      profileMenuGroups={profileMenuGroups}
+      profileMenuGroups={mapNavigationMenuToProfileMenu(profileMenuGroups)}
     />
   );
-};
+}

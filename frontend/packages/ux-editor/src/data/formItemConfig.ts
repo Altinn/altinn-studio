@@ -19,6 +19,7 @@ import {
   LikertIcon,
   LinkIcon,
   LongTextIcon,
+  MinusIcon,
   NavBarIcon,
   PaperclipIcon,
   PaymentDetailsIcon,
@@ -38,7 +39,6 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
@@ -503,6 +503,16 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
   },
+  [ComponentType.Divider]: {
+    name: ComponentType.Divider,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      id: '',
+      type: ComponentType.Divider,
+    },
+    propertyPath: 'definitions/dividerComponent',
+    icon: MinusIcon,
+  },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
@@ -518,7 +528,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature(FeatureFlag.Subform) && formItemConfigs[ComponentType.Subform],
+  formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -532,6 +542,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
+  formItemConfigs[ComponentType.Divider],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
   formItemConfigs[ComponentType.Button],
@@ -544,8 +555,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
-  formItemConfigs[ComponentType.Summary],
-  shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
+  formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
@@ -567,16 +577,6 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   ...confOnScreenComponents,
 ];
 
-export type ComponentCategory =
-  | 'form'
-  | 'select'
-  | 'button'
-  | 'text'
-  | 'info'
-  | 'container'
-  | 'attachment'
-  | 'advanced';
-
 export const defaultComponents: ComponentType[] = [
   ComponentType.Input,
   ComponentType.TextArea,
@@ -597,7 +597,13 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.OrganisationLookup,
     ComponentType.PersonLookup,
   ],
-  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
+  text: [
+    ComponentType.Header,
+    ComponentType.Paragraph,
+    ComponentType.Panel,
+    ComponentType.Alert,
+    ComponentType.Divider,
+  ],
   select: [
     ComponentType.Checkboxes,
     ComponentType.RadioButtons,
@@ -610,7 +616,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Image,
     ComponentType.Link,
     ComponentType.IFrame,
-    ComponentType.Summary,
+    ComponentType.Summary2,
   ],
   button: [
     ComponentType.Button,
@@ -634,7 +640,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.List,
     ComponentType.RepeatingGroup,
   ],
-  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
+  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom, ComponentType.Subform],
 };
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,

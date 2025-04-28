@@ -1,19 +1,28 @@
-import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import type { NavigationMenuProps } from './NavigationMenu';
-import { NavigationMenu } from './NavigationMenu';
-import userEvent from '@testing-library/user-event';
+import {
+  groupsPagesModelMock,
+  layout1NameMock,
+  layout2NameMock,
+  pagelayout1NameMock,
+  pagelayout2NameMock,
+  pagesModelMock,
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@studio/testing/testids';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import React from 'react';
+import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../../testing/mocks';
-import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import type { NavigationMenuProps } from './NavigationMenu';
+import { NavigationMenu } from './NavigationMenu';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -122,13 +131,27 @@ describe('NavigationMenu', () => {
     });
     await user.click(menuItemDown);
 
-    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      org,
-      app,
-      mockSelectedLayoutSet,
-      { pages: { order: [layout2NameMock, layout1NameMock] } },
-    );
+    expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
+    expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
+      groups: [
+        {
+          name: pagelayout1NameMock,
+          type: pagelayout1NameMock,
+          order: [{ id: layout1NameMock }],
+        },
+        {
+          name: pagelayout2NameMock,
+          type: pagelayout2NameMock,
+          markWhenCompleted: true,
+          order: [{ id: layout2NameMock }],
+        },
+        {
+          name: 'EmptyGroup',
+          order: [],
+        },
+      ],
+    });
     expect(menuItemDown).not.toBeInTheDocument();
 
     await user.click(menuButtons[1]);
@@ -136,13 +159,27 @@ describe('NavigationMenu', () => {
       name: textMock('ux_editor.page_menu_up'),
     });
     await user.click(menuItemUp);
-    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
-    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      org,
-      app,
-      mockSelectedLayoutSet,
-      { pages: { order: [layout1NameMock, layout2NameMock] } },
-    );
+    expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
+    expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+      groups: [
+        {
+          name: pagelayout1NameMock,
+          type: pagelayout1NameMock,
+          order: [{ id: layout1NameMock }],
+        },
+        {
+          name: pagelayout2NameMock,
+          type: pagelayout2NameMock,
+          markWhenCompleted: true,
+          order: [{ id: layout2NameMock }],
+        },
+        {
+          name: 'EmptyGroup',
+          order: [],
+        },
+      ],
+    });
   });
 });
 
@@ -159,11 +196,16 @@ const waitForData = async () => {
 };
 
 const render = async (props: Partial<NavigationMenuProps> = {}) => {
+  const queryClient = createQueryClientMock();
+  queryClient.invalidateQueries = jest.fn();
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
   await waitForData();
   return renderWithProviders(
     <>
       <NavigationMenu {...defaultProps} {...props} />
       <NavigationMenu {...defaultProps} {...props} />
     </>,
+    { queryClient },
   );
 };

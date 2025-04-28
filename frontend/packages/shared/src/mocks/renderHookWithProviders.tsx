@@ -1,3 +1,4 @@
+import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import {
   type ServicesContextProps,
@@ -13,17 +14,14 @@ type WrapperArgs = {
   queryClient: QueryClient;
 };
 
-const queryClientMock = createQueryClientMock();
-
-export const renderHookWithProviders = (
-  hook: () => any,
-  { queries = {}, queryClient = queryClientMock }: Partial<WrapperArgs> = {},
-) => {
-  return renderHook(hook, {
+export const renderHookWithProviders = <Result = any, Props = void>(
+  hook: (initialProps: Props) => Result,
+  { queries = {}, queryClient = createQueryClientMock() }: Partial<WrapperArgs> = {},
+): RenderHookResult<Result, Props> =>
+  renderHook<Result, Props>(hook, {
     wrapper: ({ children }) => (
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         {children}
       </ServicesContextProvider>
     ),
   });
-};

@@ -13,8 +13,8 @@ public static class BuildMapper
             Id = buildDbModel.ExternalId,
             Status = Enum.Parse<BuildStatus>(buildDbModel.Status, true),
             Result = Enum.Parse<BuildResult>(buildDbModel.Result, true),
-            Started = buildDbModel.Started?.DateTime,
-            Finished = buildDbModel.Finished?.DateTime
+            Started = buildDbModel.Started?.UtcDateTime,
+            Finished = buildDbModel.Finished?.UtcDateTime
         };
 
     public static BuildDbModel MapToDbModel(BuildEntity buildEntity, BuildType buildType) =>
@@ -23,8 +23,8 @@ public static class BuildMapper
             ExternalId = buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
-            Started = buildEntity.Started,
-            Finished = buildEntity.Finished,
+            Started = buildEntity.Started?.ToUniversalTime(),
+            Finished = buildEntity.Finished?.ToUniversalTime(),
             BuildType = buildType
         };
 }

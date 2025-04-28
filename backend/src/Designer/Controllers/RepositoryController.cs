@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -26,6 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <remarks>
     /// Initializes a new instance of the <see cref="RepositoryController"/> class.
     /// </remarks>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
@@ -55,14 +56,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Returns a list over repositories
+        /// Returns a list over repositories specified by search parameters
         /// </summary>
-        /// <param name="searchOptions">The search params</param>
-        /// <returns>List of repositories that user has access to.</returns>
+        /// <remarks>
+        /// All parameters create the search parameters
+        /// </remarks>
+        /// <returns>List of filtered repositories that user has access to.</returns>
         [HttpGet]
         [Route("search")]
-        public async Task<SearchResults> Search(SearchOptions searchOptions)
+        public async Task<SearchResults> Search([FromQuery] string keyword, [FromQuery] int uId, [FromQuery] string sortBy, [FromQuery] string order, [FromQuery] int page, [FromQuery] int limit)
         {
+            SearchOptions searchOptions = new SearchOptions { Keyword = keyword, UId = uId, SortBy = sortBy, Order = order, Page = page, Limit = limit };
             SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
             return repositories;
         }
@@ -357,6 +361,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
+        public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
+            => await _giteaApi.GetBranch(org, repository, branch);
+
+        /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -446,7 +462,7 @@ namespace Altinn.Studio.Designer.Controllers
                         .Status(appContext.Org, appContext.Repo)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
-                };
+                }
 
                 foreach (var changedFile in changedFiles)
                 {

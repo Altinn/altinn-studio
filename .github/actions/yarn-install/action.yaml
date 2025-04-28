@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: 'Setting up Node'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         cache: 'yarn'
 
@@ -13,7 +13,7 @@ runs:
       run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}

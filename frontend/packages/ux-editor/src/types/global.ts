@@ -3,12 +3,9 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
-import type { BooleanExpression } from '@studio/components';
+import type { BooleanExpression } from '@studio/components-legacy';
 import type React from 'react';
 
-export interface IFormDesignerNameSpace<T1> {
-  formDesigner: T1;
-}
 export interface IOption {
   label: string;
   value: any;
@@ -16,7 +13,17 @@ export interface IOption {
 
 export type ITextResourceBindings = KeyValuePairs<string>;
 
-export type IDataModelBindings = KeyValuePairs<string>;
+export type ImplicitDataModelBinding = string;
+export type ExplicitDataModelBinding = {
+  dataType: string;
+  field: string;
+};
+
+export type IDataModelBindingsKeyValue =
+  | KeyValuePairs<ImplicitDataModelBinding>
+  | KeyValuePairs<ExplicitDataModelBinding>;
+export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
+
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
@@ -39,12 +46,6 @@ export interface IInternalLayoutWithName {
 }
 
 export type IFormLayoutOrder = KeyValuePairs<string[]>;
-
-export interface IRuleModelFieldElement {
-  type: 'rule' | 'condition';
-  name: string;
-  inputs: any;
-}
 
 export interface IWidget {
   components: any[];

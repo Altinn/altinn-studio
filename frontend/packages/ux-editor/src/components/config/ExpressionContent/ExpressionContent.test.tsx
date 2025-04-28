@@ -10,7 +10,7 @@ import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppContextProps } from '../../../AppContext';
-import { LogicalTupleOperator } from '@studio/components';
+import { LogicalTupleOperator } from '@studio/components-legacy';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
@@ -58,11 +58,23 @@ describe('ExpressionContent', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const onDelete = jest.fn();
-    renderExpressionContent({ onDelete });
+    renderExpressionContent({ onDelete, expression: parsableLogicalExpression });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = screen.getByRole('button', { name: deleteButtonName });
     await user.click(deleteButton);
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('Show delete button when existing an expression', async () => {
+    renderExpressionContent({ expression: parsableLogicalExpression });
+    screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
+  });
+
+  it('Do not show delete button if there is no expression', async () => {
+    renderExpressionContent();
+    expect(
+      screen.queryByRole('button', { name: textMock('right_menu.expression_delete') }),
+    ).not.toBeInTheDocument();
   });
 });
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioToggleableTextfield } from '@studio/components';
-import { KeyVerticalIcon } from '@studio/icons';
+import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
@@ -45,22 +44,10 @@ export const EditTaskId = (): React.ReactElement => {
   return (
     <StudioToggleableTextfield
       customValidation={validateBpmnTaskId}
-      inputProps={{
-        icon: <KeyVerticalIcon />,
-        label: t('process_editor.configuration_panel_change_task_id'),
-        value: bpmnDetails.id,
-        onBlur: (event) => handleOnTaskIdBlur(event),
-        size: 'small',
-      }}
-      viewProps={{
-        children: (
-          <span>
-            <b>ID:</b> {bpmnDetails.id}
-          </span>
-        ),
-        variant: 'tertiary',
-        'aria-label': t('process_editor.configuration_panel_change_task_id'),
-      }}
+      label={t('process_editor.configuration_panel_change_task_id')}
+      title={t('process_editor.configuration_panel_change_task_id')}
+      onBlur={handleOnTaskIdBlur}
+      value={bpmnDetails.id}
     />
   );
 };

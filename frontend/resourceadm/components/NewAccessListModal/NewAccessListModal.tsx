@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
@@ -92,7 +91,9 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
             </>
           }
         >
-          <Paragraph size='small'>{t('resourceadm.listadmin_create_list_description')}</Paragraph>
+          <StudioParagraph size='sm'>
+            {t('resourceadm.listadmin_create_list_description')}
+          </StudioParagraph>
           <ResourceNameAndId
             idLabel={t('resourceadm.listadmin_list_id')}
             titleLabel={t('resourceadm.listadmin_list_name')}

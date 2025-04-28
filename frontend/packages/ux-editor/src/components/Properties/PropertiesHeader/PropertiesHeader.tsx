@@ -2,14 +2,20 @@ import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { StudioSectionHeader } from '@studio/components';
-
+import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
+import { ComponentMainConfig } from './ComponentMainConfig';
+import { HeaderMainConfig } from './HeaderMainConfig';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
+import { TextMainConfig } from './TextMainConfig';
+import { DataModelMainConfig } from './DataModelMainConfig';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -21,11 +27,26 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { data: schema, isPending } = useComponentSchemaQuery(formItem.type);
+
+  if (isPending) {
+    return (
+      <StudioSpinner
+        showSpinnerTitle
+        spinnerTitle={t('ux_editor.properties_panel.texts.loading')}
+      />
+    );
+  }
+
+  const { dataModelBindings, textResourceBindings } = schema.properties;
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
     : formItemConfigs[formItem.type]?.icon;
+
+  const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
+  const isMainConfigFeatureEnabled = shouldDisplayFeature(FeatureFlag.MainConfig);
 
   return (
     <>
@@ -40,13 +61,44 @@ export const PropertiesHeader = ({
           title: t('ux_editor.component_help_text_general_title'),
         }}
       />
-      <div className={classes.content}>
-        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
+      {isComponentDeprecated(formItem.type) && (
+        <StudioAlert size='sm' className={classes.alertWrapper} severity='warning'>
+          {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
+        </StudioAlert>
+      )}
+      <div className={classes.mainContent}>
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
             handleComponentChange={handleComponentUpdate}
           />
+        )}
+        {!hideMainConfig && isMainConfigFeatureEnabled && <HeaderMainConfig />}
+        {!hideMainConfig && (
+          <>
+            <EditComponentIdRow
+              component={formItem}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+            {isMainConfigFeatureEnabled && (
+              <TextMainConfig
+                component={formItem}
+                handleComponentChange={handleComponentUpdate}
+                title={textResourceBindings?.properties?.title}
+              />
+            )}
+            <ComponentMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+            />
+            {isMainConfigFeatureEnabled && (
+              <DataModelMainConfig
+                component={formItem}
+                handleComponentChange={handleComponentUpdate}
+                requiredDataModelBindings={dataModelBindings?.required}
+              />
+            )}
+          </>
         )}
       </div>
     </>

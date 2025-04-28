@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,14 +26,17 @@ namespace Altinn.Studio.Designer.Controllers;
 public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;
+    private readonly IOrgCodeListService _orgCodeListService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
-    public OptionsController(IOptionsService optionsService)
+    /// <param name="orgCodeListService">The code list service for organisation level.</param>
+    public OptionsController(IOptionsService optionsService, IOrgCodeListService orgCodeListService)
     {
         _optionsService = optionsService;
+        _orgCodeListService = orgCodeListService;
     }
 
     /// <summary>
@@ -161,7 +165,7 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult<Dictionary<string, List<Option>>>> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option>>> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -250,5 +254,28 @@ public class OptionsController : ControllerBase
         }
 
         return Ok($"The options file {optionsListId}.json has been deleted.");
+    }
+
+    [HttpPost]
+    [Route("import/{optionListId}")]
+    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionListId, cancellationToken);
+        if (!codeListExists)
+        {
+            return NotFound($"The code list file {optionListId}.json does not exist.");
+        }
+
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, cancellationToken);
+
+        if (importedOptionList is null)
+        {
+            return Conflict($"The options file {optionListId}.json already exists.");
+        }
+
+        return Ok(importedOptionList);
     }
 }

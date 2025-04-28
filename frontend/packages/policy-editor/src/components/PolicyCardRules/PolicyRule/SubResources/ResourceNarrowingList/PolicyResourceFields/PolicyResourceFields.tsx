@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
 import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';
@@ -69,7 +69,6 @@ export const PolicyResourceFields = ({
           )}
           <StudioTextfield
             value={resource.type}
-            size='small'
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               handleInputChange('type', event.target.value)
             }
@@ -86,7 +85,6 @@ export const PolicyResourceFields = ({
           )}
           <StudioTextfield
             value={resource.id}
-            size='small'
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               handleInputChange('id', event.target.value)
             }

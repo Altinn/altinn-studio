@@ -5,7 +5,7 @@ import {
   StudioParagraph,
   StudioRecommendedNextAction,
   StudioTextfield,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
@@ -110,7 +110,6 @@ export const CreateNewSubformSection = ({
           <StudioTextfield
             name='subform'
             label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-            size='sm'
             disabled={isPendingNewSubformMutation}
             onChange={(e) => handleSubformName(e.target.value)}
             error={newSubformNameError}

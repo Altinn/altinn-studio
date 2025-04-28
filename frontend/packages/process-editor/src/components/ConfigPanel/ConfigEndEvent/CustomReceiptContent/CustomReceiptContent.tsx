@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './CustomReceiptContent.module.css';
-import { StudioProperty, StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
 import { CreateCustomReceiptForm } from './CreateCustomReceiptForm';
@@ -27,7 +27,6 @@ export const CustomReceiptContent = (): React.ReactElement => {
     return (
       <StudioProperty.Button
         onClick={openCustomReceiptFields}
-        size='small'
         property={t('process_editor.configuration_panel_custom_receipt_create_your_own_button')}
         className={classes.createButton}
       />

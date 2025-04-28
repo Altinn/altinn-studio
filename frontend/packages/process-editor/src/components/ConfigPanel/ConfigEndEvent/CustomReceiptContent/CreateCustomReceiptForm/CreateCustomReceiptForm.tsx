@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CreateCustomReceiptForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
@@ -87,7 +87,6 @@ export const CreateCustomReceiptForm = ({
         name='customReceiptLayoutSetId'
         label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
         value={existingCustomReceiptLayoutSetId}
-        size='small'
         error={layoutSetError}
         onChange={handleValidateLayoutSetId}
       />

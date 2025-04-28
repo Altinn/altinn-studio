@@ -24,3 +24,7 @@
 .duplicateComponentIds {
   background-color: var(--fds-semantic-surface-danger-subtle) !important;
 }
+
+.deprecatedComponent {
+  background-color: var(--fds-semantic-surface-warning-default);
+}

@@ -13,7 +13,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { externalLayoutsMock, layout1NameMock } from '../testing/layoutMock';
+import { externalLayoutsMock, layout1NameMock, pagesModelMock } from '../testing/layoutMock';
 import { FormItemContext } from './FormItemContext';
 import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
@@ -40,6 +40,7 @@ const render = () => {
       .fn()
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
+    getPages: jest.fn().mockImplementation(() => Promise.resolve(pagesModelMock)),
   };
   queryClient.setQueryData(
     [QueryKey.DataModelMetadata, org, app, 'test-layout-set', dataModelName],
@@ -80,7 +81,9 @@ const dragAndDrop = (src: Element, dst: Element) => {
 };
 
 describe('FormDesigner', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should render the spinner', () => {
     render();

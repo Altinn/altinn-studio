@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,6 +13,9 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMoc
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -29,7 +30,11 @@ const defaultProps: PropertiesHeaderProps = {
 };
 
 describe('PropertiesHeader', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    queryClientMock.clear();
+    typedLocalStorage.removeItem('featureFlags');
+  });
 
   it('renders the header name for the component', () => {
     renderPropertiesHeader();
@@ -39,6 +44,12 @@ describe('PropertiesHeader', () => {
       level: 2,
     });
     expect(heading).toBeInTheDocument();
+  });
+
+  it('should render spinner when fetching component schema', async () => {
+    renderPropertiesHeader({}, false);
+    const spinner = screen.getByText(textMock('ux_editor.properties_panel.texts.loading'));
+    expect(spinner).toBeInTheDocument();
   });
 
   it('displays the help text when the help text button is clicked', async () => {
@@ -65,7 +76,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.click(editComponentIdButton);
 
@@ -83,7 +94,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.click(editComponentIdButton);
 
@@ -149,22 +160,49 @@ describe('PropertiesHeader', () => {
     });
     expect(setLayoutSetButton).not.toBeInTheDocument();
   });
+
+  it('should show warning when component is deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Summary] });
+    const alert = screen.getByText(textMock('ux_editor.component_properties.deprecated.Summary'));
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('should not show warning when component is not deprecated', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+    const alert = screen.queryByText(textMock('ux_editor.component_properties.deprecated.Input'));
+    expect(alert).not.toBeInTheDocument();
+  });
+
+  it('should render main configuration header when feature flag is set', () => {
+    addFeatureFlagToLocalStorage(FeatureFlag.MainConfig);
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+
+    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
+    const headerMainConfig = screen.getByText(sectionHeader);
+    expect(headerMainConfig).toBeInTheDocument();
+  });
+
+  it('should not render main configuration header when feature flag is not set', () => {
+    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
+    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
+    const headerMainConfig = screen.queryByText(sectionHeader);
+    expect(headerMainConfig).not.toBeInTheDocument();
+  });
 });
-const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
+
+const renderPropertiesHeader = (
+  props: Partial<PropertiesHeaderProps> = {},
+  useSetQueryDataSchema: boolean = true,
+) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, componentType],
-    componentSchemaMocks[componentType],
-  );
+
+  if (useSetQueryDataSchema)
+    queryClientMock.setQueryData(
+      [QueryKey.FormComponent, componentType],
+      componentSchemaMocks[componentType],
+    );
+
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  return renderWithProviders(
-    <FormItemContext.Provider
-      value={{
-        ...formItemContextProviderMock,
-      }}
-    >
-      <PropertiesHeader {...defaultProps} {...props} />
-    </FormItemContext.Provider>,
-  );
+  return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);
 };

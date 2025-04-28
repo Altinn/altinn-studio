@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/designsystemet-react';
-import { StudioCenter } from '@studio/components';
+import {
+  StudioAlert,
+  StudioCenter,
+  StudioCombobox,
+  StudioErrorMessage,
+  StudioParagraph,
+  StudioSpinner,
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -58,10 +64,10 @@ export const ServiceContent = ({
     case 'pending': {
       return (
         <StudioCenter className={classes.contentWrapper}>
-          <Spinner
-            size='xlarge'
+          <StudioSpinner
+            size='xl'
             variant='interaction'
-            title={t('resourceadm.import_resource_spinner')}
+            spinnerTitle={t('resourceadm.import_resource_spinner')}
           />
         </StudioCenter>
       );
@@ -69,26 +75,26 @@ export const ServiceContent = ({
     case 'error': {
       return (
         <StudioCenter className={classes.contentWrapper}>
-          <Alert severity='danger'>
-            <Paragraph size='small'>{t('general.fetch_error_message')}</Paragraph>
-            <Paragraph size='small'>{t('general.error_message_with_colon')}</Paragraph>
+          <StudioAlert severity='danger'>
+            <StudioParagraph size='sm'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph size='sm'>{t('general.error_message_with_colon')}</StudioParagraph>
             {altinn2LinkServicesError && (
-              <ErrorMessage size='small'>{altinn2LinkServicesError.message}</ErrorMessage>
+              <StudioErrorMessage size='sm'>{altinn2LinkServicesError.message}</StudioErrorMessage>
             )}
-          </Alert>
+          </StudioAlert>
         </StudioCenter>
       );
     }
     case 'success': {
       if (altinn2LinkServices.length === 0) {
         return (
-          <ErrorMessage className={classes.contentWrapper} size='small'>
+          <StudioErrorMessage className={classes.contentWrapper} size='sm'>
             {t('resourceadm.import_resource_empty_list', { env: env })}
-          </ErrorMessage>
+          </StudioErrorMessage>
         );
       }
       return (
-        <Combobox
+        <StudioCombobox
           portal={false}
           value={
             selectedService
@@ -103,15 +109,15 @@ export const ServiceContent = ({
             option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
           }
         >
-          <Combobox.Empty>
+          <StudioCombobox.Empty>
             {t('resourceadm.dashboard_import_modal_no_services_found')}
-          </Combobox.Empty>
+          </StudioCombobox.Empty>
           {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
-            <Combobox.Option key={ls.value} value={ls.value}>
+            <StudioCombobox.Option key={ls.value} value={ls.value}>
               {ls.label}
-            </Combobox.Option>
+            </StudioCombobox.Option>
           ))}
-        </Combobox>
+        </StudioCombobox>
       );
     }
   }

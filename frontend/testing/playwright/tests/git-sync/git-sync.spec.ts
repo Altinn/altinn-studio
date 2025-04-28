@@ -3,7 +3,7 @@ import type { Download, Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
@@ -30,6 +30,7 @@ const setupAndVerifyUiEditorPage = async (
 ): Promise<UiEditorPage> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
+  await uiEditorPage.clickOnUxEditorButton();
   await uiEditorPage.verifyUiEditorPage();
   return uiEditorPage;
 };
@@ -39,7 +40,7 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   testAppName,
 }) => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const newPageName: string = 'Side2';
@@ -61,7 +62,7 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
 
 test('That it is possible to delete local changes', async ({ page, testAppName }) => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const localChangesModal = new LocalChangesModal(page, { app: testAppName });
 
   const newPageName: string = 'Side2';
@@ -102,7 +103,10 @@ const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName
   await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.NavigationButtons);
 };
 
-const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: GiteaPage) => {
+const goToGiteaAndNavigateToUiLayoutFiles = async (
+  header: AppDevelopmentHeader,
+  giteaPage: GiteaPage,
+) => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
@@ -116,9 +120,9 @@ const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: Gi
 const makeUiEditorChangesAndOpenLocalChangesModal = async (
   page: Page,
   testAppName: string,
-): Promise<Header> => {
+): Promise<AppDevelopmentHeader> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   const newPageName: string = 'Side2';
   await makeChangesOnUiEditorPage(uiEditorPage, newPageName);

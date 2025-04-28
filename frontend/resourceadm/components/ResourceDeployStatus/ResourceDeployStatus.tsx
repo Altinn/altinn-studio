@@ -4,9 +4,8 @@ import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
-import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { LinkButton } from '../LinkButton';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioAlert, StudioLabelAsParagraph, StudioParagraph } from '@studio/components-legacy';
 
 export type ResourceDeployStatusProps = {
   /**
@@ -53,22 +52,22 @@ export const ResourceDeployStatus = ({
   resourceId,
 }: ResourceDeployStatusProps): React.JSX.Element => {
   return (
-    <Alert severity={isSuccess ? 'success' : 'danger'}>
-      <StudioLabelAsParagraph size='small' className={classes.title}>
+    <StudioAlert severity={isSuccess ? 'success' : 'danger'}>
+      <StudioLabelAsParagraph size='sm' className={classes.title}>
         {title}
       </StudioLabelAsParagraph>
       {error.map((errorItem, index) => {
         return (
           <div className={classes.cardElement} key={index + resourceId}>
             <ArrowRightIcon fontSize='1.5rem' />
-            <Paragraph size='small' className={classes.text}>
+            <StudioParagraph size='sm' className={classes.text}>
               <Trans i18nKey={errorItem.message} values={{ num: errorItem.numberOfErrors }}>
                 <LinkButton onClick={onNavigateToPageWithError} page={errorItem.pageWithError} />
               </Trans>
-            </Paragraph>
+            </StudioParagraph>
           </div>
         );
       })}
-    </Alert>
+    </StudioAlert>
   );
 };

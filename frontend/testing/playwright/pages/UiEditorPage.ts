@@ -232,7 +232,11 @@ export class UiEditorPage extends BasePage {
   }
 
   public async deleteOldComponentId(): Promise<void> {
-    await this.page.getByRole('button', { name: /ID:/ }).click();
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('ux_editor.modal_properties_component_change_id'),
+      })
+      .click();
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
       .clear();
@@ -258,6 +262,17 @@ export class UiEditorPage extends BasePage {
 
   public async verifyThatTextareaIsVisible(lang: LanguageCode): Promise<void> {
     await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
+  }
+
+  public async clickOnUxEditorButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('ux_editor.task_card.ux_editor') })
+      .click();
+  }
+
+  public async verifyThatAddNewPageButtonIsVisible(): Promise<void> {
+    const addButton = this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') });
+    await expect(addButton).toBeVisible();
   }
 
   private getDroppableList(): Locator {

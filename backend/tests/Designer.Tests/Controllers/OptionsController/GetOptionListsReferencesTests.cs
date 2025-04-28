@@ -41,20 +41,26 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
-                        LayoutName = "layoutWithOneOptionListIdRef.json",
-                        LayoutSetId = "layoutSet1"
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
-                        LayoutSetId = "layoutSet1"
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     },
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-same-options-id-in-another-set"],
-                        LayoutName = "layoutWithTwoOptionListIdRefs.json",
-                        LayoutSetId = "layoutSet2"
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                        TaskId = "Task_2",
+                        TaskType = "data"
                     }
                 ]
             },
@@ -65,8 +71,10 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                     new OptionListIdSource
                     {
                         ComponentIds = ["component-using-other-options-id"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
-                        LayoutSetId = "layoutSet1"
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
                     }
                 ]
             }

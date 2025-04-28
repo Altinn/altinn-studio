@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import type { TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { Textarea } from '@digdir/designsystemet-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
 import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
+import { StudioTextarea } from '@studio/components-legacy';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;
@@ -47,7 +47,7 @@ export const TextEntry = ({
           if (errorCode === 'TextSouldNotBeEmpty') return t('validation_errors.required');
         }}
         renderField={({ fieldProps }) => (
-          <Textarea
+          <StudioTextarea
             {...fieldProps}
             aria-label={t('text_editor.table_row_input_label', {
               lang: t(`language.${lang}`),
@@ -57,7 +57,6 @@ export const TextEntry = ({
             onBlur={handleTextEntryBlur}
             onChange={handleTextEntryChange}
             ref={textareaRef}
-            size='small'
           />
         )}
       ></FormField>

@@ -5,19 +5,23 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/designsystemet-react';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
-import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
 import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
+import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
+import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { DesignViewNavigation } from '../DesignViewNavigation';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { PageGroupAccordion } from './PageGroupAccordion';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -37,7 +41,8 @@ export const DesignView = (): ReactNode => {
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
-  const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -45,18 +50,10 @@ export const DesignView = (): ReactNode => {
   // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
   // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
   useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
   const layouts = useFormLayouts();
   const { getPdfLayoutName } = usePdf();
-  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
-
-  const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
 
   /**
    * Handles the click of an accordion. It updates the URL and sets the
@@ -73,21 +70,25 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    let newNum = layoutOrder.length + 1;
+    let newNum = pagesModel?.pages?.length + 1;
     let newLayoutName = `${t('ux_editor.page')}${newNum}`;
 
-    while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
+    while (
+      pagesModel?.pages?.find((page) => page.id === newLayoutName) ||
+      getPdfLayoutName() === newLayoutName
+    ) {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
-    addLayoutMutation(
-      { layoutName: newLayoutName },
-      {
-        onSuccess: async () => {
-          await updateLayoutsForPreview(selectedFormLayoutSetName);
-        },
+    const page: PageModel = {
+      id: newLayoutName,
+    };
+    addPageMutation(page, {
+      onSuccess: async () => {
+        setSelectedFormLayoutName(page.id);
+        await updateLayoutsForPreview(selectedFormLayoutSetName);
       },
-    );
+    });
   };
 
   const layoutsWithDuplicateComponents = useMemo(
@@ -98,27 +99,27 @@ export const DesignView = (): ReactNode => {
   /**
    * Displays the pages as an ordered list
    */
-  const displayPageAccordions = layoutOrder.map((pageName, i) => {
-    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName);
+  const displayPageAccordions = pagesModel?.pages?.map((pageModel) => {
+    const layout = layouts?.[pageModel.id];
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
 
     return (
       <PageAccordion
-        key={i}
-        pageName={layout.page}
-        isOpen={layout.page === selectedFormLayoutName}
-        onClick={() => handleClickAccordion(layout.page)}
+        key={pageModel.id}
+        pageName={pageModel.id}
+        isOpen={pageModel.id === selectedFormLayoutName}
+        onClick={() => handleClickAccordion(pageModel.id)}
         isInvalid={isInvalidLayout}
-        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
+        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(pageModel.id)}
       >
-        {layout.page === selectedFormLayoutName && (
+        {pageModel.id === selectedFormLayoutName && (
           <FormLayout
-            layout={layout.data}
+            layout={layout}
             isInvalid={isInvalidLayout}
             duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
           />
@@ -127,11 +128,29 @@ export const DesignView = (): ReactNode => {
     );
   });
 
+  const hasGroups = pagesModel?.groups?.length > 0;
+
+  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+
   return (
     <div className={classes.root}>
       <div className={classes.wrapper}>
+        {isTaskNavigationPageGroups && <DesignViewNavigation />}
         <div className={classes.accordionWrapper}>
-          <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+          {isTaskNavigationPageGroups && hasGroups ? (
+            <PageGroupAccordion
+              groups={pagesModel?.groups}
+              layouts={layouts}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={handleClickAccordion}
+              onAddPage={handleAddPage}
+              isAddPagePending={isAddPageMutationPending}
+            />
+          ) : (
+            pagesModel?.pages?.length > 0 && (
+              <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+            )
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>
@@ -139,7 +158,7 @@ export const DesignView = (): ReactNode => {
           icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPage()}
           className={classes.button}
-          disabled={isAddLayoutMutationPending}
+          disabled={isAddPageMutationPending}
         >
           {t('ux_editor.pages_add')}
         </StudioButton>

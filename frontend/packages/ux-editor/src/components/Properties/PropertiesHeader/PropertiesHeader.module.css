@@ -1,8 +1,11 @@
-.content {
+.mainContent {
   display: flex;
   flex-direction: column;
   background-color: var(--fds-semantic-surface-neutral-default);
-  gap: var(--fds-spacing-2);
-  padding-bottom: var(--fds-spacing-2);
-  align-items: flex-start;
+  gap: var(--fds-spacing-3);
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.alertWrapper {
+  margin: var(--fds-spacing-3);
 }

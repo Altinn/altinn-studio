@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Heading } from '@digdir/designsystemet-react';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
-import { StudioBetaTag } from '@studio/components';
+import cn from 'classnames';
+import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export const Navigation = () => {
   const { t } = useTranslation();
@@ -19,10 +20,13 @@ export const Navigation = () => {
       <div className={classes.links}>
         {menuItems.map((menuItem) => {
           return (
-            <Link key={menuItem.key} to={`../${menuItem.link}`} className={classes.link}>
+            <Link
+              key={menuItem.key}
+              to={`../${menuItem.link}`}
+              className={cn(classes.link, menuItem.isBeta && studioBetaTagClasses.isBeta)}
+            >
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
-              {menuItem.isBeta && <StudioBetaTag />}
             </Link>
           );
         })}

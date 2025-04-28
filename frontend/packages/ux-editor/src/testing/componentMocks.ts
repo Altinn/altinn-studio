@@ -73,6 +73,13 @@ const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   dataModelBindings: { simpleBinding: '' },
   timeStamp: true,
 };
+
+const dividerComponent: FormComponent<ComponentType.Divider> = {
+  ...commonProps(ComponentType.Divider),
+  id: ComponentType.Divider,
+  type: ComponentType.Divider,
+  dataModelBindings: {},
+};
 const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
   ...commonProps(ComponentType.Dropdown),
   type: ComponentType.Dropdown,
@@ -177,6 +184,12 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   itemType: 'CONTAINER',
   dataModelBindings: { group: '' },
 };
+
+const summaryComponent: FormComponent<ComponentType.Summary> = {
+  ...commonProps(ComponentType.Summary),
+  componentRef: 'some-component',
+};
+
 const summary2Component: FormComponent<ComponentType.Summary2> = {
   ...commonProps(ComponentType.Summary2),
   target: {
@@ -195,6 +208,7 @@ export const componentMocks = {
   [ComponentType.CustomButton]: customButton,
   [CustomComponentType.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
+  [ComponentType.Divider]: dividerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
   [ComponentType.FileUpload]: fileUploadComponent,
@@ -211,5 +225,6 @@ export const componentMocks = {
   [ComponentType.Subform]: subformComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
+  [ComponentType.Summary]: summaryComponent,
   [ComponentType.Summary2]: summary2Component,
 };

@@ -4,7 +4,7 @@ import { ArrRestrictionKey } from '@altinn/schema-model';
 import { Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function ArrayRestrictions({
@@ -28,7 +28,6 @@ export function ArrayRestrictions({
             }
             value={restrictions[ArrRestrictionKey.minItems]}
             type='number'
-            size='sm'
           />
         </div>
         <div className={classes.item}>
@@ -43,7 +42,6 @@ export function ArrayRestrictions({
             }
             value={restrictions[ArrRestrictionKey.maxItems]}
             type='number'
-            size='sm'
           />
         </div>
       </div>

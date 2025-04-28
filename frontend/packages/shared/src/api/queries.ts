@@ -8,7 +8,7 @@ import {
   branchStatusPath,
   dataModelMetadataPath,
   dataModelPath,
-  dataModelsPath,
+  dataModelsJsonPath,
   dataModelsXsdPath,
   deployPermissionsPath,
   deploymentsPath,
@@ -20,6 +20,7 @@ import {
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
+  orgTextResourcesPath,
   accessListsPath,
   accessListPath,
   accessListMemberPath,
@@ -60,7 +61,12 @@ import {
   resourceAccessPackageServicesPath,
   optionListPath,
   optionListReferencesPath,
+  userOrgPermissionsPath,
   dataTypePath,
+  orgCodeListsPath,
+  layoutPagesPath,
+  taskNavigationGroupPath,
+  availableResourcesInOrgLibraryPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -98,6 +104,10 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
+import type { CodeListsResponse } from '../types/api/CodeListsResponse';
+import type { PagesModel } from '../types/api/dto/PagesModel';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -109,7 +119,7 @@ export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVe
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
-export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsPath(owner, app));
+export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsJsonPath(owner, app));
 export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));
 export const getDataType = (org: string, app: string, dataModelName: string) => get<DataType>(dataTypePath(org, app, dataModelName));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
@@ -127,6 +137,8 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
+export const getAvailableResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
@@ -137,11 +149,16 @@ export const getRuleConfig = (owner: string, app: string, layoutSetName: string)
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
+export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
+export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
+
+// Layout
+export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
 
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
@@ -174,3 +191,7 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
+
+// Organisation library
+export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(orgTextResourcesPath(org, language));

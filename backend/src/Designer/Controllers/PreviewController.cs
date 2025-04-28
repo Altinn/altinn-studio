@@ -13,6 +13,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Preview;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -39,6 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <param name="textsService">Texts Service</param>
     /// <param name="appDevelopmentService">App Development Service</param>
     /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
@@ -60,8 +62,6 @@ namespace Altinn.Studio.Designer.Controllers
 
         // This value will be overridden to act as the task number for apps that use layout sets
         private const int PartyId = 51001;
-        private const string MINIMUM_NUGET_VERSION = "8.0.0.0";
-        private const int MINIMUM_PREVIEW_NUGET_VERSION = 15;
 
         /// <summary>
         /// Default action for the preview.
@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Controllers
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             string appNugetVersionString = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)).ToString();
             // This property is populated at runtime by the apps, so we need to mock it here
-            applicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
+            applicationMetadata.AltinnNugetVersion = NugetVersionHelper.GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
             applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
             return Ok(applicationMetadata);
         }
@@ -376,7 +376,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1(languageCode, cancellationToken);
+            Models.TextResource textResource = await altinnAppGitRepository.GetText(languageCode, cancellationToken);
             return Ok(textResource);
         }
 
@@ -412,7 +412,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb", cancellationToken);
+            Models.TextResource textResource = await altinnAppGitRepository.GetText("nb", cancellationToken);
             return Ok(textResource);
         }
 
@@ -724,29 +724,6 @@ namespace Altinn.Studio.Designer.Controllers
             return modifiedContent;
         }
 
-        /// <summary>
-        /// Method to get the mocked altinn nuget build from the version
-        /// We are returnning the minimum BUILD version of the nuget package that is required for app frontend to work
-        /// from v4 and above.
-        /// </summary>
-        /// <param name="version">The version of the nuget package</param>
-        /// <returns>The minimum build version of the nuget package</returns>
-        private string GetMockedAltinnNugetBuildFromVersion(string version)
-        {
-
-            string[] versionParts = version.Split('.');
-            if (!IsValidSemVerVersion(versionParts))
-            {
-                return string.Empty;
-            }
-
-            if (IsPreviewVersion(versionParts) && GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
-            {
-                return string.Empty;
-            }
-
-            return MINIMUM_NUGET_VERSION;
-        }
 
         /// <summary>
         /// Method to override the partyTypesAllowed in app metadata to bypass the check in app-frontend for a valid party during instantiation.
@@ -762,19 +739,5 @@ namespace Altinn.Studio.Designer.Controllers
             return applicationMetadata;
         }
 
-        private bool IsValidSemVerVersion(string[] versionParts)
-        {
-            return versionParts.Length >= 3 && Convert.ToInt32(versionParts[0]) >= 8;
-        }
-
-        private bool IsPreviewVersion(string[] versionParts)
-        {
-            return versionParts[2].Contains("-preview") && versionParts.Length == 4;
-        }
-
-        private int GetPreviewVersion(string[] versionParts)
-        {
-            return Convert.ToInt32(versionParts[3]);
-        }
     }
 }

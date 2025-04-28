@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
-import { Combobox, Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +11,13 @@ import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioModal } from '@studio/components';
+import {
+  StudioButton,
+  StudioCombobox,
+  StudioModal,
+  StudioParagraph,
+  StudioTextfield,
+} from '@studio/components-legacy';
 import { formatIdString } from '../../utils/stringUtils';
 import {
   getAvailableEnvironments,
@@ -119,7 +124,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
             </>
           }
         >
-          <Combobox
+          <StudioCombobox
             portal={false}
             value={selectedEnv ? [selectedEnv] : undefined}
             label={t('resourceadm.dashboard_import_modal_select_env')}
@@ -130,11 +135,11 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
             }}
           >
             {environmentOptions.map((env) => (
-              <Combobox.Option key={env.id} value={env.id}>
+              <StudioCombobox.Option key={env.id} value={env.id}>
                 {t(env.label)}
-              </Combobox.Option>
+              </StudioCombobox.Option>
             ))}
-          </Combobox>
+          </StudioCombobox>
           {selectedEnv && (
             <div>
               <ServiceContent
@@ -149,10 +154,10 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
               {selectedService && (
                 <div>
                   <div className={classes.contentDivider} />
-                  <Paragraph size='small' spacing>
+                  <StudioParagraph size='sm' spacing>
                     {t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
-                  </Paragraph>
-                  <Textfield
+                  </StudioParagraph>
+                  <StudioTextfield
                     label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
                     value={id}
                     onChange={(event) => {

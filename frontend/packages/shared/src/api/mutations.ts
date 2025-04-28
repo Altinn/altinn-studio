@@ -1,4 +1,4 @@
-import { del, get, post, put } from 'app-shared/utils/networking';
+import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -48,6 +48,12 @@ import {
   createInstancePath,
   dataTypePath,
   optionListPath,
+  undeployAppFromEnvPath,
+  orgCodeListPath,
+  orgCodeListUploadPath,
+  layoutPagesPath,
+  orgTextResourcesPath,
+  importCodeListFromOrgPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -56,7 +62,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -74,6 +80,12 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
+import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import type { PageModel } from '../types/api/dto/PageModel';
+import type { PagesModel } from '../types/api/dto/PagesModel';
+import type { OptionList } from '../types/OptionList';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const headers = {
   Accept: 'application/json',
@@ -95,6 +107,7 @@ export const commitAndPushChanges = (org: string, app: string, payload: CreateRe
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
+export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) =>
@@ -128,7 +141,13 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
+export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string) => post<OptionList>(importCodeListFromOrgPath(org, app, codeListId));
+
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
+export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
+export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
+export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
+export const changePageOrder = (org: string, app: string, layoutSetName: string, pages: PagesModel) => put(layoutPagesPath(org, app, layoutSetName), pages);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
@@ -165,3 +184,13 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+
+// Organisation library code lists:
+export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
+export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
+
+// Organisation text resources:
+export const createTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
+export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);

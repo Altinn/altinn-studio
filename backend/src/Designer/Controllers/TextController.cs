@@ -20,6 +20,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller for resources
     /// </summary>
+    [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/text")]
@@ -81,7 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                TextResource textResource = await _textsService.GetTextV1(org, app, developer, languageCode);
+                TextResource textResource = await _textsService.GetText(org, app, developer, languageCode);
                 return Ok(textResource);
             }
             catch (NotFoundException)
@@ -106,7 +107,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                await _textsService.SaveTextV1(org, app, developer, jsonData, languageCode);
+                await _textsService.SaveText(org, app, developer, jsonData, languageCode);
                 return Ok($"Text resource, resource.{languageCode}.json, was successfully saved.");
             }
             catch (ArgumentException e)
@@ -169,7 +170,7 @@ namespace Altinn.Studio.Designer.Controllers
                 IList<string> langCodes = _textsService.GetLanguages(org, app, developer);
                 foreach (string languageCode in langCodes)
                 {
-                    TextResource textResourceObject = await _textsService.GetTextV1(org, app, developer, languageCode);
+                    TextResource textResourceObject = await _textsService.GetText(org, app, developer, languageCode);
 
                     foreach (TextIdMutation m in mutations)
                     {
@@ -204,7 +205,7 @@ namespace Altinn.Studio.Designer.Controllers
                         idMutations = mutations,
                         EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
                     });
-                    await _textsService.SaveTextV1(org, app, developer, textResourceObject, languageCode);
+                    await _textsService.SaveText(org, app, developer, textResourceObject, languageCode);
                 }
             }
             catch (ArgumentException exception)

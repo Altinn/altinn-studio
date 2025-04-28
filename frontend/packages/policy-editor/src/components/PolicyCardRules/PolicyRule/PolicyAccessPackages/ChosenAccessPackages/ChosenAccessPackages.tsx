@@ -1,8 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
 import { PolicyAccessPackageAccordion } from '../PolicyAccessPackageAccordion';
-import { filterAccessPackagesById, flatMapAreaPackageList } from '../policyAccessPackageUtils';
+import { flatMapAreaPackageList } from '../policyAccessPackageUtils';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
@@ -23,10 +23,18 @@ export const ChosenAccessPackages = ({
   const flatMappedAreaList: PolicyAccessPackage[] = flatMapAreaPackageList(
     groupedAccessPackagesByArea,
   );
-  const selectedAccessPackageList: PolicyAccessPackage[] = filterAccessPackagesById(
-    flatMappedAreaList,
-    chosenAccessPackages,
-  );
+
+  const createUnknownAccessPackageData = (urn: string): PolicyAccessPackage => {
+    return {
+      id: urn,
+      urn,
+      name: t('policy_editor.access_package_unknown_heading'),
+      description: t('policy_editor.access_package_unknown_description', {
+        accessPackageUrn: urn,
+      }),
+      isDelegable: true,
+    };
+  };
 
   if (chosenAccessPackages.length > 0) {
     return (
@@ -34,11 +42,17 @@ export const ChosenAccessPackages = ({
         <StudioLabelAsParagraph size='xs' spacing>
           {t('policy_editor.access_package_chosen_packages')}
         </StudioLabelAsParagraph>
-        {selectedAccessPackageList.map((accessPackage: PolicyAccessPackage) => {
+        {chosenAccessPackages.map((accessPackageUrn: string) => {
+          const chosenAccessPackage = flatMappedAreaList.find(
+            (accessPackage) => accessPackage.urn === accessPackageUrn,
+          );
+          const accessPackageData =
+            chosenAccessPackage ?? createUnknownAccessPackageData(accessPackageUrn);
+
           return (
             <PolicyAccessPackageAccordion
-              key={accessPackage.urn}
-              accessPackage={accessPackage}
+              key={accessPackageData.urn}
+              accessPackage={accessPackageData}
               isChecked={true}
               handleSelectChange={handleSelectAccessPackage}
             />

@@ -3,7 +3,10 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
+import {
+  StudioDisplayTile,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components-legacy';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';
@@ -15,6 +18,7 @@ import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -34,6 +38,10 @@ export const ConfigContent = (): React.ReactElement => {
   const isFirstSigningTask = tasks
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
+
+  const isTaskNavigationEditCardsEnabled = shouldDisplayFeature(
+    FeatureFlag.TaskNavigationEditCards,
+  );
 
   if (shouldDisplayAction(bpmnDetails.id)) {
     return (
@@ -64,7 +72,8 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
-          {taskHasConnectedLayoutSet && (
+          {!isTaskNavigationEditCardsEnabled && taskHasConnectedLayoutSet && (
+            /*We just hide the accordion for now, It will be removed when we remove featureFlags*/
             <Accordion.Item>
               <Accordion.Header>
                 {t('process_editor.configuration_panel_design_title')}

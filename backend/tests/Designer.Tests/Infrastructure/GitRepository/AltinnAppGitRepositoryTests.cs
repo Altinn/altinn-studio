@@ -70,9 +70,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Equal("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES", dataField.DataTypeId);
 
             Assert.False(applicationMetadata.AutoDeleteOnProcessEnd);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z"), applicationMetadata.Created);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z").ToUniversalTime(), applicationMetadata.Created);
             Assert.Equal("Ronny", applicationMetadata.CreatedBy);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z"), applicationMetadata.LastChanged);
+            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(), applicationMetadata.LastChanged);
             Assert.Equal("Ronny", applicationMetadata.LastChangedBy);
         }
 
@@ -84,7 +84,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            var textResource = await altinnAppGitRepository.GetTextV1("nb");
+            var textResource = await altinnAppGitRepository.GetText("nb");
 
             Assert.NotNull(textResource);
             Assert.Equal("Hvem er hvem?", textResource.Resources.First(r => r.Id == "ServiceName").Value);
@@ -200,7 +200,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
-            string layoutName = "layoutFile1InSet1.json";
+            string layoutName = "layoutFile1InSet1";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
@@ -216,7 +216,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-without-layoutsets";
             string developer = "testUser";
-            string layoutName = "layoutFile1.json";
+            string layoutName = "layoutFile1";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
@@ -233,7 +233,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
-            string layoutName = "layoutFile2InSet1.json";
+            string layoutName = "layoutFile2InSet1";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
             try
@@ -383,6 +383,54 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", 0)]
+        [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
+        [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
+        public async Task GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetSchemaFiles();
+
+            Assert.Equal(expectedSchemaFiles, files.Count);
+        }
+
+        [Fact]
+        public async Task GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
+        {
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var file = altinnAppGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
+
+            Assert.Equal(".json", file.FileType);
+            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
+        }
+
+        [Fact]
+        public async Task GetSchemaFiles_FilesExistOutsideModelsFolder_ShouldNotReturnFiles()
+        {
+            string org = "ttd";
+            string repository = "app-with-misplaced-datamodels";
+            string developer = "testUser";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var files = altinnAppGitRepository.GetSchemaFiles();
+
+            Assert.Empty(files);
         }
 
         private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)

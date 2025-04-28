@@ -36,7 +36,7 @@ jobs:
       registry-name: altinntjenestercontainerregistry
     steps:
       - name: 'Azure login'
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -44,7 +44,7 @@ jobs:
 
       - name: Determine tag exists
         id: determine-tag-exists
-        uses: azure/CLI@v2
+        uses: azure/CLI@089eac9d8cc39f5d003e94f8b65efc51076c9cbd # v2
         with:
           azcliversion: latest
           inlineScript: |

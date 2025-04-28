@@ -6,7 +6,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { BpmnJSQuery } from '../../helpers/BpmnJSQuery';
-import { Header } from '../../components/Header';
+import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
@@ -98,7 +98,7 @@ test('Opening the settings modal from the header after the user has opened it fr
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
   const settingsModal = new SettingsModal(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
     'Task_1',
@@ -128,15 +128,13 @@ test('that the user can edit the id of a task and add data-types to sign', async
   testAppName,
 }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const signingTask = await addNewSigningTaskToProcessEditor(page);
 
-  const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
-
   const newId: string = 'signing_id';
-  await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
+  await editRandomGeneratedId(processEditorPage, newId);
 
   await processEditorPage.signingTaskConfig.clickDataTypesToSignCombobox();
   const dataTypeToSign: string = 'ref-data-as-pdf';
@@ -154,7 +152,7 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const bpmnJSQuery = new BpmnJSQuery(page);
-  const header = new Header(page, { app: testAppName });
+  const header = new AppDevelopmentHeader(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   // --------------------- Create new data model ---------------------
@@ -223,10 +221,9 @@ const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => 
 
 const editRandomGeneratedId = async (
   processEditorPage: ProcessEditorPage,
-  randomGeneratedId: string,
   newId: string,
 ): Promise<void> => {
-  await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
+  await processEditorPage.clickOnTaskIdEditButton();
   await processEditorPage.waitForEditIdInputFieldToBeVisible();
   await processEditorPage.emptyIdTextfield();
   await processEditorPage.writeNewId(newId);
@@ -236,7 +233,7 @@ const editRandomGeneratedId = async (
 };
 
 const goToGiteaAndNavigateToProcessBpmnFile = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();
@@ -249,7 +246,7 @@ const goToGiteaAndNavigateToProcessBpmnFile = async (
   await giteaPage.clickOnProcessBpmnFile();
 };
 
-const commitAndPushToGitea = async (header: Header): Promise<void> => {
+const commitAndPushToGitea = async (header: AppDevelopmentHeader): Promise<void> => {
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
@@ -258,9 +255,10 @@ const commitAndPushToGitea = async (header: Header): Promise<void> => {
 const navigateToDataModelAndCreateNewDataModel = async (
   dataModelPage: DataModelPage,
   processEditorPage: ProcessEditorPage,
-  header: Header,
+  header: AppDevelopmentHeader,
   newDataModelName: string,
 ): Promise<void> => {
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
   await dataModelPage.clickOnCreateNewDataModelButton();
@@ -271,12 +269,13 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
   await dataModelPage.waitForSuccessAlertToDisappear();
 
+  await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 };
 
 const goToGiteaAndNavigateToApplicationMetadataFile = async (
-  header: Header,
+  header: AppDevelopmentHeader,
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();

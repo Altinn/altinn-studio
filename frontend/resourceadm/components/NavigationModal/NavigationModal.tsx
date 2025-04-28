@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
 
 export type NavigationModalProps = {
   onClose: () => void;
@@ -42,7 +41,9 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
             </>
           }
         >
-          <Paragraph size='small'>{t('resourceadm.resource_navigation_modal_text')}</Paragraph>
+          <StudioParagraph size='sm'>
+            {t('resourceadm.resource_navigation_modal_text')}
+          </StudioParagraph>
         </StudioModal.Dialog>
       </StudioModal.Root>
     );

@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect, StudioTextarea, StudioTextfield } from '@studio/components';
+import { StudioNativeSelect, StudioTextarea, StudioTextfield } from '@studio/components-legacy';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -126,7 +126,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               label={t('schema_editor.name')}
               handleSave={handleChangeNodeName}
               schemaPointer={schemaPointer}
-              size='small'
             />
           )}
           {isReference(schemaNode) && (
@@ -183,7 +182,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
-            size='small'
             onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
             value={itemTitle}
           />
@@ -197,7 +195,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
               setItemItemDescription(event.target.value)
             }
-            size='small'
             value={itemDescription}
           />
         </div>

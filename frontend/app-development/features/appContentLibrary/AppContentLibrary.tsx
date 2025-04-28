@@ -1,10 +1,21 @@
-import type { CodeListReference, CodeListWithMetadata } from '@studio/content-library';
+import type {
+  CodeListData,
+  CodeListReference,
+  CodeListWithMetadata,
+  TextResourceWithLanguage,
+} from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
-import React from 'react';
-import { useOptionListsQuery, useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
+import type { ReactElement } from 'react';
+import React, { useCallback } from 'react';
+
+import {
+  useOptionListsQuery,
+  useOptionListsReferencesQuery,
+  useTextResourcesQuery,
+} from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -15,63 +26,119 @@ import {
   useUpdateOptionListMutation,
   useUpdateOptionListIdMutation,
   useDeleteOptionListMutation,
+  useUpsertTextResourceMutation,
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListUsages } from './utils/mapToCodeListUsages';
+import type { OptionListData } from 'app-shared/types/OptionList';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import type { ITextResources } from 'app-shared/types/global';
+import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
+import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
+import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const { data: optionListsData, isPending: optionListsDataPending } = useOptionListsQuery(
+  const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(
     org,
     app,
   );
-  const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
-  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
-  });
+  const { data: optionListUsages, status: optionListUsagesStatus } = useOptionListsReferencesQuery(
+    org,
+    app,
+  );
+  const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
+  const {
+    data: availableCodeListsToImportFromOrg,
+    status: availableCodeListsToImportFromOrgStatus,
+  } = useGetAvailableCodeListsFromOrgQuery(org, LibraryContentType.CodeList);
+
+  const status = mergeQueryStatuses(
+    optionListDataListStatus,
+    optionListUsagesStatus,
+    textResourcesStatus,
+    availableCodeListsToImportFromOrgStatus,
+  );
+
+  switch (status) {
+    case 'pending':
+      return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
+    case 'error':
+      return <StudioPageError message={t('app_content_library.fetch_error')} />;
+    case 'success':
+      return (
+        <AppContentLibraryWithData
+          optionListDataList={optionListDataList}
+          optionListUsages={optionListUsages}
+          textResources={textResources}
+          availableCodeListsToImportFromOrg={availableCodeListsToImportFromOrg ?? []}
+        />
+      );
+  }
+}
+
+type AppContentLibraryWithDataProps = {
+  optionListDataList: OptionListData[];
+  optionListUsages: OptionListReferences;
+  textResources: ITextResources;
+  availableCodeListsToImportFromOrg?: string[];
+};
+
+function AppContentLibraryWithData({
+  optionListDataList,
+  optionListUsages,
+  textResources,
+  availableCodeListsToImportFromOrg = [],
+}: AppContentLibraryWithDataProps): ReactElement {
+  const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
-  const { data: optionListUsages, isPending: optionListsUsageIsPending } =
-    useOptionListsReferencesQuery(org, app);
+  const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
+  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
+  const { mutate: importCodeListFromOrg } = useImportCodeListFromOrgToAppMutation(org, app);
 
-  if (optionListsDataPending || optionListsUsageIsPending)
-    return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
+  const handleUpload = useUploadOptionList(org, app);
 
-  const codeListsData = mapToCodeListDataList(optionListsData);
+  const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
 
   const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 
-  const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
+  const handleUpdateCodeListId = (optionListId: string, newOptionListId: string): void => {
     updateOptionListId({ optionListId, newOptionListId });
   };
 
-  const handleUpload = (file: File) => {
-    uploadOptionList(file, {
-      onSuccess: () => {
-        toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
-      },
-      onError: (error: AxiosError<ApiError>) => {
-        if (isErrorUnknown(error)) {
-          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
-        }
-      },
-    });
-  };
-
-  const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {
+  const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateOptionList({ optionListId: title, optionList: codeList });
   };
+
+  const handleImportCodeListFromOrg = (codeListId: string): void => {
+    importCodeListFromOrg(codeListId);
+  };
+
+  const handleUpdateTextResource = useCallback(
+    (textResourceWithLanguage: TextResourceWithLanguage): void => {
+      const mutationArgs = convertTextResourceToMutationArgs(textResourceWithLanguage);
+      updateTextResource(mutationArgs);
+    },
+    [updateTextResource],
+  );
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
-          codeListsData,
+          codeListsData: codeListDataList,
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
+          onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           codeListsUsages,
+          textResources,
+          externalResourceIds: availableCodeListsToImportFromOrg,
+          onImportCodeListFromOrg: handleImportCodeListFromOrg,
         },
       },
       images: {
@@ -84,4 +151,26 @@ export function AppContentLibrary(): React.ReactElement {
   });
 
   return <div>{getContentResourceLibrary()}</div>;
+}
+
+function useUploadOptionList(org: string, app: string): (file: File) => void {
+  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+  });
+  const { t } = useTranslation();
+
+  return useCallback(
+    (file: File) =>
+      uploadOptionList(file, {
+        onSuccess: () => {
+          toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
+        },
+        onError: (error: AxiosError<ApiError>) => {
+          if (isErrorUnknown(error)) {
+            toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
+          }
+        },
+      }),
+    [uploadOptionList, t],
+  );
 }

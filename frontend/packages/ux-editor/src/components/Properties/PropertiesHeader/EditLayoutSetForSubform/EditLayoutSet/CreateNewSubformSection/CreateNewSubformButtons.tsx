@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './CreateNewSubformButtons.module.css';
 import { CheckmarkIcon, TrashIcon } from '@studio/icons';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 type CreateNewSubformButtonsProps = {

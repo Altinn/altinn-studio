@@ -11,24 +11,24 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layout1NameMock, pagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { appContextMock } from '../../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
+jest.mock('../../../hooks/mutations/useDeletePageMutation', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../hooks/mutations/useDeleteLayoutMutation'),
+  ...jest.requireActual('../../../hooks/mutations/useDeletePageMutation'),
 }));
-const useDeleteLayoutMutationSpy = jest.spyOn(
-  require('../../../hooks/mutations/useDeleteLayoutMutation'),
-  'useDeleteLayoutMutation',
+const useDeletePageMutationSpy = jest.spyOn(
+  require('../../../hooks/mutations/useDeletePageMutation'),
+  'useDeletePageMutation',
 );
-
 const mockChildren: ReactNode = (
   <div>
     <button>Test</button>
@@ -80,25 +80,19 @@ describe('PageAccordion', () => {
     });
     await user.click(deleteButton);
 
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.deletePage).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deletePage).toHaveBeenCalledWith(
       org,
       app,
+      mockSelectedLayoutSet,
       mockPageName1,
-      mockSelectedLayoutSet,
-    );
-
-    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
-    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith(
-      mockSelectedLayoutSet,
-      false,
     );
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    useDeleteLayoutMutationSpy.mockImplementation(() => ({
+    useDeletePageMutationSpy.mockImplementation(() => ({
       mutate: queriesMock.deleteFormLayout,
       isPending: true,
     }));
@@ -123,6 +117,27 @@ describe('PageAccordion', () => {
     await user.click(deleteButton);
     expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
+
+  it('render warning class to header when isInvalid is true', async () => {
+    await render({ isInvalid: true });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeaderWarning');
+    expect(headerContainer).not.toHaveClass('accordionHeader');
+  });
+
+  it('render warning class to header when hasDuplicatedIds is true', async () => {
+    await render({ hasDuplicatedIds: true });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeaderWarning');
+    expect(headerContainer).not.toHaveClass('accordionHeader');
+  });
+
+  it('Applies normal header class when neither isInvalid nor hasDuplicatedIds is true', async () => {
+    await render({ isInvalid: false, hasDuplicatedIds: false });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('accordionHeader');
+    expect(headerContainer).not.toHaveClass('accordionHeaderWarning');
+  });
 });
 
 const waitForData = async () => {
@@ -138,6 +153,9 @@ const waitForData = async () => {
 };
 
 const render = async (props: Partial<PageAccordionProps> = {}) => {
+  const queryClient = createQueryClientMock();
+  queryClient.invalidateQueries = jest.fn();
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
   await waitForData();
-  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />);
+  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />, { queryClient });
 };
