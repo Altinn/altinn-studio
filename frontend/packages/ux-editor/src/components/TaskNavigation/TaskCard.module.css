@@ -1,22 +1,16 @@
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  flex-grow: 1;
 }
 
 .details {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--fds-spacing-3);
 }
 
 .details > * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.navigate-button {
-  height: var(--fds-sizing-12);
 }

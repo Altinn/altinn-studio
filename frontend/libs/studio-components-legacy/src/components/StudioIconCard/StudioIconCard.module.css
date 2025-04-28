@@ -5,14 +5,13 @@
   --icon-background-size: 63px;
 
   --icon-card-width: 300px;
-  --icon-card-min-width: 300px;
   --icon-card-height: 320px;
 }
 
 .card {
   width: var(--icon-card-width);
-  min-width: var(--icon-card-min-width);
-  height: var(--icon-card-height);
+  min-height: var(--icon-card-height);
+  height: fit-content;
   background-color: var(--fds-semantic-background-default);
   display: flex;
   flex-direction: column;
@@ -24,12 +23,9 @@
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: var(--fds-spacing-4);
   text-align: left;
   font-weight: normal;
-  height: 100%;
-  flex-grow: 1;
 }
 
 .content button {
@@ -68,7 +64,7 @@
 }
 
 .iconContainer {
-  padding: var(--fds-spacing-2);
+  padding: var(--fds-spacing-1);
   height: var(--icon-container-height);
   flex-shrink: 0;
   display: flex;
