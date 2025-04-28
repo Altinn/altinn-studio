@@ -1,4 +1,9 @@
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
+import type {
+  CodeList,
+  CodeListEditorTexts,
+  TextResource,
+  CreateTextResourceArgs,
+} from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioModal,
@@ -13,9 +18,9 @@ import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
-import classes from './EditCodeList.module.css';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';
+import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
   codeList: CodeList;
@@ -42,12 +47,24 @@ export function EditCodeList({
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
-  const handleCodeListChange = (updatedCodeList: CodeList): void => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
     );
     onUpdateCodeList(updatedCodeListWithMetadata);
+  };
+
+  const handleUpdateTextResource = (newTextResource: TextResource): void => {
+    onBlurTextResource && onBlurTextResource(newTextResource);
+  };
+
+  const handleCreateTextResource = ({
+    codeList: newCodeList,
+    textResource: newTextResource,
+  }: CreateTextResourceArgs): void => {
+    handleUpdateCodeList(newCodeList);
+    onBlurTextResource && onBlurTextResource(newTextResource);
   };
 
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
@@ -65,9 +82,9 @@ export function EditCodeList({
       />
       <StudioCodeListEditor
         codeList={codeList}
-        onAddOrDeleteItem={handleCodeListChange}
-        onBlurAny={handleCodeListChange}
-        onBlurTextResource={onBlurTextResource}
+        onCreateTextResource={handleCreateTextResource}
+        onUpdateTextResource={handleUpdateTextResource}
+        onUpdateCodeList={handleUpdateCodeList}
         texts={editorTexts}
         textResources={textResources}
       />
