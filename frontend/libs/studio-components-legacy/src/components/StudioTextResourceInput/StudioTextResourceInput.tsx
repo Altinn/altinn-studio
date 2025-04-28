@@ -31,7 +31,6 @@ type TextResourceInputPropsBase = {
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
   onCreateTextResource?: (newTextResource: TextResource) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -49,7 +48,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeTextResource,
       onChangeCurrentId,
       onCreateTextResource,
-      onUpdateTextResource,
       onKeyDown,
       textResources: givenTextResources,
       texts,
@@ -97,7 +95,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           ref={ref}
           textResources={textResources}
           onCreateTextResource={handleCreateTextResource}
-          onUpdateTextResource={onUpdateTextResource}
           texts={texts}
           {...rest}
         />
@@ -127,7 +124,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       required,
       textResources,
       onCreateTextResource,
-      onUpdateTextResource,
       texts,
       ...rest
     },
@@ -149,7 +145,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             textResource={currentTextResource}
             textResources={textResources}
             onCreateTextResource={onCreateTextResource}
-            onUpdateTextResource={onUpdateTextResource}
             {...rest}
           />
         );
@@ -180,7 +175,6 @@ type ValueFieldProps = StudioTextfieldProps & {
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
   onCreateTextResource: (textResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
 };
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
@@ -188,12 +182,11 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     {
       textResource,
       textResources,
+      onBlur,
       onBlurTextResource,
+      onChange,
       onChangeTextResource,
       onCreateTextResource,
-      onUpdateTextResource,
-      onBlur,
-      onChange,
       ...rest
     },
     ref,
@@ -211,7 +204,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       } else {
         const updatedTextResource = editTextResourceValue(textResource, value);
         onBlurTextResource(updatedTextResource);
-        onUpdateTextResource(updatedTextResource);
       }
       onBlur?.(event);
     };

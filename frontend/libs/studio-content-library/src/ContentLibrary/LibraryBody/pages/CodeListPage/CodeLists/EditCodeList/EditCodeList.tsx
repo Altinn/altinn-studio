@@ -208,6 +208,7 @@ function ShowCodeListUsagesSourcesModal({
       <StudioModal.Dialog
         closeButtonTitle={t('general.close')}
         heading={t('app_content_library.code_lists.code_list_show_usage_modal_title')}
+        className={classes.codeListUsageModal}
       >
         <CodeListUsages codeListSources={codeListSources} />
       </StudioModal.Dialog>
