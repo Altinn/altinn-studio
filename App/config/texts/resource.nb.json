@@ -262,16 +262,32 @@
       "value": "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
-      "id": "signing.correspondence_cta_title",
+      "id": "signing.correspondence_title_common",
       "value": "Oppgave - Signer stiftelsesdokumenter"
     },
     {
-      "id": "signing.correspondence_cta_summary",
+      "id": "signing.correspondence_summary_stifter_person",
       "value": "Du har blitt lagt til som signatar."
     },
     {
-      "id": "signing.correspondence_cta_body",
+      "id": "signing.correspondence_summary_stifter_organisasjon",
+      "value": "Organisjonen har blitt lagt til som signatar."
+    },
+    {
+      "id": "signing.correspondence_summary_revisor",
+      "value": "Organisjonen har blitt lagt til som revisor."
+    },
+    {
+      "id": "signing.correspondence_body_stifter_person",
       "value": "Du har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.correspondence_body_stifter_organisasjon",
+      "value": "Organisjonen har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $InstanceUrl <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.correspondence_body_revisor",
+      "value": "Organisjonen har blitt lagt til som revisor for et selskap. Revisor må signere for å ta på seg oppdraget. <br /> $InstanceUrl <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
       "id": "signing.notification_content",
