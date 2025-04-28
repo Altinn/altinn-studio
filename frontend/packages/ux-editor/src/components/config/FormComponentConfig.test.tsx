@@ -631,6 +631,34 @@ describe('FormComponentConfig', () => {
     await openCard(user, propertyKey);
   });
 
+  it('should toggle object card when object property button is clicked and close button is clicked', async () => {
+    const user = userEvent.setup();
+    const propertyKey = 'testObjectProperty';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                testField: { type: 'string' },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: {},
+        },
+      },
+    });
+    await openCard(user, propertyKey);
+    await closeCard(user, propertyKey);
+    expect(
+      screen.queryByRole('button', { name: textMock('general.close') }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should handle toggle when property is undefined', async () => {
     const user = userEvent.setup();
     const propertyKey = 'undefinedProperty';
