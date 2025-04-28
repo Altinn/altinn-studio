@@ -53,32 +53,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
 
-    // [Fact]
-    // public async Task GetOrgContentReferences_GivenAllParameter_ShouldReturnOkWithAllContentReferences()
-    // {
-    //     // Arrange
-    //     _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
-    //
-    //     OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
-    //     string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
-    //     const LibraryContentType resourceType = LibraryContentType.All;
-    //     string apiUrlWithAllParameter = $"{apiBaseUrl}?contentType={resourceType}";
-    //     using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithAllParameter);
-    //
-    //     // Act
-    //     var response = await HttpClient.SendAsync(request);
-    //
-    //     // Assert
-    //     List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
-    //     Assert.Equal(8, contentList.Count);
-    //     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    //     Assert.Contains(contentList, item => item.Type == LibraryContentType.CodeList);
-    //     Assert.Contains(contentList, item => item.Type == LibraryContentType.TextResource);
-    //     Assert.All(contentList, contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source));
-    //
-    //     _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
-    // }
-
     [Fact]
     public async Task GetOrgContentReferences_GivenCodeListParameter_ShouldReturnOkWithCodeListReferences()
     {
