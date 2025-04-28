@@ -144,16 +144,6 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
-  it('Does not call the onChange callback if the code list is invalid', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    const newValue = 'test';
-    await user.type(valueInput, newValue);
-    expect(onChange).not.toHaveBeenCalled();
-    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
-  });
-
   describe('onChange without text resources', () => {
     it('Calls the onChange callback with the new code list when a label is changed', async () => {
       const user = userEvent.setup();
@@ -550,8 +540,10 @@ describe('StudioCodeListEditor', () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
       const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-      await user.type(validValueInput, 'new value');
+      const newValue = 'test';
+      await user.type(validValueInput, newValue);
       expect(onChange).not.toHaveBeenCalled();
+      expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
     });
 
     it('Does not trigger onBlurAny while the code list is invalid', async () => {
