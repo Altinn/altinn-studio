@@ -71,7 +71,9 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged?: Date;
+  lastChanged?: Date | null;
+  resourceType?: ResourceTypeOption;
+  status?: ResourceStatusOption;
   identifier: string;
   environments: string[];
 }
@@ -211,6 +213,7 @@ export interface ConsentTemplate {
   id: string;
   title: string;
   isPoa: boolean;
+  restrictedToServiceOwners: string[];
   isMessageSetInRequest: boolean;
   texts: {
     title: {
