@@ -40,7 +40,7 @@ export const ConsentMetadataField = ({
         </StudioLabelAsParagraph>
       </div>
       {Object.keys(value).map((metadataName) => {
-        const isOptional = value[metadataName].optional ?? false;
+        const isOptional = value[metadataName]?.optional || false;
 
         return (
           <div key={metadataName} className={classes.consentMetadata}>
