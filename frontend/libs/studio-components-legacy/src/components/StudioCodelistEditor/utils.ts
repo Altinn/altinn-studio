@@ -2,6 +2,7 @@ import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
 import { ArrayUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
+import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 
 export const emptyStringItem: CodeListItem = {
   value: '',
@@ -77,4 +78,33 @@ export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
 export function isCodeLimitReached(codeList: CodeList, codeType: CodeListItemType): boolean {
   const booleanCodeLimit = 2;
   return codeType === CodeListItemType.Boolean && codeList.length >= booleanCodeLimit;
+}
+
+type UpdateCodeListArgs = {
+  newValue: string | null;
+  codeItemIndex: number;
+  property: CodeListItemTextProperty;
+};
+
+export function updateCodeList(codeList: CodeList, updateArgs: UpdateCodeListArgs): CodeList {
+  const { property, codeItemIndex, newValue } = updateArgs;
+  const newCodeList: CodeList = [...codeList];
+  const oldItem: CodeListItem = newCodeList[codeItemIndex];
+
+  switch (property) {
+    case CodeListItemTextProperty.Label: {
+      newCodeList[codeItemIndex] = { ...oldItem, label: newValue };
+      break;
+    }
+    case CodeListItemTextProperty.Description: {
+      newCodeList[codeItemIndex] = { ...oldItem, description: newValue };
+      break;
+    }
+    case CodeListItemTextProperty.HelpText: {
+      newCodeList[codeItemIndex] = { ...oldItem, helpText: newValue };
+      break;
+    }
+  }
+
+  return newCodeList;
 }

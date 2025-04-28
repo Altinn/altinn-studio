@@ -3,7 +3,8 @@ import type { CodeListIdSource } from '../../../types/CodeListReference';
 import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
-import { FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { getUsageTaskTypeTextKey } from '../../../utils';
 
 export type CodeListUsagesProps = {
   codeListSources: CodeListIdSource[];
@@ -17,7 +18,10 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
       <Table.Head>
         <Table.Row>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_layout_set')}
+            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_type')}
+          </Table.HeaderCell>
+          <Table.HeaderCell>
+            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_name')}
           </Table.HeaderCell>
           <Table.HeaderCell>
             {t('app_content_library.code_lists.code_list_usage_table_column_header_layout')}
@@ -43,15 +47,16 @@ type CodeListUsageSourceRowProps = {
 function CodeListUsageSourceRow({
   codeListSource,
 }: CodeListUsageSourceRowProps): React.ReactElement {
+  const { t } = useTranslation();
+  const { taskId, taskType, layoutName, componentIds } = codeListSource;
+  const taskTypeTextKey = getUsageTaskTypeTextKey(taskType);
+
   return (
     <Table.Row>
-      <Table.Cell>{codeListSource.layoutSetId}</Table.Cell>
-      <Table.Cell>{FileNameUtils.removeExtension(codeListSource.layoutName)}</Table.Cell>
-      <Table.Cell>{listComponentIds(codeListSource.componentIds)}</Table.Cell>
+      <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
+      <Table.Cell>{taskId}</Table.Cell>
+      <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
+      <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
     </Table.Row>
   );
 }
-
-const listComponentIds = (componentIds: string[]): string => {
-  return componentIds.join(', ');
-};
