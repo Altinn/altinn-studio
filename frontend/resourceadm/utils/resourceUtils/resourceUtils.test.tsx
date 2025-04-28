@@ -7,9 +7,15 @@ import {
   validateResource,
   getMigrationErrorMessage,
   getConsentMetadataValues,
+  filterConsentTemplatesByServiceOwner,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type {
+  ConsentTemplate,
+  Resource,
+  ResourceError,
+  SupportedLanguage,
+} from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
@@ -290,5 +296,40 @@ describe('getConsentMetadataValues', () => {
     };
     const metadataValues = getConsentMetadataValues(consentText);
     expect(metadataValues).toEqual(['org', 'year']);
+  });
+});
+
+describe('filterConsentTemplatesByServiceOwner', () => {
+  const consentTemplates = [
+    {
+      id: 'bst_krav',
+      restrictedToServiceOwners: ['skd'],
+    },
+    {
+      id: 'default',
+      restrictedToServiceOwners: null,
+    },
+    {
+      id: 'defaultnomessage',
+      restrictedToServiceOwners: [],
+    },
+    {
+      id: 'brg_only',
+      restrictedToServiceOwners: ['brg'],
+    },
+  ] as ConsentTemplate[];
+
+  it('does not return specific service owner templates', () => {
+    const templates = filterConsentTemplatesByServiceOwner(consentTemplates, 'nav');
+    expect(templates.map((template) => template.id)).toEqual(['default', 'defaultnomessage']);
+  });
+
+  it('returns templates for service owner', () => {
+    const templates = filterConsentTemplatesByServiceOwner(consentTemplates, 'skd');
+    expect(templates.map((template) => template.id)).toEqual([
+      'bst_krav',
+      'default',
+      'defaultnomessage',
+    ]);
   });
 });

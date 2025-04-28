@@ -14,5 +14,6 @@ export {
   getAltinn2Reference,
   getMigrationErrorMessage,
   getConsentMetadataValues,
+  filterConsentTemplatesByServiceOwner,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

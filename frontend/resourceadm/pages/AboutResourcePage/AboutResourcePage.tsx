@@ -22,6 +22,7 @@ import {
   mapKeywordsArrayToString,
   resourceTypeMap,
   getConsentMetadataValues,
+  filterConsentTemplatesByServiceOwner,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -35,6 +36,7 @@ import { ResourceContactPointFields } from '../../components/ResourceContactPoin
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { ConsentMetadataField } from 'resourceadm/components/ResourcePageInputs/ConsentMetadataField';
+import { useUrlParams } from 'resourceadm/hooks/useUrlParams';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -62,6 +64,7 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { org } = useUrlParams();
 
   /**
    * Resource type options
@@ -86,6 +89,10 @@ export const AboutResourcePage = ({
     value: key,
     label: t(availableForTypeMap[key]),
   }));
+
+  const consentTemplateOptions = filterConsentTemplatesByServiceOwner(consentTemplates, org).map(
+    (template) => ({ value: template.id, label: template.title }),
+  );
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
@@ -218,9 +225,7 @@ export const AboutResourcePage = ({
               label={t('resourceadm.about_resource_consent_template_label')}
               description={t('resourceadm.about_resource_consent_template_text')}
               value={resourceData.consentTemplate}
-              options={(consentTemplates ?? []).map((template) => {
-                return { value: template.id, label: template.title };
-              })}
+              options={consentTemplateOptions}
               onFocus={() => setTranslationType('none')}
               onChange={(selected: string) =>
                 handleSave({ ...resourceData, consentTemplate: selected })
