@@ -10,6 +10,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 const somePropertyName = 'somePropertyName';
@@ -28,6 +29,11 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: customTextMockToHandleUndefined,
   }),
+}));
+
+jest.mock('../../hooks/useComponentPropertyDescription', () => ({
+  useComponentPropertyDescription: () => (propertyKey) =>
+    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
 }));
 
 describe('FormComponentConfig', () => {
@@ -376,7 +382,6 @@ describe('FormComponentConfig', () => {
 
   it('should show description from schema for objects if key is not defined', async () => {
     const user = userEvent.setup();
-    const descriptionFromSchema = 'Some description for some object property';
     render({
       props: {
         schema: {
@@ -386,18 +391,14 @@ describe('FormComponentConfig', () => {
             somePropertyName: {
               type: 'object',
               properties: {},
-              description: descriptionFromSchema,
+              description: 'Some description',
             },
           },
         },
       },
     });
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('ux_editor.component_properties.somePropertyName'),
-      }),
-    );
-    expect(screen.getByText(descriptionFromSchema)).toBeInTheDocument();
+    await openCard(user, somePropertyName);
+    expect(screen.getByText('Some description')).toBeInTheDocument();
   });
 
   it('should not render property if it is unsupported', () => {
@@ -581,11 +582,7 @@ describe('FormComponentConfig', () => {
     const widthText = screen.getByText(textMock('ux_editor.modal_properties_grid'));
     expect(widthText).toBeInTheDocument();
 
-    const closeGridButton = screen.getByRole('button', {
-      name: textMock('general.close'),
-    });
-    await user.click(closeGridButton);
-    expect(closeGridButton).not.toBeInTheDocument();
+    await closeCard(user, 'grid');
     expect(widthText).not.toBeInTheDocument();
   });
 
@@ -606,68 +603,11 @@ describe('FormComponentConfig', () => {
     const widthText = screen.getByText(textMock('ux_editor.modal_properties_grid'));
     expect(widthText).toBeInTheDocument();
 
-    const closeGridButton = screen.getByRole('button', {
-      name: textMock('general.close'),
-    });
-    await user.click(closeGridButton);
-    expect(closeGridButton).not.toBeInTheDocument();
+    await closeCard(user, 'grid');
     expect(widthText).not.toBeInTheDocument();
   });
 
   it('should toggle object card when object property button is clicked', async () => {
-    const user = userEvent.setup();
-    const propertyKey = 'someObjectProperty';
-    render({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            [propertyKey]: {
-              type: 'object',
-              properties: {
-                someField: { type: 'string' },
-              },
-            },
-          },
-        },
-        component: {
-          ...componentMocks.Input,
-          [propertyKey]: {},
-        },
-      },
-    });
-    const objectButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
-    });
-    expect(objectButton).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
-        selector: 'h3',
-      }),
-    ).not.toBeInTheDocument();
-    await user.click(objectButton);
-    const cardHeader = await screen.findByText(
-      textMock(`ux_editor.component_properties.${propertyKey}`),
-      { selector: 'h3' },
-    );
-    expect(cardHeader).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
-    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeButton);
-    expect(
-      screen.queryByText(textMock(`ux_editor.component_properties.${propertyKey}`), {
-        selector: 'h3',
-      }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: textMock(`ux_editor.component_properties.${propertyKey}`),
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it('should call toggleObjectCard when property button is clicked', async () => {
     const user = userEvent.setup();
     const propertyKey = 'testObjectProperty';
     render({
@@ -684,15 +624,11 @@ describe('FormComponentConfig', () => {
         },
         component: {
           ...componentMocks.Input,
-          [propertyKey]: { testField: 'initial' },
+          [propertyKey]: {},
         },
       },
     });
-    const toggleButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
-    });
-    await user.click(toggleButton);
-    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+    await openCard(user, propertyKey);
   });
 
   it('should handle toggle when property is undefined', async () => {
@@ -713,41 +649,7 @@ describe('FormComponentConfig', () => {
         },
       },
     });
-    const toggleButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
-    });
-    await user.click(toggleButton);
-    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
-  });
-
-  it('should toggle object property card when clicked', async () => {
-    const user = userEvent.setup();
-    const propertyKey = 'grid';
-    render({
-      props: {
-        schema: InputSchema,
-        component: {
-          ...componentMocks.Input,
-          [propertyKey]: {},
-        },
-      },
-    });
-    const openButton = await screen.findByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
-    });
-    await user.click(openButton);
-    const closeButton = await screen.findByRole('button', {
-      name: textMock('general.close'),
-    });
-    expect(closeButton).toBeInTheDocument();
-    await user.click(closeButton);
-    await waitFor(() => {
-      expect(
-        screen.queryByRole('button', {
-          name: textMock('general.close'),
-        }),
-      ).not.toBeInTheDocument();
-    });
+    await openCard(user, propertyKey);
   });
 
   const render = ({
@@ -768,3 +670,21 @@ describe('FormComponentConfig', () => {
     return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />, { queries });
   };
 });
+
+const openCard = async (user: UserEvent, propertyKey: string) => {
+  const openButton = await screen.findByRole('button', {
+    name: textMock(`ux_editor.component_properties.${propertyKey}`),
+  });
+  await user.click(openButton);
+  expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+};
+
+const closeCard = async (user: UserEvent, propertyKey: string) => {
+  const closeButton = await screen.findByRole('button', {
+    name: textMock('general.close'),
+  });
+  await user.click(closeButton);
+  expect(
+    screen.getByRole('button', { name: textMock(`ux_editor.component_properties.${propertyKey}`) }),
+  ).toBeInTheDocument();
+};

@@ -321,26 +321,20 @@ export const FormComponentConfig = ({
           <div key={propertyKey}>
             {isOpen ? (
               <StudioCard>
-                <StudioCard.Header className={classes.gridHeader}>
-                  <div className={classes.flexContainer}>
-                    <Heading level={3} size='xxsmall' className={classes.heading}>
-                      {componentPropertyLabel(propertyKey)}
-                    </Heading>
-                    <StudioButton
-                      icon={<XMarkIcon />}
-                      onClick={() => toggleObjectCard(propertyKey)}
-                      title={t('general.close')}
-                      variant='secondary'
-                      className={classes.button}
-                    />
-                  </div>
-                </StudioCard.Header>
+                <div className={classes.flexContainer}>
+                  <StudioCard.Header className={classes.gridHeader} data-size='md'>
+                    {componentPropertyLabel(propertyKey)}
+                  </StudioCard.Header>
+                  <StudioButton
+                    icon={<XMarkIcon />}
+                    onClick={() => toggleObjectCard(propertyKey)}
+                    title={t('general.close')}
+                    variant='secondary'
+                  />
+                </div>
                 <StudioCard.Content>
-                  {properties[propertyKey]?.description && (
-                    <Paragraph size='small'>
-                      {componentPropertyDescription(propertyKey) ??
-                        properties[propertyKey].description}
-                    </Paragraph>
+                  {componentPropertyDescription(propertyKey) && (
+                    <Paragraph size='small'>{componentPropertyDescription(propertyKey)}</Paragraph>
                   )}
                   <FormComponentConfig
                     schema={properties[propertyKey]}
