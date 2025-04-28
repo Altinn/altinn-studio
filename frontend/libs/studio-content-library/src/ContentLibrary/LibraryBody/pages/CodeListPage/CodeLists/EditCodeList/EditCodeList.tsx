@@ -56,7 +56,7 @@ export function EditCodeList({
   };
 
   const handleUpdateTextResource = (newTextResource: TextResource): void => {
-    onBlurTextResource && onBlurTextResource(newTextResource);
+    onBlurTextResource?.(newTextResource);
   };
 
   const handleCreateTextResource = ({
@@ -64,7 +64,7 @@ export function EditCodeList({
     textResource: newTextResource,
   }: CreateTextResourceArgs): void => {
     handleUpdateCodeList(newCodeList);
-    onBlurTextResource && onBlurTextResource(newTextResource);
+    onBlurTextResource?.(newTextResource);
   };
 
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
