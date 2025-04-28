@@ -144,22 +144,14 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
-  it('Does not call the onChange callback when updating to a invalid state', async () => {
+  it('Does not call the onChange callback if the code list is invalid', async () => {
     const user = userEvent.setup();
-    renderCodeListEditor();
-    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-    const newValue = codeListWithoutTextResources[1].value.toString();
-    await user.type(valueInput, newValue, {
-      initialSelectionStart: 0,
-      initialSelectionEnd: codeListWithoutTextResources[0].value.toString().length,
-    });
-    expect(onChange).toHaveBeenCalledTimes(newValue.length - 1);
-    expect(onInvalid).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeListWithoutTextResources[0], value: newValue.slice(0, -1) },
-      codeListWithoutTextResources[1],
-      codeListWithoutTextResources[2],
-    ]);
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'test';
+    await user.type(valueInput, newValue);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
   });
 
   describe('onChange without text resources', () => {
