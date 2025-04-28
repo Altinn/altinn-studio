@@ -22,10 +22,10 @@
         <Using Include="BenchmarkDotNet.Diagnostics.dotTrace" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-        <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.14.0" />
-        <PackageReference Include="Buildalyzer.Workspaces" Version="7.1.0" />
-        <PackageReference Include="System.Formats.Asn1" Version="8.0.2" />
+        <PackageReference Include="BenchmarkDotNet"/>
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace"/>
+        <PackageReference Include="Buildalyzer.Workspaces"/>
+        <PackageReference Include="System.Formats.Asn1"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />

@@ -34,9 +34,9 @@
   </ItemGroup> -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
 
-    <!-- <PackageReference Include="System.Text.Json" GeneratePathProperty="true" Version="8.0.5" />
+    <!-- <PackageReference Include="System.Text.Json" GeneratePathProperty="true"/>
     <None Include="$(PKGSystem_Text_Json)/lib/netstandard2.0/System.Text.Json.dll" CopyToOutputDirectory="PreserveNewest" /> -->
   </ItemGroup>
 

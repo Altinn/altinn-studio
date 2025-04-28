@@ -3,8 +3,8 @@
   <Import Project="../Directory.Build.props" />
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
-    <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6495">
+    <PackageReference Include="MinVer" PrivateAssets="All" />
+    <PackageReference Include="Nullable.Extended.Analyzer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
