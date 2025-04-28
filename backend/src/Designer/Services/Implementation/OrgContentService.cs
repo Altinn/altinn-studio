@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
@@ -22,48 +23,55 @@ public class OrgContentService : IOrgContentService
     }
 
     /// <inheritdoc />
-    public async Task<List<LibraryContentReference>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default)
+    public async Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
         switch (contentType)
         {
             case LibraryContentType.CodeList:
-                return GetCodeListContentList(context, cancellationToken);
+                return GetCodeListReferences(context, cancellationToken);
 
             case LibraryContentType.TextResource:
-                return await GetTextContentList(context, cancellationToken);
+                return await GetTextResourceReferences(context, cancellationToken);
+
+            case null:
+                return await GetAllReferences(context, cancellationToken);
 
             default:
                 return [];
         }
     }
 
-    private List<LibraryContentReference> GetCodeListContentList(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<LibraryContentReference>> GetAllReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    {
+        var codeListContent = GetCodeListReferences(context, cancellationToken);
+        var textContent = await GetTextResourceReferences(context, cancellationToken);
+
+        var result = new List<LibraryContentReference>();
+        result.AddRange(codeListContent);
+        result.AddRange(textContent);
+        return result;
+    }
+
+    private List<LibraryContentReference> GetCodeListReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
         List<string> codeListIds = _orgCodeListService.GetCodeListIds(context.Org, context.DeveloperName, cancellationToken);
-        return CreateContentList(LibraryContentType.CodeList, codeListIds, context.Org);
+        return CreateContentReferences(LibraryContentType.CodeList, codeListIds, context.Org);
     }
 
-    private async Task<List<LibraryContentReference>> GetTextContentList(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<LibraryContentReference>> GetTextResourceReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
         List<string> textIds = await _orgTextsService.GetTextIds(context.Org, context.DeveloperName, cancellationToken);
-        return CreateContentList(LibraryContentType.TextResource, textIds, context.Org);
+        return CreateContentReferences(LibraryContentType.TextResource, textIds, context.Org);
     }
 
-    private static List<LibraryContentReference> CreateContentList(LibraryContentType contentType, List<string> contentIds, string orgName)
+    private static List<LibraryContentReference> CreateContentReferences(LibraryContentType contentType, List<string> contentIds, string orgName)
     {
-        var resourceList = new List<LibraryContentReference>();
-        foreach (string contentId in contentIds)
+        return contentIds.Select(contentId => new LibraryContentReference
         {
-            var newResource = new LibraryContentReference
-            {
-                Id = contentId,
-                Type = contentType,
-                Source = FormatContentSource(orgName)
-            };
-            resourceList.Add(newResource);
-        }
-
-        return resourceList;
+            Id = contentId,
+            Type = contentType,
+            Source = FormatContentSource(orgName)
+        }).ToList();
     }
 
     private static string FormatContentSource(string orgName) => $"org.{orgName}";

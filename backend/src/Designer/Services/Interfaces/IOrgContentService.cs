@@ -13,11 +13,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IOrgContentService
 {
     /// <summary>
-    /// Retrieves a list of content resources based on the specified type and organisation context.
+    /// Retrieves a list of available library content based on the specified type.
     /// </summary>
     /// <param name="contentType">The type of content to retrieve.</param>
     /// <param name="context">The organisation context.</param>
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<LibraryContentReference>> GetContentList(LibraryContentType contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
 }

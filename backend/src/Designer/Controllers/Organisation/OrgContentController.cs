@@ -34,15 +34,16 @@ public class OrgContentController : ControllerBase
         _orgService = orgService;
     }
 
+
     /// <summary>
-    /// Returns names of available resources from an organisation, based on the requested type.
+    /// Retrieves a list of available library content from the organisation.
     /// </summary>
     /// <param name="orgName">Unique identifier of the organisation.</param>
-    /// <param name="contentType">The type of resource to return the names of. For example code lists or text resources. </param>
+    /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
-    [Route("content/{contentType}")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgContentList([FromRoute] string orgName, [FromRoute] string contentType, CancellationToken cancellationToken = default)
+    [Route("content")]
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
@@ -51,15 +52,24 @@ public class OrgContentController : ControllerBase
             return NoContent();
         }
 
+        var editingContext = CreateAltinnOrgContext(orgName);
+        if (string.IsNullOrEmpty(contentType))
+        {
+            return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);
+        }
+
         bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
         if (!didParse)
         {
             return BadRequest($"Invalid content type '{contentType}'.");
         }
 
-        string developerName = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnOrgContext editingContext = AltinnOrgContext.FromOrg(orgName, developerName);
+        return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
+    }
 
-        return await _orgContentService.GetContentList(parsedContentType, editingContext, cancellationToken);
+    private AltinnOrgContext CreateAltinnOrgContext(string orgName)
+    {
+        string developerName = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        return AltinnOrgContext.FromOrg(orgName, developerName);
     }
 }

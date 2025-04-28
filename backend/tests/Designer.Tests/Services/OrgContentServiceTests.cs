@@ -28,7 +28,33 @@ public class OrgContentServiceTests
     }
 
     [Fact]
-    public async Task GetContentList_WithCodeListType_ReturnsCodeListResources()
+    public async Task GetOrgContentReferences_WithoutTypeParameter_ReturnsAllReferences()
+    {
+        // Arrange
+        var codeListIds = new List<string> { "codelist1", "codelist2" };
+        var textIds = new List<string> { "text1", "text2" };
+
+        _mockOrgCodeListService
+            .Setup(s => s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None))
+            .Returns(codeListIds);
+        _mockOrgTextsService
+            .Setup(s => s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(textIds);
+
+        // Act
+        var result = await _orgContentService.GetOrgContentReferences(null, _context);
+
+        // Assert
+        Assert.Equal(4, result.Count);
+        Assert.Contains(result, item => item.Id == "codelist1" && item.Type == LibraryContentType.CodeList);
+        Assert.Contains(result, item => item.Id == "codelist2" && item.Type == LibraryContentType.CodeList);
+        Assert.Contains(result, item => item.Id == "text1" && item.Type == LibraryContentType.TextResource);
+        Assert.Contains(result, item => item.Id == "text2" && item.Type == LibraryContentType.TextResource);
+        Assert.All(result, item => Assert.Equal($"org.{OrgName}", item.Source));
+    }
+
+    [Fact]
+    public async Task GetOrgContentReferences_WithCodeListType_ReturnsCodeListReferences()
     {
         // Arrange
         var codeListIds = new List<string> { "codelist1", "codelist2" };
@@ -37,7 +63,7 @@ public class OrgContentServiceTests
             .Returns(codeListIds);
 
         // Act
-        var contentList = await _orgContentService.GetContentList(LibraryContentType.CodeList, _context);
+        var contentList = await _orgContentService.GetOrgContentReferences(LibraryContentType.CodeList, _context);
 
         // Assert
         Assert.Equal(2, contentList.Count);
@@ -51,7 +77,7 @@ public class OrgContentServiceTests
     }
 
     [Fact]
-    public async Task GetContentList_WithTextResourceType_ReturnsTextResources()
+    public async Task GetOrgContentReferences_WithTextResourceType_ReturnsTextResourceReferences()
     {
         // Arrange
         var textIds = new List<string> { "text1", "text2", "text3" };
@@ -60,7 +86,7 @@ public class OrgContentServiceTests
             .ReturnsAsync(textIds);
 
         // Act
-        var contentList = await _orgContentService.GetContentList(LibraryContentType.TextResource, _context);
+        var contentList = await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, _context);
 
         // Assert
         Assert.Equal(3, contentList.Count);
@@ -75,10 +101,10 @@ public class OrgContentServiceTests
     }
 
     [Fact]
-    public async Task GetContentList_WithUnsupportedType_ReturnsEmptyList()
+    public async Task GetOrgContentReferences_WithUnsupportedType_ReturnsEmptyList()
     {
         // Act
-        var result = await _orgContentService.GetContentList((LibraryContentType)999, _context);
+        var result = await _orgContentService.GetOrgContentReferences((LibraryContentType)999, _context);
 
         // Assert
         Assert.Empty(result);
@@ -89,7 +115,7 @@ public class OrgContentServiceTests
     }
 
     [Fact]
-    public async Task GetContentList_WithCancellationToken_PassesTokenToServices()
+    public async Task GetOrgContentReferences_WithCancellationToken_PassesTokenToServices()
     {
         // Arrange
         var cts = new CancellationTokenSource();
@@ -101,14 +127,14 @@ public class OrgContentServiceTests
             .ReturnsAsync(textIds);
 
         // Act
-        await _orgContentService.GetContentList(LibraryContentType.TextResource, _context, token);
+        await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, _context, token);
 
         // Assert
         _mockOrgTextsService.Verify(s => s.GetTextIds(OrgName, DeveloperName, token), Times.Once);
     }
 
     [Fact]
-    public async Task GetCodeListContentList_WithEmptyList_ReturnsEmptyResourceList()
+    public async Task GetCodeListReferences_WithNoIdsFound_ReturnsEmptyList()
     {
         // Arrange
         _mockOrgCodeListService
@@ -116,14 +142,14 @@ public class OrgContentServiceTests
             .Returns([]);
 
         // Act
-        var result = await _orgContentService.GetContentList(LibraryContentType.CodeList, _context);
+        var result = await _orgContentService.GetOrgContentReferences(LibraryContentType.CodeList, _context);
 
         // Assert
         Assert.Empty(result);
     }
 
     [Fact]
-    public async Task GetTextContentList_WithEmptyList_ReturnsEmptyResourceList()
+    public async Task GetTextResourceReferences_WithNoIdsFound_ReturnsEmptyList()
     {
         // Arrange
         _mockOrgTextsService
@@ -131,7 +157,7 @@ public class OrgContentServiceTests
             .ReturnsAsync([]);
 
         // Act
-        var result = await _orgContentService.GetContentList(LibraryContentType.TextResource, _context);
+        var result = await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, _context);
 
         // Assert
         Assert.Empty(result);
