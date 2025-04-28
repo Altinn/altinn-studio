@@ -2,6 +2,7 @@ import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNav
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTaskReceipt, getTaskIcon, taskNavigationType } from './SettingsUtils';
@@ -25,10 +26,20 @@ export const SettingsNavigation = (): ReactElement => {
     );
 
   return (
-    <div className={classes.taskNavigationContainer}>
-      {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
-        <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
-      ))}
+    <div className={classes.navigationTabContent}>
+      <div>
+        <StudioHeading level={3} data-size='2xs'>
+          {t('ux_editor.settings.navigation_tab_header')}
+        </StudioHeading>
+        <StudioParagraph className={classes.navigationDescription} data-size='sm'>
+          {t('ux_editor.settings.navigation_tab_description')}
+        </StudioParagraph>
+      </div>
+      <div className={classes.navigationTaskList}>
+        {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
+          <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
+        ))}
+      </div>
     </div>
   );
 };
