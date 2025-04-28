@@ -258,7 +258,7 @@
           "surname": {
             "type": "string"
           },
-          "internal": {
+          "Internal": {
             "type": "object",
             "properties": {
               "isChecked": {
@@ -266,7 +266,7 @@
               }
             }
           },
-          "name": {
+          "Name": {
             "type": "object",
             "properties": {
               "firstname": {

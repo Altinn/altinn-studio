@@ -50,6 +50,16 @@
       <xs:element minOccurs="0" name="Answer" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="Name">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="firstname" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Internal">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="Numbers">
     <xs:sequence>
       <xs:element minOccurs="0" name="TotalGjeld" type="xs:double" />
@@ -95,11 +105,11 @@
         <xs:element minOccurs="0" maxOccurs="unbounded" name="ListCheckboxExample">
           <xs:complexType>
             <xs:sequence>
-              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="name" type="Name" />
               <xs:element minOccurs="0" name="age" type="xs:long" />
               <xs:element minOccurs="0" name="profession" type="xs:string" />
               <xs:element minOccurs="0" name="surname" type="xs:string" />
-              <xs:element minOccurs="0" name="checked" type="xs:boolean" />
+              <xs:element minOccurs="0" name="internal" type="Internal" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

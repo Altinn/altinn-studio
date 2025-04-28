@@ -90,10 +90,10 @@
           "type": "List",
           "dataModelBindings": {
             "group": "ListCheckboxExample",
-            "name": "ListCheckboxExample.name",
+            "name": "ListCheckboxExample.Name.firstname",
             "age": "ListCheckboxExample.age",
             "profession": "ListCheckboxExample.profession",
-            "checked": "ListCheckboxExample.isChecked"
+            "checked": "ListCheckboxExample.Internal.isChecked"
           },
           "deletionStrategy": "soft",
           "textResourceBindings": {
@@ -122,7 +122,7 @@
           "dataModelBindings": {
             "group": "ListCheckboxExample"
           },
-          "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.isChecked"], false],
+          "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.Internal.isChecked"], false],
           "hidden": false,
           "children": [
             "RepeatingGroupListWithCheckboxesAge",
@@ -145,7 +145,7 @@
           "textResourceBindings": {
             "title":"Name"
           },
-          "value": ["dataModel","ListCheckboxExample.name"]
+          "value": ["dataModel","ListCheckboxExample.Name.firstname"]
         },
         {
           "id": "RepeatingGroupListWithCheckboxesProfession",
@@ -189,6 +189,7 @@
         {
           "id": "ListPage-Summary2WithCheckboxes",
           "type": "Summary2",
+          "isCompact": true,
           "target": {
             "type": "component",
             "id": "ListPage-ListWithCheckboxesComponent"
