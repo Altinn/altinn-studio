@@ -217,4 +217,22 @@ describe('useAddGroupMutation', () => {
       pages: [],
     });
   });
+
+  it('handles API errors gracefully', async () => {
+    const queryClient = createQueryClientMock();
+    const services = {
+      getPages: jest.fn().mockRejectedValue(new Error('API error')),
+    };
+    const { result } = renderHookWithProviders(
+      services,
+      queryClient,
+    )(() => useAddGroupMutation(org, app)).renderHookResult;
+
+    await waitFor(async () => {
+      await expect(result.current.mutateAsync()).rejects.toThrow('API error');
+    });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+  });
 });

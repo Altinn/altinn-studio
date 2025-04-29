@@ -15,11 +15,15 @@ export const useAddGroupMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
-      const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
-      const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
-      const finalPayload = addGroupsWithPages(updatedPages, newGroup);
-      return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
+      try {
+        const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
+        const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
+        const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
+        const finalPayload = addGroupsWithPages(updatedPages, newGroup);
+        return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
+      } catch (error) {
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -34,7 +38,7 @@ const getNextPageNumber = (groups: GroupModel[], t: (key: string) => string): nu
     ?.flatMap((group) => group.order?.map((page) => page.id) || [])
     .reduce((max, id) => {
       const match = id?.match(new RegExp(`${t('general.page')}(\\d+)`));
-      return match ? Math.max(max, parseInt(match[1], 10)) : max;
+      return match && !isNaN(parseInt(match[1], 10)) ? Math.max(max, parseInt(match[1], 10)) : max;
     }, 0);
   return maxPageNumber + 1;
 };
