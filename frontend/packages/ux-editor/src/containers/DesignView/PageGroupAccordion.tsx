@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
 import { StudioButton, StudioHeading } from '@studio/components-legacy';
-import { DragVerticalIcon, FolderIcon, PlusIcon } from '@studio/icons';
+import { DragVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,
@@ -39,6 +39,12 @@ export const PageGroupAccordion = ({
   return groups.map((group) => {
     if (!group.order || group.order.length === 0) return null;
 
+    const handleConfirmDelete = () => {
+      if (confirm(t('ux_editor.component_group_deletion_text'))) {
+        //TODO: Implement delete group functionality
+      }
+    };
+
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div className={classes.groupHeaderWrapper}>
@@ -48,7 +54,16 @@ export const PageGroupAccordion = ({
               {group.name}
             </StudioHeading>
           </div>
-          <DragVerticalIcon aria-hidden className={classes.rightIcon} />
+          <div className={classes.rightIconsContainer}>
+            <StudioButton
+              title={t('general.delete_item', { item: group.name })}
+              color='danger'
+              icon={<TrashIcon />}
+              onClick={handleConfirmDelete}
+              variant='tertiary'
+            />
+            <DragVerticalIcon aria-hidden className={classes.rightIcon} />
+          </div>
         </div>
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
