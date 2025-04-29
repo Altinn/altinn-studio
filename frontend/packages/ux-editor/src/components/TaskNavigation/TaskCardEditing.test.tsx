@@ -97,7 +97,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose });
 
-    await user.click(screen.getByRole('button', { name: /general.close/ }));
+    await user.click(screen.getByRole('button', { name: /general.cancel/ }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
