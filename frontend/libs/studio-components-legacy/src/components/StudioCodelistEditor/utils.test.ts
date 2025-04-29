@@ -10,12 +10,14 @@ import {
   isCodeLimitReached,
   isCodeListEmpty,
   removeCodeListItem,
+  updateCodeList,
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
 import { codeListWithoutTextResources as codeListWithStrings } from './test-data/codeListWithoutTextResources';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';
 import { codeListWithBooleans } from './test-data/codeListWithBooleans';
+import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 
 // Test data:
 const testCodeList: CodeList = [
@@ -143,5 +145,22 @@ describe('StudioCodelistEditor utils', () => {
     it('Returns false when codeType is number', () => {
       expect(isCodeLimitReached(codeListWithNumbers, CodeListItemType.Number)).toBe(false);
     });
+  });
+
+  describe('updateCodeList', () => {
+    const testRowNumber = 1;
+    const newValue = 'new text';
+
+    it.each(Object.values(CodeListItemTextProperty))(
+      'Returns updated codeList when the %s property is updated',
+      (property: CodeListItemTextProperty) => {
+        const expectedCodeList = [...codeListWithStrings];
+        expectedCodeList[testRowNumber][property] = newValue;
+
+        expect(
+          updateCodeList(codeListWithStrings, { property, codeItemIndex: testRowNumber, newValue }),
+        ).toEqual(expectedCodeList);
+      },
+    );
   });
 });
