@@ -19,7 +19,7 @@ export const useGetConsentTemplates = (
   const { getConsentTemplates } = useServicesContext();
 
   return useQuery<ConsentTemplate[]>({
-    queryKey: [QueryKey.ConsentResourceTemplates],
+    queryKey: [QueryKey.ConsentResourceTemplates, org],
     queryFn: () => getConsentTemplates(org),
     enabled: enabled,
   });

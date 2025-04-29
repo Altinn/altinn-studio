@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
@@ -10,7 +8,6 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Define if metadata is optional
         /// </summary>
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Optional { get; set; }
     }
 }

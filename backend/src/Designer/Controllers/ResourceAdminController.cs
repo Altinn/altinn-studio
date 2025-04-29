@@ -631,9 +631,9 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/consenttemplates")]
-        public async Task<List<ConsentTemplate>> GetConsentTemplates()
+        public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
         {
-            return await _resourceRegistry.GetConsentTemplates();
+            return await _resourceRegistry.GetConsentTemplates(org);
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)

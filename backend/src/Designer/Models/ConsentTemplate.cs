@@ -1,3 +1,6 @@
+#nullable enable
+using System.Collections.Generic;
+
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
@@ -8,12 +11,12 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Template id
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         /// <summary>
         /// Title of the consent template
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// If template is used for a power of attorney (POA) or consent
@@ -26,8 +29,13 @@ namespace Altinn.Studio.Designer.Models
         public bool IsMessageSetInRequest { get; set; }
 
         /// <summary>
+        /// Only service owners in this list can use this template in consent resources
+        /// </summary>
+        public List<string>? RestrictedToServiceOwners { get; set; }
+
+        /// <summary>
         /// Texts for consent content and history
         /// </summary>
-        public ConsentTemplateTexts Texts { get; set; }
+        public required ConsentTemplateTexts Texts { get; set; }
     }
 }

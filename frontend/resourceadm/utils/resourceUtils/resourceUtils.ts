@@ -9,7 +9,6 @@ import type {
   Resource,
   ResourceFormError,
   ResourceError,
-  ConsentTemplate,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
@@ -496,7 +495,7 @@ export const getMigrationErrorMessage = (
 };
 
 const getConsentMetadataValuesFromText = (text: string) => {
-  return text.match(/{(.*?)}/g) ?? [];
+  return text.match(/{([^{}]*?)}/g) ?? [];
 };
 export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
   const metadataValues = [
@@ -505,17 +504,4 @@ export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
     ...getConsentMetadataValuesFromText(consentTexts['en']),
   ].map((match) => match.slice(1, -1));
   return [...new Set(metadataValues)];
-};
-
-export const filterConsentTemplatesByServiceOwner = (
-  consentTemplates: ConsentTemplate[] | undefined,
-  serviceOwner: string,
-): ConsentTemplate[] => {
-  return (consentTemplates || []).filter((template) => {
-    return (
-      !template.restrictedToServiceOwners ||
-      template.restrictedToServiceOwners.length === 0 ||
-      template.restrictedToServiceOwners.includes(serviceOwner)
-    );
-  });
 };
