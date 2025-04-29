@@ -6,16 +6,12 @@ import { screen } from '@testing-library/react';
 import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('taskCard', () => {
   let confirmSpy: jest.SpyInstance;
   beforeAll(() => {
     confirmSpy = jest.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(jest.fn(() => true));
-
-    typedLocalStorage.setItem('featureFlags', FeatureFlag.TaskNavigationEditCards);
   });
 
   afterAll(() => {
