@@ -350,7 +350,7 @@ describe('StudioCodeListEditor', () => {
     const onCreateTextResource = jest.fn();
 
     it.each(Object.values(CodeListItemTextProperty))(
-      'Calls the onCreateTextResource callback with the new text resource when a  %s field loses focus and there is no text resource linked to it',
+      'Calls the onCreateTextResource callback with the new text resource when a %s field loses focus and there is no text resource linked to it',
       async (property: CodeListItemTextProperty) => {
         const user = userEvent.setup();
         renderCodeListEditor({
@@ -365,11 +365,8 @@ describe('StudioCodeListEditor', () => {
 
         expect(onCreateTextResource).toHaveBeenCalledTimes(1);
         expect(onCreateTextResource).toHaveBeenCalledWith({
-          codeList: expect.any(Array),
-          textResource: {
-            value: expect.stringContaining(newValue),
-            id: expect.any(String),
-          },
+          value: expect.stringContaining(newValue),
+          id: expect.any(String),
         });
       },
     );
