@@ -705,7 +705,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 "TTD" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
                 "DIGDIR" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
-                "SKD" =>[.. defaultOrgs, "yt01"],
+                "SKD" => [.. defaultOrgs, "yt01"],
                 _ => defaultOrgs,
             };
         }
