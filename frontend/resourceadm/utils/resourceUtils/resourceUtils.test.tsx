@@ -9,12 +9,7 @@ import {
   getConsentMetadataValues,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type {
-  ConsentTemplate,
-  Resource,
-  ResourceError,
-  SupportedLanguage,
-} from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {

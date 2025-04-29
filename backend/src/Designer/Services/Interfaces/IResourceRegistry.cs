@@ -172,6 +172,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 
         Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env);
 
-        Task<List<ConsentTemplate>> GetConsentTemplates();
+        /// <summary>
+        /// Get consent templates which can be used by this organisation
+        /// </summary>
+        /// <param name="org">Current organization</param>
+        /// <returns>List of consent templates</returns>
+        Task<List<ConsentTemplate>> GetConsentTemplates(string org);
     }
 }
