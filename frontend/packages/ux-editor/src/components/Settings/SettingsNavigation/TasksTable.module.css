@@ -8,37 +8,11 @@
   border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
 }
 
-.tasksHiddenTable {
+.hiddenTasksTable {
   background-color: var(--fds-semantic-background-subtle);
-}
-.tasksHiddenTable .taskTypeCell,
-.tasksHiddenTable .nameCell,
-.tasksHiddenTable .pagesCell {
-  opacity: 0.5;
-}
-
-.taskRow td {
-  border: none;
-}
-
-.taskTypeCell,
-.pagesCell {
-  width: 25%;
-}
-
-.actionCell {
-  width: 1px;
 }
 
 .taskFooterContent {
   text-align: end;
   border-top: 2px solid var(--ds-color-neutral-border-subtle);
-}
-
-.alertMessage {
-  margin: var(--fds-spacing-2);
-}
-
-.alertTitle {
-  margin-bottom: var(--fds-spacing-2);
 }

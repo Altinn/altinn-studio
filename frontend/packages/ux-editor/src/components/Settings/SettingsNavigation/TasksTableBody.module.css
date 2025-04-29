@@ -1,0 +1,25 @@
+.alertMessage {
+  margin: var(--fds-spacing-2);
+}
+
+.alertTitle {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.taskRow td {
+  border: none;
+}
+
+.taskRow td:nth-child(2) {
+  width: 35%;
+}
+
+.taskRow td:nth-child(4) {
+  width: 1px;
+}
+
+.hiddenTaskRow td:nth-child(1),
+.hiddenTaskRow td:nth-child(2),
+.hiddenTaskRow td:nth-child(3) {
+  opacity: 0.5;
+}
