@@ -40,7 +40,7 @@ export const PageGroupAccordion = ({
     if (!group.order || group.order.length === 0) return null;
 
     return (
-      <div key={group.name}>
+      <div key={group.order[0].id} className={classes.groupWrapper}>
         <div className={classes.groupHeaderWrapper}>
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
