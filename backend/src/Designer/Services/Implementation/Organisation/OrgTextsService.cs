@@ -88,14 +88,13 @@ public class OrgTextsService : IOrgTextsService
         await altinnOrgGitRepository.SaveText(languageCode, textResourceObject, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         List<string> textKeys = [];
-        List<string> languages = altinnOrgGitRepository.GetLanguages();
+        List<string> languages = GetLanguages(org, developer, cancellationToken);
         foreach (string languageCode in languages)
         {
             TextResource textResource = await GetText(org, developer, languageCode, cancellationToken);
@@ -104,6 +103,17 @@ public class OrgTextsService : IOrgTextsService
         }
 
         return textKeys.Distinct().ToList();
+    }
+
+    /// <inheritdoc />
+    public List<string> GetLanguages(string org, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        return altinnOrgGitRepository.GetLanguages();
     }
 
     private static string GetStaticContentRepo(string org)
