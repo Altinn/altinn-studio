@@ -393,6 +393,32 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('displays field errors for consent fields', () => {
+    const consentTemplateError = 'CONSENT_TEMPLATE_ERROR';
+    const consentTextError = 'CONSENT_TEXT_ERROR';
+
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[
+          {
+            field: 'consentTemplate',
+            error: consentTemplateError,
+          },
+          {
+            field: 'consentText',
+            index: 'nb',
+            error: consentTextError,
+          },
+        ]}
+        resourceData={mockConsentResource}
+      />,
+    );
+
+    expect(screen.getAllByText(consentTemplateError)).toHaveLength(2);
+    expect(screen.getAllByText(consentTextError)).toHaveLength(2);
+  });
+
   it('displays errors for the required translation fields', async () => {
     render(
       <AboutResourcePage
