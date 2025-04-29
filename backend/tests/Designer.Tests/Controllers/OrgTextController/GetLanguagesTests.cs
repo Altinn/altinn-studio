@@ -19,7 +19,7 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
     private const string OrgName = "ttd";
 
     [Fact]
-    public async Task GetLanguages_ReturnsOk_WithAllLanguages()
+    public async Task GetLanguages_Returns200Ok_WithAllLanguages()
     {
         // Arrange
         const string repoName = "org-content";
@@ -34,15 +34,16 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         List<string> languages = await response.Content.ReadAsAsync<List<string>>();
         Assert.Equal(2, languages.Count);
         Assert.Contains("nb", languages);
         Assert.Contains("en", languages);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
-    public async Task GetLanguages_ReturnsNoContent_WhenThereAreNoLanguages()
+    public async Task GetLanguages_Returns204NoContent_WhenThereAreNoLanguages()
     {
         // Arrange
         const string repoName = "org-content-empty";
