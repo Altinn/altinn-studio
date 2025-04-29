@@ -16,6 +16,7 @@
 
 .taskRow td:nth-child(4) {
   width: 1px;
+  white-space: nowrap;
 }
 
 .hiddenTaskRow td:nth-child(1),

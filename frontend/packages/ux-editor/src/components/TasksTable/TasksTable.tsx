@@ -1,21 +1,23 @@
-import React, { ReactElement } from 'react';
+import React, { type ReactElement } from 'react';
 import { StudioButton, StudioTable } from '@studio/components';
 import classes from './TasksTable.module.css';
 import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';
+import { useTranslation } from 'react-i18next';
+import { EyeClosedIcon, EyeIcon } from '@studio/icons';
 
-// const tasks = [
-//   {
-//     taskType: 'Task 1',
-//     taskName: 'Type 1',
-//     numberOfPages: 2,
-//   },
-//   {
-//     taskType: 'Task 2',
-//     taskName: 'Type 2',
-//     numberOfPages: 24,
-//   },
-// ];
+const tasks = [
+  {
+    taskType: 'Task 1',
+    taskName: 'Type 1',
+    numberOfPages: 2,
+  },
+  {
+    taskType: 'Task 2',
+    taskName: 'Type 2',
+    numberOfPages: 24,
+  },
+];
 
 export type taskInfo = {
   taskType: string;
@@ -31,11 +33,13 @@ type TasksTableProps = {
 };
 
 export const TasksTable = ({
-  tasks = [],
-  isNavigationMode = true,
+  // tasks = [],
+  isNavigationMode = false,
   onSelectTask,
   onSelectAllTasks,
 }: TasksTableProps): ReactElement => {
+  const { t } = useTranslation();
+
   return (
     <StudioTable
       border={true}
@@ -45,9 +49,9 @@ export const TasksTable = ({
     >
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.HeaderCell>Oppgave</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>Navn</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>Antall Sider</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('ux_editor.task_table_type')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('ux_editor.task_table_name')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('ux_editor.task_table_pages')}</StudioTable.HeaderCell>
           <StudioTable.HeaderCell />
         </StudioTable.Row>
       </StudioTable.Head>
@@ -61,8 +65,14 @@ export const TasksTable = ({
       <StudioTable.Foot>
         <StudioTable.Row>
           <StudioTable.Cell colSpan={4} className={classes.taskFooterContent}>
-            <StudioButton variant='secondary' onClick={() => onSelectAllTasks()}>
-              Velg alle oppgaver
+            <StudioButton
+              variant='secondary'
+              onClick={() => onSelectAllTasks()}
+              icon={isNavigationMode ? <EyeIcon /> : <EyeClosedIcon />}
+            >
+              {isNavigationMode
+                ? t('ux_editor.task_table_hide_all')
+                : t('ux_editor.task_table_show_all')}
             </StudioButton>
           </StudioTable.Cell>
         </StudioTable.Row>

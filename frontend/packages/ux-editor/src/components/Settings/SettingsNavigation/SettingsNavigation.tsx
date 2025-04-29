@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { isTaskReceipt, getTaskIcon, taskNavigationType } from '../SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
-import { TasksTable } from '../SettingsNavigation/TasksTable';
+import { TasksTable } from '../../TasksTable/TasksTable';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();

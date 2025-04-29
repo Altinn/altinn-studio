@@ -1,10 +1,11 @@
-import React, { ReactElement } from 'react';
+import React, { type ReactElement } from 'react';
 import type { taskInfo } from './TasksTable';
 import { StudioButton, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { StudioAlert } from '@studio/components-legacy';
-import { MenuElipsisVerticalIcon } from '@studio/icons';
+import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 type TasksTableBodyProps = {
   tasks: taskInfo[];
@@ -17,6 +18,7 @@ export const TasksTableBody = ({
   isNavigationMode,
   onSelectTask,
 }: TasksTableBodyProps): ReactElement | ReactElement[] => {
+  const { t } = useTranslation();
   const displayInfoMessage = isNavigationMode && tasks.length === 0;
 
   if (displayInfoMessage) {
@@ -24,11 +26,9 @@ export const TasksTableBody = ({
       <StudioTable.Cell colSpan={4}>
         <StudioAlert className={classes.alertMessage}>
           <StudioHeading level={4} data-size='2xs' className={classes.alertTitle}>
-            Du viser ingen oppgaver i navigasjonen
+            {t('ux_editor.task_table_alert_title')}
           </StudioHeading>
-          <StudioParagraph>
-            For å se oppgavene her, må du velge dem fra tabellen under.
-          </StudioParagraph>
+          <StudioParagraph>{t('ux_editor.task_table_alert_message')}</StudioParagraph>
         </StudioAlert>
       </StudioTable.Cell>
     );
@@ -44,13 +44,35 @@ export const TasksTableBody = ({
         <StudioTable.Cell>{task.taskName}</StudioTable.Cell>
         <StudioTable.Cell>{task.numberOfPages}</StudioTable.Cell>
         <StudioTable.Cell onClick={() => onSelectTask(index)}>
-          <ActionCellContent isNavigationMode={isNavigationMode} />
+          <ActionCellContent
+            isNavigationMode={isNavigationMode}
+            onSelectTask={() => onSelectTask(index)}
+            index={index}
+          />
         </StudioTable.Cell>
       </StudioTable.Row>
     );
   });
 };
 
-const ActionCellContent = ({ isNavigationMode }: Partial<TasksTableBodyProps>): ReactElement => {
-  return isNavigationMode ? <MenuElipsisVerticalIcon /> : <StudioButton variant='secondary' />;
+type ActionCellContentProps = {
+  index: number;
+  isNavigationMode: boolean;
+  onSelectTask: (index: number) => void;
+};
+
+const ActionCellContent = ({
+  index,
+  isNavigationMode,
+  onSelectTask,
+}: ActionCellContentProps): ReactElement => {
+  const { t } = useTranslation();
+
+  if (isNavigationMode) return <MenuElipsisVerticalIcon />;
+
+  return (
+    <StudioButton variant='tertiary' icon={<EyeClosedIcon />} onClick={() => onSelectTask(index)}>
+      {t('ux_editor.task_table_display')}
+    </StudioButton>
+  );
 };
