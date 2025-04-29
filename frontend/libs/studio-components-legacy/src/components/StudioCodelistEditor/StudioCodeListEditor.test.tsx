@@ -6,9 +6,8 @@ import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeList } from './types/CodeList';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 import { texts } from './test-data/texts';
-import { codeListWithTextResources } from './test-data/codeListWithTextResources';
+import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import {
   description1Resource,
@@ -25,6 +24,7 @@ import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
 import { codeListWithUndefinedValues } from './test-data/codeListWithUndefinedValues';
 import { emptyBooleanItem, emptyNumberItem, emptyStringItem } from './utils';
+import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 
 // Test data:
 const onAddOrDeleteItem = jest.fn();
@@ -32,16 +32,13 @@ const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
-  codeList: codeListWithoutTextResources,
+  codeList: codeListWithStrings,
   texts,
   onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onInvalid,
-};
-const propsWithTextResources: Partial<StudioCodeListEditorProps> = {
   textResources,
-  codeList: codeListWithTextResources,
 };
 const duplicatedValue = 'duplicate';
 const codeListWithDuplicatedValues: CodeList = [
@@ -78,7 +75,7 @@ describe('StudioCodeListEditor', () => {
   it('Renders a table of code list items', () => {
     renderCodeListEditor();
     expect(screen.getByRole('table')).toBeInTheDocument();
-    const numberOfCodeListItems = codeListWithoutTextResources.length;
+    const numberOfCodeListItems = codeListWithStrings.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRows);
   });
@@ -107,7 +104,7 @@ describe('StudioCodeListEditor', () => {
 
   it('Does not display the unset option for labels', async () => {
     const user = userEvent.setup();
-    renderCodeListEditor(propsWithTextResources);
+    renderCodeListEditor();
     const firstLabelCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
     await switchToSearchMode(user, firstLabelCoords);
     await user.click(getTextResourcePicker(firstLabelCoords));
@@ -120,7 +117,7 @@ describe('StudioCodeListEditor', () => {
     `Displays the unset option for %ss`,
     async (property) => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, property];
       await switchToSearchMode(user, propertyCoords);
       await user.click(getTextResourcePicker(propertyCoords));
@@ -138,54 +135,10 @@ describe('StudioCodeListEditor', () => {
     await user.type(valueInput, newValue);
     expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeListWithoutTextResources[0], value: newValue },
-      codeListWithoutTextResources[1],
-      codeListWithoutTextResources[2],
+      { ...codeListWithStrings[0], value: newValue },
+      codeListWithStrings[1],
+      codeListWithStrings[2],
     ]);
-  });
-
-  describe('onChange without text resources', () => {
-    it('Calls the onChange callback with the new code list when a label is changed', async () => {
-      const user = userEvent.setup();
-      renderCodeListEditor();
-      const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
-      const newValue = 'new text';
-      await user.type(labelInput, newValue);
-      expect(onChange).toHaveBeenCalledTimes(newValue.length);
-      expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithoutTextResources[0], label: newValue },
-        codeListWithoutTextResources[1],
-        codeListWithoutTextResources[2],
-      ]);
-    });
-
-    it('Calls the onChange callback with the new code list when a description is changed', async () => {
-      const user = userEvent.setup();
-      renderCodeListEditor();
-      const descriptionInput = screen.getByRole('textbox', { name: texts.itemDescription(1) });
-      const newValue = 'new text';
-      await user.type(descriptionInput, newValue);
-      expect(onChange).toHaveBeenCalledTimes(newValue.length);
-      expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithoutTextResources[0], description: newValue },
-        codeListWithoutTextResources[1],
-        codeListWithoutTextResources[2],
-      ]);
-    });
-
-    it('Calls the onChange callback with the new code list when a help text is changed', async () => {
-      const user = userEvent.setup();
-      renderCodeListEditor();
-      const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
-      const newValue = 'new text';
-      await user.type(helpTextInput, newValue);
-      expect(onChange).toHaveBeenCalledTimes(newValue.length);
-      expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithoutTextResources[0], helpText: newValue },
-        codeListWithoutTextResources[1],
-        codeListWithoutTextResources[2],
-      ]);
-    });
   });
 
   describe('onChange with text resources', () => {
@@ -193,7 +146,7 @@ describe('StudioCodeListEditor', () => {
 
     it('Calls the onChange callback with the new code list when a label is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.Label];
       await switchToSearchMode(user, propertyCoords);
       await user.click(getTextResourcePicker(propertyCoords));
@@ -201,15 +154,15 @@ describe('StudioCodeListEditor', () => {
       await waitFor(expect(onChange).toHaveBeenCalled);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithTextResources[0], label: label4Resource.id },
-        codeListWithTextResources[1],
-        codeListWithTextResources[2],
+        { ...codeListWithStrings[0], label: label4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
       ]);
     });
 
     it('Calls the onChange callback with the new code list when a description is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [
         testRowNumber,
         CodeListItemTextProperty.Description,
@@ -220,15 +173,15 @@ describe('StudioCodeListEditor', () => {
       await waitFor(expect(onChange).toHaveBeenCalled);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithTextResources[0], description: description4Resource.id },
-        codeListWithTextResources[1],
-        codeListWithTextResources[2],
+        { ...codeListWithStrings[0], description: description4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
       ]);
     });
 
     it('Calls the onChange callback with the new code list when a help text is changed', async () => {
       const user = userEvent.setup();
-      renderCodeListEditor(propsWithTextResources);
+      renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
       await switchToSearchMode(user, propertyCoords);
       await user.click(getTextResourcePicker(propertyCoords));
@@ -236,9 +189,9 @@ describe('StudioCodeListEditor', () => {
       await waitFor(expect(onChange).toHaveBeenCalled);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenLastCalledWith([
-        { ...codeListWithTextResources[0], helpText: helpText4Resource.id },
-        codeListWithTextResources[1],
-        codeListWithTextResources[2],
+        { ...codeListWithStrings[0], helpText: helpText4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
       ]);
     });
   });
@@ -249,7 +202,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onChangeTextResource callback with the new text resource when a label is changed', async () => {
       const user = userEvent.setup();
       const onChangeTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
+      renderCodeListEditor({ onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.Label];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
@@ -263,7 +216,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onChangeTextResource callback with the new text resource when a description is changed', async () => {
       const user = userEvent.setup();
       const onChangeTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
+      renderCodeListEditor({ onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [
         testRowNumber,
         CodeListItemTextProperty.Description,
@@ -280,7 +233,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onChangeTextResource callback with the new text resource when a help text is changed', async () => {
       const user = userEvent.setup();
       const onChangeTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onChangeTextResource });
+      renderCodeListEditor({ onChangeTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
@@ -298,7 +251,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onBlurTextResource callback with the new text resource when a label is changed', async () => {
       const user = userEvent.setup();
       const onBlurTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      renderCodeListEditor({ onBlurTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.Label];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
@@ -313,7 +266,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onBlurTextResource callback with the new text resource when a description is changed', async () => {
       const user = userEvent.setup();
       const onBlurTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      renderCodeListEditor({ onBlurTextResource });
       const propertyCoords: TextPropertyCoords = [
         testRowNumber,
         CodeListItemTextProperty.Description,
@@ -331,7 +284,7 @@ describe('StudioCodeListEditor', () => {
     it('Calls the onBlurTextResource callback with the new text resource when a help text is changed', async () => {
       const user = userEvent.setup();
       const onBlurTextResource = jest.fn();
-      renderCodeListEditor({ ...propsWithTextResources, onBlurTextResource });
+      renderCodeListEditor({ onBlurTextResource });
       const propertyCoords: TextPropertyCoords = [testRowNumber, CodeListItemTextProperty.HelpText];
       const newValue = 'new text';
       await user.type(getTextResourceValueInput(propertyCoords), newValue);
@@ -344,16 +297,85 @@ describe('StudioCodeListEditor', () => {
     });
   });
 
+  describe('onCreateTextResource', () => {
+    const testRowNumber = 1;
+    const newValue = 'new text';
+    const onCreateTextResource = jest.fn();
+
+    it.each(Object.values(CodeListItemTextProperty))(
+      'Calls the onCreateTextResource callback with the new text resource when a %s field loses focus and there is no text resource linked to it',
+      async (property: CodeListItemTextProperty) => {
+        const user = userEvent.setup();
+        renderCodeListEditor({
+          codeList: codeListWithoutTextResources,
+          onCreateTextResource,
+        });
+        const propertyCoords: TextPropertyCoords = [testRowNumber, property];
+
+        await user.type(getTextResourceValueInput(propertyCoords), newValue);
+        await user.tab();
+
+        expect(onCreateTextResource).toHaveBeenCalledTimes(1);
+        expect(onCreateTextResource).toHaveBeenCalledWith({
+          value: expect.stringContaining(newValue),
+          id: expect.any(String),
+        });
+      },
+    );
+  });
+
+  describe('onUpdateTextResource', () => {
+    const testRowNumber = 1;
+    const newValue = 'new text';
+    const onUpdateTextResource = jest.fn();
+
+    it.each(Object.values(CodeListItemTextProperty))(
+      'Calls the onUpdateTextResource callback with the updated text resource when a %s field loses focus',
+      async (property: CodeListItemTextProperty) => {
+        const user = userEvent.setup();
+        renderCodeListEditor({ onUpdateTextResource });
+        const propertyCoords: TextPropertyCoords = [testRowNumber, property];
+
+        await user.type(getTextResourceValueInput(propertyCoords), newValue);
+        await user.tab();
+
+        expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+        expect(onUpdateTextResource).toHaveBeenCalledWith({
+          id: expect.any(String),
+          value: expect.stringContaining(newValue),
+        });
+      },
+    );
+  });
+
+  describe('onUpdateCodeList', () => {
+    it('Calls the onUpdateCodeList callback with the new code list item when a value field loses focus', async () => {
+      const user = userEvent.setup();
+      const onUpdateCodeList = jest.fn();
+      renderCodeListEditor({ onUpdateCodeList });
+      const testRowNumber = 1;
+      const newValue = 'new text';
+      const expectedCodeList = [...codeListWithStrings];
+      expectedCodeList[testRowNumber - 1].value = newValue;
+
+      await user.type(
+        screen.getByRole('textbox', { name: texts.itemValue(testRowNumber) }),
+        newValue,
+      );
+      await user.tab();
+
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenCalledWith(expectedCodeList);
+    });
+  });
+
   it('Calls the onChange callback with the new code list when an item is removed', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith([
-      codeListWithoutTextResources[1],
-      codeListWithoutTextResources[2],
-    ]);
+    expect(onChange).toHaveBeenCalledWith([codeListWithStrings[1], codeListWithStrings[2]]);
   });
 
   it('Calls the onChange callback with the new code list when an item is added', async () => {
@@ -363,7 +385,7 @@ describe('StudioCodeListEditor', () => {
     await user.click(addButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
-      ...codeListWithoutTextResources,
+      ...codeListWithStrings,
       {
         label: '',
         value: '',
@@ -380,9 +402,9 @@ describe('StudioCodeListEditor', () => {
     await user.tab();
     expect(onBlurAny).toHaveBeenCalledTimes(1);
     expect(onBlurAny).toHaveBeenLastCalledWith([
-      { ...codeListWithoutTextResources[0], value: newValue },
-      codeListWithoutTextResources[1],
-      codeListWithoutTextResources[2],
+      { ...codeListWithStrings[0], value: newValue },
+      codeListWithStrings[1],
+      codeListWithStrings[2],
     ]);
   });
 
@@ -393,7 +415,7 @@ describe('StudioCodeListEditor', () => {
     await user.click(addButton);
     expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
     expect(onAddOrDeleteItem).toHaveBeenCalledWith([
-      ...codeListWithoutTextResources,
+      ...codeListWithStrings,
       {
         label: '',
         value: '',
@@ -408,15 +430,15 @@ describe('StudioCodeListEditor', () => {
     await user.click(deleteButton);
     expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
     expect(onAddOrDeleteItem).toHaveBeenCalledWith([
-      codeListWithoutTextResources[1],
-      codeListWithoutTextResources[2],
+      codeListWithStrings[1],
+      codeListWithStrings[2],
     ]);
   });
 
   it('Updates itself when the user changes something', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
-    const numberOfCodeListItems = codeListWithoutTextResources.length;
+    const numberOfCodeListItems = codeListWithStrings.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     const addButton = screen.getByRole('button', { name: texts.add });
     await user.click(addButton);
@@ -437,7 +459,7 @@ describe('StudioCodeListEditor', () => {
       },
     ];
     const { rerender } = renderCodeListEditor();
-    const numberOfCodeListItems = codeListWithoutTextResources.length;
+    const numberOfCodeListItems = codeListWithStrings.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRows);
     rerender(<StudioCodeListEditor {...defaultProps} codeList={newCodeList} />);
@@ -495,8 +517,10 @@ describe('StudioCodeListEditor', () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
       const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-      await user.type(validValueInput, 'new value');
+      const newValue = 'test';
+      await user.type(validValueInput, newValue);
       expect(onChange).not.toHaveBeenCalled();
+      expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
     });
 
     it('Does not trigger onBlurAny while the code list is invalid', async () => {
@@ -639,10 +663,7 @@ describe('StudioCodeListEditor', () => {
       await user.click(addButton);
 
       expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
-      expect(onAddOrDeleteItem).toHaveBeenCalledWith([
-        ...codeListWithoutTextResources,
-        emptyStringItem,
-      ]);
+      expect(onAddOrDeleteItem).toHaveBeenCalledWith([...codeListWithStrings, emptyStringItem]);
     });
 
     it('Creates an empty number item when the last element in code list is a number', async () => {
@@ -702,9 +723,9 @@ describe('StudioCodeListEditor', () => {
 
       expect(onBlurAny).toHaveBeenCalledTimes(1);
       expect(onBlurAny).toHaveBeenCalledWith([
-        { ...codeListWithoutTextResources[0], value: changedValue },
-        codeListWithoutTextResources[1],
-        codeListWithoutTextResources[2],
+        { ...codeListWithStrings[0], value: changedValue },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
       ]);
     });
 

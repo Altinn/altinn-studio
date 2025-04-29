@@ -1,19 +1,31 @@
-.taskNavigationContainer {
+.navigationTabContent {
   --icon-size: 28px;
   --icon-size-locker: 21px;
   --icon-border-width: 2px;
   --font-weight-semi-bold: 500;
-  --container-height: 637px;
-  --container-width: 541px;
+  --task-list-height: 637px;
+  --task-list-width: 541px;
   --border-radius: 8px;
+  --paragraph-width: 750px;
 }
 
-.taskNavigationContainer {
+.navigationTabContent {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-5);
-  max-width: var(--container-width);
-  max-height: var(--container-height);
+}
+
+.navigationTabContent p {
+  max-width: var(--paragraph-width);
+  padding-top: var(--fds-spacing-1);
+}
+
+.navigationTaskList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+  max-width: var(--task-list-width);
+  max-height: var(--task-list-height);
   padding: var(--fds-spacing-3) var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-subtle);
   border: var(--fds-border_width-default) solid #b8bcc1;

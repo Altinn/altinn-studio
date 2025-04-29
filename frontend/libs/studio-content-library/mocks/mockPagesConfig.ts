@@ -1,5 +1,6 @@
 import type { PagesConfig } from '../src/types/PagesProps';
 import type { CodeListData } from '../src';
+import { textResources } from '../src/test-data/textResources';
 
 export const codeListData: CodeListData = {
   title: 'CodeList1',
@@ -12,11 +13,13 @@ export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
       codeListsData: codeListsDataMock,
+      onCreateCodeList: () => {},
       onDeleteCodeList: () => {},
       onUpdateCodeListId: () => {},
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
       codeListsUsages: [],
+      textResources,
     },
   },
   images: {

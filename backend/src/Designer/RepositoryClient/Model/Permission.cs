@@ -32,14 +32,14 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Permission" /> class.
         /// </summary>
-        /// <param name="Admin">Admin.</param>
-        /// <param name="Pull">Pull.</param>
-        /// <param name="Push">Push.</param>
-        public Permission(bool? Admin = default(bool?), bool? Pull = default(bool?), bool? Push = default(bool?))
+        /// <param name="admin">Admin.</param>
+        /// <param name="pull">Pull.</param>
+        /// <param name="push">Push.</param>
+        public Permission(bool? admin = default(bool?), bool? pull = default(bool?), bool? push = default(bool?))
         {
-            this.Admin = Admin;
-            this.Pull = Pull;
-            this.Push = Push;
+            this.Admin = admin;
+            this.Pull = pull;
+            this.Push = push;
         }
 
         /// <summary>

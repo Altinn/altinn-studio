@@ -12,7 +12,7 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static class DeploymentEntityDesignerDbFixtureExtensions
 {
-    private readonly static JsonSerializerOptions JsonOptions = new()
+    private readonly static JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -52,7 +52,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created.ToUniversalTime(),
             CreatedBy = entity.CreatedBy,
-            Entity = JsonSerializer.Serialize(entity, JsonOptions),
+            Entity = JsonSerializer.Serialize(entity, s_jsonOptions),
             EnvName = entity.EnvName,
             Build = MapBuildToDbModel(entity.Build)
         };
