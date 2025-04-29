@@ -1,9 +1,4 @@
-import type {
-  CodeList,
-  CodeListEditorTexts,
-  TextResource,
-  CreateTextResourceArgs,
-} from '@studio/components-legacy';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioModal,
@@ -55,18 +50,6 @@ export function EditCodeList({
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
 
-  const handleUpdateTextResource = (newTextResource: TextResource): void => {
-    onBlurTextResource?.(newTextResource);
-  };
-
-  const handleCreateTextResource = ({
-    codeList: newCodeList,
-    textResource: newTextResource,
-  }: CreateTextResourceArgs): void => {
-    handleUpdateCodeList(newCodeList);
-    onBlurTextResource?.(newTextResource);
-  };
-
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
 
   const codeListHasUsages = codeListSources.length > 0;
@@ -82,8 +65,8 @@ export function EditCodeList({
       />
       <StudioCodeListEditor
         codeList={codeList}
-        onCreateTextResource={handleCreateTextResource}
-        onUpdateTextResource={handleUpdateTextResource}
+        onCreateTextResource={onBlurTextResource}
+        onUpdateTextResource={onBlurTextResource}
         onUpdateCodeList={handleUpdateCodeList}
         texts={editorTexts}
         textResources={textResources}

@@ -110,7 +110,7 @@ function CreateNewCodeList({
     }
   };
 
-  const handleCodeListChange = (updatedCodeList: CodeList) => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList) => {
     setIsCodeListValid(true);
     const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
       currentCodeListWithMetadata,
@@ -137,9 +137,10 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onBlurTextResource={onBlurTextResource}
-          onChange={handleCodeListChange}
+          onCreateTextResource={onBlurTextResource}
           onInvalid={handleInvalidCodeList}
+          onUpdateCodeList={handleUpdateCodeList}
+          onUpdateTextResource={onBlurTextResource}
           texts={editorTexts}
           textResources={textResources}
         />

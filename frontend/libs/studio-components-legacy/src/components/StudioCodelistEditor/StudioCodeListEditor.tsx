@@ -37,11 +37,6 @@ import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import type { ReducerState, ReducerAction } from './StudioCodeListEditorReducer';
 import classes from './StudioCodeListEditor.module.css';
 
-export type CreateTextResourceArgs = {
-  textResource: TextResource;
-  codeList: CodeList;
-};
-
 export type CreateTextResourceInternalArgs = {
   textResource: TextResource;
   codeItemIndex: number;
@@ -55,7 +50,7 @@ export type StudioCodeListEditorProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
-  onCreateTextResource?: (args: CreateTextResourceArgs) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
@@ -132,18 +127,6 @@ function StatefulCodeListEditor({
     [onChange, onInvalid, dispatch],
   );
 
-  const handleCreateTextResource = useCallback(
-    ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
-      const codeList: CodeList = updateCodeList(state.codeList, {
-        newValue: textResource.id,
-        codeItemIndex,
-        property,
-      });
-      onCreateTextResource?.({ textResource, codeList });
-    },
-    [onCreateTextResource, state.codeList],
-  );
-
   const handleUpdateCodeList = useCallback(
     (codeList: CodeList) => {
       if (isCodeListValid(codeList)) {
@@ -151,6 +134,19 @@ function StatefulCodeListEditor({
       }
     },
     [onUpdateCodeList],
+  );
+
+  const handleCreateTextResource = useCallback(
+    ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
+      const codeList: CodeList = updateCodeList(state.codeList, {
+        newValue: textResource.id,
+        codeItemIndex,
+        property,
+      });
+      handleUpdateCodeList(codeList);
+      onCreateTextResource?.(textResource);
+    },
+    [handleUpdateCodeList, onCreateTextResource, state.codeList],
   );
 
   return (
