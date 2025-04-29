@@ -571,8 +571,10 @@ describe('StudioCodeListEditor', () => {
       const user = userEvent.setup();
       renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
       const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-      await user.type(validValueInput, 'new value');
+      const newValue = 'test';
+      await user.type(validValueInput, newValue);
       expect(onChange).not.toHaveBeenCalled();
+      expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
     });
 
     it('Does not trigger onBlurAny while the code list is invalid', async () => {

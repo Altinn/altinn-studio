@@ -119,11 +119,11 @@ function StatefulCodeListEditor({
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
+      dispatch({
+        type: ReducerActionType.SetCodeList,
+        codeList: newCodeList,
+      });
       if (isCodeListValid(newCodeList)) {
-        dispatch({
-          type: ReducerActionType.SetCodeList,
-          codeList: newCodeList,
-        });
         onChange?.(newCodeList);
       } else {
         onInvalid?.();
