@@ -25,7 +25,6 @@ public interface IOrgTextsService
     /// <param name="textResource">The text resource to be saved</param>
     /// <param name="languageCode">LanguageCode</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns></returns>
     public Task SaveText(string org, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -36,7 +35,6 @@ public interface IOrgTextsService
     /// <param name="keysTexts">KeysTexts</param>
     /// <param name="languageCode">LanguageCode</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns></returns>
     public Task UpdateTextsForKeys(string org, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -45,15 +43,15 @@ public interface IOrgTextsService
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns></returns>
+    /// <returns>A list of text IDs.</returns>
     public Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets languages based on the text resource file names.
     /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="developer">Username of developer</param>
+    /// <param name="org">Organisation.</param>
+    /// <param name="developer">Username of developer.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns></returns>
+    /// <returns>A list of language codes.</returns>
     public List<string> GetLanguages(string org, string developer, CancellationToken cancellationToken = default);
 }
