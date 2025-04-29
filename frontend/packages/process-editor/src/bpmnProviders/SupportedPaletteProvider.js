@@ -61,6 +61,7 @@ class SupportedPaletteProvider {
                   dataTypes: [],
                 }),
                 signatureDataType: `signatureInformation-${generateRandomId(4)}`,
+                runDefaultValidator: true,
               }),
             }),
           ],
@@ -96,9 +97,10 @@ class SupportedPaletteProvider {
                 }),
                 signatureDataType: `userControlledSignatureInformation-${generateRandomId(4)}`,
                 signeeStatesDataTypeId: `signeeStates-${generateRandomId(4)}`,
-                signeeProviderId: `signees`, // Default implementation in app-backend
+                signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
                 correspondenceResource: '', // No default
+                runDefaultValidator: true,
               }),
             }),
           ],
