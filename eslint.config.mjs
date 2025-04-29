@@ -14,6 +14,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
 
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import langKey from './src/language/eslint.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
@@ -58,6 +61,11 @@ export default tseslint.config(
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
       react: fixupPluginRules(reactPlugin),
+      local: {
+        rules: {
+          'language-key': langKey,
+        },
+      },
     },
     languageOptions: {
       globals: {
@@ -86,6 +94,7 @@ export default tseslint.config(
       },
     },
     rules: {
+      'local/language-key': ['error'],
       curly: ['error', 'all'],
       'object-shorthand': ['error', 'always'],
       'arrow-body-style': ['error', 'as-needed'],

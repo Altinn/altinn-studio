@@ -115,7 +115,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
           component='nav'
           size={{ xs: 12 }}
           role='navigation'
-          aria-label={langAsString('general.navigation_form')}
+          aria-label={langAsString('navigation.form')}
         >
           {isMobile && (
             <NavigationButton

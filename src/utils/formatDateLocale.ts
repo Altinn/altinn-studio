@@ -187,8 +187,12 @@ function postProcessValue(token: Token, date: Date, lang: FixedLanguageList | un
   if (['E', 'EE', 'EEE'].includes(token)) {
     return value.replace(/\.$/, '');
   }
-  if (token === 'a' && lang?.dateTime) {
-    return value === 'AM' ? lang.dateTime.am : lang.dateTime.pm;
+  if (token === 'a' && lang) {
+    return value === 'AM' ? lookup(lang, 'dateTime.am') : lookup(lang, 'dateTime.pm');
   }
   return value;
+}
+
+function lookup(lang: FixedLanguageList, key: keyof FixedLanguageList) {
+  return lang[key];
 }

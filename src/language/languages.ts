@@ -3,34 +3,32 @@ import { nb } from 'src/language/texts/nb';
 import { nn } from 'src/language/texts/nn';
 
 export type FixedLanguageList = ReturnType<typeof en>;
-export interface NestedTexts {
-  [n: string]: string | NestedTexts;
-}
 
 // This makes sure we don't generate a new object
 // each time (which would fail shallow comparisons, in for example React.memo)
 const cachedLanguages: Record<string, FixedLanguageList> = {};
-const langFuncMap = { en, nb, nn };
 
 export function getLanguageFromCode(languageCode: string) {
-  const isValid = Object.prototype.hasOwnProperty.call(langFuncMap, languageCode);
-  if (!isValid) {
-    return en();
+  if (cachedLanguages[languageCode]) {
+    return cachedLanguages[languageCode];
   }
 
-  const validCode = languageCode as keyof typeof langFuncMap;
-  if (cachedLanguages[validCode]) {
-    return cachedLanguages[validCode];
+  if (languageCode === 'nb') {
+    cachedLanguages[languageCode] = nb() satisfies FixedLanguageList;
+    return cachedLanguages[languageCode];
   }
 
-  const langFunc = langFuncMap[validCode];
-  if (langFunc) {
-    const language = langFunc();
-    cachedLanguages[validCode] = language;
-    return language;
+  if (languageCode === 'nn') {
+    cachedLanguages[languageCode] = nn() satisfies FixedLanguageList;
+    return cachedLanguages[languageCode];
   }
 
-  return en();
+  if (cachedLanguages['en']) {
+    return cachedLanguages['en'];
+  }
+
+  cachedLanguages['en'] = en();
+  return cachedLanguages['en'];
 }
 
 export const rightToLeftISOLanguageCodes = [

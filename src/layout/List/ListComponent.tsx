@@ -331,23 +331,21 @@ function Pagination({
   numberOfRows = 0,
   rowsPerPageOptions = [],
 }: PaginationProps) {
-  const { language } = useLanguage();
+  const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
 
   function handlePageSizeChange(newSize: number) {
     setPageNumber(0);
     setPageSize(newSize);
   }
-  const textStrings = language?.['list_component'];
-
   return (
     <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'fds-table__header__cell')}>
       <CustomPagination
-        nextLabel={textStrings['nextPage']}
-        nextLabelAriaLabel={textStrings['nextPageAriaLabel']}
-        previousLabel={textStrings['previousPage']}
-        previousLabelAriaLabel={textStrings['previousPageAriaLabel']}
-        rowsPerPageText={textStrings['rowsPerPage']}
+        nextLabel={langAsString('list_component.nextPage')}
+        nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
+        previousLabel={langAsString('list_component.previousPage')}
+        previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
+        rowsPerPageText={langAsString('list_component.rowsPerPage')}
         size='sm'
         currentPage={pageNumber}
         numberOfRows={numberOfRows}

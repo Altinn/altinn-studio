@@ -8,10 +8,10 @@ import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext
 import { useLangToolsDataSources, useSetLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { getLanguageFromCode } from 'src/language/languages';
+import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
-import type { IApplicationSettings, ILanguage } from 'src/types/shared';
+import type { IApplicationSettings } from 'src/types/shared';
 
 export type LimitedTextResourceVariablesDataSources = Omit<
   TextResourceVariablesDataSources,
@@ -20,7 +20,7 @@ export type LimitedTextResourceVariablesDataSources = Omit<
 export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
   textResources: TextResourceMap;
   selectedLanguage: string;
-  language: ILanguage;
+  language: FixedLanguageList;
 }
 
 const emptyObject = {};

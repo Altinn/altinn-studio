@@ -1,5 +1,3 @@
-import type { FixedLanguageList } from 'src/language/languages';
-
 export interface IAltinnOrg {
   name: ITitle;
   logo: string;
@@ -104,13 +102,6 @@ export interface IInstanceState {
   isMarkedForHardDelete: boolean;
   isArchived: boolean;
 }
-
-// Language translations for altinn
-export type ILanguage =
-  | FixedLanguageList
-  | {
-      [key: string]: string | ILanguage;
-    };
 
 // Language for the rendered altinn app
 export interface IAppLanguage {

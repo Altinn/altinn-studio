@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactDOMServer from 'react-dom/server';
+
+import dot from 'dot-object';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -32,7 +34,8 @@ export function CustomWebComponent({
   ...passThroughPropsFromGenericComponent
 }: ICustomComponentProps) {
   const langTools = useLanguage();
-  const { language, langAsString } = langTools;
+  const langAsString = langTools.langAsString;
+  const legacyLanguage = useLegacyNestedTexts();
   const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useNodeItem(node);
 
   const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
@@ -79,9 +82,9 @@ export function CustomWebComponent({
     if (current) {
       current.texts = getTextsForComponent(textResourceBindings, langTools);
       current.dataModelBindings = dataModelBindings;
-      current.language = language;
+      current.language = legacyLanguage;
     }
-  }, [wcRef, textResourceBindings, dataModelBindings, langTools, language]);
+  }, [wcRef, textResourceBindings, dataModelBindings, langTools, legacyLanguage]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -126,4 +129,9 @@ function getTextsForComponent(textResourceBindings: ITextResourceBindings<'Custo
     result[key] = langTools.langAsString(bindings[key]);
   });
   return result;
+}
+
+export function useLegacyNestedTexts() {
+  const { language } = useLanguage();
+  return useMemo(() => dot.object(language), [language]);
 }

@@ -7,7 +7,7 @@ import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
-import { getLanguageFromCode } from 'src/language/languages';
+import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
@@ -23,10 +23,9 @@ import type {
   LimitedTextResourceVariablesDataSources,
 } from 'src/features/language/LangDataSourcesProvider';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type { FixedLanguageList, NestedTexts } from 'src/language/languages';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
+import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LaxNodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
@@ -40,7 +39,7 @@ export type TextReference = {
 };
 
 export interface IUseLanguage {
-  language: ILanguage;
+  language: FixedLanguageList;
   lang(
     key: ValidLanguageKey | string | undefined,
     params?: ValidLangParam[],
@@ -72,23 +71,7 @@ export interface TextResourceVariablesDataSources {
   transposeSelector: DataModelTransposeSelector;
 }
 
-/**
- * This type converts the language object into a dot notation union of valid language keys.
- * Using this type helps us get suggestions for valid language keys in useLanguage() functions.
- * Thanks to ChatGPT for refinements to make this work!
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ObjectToDotNotation<T extends Record<string, any>, Prefix extends string = ''> = {
-  [K in keyof T]: K extends string
-    ? T[K] extends string | number | boolean | null | undefined
-      ? `${Prefix}${K}`
-      : K extends string
-        ? ObjectToDotNotation<T[K], `${Prefix}${K}.`>
-        : never
-    : never;
-}[keyof T];
-
-export type ValidLanguageKey = ObjectToDotNotation<FixedLanguageList>;
+export type ValidLanguageKey = keyof FixedLanguageList;
 
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
@@ -160,14 +143,14 @@ export function useInnerLanguageWithForcedNodeSelector(
 
 interface ILanguageState {
   textResources: TextResourceMap;
-  language: ILanguage | null;
+  language: FixedLanguageList | null;
   selectedLanguage: string;
   dataSources: TextResourceVariablesDataSources;
 }
 
 export function staticUseLanguage(
   textResources: TextResourceMap,
-  _language: ILanguage | null,
+  _language: FixedLanguageList | null,
   selectedLanguage: string,
   dataSources: TextResourceVariablesDataSources,
 ): IUseLanguage {
@@ -276,20 +259,12 @@ const getPlainTextFromNode = (node: ReactNode, langAsString: IUseLanguage['langA
   return text;
 };
 
-function getLanguageSpecificText(key: string, language: ILanguage) {
-  const path = key.split('.');
-  const value = getNestedObject(language, path);
+function getLanguageSpecificText(key: string, language: FixedLanguageList) {
+  const value = language[key];
   if (typeof value === 'string') {
     return value;
   }
   return key;
-}
-
-function getNestedObject(nestedObj: ILanguage | Record<string, string | ILanguage> | NestedTexts, pathArr: string[]) {
-  return pathArr.reduce<ILanguage | string | NestedTexts | undefined>(
-    (obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
-    nestedObj,
-  );
 }
 
 function getTextResourceByKey(
@@ -506,6 +481,6 @@ export function staticUseLanguageForTests({
     node: undefined,
     transposeSelector: (_node, path) => path,
   },
-}: Partial<ILanguageState> = {}) {
-  return staticUseLanguage(textResources, language, selectedLanguage, dataSources);
+}: Partial<Omit<ILanguageState, 'language'>> & { language?: Partial<FixedLanguageList> | null } = {}) {
+  return staticUseLanguage(textResources, language as FixedLanguageList, selectedLanguage, dataSources);
 }
