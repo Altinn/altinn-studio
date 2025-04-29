@@ -607,30 +607,6 @@ describe('FormComponentConfig', () => {
     expect(widthText).not.toBeInTheDocument();
   });
 
-  it('should toggle object card when object property button is clicked', async () => {
-    const user = userEvent.setup();
-    const propertyKey = 'testObjectProperty';
-    render({
-      props: {
-        schema: {
-          properties: {
-            [propertyKey]: {
-              type: 'object',
-              properties: {
-                testField: { type: 'string' },
-              },
-            },
-          },
-        },
-        component: {
-          ...componentMocks.Input,
-          [propertyKey]: {},
-        },
-      },
-    });
-    await openCard(user, propertyKey);
-  });
-
   it('should toggle object card when object property button is clicked and close button is clicked', async () => {
     const user = userEvent.setup();
     const propertyKey = 'testObjectProperty';
@@ -678,6 +654,7 @@ describe('FormComponentConfig', () => {
       },
     });
     await openCard(user, propertyKey);
+    await closeCard(user, propertyKey);
   });
 
   const render = ({
