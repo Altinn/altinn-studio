@@ -92,7 +92,7 @@ export const AboutResourcePage = ({
     label: t(availableForTypeMap[key]),
   }));
 
-  const consentTemplateOptions = consentTemplates.map((template) => ({
+  const consentTemplateOptions = (consentTemplates ?? []).map((template) => ({
     value: template.id,
     label: template.title,
   }));
