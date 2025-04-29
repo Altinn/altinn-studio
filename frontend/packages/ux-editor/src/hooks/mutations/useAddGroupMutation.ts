@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useAppContext } from '../../../packages/ux-editor/src/hooks';
 import { useTranslation } from 'react-i18next';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { changePageGroups } from 'app-shared/api/mutations';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useAppContext } from '@altinn/ux-editor/hooks';
 
 export const useAddGroupMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();

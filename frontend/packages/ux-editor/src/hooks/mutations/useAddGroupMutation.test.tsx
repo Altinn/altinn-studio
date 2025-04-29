@@ -1,5 +1,4 @@
-import { renderHookWithProviders } from '../../test/mocks';
-import { useAddGroupMutation } from './useAddGroupMutation';
+import { renderHookWithProviders } from '../../../../../app-development/test/mocks';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -7,6 +6,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import { useAddGroupMutation } from './useAddGroupMutation';
 
 // Test data
 const layoutSetId = 'test-layout-set';
@@ -38,7 +38,7 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../../../packages/ux-editor/src/hooks', () => ({
+jest.mock('@altinn/ux-editor/hooks', () => ({
   useAppContext: () => ({
     selectedFormLayoutSetName: layoutSetId,
   }),
@@ -53,16 +53,10 @@ const renderHook = async ({
   services = {
     getPages: jest.fn().mockResolvedValue(mockPages),
   },
-  appContext = { selectedFormLayoutSetName: layoutSetId },
 }: {
   queryClient?: QueryClient;
   services?: { getPages: jest.Mock };
-  appContext?: { selectedFormLayoutSetName: string | undefined };
 } = {}) => {
-  jest
-    .spyOn(require('../../../packages/ux-editor/src/hooks'), 'useAppContext')
-    .mockReturnValue(appContext);
-
   const addGroupResult = renderHookWithProviders(
     services,
     queryClient,

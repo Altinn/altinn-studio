@@ -13,4 +13,3 @@ export { useRepoPushMutation } from './useRepoPushMutation';
 export { useSchemaMutation } from './useSchemaMutation';
 export { useTextIdMutation } from './useTextIdMutation';
 export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';
-export { useAddGroupMutation } from './useAddGroupMutation';
