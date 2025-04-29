@@ -27,7 +27,10 @@ export const SettingsNavigation = (): ReactElement => {
 
   return (
     <>
-      <TasksTable />
+      <TasksTable
+        onSelectAllTasks={() => console.log('velger alle')}
+        onSelectTask={() => console.log('velger en')}
+      />
       <div className={classes.taskNavigationContainer}>
         {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
           <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
