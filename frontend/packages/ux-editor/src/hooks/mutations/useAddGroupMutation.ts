@@ -15,15 +15,11 @@ export const useAddGroupMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      try {
-        const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
-        const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
-        const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
-        const finalPayload = addGroupsWithPages(updatedPages, newGroup);
-        return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
-      } catch (error) {
-        throw error;
-      }
+      const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
+      const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
+      const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
+      const finalPayload = addGroupsWithPages(updatedPages, newGroup);
+      return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
