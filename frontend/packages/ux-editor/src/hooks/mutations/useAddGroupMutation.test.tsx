@@ -19,6 +19,7 @@ const mockPages: PagesModel = {
   ],
   pages: [],
 };
+
 const newGroup: GroupModel = {
   name: 'Layout Set 2',
   order: [{ id: 'page2' }],
