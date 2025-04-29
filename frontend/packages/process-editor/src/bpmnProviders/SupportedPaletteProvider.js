@@ -225,7 +225,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
-          className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
+          className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
           title: translate('Create Altinn user-controllerd-signing Task'),
           action: {
             click: createUserControlledSigningTask(),
