@@ -9,7 +9,7 @@ import { DateFlags } from 'src/types';
 export const DatepickerMinDateDefault = '1900-01-01T00:00:00Z';
 export const DatepickerMaxDateDefault = '2100-01-01T23:59:59Z';
 export const DatepickerFormatDefault = 'dd.MM.yyyy';
-export const PrettyDateAndTime = 'dd.MM.yyyy HH.mm.ss';
+export const PrettyDateAndTime = 'dd.MM.yyyy / HH:mm';
 
 /**
  * Moment used a non-standard format for dates, this is a work-around to prevent breaking changes

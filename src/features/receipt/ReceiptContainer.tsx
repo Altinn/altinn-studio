@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { formatDate } from 'date-fns';
 
+import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
 import { Form } from 'src/components/form/Form';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
@@ -161,7 +162,7 @@ export const ReceiptContainer = () => {
   const { langAsString } = useLanguage();
   const lastChangedDateTime = useMemo(() => {
     if (lastChanged) {
-      return formatDate(lastChanged, 'dd.MM.yyyy / HH:mm');
+      return formatDate(lastChanged, PrettyDateAndTime);
     }
     return undefined;
   }, [lastChanged]);
