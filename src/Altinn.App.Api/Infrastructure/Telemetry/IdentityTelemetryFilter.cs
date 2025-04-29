@@ -57,11 +57,15 @@ public class IdentityTelemetryFilter : ITelemetryProcessor
                     request.Properties.Add("orgNumber", orgNumber?.ToString(CultureInfo.InvariantCulture) ?? "");
                 }
 
-                var authContext = ctx.RequestServices.GetRequiredService<IAuthenticationContext>();
-                var auth = authContext.Current;
-                request.Properties.Add("tokenIssuer", auth.TokenIssuer.ToString());
-                request.Properties.Add("tokenIsExchanged", auth.TokenIsExchanged.ToString());
-                request.Properties.Add("authType", auth.GetType().Name);
+                var services = ctx.RequestServices;
+                if (services is not null)
+                {
+                    var authContext = services.GetRequiredService<IAuthenticationContext>();
+                    var auth = authContext.Current;
+                    request.Properties.Add("tokenIssuer", auth.TokenIssuer.ToString());
+                    request.Properties.Add("tokenIsExchanged", auth.TokenIsExchanged.ToString());
+                    request.Properties.Add("authType", auth.GetType().Name);
+                }
             }
         }
 
