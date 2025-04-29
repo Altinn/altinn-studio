@@ -47,4 +47,13 @@ public interface IOrgTextsService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
     public Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets languages based on the text resource file names.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns></returns>
+    public List<string> GetLanguages(string org, string developer, CancellationToken cancellationToken = default);
 }
