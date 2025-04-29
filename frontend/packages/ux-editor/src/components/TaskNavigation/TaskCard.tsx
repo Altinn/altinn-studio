@@ -16,7 +16,6 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks/useAppContext';
 import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -27,39 +26,35 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
-  const editCardsFeatureFlag = shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards);
 
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = useLayoutSetIcon(layoutSetModel);
 
   const [editing, setEditing] = useState(false);
 
-  const contextButtons =
-    editCardsFeatureFlag || layoutSetModel.type === 'subform' ? (
-      <>
-        {editCardsFeatureFlag && (
-          <StudioButton
-            variant='tertiary'
-            onClick={(_: MouseEvent<HTMLButtonElement>) => {
-              setEditing(true);
-            }}
-          >
-            <PencilIcon /> {t('ux_editor.task_card.edit')}
-          </StudioButton>
-        )}
-        {layoutSetModel.type === 'subform' && (
-          <StudioDeleteButton
-            variant='tertiary'
-            confirmMessage={t('ux_editor.delete.subform.confirm')}
-            onDelete={() => {
-              deleteLayoutSet({ layoutSetIdToUpdate: layoutSetModel.id });
-            }}
-          >
-            {t('general.delete')}
-          </StudioDeleteButton>
-        )}
-      </>
-    ) : null;
+  const contextButtons = (
+    <>
+      <StudioButton
+        variant='tertiary'
+        onClick={(_: MouseEvent<HTMLButtonElement>) => {
+          setEditing(true);
+        }}
+      >
+        <PencilIcon /> {t('ux_editor.task_card.edit')}
+      </StudioButton>
+      {layoutSetModel.type === 'subform' && (
+        <StudioDeleteButton
+          variant='tertiary'
+          confirmMessage={t('ux_editor.delete.subform.confirm')}
+          onDelete={() => {
+            deleteLayoutSet({ layoutSetIdToUpdate: layoutSetModel.id });
+          }}
+        >
+          {t('general.delete')}
+        </StudioDeleteButton>
+      )}
+    </>
+  );
 
   if (editing) {
     return <TaskCardEditing layoutSetModel={layoutSetModel} onClose={() => setEditing(false)} />;
