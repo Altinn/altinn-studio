@@ -15,6 +15,7 @@ export enum FeatureFlag {
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
   TaskNavigationEditCards = 'taskNavigationEditCards',
   TaskNavigationTabNav = 'taskNavigationTabNav',
+  ConsentResource = 'consentResource',
 }
 
 /*

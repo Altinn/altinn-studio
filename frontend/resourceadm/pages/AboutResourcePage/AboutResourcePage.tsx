@@ -37,6 +37,7 @@ import { ResourceReferenceFields } from '../../components/ResourceReferenceField
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { ConsentMetadataField } from 'resourceadm/components/ResourcePageInputs/ConsentMetadataField';
 import { useUrlParams } from 'resourceadm/hooks/useUrlParams';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -69,10 +70,14 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
-    value: key,
-    label: t(value),
-  }));
+  const resourceTypeOptions = Object.entries(resourceTypeMap)
+    .filter(([key]) =>
+      key === 'Consentresource' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
+    )
+    .map(([key, value]) => ({
+      value: key,
+      label: t(value),
+    }));
 
   /**
    * Status options
