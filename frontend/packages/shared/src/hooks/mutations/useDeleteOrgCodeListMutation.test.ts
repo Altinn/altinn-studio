@@ -47,7 +47,7 @@ describe('useDeleteOrgCodeListMutation', () => {
       queries: { deleteCodeListForOrg },
     });
 
-    await result.current.mutateAsync({ title: codeListToDelete.title });
+    await result.current.mutateAsync(codeListToDelete.title);
 
     const expectedUpdatedData: CodeListsResponse = [otherCodeList];
     const updatedData = queryClient.getQueryData([QueryKey.OrgCodeLists, org]);
