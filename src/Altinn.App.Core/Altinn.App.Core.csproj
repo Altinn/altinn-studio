@@ -17,6 +17,12 @@
     <PackageReference Include="Altinn.ApiClients.Maskinporten"/>
 
     <PackageReference Include="JWTCookieAuthentication"/>
+    <!-- The follwoing are depencencies for JWTCookieAuthentication, but we need newer versions-->
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure" />
+    <PackageReference Include="System.Text.RegularExpressions" />
+    <!-- End JWTCookieAuthentication deps -->
 
     <PackageReference Include="Altinn.Common.AccessTokenClient"/>
     <!-- End frozen versions -->
