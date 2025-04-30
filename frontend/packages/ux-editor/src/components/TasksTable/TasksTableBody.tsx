@@ -6,6 +6,7 @@ import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { getTaskIcon } from '../Settings/SettingsUtils';
 
 type TasksTableBodyProps = {
   tasks: taskInfo[];
@@ -35,12 +36,18 @@ export const TasksTableBody = ({
   }
 
   return tasks.map((task, index) => {
+    const TaskIcon = getTaskIcon(task.taskType);
     return (
       <StudioTable.Row
         key={index}
         className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
       >
-        <StudioTable.Cell>{task.taskType}</StudioTable.Cell>
+        <StudioTable.Cell>
+          <div className={classes.taskTypeCellContent}>
+            <TaskIcon />
+            {task.taskType}
+          </div>
+        </StudioTable.Cell>
         <StudioTable.Cell>{task.taskName}</StudioTable.Cell>
         <StudioTable.Cell>{task.numberOfPages}</StudioTable.Cell>
         <StudioTable.Cell onClick={() => onSelectTask(index)}>

@@ -13,14 +13,14 @@ export type taskInfo = {
 };
 
 type TasksTableProps = {
-  tasks?: taskInfo[];
+  tasks: taskInfo[];
   isNavigationMode?: boolean;
   onSelectTask: (index: number) => void;
   onSelectAllTasks: () => void;
 };
 
 export const TasksTable = ({
-  tasks = [],
+  tasks,
   isNavigationMode = true,
   onSelectTask,
   onSelectAllTasks,
