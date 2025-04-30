@@ -3,13 +3,13 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useTranslation } from 'react-i18next';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
-import { changePageGroups } from 'app-shared/api/mutations';
+
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 
 export const useAddGroupMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
-  const { getPages } = useServicesContext();
+  const { getPages, changePageGroups } = useServicesContext();
   const { selectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation();
 
@@ -34,7 +34,7 @@ const getNextPageNumber = (groups: GroupModel[], t: (key: string) => string): nu
     ?.flatMap((group) => group.order?.map((page) => page.id) || [])
     .reduce((max, id) => {
       const match = id?.match(new RegExp(`${t('general.page')}(\\d+)`));
-      return match && !isNaN(parseInt(match[1], 10)) ? Math.max(max, parseInt(match[1], 10)) : max;
+      return match && !isNaN(parseInt(match[1])) ? Math.max(max, parseInt(match[1])) : max;
     }, 0);
   return maxPageNumber + 1;
 };
