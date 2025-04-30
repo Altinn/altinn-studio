@@ -26,6 +26,7 @@ export type CodeListData = {
 
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
+  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -39,6 +40,7 @@ export type CodeListPageProps = {
 
 export function CodeListPage({
   codeListsData,
+  onCreateCodeList,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -91,6 +93,7 @@ export function CodeListPage({
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
         onBlurTextResource={handleBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}

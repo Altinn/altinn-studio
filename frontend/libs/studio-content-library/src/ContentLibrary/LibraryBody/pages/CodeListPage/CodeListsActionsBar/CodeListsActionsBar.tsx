@@ -9,6 +9,7 @@ import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
@@ -20,6 +21,7 @@ export type CodeListsActionsBarProps = {
 
 export function CodeListsActionsBar({
   onBlurTextResource,
+  onCreateCodeList,
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
@@ -46,6 +48,7 @@ export function CodeListsActionsBar({
       <AddCodeListDropdown
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
         onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}

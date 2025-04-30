@@ -13,6 +13,7 @@ import { StudioDialog, StudioHeading } from '@studio/components';
 
 type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
@@ -21,6 +22,7 @@ type CreateNewCodeListDialogProps = {
 function CreateNewCodeListDialog(
   {
     onBlurTextResource,
+    onCreateCodeList,
     onUpdateCodeList,
     codeListNames,
     textResources,
@@ -51,6 +53,7 @@ function CreateNewCodeListDialog(
           codeList={newCodeList}
           codeListNames={codeListNames}
           onBlurTextResource={onBlurTextResource}
+          onCreateCodeList={onCreateCodeList}
           onUpdateCodeList={onUpdateCodeList}
           onCloseModal={handleCloseDialog}
           textResources={textResources}
@@ -68,6 +71,7 @@ type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   onCloseModal: () => void;
   textResources?: TextResource[];
@@ -77,6 +81,7 @@ function CreateNewCodeList({
   codeList,
   codeListNames,
   onBlurTextResource,
+  onCreateCodeList,
   onUpdateCodeList,
   onCloseModal,
   textResources,
@@ -94,7 +99,11 @@ function CreateNewCodeList({
     useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
   const handleSaveCodeList = () => {
-    onUpdateCodeList(currentCodeListWithMetadata);
+    if (onCreateCodeList) {
+      onCreateCodeList(currentCodeListWithMetadata);
+    } else {
+      onUpdateCodeList(currentCodeListWithMetadata);
+    }
     onCloseModal();
     setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };
