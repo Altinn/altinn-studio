@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
@@ -48,9 +48,9 @@ export const SmallHeaderMenuItem = ({
 
   return (
     <DropdownMenu.Item key={menuItem.itemName} asChild className={linkItemClassName}>
-      <NavLink to={menuItem.action.href} onClick={onClick} target={linkTarget} rel={linkRel}>
+      <a href={menuItem.action.href} onClick={onClick} target={linkTarget} rel={linkRel}>
         {t(menuItem.itemName)}
-      </NavLink>
+      </a>
     </DropdownMenu.Item>
   );
 };
