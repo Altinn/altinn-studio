@@ -19,6 +19,13 @@ describe('TasksTable', () => {
     expect(task2).toBeInTheDocument();
   });
 
+  it('should render the table when tasks is undefined', () => {
+    renderTasksTable({ tasks: undefined });
+
+    const table = screen.getByRole('table');
+    expect(table).toBeInTheDocument();
+  });
+
   it('should render hide all button in footer when in navigation mode', () => {
     renderTasksTable();
 
