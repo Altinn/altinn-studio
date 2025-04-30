@@ -19,8 +19,11 @@
   white-space: nowrap;
 }
 
-.hiddenTaskRow td:nth-child(1),
-.hiddenTaskRow td:nth-child(2),
-.hiddenTaskRow td:nth-child(3) {
+.hiddenTaskRow td {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.hiddenTaskRow td:nth-child(-n + 3) {
   opacity: 0.5;
 }
