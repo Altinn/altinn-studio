@@ -1,6 +1,6 @@
 name: User Story 😃
 description: Create a new user story
-labels: ["kind/user-story", "status/draft"]
+labels: ['kind/user-story', 'status/draft']
 body:
   - type: markdown
     attributes:
@@ -13,8 +13,8 @@ body:
     attributes:
       label: User story
       description: Give us a brief WHO, WHAT, and WHY of this user story.
-    value: As a [persona], I want to [do something] so that [I can achieve a goal].
-    placeholder: As a [persona], I want to [do something] so that [I can achieve a goal].
+      value: As a [persona], I want to [do something] so that [I can achieve a goal].
+      placeholder: As a [persona], I want to [do something] so that [I can achieve a goal].
     validations:
       required: true
 
@@ -23,7 +23,7 @@ body:
     attributes:
       label: User story
       description: You can provide a more detailed description of the user story here if needed.
-    placeholder: Describe the user story in more detail
+      placeholder: Describe the user story in more detail
 
   - type: textarea
     id: design
