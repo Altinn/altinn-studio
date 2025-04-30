@@ -29,8 +29,8 @@ export class LocalChangesModal extends BasePage {
       .click();
   }
 
-  public async verifyThatDeleteLocalChangesSuccessMessageIsVisible(): Promise<void> {
-    await this.page.getByText(this.textMock('local_changes.modal_deleted_success')).isVisible();
+  public async verifyThatDeleteLocalChangesSuccessPageReload(): Promise<void> {
+    await this.page.waitForLoadState('load');
   }
 
   public getDownloadPromise(): Promise<Download> {

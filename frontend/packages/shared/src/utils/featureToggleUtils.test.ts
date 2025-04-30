@@ -89,16 +89,6 @@ describe('featureToggle url', () => {
     window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
     expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeFalsy();
   });
-
-  it('should return true if TaskNavigationEditCards is enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigationEditCards');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards)).toBeTruthy();
-  });
-
-  it('should return false if TaskNavigationEditCards is not enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationEditCards)).toBeFalsy();
-  });
 });
 
 describe('addFeatureToLocalStorage', () => {
