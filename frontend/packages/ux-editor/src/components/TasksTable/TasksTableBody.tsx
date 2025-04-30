@@ -8,7 +8,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { getTaskIcon } from '../Settings/SettingsUtils';
 
-type TasksTableBodyProps = {
+export type TasksTableBodyProps = {
   tasks: taskInfo[];
   isNavigationMode: boolean;
   onSelectTask: (index: number) => void;
@@ -24,14 +24,16 @@ export const TasksTableBody = ({
 
   if (displayInfoMessage) {
     return (
-      <StudioTable.Cell colSpan={4}>
-        <StudioAlert className={classes.alertMessage}>
-          <StudioHeading level={4} data-size='2xs' className={classes.alertTitle}>
-            {t('ux_editor.task_table_alert_title')}
-          </StudioHeading>
-          <StudioParagraph>{t('ux_editor.task_table_alert_message')}</StudioParagraph>
-        </StudioAlert>
-      </StudioTable.Cell>
+      <StudioTable.Row>
+        <StudioTable.Cell colSpan={4}>
+          <StudioAlert className={classes.alertMessage}>
+            <StudioHeading level={4} data-size='2xs' className={classes.alertTitle}>
+              {t('ux_editor.task_table_alert_title')}
+            </StudioHeading>
+            <StudioParagraph>{t('ux_editor.task_table_alert_message')}</StudioParagraph>
+          </StudioAlert>
+        </StudioTable.Cell>
+      </StudioTable.Row>
     );
   }
 
@@ -39,7 +41,7 @@ export const TasksTableBody = ({
     const TaskIcon = getTaskIcon(task.taskType);
     return (
       <StudioTable.Row
-        key={index}
+        key={`${task.taskType}-${index}`}
         className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
       >
         <StudioTable.Cell>

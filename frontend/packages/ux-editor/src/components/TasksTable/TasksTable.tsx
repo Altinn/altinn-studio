@@ -12,7 +12,7 @@ export type taskInfo = {
   numberOfPages: number;
 };
 
-type TasksTableProps = {
+export type TasksTableProps = {
   tasks: taskInfo[];
   isNavigationMode?: boolean;
   onSelectTask: (index: number) => void;
