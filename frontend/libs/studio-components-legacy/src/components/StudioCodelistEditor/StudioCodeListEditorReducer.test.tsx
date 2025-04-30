@@ -1,4 +1,4 @@
-import { codeListWithTextResources } from './test-data/codeListWithTextResources';
+import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { textResources } from './test-data/textResources';
 import type { ReducerAction, ReducerState } from './StudioCodeListEditorReducer';
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
@@ -8,7 +8,7 @@ import type { CodeList } from './types/CodeList';
 
 // Test data:
 const defaultState = {
-  codeList: codeListWithTextResources,
+  codeList: codeListWithStrings,
   textResources: textResources,
 };
 
