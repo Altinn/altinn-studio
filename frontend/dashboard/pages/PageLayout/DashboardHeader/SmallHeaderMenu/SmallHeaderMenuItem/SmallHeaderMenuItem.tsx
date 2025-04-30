@@ -1,10 +1,9 @@
 import React, { type ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
-import { useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
-import { UrlUtils } from '@studio/pure-functions';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuItem;
@@ -16,8 +15,7 @@ export const SmallHeaderMenuItem = ({
   onClick,
 }: SmallHeaderMenuItemProps): ReactElement => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+  const origin = window.location.origin;
 
   if (menuItem.action.type === 'button') {
     const handleClick = () => {
@@ -38,19 +36,19 @@ export const SmallHeaderMenuItem = ({
     );
   }
 
-  const linkItemClassName: string =
-    UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
-      ? classes.active
-      : '';
-
   const linkTarget: string = menuItem.action.openInNewTab ? '_blank' : '';
   const linkRel: string = menuItem.action.openInNewTab ? 'noopener noreferrer' : '';
 
   return (
-    <DropdownMenu.Item key={menuItem.itemName} asChild className={linkItemClassName}>
-      <a href={menuItem.action.href} onClick={onClick} target={linkTarget} rel={linkRel}>
+    <DropdownMenu.Item key={menuItem.itemName} asChild>
+      <NavLink
+        to={`${origin}${menuItem.action.href}`}
+        onClick={onClick}
+        target={linkTarget}
+        rel={linkRel}
+      >
         {t(menuItem.itemName)}
-      </a>
+      </NavLink>
     </DropdownMenu.Item>
   );
 };
