@@ -102,7 +102,7 @@ describe('CreateNewCodeListDialog', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('calls onCreateCodeList when save button is clicked', async () => {
+  it('calls onCreateCodeList and closes the dialog when save button is clicked', async () => {
     const user = userEvent.setup();
     const onCreateCodeList = jest.fn();
     renderCreateNewCodeListDialog({ onCreateCodeList });
@@ -114,6 +114,7 @@ describe('CreateNewCodeListDialog', () => {
       codeList: [{ label: '', value: '' }],
       title: newCodeListTitleMock,
     });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
