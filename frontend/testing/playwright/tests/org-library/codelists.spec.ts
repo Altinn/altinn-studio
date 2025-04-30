@@ -57,7 +57,7 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   // This situation might happen if a test is cancelled right after the creation of the code list.
   if (codeListTitleAlreadyExists) {
     await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_MANUALLY);
-    await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+    await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
   }
 
   await orgLibraryPage.codeLists.clickOnAddNewCodeListDropdown();
@@ -65,27 +65,12 @@ test('that it is possible to create a new codelist', async ({ page, testAppName 
   await orgLibraryPage.codeLists.verifyNewCodelistModalIsOpen();
   await orgLibraryPage.codeLists.writeCodelistTitle(CODELIST_TITLE_MANUALLY);
 
-  await orgLibraryPage.codeLists.clickOnAddAlternativeButton();
-
-  await orgLibraryPage.codeLists.verifyNewItemValueFieldIsVisible(
-    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
-  );
-  const firstRowValue: string = 'First value';
-  await orgLibraryPage.codeLists.writeCodelistValue(
-    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
-    firstRowValue,
-  );
-  const firstRowLabel: string = 'First label';
-  await orgLibraryPage.codeLists.writeCodelistLabel(
-    EXPECTED_NUMBER_OF_ITEMS_IN_MANUALLY_CREATED_CODELIST,
-    firstRowLabel,
-  );
-
   await orgLibraryPage.codeLists.clickOnSaveCodelistButton();
   await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(CODELIST_TITLE_MANUALLY);
 });
 
-test('that it is possible to add a new row to an existing codelist and modify the fields in the row', async ({
+// Todo: Remove "skip" and adjust this test when creation of text resources is implemented: https://github.com/Altinn/altinn-studio/issues/15048
+test.skip('that it is possible to add a new row to an existing codelist and modify the fields in the row', async ({
   page,
   testAppName,
 }) => {
@@ -129,7 +114,7 @@ test('that it is possible to upload a new codelist', async ({ page, testAppName 
   // This situation might happen if a test is cancelled right after the creation of the code list.
   if (codeListTitleAlreadyExists) {
     await orgLibraryPage.codeLists.clickOnCodeListAccordion(CODELIST_TITLE_UPLOADED);
-    await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+    await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
   }
 
   await orgLibraryPage.codeLists.clickOnAddNewCodeListDropdown();
@@ -169,37 +154,24 @@ test('that it is possible to delete a row in an uploaded codelist', async ({
   await orgLibraryPage.codeLists.verifyValueTextfield(itemNumberOne, secondItemValue);
 });
 
-test('that it is possible to search for and delete the new codelists', async ({
-  page,
-  testAppName,
-}) => {
+test('that it is possible to delete the new codelists', async ({ page, testAppName }) => {
   const orgLibraryPage: OrgLibraryPage = await setupAndVerifyCodeListPage(page, testAppName);
 
-  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
-  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
-    EXPECTED_NUMBER_OF_ROWS_IN_MANUALLY_CREATED_CODELIST_AFTER_ADDING_ROW,
-    CODELIST_TITLE_MANUALLY,
-  );
-  await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+  await openCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
+  await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_MANUALLY);
 
-  await searchForAndOpenCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
-  await orgLibraryPage.codeLists.verifyNumberOfItemsInTheCodelist(
-    EXPECTED_NUMBER_OF_ROWS_IN_UPLOADED_CODELIST_AFTER_DELETE,
-    CODELIST_TITLE_UPLOADED,
-  );
-  await deleteAndVerifyDeletionOfCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  await openCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
+  await deleteAndVerifyDeletionOfOpenedCodeList(orgLibraryPage, CODELIST_TITLE_UPLOADED);
 });
 
-const searchForAndOpenCodeList = async (
+const openCodeList = async (
   orgLibraryPage: OrgLibraryPage,
   codelistTitle: string,
 ): Promise<void> => {
-  await orgLibraryPage.codeLists.typeInSearchBox(codelistTitle);
-  await orgLibraryPage.codeLists.verifyThatCodeListIsVisible(codelistTitle);
   await orgLibraryPage.codeLists.clickOnCodeListAccordion(codelistTitle);
 };
 
-const deleteAndVerifyDeletionOfCodeList = async (
+const deleteAndVerifyDeletionOfOpenedCodeList = async (
   orgLibraryPage: OrgLibraryPage,
   codelistTitle: string,
 ): Promise<void> => {
