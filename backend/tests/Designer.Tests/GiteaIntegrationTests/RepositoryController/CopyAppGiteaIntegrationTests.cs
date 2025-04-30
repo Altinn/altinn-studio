@@ -13,10 +13,10 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
     public class CopyAppGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGiteaIntegrationTests>
     {
 
-        private string CopyRepoName { get; set; }
-        private string TargetCopyOrg { get; set; }
+        private string _copyRepoName { get; set; }
+        private string _targetCopyOrg { get; set; }
 
-        private string CopyRepoPath => Path.Combine(TestRepositoriesLocation, GiteaConstants.TestUser, TargetCopyOrg, CopyRepoName);
+        private string _copyRepoPath => Path.Combine(TestRepositoriesLocation, GiteaConstants.TestUser, _targetCopyOrg, _copyRepoName);
 
         public CopyAppGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
@@ -28,7 +28,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.SecondaryTestOrgUsername)]
         public async Task Copy_Repo_Should_Return_Created(string org, string targetOrg)
         {
-            TargetCopyOrg = targetOrg;
+            _targetCopyOrg = targetOrg;
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
 
@@ -38,14 +38,14 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
 
-            CopyRepoName = TestDataHelper.GenerateTestRepoName("-gitea-copy");
+            _copyRepoName = TestDataHelper.GenerateTestRepoName("-gitea-copy");
 
             // Copy app1
-            using HttpResponseMessage copyReponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={TargetCopyOrg}", null);
+            using HttpResponseMessage copyReponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={_copyRepoName}&targetOrg={_targetCopyOrg}", null);
             Assert.Equal(HttpStatusCode.Created, copyReponse.StatusCode);
 
             // Check if repo exists in git
-            using HttpResponseMessage response = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{TargetCopyOrg}/{CopyRepoName}");
+            using HttpResponseMessage response = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{_targetCopyOrg}/{_copyRepoName}");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         }
@@ -58,9 +58,9 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await Copy_Repo_Should_Return_Created(org, targetOrg);
 
             // add changes to the new repo and try commit and push
-            await File.WriteAllTextAsync($"{CopyRepoPath}/copyRepo.txt", "I am a new file");
-            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, CopyRepoName), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{CopyRepoName}/commit-and-push", commitAndPushContent);
+            await File.WriteAllTextAsync($"{_copyRepoPath}/copyRepo.txt", "I am a new file");
+            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, _copyRepoName), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{_copyRepoName}/commit-and-push", commitAndPushContent);
             Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
         }
 
@@ -71,12 +71,12 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             {
                 return;
             }
-            if (string.IsNullOrEmpty(CopyRepoName))
+            if (string.IsNullOrEmpty(_copyRepoName))
             {
                 return;
             }
 
-            DeleteDirectoryIfExists(CopyRepoPath);
+            DeleteDirectoryIfExists(_copyRepoPath);
         }
     }
 }

@@ -25,9 +25,9 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
         _testOutputHelper = testOutputHelper;
     }
 
-    private Type RepresentingType { get; set; }
+    private Type _representingType { get; set; }
 
-    private object RandomRepresentingObject { get; set; }
+    private object _randomRepresentingObject { get; set; }
 
     /// <summary>
     /// If xsd contains integer datatypes validation will fail since random object will be created as random decimal type
@@ -57,19 +57,19 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
 
     private DataValidationWithModelPopulatingTests RepresentingTypeFromLoadedFromAssembly()
     {
-        RepresentingType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        _representingType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
         return this;
     }
 
     private DataValidationWithModelPopulatingTests RandomRepresentingObjectGenerated()
     {
-        RandomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(RepresentingType);
+        _randomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(_representingType);
         return this;
     }
 
     private DataValidationWithModelPopulatingTests RepresentingObject_ShouldBeValid()
     {
-        var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null, true);
+        var isValid = Validator.TryValidateObject(_randomRepresentingObject, new ValidationContext(_randomRepresentingObject), null, true);
 
         Assert.True(isValid);
         return this;
@@ -97,7 +97,7 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
             isValid = false;
         }
 
-        var xml = SerializeXml(RandomRepresentingObject);
+        var xml = SerializeXml(_randomRepresentingObject);
         var document = new XmlDocument();
         document.Load(new StringReader(xml));
         document.Schemas.Add(LoadedXsdSchema);
@@ -111,7 +111,7 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
 
     private void RepresentingObject_ShouldValidateAgainstJsonSchema()
     {
-        var json = JsonSerializer.Serialize(RandomRepresentingObject, new JsonSerializerOptions
+        var json = JsonSerializer.Serialize(_randomRepresentingObject, new JsonSerializerOptions
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
         });

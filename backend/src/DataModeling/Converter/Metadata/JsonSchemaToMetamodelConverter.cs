@@ -79,7 +79,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private JsonSchema _schema;
         private JsonSchemaXsdMetadata _schemaXsdMetadata;
 
-        private string ModelName { get; set; }
+        private string _modelName { get; set; }
 
         ///
         /// <summary>
@@ -102,7 +102,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             _schema = JsonSchema.FromText(jsonSchema);
 
             _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema);
-            ModelName = _schemaXsdMetadata.MessageName;
+            _modelName = _schemaXsdMetadata.MessageName;
 
             ProcessSchema(_schema);
 
@@ -112,7 +112,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private void ProcessSchema(JsonSchema schema)
         {
             var rootPath = JsonPointer.Parse("#");
-            var name = ConvertToCSharpCompatibleName(ModelName);
+            var name = ConvertToCSharpCompatibleName(_modelName);
             var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
             SetTargetNamespace(schema);
 

@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.RepositoryController
 {
     public class OrgReposTests : DesignerEndpointsTestsBase<OrgReposTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix => "/designer/api/repos";
+        private static string _versionPrefix => "/designer/api/repos";
         public OrgReposTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task OrgRepos_Returns200()
         {
             // Arrange
-            string uri = $"{VersionPrefix}/org/ttd";
+            string uri = $"{_versionPrefix}/org/ttd";
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 

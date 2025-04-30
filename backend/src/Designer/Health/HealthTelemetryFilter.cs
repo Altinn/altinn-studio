@@ -11,14 +11,14 @@ namespace Altinn.Studio.Designer.Health
     [ExcludeFromCodeCoverage]
     public class HealthTelemetryFilter : ITelemetryProcessor
     {
-        private ITelemetryProcessor Next { get; set; }
+        private ITelemetryProcessor _next { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HealthTelemetryFilter"/> class.
         /// </summary>
         public HealthTelemetryFilter(ITelemetryProcessor next)
         {
-            Next = next;
+            _next = next;
         }
 
         /// <inheritdoc/>
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Health
                 return;
             }
 
-            Next.Process(item);
+            _next.Process(item);
         }
 
         private bool ExcludeItemTelemetry(ITelemetry item)

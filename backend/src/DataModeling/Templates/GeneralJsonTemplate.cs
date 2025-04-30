@@ -12,7 +12,7 @@ namespace Altinn.Studio.DataModeling.Templates
     {
         private const string JSON_TEMPLATE_FILEPATH = "Templates/general.template.json";
 
-        private static string JsonSchemaTemplate { get; }
+        private static string _jsonSchemaTemplate { get; }
 
         /// <summary>
         /// Static constructor to ensure the JsonTemplate is loaded and set,
@@ -22,7 +22,7 @@ namespace Altinn.Studio.DataModeling.Templates
         {
             var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var filePath = Path.Combine(directory, JSON_TEMPLATE_FILEPATH);
-            JsonSchemaTemplate = File.ReadAllText(filePath, Encoding.UTF8);
+            _jsonSchemaTemplate = File.ReadAllText(filePath, Encoding.UTF8);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Altinn.Studio.DataModeling.Templates
         /// </summary>
         public GeneralJsonTemplate(Uri uri, string schemaName)
         {
-            JsonSchemaInstance = JsonSchemaTemplate;
+            JsonSchemaInstance = _jsonSchemaTemplate;
             SetId(uri);
             SetRootType(schemaName);
         }

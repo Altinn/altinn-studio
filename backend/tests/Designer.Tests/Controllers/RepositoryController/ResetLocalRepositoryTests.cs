@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.RepositoryController
 {
     public class ResetLocalRepositoryTests : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix => "/designer/api/repos";
+        private static string _versionPrefix => "/designer/api/repos";
         public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             await CopyRemoteRepositoryForTest(org, repo, targetRepository);
 
             // Arrange
-            string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";
+            string uri = $"{_versionPrefix}/repo/{org}/{targetRepository}/reset";
 
             // Act
             using HttpResponseMessage res = await HttpClient.GetAsync(uri);

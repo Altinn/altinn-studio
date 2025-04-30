@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     public class ContentsTests : DesignerEndpointsTestsBase<ContentsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
-        private static string VersionPrefix => "/designer/api/repos";
+        private static string _versionPrefix => "/designer/api/repos";
         public ContentsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task Contents_ContentsReturned_OK()
         {
             // Arrange
-            string uri = $"{VersionPrefix}/repo/ttd/apps-test/contents";
+            string uri = $"{_versionPrefix}/repo/ttd/apps-test/contents";
 
             _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -62,7 +62,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task Contents_ContentsIsNull_BadRequest()
         {
             // Arrange
-            string uri = $"{VersionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
+            string uri = $"{_versionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
 
             _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

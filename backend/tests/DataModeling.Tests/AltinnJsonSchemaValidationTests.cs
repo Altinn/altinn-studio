@@ -9,7 +9,7 @@ namespace DataModeling.Tests
 {
     public class AltinnJsonSchemaValidationTests : SchemaConversionTestsBase<AltinnJsonSchemaValidationTests>
     {
-        private JsonSchemaValidationResult ValidationResult { get; set; }
+        private JsonSchemaValidationResult _validationResult { get; set; }
 
         [Theory]
         [MemberData(nameof(AltinnJsonSchemaValidationTestData.ValidSchemas), MemberType = typeof(AltinnJsonSchemaValidationTestData))]
@@ -18,7 +18,7 @@ namespace DataModeling.Tests
             When.JsonSchemaLoaded(jsonSchemaPath)
                 .And.LoadedJsonSchemaValidated();
 
-            Assert.True(ValidationResult.IsValid);
+            Assert.True(_validationResult.IsValid);
         }
 
         [Theory]
@@ -28,20 +28,20 @@ namespace DataModeling.Tests
             When.JsonSchemaLoaded(jsonSchemaPath)
                 .And.LoadedJsonSchemaValidated();
 
-            Assert.False(ValidationResult.IsValid);
+            Assert.False(_validationResult.IsValid);
 
-            Assert.Equal(ValidationResult.ValidationIssues.Count, expectedValidationIssues.Length);
+            Assert.Equal(_validationResult.ValidationIssues.Count, expectedValidationIssues.Length);
 
             foreach ((string expectedPointer, string expectedCode) in expectedValidationIssues)
             {
-                Assert.Contains(ValidationResult.ValidationIssues, x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
+                Assert.Contains(_validationResult.ValidationIssues, x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
             }
         }
 
         private AltinnJsonSchemaValidationTests LoadedJsonSchemaValidated()
         {
             var validator = new AltinnJsonSchemaValidator();
-            ValidationResult = validator.Validate(SerializeJsonSchema(LoadedJsonSchema));
+            _validationResult = validator.Validate(SerializeJsonSchema(LoadedJsonSchema));
             return this;
         }
     }

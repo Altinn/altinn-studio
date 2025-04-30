@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string RuleConfigurationFilename = "RuleConfiguration.json";
         private const string ProcessDefinitionFilename = "process.bpmn";
 
-        private static string ProcessDefinitionFilePath =>
+        private static string _processDefinitionFilePath =>
             Path.Combine(ProcessDefinitionFolderPath, ProcessDefinitionFilename);
 
         private const string LayoutSettingsSchemaUrl =
@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
         };
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 cancellationToken
             );
             ApplicationMetadata applicationMetaData =
-                JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, JsonOptions);
+                JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, s_jsonOptions);
 
             return applicationMetaData;
         }
@@ -140,7 +140,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
         public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
         {
-            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, JsonOptions);
+            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(
                 ConfigFolderPath,
                 AppMetadataFilename
@@ -154,7 +154,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="serviceConfiguration">The updated config to persist.</param>
         public async Task SaveAppMetadataConfig(ServiceConfiguration serviceConfiguration)
         {
-            string config = JsonSerializer.Serialize(serviceConfiguration, JsonOptions);
+            string config = JsonSerializer.Serialize(serviceConfiguration, s_jsonOptions);
             string configRelativeFilePath = Path.Combine(ServiceConfigFilename);
             await WriteTextByRelativePathAsync(configRelativeFilePath, config, true);
         }
@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(serviceConfigFilePath);
             ServiceConfiguration config = JsonSerializer.Deserialize<ServiceConfiguration>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return config;
         }
@@ -318,7 +318,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
             TextResource textResource = JsonSerializer.Deserialize<TextResource>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
 
             return textResource;
@@ -328,7 +328,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
+            string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }
 
@@ -504,7 +504,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
             LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return layoutSettings;
         }
@@ -758,7 +758,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayoutSettings(string layoutSetName, JsonNode layoutSettings)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            string serializedLayoutSettings = layoutSettings.ToJsonString(JsonOptions);
+            string serializedLayoutSettings = layoutSettings.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
@@ -767,7 +767,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             string serializedLayoutSettings = JsonSerializer.Serialize<LayoutSettings>(
                 layoutSettings,
-                JsonOptions
+                s_jsonOptions
             );
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
@@ -789,7 +789,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string serializedLayout = layout.ToJsonString(JsonOptions);
+            string serializedLayout = layout.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(
                 layoutFilePath,
                 serializedLayout,
@@ -823,7 +823,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 );
                 LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(
                     fileContent,
-                    JsonOptions
+                    s_jsonOptions
                 );
                 return layoutSetsFile;
             }
@@ -836,7 +836,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             if (AppUsesLayoutSets())
             {
                 string layoutSetsFilePath = GetPathToLayoutSetsFile();
-                string layoutSetsString = JsonSerializer.Serialize(layoutSets, JsonOptions);
+                string layoutSetsString = JsonSerializer.Serialize(layoutSets, s_jsonOptions);
                 await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
             }
             else
@@ -855,7 +855,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             );
             FooterFile footerFile = JsonSerializer.Deserialize<FooterFile>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return footerFile;
         }
@@ -911,7 +911,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             cancellationToken.ThrowIfCancellationRequested();
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
-            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(JsonOptions);
+            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(
                 ruleConfigurationPath,
                 serializedRuleConfiguration,
@@ -1108,7 +1108,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await Guard.AssertValidXmlStreamAndRewindAsync(file);
 
             await WriteStreamByRelativePathAsync(
-                ProcessDefinitionFilePath,
+                _processDefinitionFilePath,
                 file,
                 true,
                 cancellationToken
@@ -1117,12 +1117,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public Stream GetProcessDefinitionFile()
         {
-            if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
+            if (!FileExistsByRelativePath(_processDefinitionFilePath))
             {
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+            return OpenStreamByRelativePath(_processDefinitionFilePath);
         }
 
         public Definitions GetDefinitions()

@@ -27,11 +27,11 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
     public async Task Put_Returns_200OK_When_Creating_New_OptionsList()
     {
         // Arrange
-        const string repo = "empty-app";
-        const string optionsListId = "new-options";
+        const string Repo = "empty-app";
+        const string OptionsListId = "new-options";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsJson = @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
@@ -39,7 +39,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         ]";
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(optionsJson);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = new StringContent(optionsJson, Encoding.UTF8, "application/json");
 
@@ -116,11 +116,11 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
     public async Task Put_Returns_200OK_And_Overwrites_Existing_OptionsList()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "test-options";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "test-options";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         var newOptionsList = @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
@@ -128,7 +128,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         ]";
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(newOptionsList);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = new StringContent(newOptionsList, Encoding.UTF8, "application/json");
 

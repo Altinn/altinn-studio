@@ -12,15 +12,15 @@ namespace DataModeling.Tests
     public class ModelSerializationTests : CsharpModelConversionTestsBase<ModelSerializationTests>
     {
 
-        private Type ModelType { get; set; }
+        private Type _modelType { get; set; }
 
-        private string JsonData { get; set; }
-        private object DeserializedJsonModelObject { get; set; }
-        private string SerializedModelJson { get; set; }
+        private string _jsonData { get; set; }
+        private object _deserializedJsonModelObject { get; set; }
+        private string _serializedModelJson { get; set; }
 
-        private string XmlData { get; set; }
-        private object DeserializedXmlModelObject { get; set; }
-        private string SerializedModelXml { get; set; }
+        private string _xmlData { get; set; }
+        private object _deserializedXmlModelObject { get; set; }
+        private string _serializedModelXml { get; set; }
 
         [Theory]
         [ClassData(typeof(JsonRoundSerializationTestData))]
@@ -83,58 +83,58 @@ namespace DataModeling.Tests
 
         private ModelSerializationTests TypeReadFromCompiledAssembly(string typeName)
         {
-            ModelType = CompiledAssembly.GetType(typeName);
+            _modelType = CompiledAssembly.GetType(typeName);
             return this;
         }
 
         // Json helper methods
         private ModelSerializationTests JsonDataLoaded(string jsonPath)
         {
-            JsonData = SharedResourcesHelper.LoadTestDataAsString(jsonPath);
+            _jsonData = SharedResourcesHelper.LoadTestDataAsString(jsonPath);
             return this;
         }
 
         private ModelSerializationTests JsonDataDeserializedToModelObject()
         {
-            DeserializedJsonModelObject = JsonSerializer.Deserialize(JsonData, ModelType);
+            _deserializedJsonModelObject = JsonSerializer.Deserialize(_jsonData, _modelType);
             return this;
         }
 
         private ModelSerializationTests ModelObjectSerializedToJson()
         {
-            SerializedModelJson = JsonSerializer.Serialize(DeserializedJsonModelObject);
+            _serializedModelJson = JsonSerializer.Serialize(_deserializedJsonModelObject);
             return this;
         }
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            Assert.True(JsonUtils.DeepEquals(SerializedModelJson, JsonData));
+            Assert.True(JsonUtils.DeepEquals(_serializedModelJson, _jsonData));
         }
 
         // Xml helper methods
 
         private ModelSerializationTests XmlDataLoaded(string xmlPath)
         {
-            XmlData = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
+            _xmlData = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
             return this;
         }
 
         private ModelSerializationTests XmlDataDeserializedToModelObject()
         {
-            DeserializedXmlModelObject = SerializationHelper.Deserialize(XmlData, ModelType);
+            _deserializedXmlModelObject = SerializationHelper.Deserialize(_xmlData, _modelType);
             return this;
         }
 
         private ModelSerializationTests ModelObjectSerializedToXml()
         {
-            SerializedModelXml = SerializationHelper.SerializeXml(DeserializedXmlModelObject);
+            _serializedModelXml = SerializationHelper.SerializeXml(_deserializedXmlModelObject);
             return this;
         }
 
         private void SerializedXmlData_ShouldNotBeChanged()
         {
-            var expected = XDocument.Parse(SerializedModelXml);
-            var result = XDocument.Parse(XmlData);
+            var expected = XDocument.Parse(_serializedModelXml);
+            var result = XDocument.Parse(_xmlData);
             Assert.True(XNode.DeepEquals(expected, result));
         }
 
@@ -142,7 +142,7 @@ namespace DataModeling.Tests
 
         private void ModelObjects_ShouldBeEquivalent()
         {
-            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(DeserializedJsonModelObject), JsonSerializer.Serialize(DeserializedXmlModelObject)));
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(_deserializedJsonModelObject), JsonSerializer.Serialize(_deserializedXmlModelObject)));
         }
     }
 }
