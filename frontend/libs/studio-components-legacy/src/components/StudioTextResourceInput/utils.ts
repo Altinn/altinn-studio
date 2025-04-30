@@ -1,6 +1,5 @@
 import type { TextResource } from '../../types/TextResource';
 import { ArrayUtils } from '@studio/pure-functions';
-import { Mode } from './types/Mode';
 
 export function getTextResourceById(
   textResources: TextResource[],
@@ -27,6 +26,30 @@ export function changeTextResourceInList(
   );
 }
 
-export function determineDefaultMode(currentId?: string | null): Mode {
-  return currentId ? Mode.EditValue : Mode.Search;
+export function createNewTextResource(value: string): TextResource {
+  return {
+    id: generateRandomTextResourceId(),
+    value,
+  };
+}
+
+export function generateRandomTextResourceId(length: number = 12): string {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return `id_${result}`;
+}
+
+export function getTextResourceValueIfTextResourceExists(
+  textResources: TextResource[],
+  textResource: TextResource,
+): string {
+  const isCurrentIdATextResource: boolean = textResources.some(
+    (item: TextResource) => item.id === textResource?.id,
+  );
+  return isCurrentIdATextResource ? textResource.value : '';
 }

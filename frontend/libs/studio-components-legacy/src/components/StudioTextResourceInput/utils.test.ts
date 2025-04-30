@@ -2,11 +2,12 @@ import {
   changeTextResourceInList,
   editTextResourceValue,
   getTextResourceById,
-  determineDefaultMode,
+  createNewTextResource,
+  generateRandomTextResourceId,
+  getTextResourceValueIfTextResourceExists,
 } from './utils';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { TextResource } from '../../types/TextResource';
-import { Mode } from './types/Mode';
 
 describe('utils', () => {
   describe('getTextResourceById', () => {
@@ -56,19 +57,54 @@ describe('utils', () => {
     });
   });
 
-  describe('determineDefaultMode', () => {
-    it('Returns "editValue" when a valid ID is given', () => {
-      const result = determineDefaultMode('land.NO');
-      expect(result).toBe(Mode.EditValue);
+  describe('createNewTextResource', () => {
+    it('Returns a text resource with a generated id', () => {
+      const value: string = 'Lorem ipsum';
+      const result: TextResource = createNewTextResource(value);
+      expect(result.value).toBe('Lorem ipsum');
+      expect(result.id).toEqual(expect.any(String));
+    });
+  });
+
+  describe('generateRandomTextResourceId', () => {
+    const numberOfIds = 1000;
+    const ids: string[] = [];
+    for (let i = 0; i < numberOfIds; i++) {
+      ids.push(generateRandomTextResourceId());
+    }
+
+    it('Returns a string with the correct format', () => {
+      ids.forEach((id: string) => {
+        expect(id).toMatch(/^id_[a-zA-Z0-9]{12}$/);
+      });
     });
 
-    it.each([
-      ['an empty string', ''],
-      ['null', null],
-      ['undefined', undefined],
-    ])('Returns "search" when the ID is %s', (_, id) => {
-      const result = determineDefaultMode(id);
-      expect(result).toBe(Mode.Search);
+    it('Returns a different ID each time', () => {
+      const idSet = new Set(ids);
+      expect(idSet.size).toBe(numberOfIds);
+    });
+  });
+
+  describe('getTextResourceValueIfTextResourceExists', () => {
+    const textResource = { id: 'id1', value: 'Test 1' };
+    const textResources = [textResource];
+
+    it('Returns the value of a text resource when it exists', () => {
+      const result: string = getTextResourceValueIfTextResourceExists(textResources, textResource);
+
+      expect(result).toEqual(textResource.value);
+    });
+
+    it('Returns an empty string if the text resource does not exist', () => {
+      const alteredTextResource = { ...textResource };
+      alteredTextResource.id = 'some-id';
+
+      const result: string = getTextResourceValueIfTextResourceExists(
+        textResources,
+        alteredTextResource,
+      );
+
+      expect(result).toBe('');
     });
   });
 });

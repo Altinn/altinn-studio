@@ -11,6 +11,7 @@ import {
   isCodeListEmpty,
   evaluateDefaultType,
   isCodeLimitReached,
+  updateCodeList,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -29,11 +30,18 @@ import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
 import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
+import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import type { TypeSelectorProps } from './TypeSelector';
 import { TypeSelector } from './TypeSelector';
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import type { ReducerState, ReducerAction } from './StudioCodeListEditorReducer';
 import classes from './StudioCodeListEditor.module.css';
+
+export type CreateTextResourceInternalArgs = {
+  textResource: TextResource;
+  codeItemIndex: number;
+  property: CodeListItemTextProperty;
+};
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -42,6 +50,7 @@ export type StudioCodeListEditorProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
@@ -66,6 +75,7 @@ function StatefulCodeListEditor({
   onBlurTextResource,
   onChange,
   onChangeTextResource,
+  onCreateTextResource,
   onInvalid,
   onUpdateCodeList,
   onUpdateTextResource,
@@ -104,11 +114,11 @@ function StatefulCodeListEditor({
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
+      dispatch({
+        type: ReducerActionType.SetCodeList,
+        codeList: newCodeList,
+      });
       if (isCodeListValid(newCodeList)) {
-        dispatch({
-          type: ReducerActionType.SetCodeList,
-          codeList: newCodeList,
-        });
         onChange?.(newCodeList);
       } else {
         onInvalid?.();
@@ -126,6 +136,19 @@ function StatefulCodeListEditor({
     [onUpdateCodeList],
   );
 
+  const handleCreateTextResource = useCallback(
+    ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
+      const codeList: CodeList = updateCodeList(state.codeList, {
+        newValue: textResource.id,
+        codeItemIndex,
+        property,
+      });
+      handleUpdateCodeList(codeList);
+      onCreateTextResource?.(textResource);
+    },
+    [handleUpdateCodeList, onCreateTextResource, state.codeList],
+  );
+
   return (
     <ControlledCodeListEditor
       codeList={state.codeList}
@@ -135,6 +158,7 @@ function StatefulCodeListEditor({
       onBlurTextResource={onBlurTextResource}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
+      onCreateTextResource={handleCreateTextResource}
       onUpdateCodeList={handleUpdateCodeList}
       onUpdateTextResource={onUpdateTextResource}
       textResources={state.textResources}
@@ -146,6 +170,7 @@ type ControlledCodeListEditorProps = Override<
   Pick<StudioInputTableProps, 'onBlurAny'> & {
     textResources: TextResource[];
     dispatch: Dispatch<ReducerAction>;
+    onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
   },
   Omit<StatefulCodeListEditorProps, 'onInvalid'>
 >;
@@ -158,6 +183,7 @@ function ControlledCodeListEditor({
   onBlurTextResource,
   onChange,
   onChangeTextResource,
+  onCreateTextResource,
   onUpdateCodeList,
   onUpdateTextResource,
   textResources,
@@ -188,6 +214,7 @@ function ControlledCodeListEditor({
         onChange={onChange}
         onChangeCodeType={setCodeType}
         onChangeTextResource={onChangeTextResource}
+        onCreateTextResource={onCreateTextResource}
         onUpdateCodeList={onUpdateCodeList}
         onUpdateTextResource={onUpdateTextResource}
         textResources={textResources}
@@ -265,6 +292,7 @@ function TableBody({
   onBlurTextResource,
   onChange,
   onChangeTextResource,
+  onCreateTextResource,
   onUpdateCodeList,
   onUpdateTextResource,
   textResources,
@@ -307,6 +335,7 @@ function TableBody({
           onBlurTextResource={onBlurTextResource}
           onChange={(newItem) => handleChange(index, newItem)}
           onChangeTextResource={onChangeTextResource}
+          onCreateTextResource={onCreateTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           onUpdateCodeListItem={(newItem) => handleUpdateCodeListItem(index, newItem)}
           onUpdateTextResource={onUpdateTextResource}
