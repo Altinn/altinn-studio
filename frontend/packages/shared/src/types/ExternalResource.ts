@@ -1,7 +1,7 @@
-type ExternalResourceType = 'code_list' | 'image' | 'text';
+import type { LibraryContentType } from '../enums/LibraryContentType';
 
 export type ExternalResource = {
   source: string;
-  type: ExternalResourceType;
+  type: LibraryContentType;
   id: string;
 };

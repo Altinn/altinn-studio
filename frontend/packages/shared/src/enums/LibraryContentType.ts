@@ -1,4 +1,4 @@
 export enum LibraryContentType {
-  CodeList = 'codeList',
-  TextResource = 'textResource',
+  CodeList = 'CodeList',
+  TextResource = 'TextResource',
 }

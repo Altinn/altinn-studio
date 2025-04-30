@@ -1,4 +1,5 @@
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 
 export const getCodeListIdsFromExternalResources = (
   externalResourceIds: ExternalResource[],
@@ -21,7 +22,7 @@ const filterOutCodeListResourcesFromExternalResources = (
 };
 
 const isExternalResourceCodeList = (externalResource: ExternalResource): boolean => {
-  return externalResource.type === 'code_list';
+  return externalResource.type === LibraryContentType.CodeList;
 };
 
 const mapCodeListResourceToCodeListId = (externalResourceIds: ExternalResource[]): string[] => {
