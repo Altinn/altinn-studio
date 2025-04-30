@@ -4,10 +4,8 @@ import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import {
-  CreateNewCodeListDialog,
-  type CreateNewCodeListDialogProps,
-} from './CreateNewCodeListDialog';
+import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
+import type { CreateNewCodeListDialogProps } from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onUpdateCodeList = jest.fn();
@@ -104,7 +102,7 @@ describe('CreateNewCodeListDialog', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('Calls onCreateCodeList when save button is clicked', async () => {
+  it('calls onCreateCodeList when save button is clicked', async () => {
     const user = userEvent.setup();
     const onCreateCodeList = jest.fn();
     renderCreateNewCodeListDialog({ onCreateCodeList });
