@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Xml;
+using Altinn.AccessManagement.Controllers;
 using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
@@ -344,12 +345,15 @@ namespace Altinn.Platform.Authorization.Controllers
         {
             var orgUrn = new Uri(AltinnXacmlUrns.OrgId);
             var appUrn = new Uri(AltinnXacmlUrns.AppId);
+            var resourceUrn = new Uri(AltinnXacmlUrns.ResourceId);
             var taskIdUrn = new Uri(AltinnXacmlUrns.TaskId);
-            var orgAttr = resourceAttributes.Attributes.Single(a => a.AttributeId == orgUrn);
-            var appAttr = resourceAttributes.Attributes.Single(a => a.AttributeId == appUrn);
+            var requestHasOrgAndAppAttrs = 
+                resourceAttributes.Attributes.Any(a => a.AttributeId == orgUrn) &&
+                resourceAttributes.Attributes.Any(a => a.AttributeId == appUrn);
+            var requestHasAppResourceAttr = 
+                resourceAttributes.Attributes.Any(a => a.AttributeId == resourceUrn && a.AttributeValues.Any(av => av.Value.StartsWith("app_")));
+
             var taskIdAttr = resourceAttributes.Attributes.SingleOrDefault(a => a.AttributeId == taskIdUrn);
-            var orgId = orgAttr.AttributeValues.Single().Value;
-            var appId = appAttr.AttributeValues.Single().Value;
             var instanceId = instanceIdAttr.AttributeValues.Single().Value;
             var split = instanceId.Split('/');
             if (split.Length != 2)
@@ -399,6 +403,43 @@ namespace Altinn.Platform.Authorization.Controllers
                     {
                         foreach (var rights in delegation.Delegation.Rights)
                         {
+                            if (!requestHasAppResourceAttr && !requestHasOrgAndAppAttrs)
+                                throw new Exception("Missing org and app information resource attributes in authorization request");
+
+                            var rightsHasOrgAndAppAttrs = 
+                                rights.Resource.Any(r => r.Type == AltinnXacmlUrns.OrgId) &&
+                                rights.Resource.Any(r => r.Type == AltinnXacmlUrns.AppId);
+                            var rightsHasAppResourceAttr = 
+                                rights.Resource.Any(r => r.Type == AltinnXacmlUrns.ResourceId && r.Value.StartsWith("app_"));
+
+                            IEnumerable<UrnValue> rightsResource = rights.Resource;
+                            if (requestHasOrgAndAppAttrs && !rightsHasOrgAndAppAttrs && rightsHasAppResourceAttr)
+                            {
+                                // Replace the AppResource attributes with Org and App attributes
+                                var appResource = rightsResource.Single(r => r.Type == AltinnXacmlUrns.ResourceId);
+                                var appResourceValue = appResource.Value;
+                                var appResourceSplit = appResourceValue.Split('_', count: 3); // Format is app_<org>_<app>
+                                var org = appResourceSplit[1];
+                                var app = appResourceSplit[2];
+                                rightsResource = [
+                                    ..rightsResource.Except([appResource]), 
+                                    new UrnValue(AltinnXacmlUrns.OrgId, org),
+                                    new UrnValue(AltinnXacmlUrns.AppId, app)
+                                ];
+                            }
+                            if (requestHasAppResourceAttr && !rightsHasAppResourceAttr && rightsHasOrgAndAppAttrs)
+                            {
+                                // Replace the Org and App attributes with an AppResource attribute
+                                var org = rightsResource.Single(r => r.Type == AltinnXacmlUrns.OrgId);
+                                var app = rightsResource.Single(r => r.Type == AltinnXacmlUrns.AppId);
+                                var orgValue = org.Value;
+                                var appValue = app.Value;
+                                rightsResource = [
+                                    ..rightsResource.Except([org, app]), 
+                                    new UrnValue(AltinnXacmlUrns.ResourceId, $"app_{orgValue}_{appValue}")
+                                ];
+                            }
+
                             idPolicy.Rules.Add(new XacmlRule($"urn:altinn:ruleid:{Guid.NewGuid()}", XacmlEffectType.Permit)
                             {
                                 Target = new XacmlTarget([
@@ -423,7 +464,7 @@ namespace Altinn.Platform.Authorization.Controllers
                                     // Resource - resource comes from the delegation
                                     new XacmlAnyOf([
                                         new XacmlAllOf([
-                                            ..rights.Resource.Select(r => new XacmlMatch(
+                                            ..rightsResource.Select(r => new XacmlMatch(
                                                 matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                                                 attributeValue: new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), r.Value),
                                                 attributeDesignator: new XacmlAttributeDesignator(
