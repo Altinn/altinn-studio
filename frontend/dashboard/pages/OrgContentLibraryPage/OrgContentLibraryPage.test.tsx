@@ -123,7 +123,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('calls createCodeListForOrg with correct data when onCreateCodeList is triggered', async () => {
     const createCodeListForOrg = jest.fn();
-    renderOrgContentLibraryWithCodeLists({ queries: { createCodeListForOrg } });
+    renderOrgContentLibraryWithData({ queries: { createCodeListForOrg } });
     const { title, data } = codeList1Data;
 
     retrieveConfig().codeList.props.onCreateCodeList({ title, codeList: data });
