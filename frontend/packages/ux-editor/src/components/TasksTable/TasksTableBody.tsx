@@ -53,36 +53,15 @@ export const TasksTableBody = ({
         </StudioTable.Cell>
         <StudioTable.Cell>{task.taskName}</StudioTable.Cell>
         <StudioTable.Cell>{task.numberOfPages}</StudioTable.Cell>
-        <StudioTable.Cell onClick={() => onSelectTask(index)}>
-          <ActionCellContent
-            isNavigationMode={isNavigationMode}
-            onSelectTask={() => onSelectTask(index)}
-            index={index}
+        <StudioTable.Cell>
+          <StudioButton
+            variant='tertiary'
+            icon={isNavigationMode ? <MenuElipsisVerticalIcon /> : <EyeClosedIcon />}
+            title={isNavigationMode ? undefined : t('ux_editor.task_table_display')}
+            onClick={() => onSelectTask(index)}
           />
         </StudioTable.Cell>
       </StudioTable.Row>
     );
   });
-};
-
-type ActionCellContentProps = {
-  index: number;
-  isNavigationMode: boolean;
-  onSelectTask: (index: number) => void;
-};
-
-const ActionCellContent = ({
-  index,
-  isNavigationMode,
-  onSelectTask,
-}: ActionCellContentProps): ReactElement => {
-  const { t } = useTranslation();
-
-  if (isNavigationMode) return <MenuElipsisVerticalIcon />;
-
-  return (
-    <StudioButton variant='tertiary' icon={<EyeClosedIcon />} onClick={() => onSelectTask(index)}>
-      {t('ux_editor.task_table_display')}
-    </StudioButton>
-  );
 };

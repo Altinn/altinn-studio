@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
 import { StudioTable } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 
 const tasksMock = [
   { taskType: 'type1', taskName: 'Task 1', numberOfPages: 5 },
@@ -12,6 +13,7 @@ const tasksMock = [
 describe('TasksTableBody', () => {
   it('should render the alert message when in navigation mode and no tasks are provided', () => {
     renderTasksTableBody({ tasks: [] });
+
     const alertTitle = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(alertTitle).toBeInTheDocument();
   });
@@ -32,6 +34,16 @@ describe('TasksTableBody', () => {
     expect(task1).toBeInTheDocument();
     expect(task2).toBeInTheDocument();
     expect(displayButtons.length).toBe(0);
+  });
+
+  it('should call onSelectTask when a task is clicked', async () => {
+    const user = userEvent.setup();
+    const onSelectTask = jest.fn();
+    renderTasksTableBody({ onSelectTask });
+
+    const task1Button = screen.getAllByRole('button')[0];
+    await user.click(task1Button);
+    expect(onSelectTask).toHaveBeenCalledWith(0);
   });
 });
 
