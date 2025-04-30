@@ -6,21 +6,21 @@ import { TasksTableBody } from './TasksTableBody';
 import { useTranslation } from 'react-i18next';
 import { EyeClosedIcon, EyeIcon } from '@studio/icons';
 
-export type taskInfo = {
+export type TaskInfo = {
   taskType: string;
   taskName: string;
   numberOfPages: number;
 };
 
 export type TasksTableProps = {
-  tasks: taskInfo[];
+  tasks?: TaskInfo[];
   isNavigationMode?: boolean;
   onSelectTask: (index: number) => void;
   onSelectAllTasks: () => void;
 };
 
 export const TasksTable = ({
-  tasks,
+  tasks = [],
   isNavigationMode = true,
   onSelectTask,
   onSelectAllTasks,

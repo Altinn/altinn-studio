@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import type { taskInfo } from './TasksTable';
+import type { TaskInfo } from './TasksTable';
 import { StudioButton, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { StudioAlert } from '@studio/components-legacy';
 import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { getTaskIcon } from '../Settings/SettingsUtils';
 
 export type TasksTableBodyProps = {
-  tasks: taskInfo[];
+  tasks: TaskInfo[];
   isNavigationMode: boolean;
   onSelectTask: (index: number) => void;
 };
@@ -39,9 +39,10 @@ export const TasksTableBody = ({
 
   return tasks.map((task, index) => {
     const TaskIcon = getTaskIcon(task.taskType);
+    const uniqueKey = `${task.taskType}-${index}-${isNavigationMode ? 'navigation' : 'hidden'}`;
     return (
       <StudioTable.Row
-        key={`${task.taskType}-${index}`}
+        key={uniqueKey}
         className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
       >
         <StudioTable.Cell>
