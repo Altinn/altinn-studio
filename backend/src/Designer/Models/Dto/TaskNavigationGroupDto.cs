@@ -17,5 +17,6 @@ public class TaskNavigationGroupDto
     public string Name { get; set; }
 
     [JsonPropertyName("pageCount")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public int PageCount { get; set; }
 }

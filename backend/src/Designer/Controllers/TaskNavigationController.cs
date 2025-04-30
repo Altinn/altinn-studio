@@ -40,11 +40,10 @@ namespace Altinn.Studio.Designer.Controllers
             IEnumerable<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
             IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
 
+            LayoutSets layoutSets = await appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
             IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = await Task.WhenAll(taskNavigationGroupList.Select(async taskNavigationGroup =>
             {
                 TaskNavigationGroupDto taskNavigationGroupDto = taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType);
-
-                LayoutSets layoutSets = await appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
                 if (taskNavigationGroupDto.TaskId != null)
                 {
                     LayoutSetConfig layoutSet = layoutSets.Sets?.FirstOrDefault(layoutSet => layoutSet.Tasks?.Contains(taskNavigationGroupDto.TaskId) ?? false);
