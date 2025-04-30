@@ -47,7 +47,7 @@ body:
     id: acceptance-criterias
     attributes:
       label: Acceptance Criterias
-      description: Define the acceptance criterias that this user story should testet against
+      description: Define the acceptance criterias that this user story should be tested against
 
   - type: markdown
     attributes:
