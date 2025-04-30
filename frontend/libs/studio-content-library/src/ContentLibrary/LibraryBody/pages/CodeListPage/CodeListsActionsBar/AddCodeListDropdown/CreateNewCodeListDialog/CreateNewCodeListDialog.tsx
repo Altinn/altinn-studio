@@ -11,7 +11,7 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
-type CreateNewCodeListDialogProps = {
+export type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;

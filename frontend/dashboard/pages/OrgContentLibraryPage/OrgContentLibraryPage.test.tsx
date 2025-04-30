@@ -93,6 +93,18 @@ describe('OrgContentLibraryPage', () => {
     expect(updateCodeListForOrg).toHaveBeenCalledWith(orgName, title, data);
   });
 
+  it('calls createCodeListForOrg with correct data when onCreateCodeList is triggered', async () => {
+    const createCodeListForOrg = jest.fn();
+    renderOrgContentLibraryWithCodeLists({ queries: { createCodeListForOrg } });
+    const { title, data } = codeList1Data;
+
+    retrieveConfig().codeList.props.onCreateCodeList({ title, codeList: data });
+    await waitFor(expect(createCodeListForOrg).toHaveBeenCalled);
+
+    expect(createCodeListForOrg).toHaveBeenCalledTimes(1);
+    expect(createCodeListForOrg).toHaveBeenCalledWith(orgName, title, data);
+  });
+
   it('calls uploadCodeListForOrg with correct data when onUploadCodeList is triggered', async () => {
     const uploadCodeListForOrg = jest.fn();
     const file = new File([''], 'list.json');

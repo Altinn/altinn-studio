@@ -4,10 +4,13 @@ import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
+import {
+  CreateNewCodeListDialog,
+  type CreateNewCodeListDialogProps,
+} from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const onUpdateCodeListMock = jest.fn();
+const onUpdateCodeList = jest.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
 const existingCodeListTitle = 'existingCodeListTitle';
 
@@ -32,30 +35,21 @@ describe('CreateNewCodeListDialog', () => {
 
   it('renders a disabled button by default', () => {
     renderCreateNewCodeListDialog();
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeDisabled();
+    expect(getSaveButton()).toBeDisabled();
   });
 
   it('enables the save button if only title is provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListDialog();
     await inputCodeListTitle(user);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeEnabled();
+    expect(getSaveButton()).toBeEnabled();
   });
 
   it('keeps disabling the save button if only code list content is provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListDialog();
     await addCodeListItem(user);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeDisabled();
+    expect(getSaveButton()).toBeDisabled();
   });
 
   it('renders error message if code list title is occupied', async () => {
@@ -78,20 +72,14 @@ describe('CreateNewCodeListDialog', () => {
     const user = userEvent.setup();
     renderCreateNewCodeListDialog();
     await inputCodeListTitle(user, existingCodeListTitle);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeDisabled();
+    expect(getSaveButton()).toBeDisabled();
   });
 
   it('disables the save button if code list content is invalid', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListDialog();
     await addDuplicatedCodeListValues(user);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeDisabled();
+    expect(getSaveButton()).toBeDisabled();
   });
 
   it('enables the save button when valid title and valid code list content are provided', async () => {
@@ -99,10 +87,7 @@ describe('CreateNewCodeListDialog', () => {
     renderCreateNewCodeListDialog();
     await inputCodeListTitle(user);
     await addCodeListItem(user);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    expect(saveCodeListButton).toBeEnabled();
+    expect(getSaveButton()).toBeEnabled();
   });
 
   it('calls onUpdateCodeList and closes the dialog when save button is clicked', async () => {
@@ -110,16 +95,27 @@ describe('CreateNewCodeListDialog', () => {
     renderCreateNewCodeListDialog();
     await inputCodeListTitle(user);
     await addCodeListItem(user);
-    const saveCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.save_new_code_list'),
-    });
-    await user.click(saveCodeListButton);
-    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
-    expect(onUpdateCodeListMock).toHaveBeenCalledWith({
+    await user.click(getSaveButton());
+    expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+    expect(onUpdateCodeList).toHaveBeenCalledWith({
       codeList: [{ label: '', value: '' }],
       title: newCodeListTitleMock,
     });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('Calls onCreateCodeList when save button is clicked', async () => {
+    const user = userEvent.setup();
+    const onCreateCodeList = jest.fn();
+    renderCreateNewCodeListDialog({ onCreateCodeList });
+    await inputCodeListTitle(user);
+    await addCodeListItem(user);
+    await user.click(getSaveButton());
+    expect(onCreateCodeList).toHaveBeenCalledTimes(1);
+    expect(onCreateCodeList).toHaveBeenCalledWith({
+      codeList: [{ label: '', value: '' }],
+      title: newCodeListTitleMock,
+    });
   });
 });
 
@@ -145,19 +141,26 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
   await addCodeListItem(user);
 };
 
-const renderCreateNewCodeListDialog = (): RenderResult => {
+const getSaveButton = () => {
+  return screen.getByRole('button', {
+    name: textMock('app_content_library.code_lists.save_new_code_list'),
+  });
+};
+
+const defaultProps: CreateNewCodeListDialogProps = {
+  onUpdateCodeList: onUpdateCodeList,
+  codeListNames: [existingCodeListTitle],
+};
+
+const renderCreateNewCodeListDialog = (
+  props?: Partial<CreateNewCodeListDialogProps>,
+): RenderResult => {
   const Component = (): ReactElement => {
     const ref = useRef<HTMLDialogElement>(null);
 
     useShowModal(ref);
 
-    return (
-      <CreateNewCodeListDialog
-        onUpdateCodeList={onUpdateCodeListMock}
-        codeListNames={[existingCodeListTitle]}
-        ref={ref}
-      />
-    );
+    return <CreateNewCodeListDialog ref={ref} {...defaultProps} {...props} />;
   };
 
   return render(<Component />);
