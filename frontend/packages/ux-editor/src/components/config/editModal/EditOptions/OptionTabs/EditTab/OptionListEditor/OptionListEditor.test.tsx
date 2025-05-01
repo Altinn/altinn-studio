@@ -13,6 +13,9 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
+import type { ITextResources } from 'app-shared/types/global';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -24,6 +27,9 @@ const optionList: OptionList = [
   { value: 'value 2', label: 'label 2', description: null, helpText: null },
   { value: 'value 3', label: 'label 3', description: null, helpText: null },
 ];
+const textResources: ITextResources = {
+  [DEFAULT_LANGUAGE]: textResourcesMock.resources,
+};
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -118,7 +124,7 @@ const defaultProps: OptionListEditorProps = {
 function renderOptionListEditor({
   queries = {},
   props = {},
-  queryClient = createQueryClientMock(),
+  queryClient = createQueryClientWithTextResources(),
 } = {}) {
   renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries,
@@ -135,7 +141,13 @@ function renderOptionListEditorWithData({
 }
 
 function createQueryClientWithData(): QueryClient {
-  const queryClient = createQueryClientMock();
+  const queryClient = createQueryClientWithTextResources();
   queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
+  return queryClient;
+}
+
+function createQueryClientWithTextResources(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }

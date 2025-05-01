@@ -27,6 +27,7 @@ const defaultCodeListPageProps: CodeListPageProps = {
   onUpdateCodeList,
   onUploadCodeList,
   codeListsUsages: [],
+  textResources,
 };
 
 describe('CodeListPage', () => {

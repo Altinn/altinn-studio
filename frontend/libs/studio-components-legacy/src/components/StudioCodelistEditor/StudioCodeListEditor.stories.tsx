@@ -24,14 +24,15 @@ export const WithTextResources: Story = {
 export const WithEmptyTextResourceList: Story = {
   args: {
     codeList: codeListWithoutTextResources,
-    texts,
     textResources: [],
+    texts,
   },
 };
 
 export const Empty: Story = {
   args: {
     codeList: [],
+    textResources: [],
     texts,
   },
 };

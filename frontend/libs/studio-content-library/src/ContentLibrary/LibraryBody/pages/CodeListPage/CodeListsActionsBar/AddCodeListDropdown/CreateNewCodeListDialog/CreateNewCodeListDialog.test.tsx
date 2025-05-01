@@ -6,6 +6,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textResourcesNb } from '../../../../../../../test-data/textResources';
 
 const onUpdateCodeListMock = jest.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
@@ -156,6 +157,7 @@ const renderCreateNewCodeListDialog = (): RenderResult => {
         onUpdateCodeList={onUpdateCodeListMock}
         codeListNames={[existingCodeListTitle]}
         ref={ref}
+        textResources={textResourcesNb}
       />
     );
   };

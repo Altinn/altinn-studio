@@ -15,7 +15,7 @@ type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   codeListNames: string[];
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 function CreateNewCodeListDialog(
@@ -70,7 +70,7 @@ type CreateNewCodeListProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   onCloseModal: () => void;
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 function CreateNewCodeList({
