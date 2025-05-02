@@ -50,9 +50,8 @@ public class OrgTextController : ControllerBase
         }
         catch (NotFoundException)
         {
-            return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
+            return NoContent();
         }
-
     }
 
     /// <summary>
@@ -113,5 +112,27 @@ public class OrgTextController : ControllerBase
         {
             return BadRequest($"The text resource, resource.{languageCode}.json, could not be updated.");
         }
+    }
+
+    /// <summary>
+    /// Gets all languages available for the given organisation.
+    /// </summary>
+    /// <param name="org">The organisation name</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>List of language codes</returns>
+    [HttpGet]
+    [Route("languages")]
+    public ActionResult<List<string>> GetLanguages(string org, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        List<string> languages = _orgTextsService.GetLanguages(org, developer, cancellationToken);
+
+        if (languages.Count > 0)
+        {
+            return Ok(languages);
+        }
+        return NoContent();
     }
 }

@@ -17,6 +17,7 @@ import type { TextResourceWithLanguage } from '../../../../types/TextResourceWit
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
   title: string;
@@ -52,6 +53,8 @@ export function CodeListPage({
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+
+  const codeListIsEmpty: boolean = codeListsData.length === 0;
 
   const filteredCodeLists: CodeListData[] = useMemo(
     () => filterCodeLists(codeListsData, searchString),
@@ -108,6 +111,7 @@ export function CodeListPage({
         codeListsUsages={codeListsUsages}
         textResources={textResourcesForLanguage}
       />
+      {codeListIsEmpty && <InfoBox pageName='codeList' />}
     </div>
   );
 }

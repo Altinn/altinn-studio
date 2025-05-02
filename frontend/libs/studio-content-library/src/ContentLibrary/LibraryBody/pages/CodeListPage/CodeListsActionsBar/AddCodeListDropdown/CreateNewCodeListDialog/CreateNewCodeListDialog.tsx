@@ -86,15 +86,17 @@ function CreateNewCodeList({
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
+  const initialCodeListWithMetadata: CodeListWithMetadata = {
+    title: '',
+    codeList,
+  };
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
-    useState<CodeListWithMetadata>({
-      title: '',
-      codeList,
-    });
+    useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
   const handleSaveCodeList = () => {
     onUpdateCodeList(currentCodeListWithMetadata);
     onCloseModal();
+    setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };
 
   const handleCodeListTitleChange = (updatedTitle: string) => {
@@ -110,7 +112,7 @@ function CreateNewCodeList({
     }
   };
 
-  const handleCodeListChange = (updatedCodeList: CodeList) => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList) => {
     setIsCodeListValid(true);
     const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
       currentCodeListWithMetadata,
@@ -137,9 +139,10 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onBlurTextResource={onBlurTextResource}
-          onChange={handleCodeListChange}
+          onCreateTextResource={onBlurTextResource}
           onInvalid={handleInvalidCodeList}
+          onUpdateCodeList={handleUpdateCodeList}
+          onUpdateTextResource={onBlurTextResource}
           texts={editorTexts}
           textResources={textResources}
         />

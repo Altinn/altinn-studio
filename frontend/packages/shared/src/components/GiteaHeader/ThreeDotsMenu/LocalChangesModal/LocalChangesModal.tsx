@@ -12,7 +12,6 @@ export type LocalChangesModalProps = {
 export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps): ReactNode => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>();
-  const closeDialog = () => dialogRef.current?.close();
   const openDialog = () => dialogRef.current?.showModal();
 
   return (
@@ -30,7 +29,7 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
         heading={t('sync_header.local_changes')}
         ref={dialogRef}
       >
-        <LocalChanges onDelete={closeDialog} />
+        <LocalChanges />
       </StudioModal.Dialog>
     </>
   );
