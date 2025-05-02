@@ -566,5 +566,9 @@ describe('AboutResourcePage', () => {
     expect(
       screen.getByText(textMock('resourceadm.about_resource_consent_template_label')),
     ).toBeInTheDocument();
+
+    expect(
+      screen.queryByText(textMock('resourceadm.about_resource_limited_by_rrr_label')),
+    ).not.toBeInTheDocument();
   });
 });

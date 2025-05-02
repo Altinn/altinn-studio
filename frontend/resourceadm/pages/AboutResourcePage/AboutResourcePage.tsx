@@ -363,17 +363,19 @@ export const AboutResourcePage = ({
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        <ResourceSwitchInput
-          id='accessListMode'
-          label={t('resourceadm.about_resource_limited_by_rrr_label')}
-          description={t('resourceadm.about_resource_limited_by_rrr_description')}
-          value={resourceData.accessListMode === 'Enabled'}
-          onFocus={() => setTranslationType('none')}
-          onChange={(isChecked: boolean) =>
-            handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
-          }
-          toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
-        />
+        {resourceData.resourceType !== 'Consentresource' && (
+          <ResourceSwitchInput
+            id='accessListMode'
+            label={t('resourceadm.about_resource_limited_by_rrr_label')}
+            description={t('resourceadm.about_resource_limited_by_rrr_description')}
+            value={resourceData.accessListMode === 'Enabled'}
+            onFocus={() => setTranslationType('none')}
+            onChange={(isChecked: boolean) =>
+              handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
+            }
+            toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+          />
+        )}
         {resourceData.accessListMode === 'Enabled' && (
           <div data-testid='rrr-buttons'>
             <AccessListEnvLinks />
