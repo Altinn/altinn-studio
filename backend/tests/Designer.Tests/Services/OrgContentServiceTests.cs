@@ -118,7 +118,7 @@ public class OrgContentServiceTests
     public async Task GetOrgContentReferences_WithCancellationToken_PassesTokenToServices()
     {
         // Arrange
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         var token = cts.Token;
         var textIds = new List<string> { "text1" };
 
