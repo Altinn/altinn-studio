@@ -196,6 +196,36 @@
         }
       },
       {
+        "id": "MultipleSelectPage-Header-Summary-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "MultipleSelectPage-Summary-Component2",
+        "type": "Summary",
+        "componentRef": "MultipleSelectPage-Checkboxes2"
+      },
+      {
+        "id": "MultipleSelectPage-Header-Summary2-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "MultipleSelectPage-Summary2-Component2",
+        "type": "Summary2",
+        "isCompact": true,
+        "target": {
+          "type": "component",
+          "id": "MultipleSelectPage-Checkboxes2"
+        }
+      },
+      {
         "id": "MultipleSelectPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},

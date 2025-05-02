@@ -193,7 +193,38 @@
         "dataModelBindings": {
           "simpleBinding":"ListCheckboxExample.age"
         }
-      }, {
+      },
+      {
+        "id": "CheckboxesPage-Header-Summary-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary-Component2",
+        "type": "Summary",
+        "componentRef": "CheckboxesPage-Checkboxes2"
+      },
+      {
+        "id": "CheckboxesPage-Header-Summary2-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary2-Component2",
+        "type": "Summary2",
+        "isCompact": true,
+        "target": {
+          "type": "component",
+          "id": "CheckboxesPage-Checkboxes2"
+        }
+      },
+      {
         "id": "CheckboxesPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
