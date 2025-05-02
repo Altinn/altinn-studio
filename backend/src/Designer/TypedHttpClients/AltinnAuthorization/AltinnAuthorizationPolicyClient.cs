@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
             /*
              * After the deploy of the Policy to authorization server, we need to refresh the subjects. 
-             * This is a temporary fix until policy is directly publisehd to resource registry endpoint
+             * This is a temporary fix until policy is directly published to resource registry endpoint
              */
             try
             {
