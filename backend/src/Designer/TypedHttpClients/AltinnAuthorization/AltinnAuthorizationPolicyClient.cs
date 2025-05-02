@@ -55,7 +55,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             await _httpClient.SendAsync(request);
 
             /*
-             * After the deploy of the Policy to authoirzation server, we need to refresh the subjects. 
+             * After the deploy of the Policy to authorization server, we need to refresh the subjects. 
              * This is a temporary fix until policy is directly publisehd to resource registry endpoint
              */
             try
