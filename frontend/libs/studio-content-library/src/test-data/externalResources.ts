@@ -10,7 +10,7 @@ const externalResource1: ExternalResource = {
 const externalResource2: ExternalResource = {
   source: 'org.ttd',
   type: LibraryContentType.TextResource,
-  id: 'text_list_1',
+  id: 'text_resource_1',
 };
 
 const externalResource3: ExternalResource = {

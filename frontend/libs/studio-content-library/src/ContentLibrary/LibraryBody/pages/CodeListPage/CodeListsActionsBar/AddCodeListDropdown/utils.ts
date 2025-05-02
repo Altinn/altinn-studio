@@ -3,21 +3,21 @@ import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import { StringUtils } from '@studio/pure-functions';
 
 export const getCodeListIdsFromExternalResources = (
-  externalResourceIds: ExternalResource[],
+  externalResources: ExternalResource[],
 ): string[] => {
-  if (!externalResourceIds) {
+  if (!externalResources) {
     return [];
   }
   const filteredResources: ExternalResource[] =
-    filterOutCodeListResourcesFromExternalResources(externalResourceIds);
+    filterOutCodeListResourcesFromExternalResources(externalResources);
   const mappedResources: string[] = mapCodeListResourceToCodeListId(filteredResources);
   return mappedResources;
 };
 
 const filterOutCodeListResourcesFromExternalResources = (
-  externalResourceIds: ExternalResource[],
+  externalResources: ExternalResource[],
 ): ExternalResource[] => {
-  return externalResourceIds.filter((externalResource: ExternalResource) =>
+  return externalResources.filter((externalResource: ExternalResource) =>
     isExternalResourceCodeList(externalResource),
   );
 };
@@ -26,6 +26,6 @@ const isExternalResourceCodeList = (externalResource: ExternalResource): boolean
   return StringUtils.areCaseInsensitiveEqual(externalResource.type, LibraryContentType.CodeList);
 };
 
-const mapCodeListResourceToCodeListId = (externalResourceIds: ExternalResource[]): string[] => {
-  return externalResourceIds.map((externalResource) => externalResource.id);
+const mapCodeListResourceToCodeListId = (externalResources: ExternalResource[]): string[] => {
+  return externalResources.map((externalResource) => externalResource.id);
 };
