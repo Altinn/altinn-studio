@@ -2,12 +2,13 @@ import { getCodeListIdsFromExternalResources } from './utils';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { externalResources } from '../../../../../../test-data/externalResources';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import { StringUtils } from '@studio/pure-functions';
 
 describe('getCodeListIdsFromExternalResources', () => {
   it('returns only code list resource ids', () => {
     const result = getCodeListIdsFromExternalResources(externalResources);
     const expected = externalResources
-      .filter((r) => r.type === LibraryContentType.CodeList)
+      .filter((r) => StringUtils.areCaseInsensitiveEqual(r.type, LibraryContentType.CodeList))
       .map((r) => r.id);
     expect(result).toEqual(expected);
   });
