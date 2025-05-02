@@ -114,6 +114,7 @@ function AppContentLibraryWithData({
   };
 
   const handleCreate = ({ title, codeList }: CodeListWithMetadata): void => {
+    // OptionsController uses PUT for both creating and updating code lists
     updateOptionList({ optionListId: title, optionList: codeList });
   };
 
