@@ -149,8 +149,8 @@
       {
         "dataModelBindings": {
           "group": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.name.firstname",
-          "checked": "ListCheckboxExample.internal.isChecked"
+          "simpleBinding": "ListCheckboxExample.Name.firstname",
+          "checked": "ListCheckboxExample.Internal.isChecked"
         },
         "deletionStrategy":"soft",
         "id": "MultipleSelectPage-Checkboxes2",
@@ -171,7 +171,7 @@
           "group": "ListCheckboxExample"
         },
         "hidden": false,
-        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.internal.isChecked"], false],
+        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.Internal.isChecked"], false],
         "children": [
           "MultipleSelectPage-RepeatingGroupName",
           "MultipleSelectPage-RepeatingGroupAge"
@@ -183,7 +183,7 @@
         "textResourceBindings": {
           "title":"Name"
         },
-        "value": ["dataModel","ListCheckboxExample.name.firstname"]
+        "value": ["dataModel","ListCheckboxExample.Name.firstname"]
       },
       {
         "id": "MultipleSelectPage-RepeatingGroupAge",
