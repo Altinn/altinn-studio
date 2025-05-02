@@ -9,7 +9,7 @@ const textResource: TextResource = { id: 'some-id', value: 'some-value' };
 const updateTextResource = jest.fn();
 const doReloadPreview = jest.fn();
 
-describe('useHandleBlurTextResource', () => {
+describe('useHandleUpdateTextResource', () => {
   beforeEach(jest.clearAllMocks);
 
   it('should call updateTextResource after updating textResource', () => {
