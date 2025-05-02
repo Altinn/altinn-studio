@@ -26,7 +26,7 @@ export type CodeListData = {
 
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
-  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -95,7 +95,6 @@ export function CodeListPage({
         onBlurTextResource={handleBlurTextResource}
         onCreateCodeList={onCreateCodeList}
         onUploadCodeList={handleUploadCodeList}
-        onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}

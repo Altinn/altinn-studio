@@ -13,8 +13,7 @@ import { StudioDialog, StudioHeading } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
-  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
 };
@@ -23,7 +22,6 @@ function CreateNewCodeListDialog(
   {
     onBlurTextResource,
     onCreateCodeList,
-    onUpdateCodeList,
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
@@ -54,7 +52,6 @@ function CreateNewCodeListDialog(
           codeListNames={codeListNames}
           onBlurTextResource={onBlurTextResource}
           onCreateCodeList={onCreateCodeList}
-          onUpdateCodeList={onUpdateCodeList}
           onCloseModal={handleCloseDialog}
           textResources={textResources}
         />
@@ -71,8 +68,7 @@ type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
   onBlurTextResource?: (textResource: TextResource) => void;
-  onCreateCodeList?: (newCodeList: CodeListWithMetadata) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCloseModal: () => void;
   textResources?: TextResource[];
 };
@@ -82,7 +78,6 @@ function CreateNewCodeList({
   codeListNames,
   onBlurTextResource,
   onCreateCodeList,
-  onUpdateCodeList,
   onCloseModal,
   textResources,
 }: CreateNewCodeListProps) {
@@ -99,11 +94,7 @@ function CreateNewCodeList({
     useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
   const handleSaveCodeList = () => {
-    if (onCreateCodeList) {
-      onCreateCodeList(currentCodeListWithMetadata);
-    } else {
-      onUpdateCodeList(currentCodeListWithMetadata);
-    }
+    onCreateCodeList(currentCodeListWithMetadata);
     onCloseModal();
     setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };

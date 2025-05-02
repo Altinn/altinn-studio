@@ -113,6 +113,10 @@ function AppContentLibraryWithData({
     updateOptionList({ optionListId: title, optionList: codeList });
   };
 
+  const handleCreate = ({ title, codeList }: CodeListWithMetadata): void => {
+    updateOptionList({ optionListId: title, optionList: codeList });
+  };
+
   const handleImportCodeListFromOrg = (codeListId: string): void => {
     importCodeListFromOrg(codeListId);
   };
@@ -130,6 +134,7 @@ function AppContentLibraryWithData({
       codeList: {
         props: {
           codeListsData: codeListDataList,
+          onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,

@@ -8,7 +8,7 @@ import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
 import type { CreateNewCodeListDialogProps } from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const onUpdateCodeList = jest.fn();
+const onCreateCodeList = jest.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
 const existingCodeListTitle = 'existingCodeListTitle';
 
@@ -88,24 +88,9 @@ describe('CreateNewCodeListDialog', () => {
     expect(getSaveButton()).toBeEnabled();
   });
 
-  it('calls onUpdateCodeList and closes the dialog when save button is clicked', async () => {
-    const user = userEvent.setup();
-    renderCreateNewCodeListDialog();
-    await inputCodeListTitle(user);
-    await addCodeListItem(user);
-    await user.click(getSaveButton());
-    expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
-    expect(onUpdateCodeList).toHaveBeenCalledWith({
-      codeList: [{ label: '', value: '' }],
-      title: newCodeListTitleMock,
-    });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
   it('calls onCreateCodeList and closes the dialog when save button is clicked', async () => {
     const user = userEvent.setup();
-    const onCreateCodeList = jest.fn();
-    renderCreateNewCodeListDialog({ onCreateCodeList });
+    renderCreateNewCodeListDialog();
     await inputCodeListTitle(user);
     await addCodeListItem(user);
     await user.click(getSaveButton());
@@ -147,7 +132,7 @@ const getSaveButton = () => {
 };
 
 const defaultProps: CreateNewCodeListDialogProps = {
-  onUpdateCodeList: onUpdateCodeList,
+  onCreateCodeList,
   codeListNames: [existingCodeListTitle],
 };
 
