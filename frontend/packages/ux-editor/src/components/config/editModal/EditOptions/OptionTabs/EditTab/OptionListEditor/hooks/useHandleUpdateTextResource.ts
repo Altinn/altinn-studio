@@ -3,7 +3,7 @@ import type { TextResource } from '@studio/components-legacy';
 import { createTextResourceWithLanguage, convertTextResourceToMutationArgs } from '../utils';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
-export function useHandleBlurTextResource(
+export function useHandleUpdateTextResource(
   language: string,
   updateTextResource: (args: UpsertTextResourceMutation) => void,
   doReloadPreview?: () => void,

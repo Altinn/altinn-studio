@@ -1,4 +1,4 @@
-import { useHandleBlurTextResource } from './useHandleBlurTextResource';
+import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/components-legacy';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
@@ -35,6 +35,6 @@ function renderHook(
   doReloadPreview?: () => void,
 ) {
   return renderHookWithProviders(() =>
-    useHandleBlurTextResource(language, updateTextResource, doReloadPreview),
+    useHandleUpdateTextResource(language, updateTextResource, doReloadPreview),
   );
 }

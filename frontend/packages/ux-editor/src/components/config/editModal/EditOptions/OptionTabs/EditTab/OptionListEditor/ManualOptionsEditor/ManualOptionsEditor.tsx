@@ -16,8 +16,8 @@ import {
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
+import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './ManualOptionsEditor.module.css';
-import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
 
 export type ManualOptionsEditorProps = {
   handleDelete: () => void;
@@ -33,7 +33,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const editorTexts = useOptionListEditorTexts();
 
     const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-    const handleBlurTextResource = useHandleBlurTextResource(language, updateTextResource);
+    const handleUpdateTextResource = useHandleUpdateTextResource(language, updateTextResource);
 
     const handleUpdateCodeList = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
@@ -65,8 +65,8 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
         >
           <StudioCodeListEditor
             codeList={component.options}
-            onCreateTextResource={handleBlurTextResource}
-            onUpdateTextResource={handleBlurTextResource}
+            onCreateTextResource={handleUpdateTextResource}
+            onUpdateTextResource={handleUpdateTextResource}
             onUpdateCodeList={handleUpdateCodeList}
             texts={editorTexts}
             textResources={textResourcesForLanguage}

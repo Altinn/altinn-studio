@@ -14,7 +14,7 @@ import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
+import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './LibraryOptionsEditor.module.css';
 
 export type LibraryOptionsEditorProps = {
@@ -37,7 +37,7 @@ export function LibraryOptionsEditor({
   const modalRef = createRef<HTMLDialogElement>();
 
   const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-  const handleBlurTextResource = useHandleBlurTextResource(
+  const handleUpdateTextResource = useHandleUpdateTextResource(
     language,
     updateTextResource,
     doReloadPreview,
@@ -72,8 +72,8 @@ export function LibraryOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={optionList}
-          onCreateTextResource={handleBlurTextResource}
-          onUpdateTextResource={handleBlurTextResource}
+          onCreateTextResource={handleUpdateTextResource}
+          onUpdateTextResource={handleUpdateTextResource}
           onUpdateCodeList={handleUpdateCodeList}
           texts={editorTexts}
           textResources={textResourcesForLanguage}
