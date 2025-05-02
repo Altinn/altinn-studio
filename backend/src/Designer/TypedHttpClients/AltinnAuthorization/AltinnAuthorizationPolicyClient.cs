@@ -54,8 +54,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
             await _httpClient.SendAsync(request);
 
-            // After the deploy of the Policy to authoirzation server, we need to refresh the subjects. This is a temporary fix until policy is directly publisehd to resource registry endpoint
-            try 
+            /*
+             * After the deploy of the Policy to authoirzation server, we need to refresh the subjects. 
+             * This is a temporary fix until policy is directly publisehd to resource registry endpoint
+             */
+            try
             {
                 Uri refreshSubjectsUri = new($"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true");
                 using HttpRequestMessage getRequest = new(HttpMethod.Get, refreshSubjectsUri);
