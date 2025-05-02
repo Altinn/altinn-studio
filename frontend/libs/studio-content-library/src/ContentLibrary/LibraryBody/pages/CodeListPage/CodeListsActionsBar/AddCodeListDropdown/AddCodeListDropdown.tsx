@@ -20,7 +20,7 @@ export type AddCodeListDropdownProps = {
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
-  externalResourceIds?: ExternalResource[];
+  externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
@@ -30,14 +30,14 @@ export function AddCodeListDropdown({
   onUploadCodeList,
   onUpdateCodeList,
   textResources,
-  externalResourceIds,
+  externalResources,
   onImportCodeListFromOrg,
 }: AddCodeListDropdownProps): ReactElement {
   const { t } = useTranslation();
   const addCodeListRef = useRef<HTMLDialogElement>(null);
   const importCodeListRef = useRef<HTMLDialogElement>(null);
-  const codeListIds: string[] = getCodeListIdsFromExternalResources(externalResourceIds);
-  const hasExternalResources: boolean = externalResourceIds && externalResourceIds.length > 0;
+  const codeListIds: string[] = getCodeListIdsFromExternalResources(externalResources);
+  const hasExternalResources: boolean = externalResources && externalResources.length > 0;
 
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 

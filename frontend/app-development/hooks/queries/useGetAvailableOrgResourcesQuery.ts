@@ -5,13 +5,13 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
-export const useGetAvailableCodeListsFromOrgQuery = (
+export const useGetAvailableOrgResourcesQuery = (
   org: string,
-  contentType: LibraryContentType,
+  contentType?: LibraryContentType,
 ): UseQueryResult<ExternalResource[], Error> => {
   const { getAvailableResourcesFromOrg } = useServicesContext();
   return useQuery<ExternalResource[]>({
-    queryKey: [QueryKey.CodeListTitles, org],
+    queryKey: [QueryKey.AvailableOrgResources, org],
     queryFn: () => getAvailableResourcesFromOrg(org, contentType),
   });
 };

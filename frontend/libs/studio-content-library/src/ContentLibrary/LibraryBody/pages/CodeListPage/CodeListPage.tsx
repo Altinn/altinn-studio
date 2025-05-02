@@ -33,7 +33,7 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
-  externalResourceIds?: ExternalResource[];
+  externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
@@ -46,7 +46,7 @@ export function CodeListPage({
   onUploadCodeList,
   codeListsUsages,
   textResources,
-  externalResourceIds,
+  externalResources,
   onImportCodeListFromOrg,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
@@ -94,7 +94,7 @@ export function CodeListPage({
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}
-        externalResourceIds={externalResourceIds}
+        externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
