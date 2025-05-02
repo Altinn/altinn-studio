@@ -343,7 +343,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (!string.IsNullOrEmpty(subjectOrgnNo))
             {
                 Party party = await _partiesWrapper.LookupPartyBySSNOrOrgNo(subjectOrgnNo);
-                subjectContextAttributes.Attributes.Add(GetPartyIdsAttribute(new List<int> { party.PartyId }));
+                if (party is not null)
+                {
+                    subjectContextAttributes.Attributes.Add(GetPartyIdsAttribute(new List<int> { party.PartyId }));
+                }
             }
 
             // No need for further enrichment of roles of no user subject exists
