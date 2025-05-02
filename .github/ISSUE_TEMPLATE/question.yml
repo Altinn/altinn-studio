@@ -1,0 +1,23 @@
+name: Question ❓
+description: Ask a question related to this product.
+labels: ["kind/question", "status/triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Unsure if you've found a bug or have a feature request? Use this template to ask us a question to find out.
+        
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: How can we help you? What do you want to know?
+    validations:
+      required: true
+      
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: |
+        Add any other context, screenshots or code that might help us understanding and answering the question.

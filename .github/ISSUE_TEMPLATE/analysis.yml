@@ -1,0 +1,47 @@
+name: Analysis 🔬
+description: Create a new analysis issue for something big that needs some insight.
+labels: ["kind/analysis", "status/draft"]
+body:          
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Description of the the problem or area that is to be analysed. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: In scope
+      description: What's in scope for this analysis?
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What's out of scope for this analysis?
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: Links to relevant resources, documentation of other issues, UX sketches, technical architecture/requirements.
+
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Analysis
+      description: A description of how the analysis was done, what alternatives were considered etc
+
+  - type: textarea
+    id: conclusion
+    attributes:
+      label: Conclusion
+      description: What have we found out by doing this analysis
+
+  - type: markdown
+    attributes:
+      value: |
+        * Remember to add correct labels.
+        * Remember to link all relevant issues (bugs, user stories, chores).
