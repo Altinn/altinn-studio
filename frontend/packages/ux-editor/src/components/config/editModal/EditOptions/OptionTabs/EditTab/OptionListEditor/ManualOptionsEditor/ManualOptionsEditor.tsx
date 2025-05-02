@@ -66,8 +66,8 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
           <StudioCodeListEditor
             codeList={component.options}
             onCreateTextResource={handleBlurTextResource}
-            onUpdateCodeList={handleUpdateCodeList}
             onUpdateTextResource={handleBlurTextResource}
+            onUpdateCodeList={handleUpdateCodeList}
             texts={editorTexts}
             textResources={textResourcesForLanguage}
           />

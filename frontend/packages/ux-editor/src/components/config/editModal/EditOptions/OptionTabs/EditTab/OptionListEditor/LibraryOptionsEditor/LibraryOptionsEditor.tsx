@@ -73,8 +73,8 @@ export function LibraryOptionsEditor({
         <StudioCodeListEditor
           codeList={optionList}
           onCreateTextResource={handleBlurTextResource}
-          onUpdateCodeList={handleUpdateCodeList}
           onUpdateTextResource={handleBlurTextResource}
+          onUpdateCodeList={handleUpdateCodeList}
           texts={editorTexts}
           textResources={textResourcesForLanguage}
         />
