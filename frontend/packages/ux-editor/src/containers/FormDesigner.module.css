@@ -1,6 +1,6 @@
 .root {
   --buttons-distance: 0.5rem;
-  --buttons-width: var(--component-button-size-height-small, 36px);
+  --buttons-width: var(--fds-sizing-9, 36px);
   --drag-handle-border-radius: 5px;
   --drag-handle-width: 25px;
   --drag-handle-inner-width: 25px;

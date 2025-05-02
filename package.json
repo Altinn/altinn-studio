@@ -1,7 +1,6 @@
 {
   "name": "altinn-studio",
   "dependencies": {
-    "@altinn/figma-design-tokens": "6.0.1",
     "@digdir/design-system-tokens": "0.13.0",
     "@digdir/designsystemet-css": "0.10.0",
     "@digdir/designsystemet-react": "0.63.1",
