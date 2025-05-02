@@ -35,7 +35,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
     const handleBlurTextResource = useHandleBlurTextResource(language, updateTextResource);
 
-    const handleOptionsListChange = (options: Option[]) => {
+    const handleUpdateCodeList = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -65,9 +65,9 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
         >
           <StudioCodeListEditor
             codeList={component.options}
-            onAddOrDeleteItem={handleOptionsListChange}
-            onBlurAny={handleOptionsListChange}
-            onBlurTextResource={handleBlurTextResource}
+            onCreateTextResource={handleBlurTextResource}
+            onUpdateCodeList={handleUpdateCodeList}
+            onUpdateTextResource={handleBlurTextResource}
             texts={editorTexts}
             textResources={textResourcesForLanguage}
           />

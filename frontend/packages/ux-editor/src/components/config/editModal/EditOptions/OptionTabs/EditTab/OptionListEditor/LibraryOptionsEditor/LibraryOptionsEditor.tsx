@@ -43,7 +43,7 @@ export function LibraryOptionsEditor({
     doReloadPreview,
   );
 
-  const handleOptionsListChange = (newOptionList: OptionList) => {
+  const handleUpdateCodeList = (newOptionList: OptionList) => {
     if (hasOptionListChanged(optionList, newOptionList)) {
       updateOptionList({ optionListId, optionList: newOptionList });
       doReloadPreview();
@@ -72,9 +72,9 @@ export function LibraryOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={optionList}
-          onAddOrDeleteItem={handleOptionsListChange}
-          onBlurAny={handleOptionsListChange}
-          onBlurTextResource={handleBlurTextResource}
+          onCreateTextResource={handleBlurTextResource}
+          onUpdateCodeList={handleUpdateCodeList}
+          onUpdateTextResource={handleBlurTextResource}
           texts={editorTexts}
           textResources={textResourcesForLanguage}
         />
