@@ -32,6 +32,7 @@ export enum QueryKey {
   OptionLists = 'OptionLists',
   OptionListIds = 'OptionListIds',
   OrgCodeLists = 'OrgCodeLists',
+  OrgTextLanguages = 'OrgTextLanguages',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
   ProcessTaskDataType = 'ProcessTaskDataType',
