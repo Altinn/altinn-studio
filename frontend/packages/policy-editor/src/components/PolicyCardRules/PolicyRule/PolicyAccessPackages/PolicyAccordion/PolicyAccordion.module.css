@@ -31,6 +31,6 @@
 }
 
 .accordionSubTitle {
-  color: var(--colors-grey-700);
+  color: var(--fds-colors-grey-700);
   font-size: var(--fds-sizing-3);
 }
