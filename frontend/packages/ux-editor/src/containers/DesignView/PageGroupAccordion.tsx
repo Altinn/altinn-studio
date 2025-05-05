@@ -12,6 +12,9 @@ import {
   findLayoutsContainingDuplicateComponents,
 } from '@altinn/ux-editor/utils/formLayoutUtils';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import { useDeletePageGroupMutation } from '@altinn/ux-editor/hooks/mutations/useDeletePageGroupMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../hooks';
 
 interface PageGroupAccordionProps {
   groups: PagesModel['groups'];
@@ -36,12 +39,23 @@ export const PageGroupAccordion = ({
     [layouts],
   );
 
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { mutate: deletePageGroup, isPending } = useDeletePageGroupMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+
   return groups.map((group) => {
     if (!group.order || group.order.length === 0) return null;
 
     const handleConfirmDelete = () => {
-      if (confirm(t('ux_editor.component_group_deletion_text'))) {
-        //TODO: Implement delete group functionality
+      if (confirm(t('ux_editor.component_group_navigation_deletion_text'))) {
+        deletePageGroup({
+          ...group,
+          groups: [],
+        });
       }
     };
 
@@ -61,6 +75,7 @@ export const PageGroupAccordion = ({
               icon={<TrashIcon />}
               onClick={handleConfirmDelete}
               variant='tertiary'
+              disabled={isPending}
             />
             <DragVerticalIcon aria-hidden className={classes.rightIcon} />
           </div>
