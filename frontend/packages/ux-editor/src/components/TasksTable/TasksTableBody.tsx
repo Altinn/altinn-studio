@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import type { TaskInfo } from './TasksTable';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { StudioButton, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { StudioAlert } from '@studio/components-legacy';
 import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { getTaskIcon } from '../Settings/SettingsUtils';
 
 export type TasksTableBodyProps = {
-  tasks: TaskInfo[];
+  tasks: TaskNavigationGroup[];
   isNavigationMode: boolean;
   onSelectTask: (index: number) => void;
 };
@@ -51,8 +51,8 @@ export const TasksTableBody = ({
             {task.taskType}
           </div>
         </StudioTable.Cell>
-        <StudioTable.Cell>{task.taskName}</StudioTable.Cell>
-        <StudioTable.Cell>{task.numberOfPages}</StudioTable.Cell>
+        <StudioTable.Cell>{task?.name}</StudioTable.Cell>
+        <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
         <StudioTable.Cell>
           <StudioButton
             variant='tertiary'
