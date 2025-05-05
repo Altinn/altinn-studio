@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import { StudioBlobDownloader } from '@studio/components-legacy';
-import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useTextResourcesQuery, useOptionListsQuery } from 'app-shared/hooks/queries';
@@ -10,34 +9,32 @@ import type { ExportForm as ExportFormType } from '../../types/ExportForm';
 import { useTranslation } from 'react-i18next';
 
 type ExportFormProps = {
-  formLayoutSetName?: string;
+  formLayoutSetName: string;
 };
 
 export const ExportForm = ({ formLayoutSetName }: ExportFormProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const formLayoutSetNameToUse = formLayoutSetName || selectedFormLayoutSetName;
 
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, formLayoutSetNameToUse);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, formLayoutSetName);
   const { data: optionListsData } = useOptionListsQuery(org, app);
 
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const { data: settings } = useFormLayoutSettingsQuery(org, app, formLayoutSetNameToUse);
+  const { data: settings } = useFormLayoutSettingsQuery(org, app, formLayoutSetName);
 
   const exportUtils = useMemo(
     () =>
       new ExportUtils(
         settings?.pages?.order,
         formLayouts,
-        formLayoutSetNameToUse,
+        formLayoutSetName,
         app,
         textResources,
         optionListsData,
         'nb',
         false,
       ),
-    [formLayouts, textResources, settings, formLayoutSetNameToUse, app, optionListsData],
+    [formLayouts, textResources, settings, formLayoutSetName, app, optionListsData],
   );
 
   const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
@@ -55,7 +52,7 @@ export const ExportForm = ({ formLayoutSetName }: ExportFormProps) => {
 
   return (
     <StudioBlobDownloader
-      fileName={`${formLayoutSetNameToUse}.json`}
+      fileName={`${formLayoutSetName}.json`}
       fileType='application/json'
       linkText={t('ux_editor.top_bar.export_form')}
       data={JSON.stringify(exportFormat)}
