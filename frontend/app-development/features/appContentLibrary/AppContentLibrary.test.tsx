@@ -150,6 +150,18 @@ describe('AppContentLibrary', () => {
     expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, currentName, newName);
   });
 
+  it('calls onUpdateOptionList with correct data when onCreateCodeList is triggered', async () => {
+    const { title, data: codeList } = optionList1Data;
+    const newCodeList: CodeListWithMetadata = { title, codeList };
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onCreateCodeList(newCodeList);
+    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
+  });
+
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
     renderAppContentLibraryWithData();
 
