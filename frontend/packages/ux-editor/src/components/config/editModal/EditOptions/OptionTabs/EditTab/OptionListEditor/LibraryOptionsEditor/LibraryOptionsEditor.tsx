@@ -5,10 +5,7 @@ import type { CodeListEditorTexts } from '@studio/components-legacy';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import {
-  useUpdateOptionListMutation,
-  useUpsertTextResourceMutation,
-} from 'app-shared/hooks/mutations';
+import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
@@ -31,17 +28,12 @@ export function LibraryOptionsEditor({
   const { data: optionList } = useOptionListQuery(org, app, optionListId);
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
-  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
   const { doReloadPreview } = usePreviewContext();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-  const handleUpdateTextResource = useHandleUpdateTextResource(
-    language,
-    updateTextResource,
-    doReloadPreview,
-  );
+  const handleUpdateTextResource = useHandleUpdateTextResource(language, doReloadPreview);
 
   const handleUpdateCodeList = (newOptionList: OptionList) => {
     if (hasOptionListChanged(optionList, newOptionList)) {

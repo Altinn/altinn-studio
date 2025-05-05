@@ -1,40 +1,34 @@
 import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/components-legacy';
-import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { waitFor } from '@testing-library/react';
 
 // Test data:
 const language = 'nb';
 const textResource: TextResource = { id: 'some-id', value: 'some-value' };
-const updateTextResource = jest.fn();
 const doReloadPreview = jest.fn();
 
 describe('useHandleUpdateTextResource', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('should call updateTextResource after updating textResource', () => {
-    const { result } = renderHook(language, updateTextResource);
+  it('should call updateTextResource after updating textResource', async () => {
+    const { result } = renderHook(language);
     result.current(textResource);
 
-    expect(updateTextResource).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1));
   });
 
-  it('should call doReloadPreview if provided', () => {
+  it('should call doReloadPreview if provided', async () => {
     const textResource: TextResource = { id: 'some-id', value: 'some-value' };
-    const { result } = renderHook(language, updateTextResource, doReloadPreview);
+    const { result } = renderHook(language, doReloadPreview);
     result.current(textResource);
 
-    expect(updateTextResource).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1));
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
   });
 });
 
-function renderHook(
-  language: string,
-  updateTextResource: (args: UpsertTextResourceMutation) => void,
-  doReloadPreview?: () => void,
-) {
-  return renderHookWithProviders(() =>
-    useHandleUpdateTextResource(language, updateTextResource, doReloadPreview),
-  );
+function renderHook(language: string, doReloadPreview?: () => void) {
+  return renderHookWithProviders(() => useHandleUpdateTextResource(language, doReloadPreview));
 }

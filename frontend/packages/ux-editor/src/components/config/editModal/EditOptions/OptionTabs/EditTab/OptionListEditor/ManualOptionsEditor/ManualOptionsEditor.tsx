@@ -13,7 +13,6 @@ import {
   resetComponentOptions,
   updateComponentOptions,
 } from '../../../utils/optionsUtils';
-import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
@@ -28,12 +27,11 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const { t } = useTranslation();
     const { org, app } = useStudioEnvironmentParams();
     const { data: textResources } = useTextResourcesQuery(org, app);
-    const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
     const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-    const handleUpdateTextResource = useHandleUpdateTextResource(language, updateTextResource);
+    const handleUpdateTextResource = useHandleUpdateTextResource(language);
 
     const handleUpdateCodeList = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);

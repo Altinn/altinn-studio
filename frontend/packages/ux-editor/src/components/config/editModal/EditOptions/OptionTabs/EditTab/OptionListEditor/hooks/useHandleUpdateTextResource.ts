@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import type { TextResource } from '@studio/components-legacy';
 import { createTextResourceWithLanguage, convertTextResourceToMutationArgs } from '../utils';
-import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export function useHandleUpdateTextResource(
-  language: string,
-  updateTextResource: (args: UpsertTextResourceMutation) => void,
-  doReloadPreview?: () => void,
-) {
+export function useHandleUpdateTextResource(language: string, doReloadPreview?: () => void) {
+  const { org, app } = useStudioEnvironmentParams();
+  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
+
   return useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
