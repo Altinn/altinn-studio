@@ -567,6 +567,45 @@ describe('FormComponentConfig', () => {
     );
   });
 
+  it('should call handleComponentUpdate when a nested boolean property is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    const propertyKey = 'testObjectProperty';
+    render({
+      props: {
+        schema: {
+          properties: {
+            [propertyKey]: {
+              type: 'object',
+              properties: {
+                readOnly: { type: 'boolean', default: false },
+              },
+            },
+          },
+        },
+        component: {
+          ...componentMocks.Input,
+          [propertyKey]: { readOnly: false },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    await openCard(user, propertyKey);
+    const readOnlySwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.readOnly'),
+    });
+    await user.click(readOnlySwitch);
+    await waitFor(() => {
+      expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [propertyKey]: expect.objectContaining({
+            readOnly: true,
+          }),
+        }),
+      );
+    });
+  });
+
   it('should toggle close button and grid width text when the open and close buttons are clicked', async () => {
     const user = userEvent.setup();
     render({
