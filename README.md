@@ -1,8 +1,5 @@
 # Altinn Studio
 
-[![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
-[![Repos build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/repositories-master?label=studio/repos)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=28)
-
 Altinn Studio is the next generation Altinn application development solution. Together with **Altinn Apps** and
 **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 

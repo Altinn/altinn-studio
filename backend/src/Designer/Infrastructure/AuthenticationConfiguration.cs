@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -39,7 +38,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             IConfiguration configuration, IWebHostEnvironment env)
         {
             var oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
-            bool ansattPortenFeatureFlag = configuration.GetSection($"FeatureManagement:{StudioFeatureFlags.AnsattPorten}").Get<bool>();
 
             services
                 .AddAuthentication(options =>
@@ -51,7 +49,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                 {
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = ansattPortenFeatureFlag ? SameSiteMode.Lax : SameSiteMode.Strict;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
 
                     options.Cookie.IsEssential = true;
 
