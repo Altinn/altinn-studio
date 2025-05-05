@@ -2,10 +2,10 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
-import { useOrgTextLanguagesQuery } from 'app-shared/hooks/queries/useOrgTextLanguagesQuery';
+import { useOrgTextLanguagesQuery } from './useOrgTextLanguagesQuery';
 
 describe('useOrgTextLanguagesQuery', () => {
-  it('calls useOrgTextLanguages with the correct parameters', () => {
+  it('calls getOrgTextLanguages with the correct parameters', () => {
     render();
     expect(queriesMock.getOrgTextLanguages).toHaveBeenCalledWith(org);
   });
