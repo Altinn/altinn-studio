@@ -4,7 +4,7 @@
 }
 
 .iconContainer {
-  background-color: var(--brand-default-third-100);
+  background-color: var(--fds-colors-blue-100);
   border-radius: var(--fds-border_radius-small);
   padding: var(--fds-sizing-2);
 }
