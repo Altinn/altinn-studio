@@ -120,7 +120,7 @@ const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: st
 
 const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   onUploadCodeList: onUploadCodeListMock,
-  onUpdateCodeList: jest.fn(),
+  onCreateCodeList: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
 };
 
