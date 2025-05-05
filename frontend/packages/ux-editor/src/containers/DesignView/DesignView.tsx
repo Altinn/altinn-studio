@@ -170,15 +170,16 @@ export const DesignView = (): ReactNode => {
         >
           {t('ux_editor.pages_add')}
         </StudioButton>
-
-        <StudioButton
-          icon={<PlusIcon aria-hidden />}
-          onClick={handleAddGroup}
-          className={classes.button}
-          disabled={isAddGroupMutationPending}
-        >
-          {t('ux_editor.groups.add')}
-        </StudioButton>
+        {isTaskNavigationPageGroups && (
+          <StudioButton
+            icon={<PlusIcon aria-hidden />}
+            onClick={handleAddGroup}
+            className={classes.button}
+            disabled={isAddGroupMutationPending}
+          >
+            {t('ux_editor.groups.add')}
+          </StudioButton>
+        )}
       </div>
       {getPdfLayoutName() && (
         <div className={classes.wrapper}>
