@@ -245,16 +245,26 @@ public class LayoutServiceTests
 
         int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
         Assert.Equal(originalGroupCount + 1, newGroupCount);
-        foreach (PageDto page in allPages)
+        foreach (
+            string fileContent in allPages.Select(page =>
+                TestDataHelper.GetFileFromRepo(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer,
+                    $"App/ui/form/layouts/{page.Id}.json"
+                )
+            )
+        )
         {
-            string fileContent = TestDataHelper.GetFileFromRepo(
-                editingContext.Org,
-                editingContext.Repo,
-                editingContext.Developer,
-                $"App/ui/form/layouts/{page.Id}.json"
-            );
             Assert.NotEqual(string.Empty, fileContent);
         }
+        Assert.Equal(
+            2,
+            mediatr.Invocations.Count(i =>
+                i.Method.Name == nameof(IPublisher.Publish)
+                && i.Arguments[0] is LayoutPageAddedEvent
+            )
+        );
     }
 
     [Fact]
