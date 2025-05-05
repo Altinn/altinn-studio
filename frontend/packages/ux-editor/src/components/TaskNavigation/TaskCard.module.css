@@ -9,7 +9,8 @@
   gap: var(--fds-spacing-3);
 }
 
-.details > * {
+.details > *,
+.details h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
