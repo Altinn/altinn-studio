@@ -6,7 +6,7 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 export type StudioTableProps = WithoutAsChild<ComponentProps<typeof Table>>;
 
 export const StudioTable = forwardRef<HTMLTableElement, StudioTableProps>((props, ref) => (
-  <Table {...props} ref={ref} />
+  <Table size='sm' {...props} ref={ref} />
 ));
 
 StudioTable.displayName = 'StudioTable';
