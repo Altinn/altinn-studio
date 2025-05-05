@@ -1,9 +1,9 @@
 .libraryContent {
   display: grid;
-  grid-template-columns: 2fr 7fr 3fr;
+  grid-template-columns: 2fr 10fr;
   height: 100%;
 }
 
 .component {
-  padding: var(--padding-library) 0 var(--padding-library) var(--padding-library);
+  padding: var(--padding-library);
 }
