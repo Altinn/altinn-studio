@@ -255,6 +255,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     }
                 );
             }
+            var createdPages = order.Except(originalOrder).ToList();
+            foreach (string pageId in createdPages)
+            {
+                AltinnPageLayout altinnPageLayout = new();
+                if (originalOrder.Any())
+                {
+                    altinnPageLayout = altinnPageLayout.WithNavigationButtons();
+                }
+                await appRepository.CreatePageLayoutFile(layoutSetId, pageId, altinnPageLayout);
+            }
             originalLayoutSettings.Pages = pagesWithGroups;
             await appRepository.SaveLayoutSettings(layoutSetId, originalLayoutSettings);
         }
