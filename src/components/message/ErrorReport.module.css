@@ -1,3 +1,7 @@
+.errorReport {
+  width: 100%;
+}
+
 .errorList {
   list-style-position: outside;
   margin: 0 0 0 24px;

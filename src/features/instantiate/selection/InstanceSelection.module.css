@@ -19,11 +19,6 @@
 TODO(1779): Remove these styles after going through all the different Table styles in
 Altinn, and making sure they are consistent. */
 
-.table {
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.12),
-    0 2px 2px rgba(0, 0, 0, 0.12);
-}
 @media (max-width: 992px) {
   .table {
     border-top: 1px solid #dde3e5;

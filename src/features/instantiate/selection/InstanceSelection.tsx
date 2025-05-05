@@ -7,13 +7,14 @@ import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Pagination } from 'src/app-components/Pagination/Pagination';
+import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
+import { useClearInstantiation, useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import {
   ActiveInstancesProvider,
   useActiveInstances,
@@ -64,7 +65,7 @@ function InstanceSelection() {
   const { langAsString } = useLanguage();
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
-  const instantiate = useInstantiation().instantiate;
+  const instantiation = useInstantiation();
   const currentParty = useCurrentParty();
   const storeCallback = useSetNavigationEffect();
   const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
@@ -81,6 +82,8 @@ function InstanceSelection() {
 
   const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
+
+  useClearInstantiation();
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
@@ -267,22 +270,27 @@ function InstanceSelection() {
         {mobileView && renderMobileTable()}
         {!mobileView && renderTable()}
         <div className={classes.startNewButtonContainer}>
-          <Button
-            disabled={isAnyProcessing}
-            isLoading={isLoading}
-            size='md'
-            onClick={() =>
-              performProcess(async () => {
-                if (currentParty) {
-                  storeCallback(focusMainContent);
-                  await instantiate(currentParty.partyId);
-                }
-              })
-            }
-            id='new-instance-button'
+          <ErrorReport
+            show={instantiation.error !== undefined}
+            errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
           >
-            <Lang id='instance_selection.new_instance' />
-          </Button>
+            <Button
+              disabled={isAnyProcessing}
+              isLoading={isLoading}
+              size='md'
+              onClick={() =>
+                performProcess(async () => {
+                  if (currentParty) {
+                    storeCallback(focusMainContent);
+                    await instantiation.instantiate(currentParty.partyId);
+                  }
+                })
+              }
+              id='new-instance-button'
+            >
+              <Lang id='instance_selection.new_instance' />
+            </Button>
+          </ErrorReport>
         </div>
       </div>
       <ReadyForPrint type='load' />

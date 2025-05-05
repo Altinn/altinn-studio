@@ -32,12 +32,10 @@ export const App = () => (
       path='/instance-selection/*'
       element={<InstanceSelectionWrapper />}
     />
-
     <Route
       path='/party-selection/*'
       element={<PartySelection />}
     />
-
     <Route
       path='/instance/:instanceOwnerPartyId/:instanceGuid/*'
       element={

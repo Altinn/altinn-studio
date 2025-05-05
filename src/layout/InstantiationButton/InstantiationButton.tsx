@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
+import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -12,46 +13,36 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
-  const { instantiateWithPrefill, error } = useInstantiation();
+  const instantiation = useInstantiation();
   const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useCurrentParty();
 
-  // const onClick = () => {
-  //   instantiateWithPrefill(props.node, {
-  //     prefill,
-  //     instanceOwner: {
-  //       partyId: party?.partyId.toString(),
-  //     },
-  //   });
-  // };
-
-  useEffect(() => {
-    if (error) {
-      throw error;
-    }
-  }, [error]);
-
   return (
-    <Button
-      {...props}
-      id={props.node.id}
-      onClick={() =>
-        performProcess(() =>
-          instantiateWithPrefill({
-            prefill,
-            instanceOwner: {
-              partyId: party?.partyId.toString(),
-            },
-          }),
-        )
-      }
-      disabled={isAnyProcessing}
-      isLoading={isLoading}
-      variant='secondary'
-      color='first'
+    <ErrorReport
+      show={instantiation.error !== undefined}
+      errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
     >
-      {children}
-    </Button>
+      <Button
+        {...props}
+        id={props.node.id}
+        onClick={() =>
+          performProcess(() =>
+            instantiation.instantiateWithPrefill({
+              prefill,
+              instanceOwner: {
+                partyId: party?.partyId.toString(),
+              },
+            }),
+          )
+        }
+        disabled={isAnyProcessing}
+        isLoading={isLoading}
+        variant='secondary'
+        color='first'
+      >
+        {children}
+      </Button>
+    </ErrorReport>
   );
 };

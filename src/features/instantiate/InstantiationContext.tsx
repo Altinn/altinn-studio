@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import type { MutableRefObject } from 'react';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
@@ -32,6 +33,8 @@ interface InstantiationContext {
   error: AxiosError | undefined | null;
   lastResult: IInstance | undefined;
   clear: () => void;
+  clearTimeout: MutableRefObject<ReturnType<typeof setTimeout> | undefined>;
+  cancelClearTimeout: () => void;
 }
 
 const { Provider, useCtx } = createContext<InstantiationContext>({ name: 'InstantiationContext', required: true });
@@ -78,6 +81,7 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
   const queryClient = useQueryClient();
   const instantiate = useInstantiateMutation();
   const instantiateWithPrefill = useInstantiateWithPrefillMutation();
+  const clearRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   return (
     <Provider
@@ -93,8 +97,21 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
           }
         },
         clear: () => {
-          removeMutations(queryClient);
+          if (clearRef.current) {
+            clearTimeout(clearRef.current);
+          }
+          clearRef.current = setTimeout(() => {
+            removeMutations(queryClient);
+            instantiate.reset();
+            instantiateWithPrefill.reset();
+          }, TIMEOUT);
         },
+        cancelClearTimeout: () => {
+          if (clearRef.current) {
+            clearTimeout(clearRef.current);
+          }
+        },
+        clearTimeout: clearRef,
 
         error: instantiate.error || instantiateWithPrefill.error,
         lastResult: instantiate.data ?? instantiateWithPrefill.data,
@@ -115,4 +132,22 @@ function mutationHasBeenFired(queryClient: QueryClient): boolean {
 function removeMutations(queryClient: QueryClient) {
   const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });
   mutations.forEach((mutation) => queryClient.getMutationCache().remove(mutation));
+}
+
+/* When this component is unmounted, we clear the instantiation to allow users to start a new instance later. This is
+ * needed for (for example) navigating back to party selection or instance selection, and then creating a new instance
+ * from there. However, React may decide to unmount this component and then mount it again quickly, so in those
+ * cases we want to avoid clearing the instantiation too soon (and cause a bug we had for a while where two instances
+ * would be created in quick succession). */
+const TIMEOUT = 500;
+
+export function useClearInstantiation(force: boolean = false) {
+  const instantiation = useInstantiation();
+  const shouldClear = !!instantiation.error || force;
+  const clearInstantiation = instantiation.clear;
+  instantiation.cancelClearTimeout();
+
+  // Clear the instantiation when the component is unmounted to allow users to start a new instance later (without
+  // having the baggage of the previous instantiation error).
+  useEffect(() => () => (shouldClear ? clearInstantiation() : undefined), [clearInstantiation, shouldClear]);
 }
