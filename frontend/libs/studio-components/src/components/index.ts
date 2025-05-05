@@ -8,6 +8,7 @@ export { StudioButton } from './StudioButton';
 export { StudioHeading } from './StudioHeading';
 export { StudioHelpText } from './StudioHelpText';
 export { StudioParagraph } from './StudioParagraph';
+export { StudioPopover } from './StudioPopover';
 export { StudioField } from './StudioField';
 export { StudioLabel } from './StudioLabel';
 export { StudioDialog } from './StudioDialog';
