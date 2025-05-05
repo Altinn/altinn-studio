@@ -14,8 +14,8 @@ import { ImportFromOrgLibraryDialog } from './ImportFromOrgLibraryDialog';
 
 export type AddCodeListDropdownProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
-  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
   externalResourceIds?: string[];
@@ -25,8 +25,8 @@ export type AddCodeListDropdownProps = {
 export function AddCodeListDropdown({
   codeListNames,
   onBlurTextResource,
+  onCreateCodeList,
   onUploadCodeList,
-  onUpdateCodeList,
   textResources,
   externalResourceIds,
   onImportCodeListFromOrg,
@@ -92,7 +92,7 @@ export function AddCodeListDropdown({
       <CreateNewCodeListDialog
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
-        onUpdateCodeList={onUpdateCodeList}
+        onCreateCodeList={onCreateCodeList}
         textResources={textResources}
         ref={addCodeListRef}
       />
