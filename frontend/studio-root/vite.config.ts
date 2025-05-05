@@ -2,7 +2,7 @@ import { mergeConfig } from 'vite';
 import common from '../vite.config';
 
 export default mergeConfig(common, {
-  base: '/studio-root',
+  base: '/info',
   server: {
     port: 2002,
   },
