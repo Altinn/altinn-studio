@@ -6,7 +6,6 @@ const persistFeatureKey = 'persistFeatureFlag';
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
   ComponentConfigBeta = 'componentConfigBeta',
-  ExportForm = 'exportForm',
   Maskinporten = 'maskinporten',
   MainConfig = 'mainConfig',
   OptionListEditor = 'optionListEditor',
