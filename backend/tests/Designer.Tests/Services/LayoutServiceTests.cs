@@ -209,6 +209,55 @@ public class LayoutServiceTests
     }
 
     [Fact]
+    public async Task PageGroupAddingPages_ShouldCreateLayouts()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (
+            AltinnRepoEditingContext editingContext,
+            LayoutService layoutService,
+            Mock<IPublisher> mediatr
+        ) = await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.Add(
+            new GroupDto
+            {
+                Name = "newGroup",
+                Pages = [new() { Id = "newPage" }, new() { Id = "newPage2" }],
+            }
+        );
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount + 1, newGroupCount);
+        foreach (PageDto page in allPages)
+        {
+            string fileContent = TestDataHelper.GetFileFromRepo(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer,
+                $"App/ui/form/layouts/{page.Id}.json"
+            );
+            Assert.NotEqual(string.Empty, fileContent);
+        }
+    }
+
+    [Fact]
     public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
     {
         const string repo = "app-with-groups-and-taskNavigation";
