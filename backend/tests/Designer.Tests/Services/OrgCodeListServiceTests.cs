@@ -269,10 +269,10 @@ public class OrgCodeListServiceTests : IDisposable
     public async Task GetCodeListIds_ShouldReturnEmptyList_WhenCodeListDoesNotExist()
     {
         // Arrange
-        const string Repo = "org-content-empty";
+        const string EmptyRepo = "org-content-empty";
         _targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, _targetOrg, targetRepo);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, EmptyRepo, _targetOrg, targetRepo);
         var service = GetOrgCodeListService();
 
         // Act
