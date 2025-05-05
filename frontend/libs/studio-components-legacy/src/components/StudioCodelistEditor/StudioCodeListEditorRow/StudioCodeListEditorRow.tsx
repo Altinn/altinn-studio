@@ -11,6 +11,7 @@ import type { TextResource } from '../../../types/TextResource';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 import { ReducerActionType } from '../StudioCodeListEditorReducer';
 import type { ReducerAction } from '../StudioCodeListEditorReducer';
+import type { CreateTextResourceInternalArgs } from '../StudioCodeListEditor';
 import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
@@ -21,6 +22,7 @@ type StudioCodeListEditorRowProps = {
   onBlurTextResource: (textResource: TextResource) => void;
   onChange: (newItem: CodeListItem) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
   onDeleteButtonClick: () => void;
   onUpdateCodeListItem: (newItem: CodeListItem) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
@@ -39,6 +41,7 @@ export function StudioCodeListEditorRow({
   onUpdateCodeListItem,
   onUpdateTextResource,
   textResources,
+  onCreateTextResource,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -103,6 +106,7 @@ export function StudioCodeListEditorRow({
         onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleLabelChange}
         onChangeTextResource={onChangeTextResource}
+        onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.Label}
         required={true}
@@ -116,6 +120,7 @@ export function StudioCodeListEditorRow({
         onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleDescriptionChange}
         onChangeTextResource={onChangeTextResource}
+        onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.Description}
         required={false}
@@ -129,6 +134,7 @@ export function StudioCodeListEditorRow({
         onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleHelpTextChange}
         onChangeTextResource={onChangeTextResource}
+        onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.HelpText}
         required={false}
@@ -266,6 +272,7 @@ type TextResourceIdCellProps = {
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeCurrentId: (newId: string) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
   property: CodeListItemTextProperty;
   required: boolean;
@@ -288,6 +295,7 @@ function TextResourceSelectorCell({
   onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
+  onCreateTextResource,
   onUpdateTextResource,
   property,
   required,
@@ -317,12 +325,27 @@ function TextResourceSelectorCell({
     [dispatch, onChangeTextResource],
   );
 
+  const handleCreateTextResource = useCallback(
+    (textResource: TextResource) => {
+      const codeItemIndex = number - 1;
+      dispatch({
+        type: ReducerActionType.AddTextResource,
+        textResource,
+        codeItemIndex,
+        property,
+      });
+      onCreateTextResource?.({ textResource, codeItemIndex, property });
+    },
+    [dispatch, onCreateTextResource, number, property],
+  );
+
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
       onBlurTextResource={handleBlurTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
+      onCreateTextResource={handleCreateTextResource}
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}

@@ -1,0 +1,18 @@
+name: Epic security requirements verification 💎✅
+description: This issue type will be used for verification of security requirements in epics
+title: Security requirements verification for (epic name)
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Context
+        The security requirements listed in this issue, are the subset of [OWASP Application Security Verification Standard (ASVS)](https://owasp.org/www-project-application-security-verification-standard/) that need to be verified by product teams upon completion of an epic.
+        ### How to use this issue type:
+        1. In the [plan phase](https://pedia.altinn.cloud/sec/security-architecture/appsec/devsecops/plan/#identify-security-requirements), go to [AltinnPedia](https://pedia.altinn.cloud/sec/security-architecture/governance/policies/asvs/per-team/) to see all security requirements that should be considered per epic.
+        2. Go through the [security requirements](https://pedia.altinn.cloud/sec/security-architecture/governance/policies/asvs/per-team/) and un-check those that aren't relevant for the epic in question. Copy the [markdown representation](https://pedia.altinn.cloud/sec/security-architecture/governance/policies/asvs/per-team/#markdown-for-issues) (bottom of the page) into this Github issue.
+        3. Before the epic is done, verify the relevant (non-struck through) requirements in this Github issue.
+  - type: textarea
+    attributes:
+        label: Verification of security requirements
+        value: |
+                (Copy from textfield in https://pedia.altinn.cloud/sec/security-architecture/governance/policies/asvs/per-team/#markdown-for-issues)

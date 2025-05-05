@@ -13,9 +13,9 @@ import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
-import classes from './EditCodeList.module.css';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';
+import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
   codeList: CodeList;
@@ -42,7 +42,7 @@ export function EditCodeList({
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
-  const handleCodeListChange = (updatedCodeList: CodeList): void => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
@@ -65,9 +65,9 @@ export function EditCodeList({
       />
       <StudioCodeListEditor
         codeList={codeList}
-        onAddOrDeleteItem={handleCodeListChange}
-        onBlurAny={handleCodeListChange}
-        onBlurTextResource={onBlurTextResource}
+        onCreateTextResource={onBlurTextResource}
+        onUpdateTextResource={onBlurTextResource}
+        onUpdateCodeList={handleUpdateCodeList}
         texts={editorTexts}
         textResources={textResources}
       />
