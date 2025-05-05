@@ -1,0 +1,18 @@
+.tasksTable {
+  max-width: 744px;
+  padding: var(--fds-spacing-2) 0;
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.tasksTable th {
+  border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
+}
+
+.hiddenTasksTable {
+  background-color: var(--fds-semantic-background-subtle);
+}
+
+.taskFooterContent {
+  text-align: end;
+  border-top: 2px solid var(--ds-color-neutral-border-subtle);
+}
