@@ -16,6 +16,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks/useAppContext';
 import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { ExportForm } from '../Elements/ExportForm';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -26,7 +28,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
-
+  const renderExportButton = shouldDisplayFeature(FeatureFlag.ExportForm);
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = useLayoutSetIcon(layoutSetModel);
 
@@ -42,6 +44,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
       >
         <PencilIcon /> {t('ux_editor.task_card.edit')}
       </StudioButton>
+      {renderExportButton && <ExportForm formLayoutSetName={layoutSetModel.id} />}
       {layoutSetModel.type === 'subform' && (
         <StudioDeleteButton
           variant='tertiary'

@@ -6,9 +6,14 @@ import { screen } from '@testing-library/react';
 import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 describe('taskCard', () => {
   let confirmSpy: jest.SpyInstance;
+
+  beforeEach(() => typedLocalStorage.removeItem('featureFlags'));
+
   beforeAll(() => {
     confirmSpy = jest.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(jest.fn(() => true));
@@ -68,6 +73,25 @@ describe('taskCard', () => {
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
 
     expect(screen.getByRole('button', { name: /general.save/ })).toBeInTheDocument();
+  });
+
+  it('should display export button when feature flag is enabled', async () => {
+    typedLocalStorage.setItem('featureFlags', ['exportForm']);
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.top_bar.export_form') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not display export button when feature flag is disabled', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.top_bar.export_form') }),
+    ).not.toBeInTheDocument();
   });
 
   it('should exit save mode when closing', async () => {

@@ -9,29 +9,35 @@ import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useF
 import type { ExportForm as ExportFormType } from '../../types/ExportForm';
 import { useTranslation } from 'react-i18next';
 
-export const ExportForm = () => {
+type ExportFormProps = {
+  formLayoutSetName?: string;
+};
+
+export const ExportForm = ({ formLayoutSetName }: ExportFormProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const formLayoutSetNameToUse = formLayoutSetName || selectedFormLayoutSetName;
+
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, formLayoutSetNameToUse);
   const { data: optionListsData } = useOptionListsQuery(org, app);
 
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const { data: settings } = useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
+  const { data: settings } = useFormLayoutSettingsQuery(org, app, formLayoutSetNameToUse);
 
   const exportUtils = useMemo(
     () =>
       new ExportUtils(
         settings?.pages?.order,
         formLayouts,
-        selectedFormLayoutSetName,
+        formLayoutSetNameToUse,
         app,
         textResources,
         optionListsData,
         'nb',
         false,
       ),
-    [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionListsData],
+    [formLayouts, textResources, settings, formLayoutSetNameToUse, app, optionListsData],
   );
 
   const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
@@ -49,7 +55,7 @@ export const ExportForm = () => {
 
   return (
     <StudioBlobDownloader
-      fileName={`${selectedFormLayoutSetName}.json`}
+      fileName={`${formLayoutSetNameToUse}.json`}
       fileType='application/json'
       linkText={t('ux_editor.top_bar.export_form')}
       data={JSON.stringify(exportFormat)}
