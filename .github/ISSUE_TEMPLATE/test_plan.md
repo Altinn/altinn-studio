@@ -1,5 +1,5 @@
 ---
-name: Testplan 
+name: Testplan 🧪
 about: Create a new testplan 
 title: Testplan for <EPIC/FEATURE/CASE>
 labels: kind/testplan
@@ -24,13 +24,13 @@ assignees: ''
 
 
 ## Functional tests
->  OK,  In progress,  Failed
+> ✅ OK, ⚠️ In progress, 🛑 Failed
 > During test period run tests covering business needs and requirements listed here
 
 | Scenario   | Test data | Done by     | Importance | Level  | Status | Comment |
 |------------|-----------|-------------|------------|---------|-------|---------|
-|            |           | @...        | High       |         |      |        |
-|            |           | @...        | Low        |         |      |        |
+|            |           | @...        | High       |         | ✅     |        |
+|            |           | @...        | Low        |         | 🛑     |        |
 
 
 ## Non-functional tests
@@ -46,7 +46,7 @@ assignees: ''
 |                                  |                              |            |
 |                                  |                              |            |
 
-##  Out of scope
+## ⚠️ Out of scope
 > List discussed functionality out of scope or that might be relevant in a later release
 
 
