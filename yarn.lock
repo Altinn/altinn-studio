@@ -32,13 +32,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/figma-design-tokens@npm:6.0.1":
-  version: 6.0.1
-  resolution: "@altinn/figma-design-tokens@npm:6.0.1"
-  checksum: 10/89639ee3b7ed39fde2a1b9a91f01d582c9482eb4e0f2d33a35e63a79b5311a8701a12ffcb59db78e565de3c6d5c0b6e66443544e770fbf15509ad274d28b0afe
-  languageName: node
-  linkType: hard
-
 "@altinn/policy-editor@workspace:frontend/packages/policy-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:frontend/packages/policy-editor"
@@ -6132,7 +6125,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio@workspace:."
   dependencies:
-    "@altinn/figma-design-tokens": "npm:6.0.1"
     "@digdir/design-system-tokens": "npm:0.13.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
     "@digdir/designsystemet-react": "npm:0.63.1"
