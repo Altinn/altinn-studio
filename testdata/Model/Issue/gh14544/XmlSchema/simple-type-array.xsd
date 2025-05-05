@@ -3,7 +3,7 @@
   <xs:element name="melding" type="RootModel" />
   <xs:complexType name="RootModel">
     <xs:sequence>
-      <xs:element maxOccurs="1" minOccurs="0" name="informasjonstype" type="Informasjonstype" />
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="informasjonstype" type="Informasjonstype"/>
     </xs:sequence>
   </xs:complexType>
   <xs:simpleType name="Informasjonstype">

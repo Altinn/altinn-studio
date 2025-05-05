@@ -36,8 +36,9 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
             public bool XmlText { get; set; }
 
-
             public bool OrderOblivious { get; set; } = false;
+
+            public bool IsArray { get; set; }
 
             public Dictionary<string, Restriction> Restrictions { get; set; } = new();
         }
@@ -321,6 +322,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private void ProcessArrayType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
+            context.IsArray = true;
             var itemsKeyword = subSchema.GetKeywordOrNull<ItemsKeyword>();
             var singleSchema = itemsKeyword.SingleSchema;
             context.SchemaValueType = SchemaValueType.Array;
@@ -714,7 +716,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private static int GetMaxOccurs(JsonSchema subSchema, SchemaContext context)
         {
             int maxOccurs = 1;
-            if (context.SchemaValueType == SchemaValueType.Array)
+            if (context.SchemaValueType == SchemaValueType.Array || context.IsArray)
             {
                 maxOccurs = MAX_MAX_OCCURS;
             }
