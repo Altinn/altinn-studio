@@ -1,0 +1,41 @@
+name: Epic 💎
+description: Create a new epic (very big user story)
+labels: ["Epic", "status/draft"]
+body:          
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A quick introduction to the user need. Make it clear for who, why and what. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: In scope
+      description: What's in scope for this epic?
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What's out of scope for this epic?
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: Links to relevant resources, documentation of other issues, UX sketches, technical architecture/requirements.
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Add tasks that are considered user story candidates.
+
+  - type: markdown
+    attributes:
+      value: |
+        * Check the [Definition of Ready](https://docs.altinn.studio/community/devops/definition-of-ready/) if you need hints on what to include.
+        * Remember to link all relevant issues (bugs, user stories, chores)

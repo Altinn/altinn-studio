@@ -9,20 +9,24 @@ import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
-  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
+  externalResourceIds?: string[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListsActionsBar({
   onBlurTextResource,
+  onCreateCodeList,
   onUploadCodeList,
-  onUpdateCodeList,
   codeListNames,
   onSetSearchString,
   textResources,
+  externalResourceIds,
+  onImportCodeListFromOrg,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
 
@@ -42,9 +46,11 @@ export function CodeListsActionsBar({
       <AddCodeListDropdown
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
         onUploadCodeList={onUploadCodeList}
-        onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
+        externalResourceIds={externalResourceIds}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
     </div>
   );

@@ -208,6 +208,89 @@ public class LayoutServiceTests
         Assert.Equal(originalGroupCount, newGroupCount);
     }
 
+    [Fact]
+    public async Task PageGroupAddingPages_ShouldCreateLayouts()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (
+            AltinnRepoEditingContext editingContext,
+            LayoutService layoutService,
+            Mock<IPublisher> mediatr
+        ) = await PrepareTestForRepo(repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        int originalGroupCount = pagesDto.Groups.Count;
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
+        pagesDto.Groups.Add(
+            new GroupDto
+            {
+                Name = "newGroup",
+                Pages = [new() { Id = "newPage" }, new() { Id = "newPage2" }],
+            }
+        );
+        await layoutService.UpdatePageGroups(
+            editingContext,
+            "form",
+            (PagesWithGroups)pagesDto.ToBusiness()
+        );
+        LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
+        Assert.Equal(originalGroupCount + 1, newGroupCount);
+        foreach (
+            string fileContent in allPages.Select(page =>
+                TestDataHelper.GetFileFromRepo(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer,
+                    $"App/ui/form/layouts/{page.Id}.json"
+                )
+            )
+        )
+        {
+            Assert.NotEqual(string.Empty, fileContent);
+        }
+        Assert.Equal(
+            2,
+            mediatr.Invocations.Count(i =>
+                i.Method.Name == nameof(IPublisher.Publish)
+                && i.Arguments[0] is LayoutPageAddedEvent
+            )
+        );
+    }
+
+    [Fact]
+    public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-groups-and-taskNavigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPagesToPageGroups(editingContext, "form")
+        );
+    }
+
+    [Fact]
+    public async Task PageOrderToGroupConversion_ShouldThrowException_IfInvalid()
+    {
+        const string repo = "app-with-layoutsets";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(repo);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")
+        );
+    }
+
     private static async Task<(
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,

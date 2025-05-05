@@ -1,6 +1,7 @@
 import type { TextResource } from '../../types/TextResource';
 import type { CodeList } from './types/CodeList';
-import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
+import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
+import { updateCodeList } from './utils';
 
 export type ReducerState = {
   codeList: CodeList;
@@ -211,33 +212,4 @@ function updateTextResourceValueInList(
   newTextResources[indexOfTextResource] = { ...oldItem, value: newValue };
 
   return newTextResources;
-}
-
-type UpdateCodeListArgs = {
-  newValue: string | null;
-  codeItemIndex: number;
-  property: CodeListItemTextProperty;
-};
-
-function updateCodeList(codeList: CodeList, updateArgs: UpdateCodeListArgs): CodeList {
-  const { property, codeItemIndex, newValue } = updateArgs;
-  const newCodeList = [...codeList];
-  const oldItem = newCodeList[codeItemIndex];
-
-  switch (property) {
-    case CodeListItemTextProperty.Label: {
-      newCodeList[codeItemIndex] = { ...oldItem, label: newValue };
-      break;
-    }
-    case CodeListItemTextProperty.Description: {
-      newCodeList[codeItemIndex] = { ...oldItem, description: newValue };
-      break;
-    }
-    case CodeListItemTextProperty.HelpText: {
-      newCodeList[codeItemIndex] = { ...oldItem, helpText: newValue };
-      break;
-    }
-  }
-
-  return newCodeList;
 }

@@ -24,17 +24,16 @@
 }
 
 .iconContainer {
-  height: var(--fds-spacing-14);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fds-sizing-10);
+  font-size: var(--fds-sizing-7);
   padding-top: 0;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  padding: var(--fds-spacing-6);
+  padding: var(--fds-spacing-2);
   text-align: center;
 }

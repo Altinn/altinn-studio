@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './LibraryBody.module.css';
 import { PagesRouter } from './PagesRouter';
-import { InfoBox } from './InfoBox';
 import type { PagePropsMap, PagesConfig } from '../../types/PagesProps';
 import type { PageName } from '../../types/PageName';
 import type { PageComponent } from '../../utils/router/RouterRouteMapper';
@@ -35,12 +34,9 @@ type PageProps<T extends PageName> = {
 
 function Page<T extends PageName>({ Component, componentProps, currentPage }: PageProps<T>) {
   return (
-    <>
-      <div className={classes.component}>
-        <Component {...componentProps} />
-      </div>
-      <InfoBox pageName={currentPage} />
-    </>
+    <div className={classes.component}>
+      <Component {...componentProps} />
+    </div>
   );
 }
 
