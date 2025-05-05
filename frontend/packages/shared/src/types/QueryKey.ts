@@ -1,4 +1,5 @@
 export enum QueryKey {
+  AvailableOrgResources = 'AvailableOrgResources',
   AppDeployments = 'AppDeployments',
   AppMetadata = 'AppMetadata',
   AppMetadataModelIds = 'AppMetadataModelIds',
@@ -7,7 +8,6 @@ export enum QueryKey {
   AppVersion = 'AppVersion',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
-  CodeListTitles = 'CodeListTitles',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',

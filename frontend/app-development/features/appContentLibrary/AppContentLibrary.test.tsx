@@ -85,7 +85,7 @@ describe('AppContentLibrary', () => {
 
   it('Renders with the given code list titles', () => {
     renderAppContentLibraryWithData();
-    const codeListTitlesData = retrieveConfig().codeList.props.externalResourceIds;
+    const codeListTitlesData = retrieveConfig().codeList.props.externalResources;
     expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
@@ -229,7 +229,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  queryClient.setQueryData([QueryKey.CodeListTitles, org], codeListTitles);
+  queryClient.setQueryData([QueryKey.AvailableOrgResources, org], codeListTitles);
   return queryClient;
 }
 
