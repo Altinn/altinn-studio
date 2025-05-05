@@ -5,7 +5,7 @@ import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
 import { StudioParagraph, StudioHeading } from '@studio/components';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isTaskReceipt, getTaskIcon, taskNavigationType } from './SettingsUtils';
+import { isTaskReceipt, getTaskIcon, taskNavigationType } from '../SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
 
