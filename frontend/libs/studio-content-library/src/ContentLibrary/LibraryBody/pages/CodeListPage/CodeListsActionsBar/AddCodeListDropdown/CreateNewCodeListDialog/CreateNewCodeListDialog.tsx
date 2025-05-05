@@ -11,9 +11,9 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
-type CreateNewCodeListDialogProps = {
+export type CreateNewCodeListDialogProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources?: TextResource[];
 };
@@ -21,7 +21,7 @@ type CreateNewCodeListDialogProps = {
 function CreateNewCodeListDialog(
   {
     onBlurTextResource,
-    onUpdateCodeList,
+    onCreateCodeList,
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
@@ -51,7 +51,7 @@ function CreateNewCodeListDialog(
           codeList={newCodeList}
           codeListNames={codeListNames}
           onBlurTextResource={onBlurTextResource}
-          onUpdateCodeList={onUpdateCodeList}
+          onCreateCodeList={onCreateCodeList}
           onCloseModal={handleCloseDialog}
           textResources={textResources}
         />
@@ -68,7 +68,7 @@ type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
   onBlurTextResource?: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCloseModal: () => void;
   textResources?: TextResource[];
 };
@@ -77,7 +77,7 @@ function CreateNewCodeList({
   codeList,
   codeListNames,
   onBlurTextResource,
-  onUpdateCodeList,
+  onCreateCodeList,
   onCloseModal,
   textResources,
 }: CreateNewCodeListProps) {
@@ -94,7 +94,7 @@ function CreateNewCodeList({
     useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
   const handleSaveCodeList = () => {
-    onUpdateCodeList(currentCodeListWithMetadata);
+    onCreateCodeList(currentCodeListWithMetadata);
     onCloseModal();
     setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };
