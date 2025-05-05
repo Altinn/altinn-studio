@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -16,6 +15,11 @@ import { OptionListEditor } from './OptionListEditor';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
+
+// Mocks:
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -27,6 +31,9 @@ const optionList: OptionList = [
   { value: 'value 2', label: 'label 2', description: null, helpText: null },
   { value: 'value 3', label: 'label 3', description: null, helpText: null },
 ];
+const app = 'app';
+const org = 'org';
+const appRouteParams: AppRouteParams = { org, app };
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
@@ -121,23 +128,12 @@ const defaultProps: OptionListEditorProps = {
   handleComponentChange,
 };
 
-function renderOptionListEditor({
-  queries = {},
-  props = {},
-  queryClient = createQueryClientWithTextResources(),
-} = {}) {
-  renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
-    queries,
-    queryClient,
-  });
-}
-
 function renderOptionListEditorWithData({
-  queries = {},
   props = { component: componentWithOptionsId },
-} = {}) {
-  const queryClient = createQueryClientWithData();
-  renderOptionListEditor({ queries, props, queryClient });
+  queryClient = createQueryClientWithData(),
+  ...rest
+}: RenderOptionListEditorArgs = {}): void {
+  renderOptionListEditor({ props, queryClient, ...rest });
 }
 
 function createQueryClientWithData(): QueryClient {
@@ -150,4 +146,22 @@ function createQueryClientWithTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
+}
+
+type RenderOptionListEditorArgs = {
+  queries?: Partial<ServicesContextProps>;
+  props?: Partial<OptionListEditorProps>;
+  queryClient?: QueryClient;
+};
+
+function renderOptionListEditor({
+  queries = {},
+  props = {},
+  queryClient = createQueryClientWithTextResources(),
+}: RenderOptionListEditorArgs = {}): void {
+  renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
+    queries,
+    queryClient,
+    appRouteParams,
+  });
 }
