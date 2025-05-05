@@ -41,3 +41,8 @@
 .button {
   height: max-content;
 }
+
+.ellipsisMenuContent {
+  display: flex;
+  flex-direction: column;
+}

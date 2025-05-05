@@ -147,7 +147,7 @@ export const DesignView = (): ReactNode => {
         <div className={classes.accordionWrapper}>
           {isTaskNavigationPageGroups && hasGroups ? (
             <PageGroupAccordion
-              groups={pagesModel?.groups}
+              pages={pagesModel}
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}

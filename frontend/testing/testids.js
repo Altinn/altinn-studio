@@ -18,3 +18,4 @@ export const typeItemId = (pointer) => `type-item-${pointer}`;
 export const userMenuItemId = 'user-menu-item';
 export const studioIconCardPopoverTrigger = 'studio-icon-card-popover-trigger';
 export const accordionHeaderId = (pageName) => `accordion-header-${pageName}`;
+export const pageGroupAccordionHeader = (nth) => `page-group-accordion-ellipsis-menu-${nth}`;
