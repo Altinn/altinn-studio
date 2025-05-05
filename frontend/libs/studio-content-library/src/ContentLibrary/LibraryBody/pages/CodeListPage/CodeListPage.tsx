@@ -16,6 +16,7 @@ import {
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
@@ -34,7 +35,7 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
-  externalResourceIds?: string[];
+  externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
@@ -48,7 +49,7 @@ export function CodeListPage({
   onUploadCodeList,
   codeListsUsages,
   textResources,
-  externalResourceIds,
+  externalResources,
   onImportCodeListFromOrg,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
@@ -98,7 +99,7 @@ export function CodeListPage({
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}
-        externalResourceIds={externalResourceIds}
+        externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
