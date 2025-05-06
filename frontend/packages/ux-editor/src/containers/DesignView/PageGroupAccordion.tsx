@@ -19,7 +19,7 @@ import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
 
-interface PageGroupAccordionProps {
+export interface PageGroupAccordionProps {
   pages: PagesModel;
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
@@ -80,7 +80,10 @@ export const PageGroupAccordion = ({
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
-        <div className={classes.groupHeaderWrapper}>
+        <div
+          className={classes.groupHeaderWrapper}
+          data-testid={pageGroupAccordionHeader(groupIndex)}
+        >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
             <StudioHeading level={3} size='2xs'>
