@@ -1,6 +1,6 @@
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
 import { StudioParagraph, StudioHeading } from '@studio/components';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
