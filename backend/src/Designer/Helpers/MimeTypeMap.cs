@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.Helpers
     /// </summary>
     public static class MimeTypeMap
     {
-        private static readonly Lazy<IDictionary<string, string>> _mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
+        private static readonly Lazy<IDictionary<string, string>> s_mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
 
         private static IDictionary<string, string> BuildMappings()
         {
@@ -710,7 +710,7 @@ namespace Altinn.Studio.Designer.Helpers
                 extension = "." + extension;
             }
 
-            return _mappings.Value.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
+            return s_mappings.Value.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
         }
 
         /// <summary>
@@ -730,7 +730,7 @@ namespace Altinn.Studio.Designer.Helpers
                 throw new ArgumentException("Requested mime type is not valid: " + mimeType);
             }
 
-            if (_mappings.Value.TryGetValue(mimeType, out string extension))
+            if (s_mappings.Value.TryGetValue(mimeType, out string extension))
             {
                 return extension;
             }

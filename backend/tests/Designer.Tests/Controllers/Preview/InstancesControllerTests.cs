@@ -17,7 +17,7 @@ public class InstancesControllerTests(
     [Fact]
     public async Task Post_ReturnsCreated()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         Assert.NotNull(instance);
         Assert.NotNull(instance.Id);
     }
@@ -25,7 +25,7 @@ public class InstancesControllerTests(
     [Fact]
     public async Task GetInstance_ReturnsOk()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         Assert.NotNull(instance);
         Assert.NotNull(instance.Id);
 
@@ -42,7 +42,7 @@ public class InstancesControllerTests(
     [Fact]
     public async Task Validate_ReturnsOk()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/validate";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPath);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -52,7 +52,7 @@ public class InstancesControllerTests(
     [Fact]
     public async Task Process_ReturnsOk()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/process";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPath);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -62,7 +62,7 @@ public class InstancesControllerTests(
     [Fact]
     public async Task ProcessNext_ReturnsOk()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/process/next";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPath);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

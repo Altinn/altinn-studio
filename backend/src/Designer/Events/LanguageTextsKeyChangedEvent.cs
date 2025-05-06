@@ -6,6 +6,6 @@ namespace Altinn.Studio.Designer.Events;
 
 public class LanguageTextsKeyChangedEvent : INotification
 {
-    public List<TextIdMutation> idMutations { get; set; }
+    public List<TextIdMutation> IdMutations { get; set; }
     public AltinnRepoEditingContext EditingContext { get; set; }
 }

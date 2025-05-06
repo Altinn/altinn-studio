@@ -26,10 +26,10 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteEmailOption" /> class.
         /// </summary>
-        /// <param name="Emails">email addresses to delete.</param>
-        public DeleteEmailOption(List<string> Emails = default(List<string>))
+        /// <param name="emails">email addresses to delete.</param>
+        public DeleteEmailOption(List<string> emails = default(List<string>))
         {
-            this.Emails = Emails;
+            this.Emails = emails;
         }
 
         /// <summary>
