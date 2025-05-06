@@ -31,8 +31,8 @@ public class UserService : IUserService
     private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgContext altinnOrgContext)
     {
         List<Team> teams = await _giteaApi.GetTeams();
-        return IsUserSelfOrg(altinnOrgContext.DeveloperName, altinnOrgContext.Org) ||
-               teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgContext.Org));
+        return IsUserSelfOrg(altinnOrgContext.DeveloperName, altinnOrgContext.Org)
+            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgContext.Org));
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)

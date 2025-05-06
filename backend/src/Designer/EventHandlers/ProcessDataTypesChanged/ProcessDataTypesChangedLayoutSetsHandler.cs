@@ -9,19 +9,25 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
-public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<ProcessDataTypesChangedEvent>
+public class ProcessDataTypesChangedLayoutSetsHandler
+    : INotificationHandler<ProcessDataTypesChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypesChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessDataTypesChangedLayoutSetsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ProcessDataTypesChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         bool hasChanges = false;
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
@@ -33,7 +39,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
 
                 if (!repository.AppUsesLayoutSets())
                 {
@@ -41,17 +48,28 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                 }
 
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                if (TryChangeDataTypes(layoutSets, notification.NewDataTypes, notification.ConnectedTaskId))
+                if (
+                    TryChangeDataTypes(
+                        layoutSets,
+                        notification.NewDataTypes,
+                        notification.ConnectedTaskId
+                    )
+                )
                 {
                     await repository.SaveLayoutSets(layoutSets);
                     hasChanges = true;
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
-    private static bool TryChangeDataTypes(LayoutSets layoutSets, List<string> newDataTypes, string connectedTaskId)
+    private static bool TryChangeDataTypes(
+        LayoutSets layoutSets,
+        List<string> newDataTypes,
+        string connectedTaskId
+    )
     {
         bool hasChanges = false;
         var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks?[0] == connectedTaskId);
@@ -63,5 +81,4 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
 
         return hasChanges;
     }
-
 }

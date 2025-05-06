@@ -14,5 +14,5 @@ public enum ImageUrlValidationResult
     NotAnImage,
 
     [EnumMember(Value = "NotValidUrl")]
-    NotValidUrl
+    NotValidUrl,
 }

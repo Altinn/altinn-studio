@@ -4,7 +4,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdRootElementKeywordTests : ValueKeywordTestsBase<XsdRootElementKeywordTests, XsdRootElementKeyword, string>
+public class XsdRootElementKeywordTests
+    : ValueKeywordTestsBase<XsdRootElementKeywordTests, XsdRootElementKeyword, string>
 {
     protected override XsdRootElementKeyword CreateKeywordWithValue(string value) => new(value);
 
@@ -15,7 +16,8 @@ public class XsdRootElementKeywordTests : ValueKeywordTestsBase<XsdRootElementKe
     {
         var expectedKeyword = new XsdRootElementKeyword(value);
         object expectedKeywordObject = new XsdRootElementKeyword(value);
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

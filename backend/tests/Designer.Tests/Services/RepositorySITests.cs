@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
@@ -16,15 +15,12 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
-
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Services
@@ -37,18 +33,18 @@ namespace Designer.Tests.Services
             // Arrange
             List<FileSystemObject> expected = new()
             {
-                new ()
+                new()
                 {
                     Name = "App",
                     Type = FileSystemObjectType.Dir.ToString(),
-                    Path = "App"
+                    Path = "App",
                 },
-                new ()
+                new()
                 {
                     Name = "App.sln",
                     Type = FileSystemObjectType.File.ToString(),
                     Path = "App.sln",
-                    Encoding = "Unicode (UTF-8)"
+                    Encoding = "Unicode (UTF-8)",
                 },
             };
 
@@ -70,12 +66,12 @@ namespace Designer.Tests.Services
             // Arrange
             List<FileSystemObject> expected = new()
             {
-               new ()
+                new()
                 {
                     Name = "appsettings.json",
                     Type = FileSystemObjectType.File.ToString(),
                     Path = "App/appsettings.json",
-                    Encoding = "Unicode (UTF-8)"
+                    Encoding = "Unicode (UTF-8)",
                 },
             };
 
@@ -84,7 +80,11 @@ namespace Designer.Tests.Services
             RepositorySI sut = GetServiceForTest("testUser");
 
             // Act
-            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
+            List<FileSystemObject> actual = sut.GetContents(
+                "ttd",
+                "apps-test",
+                "App/appsettings.json"
+            );
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
@@ -112,15 +112,33 @@ namespace Designer.Tests.Services
             string developer = "testUser";
 
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
-            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                repositoryName,
+                developer
+            );
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(
+                org,
+                repositoryName
+            );
 
             var repositoryService = GetServiceForTest(developer);
 
             try
             {
-                await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
-                var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
+                await repositoryService.CreateService(
+                    org,
+                    new ServiceConfiguration()
+                    {
+                        RepositoryName = repositoryName,
+                        ServiceName = repositoryName,
+                    }
+                );
+                var altinnStudioSettings = await new AltinnGitRepositoryFactory(
+                    repositoriesRootDirectory
+                )
+                    .GetAltinnGitRepository(org, repositoryName, developer)
+                    .GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
             }
             finally
@@ -145,7 +163,12 @@ namespace Designer.Tests.Services
             RepositorySI sut = GetServiceForTest(developer);
 
             // Act
-            Repository actual = await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+            Repository actual = await sut.CopyRepository(
+                org,
+                sourceRepository,
+                targetRepository,
+                developer
+            );
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, actual.RepositoryCreatedStatus);
@@ -159,25 +182,47 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string origRemoteRepo = "apps-test";
             string origRepo = "apps-test-2021";
-            string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
+            string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(
+                origRemoteRepo
+            );
             string targetRepositoryName = TestDataHelper.GenerateTestRepoName(origRepo);
             var workingRemoteDirPath = string.Empty;
             var createdTargetRepoPath = string.Empty;
             try
             {
-                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, origRemoteRepo, workingRemoteRepositoryName);
-                createdTargetRepoPath = await TestDataHelper.CopyRepositoryForTest(org, origRepo, developer, targetRepositoryName);
+                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(
+                    org,
+                    origRemoteRepo,
+                    workingRemoteRepositoryName
+                );
+                createdTargetRepoPath = await TestDataHelper.CopyRepositoryForTest(
+                    org,
+                    origRepo,
+                    developer,
+                    targetRepositoryName
+                );
                 PrepareRemoteTestData(org, workingRemoteRepositoryName);
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
 
                 RepositorySI sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer);
+                await sut.CopyRepository(
+                    org,
+                    workingRemoteRepositoryName,
+                    targetRepositoryName,
+                    developer
+                );
 
                 // Assert
-                string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
-                int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains(targetRepositoryName));
+                string developerClonePath = Path.Combine(
+                    TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+                    developer,
+                    org
+                );
+                int actualCloneCount = Directory
+                    .GetDirectories(developerClonePath)
+                    .Count(d => d.Contains(targetRepositoryName));
                 Assert.Equal(1, actualCloneCount);
             }
             finally
@@ -198,12 +243,20 @@ namespace Designer.Tests.Services
             string origRemoteRepo = "apps-test";
             string workingSourceRepoName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
             string targetRepository = TestDataHelper.GenerateTestRepoName("apps-test-clone");
-            string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+            string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                targetRepository,
+                developer
+            );
             var workingRemoteDirPath = string.Empty;
 
             try
             {
-                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, origRemoteRepo, workingSourceRepoName);
+                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(
+                    org,
+                    origRemoteRepo,
+                    workingSourceRepoName
+                );
                 PrepareRemoteTestData(org, workingSourceRepoName);
 
                 RepositorySI sut = GetServiceForTest(developer);
@@ -212,18 +265,42 @@ namespace Designer.Tests.Services
                 await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer);
 
                 // Assert
-                string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-                string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
-                string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
+                string appMetadataString = TestDataHelper.GetFileFromRepo(
+                    org,
+                    targetRepository,
+                    developer,
+                    "App/config/applicationmetadata.json"
+                );
+                string gitConfigString = TestDataHelper.GetFileFromRepo(
+                    org,
+                    targetRepository,
+                    developer,
+                    ".git/config"
+                );
+                string developerClonePath = Path.Combine(
+                    TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+                    developer,
+                    org
+                );
 
                 Assert.True(Directory.Exists(expectedRepoPath));
                 Assert.Contains($"\"id\": \"ttd/{targetRepository}\"", appMetadataString);
-                Assert.Contains($"https://dev.altinn.studio/repos/{org}/{origRemoteRepo}.git", gitConfigString);
-                Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
+                Assert.Contains(
+                    $"https://dev.altinn.studio/repos/{org}/{origRemoteRepo}.git",
+                    gitConfigString
+                );
+                Assert.DoesNotContain(
+                    Directory.GetDirectories(developerClonePath),
+                    a => a.Contains("_COPY_OF_ORIGIN_")
+                );
             }
             finally
             {
-                string path = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+                string path = TestDataHelper.GetTestDataRepositoryDirectory(
+                    org,
+                    targetRepository,
+                    developer
+                );
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
                 if (Directory.Exists(path))
                 {
@@ -296,7 +373,10 @@ namespace Designer.Tests.Services
             }
         }
 
-        private static RepositorySI GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
+        private static RepositorySI GetServiceForTest(
+            string developer,
+            ISourceControl sourceControlMock = null
+        )
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
@@ -305,33 +385,64 @@ namespace Designer.Tests.Services
 
             sourceControlMock ??= new ISourceControlMock();
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath
+            );
             ServiceRepositorySettings repoSettings = new()
             {
-                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
+                RepositoryLocation =
+                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+                    + Path.DirectorySeparatorChar,
             };
 
-
-            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+                TestDataHelper.GetTestDataRepositoriesRootDirectory()
+            );
 
             GeneralSettings generalSettings = new()
             {
                 TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
                 DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-                AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+                AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App",
             };
 
-            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+            EnvironmentsService environmentsService = new(
+                new HttpClient(),
+                generalSettings,
+                new Mock<IMemoryCache>().Object,
+                new Mock<ILogger<EnvironmentsService>>().Object
+            );
 
-            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
+            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(
+                new HttpClient(),
+                environmentsService,
+                new PlatformSettings(),
+                new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object
+            );
 
-            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, new IGiteaMock());
+            ApplicationMetadataService applicationInformationService = new(
+                new Mock<ILogger<ApplicationMetadataService>>().Object,
+                altinnStorageAppMetadataClient,
+                altinnGitRepositoryFactory,
+                httpContextAccessorMock.Object,
+                new IGiteaMock()
+            );
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
-            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
-            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, appDevelopmentService);
+            AppDevelopmentService appDevelopmentService = new(
+                altinnGitRepositoryFactory,
+                schemaModelServiceMock
+            );
+            IOptionsService optionsService = new OptionsService(
+                altinnGitRepositoryFactory,
+                appDevelopmentService
+            );
 
-            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
+            TextsService textsService = new(
+                altinnGitRepositoryFactory,
+                applicationInformationService,
+                optionsService
+            );
 
             ResourceRegistryService resourceRegistryService = new();
 
@@ -346,7 +457,8 @@ namespace Designer.Tests.Services
                 applicationInformationService,
                 appDevelopmentService,
                 textsService,
-                resourceRegistryService);
+                resourceRegistryService
+            );
 
             return service;
         }

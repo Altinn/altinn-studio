@@ -20,14 +20,10 @@ namespace Designer.Tests.Helpers
             Assert.DoesNotContain(types, t => t == typeof(ITestMarker));
         }
 
-        public interface ITestMarker
-        {
-        }
-        public class TestClass1 : ITestMarker
-        {
-        }
-        public class TestClass2 : ITestMarker
-        {
-        }
+        public interface ITestMarker { }
+
+        public class TestClass1 : ITestMarker { }
+
+        public class TestClass2 : ITestMarker { }
     }
 }

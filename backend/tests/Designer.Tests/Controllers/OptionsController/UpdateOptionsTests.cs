@@ -14,11 +14,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateOptionsTests
+    : DesignerEndpointsTestsBase<UpdateOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public UpdateOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public UpdateOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -33,7 +34,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
-        string optionsJson = @"[
+        string optionsJson =
+            @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
@@ -41,7 +43,11 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = new StringContent(optionsJson, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            optionsJson,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -73,13 +79,18 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var stringBoolNumbersOptionsList = @"[
+        var stringBoolNumbersOptionsList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        httpRequestMessage.Content = new StringContent(stringBoolNumbersOptionsList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            stringBoolNumbersOptionsList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -100,10 +111,15 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var emptyStringsValueAndLabelOptionsList = @"[
+        var emptyStringsValueAndLabelOptionsList =
+            @"[
             { ""label"": """", ""value"": """" },
         ]";
-        httpRequestMessage.Content = new StringContent(emptyStringsValueAndLabelOptionsList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            emptyStringsValueAndLabelOptionsList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -122,7 +138,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
-        var newOptionsList = @"[
+        var newOptionsList =
+            @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
@@ -130,7 +147,11 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = new StringContent(newOptionsList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            newOptionsList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -160,7 +181,6 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/empty-options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-
         httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
         // Act
@@ -185,22 +205,30 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/option-invalid-value";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        string optionsInvalidValue = @"[
+        string optionsInvalidValue =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
 
-        httpRequestMessage.Content = new StringContent(optionsInvalidValue, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            optionsInvalidValue,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
-        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
 
         Assert.NotNull(problemDetails);
-        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        JsonElement errorCode = (JsonElement)
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
         Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 
@@ -214,12 +242,17 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/options-missing-fields";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        string optionsWithMissingFields = @"[
+        string optionsWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },
         ]";
-        httpRequestMessage.Content = new StringContent(optionsWithMissingFields, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            optionsWithMissingFields,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

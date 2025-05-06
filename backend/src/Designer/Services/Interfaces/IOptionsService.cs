@@ -30,7 +30,13 @@ public interface IOptionsService
     /// <param name="optionsListId">Name of the options list to fetch</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list</returns>
-    public Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
+    public Task<List<Option>> GetOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets a list of sources, <see cref="RefToOptionListSpecifier"/>, for all OptionListIds.
@@ -38,7 +44,10 @@ public interface IOptionsService
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of <see cref="RefToOptionListSpecifier"/></returns>
-    public Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+    public Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Creates a new options list in the app repository.
@@ -50,7 +59,14 @@ public interface IOptionsService
     /// <param name="optionsListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
+    public Task<List<Option>> CreateOrOverwriteOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        List<Option> payload,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Adds a new option to the option list.
@@ -62,7 +78,14 @@ public interface IOptionsService
     /// <param name="optionsListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default);
+    public Task<List<Option>> UploadNewOption(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        IFormFile payload,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Deletes an options list from the app repository.
@@ -81,7 +104,13 @@ public interface IOptionsService
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the options list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<bool> OptionsListExists(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
+    public Task<bool> OptionsListExists(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Updates the name of the options list by changing the filename.
@@ -90,7 +119,12 @@ public interface IOptionsService
     /// <param name="optionsListId">Name of the options list</param>
     /// <param name="newOptionsListId">The new name of the options list file.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId, string newOptionsListId, CancellationToken cancellationToken = default);
+    public void UpdateOptionsListId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string optionsListId,
+        string newOptionsListId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Imports a code list from the static content repository associated with a provided organisation.
@@ -101,5 +135,11 @@ public interface IOptionsService
     /// <param name="optionListId">Name of the option list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The imported option list</returns>
-    public Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default);
+    public Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        CancellationToken cancellationToken = default
+    );
 }

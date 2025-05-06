@@ -8,7 +8,11 @@ namespace Altinn.Studio.Designer.Helpers
     {
         public static ListviewServiceResource MapServiceResourceToListView(ServiceResource resource)
         {
-            ListviewServiceResource simplifiedResource = new ListviewServiceResource { Identifier = resource.Identifier, Title = resource.Title };
+            ListviewServiceResource simplifiedResource = new ListviewServiceResource
+            {
+                Identifier = resource.Identifier,
+                Title = resource.Title,
+            };
             return simplifiedResource;
         }
 
@@ -16,11 +20,19 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (titleToValidate != null)
             {
-                string enTitle = titleToValidate.ContainsKey("en") ? titleToValidate["en"] : string.Empty;
-                string nbTitle = titleToValidate.ContainsKey("nb") ? titleToValidate["nb"] : string.Empty;
-                string nnTitle = titleToValidate.ContainsKey("nn") ? titleToValidate["nn"] : string.Empty;
+                string enTitle = titleToValidate.ContainsKey("en")
+                    ? titleToValidate["en"]
+                    : string.Empty;
+                string nbTitle = titleToValidate.ContainsKey("nb")
+                    ? titleToValidate["nb"]
+                    : string.Empty;
+                string nnTitle = titleToValidate.ContainsKey("nn")
+                    ? titleToValidate["nn"]
+                    : string.Empty;
 
-                return !string.IsNullOrWhiteSpace(enTitle.Trim()) && !string.IsNullOrWhiteSpace(nbTitle.Trim()) && !string.IsNullOrWhiteSpace(nnTitle.Trim());
+                return !string.IsNullOrWhiteSpace(enTitle.Trim())
+                    && !string.IsNullOrWhiteSpace(nbTitle.Trim())
+                    && !string.IsNullOrWhiteSpace(nnTitle.Trim());
             }
             else
             {
@@ -41,9 +53,7 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-        public static char[] GetInvalidFileNameChars() => new char[]
-        {
-            '\"', '<', '>', '|', '*', '?'
-        };
+        public static char[] GetInvalidFileNameChars() =>
+            new char[] { '\"', '<', '>', '|', '*', '?' };
     }
 }

@@ -20,6 +20,6 @@ namespace Altinn.Studio.Designer.Enums
         Altinn3 = 3,
 
         [EnumMember(Value = "ExternalPlatform")]
-        ExternalPlatform = 4
+        ExternalPlatform = 4,
     }
 }

@@ -4,9 +4,15 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
-public class FormatExclusiveMaximumKeywordTests : ValueKeywordTestsBase<FormatExclusiveMaximumKeywordTests, FormatExclusiveMaximumKeyword, string>
+public class FormatExclusiveMaximumKeywordTests
+    : ValueKeywordTestsBase<
+        FormatExclusiveMaximumKeywordTests,
+        FormatExclusiveMaximumKeyword,
+        string
+    >
 {
-    protected override FormatExclusiveMaximumKeyword CreateKeywordWithValue(string value) => new(value);
+    protected override FormatExclusiveMaximumKeyword CreateKeywordWithValue(string value) =>
+        new(value);
 
     [Theory]
     [InlineData("2022-10-18")]
@@ -23,7 +29,8 @@ public class FormatExclusiveMaximumKeywordTests : ValueKeywordTestsBase<FormatEx
         var expectedKeyword = new FormatExclusiveMaximumKeyword(value);
         object expectedKeywordObject = new FormatExclusiveMaximumKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

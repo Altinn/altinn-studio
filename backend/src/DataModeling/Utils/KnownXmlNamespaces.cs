@@ -13,7 +13,8 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <summary>
         /// Xml schema instance namespace
         /// </summary>
-        public const string XmlSchemaInstanceNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+        public const string XmlSchemaInstanceNamespace =
+            "http://www.w3.org/2001/XMLSchema-instance";
 
         /// <summary>
         /// Namespaces used for SERES xml schemas

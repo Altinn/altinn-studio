@@ -7,4 +7,3 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
         public const string UploadedImageNotValid = nameof(UploadedImageNotValid);
     }
 }
-

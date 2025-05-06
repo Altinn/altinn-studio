@@ -24,7 +24,8 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// </summary>
 /// <typeparam name="TControllerTest">Controller test class type. Used for generating fluent tests.</typeparam>
 [ExcludeFromCodeCoverage]
-public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable where TControllerTest : class
+public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable
+    where TControllerTest : class
 {
     private HttpClient _httpClient;
 
@@ -33,10 +34,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected HttpClient HttpClient
     {
-        get
-        {
-            return _httpClient ??= GetTestClient();
-        }
+        get { return _httpClient ??= GetTestClient(); }
     }
 
     /// <summary>
@@ -44,7 +42,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
 
-    protected Action<IServiceCollection> ConfigureTestServicesForSpecificTest { get; set; } = delegate { };
+    protected Action<IServiceCollection> ConfigureTestServicesForSpecificTest { get; set; } =
+        delegate { };
 
     /// <summary>
     /// Location of the assembly of the executing unit test.
@@ -82,25 +81,39 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((_, conf) =>
+        return Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateJsonOverrideConfig());
-            });
-            builder.ConfigureTestServices(ConfigureTestServices);
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                        TestAuthConstants.TestAuthenticationScheme,
-                        options => { options.TimeProvider = TimeProvider.System; });
-                services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
-            });
-            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
-        }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (_, conf) =>
+                    {
+                        conf.AddJsonFile(configPath);
+                        conf.AddJsonStream(GenerateJsonOverrideConfig());
+                    }
+                );
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureTestServices(services =>
+                {
+                    services
+                        .AddAuthentication(
+                            defaultScheme: TestAuthConstants.TestAuthenticationScheme
+                        )
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                            TestAuthConstants.TestAuthenticationScheme,
+                            options =>
+                            {
+                                options.TimeProvider = TimeProvider.System;
+                            }
+                        );
+                    services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
+                });
+                builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
+            })
+            .CreateDefaultClient(
+                new ApiTestsAuthAndCookieDelegatingHandler(),
+                new CookieContainerHandler()
+            );
     }
 
     /// <summary>
@@ -112,13 +125,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         string projectDir = Directory.GetCurrentDirectory();
         return Path.Combine(projectDir, "appsettings.json");
     }
+
     public void Dispose()
     {
         Dispose(true);
     }
-    protected virtual void Dispose(bool disposing)
-    {
-    }
+
+    protected virtual void Dispose(bool disposing) { }
 
     protected List<string> JsonConfigOverrides;
 
@@ -153,10 +166,9 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ""AddHostedService"": false
                     }}
               }}
-            "
+            ",
         ];
     }
-
 
     protected Stream GenerateJsonOverrideConfig()
     {
@@ -165,10 +177,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         {
             foreach (string jsonConfig in JsonConfigOverrides)
             {
-                overrideJson.Merge(Newtonsoft.Json.Linq.JObject.Parse(jsonConfig), new Newtonsoft.Json.Linq.JsonMergeSettings
-                {
-                    MergeArrayHandling = Newtonsoft.Json.Linq.MergeArrayHandling.Union
-                });
+                overrideJson.Merge(
+                    Newtonsoft.Json.Linq.JObject.Parse(jsonConfig),
+                    new Newtonsoft.Json.Linq.JsonMergeSettings
+                    {
+                        MergeArrayHandling = Newtonsoft.Json.Linq.MergeArrayHandling.Union,
+                    }
+                );
             }
         }
         string overrideJsonString = overrideJson.ToString();

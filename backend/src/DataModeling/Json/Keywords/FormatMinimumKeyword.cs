@@ -37,7 +37,11 @@ public sealed class FormatMinimumKeyword : IJsonSchemaKeyword, IEquatable<Format
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -73,7 +77,11 @@ public sealed class FormatMinimumKeyword : IJsonSchemaKeyword, IEquatable<Format
         /// <summary>
         /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
-        public override FormatMinimumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override FormatMinimumKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {
@@ -86,7 +94,11 @@ public sealed class FormatMinimumKeyword : IJsonSchemaKeyword, IEquatable<Format
         /// <summary>
         /// Write formatExclusiveMaximum keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, FormatMinimumKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            FormatMinimumKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteString(Name, value.Value);
         }

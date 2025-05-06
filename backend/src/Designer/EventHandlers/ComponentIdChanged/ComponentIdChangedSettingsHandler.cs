@@ -13,22 +13,30 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ComponentIdChangedSettingsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ComponentIdChangedSettingsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ComponentIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ComponentIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             notification.EditingContext.Org,
             notification.EditingContext.Repo,
-            notification.EditingContext.Developer);
+            notification.EditingContext.Developer
+        );
 
-        JsonNode layoutSettings =
-            await repository.GetLayoutSettingsAndCreateNewIfNotFound(notification.LayoutSetName, cancellationToken);
+        JsonNode layoutSettings = await repository.GetLayoutSettingsAndCreateNewIfNotFound(
+            notification.LayoutSetName,
+            cancellationToken
+        );
 
         bool hasChanges = false;
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
@@ -37,14 +45,21 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
             $"App/ui/{notification.LayoutSetName}/Settings.json",
             async () =>
             {
-                if (TryChangeComponentId(layoutSettings, notification.OldComponentId, notification.NewComponentId))
+                if (
+                    TryChangeComponentId(
+                        layoutSettings,
+                        notification.OldComponentId,
+                        notification.NewComponentId
+                    )
+                )
                 {
                     await repository.SaveLayoutSettings(notification.LayoutSetName, layoutSettings);
                     hasChanges = true;
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     /// <summary>
@@ -52,7 +67,11 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
     /// If there are changes, the layout file is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>
-    public bool TryChangeComponentId(JsonNode layoutSettings, string oldComponentId, string newComponentId)
+    public bool TryChangeComponentId(
+        JsonNode layoutSettings,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         bool hasChanges = false;
 

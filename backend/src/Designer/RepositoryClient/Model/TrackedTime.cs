@@ -30,7 +30,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="issueId">IssueId.</param>
         /// <param name="time">Time in seconds.</param>
         /// <param name="userId">UserId.</param>
-        public TrackedTime(DateTime? created = default(DateTime?), long? id = default(long?), long? issueId = default(long?), long? time = default(long?), long? userId = default(long?))
+        public TrackedTime(
+            DateTime? created = default(DateTime?),
+            long? id = default(long?),
+            long? issueId = default(long?),
+            long? time = default(long?),
+            long? userId = default(long?)
+        )
         {
             this.Created = created;
             this.Id = id;
@@ -108,27 +114,20 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Created == input.Created ||
-                    (this.Created != null &&
-                    this.Created.Equals(input.Created))) &&
-                (
-                    this.Id == input.Id ||
-                    (this.Id != null &&
-                    this.Id.Equals(input.Id))) &&
-                (
-                    this.IssueId == input.IssueId ||
-                    (this.IssueId != null &&
-                    this.IssueId.Equals(input.IssueId))) &&
-                (
-                    this.Time == input.Time ||
-                    (this.Time != null &&
-                    this.Time.Equals(input.Time))) &&
-                (
-                    this.UserId == input.UserId ||
-                    (this.UserId != null &&
-                    this.UserId.Equals(input.UserId)));
+            return (
+                    this.Created == input.Created
+                    || (this.Created != null && this.Created.Equals(input.Created))
+                )
+                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+                && (
+                    this.IssueId == input.IssueId
+                    || (this.IssueId != null && this.IssueId.Equals(input.IssueId))
+                )
+                && (this.Time == input.Time || (this.Time != null && this.Time.Equals(input.Time)))
+                && (
+                    this.UserId == input.UserId
+                    || (this.UserId != null && this.UserId.Equals(input.UserId))
+                );
         }
 
         /// <summary>
@@ -175,7 +174,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

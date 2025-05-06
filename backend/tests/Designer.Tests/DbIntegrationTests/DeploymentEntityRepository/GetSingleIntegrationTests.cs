@@ -8,9 +8,8 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class GetSingleIntegrationTests : DbIntegrationTestsBase
 {
-    public GetSingleIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetSingleIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd")]

@@ -10,9 +10,15 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 
-public class ComponentDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<ComponentDeletedEvent>
+public class ComponentDeletedLayoutsHandler(
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+    IAppDevelopmentService appDevelopmentService
+) : INotificationHandler<ComponentDeletedEvent>
 {
-    public async Task Handle(ComponentDeletedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ComponentDeletedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
@@ -20,8 +26,20 @@ public class ComponentDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHan
             "layouts",
             async () =>
             {
-                List<Reference> referencesToDelete = [new Reference(ReferenceType.Component, notification.LayoutSetName, notification.ComponentId)];
-                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToDelete, cancellationToken);
-            });
+                List<Reference> referencesToDelete =
+                [
+                    new Reference(
+                        ReferenceType.Component,
+                        notification.LayoutSetName,
+                        notification.ComponentId
+                    ),
+                ];
+                return await appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToDelete,
+                    cancellationToken
+                );
+            }
+        );
     }
 }

@@ -21,7 +21,9 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content")]
-    public async Task GetLanguages_WithRepoThatHasTextResources_ShouldReturnCorrectLanguages(string repository)
+    public async Task GetLanguages_WithRepoThatHasTextResources_ShouldReturnCorrectLanguages(
+        string repository
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -42,7 +44,10 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "nb")]
-    public async Task GetText_WithRepoThatHasTextResources_ShouldReturnTexts(string repository, string language)
+    public async Task GetText_WithRepoThatHasTextResources_ShouldReturnTexts(
+        string repository,
+        string language
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -52,7 +57,12 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         TextResource textResource = await altinnOrgGitRepository.GetText(language);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(Org, repository, Developer, RelativePathText(language));
+        string fileContent = TestDataHelper.GetFileFromRepo(
+            Org,
+            repository,
+            Developer,
+            RelativePathText(language)
+        );
         string textResourceString = JsonSerializer.Serialize(textResource, s_jsonOptions);
         Assert.True(JsonUtils.DeepEquals(fileContent, textResourceString));
     }
@@ -65,19 +75,30 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
-        TextResource textResource = new() { Language = language, Resources = [new() { Id = "someId", Value = "someValue" }] };
+        TextResource textResource = new()
+        {
+            Language = language,
+            Resources = [new() { Id = "someId", Value = "someValue" }],
+        };
 
         // Act
         await altinnOrgGitRepository.SaveText(language, textResource);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathText(language));
+        string fileContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepository,
+            Developer,
+            RelativePathText(language)
+        );
         Assert.False(string.IsNullOrEmpty(fileContent));
     }
 
     [Theory]
     [InlineData("org-content")]
-    public async Task GetCodeListIds_WithRepoThatHasCodeLists_ShouldReturnCodeListPathNames(string repository)
+    public async Task GetCodeListIds_WithRepoThatHasCodeLists_ShouldReturnCodeListPathNames(
+        string repository
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -93,7 +114,9 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content-empty")]
-    public async Task GetCodeListIds_WithRepoThatHasNoCodeLists_ShouldReturnEmptyList(string repository)
+    public async Task GetCodeListIds_WithRepoThatHasNoCodeLists_ShouldReturnEmptyList(
+        string repository
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -108,7 +131,10 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "codeListString")]
-    public async Task GetCodeList_WithRepoThatHasCodeLists_ShouldReturnACodeListsWithCorrectValues(string repository, string codeListId)
+    public async Task GetCodeList_WithRepoThatHasCodeLists_ShouldReturnACodeListsWithCorrectValues(
+        string repository,
+        string codeListId
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -127,57 +153,81 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "none-existing-code-list")]
-    public async Task GetCodeLists_WithSpecifiedCodeListIdDoesNotExistInOrg_ShouldThrowNotFoundException(string repository, string codeListId)
+    public async Task GetCodeLists_WithSpecifiedCodeListIdDoesNotExistInOrg_ShouldThrowNotFoundException(
+        string repository,
+        string codeListId
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
 
         // Act and assert
-        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnOrgGitRepository.GetCodeList(codeListId));
+        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () =>
+            await altinnOrgGitRepository.GetCodeList(codeListId)
+        );
     }
 
     [Theory]
     [InlineData("org-content-empty", "newId")]
-    public async Task CreatCodeList_WithEmptyRepo_ShouldCreateCodeList(string repository, string codeListId)
+    public async Task CreatCodeList_WithEmptyRepo_ShouldCreateCodeList(
+        string repository,
+        string codeListId
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
-        List<Option> newCodeList = [new() { Label = "someLabel", Value = "someValue", }];
+        List<Option> newCodeList = [new() { Label = "someLabel", Value = "someValue" }];
         string expectedCodeList = JsonSerializer.Serialize(newCodeList, s_jsonOptions);
 
         // Act
         await altinnOrgGitRepository.CreateCodeList(codeListId, newCodeList);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathCodeList(codeListId));
+        string fileContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepository,
+            Developer,
+            RelativePathCodeList(codeListId)
+        );
         Assert.True(JsonUtils.DeepEquals(expectedCodeList, fileContent));
     }
 
     [Theory]
     [InlineData("org-content", "codeListString")]
-    public async Task UpdateCodeList_WithExistingCodeList_ShouldUpdateCodeList(string repository, string codeListId)
+    public async Task UpdateCodeList_WithExistingCodeList_ShouldUpdateCodeList(
+        string repository,
+        string codeListId
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
-        List<Option> updatedCodeList = [new() { Label = "someLabel", Value = "updated Value!", }];
+        List<Option> updatedCodeList = [new() { Label = "someLabel", Value = "updated Value!" }];
         string expectedCodeList = JsonSerializer.Serialize(updatedCodeList, s_jsonOptions);
 
         // Act
         await altinnOrgGitRepository.UpdateCodeList(codeListId, updatedCodeList);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathCodeList(codeListId));
+        string fileContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepository,
+            Developer,
+            RelativePathCodeList(codeListId)
+        );
         Assert.True(JsonUtils.DeepEquals(expectedCodeList, fileContent));
     }
 
     [Theory]
     [InlineData("org-content", "codeListTrailingComma")]
-    public async Task DeleteCodeList_WithExistingCodeList_ShouldDeleteCodeList(string repository, string codeListId)
+    public async Task DeleteCodeList_WithExistingCodeList_ShouldDeleteCodeList(
+        string repository,
+        string codeListId
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -188,7 +238,11 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         altinnOrgGitRepository.DeleteCodeList(codeListId);
 
         // Assert
-        string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
+        string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(
+            TargetOrg,
+            targetRepository,
+            Developer
+        );
         string codeListFilePath = Path.Combine(repositoryDir, RelativePathCodeList(codeListId));
         Assert.False(File.Exists(codeListFilePath));
     }
@@ -201,9 +255,25 @@ public class AltinnOrgGitRepositoryTests : IDisposable
     {
         string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repository, TargetOrg, targetRepository);
-        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        var altinnOrgGitRepository = new AltinnOrgGitRepository(TargetOrg, targetRepository, Developer, repositoriesRootDirectory, repositoryDirectory);
+        await TestDataHelper.CopyOrgForTest(
+            Developer,
+            Org,
+            repository,
+            TargetOrg,
+            targetRepository
+        );
+        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
+            TargetOrg,
+            targetRepository,
+            Developer
+        );
+        var altinnOrgGitRepository = new AltinnOrgGitRepository(
+            TargetOrg,
+            targetRepository,
+            Developer,
+            repositoriesRootDirectory,
+            repositoryDirectory
+        );
 
         return altinnOrgGitRepository;
     }
@@ -214,7 +284,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     public void Dispose()

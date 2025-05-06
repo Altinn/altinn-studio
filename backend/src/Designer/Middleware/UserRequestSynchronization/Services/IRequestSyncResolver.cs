@@ -14,5 +14,8 @@ public interface IRequestSyncResolver
     /// <param name="httpContext">An <see cref="HttpContext"/> class holding request information.</param>
     /// <param name="editingContext"> An <see cref="AltinnRepoEditingContext"/> holding the data about editing context if request should be synchronized. Otherwise null. </param>
     /// <returns>A <see cref="bool"/> flag that indicates if request should be synchronized.</returns>
-    bool TryResolveSyncRequest(HttpContext httpContext, out AltinnRepoEditingContext editingContext);
+    bool TryResolveSyncRequest(
+        HttpContext httpContext,
+        out AltinnRepoEditingContext editingContext
+    );
 }

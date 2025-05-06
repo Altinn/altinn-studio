@@ -11,9 +11,7 @@ public static class CommandExecutor
     {
         Guard.AssertArgumentNotNullOrWhiteSpace(command, nameof(command));
 
-        string shell = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? "cmd.exe"
-            : "/bin/sh";
+        string shell = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/sh";
 
         string args = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? $"/c \"{command}\""
@@ -30,7 +28,7 @@ public static class CommandExecutor
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
 
         process.OutputDataReceived += (_, e) => AppendIfNotNull(outputSb, e.Data);

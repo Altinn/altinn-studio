@@ -139,7 +139,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var unhandledKeywords = keywords.EnumerateUnhandledItems().ToList();
             if (unhandledKeywords.Count > 0)
             {
-                throw new ArgumentException($"Unhandled keyword(s) in root JSON Schema '{string.Join("', '", unhandledKeywords.Select(kw => kw.Keyword()))}'");
+                throw new ArgumentException(
+                    $"Unhandled keyword(s) in root JSON Schema '{string.Join("', '", unhandledKeywords.Select(kw => kw.Keyword()))}'"
+                );
             }
 
             return CompileSchema(_xsd);
@@ -149,7 +151,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             try
             {
-                var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace) ? schema : ReloadXsdSchema(schema);
+                var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace)
+                    ? schema
+                    : ReloadXsdSchema(schema);
                 var schemaSet = new XmlSchemaSet();
                 schemaSet.Add(schemaToCompile);
                 schemaSet.Compile();
@@ -173,7 +177,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return XmlSchema.Read(xmlReader, (_, _) => { });
         }
 
-
         private void HandleSchemaAttributes()
         {
             if (_schema.TryGetKeyword(out XsdSchemaAttributesKeyword attributes))
@@ -183,16 +186,40 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     switch (name)
                     {
                         case "AttributeFormDefault":
-                            _xsd.AttributeFormDefault = Enum.TryParse(value, true, out XmlSchemaForm xmlSchemaFormAttribute) ? xmlSchemaFormAttribute : XmlSchemaForm.Unqualified;
+                            _xsd.AttributeFormDefault = Enum.TryParse(
+                                value,
+                                true,
+                                out XmlSchemaForm xmlSchemaFormAttribute
+                            )
+                                ? xmlSchemaFormAttribute
+                                : XmlSchemaForm.Unqualified;
                             break;
                         case "ElementFormDefault":
-                            _xsd.ElementFormDefault = Enum.TryParse(value, true, out XmlSchemaForm xmlSchemaFormElement) ? xmlSchemaFormElement : XmlSchemaForm.Qualified;
+                            _xsd.ElementFormDefault = Enum.TryParse(
+                                value,
+                                true,
+                                out XmlSchemaForm xmlSchemaFormElement
+                            )
+                                ? xmlSchemaFormElement
+                                : XmlSchemaForm.Qualified;
                             break;
                         case "BlockDefault":
-                            _xsd.BlockDefault = Enum.TryParse(value, true, out XmlSchemaDerivationMethod xmlSchemaDerivationBlock) ? xmlSchemaDerivationBlock : XmlSchemaDerivationMethod.None;
+                            _xsd.BlockDefault = Enum.TryParse(
+                                value,
+                                true,
+                                out XmlSchemaDerivationMethod xmlSchemaDerivationBlock
+                            )
+                                ? xmlSchemaDerivationBlock
+                                : XmlSchemaDerivationMethod.None;
                             break;
                         case "FinalDefault":
-                            _xsd.FinalDefault = Enum.TryParse(value, true, out XmlSchemaDerivationMethod xmlSchemaDerivationFinal) ? xmlSchemaDerivationFinal : XmlSchemaDerivationMethod.None;
+                            _xsd.FinalDefault = Enum.TryParse(
+                                value,
+                                true,
+                                out XmlSchemaDerivationMethod xmlSchemaDerivationFinal
+                            )
+                                ? xmlSchemaDerivationFinal
+                                : XmlSchemaDerivationMethod.None;
                             break;
                         case nameof(XmlSchema.TargetNamespace):
                             _xsd.TargetNamespace = value;
@@ -204,7 +231,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleSchemaUnhandledAttributes()
         {
-            AddUnhandledAttributes(_xsd, _schema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+            AddUnhandledAttributes(
+                _xsd,
+                _schema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>()
+            );
         }
 
         private void HandleNamespaces()
@@ -238,31 +268,37 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private void HandleInfoKeyword(InfoKeyword infoKeyword)
         {
             var markup = new List<XmlNode>();
-            var xsdNamespace = _xsd.Namespaces.ToArray().First(ns => ns.Namespace == KnownXmlNamespaces.XmlSchemaNamespace);
+            var xsdNamespace = _xsd
+                .Namespaces.ToArray()
+                .First(ns => ns.Namespace == KnownXmlNamespaces.XmlSchemaNamespace);
 
             foreach (var property in infoKeyword.Value.EnumerateObject())
             {
-                var element = _xmlFactoryDocument.CreateElement(xsdNamespace.Name, "attribute", xsdNamespace.Namespace);
+                var element = _xmlFactoryDocument.CreateElement(
+                    xsdNamespace.Name,
+                    "attribute",
+                    xsdNamespace.Namespace
+                );
                 element.SetAttribute("name", property.Name);
                 element.SetAttribute("fixed", property.Value.GetString());
                 markup.Add(element);
             }
 
-            var annotation = new XmlSchemaAnnotation
-            {
-                Parent = _xsd
-            };
+            var annotation = new XmlSchemaAnnotation { Parent = _xsd };
             _xsd.Items.Add(annotation);
 
             var documentation = new XmlSchemaDocumentation
             {
                 Parent = annotation,
-                Markup = markup.ToArray()
+                Markup = markup.ToArray(),
             };
             annotation.Items.Add(documentation);
         }
 
-        private void HandleDefinitions(JsonPointer defsPath, IReadOnlyDictionary<string, JsonSchema> definitions)
+        private void HandleDefinitions(
+            JsonPointer defsPath,
+            IReadOnlyDictionary<string, JsonSchema> definitions
+        )
         {
             foreach (var (name, definition) in definitions)
             {
@@ -276,37 +312,33 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
             if (compatibleTypes.Contains(CompatibleXsdType.ComplexType))
             {
-                var complexType = new XmlSchemaComplexType
-                {
-                    Parent = _xsd
-                };
+                var complexType = new XmlSchemaComplexType { Parent = _xsd };
 
                 HandleComplexType(complexType, definition.AsWorkList(), path);
                 SetName(complexType, name);
-                AddUnhandledAttributes(complexType, definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                AddUnhandledAttributes(
+                    complexType,
+                    definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>()
+                );
                 _xsd.Items.Add(complexType);
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
             {
-                var simpleType = new XmlSchemaSimpleType
-                {
-                    Parent = _xsd
-                };
+                var simpleType = new XmlSchemaSimpleType { Parent = _xsd };
 
                 HandleSimpleType(simpleType, definition.AsWorkList(), path);
                 SetName(simpleType, name);
-                AddUnhandledAttributes(simpleType, definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                AddUnhandledAttributes(
+                    simpleType,
+                    definition.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>()
+                );
                 _xsd.Items.Add(simpleType);
             }
         }
 
         private void HandleRootMessage(WorkList<IJsonSchemaKeyword> keywords)
         {
-            var root = new XmlSchemaElement
-            {
-                Parent = _xsd,
-                Name = _metadata.MessageName
-            };
+            var root = new XmlSchemaElement { Parent = _xsd, Name = _metadata.MessageName };
             _xsd.Items.Add(root);
 
             if (_metadata.HasInlineRoot)
@@ -324,21 +356,28 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    throw new ArgumentException("Schema has inlined root element, but it is not defined as being a valid SimpleType or ComplexType");
+                    throw new ArgumentException(
+                        "Schema has inlined root element, but it is not defined as being a valid SimpleType or ComplexType"
+                    );
                 }
             }
             else
             {
-                var reference =
-                    (_schema.GetKeywordOrNull<AllOfKeyword>()?.Schemas[0] ??
-                     _schema.GetKeywordOrNull<AnyOfKeyword>()?.Schemas[0] ??
-                     _schema.GetKeywordOrNull<OneOfKeyword>()?.Schemas[0]).GetKeywordOrNull<RefKeyword>();
+                var reference = (
+                    _schema.GetKeywordOrNull<AllOfKeyword>()?.Schemas[0]
+                    ?? _schema.GetKeywordOrNull<AnyOfKeyword>()?.Schemas[0]
+                    ?? _schema.GetKeywordOrNull<OneOfKeyword>()?.Schemas[0]
+                ).GetKeywordOrNull<RefKeyword>();
 
                 root.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
             }
         }
 
-        private void HandleComplexType(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleComplexType(
+            XmlSchemaComplexType item,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -361,10 +400,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else
             {
                 // Plain complex type
-                var sequence = new XmlSchemaSequence
-                {
-                    Parent = item
-                };
+                var sequence = new XmlSchemaSequence { Parent = item };
 
                 if (keywords.TryPull<AllOfKeyword>(out var allOfKeyword))
                 {
@@ -377,7 +413,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                             continue;
                         }
 
-                        HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                        HandlePropertiesKeyword(
+                            item,
+                            sequence,
+                            subSchema.AsWorkList(),
+                            path.Combine(JsonPointer.Parse($"/allOf/[{i}]"))
+                        );
 
                         i++;
                     }
@@ -396,7 +437,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleComplexType(
+            XmlSchemaElement element,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -412,16 +457,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
                 if (itemsKeyword.SingleSchema.HasKeyword<PropertiesKeyword>())
                 {
-                    var item = new XmlSchemaComplexType
-                    {
-                        Parent = element
-                    };
+                    var item = new XmlSchemaComplexType { Parent = element };
                     element.SchemaType = item;
                     HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
                 }
                 else
                 {
-                    element.SchemaTypeName = GetTypeNameFromArray(itemsKeyword.SingleSchema, itemsKeyword.SingleSchema.AsWorkList());
+                    element.SchemaTypeName = GetTypeNameFromArray(
+                        itemsKeyword.SingleSchema,
+                        itemsKeyword.SingleSchema.AsWorkList()
+                    );
                 }
             }
             else if (keywords.TryPull(out RefKeyword reference))
@@ -430,16 +475,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                var item = new XmlSchemaComplexType
-                {
-                    Parent = element
-                };
+                var item = new XmlSchemaComplexType { Parent = element };
                 element.SchemaType = item;
                 HandleComplexType(item, keywords, path);
             }
         }
 
-        private void HandleNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
+        private void HandleNillableComplexType(
+            XmlSchemaElement element,
+            JsonPointer path,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
             var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
 
@@ -449,26 +495,35 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (!handled)
             {
-                throw new JsonSchemaConvertException("The provided schema could not be handled as a nillable complex type.");
+                throw new JsonSchemaConvertException(
+                    "The provided schema could not be handled as a nillable complex type."
+                );
             }
 
             element.IsNillable = true;
         }
 
-        private bool TryHandleNonCompositionNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
+        private bool TryHandleNonCompositionNillableComplexType(
+            XmlSchemaElement element,
+            JsonPointer path,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
-            if (keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.TryGetKeyword(out RefKeyword reference))
+            if (
+                keywords.HasKeyword<XsdNillableKeyword>(k => k.Value)
+                && keywords.TryGetKeyword(out RefKeyword reference)
+            )
             {
                 element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
                 return true;
             }
 
-            if (keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.HasKeyword<PropertiesKeyword>())
+            if (
+                keywords.HasKeyword<XsdNillableKeyword>(k => k.Value)
+                && keywords.HasKeyword<PropertiesKeyword>()
+            )
             {
-                var item = new XmlSchemaComplexType
-                {
-                    Parent = element
-                };
+                var item = new XmlSchemaComplexType { Parent = element };
                 element.SchemaType = item;
 
                 HandleComplexType(item, keywords, path);
@@ -483,12 +538,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            if (_metadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.ComplexContentExtension))
+            if (
+                _metadata
+                    .GetCompatibleTypes(path)
+                    .Contains(CompatibleXsdType.ComplexContentExtension)
+            )
             {
-                var item = new XmlSchemaComplexType
-                {
-                    Parent = element
-                };
+                var item = new XmlSchemaComplexType { Parent = element };
                 element.SchemaType = item;
 
                 HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
@@ -496,13 +552,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else
             {
                 var oneOf = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>();
-                if (oneOf is null && itemsKeyword.SingleSchema.TryGetKeyword(out RefKeyword itemsRef))
+                if (
+                    oneOf is null
+                    && itemsKeyword.SingleSchema.TryGetKeyword(out RefKeyword itemsRef)
+                )
                 {
                     element.SchemaTypeName = GetTypeNameFromReference(itemsRef.Reference);
                 }
                 else
                 {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeywordOrNull<OneOfKeyword>()?.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
+                    var refKeyword = itemsKeyword
+                        .SingleSchema.GetKeywordOrNull<OneOfKeyword>()
+                        ?.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())
+                        ?.GetKeyword<RefKeyword>();
                     element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
                 }
             }
@@ -510,47 +572,74 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return true;
         }
 
-        private bool TryHandleCompositionNillableComplexType(XmlSchemaElement element, OneOfKeyword oneOfKeyword, JsonPointer path)
+        private bool TryHandleCompositionNillableComplexType(
+            XmlSchemaElement element,
+            OneOfKeyword oneOfKeyword,
+            JsonPointer path
+        )
         {
-            var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-            var propertiesKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+            var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s =>
+                s.Keywords.HasKeyword<RefKeyword>()
+            );
+            var propertiesKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s =>
+                s.Keywords.HasKeyword<PropertiesKeyword>()
+            );
 
             // Element with type reference to a ComplexType
             if (refKeywordSubSchema != null)
             {
-                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
+                element.SchemaTypeName = GetTypeNameFromReference(
+                    refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference
+                );
                 return true;
             }
 
             // Element with inline ComplexType
             if (propertiesKeywordSubSchema != null)
             {
-                var item = new XmlSchemaComplexType
-                {
-                    Parent = element
-                };
+                var item = new XmlSchemaComplexType { Parent = element };
                 element.SchemaType = item;
 
-                var propertiesKeywordSubSchemaIndex = GetKeywordSubSchemaIndex<PropertiesKeyword>(oneOfKeyword.Schemas);
-                HandleComplexType(item, propertiesKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/oneOf/[{propertiesKeywordSubSchemaIndex}]")));
+                var propertiesKeywordSubSchemaIndex = GetKeywordSubSchemaIndex<PropertiesKeyword>(
+                    oneOfKeyword.Schemas
+                );
+                HandleComplexType(
+                    item,
+                    propertiesKeywordSubSchema.AsWorkList(),
+                    path.Combine(JsonPointer.Parse($"/oneOf/[{propertiesKeywordSubSchemaIndex}]"))
+                );
                 return true;
             }
 
             return false;
         }
 
-        private void HandleSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleSimpleType(
+            XmlSchemaElement element,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
                 var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
-                element.SchemaTypeName = GetTypeNameFromArray(itemsKeyword.SingleSchema, itemsKeyword.SingleSchema.AsWorkList());
+                element.SchemaTypeName = GetTypeNameFromArray(
+                    itemsKeyword.SingleSchema,
+                    itemsKeyword.SingleSchema.AsWorkList()
+                );
             }
-            else if (compatibleTypes.Contains(CompatibleXsdType.Nillable) && keywords.TryPull(out OneOfKeyword oneOfKeyword))
+            else if (
+                compatibleTypes.Contains(CompatibleXsdType.Nillable)
+                && keywords.TryPull(out OneOfKeyword oneOfKeyword)
+            )
             {
-                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
+                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s =>
+                    s.Keywords.HasKeyword<RefKeyword>()
+                );
+                element.SchemaTypeName = GetTypeNameFromReference(
+                    refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference
+                );
                 element.IsNillable = true;
             }
             else if (keywords.TryPull(out RefKeyword reference))
@@ -563,10 +652,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                var item = new XmlSchemaSimpleType
-                {
-                    Parent = element,
-                };
+                var item = new XmlSchemaSimpleType { Parent = element };
                 element.SchemaType = item;
                 HandleSimpleType(item, keywords, path);
             }
@@ -577,7 +663,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleSimpleType(XmlSchemaSimpleType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleSimpleType(
+            XmlSchemaSimpleType item,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -591,10 +681,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                var restriction = new XmlSchemaSimpleTypeRestriction
-                {
-                    Parent = item
-                };
+                var restriction = new XmlSchemaSimpleTypeRestriction { Parent = item };
                 item.Content = restriction;
 
                 if (keywords.TryPull(out RefKeyword reference))
@@ -612,7 +699,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleAttribute(XmlSchemaAttribute attribute, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleAttribute(
+            XmlSchemaAttribute attribute,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -622,10 +713,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
             {
-                var simpleType = new XmlSchemaSimpleType
-                {
-                    Parent = attribute
-                };
+                var simpleType = new XmlSchemaSimpleType { Parent = attribute };
                 attribute.SchemaType = simpleType;
 
                 HandleSimpleType(simpleType, keywords, path);
@@ -640,12 +728,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleSimpleTypeRestriction(XmlSchemaSimpleType simpleType, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleSimpleTypeRestriction(
+            XmlSchemaSimpleType simpleType,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
-            var restriction = new XmlSchemaSimpleTypeRestriction
-            {
-                Parent = simpleType
-            };
+            var restriction = new XmlSchemaSimpleTypeRestriction { Parent = simpleType };
             simpleType.Content = restriction;
 
             // the final builtin base type for this simple type refinement chain
@@ -662,48 +751,72 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else if (keywords.TryPull(out AllOfKeyword allOf))
             {
-                var baseTypeSchemaIndex = allOf.Schemas.Select((_, idx) => idx).Single(idx =>
-                    _metadata.GetCompatibleTypes(path.Combine(JsonPointer.Parse($"/allOf/[{idx}]")))
-                        .Contains(CompatibleXsdType.SimpleType));
+                var baseTypeSchemaIndex = allOf
+                    .Schemas.Select((_, idx) => idx)
+                    .Single(idx =>
+                        _metadata
+                            .GetCompatibleTypes(path.Combine(JsonPointer.Parse($"/allOf/[{idx}]")))
+                            .Contains(CompatibleXsdType.SimpleType)
+                    );
 
                 var baseTypeSchema = allOf.Schemas[baseTypeSchemaIndex];
-                var restrictionSchemas = allOf.Schemas.Where((_, idx) => idx != baseTypeSchemaIndex).ToList();
+                var restrictionSchemas = allOf
+                    .Schemas.Where((_, idx) => idx != baseTypeSchemaIndex)
+                    .ToList();
 
                 if (baseTypeSchema.TryGetKeyword(out RefKeyword baseTypeReference))
                 {
-                    restriction.BaseTypeName = GetTypeNameFromReference(baseTypeReference.Reference);
+                    restriction.BaseTypeName = GetTypeNameFromReference(
+                        baseTypeReference.Reference
+                    );
 
                     targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema);
                     if (targetBaseType == XmlQualifiedName.Empty)
                     {
-                        throw new JsonSchemaConvertException($"Could not find target built-in type for SimpleType Restriction in {path}");
+                        throw new JsonSchemaConvertException(
+                            $"Could not find target built-in type for SimpleType Restriction in {path}"
+                        );
                     }
                 }
                 else if (baseTypeSchema.HasKeyword<TypeKeyword>())
                 {
                     var baseTypeKeywords = baseTypeSchema.AsWorkList();
-                    restriction.BaseTypeName = GetTypeNameFromTypeKeyword(baseTypeKeywords.Pull<TypeKeyword>(), baseTypeKeywords);
+                    restriction.BaseTypeName = GetTypeNameFromTypeKeyword(
+                        baseTypeKeywords.Pull<TypeKeyword>(),
+                        baseTypeKeywords
+                    );
                     targetBaseType = restriction.BaseTypeName;
                 }
                 else
                 {
                     // Inline base types support can be added in this if/else chain (base type may also be an inline SimpleTypeRestriction)
-                    throw new JsonSchemaConvertException($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
+                    throw new JsonSchemaConvertException(
+                        $"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}"
+                    );
                 }
 
                 if (baseTypeSchema.HasKeyword<XsdUnhandledAttributesKeyword>())
                 {
-                    AddUnhandledAttributes(restriction, baseTypeSchema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                    AddUnhandledAttributes(
+                        restriction,
+                        baseTypeSchema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>()
+                    );
                 }
 
-                restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
+                restrictionsKeywordsList.AddRange(
+                    restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList())
+                );
             }
-            else if (keywords.TryGetKeyword(out XsdStructureKeyword xsdStructure) &&
-                     keywords.TryGetKeyword(out RefKeyword refKeyword))
+            else if (
+                keywords.TryGetKeyword(out XsdStructureKeyword xsdStructure)
+                && keywords.TryGetKeyword(out RefKeyword refKeyword)
+            )
             {
                 if (xsdStructure.Value != nameof(XmlSchemaSimpleTypeRestriction))
                 {
-                    throw new JsonSchemaConvertException($"This is not a valid SimpleType restriction {path}");
+                    throw new JsonSchemaConvertException(
+                        $"This is not a valid SimpleType restriction {path}"
+                    );
                 }
 
                 restriction.BaseTypeName = GetTypeNameFromReference(refKeyword.Reference);
@@ -711,7 +824,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
             else
             {
-                throw new JsonSchemaConvertException($"This is not a valid SimpleType restriction {path}");
+                throw new JsonSchemaConvertException(
+                    $"This is not a valid SimpleType restriction {path}"
+                );
             }
 
             foreach (var restrictionKeywords in restrictionsKeywordsList)
@@ -729,9 +844,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void ValidateTargetBase(WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
         {
-            if (FindTargetBaseTypeForSimpleTypeRestriction(keywords.AsJsonSchema()) == XmlQualifiedName.Empty)
+            if (
+                FindTargetBaseTypeForSimpleTypeRestriction(keywords.AsJsonSchema())
+                == XmlQualifiedName.Empty
+            )
             {
-                throw new JsonSchemaConvertException($"Could not find target built-in type for SimpleType Restriction in {path}");
+                throw new JsonSchemaConvertException(
+                    $"Could not find target built-in type for SimpleType Restriction in {path}"
+                );
             }
         }
 
@@ -767,12 +887,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return XmlQualifiedName.Empty;
         }
 
-        private static IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> keywords)
+        private static IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
-            return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties ?? new List<NamedKeyValuePairs>();
+            return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties
+                ?? new List<NamedKeyValuePairs>();
         }
 
-        private static IEnumerable<XmlSchemaFacet> GetRestrictionFacets(WorkList<IJsonSchemaKeyword> keywords, XmlQualifiedName type)
+        private static IEnumerable<XmlSchemaFacet> GetRestrictionFacets(
+            WorkList<IJsonSchemaKeyword> keywords,
+            XmlQualifiedName type
+        )
         {
             var facets = new List<XmlSchemaFacet>();
 
@@ -791,7 +917,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                             }
                             else
                             {
-                                MinLengthKeyword minLength = keywords.GetKeyword<MinLengthKeyword>();
+                                MinLengthKeyword minLength =
+                                    keywords.GetKeyword<MinLengthKeyword>();
                                 if (minLength?.Value == maxLength.Value)
                                 {
                                     facets.Add(new XmlSchemaLengthFacet { Value = value });
@@ -838,52 +965,111 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         break;
                     case MaximumKeyword maximum:
                         keywords.MarkAsHandled<MaximumKeyword>();
-                        facets.Add(new XmlSchemaMaxInclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMaxInclusiveFacet
+                            {
+                                Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo),
+                            }
+                        );
                         break;
                     case MinimumKeyword minimum:
                         keywords.MarkAsHandled<MinimumKeyword>();
-                        facets.Add(new XmlSchemaMinInclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMinInclusiveFacet
+                            {
+                                Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo),
+                            }
+                        );
                         break;
                     case ExclusiveMaximumKeyword maximum:
                         keywords.MarkAsHandled<ExclusiveMaximumKeyword>();
-                        facets.Add(new XmlSchemaMaxExclusiveFacet { Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMaxExclusiveFacet
+                            {
+                                Value = maximum.Value.ToString(NumberFormatInfo.InvariantInfo),
+                            }
+                        );
                         break;
                     case ExclusiveMinimumKeyword minimum:
                         keywords.MarkAsHandled<ExclusiveMinimumKeyword>();
-                        facets.Add(new XmlSchemaMinExclusiveFacet { Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMinExclusiveFacet
+                            {
+                                Value = minimum.Value.ToString(NumberFormatInfo.InvariantInfo),
+                            }
+                        );
                         break;
                     case MultipleOfKeyword multipleOf:
                         keywords.MarkAsHandled<MultipleOfKeyword>();
                         var fractionDigits = GetFractionDigitsFromMultipleOf(multipleOf.Value);
                         if (fractionDigits == null)
                         {
-                            throw new JsonSchemaConvertException($"Could not find fraction digits from multipleOf '{multipleOf.Value}'");
+                            throw new JsonSchemaConvertException(
+                                $"Could not find fraction digits from multipleOf '{multipleOf.Value}'"
+                            );
                         }
                         else
                         {
-                            facets.Add(new XmlSchemaFractionDigitsFacet() { Value = fractionDigits });
+                            facets.Add(
+                                new XmlSchemaFractionDigitsFacet() { Value = fractionDigits }
+                            );
                         }
 
                         break;
                     case FormatExclusiveMinimumKeyword formatExclusiveMinimum:
                         keywords.MarkAsHandled<FormatExclusiveMinimumKeyword>();
-                        facets.Add(new XmlSchemaMinExclusiveFacet() { Value = formatExclusiveMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMinExclusiveFacet()
+                            {
+                                Value = formatExclusiveMinimum.Value.ToString(
+                                    NumberFormatInfo.InvariantInfo
+                                ),
+                            }
+                        );
                         break;
                     case FormatMinimumKeyword formatMinimum:
                         keywords.MarkAsHandled<FormatMinimumKeyword>();
-                        facets.Add(new XmlSchemaMinInclusiveFacet() { Value = formatMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMinInclusiveFacet()
+                            {
+                                Value = formatMinimum.Value.ToString(
+                                    NumberFormatInfo.InvariantInfo
+                                ),
+                            }
+                        );
                         break;
                     case FormatExclusiveMaximumKeyword formatExclusiveMaximum:
                         keywords.MarkAsHandled<FormatExclusiveMaximumKeyword>();
-                        facets.Add(new XmlSchemaMaxExclusiveFacet() { Value = formatExclusiveMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMaxExclusiveFacet()
+                            {
+                                Value = formatExclusiveMaximum.Value.ToString(
+                                    NumberFormatInfo.InvariantInfo
+                                ),
+                            }
+                        );
                         break;
                     case FormatMaximumKeyword formatMaximum:
                         keywords.MarkAsHandled<FormatMaximumKeyword>();
-                        facets.Add(new XmlSchemaMaxInclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaMaxInclusiveFacet()
+                            {
+                                Value = formatMaximum.Value.ToString(
+                                    NumberFormatInfo.InvariantInfo
+                                ),
+                            }
+                        );
                         break;
                     case XsdTotalDigitsKeyword totalDigitsKeyword:
                         keywords.MarkAsHandled<XsdTotalDigitsKeyword>();
-                        facets.Add(new XmlSchemaTotalDigitsFacet() { Value = totalDigitsKeyword.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        facets.Add(
+                            new XmlSchemaTotalDigitsFacet()
+                            {
+                                Value = totalDigitsKeyword.Value.ToString(
+                                    NumberFormatInfo.InvariantInfo
+                                ),
+                            }
+                        );
                         break;
                     default:
                         continue;
@@ -893,7 +1079,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return facets;
         }
 
-        private static XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
+        private static XmlQualifiedName GetTypeNameFromTypeKeyword(
+            TypeKeyword typeKeyword,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
             // This is the case of nillable, so we remove the Null type to be left with the actual type.
             var type = typeKeyword.Type;
@@ -910,69 +1099,120 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 case SchemaValueType.String:
                 case SchemaValueType.Number:
                 case SchemaValueType.Integer:
-                    XmlQualifiedName typeName = SetType(typeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
+                    XmlQualifiedName typeName = SetType(
+                        typeKeyword.Type,
+                        keywords.Pull<FormatKeyword>()?.Value,
+                        keywords.Pull<XsdTypeKeyword>()?.Value
+                    );
                     return typeName;
                 case SchemaValueType.Array:
-                    var arrayTypeKeyword = keywords.GetKeyword<ItemsKeyword>().SingleSchema.GetKeywordOrNull<TypeKeyword>();
-                    XmlQualifiedName arrayType = SetType(arrayTypeKeyword.Type, keywords.Pull<FormatKeyword>()?.Value, keywords.Pull<XsdTypeKeyword>()?.Value);
+                    var arrayTypeKeyword = keywords
+                        .GetKeyword<ItemsKeyword>()
+                        .SingleSchema.GetKeywordOrNull<TypeKeyword>();
+                    XmlQualifiedName arrayType = SetType(
+                        arrayTypeKeyword.Type,
+                        keywords.Pull<FormatKeyword>()?.Value,
+                        keywords.Pull<XsdTypeKeyword>()?.Value
+                    );
                     return arrayType;
                 default:
-                    throw new ArgumentOutOfRangeException($"The provided typeKeyword {typeKeyword} could not be mapped to any SchemaValueType.");
+                    throw new ArgumentOutOfRangeException(
+                        $"The provided typeKeyword {typeKeyword} could not be mapped to any SchemaValueType."
+                    );
             }
         }
 
-        private void HandleSimpleContentRestriction(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleSimpleContentRestriction(
+            XmlSchemaComplexType item,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
-            var simpleContent = new XmlSchemaSimpleContent
-            {
-                Parent = item
-            };
+            var simpleContent = new XmlSchemaSimpleContent { Parent = item };
             item.ContentModel = simpleContent;
 
-            var restriction = new XmlSchemaSimpleContentRestriction
-            {
-                Parent = simpleContent
-            };
+            var restriction = new XmlSchemaSimpleContentRestriction { Parent = simpleContent };
             simpleContent.Content = restriction;
 
-            DeconstructSimpleContentRestriction(keywords, out var baseTypeSchema, out var baseTypeSchemaIndex, out var propertiesSchema, out var propertiesSchemaIndex);
-            DeconstructSimpleContentRestrictionProperties(propertiesSchema.GetKeywordOrNull<PropertiesKeyword>(), out var valuePropertySchema, out var attributePropertiesSchemas);
+            DeconstructSimpleContentRestriction(
+                keywords,
+                out var baseTypeSchema,
+                out var baseTypeSchemaIndex,
+                out var propertiesSchema,
+                out var propertiesSchemaIndex
+            );
+            DeconstructSimpleContentRestrictionProperties(
+                propertiesSchema.GetKeywordOrNull<PropertiesKeyword>(),
+                out var valuePropertySchema,
+                out var attributePropertiesSchemas
+            );
 
-            restriction.BaseTypeName = GetTypeNameFromReference(baseTypeSchema.GetKeywordOrNull<RefKeyword>().Reference);
+            restriction.BaseTypeName = GetTypeNameFromReference(
+                baseTypeSchema.GetKeywordOrNull<RefKeyword>().Reference
+            );
 
-            HandleSimpleContentRestrictionValueProperty(restriction, path, valuePropertySchema, propertiesSchemaIndex, baseTypeSchema, baseTypeSchemaIndex);
-            HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
+            HandleSimpleContentRestrictionValueProperty(
+                restriction,
+                path,
+                valuePropertySchema,
+                propertiesSchemaIndex,
+                baseTypeSchema,
+                baseTypeSchemaIndex
+            );
+            HandleSimpleContentRestrictionAttributeProperties(
+                restriction,
+                path,
+                attributePropertiesSchemas,
+                propertiesSchemaIndex
+            );
         }
 
-        private void HandleSimpleContentRestrictionAttributeProperties(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, List<(string Name, JsonSchema JsonSchema)> attributePropertiesSchemas, int propertiesSchemaIndex)
+        private void HandleSimpleContentRestrictionAttributeProperties(
+            XmlSchemaSimpleContentRestriction restriction,
+            JsonPointer path,
+            List<(string Name, JsonSchema JsonSchema)> attributePropertiesSchemas,
+            int propertiesSchemaIndex
+        )
         {
             foreach (var (name, schema) in attributePropertiesSchemas)
             {
-                var attribute = new XmlSchemaAttribute
-                {
-                    Parent = restriction,
-                    Name = name
-                };
+                var attribute = new XmlSchemaAttribute { Parent = restriction, Name = name };
 
-                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/{name}")));
+                HandleAttribute(
+                    attribute,
+                    schema.AsWorkList(),
+                    path.Combine(
+                        JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/{name}")
+                    )
+                );
                 restriction.Attributes.Add(attribute);
             }
         }
 
-        private void HandleSimpleContentRestrictionValueProperty(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, JsonSchema valuePropertySchema, int propertiesSchemaIndex, JsonSchema baseTypeSchema, int baseTypeSchemaIndex)
+        private void HandleSimpleContentRestrictionValueProperty(
+            XmlSchemaSimpleContentRestriction restriction,
+            JsonPointer path,
+            JsonSchema valuePropertySchema,
+            int propertiesSchemaIndex,
+            JsonSchema baseTypeSchema,
+            int baseTypeSchemaIndex
+        )
         {
             if (valuePropertySchema != null)
             {
                 if (valuePropertySchema.HasAnyOfKeywords(typeof(TypeKeyword), typeof(AllOfKeyword)))
                 {
                     // "value" property contains a simple type
-                    var valueType = new XmlSchemaSimpleType
-                    {
-                        Parent = restriction
-                    };
+                    var valueType = new XmlSchemaSimpleType { Parent = restriction };
                     restriction.BaseType = valueType;
 
-                    HandleSimpleType(valueType, valuePropertySchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/value")));
+                    HandleSimpleType(
+                        valueType,
+                        valuePropertySchema.AsWorkList(),
+                        path.Combine(
+                            JsonPointer.Parse($"/allOf/[{propertiesSchemaIndex}]/properties/value")
+                        )
+                    );
                 }
                 else
                 {
@@ -980,30 +1220,54 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema);
 
                     var valuePropertyKeywords = valuePropertySchema.AsWorkList();
-                    var restrictionFacets = GetRestrictionFacets(valuePropertyKeywords, targetBaseType);
+                    var restrictionFacets = GetRestrictionFacets(
+                        valuePropertyKeywords,
+                        targetBaseType
+                    );
                     var unhandledEnumAttributes = GetUnhandledEnumAttributes(valuePropertyKeywords);
                     foreach (var restrictionFacet in restrictionFacets)
                     {
                         restrictionFacet.Parent = restriction;
-                        AddUnhandledEnumAttributesToFacet(restrictionFacet, unhandledEnumAttributes);
+                        AddUnhandledEnumAttributesToFacet(
+                            restrictionFacet,
+                            unhandledEnumAttributes
+                        );
                         restriction.Facets.Add(restrictionFacet);
                     }
                 }
             }
         }
 
-        private static void DeconstructSimpleContentRestriction(WorkList<IJsonSchemaKeyword> keywords, out JsonSchema baseTypeSchema, out int baseTypeSchemaIndex, out JsonSchema propertiesSchema, out int propertiesSchemaIndex)
+        private static void DeconstructSimpleContentRestriction(
+            WorkList<IJsonSchemaKeyword> keywords,
+            out JsonSchema baseTypeSchema,
+            out int baseTypeSchemaIndex,
+            out JsonSchema propertiesSchema,
+            out int propertiesSchemaIndex
+        )
         {
             var allOf = keywords.Pull<AllOfKeyword>();
 
-            baseTypeSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<RefKeyword>()).Select(x => x.idx).Single();
-            propertiesSchemaIndex = allOf.Schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<PropertiesKeyword>()).Select(x => x.idx).Single();
+            baseTypeSchemaIndex = allOf
+                .Schemas.Select((schema, idx) => (schema, idx))
+                .Where(x => x.schema.HasKeyword<RefKeyword>())
+                .Select(x => x.idx)
+                .Single();
+            propertiesSchemaIndex = allOf
+                .Schemas.Select((schema, idx) => (schema, idx))
+                .Where(x => x.schema.HasKeyword<PropertiesKeyword>())
+                .Select(x => x.idx)
+                .Single();
 
             baseTypeSchema = allOf.Schemas[baseTypeSchemaIndex];
             propertiesSchema = allOf.Schemas[propertiesSchemaIndex];
         }
 
-        private static void DeconstructSimpleContentRestrictionProperties(PropertiesKeyword propertiesKeyword, out JsonSchema valuePropertySchema, out List<(string Name, JsonSchema Schema)> attributeSchemas)
+        private static void DeconstructSimpleContentRestrictionProperties(
+            PropertiesKeyword propertiesKeyword,
+            out JsonSchema valuePropertySchema,
+            out List<(string Name, JsonSchema Schema)> attributeSchemas
+        )
         {
             var properties = propertiesKeyword.Properties;
             valuePropertySchema = properties.GetValueOrDefault("value");
@@ -1013,18 +1277,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 .ToList();
         }
 
-        private void HandleSimpleContentExtension(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleSimpleContentExtension(
+            XmlSchemaComplexType item,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
-            var simpleContent = new XmlSchemaSimpleContent
-            {
-                Parent = item
-            };
+            var simpleContent = new XmlSchemaSimpleContent { Parent = item };
             item.ContentModel = simpleContent;
 
-            var extension = new XmlSchemaSimpleContentExtension
-            {
-                Parent = simpleContent
-            };
+            var extension = new XmlSchemaSimpleContentExtension { Parent = simpleContent };
             simpleContent.Content = extension;
 
             var properties = keywords.Pull<PropertiesKeyword>().Properties;
@@ -1043,18 +1305,21 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             else
             {
                 var typeKeyword = valuePropertyKeywords.Pull<TypeKeyword>();
-                extension.BaseTypeName = GetTypeNameFromTypeKeyword(typeKeyword, valuePropertyKeywords);
+                extension.BaseTypeName = GetTypeNameFromTypeKeyword(
+                    typeKeyword,
+                    valuePropertyKeywords
+                );
             }
 
             foreach (var (name, schema) in attributes)
             {
-                var attribute = new XmlSchemaAttribute
-                {
-                    Parent = extension,
-                    Name = name
-                };
+                var attribute = new XmlSchemaAttribute { Parent = extension, Name = name };
 
-                HandleAttribute(attribute, schema.AsWorkList(), path.Combine(JsonPointer.Parse($"/properties/{name}")));
+                HandleAttribute(
+                    attribute,
+                    schema.AsWorkList(),
+                    path.Combine(JsonPointer.Parse($"/properties/{name}"))
+                );
                 SetFixed(attribute, schema.GetKeywordOrNull<ConstKeyword>());
                 SetDefault(attribute, schema.GetKeywordOrNull<DefaultKeyword>());
                 SetRequired(attribute, required.Contains(name));
@@ -1062,13 +1327,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private void HandleComplexContentExtension(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandleComplexContentExtension(
+            XmlSchemaComplexType item,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             // <xsd:complexContent>
-            var complexContent = new XmlSchemaComplexContent()
-            {
-                Parent = item
-            };
+            var complexContent = new XmlSchemaComplexContent() { Parent = item };
 
             var allOfKeyword = keywords.Pull<AllOfKeyword>();
             var subSchemas = allOfKeyword.Schemas;
@@ -1078,7 +1344,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var extension = new XmlSchemaComplexContentExtension()
             {
                 Parent = complexContent,
-                BaseTypeName = GetTypeNameFromReference(refKeywordSchema.Keywords.GetKeyword<RefKeyword>().Reference)
+                BaseTypeName = GetTypeNameFromReference(
+                    refKeywordSchema.Keywords.GetKeyword<RefKeyword>().Reference
+                ),
             };
 
             complexContent.Content = extension;
@@ -1086,10 +1354,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             // This is a bit a naive and supports only sequence as of now. When implementing choice
             // in issue https://github.com/Altinn/altinn-studio/issues/4803 this needs to be changed.
             // <xsd:sequence>
-            var sequence = new XmlSchemaSequence
-            {
-                Parent = extension
-            };
+            var sequence = new XmlSchemaSequence { Parent = extension };
 
             // Loop sub-schemas except the one with RefKeyword since this
             // is alread handled.
@@ -1102,7 +1367,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     continue;
                 }
 
-                HandlePropertiesKeyword(item, sequence, subSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/allOf/[{i}]")));
+                HandlePropertiesKeyword(
+                    item,
+                    sequence,
+                    subSchema.AsWorkList(),
+                    path.Combine(JsonPointer.Parse($"/allOf/[{i}]"))
+                );
                 HandleAnyAttributeKeyword(item, subSchema.AsWorkList());
 
                 i++;
@@ -1118,7 +1388,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             HandleAnyAttributeKeyword(extension, keywords);
         }
 
-        private void HandlePropertiesKeyword(XmlSchemaComplexType complexType, XmlSchemaSequence sequence, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        private void HandlePropertiesKeyword(
+            XmlSchemaComplexType complexType,
+            XmlSchemaSequence sequence,
+            WorkList<IJsonSchemaKeyword> keywords,
+            JsonPointer path
+        )
         {
             if (!keywords.TryPull(out PropertiesKeyword propertiesKeyword))
             {
@@ -1129,7 +1404,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             foreach (var (name, property) in propertiesKeyword.Properties)
             {
-                var subItem = ConvertSubschema(path.Combine(JsonPointer.Parse($"/properties/{name}")), property);
+                var subItem = ConvertSubschema(
+                    path.Combine(JsonPointer.Parse($"/properties/{name}")),
+                    property
+                );
 
                 SetName(subItem, name);
                 SetRequired(subItem, required.Contains(name));
@@ -1146,7 +1424,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XmlSchemaElement element:
                         element.Parent = sequence;
                         sequence.Items.Add(element);
-                        AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                        AddUnhandledAttributes(
+                            element,
+                            property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>()
+                        );
                         break;
                     default:
                         throw new NotImplementedException();
@@ -1165,12 +1446,18 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword) && particle.MinOccursString is null)
+            if (
+                property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword)
+                && particle.MinOccursString is null
+            )
             {
                 particle.MinOccurs = minOccursKeyword.Value;
             }
 
-            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword) && particle.MaxOccursString is null)
+            if (
+                property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword)
+                && particle.MaxOccursString is null
+            )
             {
                 particle.MaxOccursString = maxOccursKeyword.Value;
             }
@@ -1189,7 +1476,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
                 }
 
-                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword)
+                    ? maxItemsKeyword.Value.ToString()
+                    : "unbounded";
             }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
@@ -1240,7 +1529,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             throw new NotImplementedException();
         }
 
-        private static void HandleAnyAttributeKeyword(XmlSchemaComplexType complexType, WorkList<IJsonSchemaKeyword> keywords)
+        private static void HandleAnyAttributeKeyword(
+            XmlSchemaComplexType complexType,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
             if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
             {
@@ -1252,12 +1544,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 Parent = complexType,
                 Id = anyAttributeKeyword.Id,
                 Namespace = anyAttributeKeyword.Namespace,
-                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(anyAttributeKeyword.ProcessContent)
+                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(
+                    anyAttributeKeyword.ProcessContent
+                ),
             };
             complexType.AnyAttribute = xmlSchemaAnyAttribute;
         }
 
-        private static void HandleAnyAttributeKeyword(XmlSchemaComplexContentExtension complexContentExtension, WorkList<IJsonSchemaKeyword> keywords)
+        private static void HandleAnyAttributeKeyword(
+            XmlSchemaComplexContentExtension complexContentExtension,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
             if (!keywords.TryPull(out XsdAnyAttributeKeyword anyAttributeKeyword))
             {
@@ -1269,12 +1566,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 Parent = complexContentExtension,
                 Id = anyAttributeKeyword.Id,
                 Namespace = anyAttributeKeyword.Namespace,
-                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(anyAttributeKeyword.ProcessContent)
+                ProcessContents = Enum.Parse<XmlSchemaContentProcessing>(
+                    anyAttributeKeyword.ProcessContent
+                ),
             };
             complexContentExtension.AnyAttribute = xmlSchemaAnyAttribute;
         }
 
-        private void AddUnhandledAttributes(XmlSchemaObject item, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
+        private void AddUnhandledAttributes(
+            XmlSchemaObject item,
+            XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword
+        )
         {
             if (xsdUnhandledAttributesKeyword == null)
             {
@@ -1283,7 +1585,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (item is not XmlSchemaAnnotated annotatedItem)
             {
-                throw new ArgumentException("Unhandled attributes must be added to an annotated xml schema object.");
+                throw new ArgumentException(
+                    "Unhandled attributes must be added to an annotated xml schema object."
+                );
             }
 
             var unhandledAttributes = new List<XmlAttribute>();
@@ -1296,7 +1600,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             annotatedItem.UnhandledAttributes = unhandledAttributes.ToArray();
         }
 
-        private void AddUnhandledAttributes(XmlSchema xmlSchema, XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword)
+        private void AddUnhandledAttributes(
+            XmlSchema xmlSchema,
+            XsdUnhandledAttributesKeyword xsdUnhandledAttributesKeyword
+        )
         {
             if (xsdUnhandledAttributesKeyword == null)
             {
@@ -1313,14 +1620,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             xmlSchema.UnhandledAttributes = unhandledAttributes.ToArray();
         }
 
-        private void AddUnhandledEnumAttributesToFacet(XmlSchemaFacet xmlSchemaFacet, IReadOnlyList<NamedKeyValuePairs> unhandledEnumAttributes)
+        private void AddUnhandledEnumAttributesToFacet(
+            XmlSchemaFacet xmlSchemaFacet,
+            IReadOnlyList<NamedKeyValuePairs> unhandledEnumAttributes
+        )
         {
             if (unhandledEnumAttributes.Count == 0)
             {
                 return;
             }
 
-            var namedKeyValuePairs = unhandledEnumAttributes.First(a => a.Name == xmlSchemaFacet.Value);
+            var namedKeyValuePairs = unhandledEnumAttributes.First(a =>
+                a.Name == xmlSchemaFacet.Value
+            );
 
             if (namedKeyValuePairs == null)
             {
@@ -1349,14 +1661,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 prefix = nameParts[0];
                 localName = nameParts[1];
 
-                @namespace = prefix == "xml" ? @"http://www.w3.org/XML/1998/namespace" : _namespaces[prefix];
+                @namespace =
+                    prefix == "xml" ? @"http://www.w3.org/XML/1998/namespace" : _namespaces[prefix];
             }
             else
             {
                 localName = name;
             }
 
-            XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(prefix, localName, @namespace);
+            XmlAttribute attribute = _xmlFactoryDocument.CreateAttribute(
+                prefix,
+                localName,
+                @namespace
+            );
             attribute.Value = value;
 
             return attribute;
@@ -1365,15 +1682,26 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         private static XmlQualifiedName GetTypeNameFromReference(Uri reference)
         {
             var pointer = JsonPointer.Parse(reference.ToString());
-            if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
+            if (
+                pointer.Segments.Length != 2
+                || (
+                    pointer.Segments[0].Value != "$defs"
+                    && pointer.Segments[0].Value != "definitions"
+                )
+            )
             {
-                throw new JsonSchemaConvertException("Reference uri must point to a definition in $defs/definitions to be used as TypeName");
+                throw new JsonSchemaConvertException(
+                    "Reference uri must point to a definition in $defs/definitions to be used as TypeName"
+                );
             }
 
             return new XmlQualifiedName(pointer.Segments[1].Value);
         }
 
-        private static XmlQualifiedName GetTypeNameFromArray(JsonSchema schema, WorkList<IJsonSchemaKeyword> keywords)
+        private static XmlQualifiedName GetTypeNameFromArray(
+            JsonSchema schema,
+            WorkList<IJsonSchemaKeyword> keywords
+        )
         {
             if (schema.TryGetKeyword<TypeKeyword>(out TypeKeyword typeKeyword))
             {
@@ -1388,8 +1716,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             // Nillable array
             if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
             {
-                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-                return GetTypeNameFromReference(refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference);
+                var refKeywordSubSchema = oneOfKeyword.Schemas.FirstOrDefault(s =>
+                    s.Keywords.HasKeyword<RefKeyword>()
+                );
+                return GetTypeNameFromReference(
+                    refKeywordSubSchema.GetKeywordOrNull<RefKeyword>().Reference
+                );
             }
 
             return new XmlQualifiedName();
@@ -1488,13 +1820,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return type switch
             {
                 SchemaValueType.Boolean => xsdType == XmlSchemaTypes.Boolean,
-                SchemaValueType.String => XmlSchemaTypes.AllKnownTypes
-                    .Except(XmlSchemaTypes.AllNumericTypes)
+                SchemaValueType.String => XmlSchemaTypes
+                    .AllKnownTypes.Except(XmlSchemaTypes.AllNumericTypes)
                     .Except(new List<string> { XmlSchemaTypes.Boolean })
                     .Contains(xsdType),
-                SchemaValueType.Number => XmlSchemaTypes.NumericTypesWithFractions.Contains(xsdType),
+                SchemaValueType.Number => XmlSchemaTypes.NumericTypesWithFractions.Contains(
+                    xsdType
+                ),
                 SchemaValueType.Integer => XmlSchemaTypes.IntegerDataTypes.Contains(xsdType),
-                _ => false
+                _ => false,
             };
         }
 
@@ -1507,7 +1841,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SchemaValueType.Number => XmlSchemaTypes.Double,
                 SchemaValueType.Integer => XmlSchemaTypes.Long,
                 // Fallback to open string value
-                _ => "string"
+                _ => "string",
             };
         }
 
@@ -1520,13 +1854,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 "time" => XmlSchemaTypes.Time,
                 "uri" => XmlSchemaTypes.AnyUri,
                 // Fallback to open string value
-                _ => XmlSchemaTypes.String
+                _ => XmlSchemaTypes.String,
             };
         }
 
         private static int GetKeywordSubSchemaIndex<T>(IReadOnlyList<JsonSchema> schemas)
         {
-            return schemas.Select((schema, idx) => (schema, idx)).Where(x => x.schema.HasKeyword<T>()).Select(x => x.idx).Single();
+            return schemas
+                .Select((schema, idx) => (schema, idx))
+                .Where(x => x.schema.HasKeyword<T>())
+                .Select(x => x.idx)
+                .Single();
         }
 
         private static bool IsNumericXmlSchemaType(XmlQualifiedName type)

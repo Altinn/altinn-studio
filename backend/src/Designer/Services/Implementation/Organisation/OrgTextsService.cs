@@ -24,11 +24,17 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public async Task<TextResource> GetText(string org, string developer, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<TextResource> GetText(
+        string org,
+        string developer,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
 
@@ -36,51 +42,86 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public async Task SaveText(string org, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default)
+    public async Task SaveText(
+        string org,
+        string developer,
+        TextResource textResource,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
+        string[] duplicateKeys = textResource
+            .Resources.GroupBy(tre => tre.Id)
+            .Where(grp => grp.Count() > 1)
+            .Select(grp => grp.Key)
+            .ToArray();
         if (duplicateKeys.Length > 0)
         {
             throw new ArgumentException(
-                $"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+                $"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}"
+            );
         }
 
         await altinnOrgGitRepository.SaveText(languageCode, textResource, cancellationToken);
     }
 
-
     /// <inheritdoc />
-    public async Task UpdateTextsForKeys(string org, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
+    public async Task UpdateTextsForKeys(
+        string org,
+        string developer,
+        Dictionary<string, string> keysTexts,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        TextResource textResourceObject = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
+        TextResource textResourceObject = await altinnOrgGitRepository.GetText(
+            languageCode,
+            cancellationToken
+        );
 
         // handle if file not already exist
         foreach (KeyValuePair<string, string> kvp in keysTexts)
         {
-            TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+            TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(
+                textResourceElement => textResourceElement.Id == kvp.Key
+            );
             if (textResourceContainsKey is null)
             {
-                textResourceObject.Resources.Insert(0, new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                textResourceObject.Resources.Insert(
+                    0,
+                    new TextResourceElement() { Id = kvp.Key, Value = kvp.Value }
+                );
             }
             else
             {
-                int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
+                int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(
+                    textResourceContainsKey
+                );
                 if (textResourceContainsKey.Variables == null)
                 {
-                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                    textResourceObject.Resources[indexTextResourceElementUpdateKey] =
+                        new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
                 }
                 else
                 {
                     List<TextResourceVariable> variables = textResourceContainsKey.Variables;
-                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value, Variables = variables };
+                    textResourceObject.Resources[indexTextResourceElementUpdateKey] =
+                        new TextResourceElement
+                        {
+                            Id = kvp.Key,
+                            Value = kvp.Value,
+                            Variables = variables,
+                        };
                 }
             }
         }
@@ -89,7 +130,11 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public async Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<string>> GetTextIds(
+        string org,
+        string developer,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -97,8 +142,15 @@ public class OrgTextsService : IOrgTextsService
         List<string> languages = GetLanguages(org, developer, cancellationToken);
         foreach (string languageCode in languages)
         {
-            TextResource textResource = await GetText(org, developer, languageCode, cancellationToken);
-            List<string> textIds = textResource.Resources.Select(textResourceElement => textResourceElement.Id).ToList();
+            TextResource textResource = await GetText(
+                org,
+                developer,
+                languageCode,
+                cancellationToken
+            );
+            List<string> textIds = textResource
+                .Resources.Select(textResourceElement => textResourceElement.Id)
+                .ToList();
             textKeys.AddRange(textIds);
         }
 
@@ -106,12 +158,17 @@ public class OrgTextsService : IOrgTextsService
     }
 
     /// <inheritdoc />
-    public List<string> GetLanguages(string org, string developer, CancellationToken cancellationToken = default)
+    public List<string> GetLanguages(
+        string org,
+        string developer,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         return altinnOrgGitRepository.GetLanguages();
     }

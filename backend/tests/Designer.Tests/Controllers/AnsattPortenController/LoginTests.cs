@@ -9,22 +9,28 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AnsattPortenController;
 
-public class LoginTests : AnsattPortenControllerTestsBase<LoginTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LoginTests
+    : AnsattPortenControllerTestsBase<LoginTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix => "/designer/api/ansattporten/login";
 
-    public LoginTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public LoginTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("/test", HttpStatusCode.Redirect)]
     [InlineData("/", HttpStatusCode.Redirect)]
     [InlineData("https://docs.altinn.studio/", HttpStatusCode.Forbidden)]
-    public async Task LoginShouldReturn_ExpectedCode(string redirectTo, HttpStatusCode expectedStatusCode)
+    public async Task LoginShouldReturn_ExpectedCode(
+        string redirectTo,
+        HttpStatusCode expectedStatusCode
+    )
     {
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get
-            , $"{VersionPrefix}?redirect_to={redirectTo}");
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{VersionPrefix}?redirect_to={redirectTo}"
+        );
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(expectedStatusCode, response.StatusCode);

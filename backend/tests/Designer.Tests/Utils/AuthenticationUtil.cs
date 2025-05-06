@@ -28,40 +28,60 @@ namespace Designer.Tests.Utils
             return null;
         }
 
-        internal static Mock<IHttpContextAccessor> GetAuthenticatedHttpContextAccessor(string userName = "testUser")
+        internal static Mock<IHttpContextAccessor> GetAuthenticatedHttpContextAccessor(
+            string userName = "testUser"
+        )
         {
             var httpContextAccessor = new Mock<IHttpContextAccessor>();
 
             MockUserPrincipal(httpContextAccessor, userName);
-            MockHttpContextGetToken(httpContextAccessor, "access_token", "testToken", null, userName);
+            MockHttpContextGetToken(
+                httpContextAccessor,
+                "access_token",
+                "testToken",
+                null,
+                userName
+            );
 
             return httpContextAccessor;
         }
 
         private static void MockHttpContextGetToken(
             Mock<IHttpContextAccessor> httpContextAccessorMock,
-            string tokenName, string tokenValue, string scheme = null, string username = "testUser")
+            string tokenName,
+            string tokenValue,
+            string scheme = null,
+            string username = "testUser"
+        )
         {
             var authenticationServiceMock = new Mock<IAuthenticationService>();
             httpContextAccessorMock
-                .Setup(x => x.HttpContext.RequestServices.GetService(typeof(IAuthenticationService)))
+                .Setup(x =>
+                    x.HttpContext.RequestServices.GetService(typeof(IAuthenticationService))
+                )
                 .Returns(authenticationServiceMock.Object);
 
             var authResult = AuthenticateResult.Success(
-                new AuthenticationTicket(GetTestClaimsPrincipal(username), scheme));
+                new AuthenticationTicket(GetTestClaimsPrincipal(username), scheme)
+            );
 
-            authResult.Properties.StoreTokens([
-                new AuthenticationToken { Name = tokenName, Value = tokenValue }
-            ]);
+            authResult.Properties.StoreTokens(
+                [new AuthenticationToken { Name = tokenName, Value = tokenValue }]
+            );
 
             authenticationServiceMock
                 .Setup(x => x.AuthenticateAsync(httpContextAccessorMock.Object.HttpContext, scheme))
                 .ReturnsAsync(authResult);
         }
 
-        private static void MockUserPrincipal(Mock<IHttpContextAccessor> httpContextAccessorMock, string userName = "testUser")
+        private static void MockUserPrincipal(
+            Mock<IHttpContextAccessor> httpContextAccessorMock,
+            string userName = "testUser"
+        )
         {
-            httpContextAccessorMock.Setup(req => req.HttpContext.User).Returns(() => GetTestClaimsPrincipal(userName));
+            httpContextAccessorMock
+                .Setup(req => req.HttpContext.User)
+                .Returns(() => GetTestClaimsPrincipal(userName));
         }
 
         private static ClaimsPrincipal GetTestClaimsPrincipal(string userName)

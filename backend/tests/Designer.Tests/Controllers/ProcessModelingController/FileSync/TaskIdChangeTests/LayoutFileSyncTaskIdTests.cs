@@ -16,11 +16,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutFileSyncTaskIdTests
+    : DesignerEndpointsTestsBase<LayoutFileSyncTaskIdTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public LayoutFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public LayoutFileSyncTaskIdTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private static string GetVersionPrefix(string org, string repository)
     {
@@ -34,13 +35,15 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         string app,
         string developer,
         string bpmnFilePath,
-        ProcessDefinitionMetadata metadata)
+        ProcessDefinitionMetadata metadata
+    )
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath)
+        string processContent = SharedResourcesHelper
+            .LoadTestDataAsString(bpmnFilePath)
             .Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
 
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
@@ -49,10 +52,17 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
 
         using var form = new MultipartFormDataContent();
         form.Add(new StreamContent(processStream), "content", "process.bpmn");
-        form.Add(new StringContent(
-            JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
-            Encoding.UTF8,
-            MediaTypeNames.Application.Json), "metadata");
+        form.Add(
+            new StringContent(
+                JsonSerializer.Serialize(
+                    metadata,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                ),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+            "metadata"
+        );
 
         // Act
         using var response = await HttpClient.PutAsync(url, form);
@@ -61,7 +71,12 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string layoutFilePath = "App/ui/layoutSet2/layouts/layoutFile2InSet2.json";
-        string layoutContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutFilePath);
+        string layoutContent = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            layoutFilePath
+        );
 
         JsonNode layout = JsonSerializer.Deserialize<JsonNode>(layoutContent);
         string newTaskId = layout["data"]?["layout"]?[0]?["target"]?["taskId"]?.ToString();
@@ -77,16 +92,23 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         string app,
         string developer,
         string bpmnFilePath,
-        ProcessDefinitionMetadata metadata)
+        ProcessDefinitionMetadata metadata
+    )
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         string layoutPath = "App/ui/layoutSet2/layouts/layoutFile2InSet2.json";
-        string layoutBeforeUpdate = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutPath);
+        string layoutBeforeUpdate = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            layoutPath
+        );
 
-        string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath)
+        string processContent = SharedResourcesHelper
+            .LoadTestDataAsString(bpmnFilePath)
             .Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
 
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
@@ -95,10 +117,17 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
 
         using var form = new MultipartFormDataContent();
         form.Add(new StreamContent(processStream), "content", "process.bpmn");
-        form.Add(new StringContent(
-            JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
-            Encoding.UTF8,
-            MediaTypeNames.Application.Json), "metadata");
+        form.Add(
+            new StringContent(
+                JsonSerializer.Serialize(
+                    metadata,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                ),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+            "metadata"
+        );
 
         // Act
         using var response = await HttpClient.PutAsync(url, form);
@@ -106,7 +135,12 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutAfterUpdate = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutPath);
+        string layoutAfterUpdate = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            layoutPath
+        );
         Assert.Equal(layoutBeforeUpdate, layoutAfterUpdate);
     }
 
@@ -117,18 +151,28 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         {
             "ttd",
             "app-with-layoutsets",
-            "testUser", "App/config/process/process.bpmn",
-            new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" } }
+            "testUser",
+            "App/config/process/process.bpmn",
+            new ProcessDefinitionMetadata
+            {
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" },
+            },
         };
     }
 
     public static IEnumerable<object[]> GetUnreferencedTaskIdTestData()
     {
         // "Task_2" is not targeted by Summary2 component in "app-with-layoutsets"
-        yield return new object[] { "ttd",
+        yield return new object[]
+        {
+            "ttd",
             "app-with-layoutsets",
             "testUser",
             "App/config/process/process.bpmn",
-            new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_2", NewId = "SomeNewId" } } };
+            new ProcessDefinitionMetadata
+            {
+                TaskIdChange = new TaskIdChange { OldId = "Task_2", NewId = "SomeNewId" },
+            },
+        };
     }
 }

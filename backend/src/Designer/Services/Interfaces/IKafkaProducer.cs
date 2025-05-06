@@ -6,5 +6,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IKafkaProducer
 {
-    Task<StudioStatisticsModel> ProduceAsync(StudioStatisticsModel studioStatisticsModel, CancellationToken cancellationToken = default);
+    Task<StudioStatisticsModel> ProduceAsync(
+        StudioStatisticsModel studioStatisticsModel,
+        CancellationToken cancellationToken = default
+    );
 }

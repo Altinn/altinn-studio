@@ -52,28 +52,43 @@ namespace Designer.Tests.Services
                 TagName = "1",
                 Name = "1",
                 Body = "test-app",
-                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5"
+                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
             };
 
             List<string> buildStatus = new()
-                {
-                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
-                };
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
 
             List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
-            _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
-            _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
+            _releaseRepository
+                .Setup(r =>
+                    r.Get(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        buildStatus,
+                        buildResult
+                    )
+                )
+                .ReturnsAsync(new List<ReleaseEntity>());
+            _releaseRepository
+                .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+                .ReturnsAsync(GetReleases("createdRelease.json").First());
 
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient
+                .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()))
+                .ReturnsAsync(GetBuild());
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings);
+                _generalSettings
+            );
 
             // Act
             ReleaseEntity result = await releaseService.CreateAsync(releaseEntity);
@@ -87,9 +102,22 @@ namespace Designer.Tests.Services
                 Assert.NotNull(property.GetValue(result));
             }
 
-            _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult), Times.Once);
+            _releaseRepository.Verify(
+                r =>
+                    r.Get(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        buildStatus,
+                        buildResult
+                    ),
+                Times.Once
+            );
             _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Once);
-            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
+            _azureDevOpsBuildClient.Verify(
+                b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -101,30 +129,36 @@ namespace Designer.Tests.Services
                 TagName = "1",
                 Name = "1",
                 Body = "test-app",
-                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5"
+                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
             };
 
             List<string> buildStatus = new()
-                {
-                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
-                };
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
 
             List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
-            _releaseRepository.Setup(r => r.Get(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                buildStatus,
-                buildResult)).ReturnsAsync(GetReleases("createdRelease.json"));
+            _releaseRepository
+                .Setup(r =>
+                    r.Get(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        buildStatus,
+                        buildResult
+                    )
+                )
+                .ReturnsAsync(GetReleases("createdRelease.json"));
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings);
+                _generalSettings
+            );
 
             // Act
             HttpRequestWithStatusException resultException = null;
@@ -146,51 +180,84 @@ namespace Designer.Tests.Services
         public async Task GetAsync_OK()
         {
             // Arrange
-            _releaseRepository.Setup(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetReleases("completedReleases.json"));
+            _releaseRepository
+                .Setup(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(GetReleases("completedReleases.json"));
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings);
+                _generalSettings
+            );
 
             // Act
-            SearchResults<ReleaseEntity> results = await releaseService.GetAsync(_org, _app, new DocumentQueryModel());
+            SearchResults<ReleaseEntity> results = await releaseService.GetAsync(
+                _org,
+                _app,
+                new DocumentQueryModel()
+            );
 
             // Assert
             Assert.Equal(5, results.Results.Count());
-            _releaseRepository.Verify(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
+            _releaseRepository.Verify(
+                r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>()),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task UpdateAsync_OK()
         {
             // Arrange
-            _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json"));
-            _releaseRepository.Setup(r => r.Update(It.IsAny<ReleaseEntity>())).Returns(Task.CompletedTask);
+            _releaseRepository
+                .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(GetReleases("createdRelease.json"));
+            _releaseRepository
+                .Setup(r => r.Update(It.IsAny<ReleaseEntity>()))
+                .Returns(Task.CompletedTask);
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
                 _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings);
+                _generalSettings
+            );
 
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
+            _azureDevOpsBuildClient
+                .Setup(adob => adob.Get(It.IsAny<string>()))
+                .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
-            await releaseService.UpdateAsync(GetReleases("createdRelease.json").First().Build.Id, "ttd");
+            await releaseService.UpdateAsync(
+                GetReleases("createdRelease.json").First().Build.Id,
+                "ttd"
+            );
 
             // Assert
-            _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _releaseRepository.Verify(
+                r => r.Get(It.IsAny<string>(), It.IsAny<string>()),
+                Times.Once
+            );
             _releaseRepository.Verify(r => r.Update(It.IsAny<ReleaseEntity>()), Times.Once);
         }
 
         private static List<ReleaseEntity> GetReleases(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "ReleasesCollection",
+                filename
+            );
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -206,7 +273,7 @@ namespace Designer.Tests.Services
             {
                 Id = 1,
                 Status = BuildStatus.None,
-                StartTime = DateTime.Now
+                StartTime = DateTime.Now,
             };
         }
 
@@ -216,7 +283,7 @@ namespace Designer.Tests.Services
             {
                 BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
                 BuildDefinitionId = 69,
-                DeployDefinitionId = 81
+                DeployDefinitionId = 81,
             };
         }
     }

@@ -7,26 +7,34 @@ using Xunit;
 
 namespace DataModeling.Tests
 {
-    public class AltinnJsonSchemaValidationTests : SchemaConversionTestsBase<AltinnJsonSchemaValidationTests>
+    public class AltinnJsonSchemaValidationTests
+        : SchemaConversionTestsBase<AltinnJsonSchemaValidationTests>
     {
         private JsonSchemaValidationResult ValidationResult { get; set; }
 
         [Theory]
-        [MemberData(nameof(AltinnJsonSchemaValidationTestData.ValidSchemas), MemberType = typeof(AltinnJsonSchemaValidationTestData))]
+        [MemberData(
+            nameof(AltinnJsonSchemaValidationTestData.ValidSchemas),
+            MemberType = typeof(AltinnJsonSchemaValidationTestData)
+        )]
         public void ValidJsonSchema_ShouldNotHave_ValidationIssues(string jsonSchemaPath)
         {
-            When.JsonSchemaLoaded(jsonSchemaPath)
-                .And.LoadedJsonSchemaValidated();
+            When.JsonSchemaLoaded(jsonSchemaPath).And.LoadedJsonSchemaValidated();
 
             Assert.True(ValidationResult.IsValid);
         }
 
         [Theory]
-        [MemberData(nameof(AltinnJsonSchemaValidationTestData.InvalidSchemas), MemberType = typeof(AltinnJsonSchemaValidationTestData))]
-        public void InvalidJsonSchema_ShouldHave_ValidationIssues(string jsonSchemaPath, params Tuple<string, string>[] expectedValidationIssues)
+        [MemberData(
+            nameof(AltinnJsonSchemaValidationTestData.InvalidSchemas),
+            MemberType = typeof(AltinnJsonSchemaValidationTestData)
+        )]
+        public void InvalidJsonSchema_ShouldHave_ValidationIssues(
+            string jsonSchemaPath,
+            params Tuple<string, string>[] expectedValidationIssues
+        )
         {
-            When.JsonSchemaLoaded(jsonSchemaPath)
-                .And.LoadedJsonSchemaValidated();
+            When.JsonSchemaLoaded(jsonSchemaPath).And.LoadedJsonSchemaValidated();
 
             Assert.False(ValidationResult.IsValid);
 
@@ -34,7 +42,12 @@ namespace DataModeling.Tests
 
             foreach ((string expectedPointer, string expectedCode) in expectedValidationIssues)
             {
-                Assert.Contains(ValidationResult.ValidationIssues, x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
+                Assert.Contains(
+                    ValidationResult.ValidationIssues,
+                    x =>
+                        x.ErrorCode == expectedCode
+                        && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer)
+                );
             }
         }
 

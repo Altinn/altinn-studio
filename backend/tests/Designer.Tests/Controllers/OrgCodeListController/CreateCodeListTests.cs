@@ -15,11 +15,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class CreateCodeListTests
+    : DesignerEndpointsTestsBase<CreateCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public CreateCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public CreateCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
@@ -36,20 +37,34 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string CodeListJson = @"[
+        const string CodeListJson =
+            @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
-        httpRequestMessage.Content = new StringContent(CodeListJson, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            CodeListJson,
+            Encoding.UTF8,
+            "application/json"
+        );
         List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(CodeListJson);
-        List<OptionListData> expectedResponse = new([
-            new OptionListData {Title = CodeListId, Data = codeListToCreate, HasError = false}
-        ]);
+        List<OptionListData> expectedResponse = new(
+            [
+                new OptionListData
+                {
+                    Title = CodeListId,
+                    Data = codeListToCreate,
+                    HasError = false,
+                },
+            ]
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(
+            responseBody
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -76,13 +91,18 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string StringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        httpRequestMessage.Content = new StringContent(StringBoolNumbersCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            StringBoolNumbersCodeList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -101,10 +121,15 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string EmptyStringCodeList = @"[
+        const string EmptyStringCodeList =
+            @"[
             { ""label"": """", ""value"": """" },
         ]";
-        httpRequestMessage.Content = new StringContent(EmptyStringCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            EmptyStringCodeList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -147,19 +172,27 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string InvalidCodeList = @"[
+        const string InvalidCodeList =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
-        httpRequestMessage.Content = new StringContent(InvalidCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            InvalidCodeList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(problemDetails);
-        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        JsonElement errorCode = (JsonElement)
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
         Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 
@@ -173,12 +206,17 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string CodeListWithMissingFields = @"[
+        const string CodeListWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },
         ]";
-        httpRequestMessage.Content = new StringContent(CodeListWithMissingFields, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            CodeListWithMissingFields,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -202,5 +240,6 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
         Assert.Contains("The field is required.", labelNullErrors[0].GetString());
     }
 
-    private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+    private static string ApiUrl(string targetOrg) =>
+        $"designer/api/{targetOrg}/code-lists/{CodeListId}";
 }

@@ -14,12 +14,19 @@ public class JsonSchemaNavigationExtensionsTests
             .Schema(MetaSchemas.Draft201909Id)
             .Ref("#/$defs/test/items/properties/test")
             .Defs(
-                ("test", new JsonSchemaBuilder()
-                    .Items(new JsonSchemaBuilder()
-                        .Properties(
-                            ("test", new JsonSchemaBuilder().Type(SchemaValueType.String))))));
+                (
+                    "test",
+                    new JsonSchemaBuilder().Items(
+                        new JsonSchemaBuilder().Properties(
+                            ("test", new JsonSchemaBuilder().Type(SchemaValueType.String))
+                        )
+                    )
+                )
+            );
 
-        var result = schema.FollowReference(JsonPointer.Parse(@"#/$defs/test/items/properties/test"));
+        var result = schema.FollowReference(
+            JsonPointer.Parse(@"#/$defs/test/items/properties/test")
+        );
 
         Assert.NotNull(result);
     }

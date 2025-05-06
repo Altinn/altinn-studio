@@ -20,15 +20,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
+public class GetDeployments
+    : DbDesignerEndpointsTestsBase<GetDeployments>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
+    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock =
+        new Mock<IKubernetesDeploymentsService>();
 
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/deployments";
 
-    public GetDeployments(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture) : base(factory, designerDbFixture)
-    {
-    }
+    public GetDeployments(
+        WebApplicationFactory<Program> factory,
+        DesignerDbFixture designerDbFixture
+    )
+        : base(factory, designerDbFixture) { }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
@@ -42,8 +48,12 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
     {
         // Arrange
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
-        List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
-        List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeploymentsList("completedDeployments.json");
+        List<DeploymentEntity> completedDeployments = GetDeploymentsList(
+            "completedDeployments.json"
+        );
+        List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeploymentsList(
+            "completedDeployments.json"
+        );
 
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
 
@@ -56,7 +66,10 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(responseString, JsonSerializerOptions);
+        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(
+            responseString,
+            JsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -72,25 +85,47 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
 
     private List<DeploymentEntity> GetDeploymentsList(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", filename);
+        string path = Path.Combine(
+            UnitTestsFolder,
+            "..",
+            "..",
+            "..",
+            "_TestData",
+            "Deployments",
+            filename
+        );
         if (!File.Exists(path))
         {
             return null;
         }
 
         string deployments = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<List<DeploymentEntity>>(
+            deployments,
+            JsonSerializerOptions
+        );
     }
 
     private List<KubernetesDeployment> GetKubernetesDeploymentsList(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
+        string path = Path.Combine(
+            UnitTestsFolder,
+            "..",
+            "..",
+            "..",
+            "_TestData",
+            "KubernetesDeployments",
+            filename
+        );
         if (!File.Exists(path))
         {
             return null;
         }
 
         string deployments = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<List<KubernetesDeployment>>(deployments, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<List<KubernetesDeployment>>(
+            deployments,
+            JsonSerializerOptions
+        );
     }
 }

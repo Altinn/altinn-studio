@@ -5,6 +5,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Slack
 {
     public interface ISlackClient
     {
-        public Task SendMessage(SlackRequest request, CancellationToken cancellationToken = default);
+        public Task SendMessage(
+            SlackRequest request,
+            CancellationToken cancellationToken = default
+        );
     }
 }

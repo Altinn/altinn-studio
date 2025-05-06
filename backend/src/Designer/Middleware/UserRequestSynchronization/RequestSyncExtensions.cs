@@ -16,17 +16,23 @@ public static class RequestSyncExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
     /// <param name="configuration">An <see cref="IConfiguration"/> holding the configuration of the project.</param>
     /// <returns>A reference to this instance after the operation has completed.</returns>
-    public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterSynchronizationServices(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services.AddSingleton<IRequestSyncResolver, RequestSyncResolver>();
         services.AddSingleton<IEditingContextResolver, EditingContextResolver>();
         services.RegisterSingletonServicesByBaseType<IRequestSyncEvaluator>();
         services.AddSingleton<IDistributedLockProvider>(_ =>
         {
-            PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-            return new PostgresDistributedSynchronizationProvider(postgresSettings.FormattedConnectionString());
+            PostgreSQLSettings postgresSettings = configuration
+                .GetSection(nameof(PostgreSQLSettings))
+                .Get<PostgreSQLSettings>();
+            return new PostgresDistributedSynchronizationProvider(
+                postgresSettings.FormattedConnectionString()
+            );
         });
         return services;
     }
-
 }

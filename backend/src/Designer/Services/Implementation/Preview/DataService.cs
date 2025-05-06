@@ -8,9 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Preview;
 
-public class DataService(
-        IDistributedCache distributedCache
-) : IDataService
+public class DataService(IDistributedCache distributedCache) : IDataService
 {
     readonly DistributedCacheEntryOptions _cacheOptions = new()
     {
@@ -50,8 +48,11 @@ public class DataService(
             throw new InvalidOperationException("Patch operation failed." + patchResult.Error);
         }
         dataNode = patchResult.Result;
-        distributedCache.SetString(dataGuid.ToString(), JsonSerializer.Serialize(dataNode), _cacheOptions);
+        distributedCache.SetString(
+            dataGuid.ToString(),
+            JsonSerializer.Serialize(dataNode),
+            _cacheOptions
+        );
         return dataNode;
     }
-
 }

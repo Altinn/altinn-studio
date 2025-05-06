@@ -22,10 +22,14 @@ namespace SharedResources.Tests
 
         public XmlSchemaValidator(Stream xsdStream)
         {
-            _xmlSchema = XmlSchema.Read(xsdStream, new ValidationEventHandler(ValidationEventHandler));
+            _xmlSchema = XmlSchema.Read(
+                xsdStream,
+                new ValidationEventHandler(ValidationEventHandler)
+            );
         }
 
-        public List<ValidationEventArgs> ValidationErrors { get; private set; } = new List<ValidationEventArgs>();
+        public List<ValidationEventArgs> ValidationErrors { get; private set; } =
+            new List<ValidationEventArgs>();
 
         public bool ValidationSucceeded { get; private set; } = true;
 
@@ -39,7 +43,9 @@ namespace SharedResources.Tests
             XmlDocument document = new XmlDocument();
             document.Load(reader);
             document.Schemas.Add(_xmlSchema);
-            ValidationEventHandler eventHandler = new ValidationEventHandler(ValidationEventHandler);
+            ValidationEventHandler eventHandler = new ValidationEventHandler(
+                ValidationEventHandler
+            );
 
             ValidationSucceeded = true;
             document.Validate(eventHandler);

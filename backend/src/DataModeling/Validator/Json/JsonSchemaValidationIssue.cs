@@ -7,6 +7,7 @@
             IssuePointer = issuePointer;
             ErrorCode = errorCode;
         }
+
         public string IssuePointer { get; }
         public string ErrorCode { get; }
     }

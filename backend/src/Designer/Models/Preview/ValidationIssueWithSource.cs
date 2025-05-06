@@ -13,7 +13,11 @@ public class ValidationIssueWithSource
     /// <summary>
     /// Converter function to create a <see cref="ValidationIssueWithSource"/> from a <see cref="ValidationIssue"/> and adding a source.
     /// </summary>
-    public static ValidationIssueWithSource FromIssue(ValidationIssue issue, string source, bool noIncrementalUpdates)
+    public static ValidationIssueWithSource FromIssue(
+        ValidationIssue issue,
+        string source,
+        bool noIncrementalUpdates
+    )
     {
         return new ValidationIssueWithSource
         {

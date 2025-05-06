@@ -8,19 +8,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class DeleteAttachmentTests : PreviewControllerTestsBase<DeleteAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DeleteAttachmentTests
+        : PreviewControllerTestsBase<DeleteAttachmentTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public DeleteAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public DeleteAttachmentTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Delete_Attachment_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/data/asdf";
+            string dataPathWithData =
+                $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/data/asdf";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -31,7 +34,8 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             Instance instance = await CreateInstance();
             DataElement dataElement = await CreateDataElement(instance, "attachment");
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
+            string dataPathWithData =
+                $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

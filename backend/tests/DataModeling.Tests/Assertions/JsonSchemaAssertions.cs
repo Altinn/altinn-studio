@@ -23,10 +23,15 @@ namespace DataModeling.Tests.Assertions
 
             foreach (IJsonSchemaKeyword expectedKeyword in expected.Keywords)
             {
-                IJsonSchemaKeyword actualKeyword = actual.Keywords!.SingleOrDefault(kw => string.Equals(expectedKeyword.Keyword(), kw.Keyword()));
+                IJsonSchemaKeyword actualKeyword = actual.Keywords!.SingleOrDefault(kw =>
+                    string.Equals(expectedKeyword.Keyword(), kw.Keyword())
+                );
                 if (actualKeyword == null)
                 {
-                    throw ContainsException.ForCollectionItemNotFound(expectedKeyword.Keyword(), string.Join(',', actual.Keywords.Select(x => x.Keyword())));
+                    throw ContainsException.ForCollectionItemNotFound(
+                        expectedKeyword.Keyword(),
+                        string.Join(',', actual.Keywords.Select(x => x.Keyword()))
+                    );
                 }
 
                 IsEquivalentTo(expectedKeyword, actualKeyword);
@@ -34,10 +39,15 @@ namespace DataModeling.Tests.Assertions
 
             foreach (IJsonSchemaKeyword actualKeyword in actual.Keywords!)
             {
-                IJsonSchemaKeyword expectedKeyword = expected.Keywords.SingleOrDefault(kw => string.Equals(actualKeyword.Keyword(), kw.Keyword()));
+                IJsonSchemaKeyword expectedKeyword = expected.Keywords.SingleOrDefault(kw =>
+                    string.Equals(actualKeyword.Keyword(), kw.Keyword())
+                );
                 if (expectedKeyword == null)
                 {
-                    throw DoesNotContainException.ForKeyFound(actualKeyword.Keyword(), string.Join(',', expected.Keywords.Select(x => x.Keyword())));
+                    throw DoesNotContainException.ForKeyFound(
+                        actualKeyword.Keyword(),
+                        string.Join(',', expected.Keywords.Select(x => x.Keyword()))
+                    );
                 }
 
                 IsEquivalentTo(expectedKeyword, actualKeyword);
@@ -294,21 +304,33 @@ namespace DataModeling.Tests.Assertions
                     KeywordEqual(expectedKeyword, (XsdNillableKeyword)actual);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(expected.GetType().Name, "Unknown Json Schema Keyword");
+                    throw new ArgumentOutOfRangeException(
+                        expected.GetType().Name,
+                        "Unknown Json Schema Keyword"
+                    );
             }
         }
 
-        private static void KeywordEqual(AdditionalItemsKeyword expected, AdditionalItemsKeyword actual)
+        private static void KeywordEqual(
+            AdditionalItemsKeyword expected,
+            AdditionalItemsKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(XsdUnhandledEnumAttributesKeyword expected, XsdUnhandledEnumAttributesKeyword actual)
+        private static void KeywordEqual(
+            XsdUnhandledEnumAttributesKeyword expected,
+            XsdUnhandledEnumAttributesKeyword actual
+        )
         {
             Assert.True(expected.Equals(actual));
         }
 
-        private static void KeywordEqual(AdditionalPropertiesKeyword expected, AdditionalPropertiesKeyword actual)
+        private static void KeywordEqual(
+            AdditionalPropertiesKeyword expected,
+            AdditionalPropertiesKeyword actual
+        )
         {
             IsEquivalentTo(expected.Schema, actual.Schema);
         }
@@ -347,7 +369,10 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(ContentMediaTypeKeyword expected, ContentMediaTypeKeyword actual)
+        private static void KeywordEqual(
+            ContentMediaTypeKeyword expected,
+            ContentMediaTypeKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
@@ -368,7 +393,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
                 {
-                    throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        key,
+                        string.Join(',', actual.Definitions.Select(x => x.Key))
+                    );
                 }
 
                 IsEquivalentTo(value, actualProperty);
@@ -378,7 +406,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Definitions.ContainsKey(key))
                 {
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Definitions.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Definitions.Select(x => x.Key))
+                    );
                 }
             }
         }
@@ -389,7 +420,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
                 {
-                    throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        key,
+                        string.Join(',', actual.Definitions.Select(x => x.Key))
+                    );
                 }
 
                 IsEquivalentTo(value, actualProperty);
@@ -399,7 +433,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Definitions.ContainsKey(key))
                 {
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Definitions.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Definitions.Select(x => x.Key))
+                    );
                 }
             }
         }
@@ -409,12 +446,18 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(DependentRequiredKeyword expected, DependentRequiredKeyword actual)
+        private static void KeywordEqual(
+            DependentRequiredKeyword expected,
+            DependentRequiredKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(DependentSchemasKeyword expected, DependentSchemasKeyword actual)
+        private static void KeywordEqual(
+            DependentSchemasKeyword expected,
+            DependentSchemasKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
@@ -450,7 +493,9 @@ namespace DataModeling.Tests.Assertions
 
             for (int i = 0; i < expected.Values.Count; i++)
             {
-                Assert.True(expected.Values.ElementAt(i).IsEquivalentTo(actual.Values.ElementAt(i)));
+                Assert.True(
+                    expected.Values.ElementAt(i).IsEquivalentTo(actual.Values.ElementAt(i))
+                );
             }
         }
 
@@ -459,12 +504,18 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(ExclusiveMaximumKeyword expected, ExclusiveMaximumKeyword actual)
+        private static void KeywordEqual(
+            ExclusiveMaximumKeyword expected,
+            ExclusiveMaximumKeyword actual
+        )
         {
             Assert.Equal(expected.Value, actual.Value);
         }
 
-        private static void KeywordEqual(ExclusiveMinimumKeyword expected, ExclusiveMinimumKeyword actual)
+        private static void KeywordEqual(
+            ExclusiveMinimumKeyword expected,
+            ExclusiveMinimumKeyword actual
+        )
         {
             Assert.Equal(expected.Value, actual.Value);
         }
@@ -577,7 +628,10 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Value.ToString(), actual.Value.ToString());
         }
 
-        private static void KeywordEqual(PatternPropertiesKeyword expected, PatternPropertiesKeyword actual)
+        private static void KeywordEqual(
+            PatternPropertiesKeyword expected,
+            PatternPropertiesKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
@@ -593,7 +647,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actual.Properties.TryGetValue(key, out JsonSchema actualProperty))
                 {
-                    throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Properties.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        key,
+                        string.Join(',', actual.Properties.Select(x => x.Key))
+                    );
                 }
 
                 IsEquivalentTo(value, actualProperty);
@@ -603,8 +660,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Properties.ContainsKey(key))
                 {
-
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Properties.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Properties.Select(x => x.Key))
+                    );
                 }
             }
         }
@@ -619,7 +678,10 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Value, actual.Value);
         }
 
-        private static void KeywordEqual(RecursiveAnchorKeyword expected, RecursiveAnchorKeyword actual)
+        private static void KeywordEqual(
+            RecursiveAnchorKeyword expected,
+            RecursiveAnchorKeyword actual
+        )
         {
             Assert.Equal(expected.Value, actual.Value);
         }
@@ -659,12 +721,18 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Type, actual.Type);
         }
 
-        private static void KeywordEqual(UnevaluatedItemsKeyword expected, UnevaluatedItemsKeyword actual)
+        private static void KeywordEqual(
+            UnevaluatedItemsKeyword expected,
+            UnevaluatedItemsKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(UnevaluatedPropertiesKeyword expected, UnevaluatedPropertiesKeyword actual)
+        private static void KeywordEqual(
+            UnevaluatedPropertiesKeyword expected,
+            UnevaluatedPropertiesKeyword actual
+        )
         {
             throw new NotImplementedException();
         }
@@ -689,7 +757,10 @@ namespace DataModeling.Tests.Assertions
             Assert.True(expected.Value.IsEquivalentTo(actual.Value));
         }
 
-        private static void KeywordEqual(XsdAnyAttributeKeyword expected, XsdAnyAttributeKeyword actual)
+        private static void KeywordEqual(
+            XsdAnyAttributeKeyword expected,
+            XsdAnyAttributeKeyword actual
+        )
         {
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Namespace, actual.Namespace);
@@ -706,7 +777,10 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Value, actual.Value);
         }
 
-        private static void KeywordEqual(XsdRestrictionsKeyword expected, XsdRestrictionsKeyword actual)
+        private static void KeywordEqual(
+            XsdRestrictionsKeyword expected,
+            XsdRestrictionsKeyword actual
+        )
         {
             Assert.Equal(expected.Restrictions.Count, actual.Restrictions.Count);
             for (int i = 0; i < expected.Restrictions.Count; i++)
@@ -728,7 +802,10 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Value, actual.Value);
         }
 
-        private static void KeywordEqual(XsdUnhandledAttributesKeyword expected, XsdUnhandledAttributesKeyword actual)
+        private static void KeywordEqual(
+            XsdUnhandledAttributesKeyword expected,
+            XsdUnhandledAttributesKeyword actual
+        )
         {
             Assert.Equal(expected.Properties.Count, expected.Properties.Count);
             for (int i = 0; i < expected.Properties.Count; i++)
@@ -748,7 +825,10 @@ namespace DataModeling.Tests.Assertions
             }
         }
 
-        private static void KeywordEqual(XsdSchemaAttributesKeyword expected, XsdSchemaAttributesKeyword actual)
+        private static void KeywordEqual(
+            XsdSchemaAttributesKeyword expected,
+            XsdSchemaAttributesKeyword actual
+        )
         {
             Assert.Equal(expected.Properties.Count, actual.Properties.Count);
             for (int i = 0; i < expected.Properties.Count; i++)
@@ -773,12 +853,18 @@ namespace DataModeling.Tests.Assertions
             Assert.True(expected.Equals(actual));
         }
 
-        private static void KeywordEqual(XsdTotalDigitsKeyword expected, XsdTotalDigitsKeyword actual)
+        private static void KeywordEqual(
+            XsdTotalDigitsKeyword expected,
+            XsdTotalDigitsKeyword actual
+        )
         {
             Assert.True(expected.Equals(actual));
         }
 
-        private static void KeywordEqual(XsdRootElementKeyword expected, XsdRootElementKeyword actual)
+        private static void KeywordEqual(
+            XsdRootElementKeyword expected,
+            XsdRootElementKeyword actual
+        )
         {
             Assert.True(expected.Equals(actual));
         }

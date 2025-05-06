@@ -29,7 +29,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="generalSettings">General settings for the applicatoin.</param>
         /// <param name="logger">Instance of <see cref="ILogger"/></param>
         /// <param name="httpContextAccessor">Instance of <see cref="IHttpContextAccessor"/></param>
-        public SourceControlLoggingDecorator(ISourceControl decoratedService, GeneralSettings generalSettings, ILogger<SourceControlLoggingDecorator> logger, IHttpContextAccessor httpContextAccessor)
+        public SourceControlLoggingDecorator(
+            ISourceControl decoratedService,
+            GeneralSettings generalSettings,
+            ILogger<SourceControlLoggingDecorator> logger,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _decoratedService = decoratedService;
             _generalSettings = generalSettings;
@@ -52,11 +57,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public Task<string> CloneRemoteRepository(
+            string org,
+            string repository,
+            string destinationPath,
+            string branchName = ""
+        )
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(org, repository, destinationPath, branchName);
+                return _decoratedService.CloneRemoteRepository(
+                    org,
+                    repository,
+                    destinationPath,
+                    branchName
+                );
             }
             catch (Exception ex)
             {
@@ -80,11 +95,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(
+            string org,
+            string repository,
+            string branchName,
+            string localPath,
+            string message
+        )
         {
             try
             {
-                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
+                return _decoratedService.CommitAndPushChanges(
+                    org,
+                    repository,
+                    branchName,
+                    localPath,
+                    message
+                );
             }
             catch (Exception ex)
             {
@@ -108,7 +135,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        public Task<bool> CreatePullRequest(
+            string org,
+            string repository,
+            string target,
+            string source,
+            string title
+        )
         {
             try
             {
@@ -313,11 +346,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LogError(ex, method, org, repository, repository, string.Empty);
         }
 
-        private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
+        private void LogError(
+            Exception ex,
+            string method,
+            string org,
+            string repository,
+            string destinationPath,
+            string branch
+        )
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
 
-            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
+            _logger.LogError(
+                ex,
+                $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}."
+            );
         }
     }
 }

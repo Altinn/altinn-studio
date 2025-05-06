@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models;
+
 public class FooterFile
 {
     [JsonPropertyName("$schema")]
@@ -36,15 +37,17 @@ public enum ComponentType
     Email,
     Link,
     Phone,
-    Text
+    Text,
 }
 
 public enum IconType
 {
     [EnumMember(Value = "information")]
     Information,
+
     [EnumMember(Value = "email")]
     Email,
+
     [EnumMember(Value = "phone")]
-    Phone
+    Phone,
 }

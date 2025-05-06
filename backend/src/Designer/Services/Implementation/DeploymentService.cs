@@ -54,7 +54,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger,
             IPublisher mediatr,
-            GeneralSettings generalSettings, TimeProvider timeProvider)
+            GeneralSettings generalSettings,
+            TimeProvider timeProvider
+        )
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -70,7 +72,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default)
+        public async Task<DeploymentEntity> CreateAsync(
+            string org,
+            string app,
+            DeploymentModel deployment,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             DeploymentEntity deploymentEntity = new();
@@ -78,43 +85,83 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
+            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
+                org,
+                app,
+                deploymentEntity.TagName
+            );
 
-            await _applicationInformationService
-                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName, cancellationToken);
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName);
+            await _applicationInformationService.UpdateApplicationInformationAsync(
+                org,
+                app,
+                release.TargetCommitish,
+                deployment.EnvName,
+                cancellationToken
+            );
+            Build queuedBuild = await QueueDeploymentBuild(
+                release,
+                deploymentEntity,
+                deployment.EnvName
+            );
 
             deploymentEntity.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
-                Started = queuedBuild.StartTime
+                Started = queuedBuild.StartTime,
             };
 
-
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-            await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy),
+                queuedBuild,
+                PipelineType.Deploy,
+                deployment.EnvName,
+                CancellationToken.None
+            );
             return createdEntity;
         }
 
         /// <inheritdoc/>
         /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
-        public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query, CancellationToken cancellationToken = default)
+        public async Task<SearchResults<DeploymentEntity>> GetAsync(
+            string org,
+            string app,
+            DocumentQueryModel query,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
+            List<DeploymentEntity> deploymentEntities = (
+                await _deploymentRepository.Get(org, app, query)
+            ).ToList();
 
-            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
-            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
+            IEnumerable<EnvironmentModel> environments =
+                await _environmentsService.GetOrganizationEnvironments(org);
+            List<string> environmentNames = environments
+                .Select(environment => environment.Name)
+                .ToList();
 
-            return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
+            return new SearchResults<DeploymentEntity>
+            {
+                Results = deploymentEntities
+                    .Where(item => environmentNames.Contains(item.EnvName))
+                    .ToList(),
+            };
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(string buildNumber, string appOwner, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(
+            string buildNumber,
+            string appOwner,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
+            DeploymentEntity deploymentEntity = await _deploymentRepository.Get(
+                appOwner,
+                buildNumber
+            );
 
             try
             {
@@ -130,7 +177,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (HttpRequestException)
             {
-                _logger.LogInformation("The requested build number {buildNumber} does not exist, updating it as failed in the database", buildNumber);
+                _logger.LogInformation(
+                    "The requested build number {buildNumber} does not exist, updating it as failed in the database",
+                    buildNumber
+                );
                 deploymentEntity.Build.Status = BuildStatus.Completed;
                 deploymentEntity.Build.Result = BuildResult.Failed;
                 deploymentEntity.Build.Finished = DateTime.UtcNow;
@@ -138,21 +188,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
-            CancellationToken cancellationToken = default)
+        public async Task UndeployAsync(
+            AltinnRepoEditingContext editingContext,
+            string env,
+            CancellationToken cancellationToken = default
+        )
         {
             Guard.AssertValidEnvironmentName(env);
             DecommissionBuildParameters decommissionBuildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppRepo = editingContext.Repo,
-                AppEnvironment = env
+                AppEnvironment = env,
             };
 
             // find the deployed tag
-            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(editingContext.Org, editingContext.Repo, env);
+            DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(
+                editingContext.Org,
+                editingContext.Repo,
+                env
+            );
 
-            var build = await _azureDevOpsBuildClient.QueueAsync(decommissionBuildParameters, _azureDevOpsSettings.DecommissionDefinitionId);
+            var build = await _azureDevOpsBuildClient.QueueAsync(
+                decommissionBuildParameters,
+                _azureDevOpsSettings.DecommissionDefinitionId
+            );
 
             DeploymentEntity deploymentEntity = new()
             {
@@ -163,29 +223,44 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     Id = build.Id.ToString(),
                     Status = build.Status,
-                    Started = build.StartTime
-                }
+                    Started = build.StartTime,
+                },
             };
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
-            await PublishDeploymentPipelineQueued(editingContext, build, PipelineType.Undeploy, env, CancellationToken.None);
+            await PublishDeploymentPipelineQueued(
+                editingContext,
+                build,
+                PipelineType.Undeploy,
+                env,
+                CancellationToken.None
+            );
         }
 
-        private async Task PublishDeploymentPipelineQueued(AltinnRepoEditingContext editingContext, Build build, PipelineType pipelineType, string environment,
-            CancellationToken cancellationToken) =>
-            await _mediatr.Publish(new DeploymentPipelineQueued
-            {
-                EditingContext = editingContext,
-                BuildId = build.Id,
-                PipelineType = pipelineType,
-                Environment = environment
-            }, cancellationToken);
+        private async Task PublishDeploymentPipelineQueued(
+            AltinnRepoEditingContext editingContext,
+            Build build,
+            PipelineType pipelineType,
+            string environment,
+            CancellationToken cancellationToken
+        ) =>
+            await _mediatr.Publish(
+                new DeploymentPipelineQueued
+                {
+                    EditingContext = editingContext,
+                    BuildId = build.Id,
+                    PipelineType = pipelineType,
+                    Environment = environment,
+                },
+                cancellationToken
+            );
 
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
-            string envName)
+            string envName
+        )
         {
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -197,12 +272,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TagName = deploymentEntity.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName
+                AltinnStudioHostname = _generalSettings.HostName,
             };
 
             return await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                _azureDevOpsSettings.DeployDefinitionId);
+                _azureDevOpsSettings.DeployDefinitionId
+            );
         }
     }
 }

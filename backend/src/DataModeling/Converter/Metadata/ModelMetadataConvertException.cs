@@ -9,18 +9,14 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
     public class MetamodelConvertException : Exception
     {
         /// <inheritdoc/>
-        public MetamodelConvertException()
-        {
-        }
+        public MetamodelConvertException() { }
 
         /// <inheritdoc/>
-        public MetamodelConvertException(string message) : base(message)
-        {
-        }
+        public MetamodelConvertException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public MetamodelConvertException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public MetamodelConvertException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

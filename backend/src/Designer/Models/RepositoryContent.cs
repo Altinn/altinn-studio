@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Models
     public class RepositoryContent
     {
         /// <summary>
-        /// Gets or sets the path of the file 
+        /// Gets or sets the path of the file
         /// </summary>
         public string FilePath { get; set; }
 

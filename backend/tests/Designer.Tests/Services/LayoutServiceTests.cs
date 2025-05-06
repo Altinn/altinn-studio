@@ -274,8 +274,8 @@ public class LayoutServiceTests
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
             await PrepareTestForRepo(Repo);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await layoutService.ConvertPagesToPageGroups(editingContext, "form")
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await layoutService.ConvertPagesToPageGroups(editingContext, "form")
         );
     }
 
@@ -286,8 +286,8 @@ public class LayoutServiceTests
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
             await PrepareTestForRepo(Repo);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")
         );
     }
 

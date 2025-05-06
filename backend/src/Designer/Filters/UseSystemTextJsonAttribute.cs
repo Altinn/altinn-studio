@@ -26,13 +26,15 @@ namespace Altinn.Studio.Designer.Filters
             PropertyNameCaseInsensitive = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
         };
 
         public void Apply(ActionModel action)
         {
             // Use System.Text.Json for all body parameters
-            var parameters = action.Parameters.Where(p => p.BindingInfo?.BindingSource == BindingSource.Body);
+            var parameters = action.Parameters.Where(p =>
+                p.BindingInfo?.BindingSource == BindingSource.Body
+            );
             foreach (var p in parameters)
             {
                 p.BindingInfo!.BinderType = typeof(SystemTextJsonBodyModelBinder);
@@ -46,8 +48,7 @@ namespace Altinn.Studio.Designer.Filters
             if (context.Result is ObjectResult objectResult)
             {
                 // remove Newtonsoft formatter
-                objectResult.Formatters
-                    .RemoveType<NewtonsoftJsonOutputFormatter>();
+                objectResult.Formatters.RemoveType<NewtonsoftJsonOutputFormatter>();
                 objectResult.Formatters.Add(formatter);
             }
             else
@@ -67,13 +68,20 @@ namespace Altinn.Studio.Designer.Filters
                 {
                     string body = await ReadBody(bindingContext.HttpContext.Request);
 
-                    object deserialized =
-                        JsonSerializer.Deserialize(body, bindingContext.ModelType, s_jsonSerializerOptions);
+                    object deserialized = JsonSerializer.Deserialize(
+                        body,
+                        bindingContext.ModelType,
+                        s_jsonSerializerOptions
+                    );
                     bindingContext.Result = ModelBindingResult.Success(deserialized!);
                 }
                 catch (Exception ex)
                 {
-                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, ex, bindingContext.ModelMetadata);
+                    bindingContext.ModelState.AddModelError(
+                        bindingContext.ModelName,
+                        ex,
+                        bindingContext.ModelMetadata
+                    );
                 }
             }
 
@@ -86,7 +94,8 @@ namespace Altinn.Studio.Designer.Filters
                     encoding: Encoding.UTF8,
                     detectEncodingFromByteOrderMarks: true,
                     bufferSize: 1024,
-                    leaveOpen: true);
+                    leaveOpen: true
+                );
 
                 string body = await reader.ReadToEndAsync();
                 request.Body.Seek(0, SeekOrigin.Begin);

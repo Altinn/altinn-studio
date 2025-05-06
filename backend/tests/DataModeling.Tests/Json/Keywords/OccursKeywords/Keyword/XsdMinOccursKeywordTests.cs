@@ -4,7 +4,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
 
-public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywordTests, XsdMinOccursKeyword, int>
+public class XsdMinOccursKeywordTests
+    : ValueKeywordTestsBase<XsdMinOccursKeywordTests, XsdMinOccursKeyword, int>
 {
     protected override XsdMinOccursKeyword CreateKeywordWithValue(int value) => new(value);
 
@@ -27,7 +28,8 @@ public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywor
         var expectedKeyword = new XsdMinOccursKeyword(value);
         object expectedKeywordObject = new XsdMinOccursKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

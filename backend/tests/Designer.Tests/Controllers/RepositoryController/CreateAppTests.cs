@@ -13,18 +13,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CreateAppTests
+        : DesignerEndpointsTestsBase<CreateAppTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public CreateAppTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public CreateAppTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+                c.RepositoryLocation = TestRepositoriesLocation
+            );
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton(_ => _repositoryMock.Object);
         }
@@ -34,7 +37,10 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             // Arrange
             string uri = $"{VersionPrefix}/create-app?org=ttd&repository=2021-application";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -51,9 +57,18 @@ namespace Designer.Tests.Controllers.RepositoryController
 
             _repositoryMock
                 .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
-                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+                .ReturnsAsync(
+                    new Repository()
+                    {
+                        RepositoryCreatedStatus = HttpStatusCode.Created,
+                        CloneUrl = "https://some.site/this/is/not/relevant",
+                    }
+                );
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

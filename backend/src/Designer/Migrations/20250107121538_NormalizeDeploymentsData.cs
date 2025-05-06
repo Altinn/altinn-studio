@@ -11,7 +11,9 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("DeploymentsNormalization/normalization.sql"));
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript("DeploymentsNormalization/normalization.sql")
+            );
         }
 
         /// <inheritdoc />

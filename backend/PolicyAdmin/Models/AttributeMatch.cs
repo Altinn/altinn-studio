@@ -5,6 +5,5 @@
         public string? Value { get; set; }
 
         public string? Designator { get; set; }
-
     }
 }

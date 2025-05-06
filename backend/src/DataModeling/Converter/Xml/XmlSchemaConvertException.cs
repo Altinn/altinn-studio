@@ -11,22 +11,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public XmlSchemaConvertException() : base()
-        {
-        }
+        public XmlSchemaConvertException()
+            : base() { }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public XmlSchemaConvertException(string message) : base(message)
-        {
-        }
+        public XmlSchemaConvertException(string message)
+            : base(message) { }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public XmlSchemaConvertException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public XmlSchemaConvertException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

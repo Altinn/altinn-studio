@@ -15,22 +15,25 @@ public class AzureDevOpsTokenDelegatingHandlerTests
         // Arrange
         var mockInnerHandler = new Mock<HttpMessageHandler>();
 
-        mockInnerHandler.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync",
+        mockInnerHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.Unauthorized
-            });
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized });
 
         var handler = new AzureDevOpsTokenDelegatingHandler
         {
-            InnerHandler = mockInnerHandler.Object
+            InnerHandler = mockInnerHandler.Object,
         };
 
         HttpClient httpClient = new HttpClient(handler);
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://dev.azure.com");
+        HttpRequestMessage request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://dev.azure.com"
+        );
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
         string content = await response.Content.ReadAsStringAsync();
@@ -44,23 +47,31 @@ public class AzureDevOpsTokenDelegatingHandlerTests
     {
         var mockInnerHandler = new Mock<HttpMessageHandler>();
 
-        mockInnerHandler.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync",
+        mockInnerHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("Success")
-            });
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("Success"),
+                }
+            );
 
         var handler = new AzureDevOpsTokenDelegatingHandler
         {
-            InnerHandler = mockInnerHandler.Object
+            InnerHandler = mockInnerHandler.Object,
         };
 
         HttpClient httpClient = new HttpClient(handler);
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://dev.azure.com");
+        HttpRequestMessage request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://dev.azure.com"
+        );
 
         HttpResponseMessage response = await httpClient.SendAsync(request);
 

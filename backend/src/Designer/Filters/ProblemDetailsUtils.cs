@@ -7,7 +7,12 @@ namespace Altinn.Studio.Designer.Filters
 {
     public static class ProblemDetailsUtils
     {
-        public static ProblemDetails GenerateProblemDetails(Exception ex, string customErrorCode, HttpStatusCode statusCode, List<string> customErrorMessages = null)
+        public static ProblemDetails GenerateProblemDetails(
+            Exception ex,
+            string customErrorCode,
+            HttpStatusCode statusCode,
+            List<string> customErrorMessages = null
+        )
         {
             string exceptionType = ex.GetType().Name;
             ProblemDetails details = new()
@@ -15,7 +20,7 @@ namespace Altinn.Studio.Designer.Filters
                 Title = $"{exceptionType} occured.",
                 Detail = ex.Message,
                 Status = (int)statusCode,
-                Type = exceptionType
+                Type = exceptionType,
             };
             details.Extensions.Add(ProblemDetailsExtensionsCodes.ErrorCode, customErrorCode);
 

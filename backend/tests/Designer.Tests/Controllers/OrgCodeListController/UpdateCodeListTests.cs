@@ -16,11 +16,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateCodeListTests
+    : DesignerEndpointsTestsBase<UpdateCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public UpdateCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public UpdateCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
@@ -35,31 +36,53 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string StringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Combine(repoPath, "Codelists", $"{CodeListId}.json"), StringBoolNumbersCodeList);
+        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(
+            Developer,
+            targetOrg,
+            targetRepository
+        );
+        await File.WriteAllTextAsync(
+            Path.Combine(repoPath, "Codelists", $"{CodeListId}.json"),
+            StringBoolNumbersCodeList
+        );
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string CodeListWithAnUpdate = @"[
+        const string CodeListWithAnUpdate =
+            @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
-        httpRequestMessage.Content = new StringContent(CodeListWithAnUpdate, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            CodeListWithAnUpdate,
+            Encoding.UTF8,
+            "application/json"
+        );
         List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(CodeListWithAnUpdate);
-        List<OptionListData> expectedResponse = new([
-            new OptionListData {Title = CodeListId, Data = codeList, HasError = false}
-        ]);
+        List<OptionListData> expectedResponse = new(
+            [
+                new OptionListData
+                {
+                    Title = CodeListId,
+                    Data = codeList,
+                    HasError = false,
+                },
+            ]
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(
+            responseBody
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -86,13 +109,18 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string StringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        httpRequestMessage.Content = new StringContent(StringBoolNumbersCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            StringBoolNumbersCodeList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -135,19 +163,27 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string InvalidCodeList = @"[
+        const string InvalidCodeList =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
-        httpRequestMessage.Content = new StringContent(InvalidCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            InvalidCodeList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(problemDetails);
-        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        JsonElement errorCode = (JsonElement)
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
         Assert.Equal("InvalidOptionsFormat", errorCode.ToString());
     }
 
@@ -161,12 +197,17 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string CodeListWithMissingFields = @"[
+        const string CodeListWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },
         ]";
-        httpRequestMessage.Content = new StringContent(CodeListWithMissingFields, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            CodeListWithMissingFields,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -190,5 +231,6 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
         Assert.Contains("The field is required.", labelNullErrors[0].GetString());
     }
 
-    private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/{CodeListId}";
+    private static string ApiUrl(string targetOrg) =>
+        $"designer/api/{targetOrg}/code-lists/{CodeListId}";
 }

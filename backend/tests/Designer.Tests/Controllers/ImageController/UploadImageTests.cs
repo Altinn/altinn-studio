@@ -11,7 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ImageController;
 
-public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UploadImageTests
+    : DesignerEndpointsTestsBase<UploadImageTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
@@ -22,9 +24,8 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
     private const string ExistingImageInSubSubFolder = "altinn-logo.svg";
     private const string NotAnImage = "patentstyret-lydmerke.mp3";
 
-    public UploadImageTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public UploadImageTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task UploadImage_ReturnsOkWithNewImageInRepo()
@@ -32,12 +33,27 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, EmptyApp, Developer, targetRepository);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", ExistingRootImage);
-        string expectedImageFilePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, App, "App", "wwwroot", ExistingRootImage);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
+        string expectedImageFilePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            App,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
 
         // Check that image does not exists before uploading
         Assert.False(File.Exists(imagePath), "Image should not exist before upload.");
-
 
         byte[] imageBytes = await File.ReadAllBytesAsync(expectedImageFilePath);
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
@@ -47,7 +63,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         content.Add(imageContent, "file", ExistingRootImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            Content = content
+            Content = content,
         };
         await HttpClient.SendAsync(httpRequestMessage);
 
@@ -61,12 +77,27 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", ExistingRootImage);
-        string expectedImageFilePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, App, "App", "wwwroot", ExistingRootImage);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
+        string expectedImageFilePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            App,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
 
         // Check that image exists before uploading
         Assert.True(File.Exists(imagePath), "Image should exist before upload.");
-
 
         byte[] imageBytes = await File.ReadAllBytesAsync(expectedImageFilePath);
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
@@ -74,7 +105,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         content.Add(new ByteArrayContent(imageBytes), "file", ExistingRootImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            Content = content
+            Content = content,
         };
         var response = await HttpClient.SendAsync(httpRequestMessage);
 
@@ -87,10 +118,30 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", ExistingRootImage);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
         byte[] imageContentBeforeUpload = await File.ReadAllBytesAsync(imagePath);
-        string relativeImageFilePath = Path.Combine("images", "images", ExistingImageInSubSubFolder);
-        string imageFilePathForUpload = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, App, "App", "wwwroot", relativeImageFilePath);
+        string relativeImageFilePath = Path.Combine(
+            "images",
+            "images",
+            ExistingImageInSubSubFolder
+        );
+        string imageFilePathForUpload = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            App,
+            "App",
+            "wwwroot",
+            relativeImageFilePath
+        );
 
         // Check that image with file name "ExistingRootImage" exists before uploading
         Assert.True(File.Exists(imagePath), "Image should exist before upload.");
@@ -105,7 +156,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         content.Add(new StringContent("true"), "overrideExisting");
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            Content = content
+            Content = content,
         };
         var response = await HttpClient.SendAsync(httpRequestMessage);
 
@@ -123,7 +174,15 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
         string relativeImageFilePath = Path.Combine("assets", NotAnImage);
-        string filePathForUpload = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, App, "App", "wwwroot", relativeImageFilePath);
+        string filePathForUpload = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            App,
+            "App",
+            "wwwroot",
+            relativeImageFilePath
+        );
 
         byte[] bytes = await File.ReadAllBytesAsync(filePathForUpload);
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
@@ -131,7 +190,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         content.Add(new ByteArrayContent(bytes), "file", NotAnImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            Content = content
+            Content = content,
         };
         var response = await HttpClient.SendAsync(httpRequestMessage);
 

@@ -10,17 +10,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetImageTests : PreviewControllerTestsBase<GetImageTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetImageTests
+        : PreviewControllerTestsBase<GetImageTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetImageTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetImageTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Image_From_Wwww_Root_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/wwwroot/AltinnD-logo.svg"
+            );
 
             string dataPathWithData = $"{Org}/{PreviewApp}/AltinnD-logo.svg";
 
@@ -35,7 +40,12 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_From_Sub_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/images/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/wwwroot/images/AltinnD-logo.svg"
+            );
 
             string dataPathWithData = $"{Org}/{PreviewApp}/images/AltinnD-logo.svg";
 
@@ -50,7 +60,12 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_From_Sub_Sub_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/images/subImagesFolder/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/wwwroot/images/subImagesFolder/AltinnD-logo.svg"
+            );
 
             string dataPathWithData = $"{Org}/{PreviewApp}/images/subImagesFolder/AltinnD-logo.svg";
 
@@ -65,7 +80,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_Non_Existing_Folder_Returns_NotFound()
         {
-            string dataPathWithData = $"{Org}/{AppV3Path}/images/subImagesFolder/SubSubImageFolder/AltinnD-logo.svg";
+            string dataPathWithData =
+                $"{Org}/{AppV3Path}/images/subImagesFolder/SubSubImageFolder/AltinnD-logo.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -74,7 +90,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_Non_Existing_Image_Return_NotFound()
         {
-            string dataPathWithData = $"{Org}/{AppV3Path}/images/subImagesFolder/non-existing-image.svg";
+            string dataPathWithData =
+                $"{Org}/{AppV3Path}/images/subImagesFolder/non-existing-image.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -92,7 +109,15 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = "designer/html/path/some-file.jpg";
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            factMock.Verify(x => x.GetAltinnAppGitRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            factMock.Verify(
+                x =>
+                    x.GetAltinnAppGitRepository(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
         }
     }
 }

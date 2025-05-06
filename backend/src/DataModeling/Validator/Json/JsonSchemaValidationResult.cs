@@ -12,6 +12,5 @@ namespace Altinn.Studio.DataModeling.Validator.Json
         }
 
         public bool IsValid => ValidationIssues.Count == 0;
-
     }
 }

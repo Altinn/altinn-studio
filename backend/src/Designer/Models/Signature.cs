@@ -10,9 +10,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="Signature"/> class.
         /// </summary>
-        public Signature()
-        {
-        }
+        public Signature() { }
 
         /// <summary>
         /// The email adress to the user

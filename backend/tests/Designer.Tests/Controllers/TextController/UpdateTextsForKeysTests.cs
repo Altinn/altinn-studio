@@ -15,101 +15,182 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class UpdateTextsForKeysTests : DesignerEndpointsTestsBase<UpdateTextsForKeysTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateTextsForKeysTests
+        : DesignerEndpointsTestsBase<UpdateTextsForKeysTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public UpdateTextsForKeysTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/text";
+
+        public UpdateTextsForKeysTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
         [Theory]
         [MemberData(nameof(Data))]
-        public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
+        public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string lang,
+            Dictionary<string, string> updateDictionary
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
+            string file = TestDataHelper.GetFileFromRepo(
+                org,
+                targetRepository,
+                developer,
+                $"App/config/texts/resource.{lang}.json"
+            );
+            TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(
+                file,
+                s_jsonOptions
+            );
 
             PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 
-            using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var httpContent = new StringContent(
+                JsonSerializer.Serialize(updateDictionary),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), actualContent));
+            string actualContent = TestDataHelper.GetFileFromRepo(
+                org,
+                targetRepository,
+                developer,
+                $"App/config/texts/resource.{lang}.json"
+            );
+            Assert.True(
+                JsonUtils.DeepEquals(
+                    JsonSerializer.Serialize(expectedResource, s_jsonOptions),
+                    actualContent
+                )
+            );
         }
 
         [Theory]
         [MemberData(nameof(DataForTextWithVariables))]
-        public async Task UpdateTextsForKeys_ForTextsThatHaveVariables_MaintainsVariablesAndReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
+        public async Task UpdateTextsForKeys_ForTextsThatHaveVariables_MaintainsVariablesAndReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string lang,
+            Dictionary<string, string> updateDictionary
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 
-            using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var httpContent = new StringContent(
+                JsonSerializer.Serialize(updateDictionary),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
-            Assert.NotNull(actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables);
+            string actualContent = TestDataHelper.GetFileFromRepo(
+                org,
+                targetRepository,
+                developer,
+                $"App/config/texts/resource.{lang}.json"
+            );
+            TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
+                actualContent,
+                s_jsonOptions
+            );
+            Assert.NotNull(
+                actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables
+            );
         }
 
-        private static void PrepareExpectedResourceWithoutVariables(TextResource resource, Dictionary<string, string> updateDictionary)
+        private static void PrepareExpectedResourceWithoutVariables(
+            TextResource resource,
+            Dictionary<string, string> updateDictionary
+        )
         {
             foreach ((string key, string value) in updateDictionary)
             {
-                var textResourceContainsKey = resource.Resources.Find(textResourceElement => textResourceElement.Id == key);
+                var textResourceContainsKey = resource.Resources.Find(textResourceElement =>
+                    textResourceElement.Id == key
+                );
                 if (textResourceContainsKey is null)
                 {
-                    resource.Resources.Insert(0, new TextResourceElement
-                    { Id = key, Value = value });
+                    resource.Resources.Insert(
+                        0,
+                        new TextResourceElement { Id = key, Value = value }
+                    );
                     continue;
                 }
 
-                int indexTextResourceElementUpdateKey = resource.Resources.IndexOf(textResourceContainsKey);
-                resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = key, Value = value };
+                int indexTextResourceElementUpdateKey = resource.Resources.IndexOf(
+                    textResourceContainsKey
+                );
+                resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement
+                {
+                    Id = key,
+                    Value = value,
+                };
             }
         }
 
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
-                new object[] { "ttd", "hvem-er-hvem", "testUser", "nb", new Dictionary<string,string>()
+                new object[]
                 {
-                    {"Epost", "new"},
-                    {"nonExistingKey", "new value"}
-                }}
+                    "ttd",
+                    "hvem-er-hvem",
+                    "testUser",
+                    "nb",
+                    new Dictionary<string, string>()
+                    {
+                        { "Epost", "new" },
+                        { "nonExistingKey", "new value" },
+                    },
+                },
             };
 
         public static IEnumerable<object[]> DataForTextWithVariables =>
             new List<object[]>
             {
-                new object[] { "ttd", "hvem-er-hvem", "testUser", "nb", new Dictionary<string,string>()
+                new object[]
                 {
-                    {"TextUsingVariables", "Dette er den nye teksten og variablene {0} og {1} har ikke blitt borte eller endret"},
-                }}
+                    "ttd",
+                    "hvem-er-hvem",
+                    "testUser",
+                    "nb",
+                    new Dictionary<string, string>()
+                    {
+                        {
+                            "TextUsingVariables",
+                            "Dette er den nye teksten og variablene {0} og {1} har ikke blitt borte eller endret"
+                        },
+                    },
+                },
             };
     }
 }

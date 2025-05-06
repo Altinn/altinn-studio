@@ -15,7 +15,8 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string Developer { get; }
 
-        private AltinnRepoEditingContext(string org, string repo, string developer) : base(org, repo)
+        private AltinnRepoEditingContext(string org, string repo, string developer)
+            : base(org, repo)
         {
             ValidateDeveloper(developer);
             Developer = developer;
@@ -30,7 +31,11 @@ namespace Altinn.Studio.Designer.Models
             }
         }
 
-        public static AltinnRepoEditingContext FromOrgRepoDeveloper(string org, string repo, string developer)
+        public static AltinnRepoEditingContext FromOrgRepoDeveloper(
+            string org,
+            string repo,
+            string developer
+        )
         {
             return new AltinnRepoEditingContext(org, repo, developer);
         }

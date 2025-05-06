@@ -257,54 +257,59 @@ public static class XmlSchemaTypes
     /// <summary>
     /// Gets all types from http://www.w3.org/2001/XMLSchema namespace.
     /// </summary>
-    public static IEnumerable<string> AllKnownTypes => typeof(XmlSchemaTypes).GetFields()
-        .Select(fieldInfo => typeof(XmlSchemaTypes).GetField(fieldInfo.Name)!.GetValue(null) as string).ToList();
+    public static IEnumerable<string> AllKnownTypes =>
+        typeof(XmlSchemaTypes)
+            .GetFields()
+            .Select(fieldInfo =>
+                typeof(XmlSchemaTypes).GetField(fieldInfo.Name)!.GetValue(null) as string
+            )
+            .ToList();
 
     /// <summary>
     /// Checks if <see cref="XmlQualifiedName"/> is type from http://www.w3.org/2001/XMLSchema namespace
     /// </summary>
     public static bool IsKnownXmlSchemaType(XmlQualifiedName name) =>
-        KnownXmlNamespaces.XmlSchemaNamespace.Equals(name.Namespace) && AllKnownTypes.Contains(name.Name);
+        KnownXmlNamespaces.XmlSchemaNamespace.Equals(name.Namespace)
+        && AllKnownTypes.Contains(name.Name);
 
     /// <summary>
     /// Returns date data types.
     /// </summary>
-    public static IEnumerable<string> DateTypes => new List<string>
-    {
-        Date,
-        DateTime,
-        Duration,
-        GDay,
-        GMonth,
-        GMonthDay,
-        GYear,
-        GYearMonth,
-        Time
-    };
+    public static IEnumerable<string> DateTypes =>
+        new List<string>
+        {
+            Date,
+            DateTime,
+            Duration,
+            GDay,
+            GMonth,
+            GMonthDay,
+            GYear,
+            GYearMonth,
+            Time,
+        };
 
-    public static IEnumerable<string> IntegerDataTypes => new List<string>
-    {
-        Integer,
-        NonNegativeInteger,
-        PositiveInteger,
-        NonPositiveInteger,
-        NegativeInteger,
-        Byte,
-        Int,
-        Long,
-        Short,
-        UnsignedByte,
-        UnsignedInt,
-        UnsignedLong,
-        UnsignedShort
-    };
+    public static IEnumerable<string> IntegerDataTypes =>
+        new List<string>
+        {
+            Integer,
+            NonNegativeInteger,
+            PositiveInteger,
+            NonPositiveInteger,
+            NegativeInteger,
+            Byte,
+            Int,
+            Long,
+            Short,
+            UnsignedByte,
+            UnsignedInt,
+            UnsignedLong,
+            UnsignedShort,
+        };
 
-    public static IEnumerable<string> NumericTypesWithFractions => new List<string>
-    {
-        Decimal,
-        Float,
-        Double
-    };
+    public static IEnumerable<string> NumericTypesWithFractions =>
+        new List<string> { Decimal, Float, Double };
 
-    public static IEnumerable<string> AllNumericTypes => IntegerDataTypes.Union(NumericTypesWithFractions);
+    public static IEnumerable<string> AllNumericTypes =>
+        IntegerDataTypes.Union(NumericTypesWithFractions);
 }

@@ -10,13 +10,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class UpdateResourcePolicyTests : DesignerEndpointsTestsBase<UpdateResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateResourcePolicyTests
+        : DesignerEndpointsTestsBase<UpdateResourcePolicyTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public UpdateResourcePolicyTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Update_ResourcePolicyOk()
@@ -24,13 +25,26 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
-            ResourcePolicy resourcePolicy = TestPolicyHelper.GenerateTestPolicy("ttd", targetRepository, null);
+            ResourcePolicy resourcePolicy = TestPolicyHelper.GenerateTestPolicy(
+                "ttd",
+                targetRepository,
+                null
+            );
 
             string responseBody;
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
-            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData))
+            using (
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                    HttpMethod.Put,
+                    dataPathWithData
+                )
+            )
             {
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(
+                    JsonConvert.SerializeObject(resourcePolicy),
+                    Encoding.UTF8,
+                    "application/json"
+                );
                 HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 responseBody = await response.Content.ReadAsStringAsync();

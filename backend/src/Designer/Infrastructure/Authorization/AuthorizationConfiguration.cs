@@ -1,5 +1,4 @@
 using Altinn.Studio.Designer.ModelBinding.Constants;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +13,9 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// Adds authorization and policies to the application
         /// </summary>
         /// <param name="services">IServiceCollection</param>
-        public static IServiceCollection AddPolicyBasedAuthorization(this IServiceCollection services)
+        public static IServiceCollection AddPolicyBasedAuthorization(
+            this IServiceCollection services
+        )
         {
             services.AddAuthorization(options =>
             {
@@ -24,7 +25,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaPushPermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaDeployPermission,
@@ -32,7 +34,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaDeployPermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaPublishResourcePermission,
@@ -40,7 +43,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaPublishResourcePermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaResourceAccessListPermission,
@@ -48,7 +52,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
-                    });
+                    }
+                );
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();

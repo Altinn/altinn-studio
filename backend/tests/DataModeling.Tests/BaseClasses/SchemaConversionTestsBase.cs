@@ -76,9 +76,15 @@ public abstract class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTe
     }
 
     protected static string SerializeJsonSchema(JsonSchema schema) =>
-        JsonSerializer.Serialize(schema, new JsonSerializerOptions
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-            WriteIndented = true,
-        });
+        JsonSerializer.Serialize(
+            schema,
+            new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(
+                    UnicodeRanges.BasicLatin,
+                    UnicodeRanges.Latin1Supplement
+                ),
+                WriteIndented = true,
+            }
+        );
 }

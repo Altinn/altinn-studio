@@ -10,9 +10,8 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class UpdateIntegrationTests : DbIntegrationTestsBase
 {
-    public UpdateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public UpdateIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd")]
@@ -24,7 +23,8 @@ public class UpdateIntegrationTests : DbIntegrationTestsBase
             org,
             buildId: buildId.ToString(),
             buildStatus: BuildStatus.InProgress,
-            buildResult: BuildResult.None);
+            buildResult: BuildResult.None
+        );
 
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
@@ -34,10 +34,12 @@ public class UpdateIntegrationTests : DbIntegrationTestsBase
 
         await repository.Update(deploymentEntity);
 
-        var dbRecord = await DbFixture.DbContext.Deployments.Include(d => d.Build).AsNoTracking().FirstOrDefaultAsync(d =>
-            d.Org == org &&
-            d.App == deploymentEntity.App &&
-            d.Buildid == buildId.ToString());
+        var dbRecord = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d =>
+                d.Org == org && d.App == deploymentEntity.App && d.Buildid == buildId.ToString()
+            );
 
         EntityAssertions.AssertEqual(deploymentEntity, dbRecord);
     }

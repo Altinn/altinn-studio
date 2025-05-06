@@ -9,19 +9,17 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class GetLastDeployedTests : DbIntegrationTestsBase
 {
-    public GetLastDeployedTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetLastDeployedTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd", "some-app")]
     public async Task GetLastDeployedTests_ShouldUpdateRecordInDatabase(string org, string app)
     {
         var repository = new DeploymentRepository(DbFixture.DbContext);
-        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(
-            org,
-            app,
-            5).ToList();
+        var deploymentEntities = EntityGenerationUtils
+            .Deployment.GenerateDeploymentEntities(org, app, 5)
+            .ToList();
 
         await DbFixture.PrepareEntitiesInDatabase(deploymentEntities);
 

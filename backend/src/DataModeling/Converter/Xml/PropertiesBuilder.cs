@@ -9,7 +9,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml;
 /// </summary>
 internal class PropertiesBuilder
 {
-    private readonly List<(string Name, JsonSchema Schema, bool Required)> _properties = new List<(string Name, JsonSchema Schema, bool Required)>();
+    private readonly List<(string Name, JsonSchema Schema, bool Required)> _properties =
+        new List<(string Name, JsonSchema Schema, bool Required)>();
 
     /// <summary>
     /// Adds property.
@@ -30,8 +31,13 @@ internal class PropertiesBuilder
     {
         if (_properties.Count > 0)
         {
-            (string Name, JsonSchema Schema)[] currentProperties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-            string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
+            (string Name, JsonSchema Schema)[] currentProperties = _properties
+                .Select(prop => (prop.Name, prop.Schema))
+                .ToArray();
+            string[] required = _properties
+                .Where(prop => prop.Required)
+                .Select(prop => prop.Name)
+                .ToArray();
             stepBuilder.Add(b =>
             {
                 b.Properties(currentProperties);
@@ -52,8 +58,13 @@ internal class PropertiesBuilder
     {
         if (_properties.Count > 0)
         {
-            (string Name, JsonSchema Schema)[] properties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-            string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
+            (string Name, JsonSchema Schema)[] properties = _properties
+                .Select(prop => (prop.Name, prop.Schema))
+                .ToArray();
+            string[] required = _properties
+                .Where(prop => prop.Required)
+                .Select(prop => prop.Name)
+                .ToArray();
 
             builder.Properties(properties);
             if (required.Length > 0)

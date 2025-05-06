@@ -25,9 +25,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="User"/> class.
         /// </summary>
-        public User()
-        {
-        }
+        public User() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="User" /> class.
@@ -37,7 +35,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="fullName">the user&#39;s full name.</param>
         /// <param name="id">the user&#39;s id.</param>
         /// <param name="login">the user&#39;s username.</param>
-        public User(string avatarUrl = default(string), string email = default(string), string fullName = default(string), long? id = default(long?), string login = default(string))
+        public User(
+            string avatarUrl = default(string),
+            string email = default(string),
+            string fullName = default(string),
+            long? id = default(long?),
+            string login = default(string)
+        )
         {
             this.AvatarUrl = avatarUrl;
             this.Email = email;
@@ -121,27 +125,17 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    AvatarUrl == input.AvatarUrl ||
-                    (AvatarUrl != null &&
-                    AvatarUrl.Equals(input.AvatarUrl))) &&
-                (
-                    Email == input.Email ||
-                    (Email != null &&
-                    Email.Equals(input.Email))) &&
-                (
-                    FullName == input.FullName ||
-                    (FullName != null &&
-                    FullName.Equals(input.FullName))) &&
-                (
-                    Id == input.Id ||
-                    (Id != null &&
-                    Id.Equals(input.Id))) &&
-                (
-                    Login == input.Login ||
-                    (Login != null &&
-                    Login.Equals(input.Login)));
+            return (
+                    AvatarUrl == input.AvatarUrl
+                    || (AvatarUrl != null && AvatarUrl.Equals(input.AvatarUrl))
+                )
+                && (Email == input.Email || (Email != null && Email.Equals(input.Email)))
+                && (
+                    FullName == input.FullName
+                    || (FullName != null && FullName.Equals(input.FullName))
+                )
+                && (Id == input.Id || (Id != null && Id.Equals(input.Id)))
+                && (Login == input.Login || (Login != null && Login.Equals(input.Login)));
         }
 
         /// <summary>
@@ -188,7 +182,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

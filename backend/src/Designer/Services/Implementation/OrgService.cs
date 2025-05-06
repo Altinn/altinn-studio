@@ -26,10 +26,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<OrgList> GetOrgList()
         {
-            HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl);
+            HttpResponseMessage response = await _client.GetAsync(
+                _generalSettings.OrganizationsUrl
+            );
             response.EnsureSuccessStatusCode();
             string orgListString = await response.Content.ReadAsStringAsync();
-            OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(orgListString, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+            OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(
+                orgListString,
+                new System.Text.Json.JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                }
+            );
             return orgList;
         }
 

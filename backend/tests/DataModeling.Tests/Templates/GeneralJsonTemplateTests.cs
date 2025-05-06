@@ -15,18 +15,25 @@ namespace DataModeling.Tests.Templates
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            string expectedId = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
+            string expectedId =
+                "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
             string expectedModelName = "model";
 
             // Act
-            var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), expectedModelName);
+            var actualJsonTemplate = new GeneralJsonTemplate(
+                new Uri(expectedId),
+                expectedModelName
+            );
 
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
             var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
             Assert.Equal(expectedId, idKeyword.Id.ToString());
 
-            Assert.Equal(expectedModelName, jsonSchema.GetKeywordOrNull<XsdRootElementKeyword>().Value);
+            Assert.Equal(
+                expectedModelName,
+                jsonSchema.GetKeywordOrNull<XsdRootElementKeyword>().Value
+            );
             var properties = jsonSchema.GetKeywordOrNull<PropertiesKeyword>();
 
             Assert.NotEmpty(properties.Properties);

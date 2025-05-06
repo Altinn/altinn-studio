@@ -9,19 +9,13 @@ public static class SlackMockServerExtensions
 {
     public static void PrepareSlackResponse(this MockServerFixture mockServerFixture, string path)
     {
-        var request = Request.Create()
-            .UsingPost()
-            .WithPath("/");
+        var request = Request.Create().UsingPost().WithPath("/");
 
-        var response = Response.Create()
+        var response = Response
+            .Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Application.Json);
 
-        mockServerFixture.MockApi.Given(request)
-            .RespondWith(
-                response
-                );
-
+        mockServerFixture.MockApi.Given(request).RespondWith(response);
     }
-
 }

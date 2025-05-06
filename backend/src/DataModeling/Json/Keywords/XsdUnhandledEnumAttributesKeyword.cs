@@ -18,7 +18,9 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaSpecVersion(SpecVersion.Draft202012)]
 [SchemaSpecVersion(SpecVersion.DraftNext)]
 [JsonConverter(typeof(XsdUnhandledEnumAttributesKeywordJsonConverter))]
-public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEquatable<XsdUnhandledEnumAttributesKeyword>
+public sealed class XsdUnhandledEnumAttributesKeyword
+    : IJsonSchemaKeyword,
+        IEquatable<XsdUnhandledEnumAttributesKeyword>
 {
     /// <summary>
     /// The name of the keyword
@@ -51,7 +53,11 @@ public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEqu
         Properties = values as List<NamedKeyValuePairs> ?? values.ToList();
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -92,12 +98,17 @@ public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEqu
     /// <summary>
     /// Serializer for the @xsdUnhandledAttributes keyword
     /// </summary>
-    public class XsdUnhandledEnumAttributesKeywordJsonConverter : JsonConverter<XsdUnhandledEnumAttributesKeyword>
+    public class XsdUnhandledEnumAttributesKeywordJsonConverter
+        : JsonConverter<XsdUnhandledEnumAttributesKeyword>
     {
         /// <summary>
         /// Read @xsdUnhandledAttributes keyword from json schema
         /// </summary>
-        public override XsdUnhandledEnumAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdUnhandledEnumAttributesKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 
@@ -125,7 +136,11 @@ public sealed class XsdUnhandledEnumAttributesKeyword : IJsonSchemaKeyword, IEqu
         /// <summary>
         /// Write @xsdUnhandledAttributes keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdUnhandledEnumAttributesKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdUnhandledEnumAttributesKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteStartObject();

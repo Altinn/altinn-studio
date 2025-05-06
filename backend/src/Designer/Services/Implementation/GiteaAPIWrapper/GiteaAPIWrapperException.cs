@@ -7,8 +7,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class GiteaApiWrapperException : Exception
     {
-        public GiteaApiWrapperException(string message) : base(message)
-        {
-        }
+        public GiteaApiWrapperException(string message)
+            : base(message) { }
     }
 }

@@ -13,7 +13,11 @@ public class EditingContextResolver : IEditingContextResolver
     {
         context = null;
 
-        if (TryResolveOrg(httpContext, out string org) && TryResolveApp(httpContext, out string app) && TryResolveDeveloper(httpContext, out string developer))
+        if (
+            TryResolveOrg(httpContext, out string org)
+            && TryResolveApp(httpContext, out string app)
+            && TryResolveDeveloper(httpContext, out string developer)
+        )
         {
             context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             return true;
@@ -33,12 +37,10 @@ public class EditingContextResolver : IEditingContextResolver
         }
 
         return false;
-
     }
 
     private static bool TryResolveApp(HttpContext httpContext, out string app)
     {
-
         if (TryResolveAppFromRouteValues(httpContext, out app))
         {
             return true;
@@ -57,8 +59,11 @@ public class EditingContextResolver : IEditingContextResolver
         app = null;
         var routeValues = httpContext.Request.RouteValues;
 
-        if (routeValues.TryGetValue("app", out object appValue) || routeValues.TryGetValue("repo", out appValue) ||
-            routeValues.TryGetValue("repository", out appValue))
+        if (
+            routeValues.TryGetValue("app", out object appValue)
+            || routeValues.TryGetValue("repo", out appValue)
+            || routeValues.TryGetValue("repository", out appValue)
+        )
         {
             app = appValue?.ToString();
             return true;
@@ -72,7 +77,8 @@ public class EditingContextResolver : IEditingContextResolver
         app = null;
         var endpoint = httpContext.GetEndpoint();
 
-        var controllerActionDescriptor = endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>();
+        var controllerActionDescriptor =
+            endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>();
 
         if (controllerActionDescriptor == null)
         {
@@ -80,8 +86,11 @@ public class EditingContextResolver : IEditingContextResolver
         }
 
         string controllerName = controllerActionDescriptor.ControllerName;
-        bool isResourceAdmin = string.Equals(controllerName, nameof(ResourceAdminController).Replace("Controller", string.Empty),
-            StringComparison.InvariantCulture);
+        bool isResourceAdmin = string.Equals(
+            controllerName,
+            nameof(ResourceAdminController).Replace("Controller", string.Empty),
+            StringComparison.InvariantCulture
+        );
         if (isResourceAdmin && TryResolveOrg(httpContext, out string org))
         {
             app = $"{org}-resources";

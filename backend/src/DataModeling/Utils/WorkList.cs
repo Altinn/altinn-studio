@@ -124,9 +124,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <returns>Enumerator for all work items, including handled items.</returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return _list
-               .Select(item => item.Value)
-               .GetEnumerator();
+            return _list.Select(item => item.Value).GetEnumerator();
         }
 
         /// <summary>

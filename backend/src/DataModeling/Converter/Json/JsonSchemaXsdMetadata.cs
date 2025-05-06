@@ -117,7 +117,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json
 
         private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
         {
-            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes) ? incompatibleTypes : s_empty;
+            return _incompatibleTypes.TryGetValue(
+                path,
+                out HashSet<CompatibleXsdType> incompatibleTypes
+            )
+                ? incompatibleTypes
+                : s_empty;
         }
     }
 }

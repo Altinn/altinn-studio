@@ -11,14 +11,24 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("DistributedCache/Create/01-setup-distributedcache-table.sql"));
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("DistributedCache/Create/02-setup-grants.sql"));
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript(
+                    "DistributedCache/Create/01-setup-distributedcache-table.sql"
+                )
+            );
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript("DistributedCache/Create/02-setup-grants.sql")
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("DistributedCache/Drop/01-drop-distributedcache-table.sql"));
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript(
+                    "DistributedCache/Drop/01-drop-distributedcache-table.sql"
+                )
+            );
         }
     }
 }

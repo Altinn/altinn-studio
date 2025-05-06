@@ -10,9 +10,15 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutPageIdChanged;
 
-public class LayoutPageIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutPageIdChangedEvent>
+public class LayoutPageIdChangedLayoutsHandler(
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+    IAppDevelopmentService appDevelopmentService
+) : INotificationHandler<LayoutPageIdChangedEvent>
 {
-    public async Task Handle(LayoutPageIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        LayoutPageIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
@@ -20,8 +26,21 @@ public class LayoutPageIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSync
             "layouts",
             async () =>
             {
-                List<Reference> referencesToUpdate = [new Reference(ReferenceType.Layout, notification.LayoutSetName, notification.LayoutName, notification.NewLayoutName)];
-                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
-            });
+                List<Reference> referencesToUpdate =
+                [
+                    new Reference(
+                        ReferenceType.Layout,
+                        notification.LayoutSetName,
+                        notification.LayoutName,
+                        notification.NewLayoutName
+                    ),
+                ];
+                return await appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToUpdate,
+                    cancellationToken
+                );
+            }
+        );
     }
 }

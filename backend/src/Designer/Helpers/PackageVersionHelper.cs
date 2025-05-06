@@ -8,7 +8,11 @@ namespace Altinn.Studio.Designer.Helpers
 {
     public static class PackageVersionHelper
     {
-        public static bool TryGetPackageVersionFromCsprojFile(string csprojFilePath, IReadOnlyList<string> packageNames, out SemanticVersion version)
+        public static bool TryGetPackageVersionFromCsprojFile(
+            string csprojFilePath,
+            IReadOnlyList<string> packageNames,
+            out SemanticVersion version
+        )
         {
             version = null;
             var doc = XDocument.Load(csprojFilePath);

@@ -39,7 +39,11 @@ public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNam
         Namespaces = namespaces as List<(string, string)> ?? namespaces.ToList();
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -80,7 +84,11 @@ public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNam
         /// <summary>
         /// Read @xsdNamespaces keyword from json schema
         /// </summary>
-        public override XsdNamespacesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdNamespacesKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 
@@ -89,13 +97,19 @@ public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNam
                 throw new JsonException("Expected object");
             }
 
-            return new XsdNamespacesKeyword(document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString())));
+            return new XsdNamespacesKeyword(
+                document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString()))
+            );
         }
 
         /// <summary>
         /// Write @xsdNamespaces keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdNamespacesKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdNamespacesKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteStartObject();

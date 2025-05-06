@@ -57,7 +57,10 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (string.IsNullOrEmpty(paramValue))
             {
-                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+                throw new ArgumentException(
+                    $"'{paramName}' cannot be null or empty.",
+                    nameof(paramName)
+                );
             }
         }
 
@@ -66,11 +69,16 @@ namespace Altinn.Studio.Designer.Helpers
         /// </summary>
         /// <param name="parentDirectory">Full path to the parent directory.</param>
         /// <param name="subDirectory">Full path to the sub directory including the parent directory.</param>
-        public static void AssertSubDirectoryWithinParentDirectory(string parentDirectory, string subDirectory)
+        public static void AssertSubDirectoryWithinParentDirectory(
+            string parentDirectory,
+            string subDirectory
+        )
         {
             if (!subDirectory.StartsWith(parentDirectory))
             {
-                throw new ArgumentException($"The sub directory '{subDirectory}' must be below the parent directory '{parentDirectory}'.");
+                throw new ArgumentException(
+                    $"The sub directory '{subDirectory}' must be below the parent directory '{parentDirectory}'."
+                );
             }
         }
 
@@ -79,11 +87,16 @@ namespace Altinn.Studio.Designer.Helpers
         /// </summary>
         /// <param name="parentDirectory">Full path to the parent directory.</param>
         /// <param name="filePath">Full path to a file including the parent directory.</param>
-        public static void AssertFilePathWithinParentDirectory(string parentDirectory, string filePath)
+        public static void AssertFilePathWithinParentDirectory(
+            string parentDirectory,
+            string filePath
+        )
         {
             if (!filePath.StartsWith(parentDirectory))
             {
-                throw new ArgumentException($"The file '{filePath}' must be below the parent directory '{parentDirectory}'.");
+                throw new ArgumentException(
+                    $"The file '{filePath}' must be below the parent directory '{parentDirectory}'."
+                );
             }
         }
 
@@ -95,13 +108,19 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (!Directory.Exists(directoryPath))
             {
-                throw new DirectoryNotFoundException($"Could not find the specified directory at '{directoryPath}'");
+                throw new DirectoryNotFoundException(
+                    $"Could not find the specified directory at '{directoryPath}'"
+                );
             }
         }
 
         public static void AssertValidEnvironmentName(string environmentName)
         {
-            if (string.IsNullOrWhiteSpace(environmentName) || environmentName.Length > 100 || !AltinnRegexes.AltinnEnvironmentNameRegex().IsMatch(environmentName))
+            if (
+                string.IsNullOrWhiteSpace(environmentName)
+                || environmentName.Length > 100
+                || !AltinnRegexes.AltinnEnvironmentNameRegex().IsMatch(environmentName)
+            )
             {
                 throw new ArgumentException("The environment name is invalid.");
             }
@@ -117,7 +136,9 @@ namespace Altinn.Studio.Designer.Helpers
             var fileInfo = new FileInfo(fileName);
             if (fileInfo.Extension.ToLower() != fileExtension.ToLower())
             {
-                throw new ArgumentException($"The file {fileName} must be of type {fileExtension}.");
+                throw new ArgumentException(
+                    $"The file {fileName} must be of type {fileExtension}."
+                );
             }
         }
 
@@ -127,7 +148,10 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="repoName">The repository name.</param>
         public static void AssertValidAppRepoName(string repoName)
         {
-            if (string.IsNullOrEmpty(repoName) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(repoName))
+            if (
+                string.IsNullOrEmpty(repoName)
+                || !AltinnRegexes.AltinnAppNameRegex().IsMatch(repoName)
+            )
             {
                 throw new ArgumentException($"The repository name {repoName} is invalid.");
             }
@@ -150,7 +174,7 @@ namespace Altinn.Studio.Designer.Helpers
             XmlReaderSettings settings = new XmlReaderSettings
             {
                 ConformanceLevel = ConformanceLevel.Document,
-                Async = true
+                Async = true,
             };
             try
             {
@@ -169,6 +193,5 @@ namespace Altinn.Studio.Designer.Helpers
                 xmlStream.Seek(0, SeekOrigin.Begin);
             }
         }
-
     }
 }

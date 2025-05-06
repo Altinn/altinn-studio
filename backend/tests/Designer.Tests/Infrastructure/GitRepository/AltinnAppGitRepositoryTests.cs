@@ -22,14 +22,28 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "hvem-er-hvem";
             string developer = "testUser";
 
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            string repositoriesRootDirectory =
+                TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                repository,
+                developer
+            );
+            var altinnAppGitRepository = new AltinnAppGitRepository(
+                org,
+                repository,
+                developer,
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             Assert.Equal(org, altinnAppGitRepository.Org);
             Assert.Equal(repository, altinnAppGitRepository.Repository);
             Assert.Equal(developer, altinnAppGitRepository.Developer);
-            Assert.Contains(repositoriesRootDirectory, altinnAppGitRepository.RepositoriesRootDirectory);
+            Assert.Contains(
+                repositoriesRootDirectory,
+                altinnAppGitRepository.RepositoriesRootDirectory
+            );
         }
 
         [Fact]
@@ -38,9 +52,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "hvem-er-hvem";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
-            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata =
+                await altinnAppGitRepository.GetApplicationMetadata();
 
             Assert.Equal("yabbin/hvem-er-hvem", applicationMetadata.Id);
             Assert.Equal("yabbin", applicationMetadata.Org);
@@ -50,9 +69,16 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Contains("en", applicationMetadata.Title.Keys);
 
             Assert.Equal(2, applicationMetadata.DataTypes.Count);
-            Assert.Equal("application/pdf", applicationMetadata.DataTypes.First(d => d.Id == "ref-data-as-pdf").AllowedContentTypes.First());
+            Assert.Equal(
+                "application/pdf",
+                applicationMetadata
+                    .DataTypes.First(d => d.Id == "ref-data-as-pdf")
+                    .AllowedContentTypes.First()
+            );
 
-            DataType mainDataType = applicationMetadata.DataTypes.First(d => d.Id == "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES");
+            DataType mainDataType = applicationMetadata.DataTypes.First(d =>
+                d.Id == "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES"
+            );
             Assert.Equal("application/xml", mainDataType.AllowedContentTypes.First());
             Assert.Equal("Altinn.App.Models.HvemErHvem_M", mainDataType.AppLogic.ClassRef);
             Assert.True(mainDataType.AppLogic.AutoCreate);
@@ -67,12 +93,21 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             DataField dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
             Assert.Equal("InnrapporterteData.geekType", dataField.Path);
-            Assert.Equal("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES", dataField.DataTypeId);
+            Assert.Equal(
+                "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES",
+                dataField.DataTypeId
+            );
 
             Assert.False(applicationMetadata.AutoDeleteOnProcessEnd);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z").ToUniversalTime(), applicationMetadata.Created);
+            Assert.Equal(
+                DateTime.Parse("2021-04-08T17:42:09.0883842Z").ToUniversalTime(),
+                applicationMetadata.Created
+            );
             Assert.Equal("Ronny", applicationMetadata.CreatedBy);
-            Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(), applicationMetadata.LastChanged);
+            Assert.Equal(
+                DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(),
+                applicationMetadata.LastChanged
+            );
             Assert.Equal("Ronny", applicationMetadata.LastChangedBy);
         }
 
@@ -82,12 +117,19 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "hvem-er-hvem";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             var textResource = await altinnAppGitRepository.GetText("nb");
 
             Assert.NotNull(textResource);
-            Assert.Equal("Hvem er hvem?", textResource.Resources.First(r => r.Id == "ServiceName").Value);
+            Assert.Equal(
+                "Hvem er hvem?",
+                textResource.Resources.First(r => r.Id == "ServiceName").Value
+            );
         }
 
         [Fact]
@@ -96,7 +138,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "hvem-er-hvem";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             var languages = altinnAppGitRepository.GetLanguages();
 
@@ -112,7 +158,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-with-layoutsets";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
 
@@ -126,7 +176,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-without-layoutsets";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
 
@@ -140,7 +194,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-with-layoutsets";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
@@ -154,7 +212,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-without-layoutsets";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
@@ -169,7 +231,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
 
@@ -184,7 +250,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-without-layoutsets";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(null);
 
@@ -201,7 +271,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             string layoutSetName = "layoutSet1";
             string layoutName = "layoutFile1InSet1";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
@@ -217,7 +291,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-without-layoutsets";
             string developer = "testUser";
             string layoutName = "layoutFile1";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             JsonNode formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
 
@@ -238,12 +316,30 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             try
             {
-                await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-                AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+                await TestDataHelper.CopyRepositoryForTest(
+                    org,
+                    repository,
+                    developer,
+                    targetRepository
+                );
+                AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                    org,
+                    targetRepository,
+                    developer
+                );
 
-                var formLayoutToSave = JsonNode.Parse("{\"$schema\":\"some-string\",\"data\":{\"layout\":[{\"id\":\"some-id\",\"type\":\"some-type\"}]}}");
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
-                JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                var formLayoutToSave = JsonNode.Parse(
+                    "{\"$schema\":\"some-string\",\"data\":{\"layout\":[{\"id\":\"some-id\",\"type\":\"some-type\"}]}}"
+                );
+                await altinnAppGitRepository.SaveLayout(
+                    layoutSetName,
+                    layoutName,
+                    formLayoutToSave
+                );
+                JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(
+                    layoutSetName,
+                    layoutName
+                );
 
                 Assert.NotNull(formLayoutSaved);
                 Assert.NotNull(formLayoutSaved["data"]);
@@ -254,7 +350,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
-
         }
 
         [Fact]
@@ -264,7 +359,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-options";
             string developer = "testUser";
             string optionsId = "test-options";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string options = await altinnAppGitRepository.GetOptionsList(optionsId);
 
@@ -282,9 +381,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-options";
             string developer = "testUser";
             string optionsId = "non-existing-test-options";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
-            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptionsList(optionsId));
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () =>
+                await altinnAppGitRepository.GetOptionsList(optionsId)
+            );
         }
 
         [Fact]
@@ -293,7 +398,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "app-with-options";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
 
             string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
@@ -308,7 +417,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string org = "ttd";
             string repository = "empty-app";
             string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                repository,
+                developer
+            );
             var optionsIds = altinnAppGitRepository.GetOptionsListIds();
             Assert.Equal([], optionsIds);
         }
@@ -323,27 +436,31 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionName = "new-options";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repository,
+                developer,
+                targetRepository
+            );
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                targetRepository,
+                developer
+            );
 
             var newOptionsList = new List<Option>
             {
-                new Option
-                {
-                    Label = "label1",
-                    Value = "value1",
-                },
-                new Option
-                {
-                    Label = "label2",
-                    Value = "value2",
-                }
+                new Option { Label = "label1", Value = "value1" },
+                new Option { Label = "label2", Value = "value2" },
             };
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsList);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+                newOptionName,
+                newOptionsList
+            );
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);
@@ -359,27 +476,31 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionName = "test-options"; // these options already exist in this repo
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repository,
+                developer,
+                targetRepository
+            );
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                targetRepository,
+                developer
+            );
 
             var newOptionsList = new List<Option>
             {
-                new Option
-                {
-                    Label = "label1",
-                    Value = "newValue1",
-                },
-                new Option
-                {
-                    Label = "label2",
-                    Value = "newValue2",
-                }
+                new Option { Label = "label1", Value = "newValue1" },
+                new Option { Label = "label2", Value = "newValue2" },
             };
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsList);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+                newOptionName,
+                newOptionsList
+            );
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);
@@ -389,11 +510,25 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("ttd", "apps-test", "testUser", 0)]
         [InlineData("ttd", "ttd-datamodels", "testUser", 0)]
         [InlineData("ttd", "hvem-er-hvem", "testUser", 7)]
-        public async Task GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
+        public async Task GetSchemaFiles_FilesExist_ShouldReturnFiles(
+            string org,
+            string repository,
+            string developer,
+            int expectedSchemaFiles
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repository,
+                developer,
+                targetRepository
+            );
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                targetRepository,
+                developer
+            );
 
             var files = altinnAppGitRepository.GetSchemaFiles();
 
@@ -408,13 +543,27 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repository,
+                developer,
+                targetRepository
+            );
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                targetRepository,
+                developer
+            );
 
-            var file = altinnAppGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
+            var file = altinnAppGitRepository
+                .GetSchemaFiles()
+                .First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
 
             Assert.Equal(".json", file.FileType);
-            Assert.Equal(@"/App/models/HvemErHvem_ExternalTypes.schema.json", file.RepositoryRelativeUrl);
+            Assert.Equal(
+                @"/App/models/HvemErHvem_ExternalTypes.schema.json",
+                file.RepositoryRelativeUrl
+            );
         }
 
         [Fact]
@@ -425,20 +574,43 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repository,
+                developer,
+                targetRepository
+            );
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(
+                org,
+                targetRepository,
+                developer
+            );
 
             var files = altinnAppGitRepository.GetSchemaFiles();
 
             Assert.Empty(files);
         }
 
-        private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)
+        private static AltinnAppGitRepository PrepareRepositoryForTest(
+            string org,
+            string repository,
+            string developer
+        )
         {
-
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            string repositoriesRootDirectory =
+                TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                repository,
+                developer
+            );
+            var altinnAppGitRepository = new AltinnAppGitRepository(
+                org,
+                repository,
+                developer,
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             return altinnAppGitRepository;
         }

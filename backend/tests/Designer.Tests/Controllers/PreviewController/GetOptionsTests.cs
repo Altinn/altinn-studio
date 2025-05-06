@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetOptionsTests : PreviewControllerTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetOptionsTests
+        : PreviewControllerTestsBase<GetOptionsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetOptionsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Options_when_options_exists_Ok()
@@ -27,14 +27,18 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
-            Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
+            Assert.Equal(
+                @"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]",
+                responseStringWithoutWhitespaces
+            );
         }
 
         [Fact]
         public async Task Get_Options_when_options_exists_for_v4_app_Ok()
         {
             Instance instance = await CreateInstance();
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/options/test-options";
+            string dataPathWithData =
+                $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -42,7 +46,10 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
-            Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
+            Assert.Equal(
+                @"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]",
+                responseStringWithoutWhitespaces
+            );
         }
 
         [Fact]
@@ -50,7 +57,9 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{AppV4}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

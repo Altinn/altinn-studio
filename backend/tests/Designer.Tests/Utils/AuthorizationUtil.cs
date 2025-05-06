@@ -14,7 +14,6 @@ namespace Designer.Tests.Utils
         {
             string policyPath = GetPolicyPath();
             return ParsePolicy(policyDocumentTitle, policyPath);
-
         }
 
         public static void WritePolicy(string policyDocumentTitle, XacmlPolicy policy)
@@ -22,14 +21,25 @@ namespace Designer.Tests.Utils
             string policyPath = GetPolicyPath();
 
             MemoryStream stream = new MemoryStream();
-            using (XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true }))
+            using (
+                XmlWriter writer = XmlWriter.Create(
+                    stream,
+                    new XmlWriterSettings() { Indent = true }
+                )
+            )
             {
                 XacmlSerializer.WritePolicy(writer, policy);
 
                 writer.Flush();
                 stream.Position = 0;
 
-                using (FileStream file = new FileStream(Path.Combine(policyPath, policyDocumentTitle), FileMode.Create, System.IO.FileAccess.Write))
+                using (
+                    FileStream file = new FileStream(
+                        Path.Combine(policyPath, policyDocumentTitle),
+                        FileMode.Create,
+                        System.IO.FileAccess.Write
+                    )
+                )
                 {
                     byte[] bytes = new byte[stream.Length];
                     stream.Read(bytes, 0, (int)stream.Length);
@@ -37,14 +47,16 @@ namespace Designer.Tests.Utils
                     stream.Close();
                 }
             }
-
         }
 
         public static void WriteJsonPolicy(string policyDocumentTitle, ResourcePolicy policy)
         {
             string policyPath = GetPolicyPath();
 
-            string jsonString = JsonSerializer.Serialize(policy, new JsonSerializerOptions() { WriteIndented = true });
+            string jsonString = JsonSerializer.Serialize(
+                policy,
+                new JsonSerializerOptions() { WriteIndented = true }
+            );
 
             File.WriteAllText(Path.Combine(policyPath, policyDocumentTitle), jsonString);
         }
@@ -65,9 +77,19 @@ namespace Designer.Tests.Utils
 
         internal static string GetPolicyPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Authorization", "Policies", "Xacml");
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath
+            );
+            return Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "Authorization",
+                "Policies",
+                "Xacml"
+            );
         }
-
     }
 }

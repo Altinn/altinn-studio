@@ -9,13 +9,18 @@ using Xunit;
 
 namespace DataModeling.Tests;
 
-public class XmlDeserializeSerializeTests : CsharpModelConversionTestsBase<XmlDeserializeSerializeTests>
+public class XmlDeserializeSerializeTests
+    : CsharpModelConversionTestsBase<XmlDeserializeSerializeTests>
 {
     [Theory]
-    [InlineData("Model/XmlSchema/XsAll/xsall-example.xsd", "Model/Xml/XsAll/xsall-example-nillable-sample.xml")]
+    [InlineData(
+        "Model/XmlSchema/XsAll/xsall-example.xsd",
+        "Model/Xml/XsAll/xsall-example-nillable-sample.xml"
+    )]
     public void XmlDeserializeSerializeShouldKeepNillValue(string xsdSchemaPath, string xmlPath)
     {
-        Given.That.XsdSchemaLoaded(xsdSchemaPath)
+        Given
+            .That.XsdSchemaLoaded(xsdSchemaPath)
             .When.LoadedXsdSchemaConvertedToJsonSchema()
             .And.ConvertedJsonSchemaConvertedToModelMetadata()
             .And.ModelMetadataConvertedToCsharpClass()
@@ -28,7 +33,11 @@ public class XmlDeserializeSerializeTests : CsharpModelConversionTestsBase<XmlDe
 
     private void DeserializeAndSerializeShouldProduceSameXml(string xmlPath)
     {
-        Type csharpType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        Type csharpType = CompiledAssembly
+            .GetTypes()
+            .Single(type =>
+                type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute))
+            );
 
         string loadedXml = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
 

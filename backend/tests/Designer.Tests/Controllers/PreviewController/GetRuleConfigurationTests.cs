@@ -8,20 +8,26 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetRuleConfigurationTests : PreviewControllerTestsBase<GetRuleConfigurationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRuleConfigurationTests
+        : PreviewControllerTestsBase<GetRuleConfigurationTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_RuleConfiguration_Ok()
         {
             string appwithRuleConfig = "app-without-layoutsets";
-            string expectedRuleConfig = TestDataHelper.GetFileFromRepo(Org, appwithRuleConfig, Developer, "App/ui/RuleConfiguration.json");
+            string expectedRuleConfig = TestDataHelper.GetFileFromRepo(
+                Org,
+                appwithRuleConfig,
+                Developer,
+                "App/ui/RuleConfiguration.json"
+            );
 
-            string dataPathWithData = $"{Org}/{appwithRuleConfig}/api/resource/RuleConfiguration.json";
+            string dataPathWithData =
+                $"{Org}/{appwithRuleConfig}/api/resource/RuleConfiguration.json";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

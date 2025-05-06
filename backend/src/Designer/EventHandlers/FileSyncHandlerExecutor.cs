@@ -16,7 +16,12 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
         _hubContext = hubContext;
     }
 
-    public async Task ExecuteWithExceptionHandlingAndConditionalNotification(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task<bool>> handlerFunction)
+    public async Task ExecuteWithExceptionHandlingAndConditionalNotification(
+        AltinnRepoEditingContext editingContext,
+        string errorCode,
+        string sourcePath,
+        Func<Task<bool>> handlerFunction
+    )
     {
         var source = new Source(Path.GetFileName(sourcePath), sourcePath);
         try
@@ -30,11 +35,7 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
         }
         catch (Exception e)
         {
-            SyncError error = new(
-                errorCode,
-                source,
-                e.Message
-            );
+            SyncError error = new(errorCode, source, e.Message);
 
             await _hubContext.Clients.Group(editingContext.Developer).FileSyncError(error);
         }

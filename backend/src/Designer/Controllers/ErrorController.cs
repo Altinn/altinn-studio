@@ -23,15 +23,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/error-local-development")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult ErrorLocalDevelopment(
-            [FromServices] IWebHostEnvironment webHostEnvironment)
+            [FromServices] IWebHostEnvironment webHostEnvironment
+        )
         {
             if (!webHostEnvironment.IsDevelopment())
             {
                 throw new InvalidOperationException(
-                    "This shouldn't be invoked in non-development environments.");
+                    "This shouldn't be invoked in non-development environments."
+                );
             }
 
-            IExceptionHandlerPathFeature feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+            IExceptionHandlerPathFeature feature =
+                HttpContext.Features.Get<IExceptionHandlerPathFeature>();
             Exception ex = feature?.Error;
 
             ProblemDetails problemDetails = new ProblemDetails
@@ -52,10 +55,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [Route("/error")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public ActionResult Error(
-            [FromServices] IWebHostEnvironment webHostEnvironment)
+        public ActionResult Error([FromServices] IWebHostEnvironment webHostEnvironment)
         {
-            IExceptionHandlerPathFeature feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+            IExceptionHandlerPathFeature feature =
+                HttpContext.Features.Get<IExceptionHandlerPathFeature>();
             Exception ex = feature?.Error;
             bool isDev = webHostEnvironment.IsDevelopment();
             ProblemDetails problemDetails = new ProblemDetails
@@ -73,8 +76,10 @@ namespace Altinn.Studio.Designer.Controllers
         {
             if (ex is HttpRequestWithStatusException httpException)
             {
-                if (httpException.StatusCode >= HttpStatusCode.BadRequest &&
-                    httpException.StatusCode < HttpStatusCode.InternalServerError)
+                if (
+                    httpException.StatusCode >= HttpStatusCode.BadRequest
+                    && httpException.StatusCode < HttpStatusCode.InternalServerError
+                )
                 {
                     return httpException.StatusCode;
                 }

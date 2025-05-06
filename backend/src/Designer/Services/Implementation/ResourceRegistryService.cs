@@ -33,14 +33,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
-        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
-
-        public ResourceRegistryService()
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+        };
 
-        }
+        public ResourceRegistryService() { }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings)
+        public ResourceRegistryService(
+            HttpClient httpClient,
+            IHttpClientFactory httpClientFactory,
+            IMaskinportenService maskinportenService,
+            IClientDefinition maskinPortenClientDefinition,
+            PlatformSettings platformSettings,
+            IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment,
+            IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings
+        )
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
@@ -51,14 +60,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
         }
 
-        public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null)
+        public async Task<ActionResult> PublishServiceResource(
+            ServiceResource serviceResource,
+            string env,
+            string policyPath = null
+        )
         {
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string publishResourceToResourceRegistryUrl;
             string getResourceRegistryUrl;
             string fullWritePolicyToResourceRegistryUrl;
-
 
             if (string.IsNullOrEmpty(env))
             {
@@ -68,38 +80,72 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                publishResourceToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
-                getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                fullWritePolicyToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
+                publishResourceToResourceRegistryUrl =
+                    $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
+                getResourceRegistryUrl =
+                    $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
+                fullWritePolicyToResourceRegistryUrl =
+                    $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
             else
             {
-                publishResourceToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
-                getResourceRegistryUrl = $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}/{serviceResource.Identifier}";
-                fullWritePolicyToResourceRegistryUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
+                publishResourceToResourceRegistryUrl =
+                    $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
+                getResourceRegistryUrl =
+                    $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}/{serviceResource.Identifier}";
+                fullWritePolicyToResourceRegistryUrl =
+                    $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
 
-            string serviceResourceString = System.Text.Json.JsonSerializer.Serialize(serviceResource, _serializerOptions);
+            string serviceResourceString = System.Text.Json.JsonSerializer.Serialize(
+                serviceResource,
+                _serializerOptions
+            );
             _httpClientFactory.CreateClient("myHttpClient");
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    tokenResponse.AccessToken
+                );
 
-            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(
+                getResourceRegistryUrl
+            );
 
             HttpResponseMessage response;
 
-            if (getResourceResponse.IsSuccessStatusCode && getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
+            if (
+                getResourceResponse.IsSuccessStatusCode
+                && getResourceResponse.StatusCode.Equals(HttpStatusCode.OK)
+            )
             {
-                string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                using (StringContent putContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json"))
+                string putRequest =
+                    $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
+                using (
+                    StringContent putContent = new StringContent(
+                        serviceResourceString,
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                )
                 {
                     response = await _httpClient.PutAsync(putRequest, putContent);
                 }
             }
             else
             {
-                using (StringContent postContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json"))
+                using (
+                    StringContent postContent = new StringContent(
+                        serviceResourceString,
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                )
                 {
-                    response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, postContent);
+                    response = await _httpClient.PostAsync(
+                        publishResourceToResourceRegistryUrl,
+                        postContent
+                    );
                 }
             }
 
@@ -137,7 +183,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
                     content.Add(fileContent, "policyFile", "policy.xml");
-                    HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(fullWritePolicyToResourceRegistryUrl, content);
+                    HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(
+                        fullWritePolicyToResourceRegistryUrl,
+                        content
+                    );
 
                     if (writePolicyResponse.IsSuccessStatusCode)
                     {
@@ -145,8 +194,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     }
                     else
                     {
-                        Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
-                        string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
+                        Console.WriteLine(
+                            $"Error writing policy. Status code: {writePolicyResponse.StatusCode}"
+                        );
+                        string responseContent =
+                            await writePolicyResponse.Content.ReadAsStringAsync();
                         Console.WriteLine($"Response content: {responseContent}");
                         return new StatusCodeResult(400);
                     }
@@ -168,11 +220,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}";
+                resourceUrl =
+                    $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}";
             }
             else
             {
-                resourceUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
+                resourceUrl =
+                    $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
             }
 
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
@@ -186,7 +240,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<XacmlPolicy> GetResourcePolicy(string id, string env)
         {
-            string policyUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
+            string policyUrl =
+                $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
 
             HttpResponseMessage response = await _httpClient.GetAsync(policyUrl);
             response.EnsureSuccessStatusCode();
@@ -208,11 +263,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/search/";
+                resourceUrl =
+                    $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/search/";
             }
             else
             {
-                resourceUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/search/";
+                resourceUrl =
+                    $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/search/";
             }
 
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
@@ -228,19 +285,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         ///     Get resource list
         /// </summary>
         /// <returns>List of all resources</returns>
-        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false)
+        public async Task<List<ServiceResource>> GetResourceList(
+            string env,
+            bool includeAltinn2,
+            bool includeApps = false
+        )
         {
-
             string endpointUrl;
 
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
+                endpointUrl =
+                    $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
             else
             {
-                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
+                endpointUrl =
+                    $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
 
             JsonSerializerOptions options = new JsonSerializerOptions
@@ -257,7 +319,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return JsonSerializer.Deserialize<List<ServiceResource>>(content, options);
                 }
 
-                HttpStatusException error = JsonSerializer.Deserialize<HttpStatusException>(content, options);
+                HttpStatusException error = JsonSerializer.Deserialize<HttpStatusException>(
+                    content,
+                    options
+                );
                 throw error;
             }
             catch (Exception ex) when (ex is not HttpStatusException)
@@ -266,10 +331,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
+        public async Task<ServiceResource> GetServiceResourceFromService(
+            string serviceCode,
+            int serviceEditionCode,
+            string environment
+        )
         {
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            string url =
+                $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -277,10 +347,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<ServiceResource>();
         }
 
-        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
+        public async Task<XacmlPolicy> GetXacmlPolicy(
+            string serviceCode,
+            int serviceEditionCode,
+            string identifier,
+            string environment
+        )
         {
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifier={identifier}";
+            string url =
+                $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifier={identifier}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -295,16 +371,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
-        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment)
+        public async Task<DelegationCountOverview> GetDelegationCount(
+            string serviceCode,
+            int serviceEditionCode,
+            string environment
+        )
         {
-            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(
+                environment
+            );
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            string url =
+                $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
 
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -312,54 +398,77 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<DelegationCountOverview>();
         }
 
-        public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
+        public async Task<ActionResult> StartMigrateDelegations(
+            ExportDelegationsRequestBE delegationRequest,
+            string environment
+        )
         {
-            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(
+                environment
+            );
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
 
             // set service expired
-            string setServiceEditionExpiredUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
+            string setServiceEditionExpiredUrl =
+                $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
 
-            using HttpRequestMessage setServiceEditionExpiredRequest = new HttpRequestMessage(HttpMethod.Get, setServiceEditionExpiredUrl);
-            setServiceEditionExpiredRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            using HttpRequestMessage setServiceEditionExpiredRequest = new HttpRequestMessage(
+                HttpMethod.Get,
+                setServiceEditionExpiredUrl
+            );
+            setServiceEditionExpiredRequest.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
 
-            using HttpResponseMessage setServiceEditionExpiredResponse = await _httpClient.SendAsync(setServiceEditionExpiredRequest);
+            using HttpResponseMessage setServiceEditionExpiredResponse =
+                await _httpClient.SendAsync(setServiceEditionExpiredRequest);
             setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
 
             // set batch start time
-            string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
+            string migrateDelegationsUrl =
+                $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
             delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
-            string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
+            string serializedContent = JsonSerializer.Serialize(
+                delegationRequest,
+                _serializerOptions
+            );
             using HttpRequestMessage migrateDelegationsRequest = new HttpRequestMessage()
             {
                 RequestUri = new Uri(migrateDelegationsUrl),
                 Method = HttpMethod.Post,
                 Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
             };
-            migrateDelegationsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            migrateDelegationsRequest.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
 
-            using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(migrateDelegationsRequest);
+            using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(
+                migrateDelegationsRequest
+            );
             migrateDelegationsResponse.EnsureSuccessStatusCode();
 
             return new StatusCodeResult(202);
         }
 
         // RRR
-        public async Task<AccessList> GetAccessList(
-            string org,
-            string identifier,
-            string env
-        )
+        public async Task<AccessList> GetAccessList(string org, string identifier, string env)
         {
             // get access list
             string listUrl = $"/{org}/{identifier}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Get,
+                listUrl
+            );
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            AccessList responseList = await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
+            AccessList responseList =
+                await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
             responseList.Etag = getAccessListsResponse.Headers.ETag?.ToString();
             return responseList;
         }
@@ -371,8 +480,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string page
         )
         {
-            string listMembersUrl = string.IsNullOrEmpty(page) ? $"/{org}/{identifier}/members" : $"/{GetAccessListPageUrlSuffix(page, env)}";
-            HttpRequestMessage membersRequest = await CreateAccessListRequest(env, HttpMethod.Get, listMembersUrl);
+            string listMembersUrl = string.IsNullOrEmpty(page)
+                ? $"/{org}/{identifier}/members"
+                : $"/{GetAccessListPageUrlSuffix(page, env)}";
+            HttpRequestMessage membersRequest = await CreateAccessListRequest(
+                env,
+                HttpMethod.Get,
+                listMembersUrl
+            );
 
             HttpResponseMessage geMembersResponse = await _httpClient.SendAsync(membersRequest);
             geMembersResponse.EnsureSuccessStatusCode();
@@ -383,7 +498,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _serializerOptions
             );
 
-            IEnumerable<string> partyIds = membersDto.Data.Select(x => x.Identifiers.OrganizationNumber);
+            IEnumerable<string> partyIds = membersDto.Data.Select(x =>
+                x.Identifiers.OrganizationNumber
+            );
             List<AccessListMember> members = new List<AccessListMember>();
 
             const int BATCH_LOOKUP_SIZE = 190; // url cannot exceed 2048 characters, if there are many members, lookup names from brreg in batches
@@ -392,26 +509,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 for (int i = 0; i < partyIds.Count(); i += BATCH_LOOKUP_SIZE)
                 {
-                    IEnumerable<string> batchPartyIds = partyIds.Where((x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE));
-                    string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
+                    IEnumerable<string> batchPartyIds = partyIds.Where(
+                        (x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE)
+                    );
+                    string brregUrl =
+                        "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
                     string partyIdsString = string.Join(",", batchPartyIds);
                     List<BrregParty>[] parties = await Task.WhenAll(
                         GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
                         GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
                     );
 
-                    members.AddRange(batchPartyIds.Select(orgnr =>
-                    {
-                        string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
-                        string underenhetOrgName = parties[1].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
-                        AccessListMember member = new()
+                    members.AddRange(
+                        batchPartyIds.Select(orgnr =>
                         {
-                            OrgNr = orgnr,
-                            OrgName = enhetOrgName ?? underenhetOrgName ?? "",
-                            IsSubParty = underenhetOrgName != null
-                        };
-                        return member;
-                    }));
+                            string enhetOrgName = parties[0]
+                                .Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
+                                ?.Navn;
+                            string underenhetOrgName = parties[1]
+                                .Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
+                                ?.Navn;
+                            AccessListMember member = new()
+                            {
+                                OrgNr = orgnr,
+                                OrgName = enhetOrgName ?? underenhetOrgName ?? "",
+                                IsSubParty = underenhetOrgName != null,
+                            };
+                            return member;
+                        })
+                    );
                 }
             }
 
@@ -419,7 +545,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 Data = members,
                 NextPage = membersDto.Links?.Next,
-                Etag = geMembersResponse.Headers.ETag?.ToString()
+                Etag = geMembersResponse.Headers.ETag?.ToString(),
             };
         }
 
@@ -429,18 +555,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string page
         )
         {
-            string listUrl = string.IsNullOrEmpty(page) ? $"/{org}" : $"/{GetAccessListPageUrlSuffix(page, env)}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+            string listUrl = string.IsNullOrEmpty(page)
+                ? $"/{org}"
+                : $"/{GetAccessListPageUrlSuffix(page, env)}";
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Get,
+                listUrl
+            );
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
-            return new PagedAccessListResponse()
-            {
-                Data = res.Data,
-                NextPage = res.Links?.Next
-            };
-
+            AccessListInfoDtoPaginated res =
+                await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+            return new PagedAccessListResponse() { Data = res.Data, NextPage = res.Links?.Next };
         }
 
         public async Task<PagedAccessListResponse> GetResourceAccessLists(
@@ -451,30 +579,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             string listUrl = $"/{org}?include=resources&resource={resourceId}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Get,
+                listUrl
+            );
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+            AccessListInfoDtoPaginated res =
+                await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
 
-            return new PagedAccessListResponse()
-            {
-                Data = res.Data,
-                NextPage = res.Links?.Next
-            };
+            return new PagedAccessListResponse() { Data = res.Data, NextPage = res.Links?.Next };
         }
 
         // RRR write
-        public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, AccessList accessList)
+        public async Task<ActionResult<AccessList>> CreateAccessList(
+            string org,
+            string env,
+            AccessList accessList
+        )
         {
             CreateAccessListModel payload = new()
             {
                 Name = accessList.Name,
-                Description = accessList.Description
+                Description = accessList.Description,
             };
             string serviceResourceString = JsonSerializer.Serialize(payload, _serializerOptions);
             string createUrl = $"/{org}/{accessList.Identifier}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, createUrl, serviceResourceString);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Put,
+                createUrl,
+                serviceResourceString
+            );
             request.Headers.IfNoneMatch.ParseAdd("*");
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -488,10 +626,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return createdList;
         }
 
-        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env, string etag)
+        public async Task<ActionResult> DeleteAccessList(
+            string org,
+            string identifier,
+            string env,
+            string etag
+        )
         {
             string listUrl = $"/{org}/{identifier}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, "", etag);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Delete,
+                listUrl,
+                "",
+                etag
+            );
             HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
             if (deleteAccessListResponse.StatusCode == HttpStatusCode.PreconditionFailed)
             {
@@ -510,7 +659,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string listUrl = $"/{org}/{identifier}";
             string serviceResourceString = JsonSerializer.Serialize(accessList, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, listUrl, serviceResourceString, accessList.Etag);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Put,
+                listUrl,
+                serviceResourceString,
+                accessList.Etag
+            );
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.PreconditionFailed)
@@ -532,8 +687,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             UpdateAccessListMemberDto newListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
-            string addMemberPayloadString = JsonSerializer.Serialize(newListMembers, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString, members.Etag);
+            string addMemberPayloadString = JsonSerializer.Serialize(
+                newListMembers,
+                _serializerOptions
+            );
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Post,
+                listUrl,
+                addMemberPayloadString,
+                members.Etag
+            );
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -541,14 +705,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string responseContent = await response.Content.ReadAsStringAsync();
                 try
                 {
-                    AltinnProblemDetails problems = JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
+                    AltinnProblemDetails problems =
+                        JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
                     string content = JsonSerializer.Serialize(problems, _serializerOptions);
                     return new ObjectResult(content) { StatusCode = (int)response.StatusCode };
                 }
                 catch (Exception)
                 {
                     Console.WriteLine("error");
-                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                    return new ContentResult()
+                    {
+                        Content = responseContent,
+                        StatusCode = (int)response.StatusCode,
+                    };
                 }
             }
             else if (response.StatusCode == HttpStatusCode.PreconditionFailed)
@@ -556,7 +725,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() })
+            {
+                StatusCode = (int)response.StatusCode,
+            };
         }
 
         public async Task<ActionResult> RemoveAccessListMembers(
@@ -568,8 +740,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             UpdateAccessListMemberDto deleteListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
-            string removeMemberPayloadString = JsonSerializer.Serialize(deleteListMembers, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, removeMemberPayloadString, members.Etag);
+            string removeMemberPayloadString = JsonSerializer.Serialize(
+                deleteListMembers,
+                _serializerOptions
+            );
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Delete,
+                listUrl,
+                removeMemberPayloadString,
+                members.Etag
+            );
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -577,13 +758,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string responseContent = await response.Content.ReadAsStringAsync();
                 try
                 {
-                    AltinnProblemDetails problems = JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
+                    AltinnProblemDetails problems =
+                        JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
                     string content = JsonSerializer.Serialize(problems, _serializerOptions);
                     return new ObjectResult(content) { StatusCode = (int)response.StatusCode };
                 }
                 catch (Exception)
                 {
-                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                    return new ContentResult()
+                    {
+                        Content = responseContent,
+                        StatusCode = (int)response.StatusCode,
+                    };
                 }
             }
             else if (response.StatusCode == HttpStatusCode.PreconditionFailed)
@@ -591,7 +777,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() })
+            {
+                StatusCode = (int)response.StatusCode,
+            };
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(
@@ -601,11 +790,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            UpsertAccessListResourceConnectionDto data = new UpsertAccessListResourceConnectionDto();
+            UpsertAccessListResourceConnectionDto data =
+                new UpsertAccessListResourceConnectionDto();
             data.Actions = new List<string>(); // actions are not used yet
             string actionsContent = JsonSerializer.Serialize(data, _serializerOptions);
             string addUrl = $"/{org}/{listId}/resource-connections/{resourceId}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, addUrl, actionsContent);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Put,
+                addUrl,
+                actionsContent
+            );
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -620,14 +815,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             string removeUrl = $"/{org}/{listId}/resource-connections/{resourceId}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, removeUrl);
+            HttpRequestMessage request = await CreateAccessListRequest(
+                env,
+                HttpMethod.Delete,
+                removeUrl
+            );
 
-            HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(request);
+            HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(
+                request
+            );
             removeResourceAccessListResponse.EnsureSuccessStatusCode();
             return removeResourceAccessListResponse.StatusCode;
         }
 
-        public async Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env)
+        public async Task<List<SubjectResources>> GetSubjectResources(
+            List<string> subjects,
+            string env
+        )
         {
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(env);
             string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/resource/bysubjects";
@@ -639,10 +843,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Method = HttpMethod.Post,
                 Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
             };
-            using HttpResponseMessage response = await _httpClient.SendAsync(getSubjectResourcesRequest);
+            using HttpResponseMessage response = await _httpClient.SendAsync(
+                getSubjectResourcesRequest
+            );
             response.EnsureSuccessStatusCode();
 
-            SubjectResourcesDto responseContent = await response.Content.ReadAsAsync<SubjectResourcesDto>();
+            SubjectResourcesDto responseContent =
+                await response.Content.ReadAsAsync<SubjectResourcesDto>();
             return responseContent.Data;
         }
 
@@ -656,7 +863,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _serializerOptions
             );
 
-            return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties : new List<BrregParty>();
+            return results.Embedded != null
+                ? results.Embedded.Parties ?? results.Embedded.SubParties
+                : new List<BrregParty>();
         }
 
         private string GetAccessListPageUrlSuffix(string pageUrl, string env)
@@ -673,7 +882,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return pageUrl.Replace(accessListBaseUrl, "");
         }
 
-        private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null, string eTag = null)
+        private async Task<HttpRequestMessage> CreateAccessListRequest(
+            string env,
+            HttpMethod verb,
+            string relativeUrl,
+            string serializedContent = null,
+            string eTag = null
+        )
         {
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
@@ -682,8 +897,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
                 : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            HttpRequestMessage request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{baseUrl}{relativeUrl}"
+            );
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
             if (!string.IsNullOrEmpty(eTag))
             {
                 request.Headers.IfMatch.ParseAdd(eTag);
@@ -691,25 +912,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
             request.Method = verb;
             if (serializedContent != null)
             {
-                request.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
+                request.Content = new StringContent(
+                    serializedContent,
+                    Encoding.UTF8,
+                    "application/json"
+                );
             }
 
             return request;
         }
 
-        private static UpdateAccessListMemberDto PrefixAccessListMembersData(AccessListOrganizationNumbers members)
+        private static UpdateAccessListMemberDto PrefixAccessListMembersData(
+            AccessListOrganizationNumbers members
+        )
         {
             return new UpdateAccessListMemberDto()
             {
-                Data = members.Data.Select(orgnr => $"urn:altinn:organization:identifier-no:{orgnr}").ToList()
+                Data = members
+                    .Data.Select(orgnr => $"urn:altinn:organization:identifier-no:{orgnr}")
+                    .ToList(),
             };
         }
-        // RRR end
 
+        // RRR end
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
         {
-            return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
+            return await _maskinPortenService.GetToken(
+                _maskinportenClientDefinition.ClientSettings.EncodedJwk,
+                _maskinportenClientDefinition.ClientSettings.Environment,
+                _maskinportenClientDefinition.ClientSettings.ClientId,
+                _maskinportenClientDefinition.ClientSettings.Scope,
+                _maskinportenClientDefinition.ClientSettings.Resource,
+                _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo
+            );
         }
 
         private async Task<ActionResult> GetPublishResponse(HttpResponseMessage response)
@@ -727,39 +963,61 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string responseContent = await response.Content.ReadAsStringAsync();
                 try
                 {
-                    ValidationProblemDetails problems = JsonSerializer.Deserialize<ValidationProblemDetails>(responseContent);
+                    ValidationProblemDetails problems =
+                        JsonSerializer.Deserialize<ValidationProblemDetails>(responseContent);
                     return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
                 }
                 catch (Exception)
                 {
-                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                    return new ContentResult()
+                    {
+                        Content = responseContent,
+                        StatusCode = (int)response.StatusCode,
+                    };
                 }
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
-                return new ContentResult() { Content = responseContent, StatusCode = (int)HttpStatusCode.Forbidden };
+                return new ContentResult()
+                {
+                    Content = responseContent,
+                    StatusCode = (int)HttpStatusCode.Forbidden,
+                };
             }
             else
             {
                 string responseContent = await response.Content.ReadAsStringAsync();
                 try
                 {
-                    ProblemDetails problems = JsonSerializer.Deserialize<ProblemDetails>(responseContent);
+                    ProblemDetails problems = JsonSerializer.Deserialize<ProblemDetails>(
+                        responseContent
+                    );
                     return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
                 }
                 catch (Exception)
                 {
-                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                    return new ContentResult()
+                    {
+                        Content = responseContent,
+                        StatusCode = (int)response.StatusCode,
+                    };
                 }
             }
         }
 
         private string GetResourceRegistryBaseUrl(string env)
         {
-            if (!_resourceRegistrySettings.TryGetValue(env, out ResourceRegistryEnvironmentSettings envSettings))
+            if (
+                !_resourceRegistrySettings.TryGetValue(
+                    env,
+                    out ResourceRegistryEnvironmentSettings envSettings
+                )
+            )
             {
-                throw new ArgumentException($"Invalid environment. Missing environment config for {env}");
+                throw new ArgumentException(
+                    $"Invalid environment. Missing environment config for {env}"
+                );
             }
 
             return envSettings.ResourceRegistryEnvBaseUrl;
@@ -768,9 +1026,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private MaskinportenClientSettings GetMaskinportenIntegrationSettings(string env)
         {
             string maskinportenEnvironment = env == "prod" ? "prod" : "test";
-            if (!_maskinportenIntegrationSettings.TryGetValue(maskinportenEnvironment, out MaskinportenClientSettings maskinportenClientSettings))
+            if (
+                !_maskinportenIntegrationSettings.TryGetValue(
+                    maskinportenEnvironment,
+                    out MaskinportenClientSettings maskinportenClientSettings
+                )
+            )
             {
-                throw new ArgumentException($"Invalid environment. Missing Maskinporten config for {env}");
+                throw new ArgumentException(
+                    $"Invalid environment. Missing Maskinporten config for {env}"
+                );
             }
 
             return maskinportenClientSettings;

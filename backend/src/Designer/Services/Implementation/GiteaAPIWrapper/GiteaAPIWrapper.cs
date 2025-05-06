@@ -44,7 +44,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             ILogger<GiteaAPIWrapper> logger,
-            HttpClient httpClient)
+            HttpClient httpClient
+        )
         {
             _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
@@ -63,8 +64,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             _logger.LogError(
-                "User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) +
-                " Get current user failed with statuscode " + response.StatusCode);
+                "User "
+                    + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+                    + " Get current user failed with statuscode "
+                    + response.StatusCode
+            );
 
             return null;
         }
@@ -84,27 +88,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 };
 
-                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, deserializeOptions) ?? new List<Team>();
+                teams =
+                    JsonSerializer.Deserialize<List<Team>>(jsonString, deserializeOptions)
+                    ?? new List<Team>();
             }
             else
             {
-                _logger.LogError("Could not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with status code " + response.StatusCode);
+                _logger.LogError(
+                    "Could not retrieve teams for user "
+                        + AuthenticationHelper.GetDeveloperUserName(
+                            _httpContextAccessor.HttpContext
+                        )
+                        + " GetTeams failed with status code "
+                        + response.StatusCode
+                );
             }
 
             return teams;
         }
 
         /// <inheritdoc />
-        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRepository(
+            string org,
+            CreateRepoOption options
+        )
         {
             var repository = new RepositoryClient.Model.Repository();
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
             string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                repository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
+                repository =
+                    await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
                 repository.RepositoryCreatedStatus = HttpStatusCode.Created;
             }
             else if (response.StatusCode == HttpStatusCode.Conflict)
@@ -115,12 +134,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             else if (response.StatusCode == HttpStatusCode.Forbidden)
             {
                 // The user is not part of a team with repo-creation permissions, 403 from Gitea API
-                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
+                _logger.LogError(
+                    $"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea."
+                );
                 repository.RepositoryCreatedStatus = HttpStatusCode.Forbidden;
             }
             else
             {
-                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
+                _logger.LogError(
+                    $"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}."
+                );
                 repository.RepositoryCreatedStatus = response.StatusCode;
             }
 
@@ -130,12 +153,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<IList<RepositoryClient.Model.Repository>> GetUserRepos()
         {
-            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+            IList<RepositoryClient.Model.Repository> repos =
+                new List<RepositoryClient.Model.Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=50");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
+                repos = await response.Content.ReadAsAsync<
+                    IList<RepositoryClient.Model.Repository>
+                >();
 
                 foreach (RepositoryClient.Model.Repository repo in repos)
                 {
@@ -167,7 +193,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync("user/starred?limit=100");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
+                var repos = await response.Content.ReadAsAsync<
+                    List<RepositoryClient.Model.Repository>
+                >();
                 starredRepos.AddRange(repos);
             }
 
@@ -177,7 +205,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> PutStarred(string org, string repository)
         {
-            using HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            using HttpRequestMessage request = new(
+                HttpMethod.Put,
+                $"user/starred/{org}/{repository}"
+            );
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
@@ -186,7 +217,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> DeleteStarred(string org, string repository)
         {
-            using HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            using HttpRequestMessage request = new(
+                HttpMethod.Delete,
+                $"user/starred/{org}/{repository}"
+            );
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
@@ -195,19 +229,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
         {
-            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+            IList<RepositoryClient.Model.Repository> repos =
+                new List<RepositoryClient.Model.Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{org}/repos?limit=50");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
+                repos = await response.Content.ReadAsAsync<
+                    IList<RepositoryClient.Model.Repository>
+                >();
             }
 
             return repos;
         }
 
         /// <inheritdoc/>
-        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
+        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(
+            string org,
+            string repo,
+            ServiceResource serviceResource
+        )
         {
             ListviewServiceResource listviewResource = new ListviewServiceResource
             {
@@ -217,7 +258,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false");
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync(
+                $"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false"
+            );
 
             if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
@@ -241,7 +284,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
                     string userFullName = await GetCachedUserFullName(commitUserName);
                     listviewResource.CreatedBy = userFullName;
-                    listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
+                    listviewResource.LastChanged = DateTime.Parse(
+                        commitResponse.FirstOrDefault().Created
+                    );
                 }
             }
 
@@ -258,7 +303,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 searchResults = await response.Content.ReadAsAsync<SearchResults>();
-                if (response.Headers.TryGetValues("X-Total-Count", out IEnumerable<string> countValues))
+                if (
+                    response.Headers.TryGetValues(
+                        "X-Total-Count",
+                        out IEnumerable<string> countValues
+                    )
+                )
                 {
                     searchResults.TotalCount = Convert.ToInt32(countValues.First());
                 }
@@ -288,7 +338,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+                _logger.LogError(
+                    "User "
+                        + AuthenticationHelper.GetDeveloperUserName(
+                            _httpContextAccessor.HttpContext
+                        )
+                        + " SearchRepository failed with statuscode "
+                        + response.StatusCode
+                );
             }
 
             return searchResults;
@@ -320,12 +377,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 giteaSearchUriString += $"&uid={searchOption.UId}&exclusive=true";
             }
 
-            if (!string.IsNullOrEmpty(searchOption.SortBy) && new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
+            if (
+                !string.IsNullOrEmpty(searchOption.SortBy)
+                && new[] { "alpha", "created", "updated", "size", "id" }.Contains(
+                    searchOption.SortBy,
+                    StringComparer.OrdinalIgnoreCase
+                )
+            )
             {
                 giteaSearchUriString += $"&sort={searchOption.SortBy}";
             }
 
-            if (!string.IsNullOrEmpty(searchOption.Order) && new[] { "asc", "desc" }.Contains(searchOption.Order, StringComparer.OrdinalIgnoreCase))
+            if (
+                !string.IsNullOrEmpty(searchOption.Order)
+                && new[] { "asc", "desc" }.Contains(
+                    searchOption.Order,
+                    StringComparer.OrdinalIgnoreCase
+                )
+            )
             {
                 giteaSearchUriString += $"&order={searchOption.Order}";
             }
@@ -339,7 +408,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository)
+        public async Task<RepositoryClient.Model.Repository> GetRepository(
+            string org,
+            string repository
+        )
         {
             RepositoryClient.Model.Repository returnRepository = null;
 
@@ -347,16 +419,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                returnRepository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
+                returnRepository =
+                    await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
             }
             else
             {
-                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
+                _logger.LogWarning(
+                    $"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}"
+                );
             }
 
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
             {
-                returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                returnRepository.IsClonedToLocal = IsLocalRepo(
+                    returnRepository.Owner.Login,
+                    returnRepository.Name
+                );
 
                 Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
                 if (organisation.Id != -1)
@@ -377,7 +455,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await response.Content.ReadAsAsync<List<Organization>>();
             }
 
-            _logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+            _logger.LogError(
+                $"User "
+                    + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+                    + " Get Organizations failed with statuscode "
+                    + response.StatusCode
+            );
 
             return null;
         }
@@ -385,13 +468,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
+            HttpResponseMessage response = await _httpClient.GetAsync(
+                $"repos/{org}/{repository}/branches/{branch}"
+            );
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await response.Content.ReadAsAsync<Branch>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
+            _logger.LogError(
+                "User "
+                    + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+                    + " GetBranch response failed with statuscode "
+                    + response.StatusCode
+                    + " for "
+                    + org
+                    + " / "
+                    + repository
+                    + " branch: "
+                    + branch
+            );
 
             return null;
         }
@@ -402,51 +498,93 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // In quite a few cases we have experienced that we get a 404 back
             // when doing a POST to this endpoint, hence we do a simple retry
             // with a specified wait time.
-            var retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
+            var retryPolicy = Policy
+                .HandleResult<HttpResponseMessage>(response =>
+                    response.StatusCode != HttpStatusCode.Created
+                )
                 .FallbackAsync(ct =>
                 {
-                    _logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
-                    throw new GiteaApiWrapperException($"Failed to create branch {branchName} in Gitea after 4 retries.");
+                    _logger.LogError(
+                        $"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}"
+                    );
+                    throw new GiteaApiWrapperException(
+                        $"Failed to create branch {branchName} in Gitea after 4 retries."
+                    );
                 })
                 .WrapAsync(
-                    Policy.HandleResult<HttpResponseMessage>(httpResponse => httpResponse.StatusCode == HttpStatusCode.NotFound)
-                        .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromMilliseconds(500 * retryAttempt))
+                    Policy
+                        .HandleResult<HttpResponseMessage>(httpResponse =>
+                            httpResponse.StatusCode == HttpStatusCode.NotFound
+                        )
+                        .WaitAndRetryAsync(
+                            4,
+                            retryAttempt => TimeSpan.FromMilliseconds(500 * retryAttempt)
+                        )
                 );
 
-
-            HttpResponseMessage response = await retryPolicy.ExecuteAsync(() => PostBranch(org, repository, branchName));
+            HttpResponseMessage response = await retryPolicy.ExecuteAsync(() =>
+                PostBranch(org, repository, branchName)
+            );
 
             return await response.Content.ReadAsAsync<Branch>();
         }
 
-        private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName)
+        private async Task<HttpResponseMessage> PostBranch(
+            string org,
+            string repository,
+            string branchName
+        )
         {
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-            using HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            using HttpRequestMessage message = new(
+                HttpMethod.Post,
+                $"repos/{org}/{repository}/branches"
+            );
             message.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
             return await _httpClient.SendAsync(message);
         }
 
         /// <inheritdoc />
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
+        public async Task<FileSystemObject> GetFileAsync(
+            string org,
+            string app,
+            string filePath,
+            string shortCommitId
+        )
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
+            HttpResponseMessage response = await _httpClient.GetAsync(
+                $"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}"
+            );
             return await response.Content.ReadAsAsync<FileSystemObject>();
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        public async Task<List<FileSystemObject>> GetDirectoryAsync(
+            string org,
+            string app,
+            string directoryPath,
+            string shortCommitId
+        )
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            HttpResponseMessage response = await _httpClient.GetAsync(
+                $"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}"
+            );
             return await response.Content.ReadAsAsync<List<FileSystemObject>>();
         }
 
         /// <inheritdoc/>
-        public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
+        public async Task<bool> CreatePullRequest(
+            string org,
+            string repository,
+            CreatePullRequestOption createPullRequestOption
+        )
         {
             string content = JsonSerializer.Serialize(createPullRequestOption);
-            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+            using HttpResponseMessage response = await _httpClient.PostAsync(
+                $"repos/{org}/{repository}/pulls",
+                new StringContent(content, Encoding.UTF8, "application/json")
+            );
 
             return response.IsSuccessStatusCode;
         }
@@ -454,7 +592,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> DeleteRepository(string org, string repository)
         {
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.DeleteAsync(
+                $"repos/{org}/{repository}"
+            );
             return response.IsSuccessStatusCode;
         }
 
@@ -466,14 +606,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await response.Content.ReadAsAsync<Organization>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + name);
+            _logger.LogError(
+                "User "
+                    + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+                    + " GetOrganization failed with statuscode "
+                    + response.StatusCode
+                    + "for "
+                    + name
+            );
 
             return null;
         }
 
         private bool IsLocalRepo(string org, string app)
         {
-            string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localAppRepoFolder = _settings.GetServicePath(
+                org,
+                app,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+            );
             if (Directory.Exists(localAppRepoFolder))
             {
                 try
@@ -500,7 +651,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
                 GiteaUser giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
-                giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName) ? username : giteaUser.FullName;
+                giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName)
+                    ? username
+                    : giteaUser.FullName;
                 _cache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
             }
 
@@ -520,24 +673,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch
                 {
-                    organisation = new Organization
-                    {
-                        Id = -1
-                    };
+                    organisation = new Organization { Id = -1 };
                 }
 
                 // Null value is not cached. so set id property to -1
                 if (organisation == null)
                 {
-                    organisation = new Organization
-                    {
-                        Id = -1
-                    };
+                    organisation = new Organization { Id = -1 };
                 }
 
                 // Keep in cache for this time, reset time if accessed.
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(
+                    TimeSpan.FromSeconds(3600)
+                );
 
                 // Save data in cache.
                 _cache.Set(cachekey, organisation, cacheEntryOptions);

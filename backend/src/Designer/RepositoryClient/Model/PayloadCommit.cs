@@ -21,9 +21,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommit"/> class.
         /// </summary>
-        public PayloadCommit()
-        {
-        }
+        public PayloadCommit() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommit" /> class.
@@ -35,7 +33,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="timestamp">Timestamp.</param>
         /// <param name="url">Url.</param>
         /// <param name="verification">Verification.</param>
-        public PayloadCommit(PayloadUser author = default(PayloadUser), PayloadUser committer = default(PayloadUser), string id = default(string), string message = default(string), string timestamp = default(string), string url = default(string), PayloadCommitVerification verification = default(PayloadCommitVerification))
+        public PayloadCommit(
+            PayloadUser author = default(PayloadUser),
+            PayloadUser committer = default(PayloadUser),
+            string id = default(string),
+            string message = default(string),
+            string timestamp = default(string),
+            string url = default(string),
+            PayloadCommitVerification verification = default(PayloadCommitVerification)
+        )
         {
             this.Author = author;
             this.Committer = committer;

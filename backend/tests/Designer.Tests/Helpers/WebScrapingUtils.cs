@@ -13,7 +13,11 @@ public static class WebScrapingUtils
     /// <returns>The extracted substring between "beforeText" and "afterText" if they are found in the HTML content and are in the correct order.
     /// Returns null if the conditions are not met.
     /// </returns>
-    public static string ExtractTextBetweenMarkers(string htmlContent, string beforeText, string afterText)
+    public static string ExtractTextBetweenMarkers(
+        string htmlContent,
+        string beforeText,
+        string afterText
+    )
     {
         int start = htmlContent.IndexOf(beforeText, StringComparison.InvariantCulture);
         if (start == -1)

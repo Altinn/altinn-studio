@@ -9,17 +9,13 @@ namespace Altinn.Studio.Designer.Exceptions.Options;
 public class InvalidOptionsFormatException : Exception
 {
     /// <inheritdoc/>
-    public InvalidOptionsFormatException()
-    {
-    }
+    public InvalidOptionsFormatException() { }
 
     /// <inheritdoc/>
-    public InvalidOptionsFormatException(string message) : base(message)
-    {
-    }
+    public InvalidOptionsFormatException(string message)
+        : base(message) { }
 
     /// <inheritdoc/>
-    public InvalidOptionsFormatException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+    public InvalidOptionsFormatException(string message, Exception innerException)
+        : base(message, innerException) { }
 }

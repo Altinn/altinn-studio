@@ -9,7 +9,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Preview;
 /// </summary>
 public interface IInstanceService
 {
-    public Instance CreateInstance(string org, string app, int partyId, string taskId, List<DataType> dataTypes);
+    public Instance CreateInstance(
+        string org,
+        string app,
+        int partyId,
+        string taskId,
+        List<DataType> dataTypes
+    );
     public Instance GetInstance(Guid instanceGuid);
 
     public Instance AddDataElement(Guid instanceGuid, DataElement dataElement);

@@ -36,6 +36,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums
         /// The build has succeeded
         /// </summary>
         [EnumMember(Value = "succeeded")]
-        Succeeded = 4
+        Succeeded = 4,
     }
 }

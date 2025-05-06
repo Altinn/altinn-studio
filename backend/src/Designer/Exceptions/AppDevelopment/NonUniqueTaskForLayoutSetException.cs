@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class NonUniqueTaskForLayoutSetException : Exception
     {
         /// <inheritdoc/>
-        public NonUniqueTaskForLayoutSetException()
-        {
-        }
+        public NonUniqueTaskForLayoutSetException() { }
 
         /// <inheritdoc/>
-        public NonUniqueTaskForLayoutSetException(string message) : base(message)
-        {
-        }
+        public NonUniqueTaskForLayoutSetException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public NonUniqueTaskForLayoutSetException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public NonUniqueTaskForLayoutSetException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

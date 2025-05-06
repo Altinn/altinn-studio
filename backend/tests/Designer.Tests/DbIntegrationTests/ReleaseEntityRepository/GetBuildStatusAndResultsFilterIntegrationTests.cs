@@ -13,18 +13,26 @@ namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
 
 public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityIntegrationTestsBase
 {
-    public GetBuildStatusAndResultsFilterIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetBuildStatusAndResultsFilterIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task Get_ShouldReturnCorrectRecordsFromDatabase(string org, string app, List<(BuildStatus status, BuildResult result)> statusReleaseCombinationsInDb, List<string> buildStatuses, List<string> buildResults, int expectedFoundNumber)
+    public async Task Get_ShouldReturnCorrectRecordsFromDatabase(
+        string org,
+        string app,
+        List<(BuildStatus status, BuildResult result)> statusReleaseCombinationsInDb,
+        List<string> buildStatuses,
+        List<string> buildResults,
+        int expectedFoundNumber
+    )
     {
         int numberOfEntities = statusReleaseCombinationsInDb.Count;
         string tagName = Guid.NewGuid().ToString();
         var repository = new ReleaseRepository(DbFixture.DbContext);
-        var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, numberOfEntities).ToList();
+        var releaseEntities = EntityGenerationUtils
+            .Release.GenerateReleaseEntities(org, app, numberOfEntities)
+            .ToList();
         for (int i = 0; i < numberOfEntities; i++)
         {
             releaseEntities[i].TagName = tagName;
@@ -34,13 +42,23 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var exptectedEntities = releaseEntities.Where(r =>
-            r.Org == org && r.App == app && r.TagName == tagName)
+        var exptectedEntities = releaseEntities
+            .Where(r => r.Org == org && r.App == app && r.TagName == tagName)
             .Where(r =>
-            (buildStatuses is not null && buildStatuses.Contains(r.Build.Status.ToEnumMemberAttributeValue())) ||
-            (buildResults is not null && buildResults.Contains(r.Build.Result.ToEnumMemberAttributeValue()))).ToList();
+                (
+                    buildStatuses is not null
+                    && buildStatuses.Contains(r.Build.Status.ToEnumMemberAttributeValue())
+                )
+                || (
+                    buildResults is not null
+                    && buildResults.Contains(r.Build.Result.ToEnumMemberAttributeValue())
+                )
+            )
+            .ToList();
 
-        var results = (await repository.Get(org, app, tagName, buildStatuses, buildResults)).ToList();
+        var results = (
+            await repository.Get(org, app, tagName, buildStatuses, buildResults)
+        ).ToList();
 
         Assert.Equal(expectedFoundNumber, results.Count);
         AssertionUtil.AssertEqualTo(exptectedEntities, results);
@@ -48,7 +66,8 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
     public static IEnumerable<object[]> TestData()
     {
-        yield return [
+        yield return
+        [
             "ttd",
             Guid.NewGuid().ToString(),
             new List<(BuildStatus status, BuildResult result)>
@@ -56,13 +75,14 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
                 (BuildStatus.InProgress, BuildResult.Canceled),
-                (BuildStatus.NotStarted, BuildResult.Canceled)
+                (BuildStatus.NotStarted, BuildResult.Canceled),
             },
             new List<string> { "completed", "inProgress" },
             null,
-            3
+            3,
         ];
-        yield return [
+        yield return
+        [
             "ttd",
             Guid.NewGuid().ToString(),
             new List<(BuildStatus status, BuildResult result)>
@@ -70,13 +90,14 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
                 (BuildStatus.InProgress, BuildResult.Canceled),
-                (BuildStatus.NotStarted, BuildResult.Canceled)
+                (BuildStatus.NotStarted, BuildResult.Canceled),
             },
             null,
             null,
-            0
+            0,
         ];
-        yield return [
+        yield return
+        [
             "ttd",
             Guid.NewGuid().ToString(),
             new List<(BuildStatus status, BuildResult result)>
@@ -84,13 +105,14 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
                 (BuildStatus.InProgress, BuildResult.Canceled),
-                (BuildStatus.NotStarted, BuildResult.Canceled)
+                (BuildStatus.NotStarted, BuildResult.Canceled),
             },
             null,
             new List<string> { "succeeded" },
-            1
+            1,
         ];
-        yield return [
+        yield return
+        [
             "ttd",
             Guid.NewGuid().ToString(),
             new List<(BuildStatus status, BuildResult result)>
@@ -98,13 +120,14 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.InProgress, BuildResult.Failed),
                 (BuildStatus.InProgress, BuildResult.Canceled),
-                (BuildStatus.NotStarted, BuildResult.Canceled)
+                (BuildStatus.NotStarted, BuildResult.Canceled),
             },
             new List<string> { "completed" },
             new List<string> { "canceled", "succeeded" },
-            3
+            3,
         ];
-        yield return [
+        yield return
+        [
             "ttd",
             Guid.NewGuid().ToString(),
             new List<(BuildStatus status, BuildResult result)>
@@ -112,11 +135,11 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
                 (BuildStatus.InProgress, BuildResult.Succeeded),
-                (BuildStatus.NotStarted, BuildResult.Canceled)
+                (BuildStatus.NotStarted, BuildResult.Canceled),
             },
             new List<string> { "cancelling" },
             new List<string> { "partiallySucceeded" },
-            0
+            0,
         ];
     }
 }

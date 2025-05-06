@@ -29,20 +29,23 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                     if (!s_keywordsRegistered)
                     {
                         IEnumerable<Type> keywordTypes = typeof(JsonSchemaKeywords)
-                           .Assembly
-                           .GetTypes()
-                           .Where(t => typeof(IJsonSchemaKeyword).IsAssignableFrom(t) &&
-                                       t.GetCustomAttribute<SchemaKeywordAttribute>() != null);
+                            .Assembly.GetTypes()
+                            .Where(t =>
+                                typeof(IJsonSchemaKeyword).IsAssignableFrom(t)
+                                && t.GetCustomAttribute<SchemaKeywordAttribute>() != null
+                            );
 
-                        MethodInfo registerMethod = typeof(SchemaKeywordRegistry)
-                           .GetMethod("Register", BindingFlags.Static | BindingFlags.Public);
+                        MethodInfo registerMethod = typeof(SchemaKeywordRegistry).GetMethod(
+                            "Register",
+                            BindingFlags.Static | BindingFlags.Public
+                        );
                         Debug.Assert(registerMethod != null, nameof(registerMethod) + " != null");
 
                         foreach (Type keywordType in keywordTypes)
                         {
                             registerMethod
-                               .MakeGenericMethod(keywordType)
-                               .Invoke(null, Array.Empty<object>());
+                                .MakeGenericMethod(keywordType)
+                                .Invoke(null, Array.Empty<object>());
                         }
 
                         s_keywordsRegistered = true;

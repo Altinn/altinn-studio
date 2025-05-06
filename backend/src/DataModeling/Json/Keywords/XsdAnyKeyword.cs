@@ -38,7 +38,11 @@ public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword
         Value = new List<string>(value);
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -79,7 +83,11 @@ public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword
         /// <summary>
         /// Read @xsdAny keyword from json schema
         /// </summary>
-        public override XsdAnyKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdAnyKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.StartArray)
             {
@@ -108,7 +116,11 @@ public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword
         /// <summary>
         /// Write @xsdAny keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdAnyKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdAnyKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteStartArray(Name);
             foreach (string item in value.Value)

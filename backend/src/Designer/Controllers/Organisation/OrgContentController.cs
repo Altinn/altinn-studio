@@ -34,7 +34,6 @@ public class OrgContentController : ControllerBase
         _orgService = orgService;
     }
 
-
     /// <summary>
     /// Retrieves a list of available library content from the organisation.
     /// </summary>
@@ -43,7 +42,11 @@ public class OrgContentController : ControllerBase
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences(
+        [FromRoute] string orgName,
+        [FromQuery] string contentType,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
@@ -55,16 +58,28 @@ public class OrgContentController : ControllerBase
         var editingContext = CreateAltinnOrgContext(orgName);
         if (string.IsNullOrEmpty(contentType))
         {
-            return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);
+            return await _orgContentService.GetOrgContentReferences(
+                null,
+                editingContext,
+                cancellationToken
+            );
         }
 
-        bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
+        bool didParse = Enum.TryParse<LibraryContentType>(
+            contentType,
+            ignoreCase: true,
+            out var parsedContentType
+        );
         if (!didParse)
         {
             return BadRequest($"Invalid content type '{contentType}'.");
         }
 
-        return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
+        return await _orgContentService.GetOrgContentReferences(
+            parsedContentType,
+            editingContext,
+            cancellationToken
+        );
     }
 
     private AltinnOrgContext CreateAltinnOrgContext(string orgName)

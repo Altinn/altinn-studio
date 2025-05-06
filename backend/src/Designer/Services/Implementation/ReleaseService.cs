@@ -42,7 +42,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
             AzureDevOpsSettings azureDevOpsOptions,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings
+        )
         {
             _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -66,39 +67,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName
+                AltinnStudioHostname = _generalSettings.HostName,
             };
 
             Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                _azureDevOpsSettings.BuildDefinitionId);
+                _azureDevOpsSettings.BuildDefinitionId
+            );
 
             release.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
                 Result = BuildResult.None,
-                Started = queuedBuild.StartTime
+                Started = queuedBuild.StartTime,
             };
 
             return await _releaseRepository.Create(release);
         }
 
         /// <inheritdoc/>
-        public async Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query)
+        public async Task<SearchResults<ReleaseEntity>> GetAsync(
+            string org,
+            string app,
+            DocumentQueryModel query
+        )
         {
-
             IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(org, app, query);
-            return new SearchResults<ReleaseEntity>
-            {
-                Results = results
-            };
+            return new SearchResults<ReleaseEntity> { Results = results };
         }
 
         /// <inheritdoc/>
         public async Task UpdateAsync(string buildNumber, string appOwner)
         {
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, buildNumber);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(
+                appOwner,
+                buildNumber
+            );
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
@@ -115,19 +120,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
             List<string> buildStatus = new()
-                {
-                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
-                };
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
 
             List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(
+                release.Org,
+                release.App,
+                release.TagName,
+                buildStatus,
+                buildResult
+            );
             if (existingReleaseEntity.Any())
             {
-                throw new HttpRequestWithStatusException("A release with the same properties already exist.")
+                throw new HttpRequestWithStatusException(
+                    "A release with the same properties already exist."
+                )
                 {
-                    StatusCode = HttpStatusCode.Conflict
+                    StatusCode = HttpStatusCode.Conflict,
                 };
             }
         }

@@ -4,7 +4,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
-    public class XsdTextKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdTextKeywordJsonConverterTests, XsdTextKeyword, bool>
+    public class XsdTextKeywordJsonConverterTests
+        : ValueKeywordConverterTestBase<XsdTextKeywordJsonConverterTests, XsdTextKeyword, bool>
     {
         private const string KeywordPlaceholder = "@xsdText";
 
@@ -15,11 +16,13 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Read_ValidJson_FromSchema(bool value)
         {
-            var jsonSchema = @$"{{
+            var jsonSchema =
+                @$"{{
                 ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema)
+            Given
+                .That.JsonSchemaLoaded(jsonSchema)
                 .When.KeywordReadFromSchema()
                 .Then.KeywordShouldNotBeNull();
 
@@ -31,9 +34,12 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
-            Given.That.KeywordCreatedWithValue(value)
+            Given
+                .That.KeywordCreatedWithValue(value)
                 .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
+                .Then.SerializedKeywordShouldBe(
+                    $@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}"
+                );
         }
     }
 }

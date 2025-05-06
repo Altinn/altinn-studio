@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Helpers.Extensions
@@ -31,7 +30,11 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         /// </returns>
         /// <exception cref="ArgumentException"> File not found in archive.
         /// </exception>
-        public static T DeserializeFirstFileNamed<T>(this ZipArchive zipArchive, string filename, StringComparison comparison = StringComparison.CurrentCulture)
+        public static T DeserializeFirstFileNamed<T>(
+            this ZipArchive zipArchive,
+            string filename,
+            StringComparison comparison = StringComparison.CurrentCulture
+        )
         {
             var raw = ReadAllTextOfFirstFileNamed(zipArchive, filename, comparison);
             var result = JsonConvert.DeserializeObject<T>(raw);
@@ -52,9 +55,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         public static IEnumerable<T> DeserializeAllAs<T>(this IEnumerable<ZipArchiveEntry> entries)
         {
             Guard.AssertArgumentNotNull(entries, nameof(entries));
-            return entries
-                .Select(ReadAllTextOffZipEntry)
-                .Select(JsonConvert.DeserializeObject<T>);
+            return entries.Select(ReadAllTextOffZipEntry).Select(JsonConvert.DeserializeObject<T>);
         }
 
         /// <summary>
@@ -72,7 +73,11 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public static string ReadAllTextOfFirstFileNamed(this ZipArchive zipArchive, string filename, StringComparison comparison = StringComparison.CurrentCulture)
+        public static string ReadAllTextOfFirstFileNamed(
+            this ZipArchive zipArchive,
+            string filename,
+            StringComparison comparison = StringComparison.CurrentCulture
+        )
         {
             Guard.AssertArgumentNotNull(zipArchive, nameof(zipArchive));
             Guard.AssertArgumentNotNullOrWhiteSpace(filename, nameof(filename));

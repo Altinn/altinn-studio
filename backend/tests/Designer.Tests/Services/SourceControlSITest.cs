@@ -3,19 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Services
@@ -41,7 +36,11 @@ namespace Designer.Tests.Services
 
             // Act
             await sut.DeleteRepository(org, app);
-            string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
+            string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                app,
+                developer
+            );
 
             // Assert
             mock.VerifyAll();
@@ -56,10 +55,13 @@ namespace Designer.Tests.Services
             string source = "branch";
 
             Mock<IGitea> mock = new();
-            mock.Setup(m => m.CreatePullRequest(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)))
+            mock.Setup(m =>
+                    m.CreatePullRequest(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)
+                    )
+                )
                 .ReturnsAsync(true);
 
             SourceControlSI sut = GetServiceForTest("testUser", mock);
@@ -85,7 +87,10 @@ namespace Designer.Tests.Services
             return c;
         }
 
-        private static SourceControlSI GetServiceForTest(string developer, Mock<IGitea> giteaMock = null)
+        private static SourceControlSI GetServiceForTest(
+            string developer,
+            Mock<IGitea> giteaMock = null
+        )
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
@@ -94,17 +99,22 @@ namespace Designer.Tests.Services
 
             giteaMock ??= new Mock<IGitea>();
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath
+            );
             var repoSettings = new ServiceRepositorySettings()
             {
-                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
+                RepositoryLocation =
+                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+                    + Path.DirectorySeparatorChar,
             };
 
             SourceControlSI service = new(
                 repoSettings,
                 httpContextAccessorMock.Object,
                 giteaMock.Object,
-                new Mock<ILogger<SourceControlSI>>().Object);
+                new Mock<ILogger<SourceControlSI>>().Object
+            );
 
             return service;
         }

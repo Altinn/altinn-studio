@@ -48,6 +48,6 @@ namespace Altinn.ResourceRegistry.Core.Enums.Altinn2
         /// Broker Service
         /// </summary>
         [EnumMember]
-        Broker = 6
+        Broker = 6,
     }
 }

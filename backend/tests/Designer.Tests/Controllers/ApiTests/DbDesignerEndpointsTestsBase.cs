@@ -7,24 +7,29 @@ namespace Designer.Tests.Controllers.ApiTests
 {
     [Trait("Category", "DbIntegrationTest")]
     [Collection(nameof(DesignerDbCollection))]
-    public abstract class DbDesignerEndpointsTestsBase<TControllerTest> : DesignerEndpointsTestsBase<TControllerTest>
+    public abstract class DbDesignerEndpointsTestsBase<TControllerTest>
+        : DesignerEndpointsTestsBase<TControllerTest>
         where TControllerTest : class
     {
         protected readonly DesignerDbFixture DesignerDbFixture;
 
-        protected DbDesignerEndpointsTestsBase(WebApplicationFactory<Program> factory,
-            DesignerDbFixture designerDbFixture) : base(factory)
+        protected DbDesignerEndpointsTestsBase(
+            WebApplicationFactory<Program> factory,
+            DesignerDbFixture designerDbFixture
+        )
+            : base(factory)
         {
             DesignerDbFixture = designerDbFixture;
-            JsonConfigOverrides.Add($@"
+            JsonConfigOverrides.Add(
+                $@"
               {{
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{DesignerDbFixture.ConnectionString}"",
                         ""DesignerDbPwd"": """"
                     }}
              }}
-            ");
+            "
+            );
         }
-
     }
 }

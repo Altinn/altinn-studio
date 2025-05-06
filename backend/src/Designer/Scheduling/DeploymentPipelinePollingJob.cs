@@ -25,7 +25,14 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
 
-    public DeploymentPipelinePollingJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IPublisher mediatr, ILogger<DeploymentPipelinePollingJob> logger)
+    public DeploymentPipelinePollingJob(
+        IAzureDevOpsBuildClient azureDevOpsBuildClient,
+        IDeploymentRepository deploymentRepository,
+        IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient,
+        IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
+        IPublisher mediatr,
+        ILogger<DeploymentPipelinePollingJob> logger
+    )
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
         _deploymentRepository = deploymentRepository;
@@ -35,16 +42,30 @@ public class DeploymentPipelinePollingJob : IJob
         _logger = logger;
     }
 
-
     public async Task Execute(IJobExecutionContext context)
     {
-        string org = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Org);
-        string app = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.App);
-        string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
+        string org = context.JobDetail.JobDataMap.GetString(
+            DeploymentPipelinePollingJobConstants.Arguments.Org
+        );
+        string app = context.JobDetail.JobDataMap.GetString(
+            DeploymentPipelinePollingJobConstants.Arguments.App
+        );
+        string developer = context.JobDetail.JobDataMap.GetString(
+            DeploymentPipelinePollingJobConstants.Arguments.Developer
+        );
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-        PipelineType type = Enum.Parse<PipelineType>(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!, true);
-        string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
+        string buildId = context.JobDetail.JobDataMap.GetString(
+            DeploymentPipelinePollingJobConstants.Arguments.BuildId
+        );
+        PipelineType type = Enum.Parse<PipelineType>(
+            context.JobDetail.JobDataMap.GetString(
+                DeploymentPipelinePollingJobConstants.Arguments.PipelineType
+            )!,
+            true
+        );
+        string environment = context.JobDetail.JobDataMap.GetString(
+            DeploymentPipelinePollingJobConstants.Arguments.Environment
+        );
         Guard.ArgumentNotNull(buildId, nameof(buildId));
 
         var build = await _azureDevOpsBuildClient.Get(buildId);
@@ -68,45 +89,65 @@ public class DeploymentPipelinePollingJob : IJob
             {
                 await UpdateMetadataInStorage(editingContext, environment);
             }
-            await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
+            await _entityUpdatedHubContext
+                .Clients.Group(editingContext.Developer)
                 .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
 
-            await PublishCompletedEvent(editingContext, type, environment, build.Result == BuildResult.Succeeded);
+            await PublishCompletedEvent(
+                editingContext,
+                type,
+                environment,
+                build.Result == BuildResult.Succeeded
+            );
 
             CancelJob(context);
         }
-
     }
 
-    private async Task PublishCompletedEvent(AltinnRepoEditingContext editingContext, PipelineType type,
-        string environment, bool succeeded)
+    private async Task PublishCompletedEvent(
+        AltinnRepoEditingContext editingContext,
+        PipelineType type,
+        string environment,
+        bool succeeded
+    )
     {
         try
         {
-            await _mediatr.Publish(new DeploymentPipelineCompleted
-            {
-                EditingContext = editingContext,
-                PipelineType = type,
-                Environment = environment,
-                Succeeded = succeeded
-            });
+            await _mediatr.Publish(
+                new DeploymentPipelineCompleted
+                {
+                    EditingContext = editingContext,
+                    PipelineType = type,
+                    Environment = environment,
+                    Succeeded = succeeded,
+                }
+            );
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error publishing DeploymentPipelineCompleted event");
             throw;
         }
-
     }
 
-
-    private async Task UpdateMetadataInStorage(AltinnRepoEditingContext editingContext, string environment)
+    private async Task UpdateMetadataInStorage(
+        AltinnRepoEditingContext editingContext,
+        string environment
+    )
     {
-        var appMetadata = await _altinnStorageAppMetadataClient.GetApplicationMetadataAsync(editingContext, environment);
+        var appMetadata = await _altinnStorageAppMetadataClient.GetApplicationMetadataAsync(
+            editingContext,
+            environment
+        );
         var copyInstanceSettings = appMetadata.CopyInstanceSettings ?? new CopyInstanceSettings();
         copyInstanceSettings.Enabled = false;
         appMetadata.CopyInstanceSettings = copyInstanceSettings;
-        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(editingContext.Org, editingContext.Repo, appMetadata, environment);
+        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(
+            editingContext.Org,
+            editingContext.Repo,
+            appMetadata,
+            environment
+        );
     }
 
     private static void CancelJob(IJobExecutionContext context)

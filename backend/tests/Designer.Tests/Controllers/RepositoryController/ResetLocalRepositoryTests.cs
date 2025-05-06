@@ -12,13 +12,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ResetLocalRepositoryTests : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ResetLocalRepositoryTests
+        : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
 
+        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         // Do not use mocked repository
         protected override void ConfigureTestServices(IServiceCollection services)

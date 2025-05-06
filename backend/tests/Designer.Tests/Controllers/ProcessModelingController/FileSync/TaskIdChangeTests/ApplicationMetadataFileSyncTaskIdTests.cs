@@ -17,18 +17,26 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class ApplicationMetadataFileSyncTaskIdTests : DesignerEndpointsTestsBase<ApplicationMetadataFileSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncTaskIdTests
+    : DesignerEndpointsTestsBase<ApplicationMetadataFileSyncTaskIdTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
-
-    public ApplicationMetadataFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public ApplicationMetadataFileSyncTaskIdTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [MemberData(nameof(UpsertProcessDefinitionAndNotifyTestData))]
-    public async Task UpsertProcessDefinition_ShouldSyncApplicationMetadata(string org, string app, string developer, string bpmnFilePath, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+    public async Task UpsertProcessDefinition_ShouldSyncApplicationMetadata(
+        string org,
+        string app,
+        string developer,
+        string bpmnFilePath,
+        string applicationMetadataPath,
+        ProcessDefinitionMetadata metadata
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -42,29 +50,55 @@ public class ApplicationMetadataFileSyncTaskIdTests : DesignerEndpointsTestsBase
         string url = VersionPrefix(org, targetRepository);
 
         using var form = new MultipartFormDataContent();
-        string metadataString = JsonSerializer.Serialize(metadata,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string metadataString = JsonSerializer.Serialize(
+            metadata,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         form.Add(new StreamContent(processStream), "content", "process.bpmn");
-        form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
+        form.Add(
+            new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json),
+            "metadata"
+        );
 
         using var response = await HttpClient.PutAsync(url, form);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/config/applicationmetadata.json"
+        );
 
-        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+            applicationMetadataFromRepo,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
-        Assert.DoesNotContain(applicationMetadata.DataTypes, dataType => dataType.TaskId == metadata.TaskIdChange.OldId);
-        Assert.Contains(applicationMetadata.DataTypes, dataType => dataType.TaskId == metadata.TaskIdChange.NewId);
+        Assert.DoesNotContain(
+            applicationMetadata.DataTypes,
+            dataType => dataType.TaskId == metadata.TaskIdChange.OldId
+        );
+        Assert.Contains(
+            applicationMetadata.DataTypes,
+            dataType => dataType.TaskId == metadata.TaskIdChange.NewId
+        );
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
     {
-        yield return new object[] { "ttd", "empty-app", "testUser", "App/config/process/process.bpmn", "App/config/applicationmetadata.json",
+        yield return new object[]
+        {
+            "ttd",
+            "empty-app",
+            "testUser",
+            "App/config/process/process.bpmn",
+            "App/config/applicationmetadata.json",
             new ProcessDefinitionMetadata
             {
-                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
-            } };
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" },
+            },
+        };
     }
 
     private async Task AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
@@ -78,6 +112,4 @@ public class ApplicationMetadataFileSyncTaskIdTests : DesignerEndpointsTestsBase
         }
         await File.WriteAllTextAsync(filePath, fileContent);
     }
-
-
 }

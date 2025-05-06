@@ -11,7 +11,8 @@ namespace DataModeling.Tests.Json.Formats;
 public class CustomFormatsTests
 {
     private static readonly Type s_type = typeof(CustomFormats);
-    private const string JsonStructure = @"{
+    private const string JsonStructure =
+        @"{
                                               ""DateField"": ""1994-01"",
                                               ""Number"": 100,
                                               ""Object"": {""Area"":""Økern"",""Description"":""Portal""}

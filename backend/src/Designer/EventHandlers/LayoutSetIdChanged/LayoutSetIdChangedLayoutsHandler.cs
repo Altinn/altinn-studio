@@ -10,9 +10,15 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutSetIdChanged;
 
-public class LayoutSetIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutSetIdChangedEvent>
+public class LayoutSetIdChangedLayoutsHandler(
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+    IAppDevelopmentService appDevelopmentService
+) : INotificationHandler<LayoutSetIdChangedEvent>
 {
-    public async Task Handle(LayoutSetIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        LayoutSetIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
@@ -20,8 +26,21 @@ public class LayoutSetIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncH
             "layouts",
             async () =>
             {
-                List<Reference> referencesToUpdate = [new Reference(ReferenceType.LayoutSet, notification.LayoutSetName, notification.LayoutSetName, notification.NewLayoutSetName)];
-                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
-            });
+                List<Reference> referencesToUpdate =
+                [
+                    new Reference(
+                        ReferenceType.LayoutSet,
+                        notification.LayoutSetName,
+                        notification.LayoutSetName,
+                        notification.NewLayoutSetName
+                    ),
+                ];
+                return await appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToUpdate,
+                    cancellationToken
+                );
+            }
+        );
     }
 }

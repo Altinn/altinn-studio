@@ -22,6 +22,7 @@ namespace Altinn.Studio.Designer.Models
         [JsonProperty(PropertyName = "resources")]
         public List<TextResourceElement> Resources { get; set; }
     }
+
     /// <summary>
     /// TextId mutation.
     /// </summary>
@@ -33,6 +34,7 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty(PropertyName = "oldId")]
         public string OldId;
+
         /// <summary>
         /// The id to change to.
         /// </summary>

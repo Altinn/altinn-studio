@@ -12,10 +12,13 @@ public static class DesignerDbFixtureExtensions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
-    public static async Task PrepareAppScopesEntityInDatabaseAsync(this DesignerDbFixture dbFixture, AppScopesEntity entity)
+    public static async Task PrepareAppScopesEntityInDatabaseAsync(
+        this DesignerDbFixture dbFixture,
+        AppScopesEntity entity
+    )
     {
         var dbObject = MapToDbObject(entity);
 
@@ -24,8 +27,9 @@ public static class DesignerDbFixtureExtensions
         dbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
     }
 
-
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel MapToDbObject(AppScopesEntity entity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel MapToDbObject(
+        AppScopesEntity entity
+    ) =>
         new()
         {
             App = entity.App,
@@ -33,7 +37,6 @@ public static class DesignerDbFixtureExtensions
             Created = entity.Created,
             Scopes = JsonSerializer.Serialize(entity.Scopes, s_jsonOptions),
             CreatedBy = entity.CreatedBy,
-            LastModifiedBy = entity.LastModifiedBy
+            LastModifiedBy = entity.LastModifiedBy,
         };
-
 }

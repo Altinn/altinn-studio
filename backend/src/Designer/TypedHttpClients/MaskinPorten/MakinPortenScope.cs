@@ -31,4 +31,3 @@ public record MaskinPortenScope
     [JsonPropertyName("allowed_integration_types")]
     public string[] AllowedIntegrationTypes { get; set; }
 }
-

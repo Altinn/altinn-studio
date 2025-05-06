@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Designer.Tests.Utils;
 
 namespace Designer.Tests.Mocks
@@ -29,7 +27,11 @@ namespace Designer.Tests.Mocks
         {
             await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
-            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, _developer);
+            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                repository,
+                _developer
+            );
 
             Directory.CreateDirectory(localPath);
             TestDataHelper.CopyDirectory(remotePath, localPath, true).Wait();
@@ -37,7 +39,12 @@ namespace Designer.Tests.Mocks
             return localPath;
         }
 
-        public async Task<string> CloneRemoteRepository(string org, string repository, string destination, string branchName = "")
+        public async Task<string> CloneRemoteRepository(
+            string org,
+            string repository,
+            string destination,
+            string branchName = ""
+        )
         {
             await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
@@ -53,7 +60,13 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public async Task CommitAndPushChanges(
+            string org,
+            string repository,
+            string branchName,
+            string localPath,
+            string message
+        )
         {
             await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
@@ -71,7 +84,13 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
-        public Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        public Task<bool> CreatePullRequest(
+            string org,
+            string repository,
+            string target,
+            string source,
+            string title
+        )
         {
             return Task.FromResult(true);
         }
@@ -123,8 +142,15 @@ namespace Designer.Tests.Mocks
 
         public Task PushChangesForRepository(CommitInfo commitInfo)
         {
-            string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
-            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(
+                commitInfo.Org,
+                commitInfo.Repository
+            );
+            string localPath = TestDataHelper.GetTestDataRepositoryDirectory(
+                commitInfo.Org,
+                commitInfo.Repository,
+                _developer
+            );
             TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
             return Task.CompletedTask;
         }

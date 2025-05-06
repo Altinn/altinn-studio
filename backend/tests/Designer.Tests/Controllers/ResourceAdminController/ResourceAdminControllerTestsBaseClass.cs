@@ -10,7 +10,9 @@ using Moq;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DesignerEndpointsTestsBase<TTesetClass> where TTesetClass : class
+    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass>
+        : DesignerEndpointsTestsBase<TTesetClass>
+        where TTesetClass : class
     {
         protected readonly string VersionPrefix = "/designer/api";
         protected readonly Mock<IRepository> RepositoryMock;
@@ -25,7 +27,8 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);
         }
 
-        protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory) : base(factory)
+        protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory)
+            : base(factory)
         {
             RepositoryMock = new Mock<IRepository>();
             ResourceRegistryMock = new Mock<IResourceRegistry>();
@@ -36,7 +39,12 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
             {
-                new ResourceReference { Reference = string.Empty, ReferenceSource = ResourceReferenceSource.Default, ReferenceType = ResourceReferenceType.Default }
+                new ResourceReference
+                {
+                    Reference = string.Empty,
+                    ReferenceSource = ResourceReferenceSource.Default,
+                    ReferenceType = ResourceReferenceType.Default,
+                },
             };
 
             return resourceReferences;
@@ -49,7 +57,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 ServiceResource serviceResource = new ServiceResource();
                 serviceResource.Identifier = "ttdresource";
                 serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
-                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
+                serviceResource.Description = new Dictionary<string, string>
+                {
+                    { "nb", "ttdDescription" },
+                };
                 serviceResource.ResourceType = ResourceType.Default;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 return serviceResource;
@@ -74,7 +85,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 ServiceResource serviceResource = new ServiceResource();
                 serviceResource.Identifier = "ttdresource";
                 serviceResource.Title = new Dictionary<string, string> { { "nb", "ttdTitle" } };
-                serviceResource.Description = new Dictionary<string, string> { { "nb", "ttdDescription" } };
+                serviceResource.Description = new Dictionary<string, string>
+                {
+                    { "nb", "ttdDescription" },
+                };
                 serviceResource.ResourceType = ResourceType.Default;
                 serviceResource.ThematicArea = "ttdThematicArea";
                 resourceList.Add(serviceResource);

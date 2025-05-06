@@ -22,7 +22,9 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/options")]
+[Route(
+    "designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/options"
+)]
 public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;
@@ -77,12 +79,17 @@ public class OptionsController : ControllerBase
             {
                 try
                 {
-                    List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
+                    List<Option> optionList = await _optionsService.GetOptionsList(
+                        org,
+                        repo,
+                        developer,
+                        optionListId
+                    );
                     OptionListData optionListData = new()
                     {
                         Title = optionListId,
                         Data = optionList,
-                        HasError = false
+                        HasError = false,
                     };
                     optionLists.Add(optionListData);
                 }
@@ -92,7 +99,7 @@ public class OptionsController : ControllerBase
                     {
                         Title = optionListId,
                         Data = null,
-                        HasError = true
+                        HasError = true,
                     };
                     optionLists.Add(optionListData);
                 }
@@ -117,14 +124,25 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult<List<Option>>> GetOptionsList(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option>>> GetOptionsList(
+        string org,
+        string repo,
+        [FromRoute] string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<Option> optionsList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId, cancellationToken);
+            List<Option> optionsList = await _optionsService.GetOptionsList(
+                org,
+                repo,
+                developer,
+                optionsListId,
+                cancellationToken
+            );
             return Ok(optionsList);
         }
         catch (NotFoundException ex)
@@ -143,12 +161,20 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("usage")]
-    public async Task<ActionResult<List<RefToOptionListSpecifier>>> GetOptionListsReferences(string org, string repo, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<RefToOptionListSpecifier>>> GetOptionListsReferences(
+        string org,
+        string repo,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<RefToOptionListSpecifier> optionListReferences = await _optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+        List<RefToOptionListSpecifier> optionListReferences =
+            await _optionsService.GetAllOptionListReferences(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer),
+                cancellationToken
+            );
         return Ok(optionListReferences);
     }
 
@@ -165,12 +191,25 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult<List<Option>>> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option>>> CreateOrOverwriteOptionsList(
+        string org,
+        string repo,
+        [FromRoute] string optionsListId,
+        [FromBody] List<Option> payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, payload, cancellationToken);
+        var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(
+            org,
+            repo,
+            developer,
+            optionsListId,
+            payload,
+            cancellationToken
+        );
 
         return Ok(newOptionsList);
     }
@@ -188,14 +227,25 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("change-name/{optionsListId}")]
-    public ActionResult UpdateOptionsListId(string org, string repo, [FromRoute] string optionsListId, [FromBody] string newOptionsListId, CancellationToken cancellationToken = default)
+    public ActionResult UpdateOptionsListId(
+        string org,
+        string repo,
+        [FromRoute] string optionsListId,
+        [FromBody] string newOptionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
         try
         {
-            _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
+            _optionsService.UpdateOptionsListId(
+                editingContext,
+                optionsListId,
+                newOptionsListId,
+                cancellationToken
+            );
         }
         catch (IOException exception)
         {
@@ -214,7 +264,12 @@ public class OptionsController : ControllerBase
     /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
     [Route("upload")]
-    public async Task<IActionResult> UploadFile(string org, string repo, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<IActionResult> UploadFile(
+        string org,
+        string repo,
+        [FromForm] IFormFile file,
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -222,7 +277,14 @@ public class OptionsController : ControllerBase
 
         try
         {
-            List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+            List<Option> newOptionsList = await _optionsService.UploadNewOption(
+                org,
+                repo,
+                developer,
+                fileName,
+                file,
+                cancellationToken
+            );
             return Ok(newOptionsList);
         }
         catch (JsonException e)
@@ -242,12 +304,23 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult> DeleteOptionsList(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> DeleteOptionsList(
+        string org,
+        string repo,
+        [FromRoute] string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool optionsListExists = await _optionsService.OptionsListExists(org, repo, developer, optionsListId, cancellationToken);
+        bool optionsListExists = await _optionsService.OptionsListExists(
+            org,
+            repo,
+            developer,
+            optionsListId,
+            cancellationToken
+        );
         if (optionsListExists)
         {
             _optionsService.DeleteOptionsList(org, repo, developer, optionsListId);
@@ -258,18 +331,34 @@ public class OptionsController : ControllerBase
 
     [HttpPost]
     [Route("import/{optionListId}")]
-    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(
+        string org,
+        string repo,
+        [FromRoute] string optionListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionListId, cancellationToken);
+        bool codeListExists = await _orgCodeListService.CodeListExists(
+            org,
+            developer,
+            optionListId,
+            cancellationToken
+        );
         if (!codeListExists)
         {
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, cancellationToken);
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(
+            org,
+            repo,
+            developer,
+            optionListId,
+            cancellationToken
+        );
 
         if (importedOptionList is null)
         {

@@ -18,47 +18,80 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
     private readonly IAppDevelopmentService _appDevelopmentService;
 
-    public ComponentIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    public ComponentIdChangedLayoutsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-        IAppDevelopmentService appDevelopmentService)
+        IAppDevelopmentService appDevelopmentService
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
         _appDevelopmentService = appDevelopmentService;
     }
 
-    public async Task Handle(ComponentIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ComponentIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             notification.EditingContext.Org,
             notification.EditingContext.Repo,
-            notification.EditingContext.Developer);
+            notification.EditingContext.Developer
+        );
 
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-                notification.EditingContext,
-                SyncErrorCodes.LayoutSetComponentIdSyncError,
-                "App/ui/layouts",
-                async () =>
+            notification.EditingContext,
+            SyncErrorCodes.LayoutSetComponentIdSyncError,
+            "App/ui/layouts",
+            async () =>
+            {
+                bool hasChanges = false;
+                string[] layoutNames = repository.GetLayoutNames(notification.LayoutSetName);
+                foreach (var layoutFileName in layoutNames)
                 {
-                    bool hasChanges = false;
-                    string[] layoutNames = repository.GetLayoutNames(notification.LayoutSetName);
-                    foreach (var layoutFileName in layoutNames)
+                    string layoutName = layoutFileName.Replace(".json", "");
+                    var layout = await repository.GetLayout(
+                        notification.LayoutSetName,
+                        layoutName,
+                        cancellationToken
+                    );
+                    if (
+                        TryChangeComponentId(
+                            layout,
+                            notification.OldComponentId,
+                            notification.NewComponentId
+                        )
+                    )
                     {
-
-                        string layoutName = layoutFileName.Replace(".json", "");
-                        var layout = await repository.GetLayout(notification.LayoutSetName, layoutName, cancellationToken);
-                        if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
-                        {
-                            await repository.SaveLayout(notification.LayoutSetName, layoutName, layout, cancellationToken);
-                            hasChanges = true;
-                        }
+                        await repository.SaveLayout(
+                            notification.LayoutSetName,
+                            layoutName,
+                            layout,
+                            cancellationToken
+                        );
+                        hasChanges = true;
                     }
+                }
 
-                    List<Reference> referencesToUpdate = [new Reference(ReferenceType.Component, notification.LayoutSetName, notification.OldComponentId, notification.NewComponentId)];
-                    hasChanges |= await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
+                List<Reference> referencesToUpdate =
+                [
+                    new Reference(
+                        ReferenceType.Component,
+                        notification.LayoutSetName,
+                        notification.OldComponentId,
+                        notification.NewComponentId
+                    ),
+                ];
+                hasChanges |= await _appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToUpdate,
+                    cancellationToken
+                );
 
-                    return hasChanges;
-                });
+                return hasChanges;
+            }
+        );
     }
 
     /// <summary>
@@ -76,7 +109,11 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         return !layout.ToJsonString().Equals(originalLayout.ToJsonString());
     }
 
-    private void FindIdOccurrencesRecursive(JsonNode node, string oldComponentId, string newComponentId)
+    private void FindIdOccurrencesRecursive(
+        JsonNode node,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         // Should we check if node is string to avoid unnecessary upcoming checks?
         if (node is JsonObject jsonObject)
@@ -96,16 +133,25 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                         if (property.Value is JsonArray tableHeadersArray)
                         {
                             // Objects that references components in `tableHeaders` in RepeatingGroup
-                            UpdateComponentIdActingAsTableHeaderInRepeatingGroup(tableHeadersArray, oldComponentId, newComponentId);
+                            UpdateComponentIdActingAsTableHeaderInRepeatingGroup(
+                                tableHeadersArray,
+                                oldComponentId,
+                                newComponentId
+                            );
                         }
                         break;
                     case "tableColumns":
-                        if (jsonObject["type"]?.ToString() == "RepeatingGroup"
+                        if (
+                            jsonObject["type"]?.ToString() == "RepeatingGroup"
                             && property.Value is JsonObject tableColumns
                             && tableColumns[oldComponentId] is not null
                         )
                         {
-                            UpdateComponentIdActingAsPropertyName(tableColumns, oldComponentId, newComponentId);
+                            UpdateComponentIdActingAsPropertyName(
+                                tableColumns,
+                                oldComponentId,
+                                newComponentId
+                            );
                         }
                         break;
                     default:
@@ -119,7 +165,12 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             // Property is possibly an Expression that may include a component-reference
             foreach (var item in jsonArray)
             {
-                if (item is JsonArray jsonInnerArray && jsonInnerArray.Count == 2 && item[0]?.ToString() == "component" && item[1]?.ToString() == oldComponentId)
+                if (
+                    item is JsonArray jsonInnerArray
+                    && jsonInnerArray.Count == 2
+                    && item[0]?.ToString() == "component"
+                    && item[1]?.ToString() == oldComponentId
+                )
                 {
                     UpdateComponentIdActingAsExpressionMember(jsonInnerArray, newComponentId);
                 }
@@ -131,7 +182,11 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         }
     }
 
-    private void UpdateComponentIdActingAsPropertyName(JsonObject jsonObject, string oldComponentId, string newComponentId)
+    private void UpdateComponentIdActingAsPropertyName(
+        JsonObject jsonObject,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         // Might need to make this stricter in case app-dev are calling components keys that already are used in the schema
         JsonNode value = jsonObject[oldComponentId];
@@ -142,12 +197,19 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         }
     }
 
-    private void UpdateComponentIdActingAsExpressionMember(JsonArray jsonArray, string newComponentId)
+    private void UpdateComponentIdActingAsExpressionMember(
+        JsonArray jsonArray,
+        string newComponentId
+    )
     {
         jsonArray[1] = newComponentId;
     }
 
-    private void UpdateComponentIdActingAsTableHeaderInRepeatingGroup(JsonArray jsonArray, string oldComponentId, string newComponentId)
+    private void UpdateComponentIdActingAsTableHeaderInRepeatingGroup(
+        JsonArray jsonArray,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         for (int i = 0; i < jsonArray.Count; i++)
         {

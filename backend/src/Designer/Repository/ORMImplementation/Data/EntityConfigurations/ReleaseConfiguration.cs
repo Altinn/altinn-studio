@@ -14,40 +14,37 @@ public class ReleaseConfiguration : IEntityTypeConfiguration<ReleaseDbModel>
 
         builder.HasIndex(e => new { e.Org, e.App }, "idx_releases_org_app");
 
-        builder.Property(e => e.Sequenceno)
+        builder
+            .Property(e => e.Sequenceno)
             .HasColumnType("BIGSERIAL")
             .HasColumnName("sequenceno")
             .ValueGeneratedOnAdd();
 
-        builder.Property(e => e.App)
-            .HasColumnType("character varying")
-            .HasColumnName("app");
+        builder.Property(e => e.App).HasColumnType("character varying").HasColumnName("app");
 
-        builder.Property(e => e.Buildid)
+        builder
+            .Property(e => e.Buildid)
             .HasColumnType("character varying")
             .HasColumnName("buildid");
 
-        builder.Property(e => e.Buildresult)
+        builder
+            .Property(e => e.Buildresult)
             .HasColumnType("character varying")
             .HasColumnName("buildresult");
 
-        builder.Property(e => e.Buildstatus)
+        builder
+            .Property(e => e.Buildstatus)
             .HasColumnType("character varying")
             .HasColumnName("buildstatus");
 
-        builder.Property(e => e.Created)
-            .HasColumnType("timestamptz")
-            .HasColumnName("created");
+        builder.Property(e => e.Created).HasColumnType("timestamptz").HasColumnName("created");
 
-        builder.Property(e => e.Entity)
-            .HasColumnType("text")
-            .HasColumnName("entity");
+        builder.Property(e => e.Entity).HasColumnType("text").HasColumnName("entity");
 
-        builder.Property(e => e.Org)
-            .HasColumnType("character varying")
-            .HasColumnName("org");
+        builder.Property(e => e.Org).HasColumnType("character varying").HasColumnName("org");
 
-        builder.Property(e => e.Tagname)
+        builder
+            .Property(e => e.Tagname)
             .HasColumnType("character varying")
             .HasColumnName("tagname");
     }

@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.ViewModels.Request
     public class AzureDevOpsWebHookEventModel
     {
         /// <summary>
-        /// Model that 
+        /// Model that
         /// </summary>
         [Required(ErrorMessage = "Resource property can not be null")]
         public AzureDevOpsResource Resource { get; set; }
@@ -23,7 +23,9 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         /// <summary>
         /// Build number
         /// </summary>
-        [Required(ErrorMessage = "buildNumber property can not be null, empty string or containing only whitespace")]
+        [Required(
+            ErrorMessage = "buildNumber property can not be null, empty string or containing only whitespace"
+        )]
         [JsonProperty("buildNumber")]
         public string BuildNumber { get; set; }
 

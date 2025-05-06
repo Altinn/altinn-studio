@@ -32,7 +32,10 @@ public class OrgTextsServiceTests : IDisposable
         var service = GetOrgTextsService();
 
         TextResource expectedTextResource = GetInitialTextResources();
-        string expectedTextResourceJson = JsonSerializer.Serialize(expectedTextResource, s_jsonOptions);
+        string expectedTextResourceJson = JsonSerializer.Serialize(
+            expectedTextResource,
+            s_jsonOptions
+        );
 
         // Act
         TextResource fetchedTexts = await service.GetText(TargetOrg, Developer, lang);
@@ -45,7 +48,10 @@ public class OrgTextsServiceTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "sr")]
-    public async Task GetText_ShouldReturnNotFoundException_WhenFileDoesNotExist(string repo, string lang)
+    public async Task GetText_ShouldReturnNotFoundException_WhenFileDoesNotExist(
+        string repo,
+        string lang
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -54,7 +60,9 @@ public class OrgTextsServiceTests : IDisposable
         var service = GetOrgTextsService();
 
         // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.GetText(TargetOrg, Developer, lang));
+        await Assert.ThrowsAsync<NotFoundException>(async () =>
+            await service.GetText(TargetOrg, Developer, lang)
+        );
     }
 
     [Theory]
@@ -67,15 +75,26 @@ public class OrgTextsServiceTests : IDisposable
         await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
-        List<TextResourceElement> newResourceElements = [new() { Id = "newId", Value = "newValue" }];
+        List<TextResourceElement> newResourceElements =
+        [
+            new() { Id = "newId", Value = "newValue" },
+        ];
         TextResource newTextResource = new() { Language = lang, Resources = newResourceElements };
 
         // Act
         await service.SaveText(TargetOrg, Developer, newTextResource, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
+        string actualContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepo,
+            Developer,
+            RelativePath(lang)
+        );
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
+            actualContent,
+            s_jsonOptions
+        );
         Assert.Equal(newTextResource.Resources[0].Id, actualResource.Resources[0].Id);
         Assert.Equal(newTextResource.Resources[0].Value, actualResource.Resources[0].Value);
     }
@@ -92,10 +111,7 @@ public class OrgTextsServiceTests : IDisposable
 
         const string EditedValue = "edited value!";
         const string EditedId = "someId";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { EditedId, EditedValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { EditedId, EditedValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         expectedTextResources.Resources.Find(e => e.Id == EditedId).Value = EditedValue;
 
@@ -103,18 +119,32 @@ public class OrgTextsServiceTests : IDisposable
         await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
+        string actualContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepo,
+            Developer,
+            RelativePath(lang)
+        );
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
+            actualContent,
+            s_jsonOptions
+        );
         for (int i = 0; i < actualResource.Resources.Count; i++)
         {
             Assert.Equal(expectedTextResources.Resources[i].Id, actualResource.Resources[i].Id);
-            Assert.Equal(expectedTextResources.Resources[i].Value, actualResource.Resources[i].Value);
+            Assert.Equal(
+                expectedTextResources.Resources[i].Value,
+                actualResource.Resources[i].Value
+            );
         }
     }
 
     [Theory]
     [InlineData("org-content", "nb")]
-    public async Task UpdateTextsForKeys_ShouldCreateNewIdWhenTextResourceDoesNotExit(string repo, string lang)
+    public async Task UpdateTextsForKeys_ShouldCreateNewIdWhenTextResourceDoesNotExit(
+        string repo,
+        string lang
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -124,10 +154,7 @@ public class OrgTextsServiceTests : IDisposable
 
         const string NewId = "someNewId";
         const string NewValue = "someNewValue";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { NewId, NewValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { NewId, NewValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         TextResourceElement expectedResourceElement = new() { Id = NewId, Value = NewValue };
         expectedTextResources.Resources.Add(expectedResourceElement);
@@ -136,8 +163,16 @@ public class OrgTextsServiceTests : IDisposable
         await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
+        string actualContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepo,
+            Developer,
+            RelativePath(lang)
+        );
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
+            actualContent,
+            s_jsonOptions
+        );
         TextResourceElement newResourceElement = actualResource.Resources.Find(e => e.Id == NewId);
         Assert.Equal(expectedResourceElement.Id, newResourceElement.Id);
         Assert.Equal(expectedResourceElement.Value, newResourceElement.Value);
@@ -155,21 +190,30 @@ public class OrgTextsServiceTests : IDisposable
 
         const string IdOfItemToUpdate = "TextUsingVariables";
         const string NewValue = "some value with variables number 1 '{0}' and 2 '{1}'";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { IdOfItemToUpdate, NewValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { IdOfItemToUpdate, NewValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         expectedTextResources.Resources.Find(e => e.Id == IdOfItemToUpdate).Value = NewValue;
-        TextResourceElement expectedResourceElement = expectedTextResources.Resources.Find(e => e.Id == IdOfItemToUpdate);
+        TextResourceElement expectedResourceElement = expectedTextResources.Resources.Find(e =>
+            e.Id == IdOfItemToUpdate
+        );
 
         // Act
         await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
-        TextResourceElement newResourceElement = actualResource.Resources.Find(e => e.Id == IdOfItemToUpdate);
+        string actualContent = TestDataHelper.GetFileFromRepo(
+            TargetOrg,
+            targetRepo,
+            Developer,
+            RelativePath(lang)
+        );
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
+            actualContent,
+            s_jsonOptions
+        );
+        TextResourceElement newResourceElement = actualResource.Resources.Find(e =>
+            e.Id == IdOfItemToUpdate
+        );
         Assert.Equal(expectedResourceElement.Id, newResourceElement.Id);
         Assert.Equal(expectedResourceElement.Value, newResourceElement.Value);
         Assert.Equal(expectedResourceElement.Variables.Count, newResourceElement.Variables.Count);
@@ -177,7 +221,10 @@ public class OrgTextsServiceTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "sr")]
-    public async Task UpdateTextsForKeys_ShouldThrowExceptionWhenLanguageDoesNotExist(string repo, string lang)
+    public async Task UpdateTextsForKeys_ShouldThrowExceptionWhenLanguageDoesNotExist(
+        string repo,
+        string lang
+    )
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -185,13 +232,12 @@ public class OrgTextsServiceTests : IDisposable
         await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
-        Dictionary<string, string> newTextIds = new()
-        {
-            { "someNewId", "someNewValue" },
-        };
+        Dictionary<string, string> newTextIds = new() { { "someNewId", "someNewValue" } };
 
         // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang));
+        await Assert.ThrowsAsync<NotFoundException>(async () =>
+            await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang)
+        );
     }
 
     [Theory]
@@ -231,7 +277,12 @@ public class OrgTextsServiceTests : IDisposable
 
     private static TextResource GetInitialTextResources(string language = "nb")
     {
-        string fileContents = TestDataHelper.GetFileFromRepo(Org, "org-content", Developer, RelativePath(language));
+        string fileContents = TestDataHelper.GetFileFromRepo(
+            Org,
+            "org-content",
+            Developer,
+            RelativePath(language)
+        );
         return JsonSerializer.Deserialize<TextResource>(fileContents, s_jsonOptions);
     }
 
@@ -241,13 +292,14 @@ public class OrgTextsServiceTests : IDisposable
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     private static OrgTextsService GetOrgTextsService()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-            new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         OrgTextsService service = new(altinnGitRepositoryFactory);
 
         return service;

@@ -20,7 +20,8 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            services.AddControllers()
+            services
+                .AddControllers()
                 .AddMvcOptions(options =>
                 {
                     options.Filters.Add(typeof(AppDevelopmentExceptionFilterAttribute));
@@ -29,8 +30,11 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Filters.Add(typeof(IoExceptionFilterAttribute));
                     options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
                 })
-                .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
-
+                .AddNewtonsoftJson(options =>
+                    options.SerializerSettings.Converters.Add(
+                        new Newtonsoft.Json.Converters.StringEnumConverter()
+                    )
+                );
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
 

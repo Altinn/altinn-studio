@@ -10,9 +10,8 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class CreateIntegrationTests : DbIntegrationTestsBase
 {
-    public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public CreateIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd")]
@@ -20,16 +19,20 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
     {
         var repository = new DeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, buildId: buildId.ToString());
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            org,
+            buildId: buildId.ToString()
+        );
         await repository.Create(deploymentEntity);
-        var dbRecord = await DbFixture.DbContext.Deployments.Include(d => d.Build).AsNoTracking().FirstOrDefaultAsync(d =>
-            d.Org == org &&
-            d.App == deploymentEntity.App &&
-            d.Buildid == buildId.ToString());
+        var dbRecord = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d =>
+                d.Org == org && d.App == deploymentEntity.App && d.Buildid == buildId.ToString()
+            );
 
         Assert.Equal(DeploymentType.Deploy, dbRecord.DeploymentType);
 
         EntityAssertions.AssertEqual(deploymentEntity, dbRecord);
     }
-
 }

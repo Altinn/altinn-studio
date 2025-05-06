@@ -43,7 +43,13 @@ namespace Altinn.Studio.DataModeling.Json.Formats
                 return true;
             }
 
-            return DateTimeOffset.TryParseExact(element.GetString(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+            return DateTimeOffset.TryParseExact(
+                element.GetString(),
+                formats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out _
+            );
         }
     }
 }

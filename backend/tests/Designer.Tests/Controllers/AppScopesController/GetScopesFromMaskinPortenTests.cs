@@ -12,47 +12,63 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppScopesController;
 
-public class GetScopesFromMaskinPortenTests : AppScopesControllerTestsBase<GetAppScopesTests>, IClassFixture<WebApplicationFactory<Program>>, IClassFixture<MockServerFixture>
+public class GetScopesFromMaskinPortenTests
+    : AppScopesControllerTestsBase<GetAppScopesTests>,
+        IClassFixture<WebApplicationFactory<Program>>,
+        IClassFixture<MockServerFixture>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/app-scopes/maskinporten";
 
     private readonly MockServerFixture _mockServerFixture;
 
-    public GetScopesFromMaskinPortenTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
+    public GetScopesFromMaskinPortenTests(
+        WebApplicationFactory<Program> factory,
+        DesignerDbFixture designerDbFixture,
+        MockServerFixture mockServerFixture
+    )
+        : base(factory, designerDbFixture)
     {
         _mockServerFixture = mockServerFixture;
         JsonConfigOverrides.Add(
             $$"""
-                    {
-                      "MaskinPortenHttpClientSettings" : {
-                          "BaseUrl": "{{mockServerFixture.MockApi.Url}}"
-                      }
-                    }
-                  """
+              {
+                "MaskinPortenHttpClientSettings" : {
+                    "BaseUrl": "{{mockServerFixture.MockApi.Url}}"
+                }
+              }
+            """
         );
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task GetScopesFromMaskinPortens_Should_ReturnOk(string org, string app, string maskinPortenResponse)
+    public async Task GetScopesFromMaskinPortens_Should_ReturnOk(
+        string org,
+        string app,
+        string maskinPortenResponse
+    )
     {
         _mockServerFixture.PrepareMaskinPortenScopesResponse(maskinPortenResponse);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get
-            , VersionPrefix(org, app));
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Get,
+            VersionPrefix(org, app)
+        );
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        AppScopesResponse repsponseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
+        AppScopesResponse repsponseContent =
+            await response.Content.ReadAsAsync<AppScopesResponse>();
         JsonArray array = (JsonArray)JsonNode.Parse(maskinPortenResponse);
         Assert.Equal(array.Count, repsponseContent.Scopes.Count);
     }
 
-
     public static IEnumerable<object[]> TestData()
     {
-        yield return ["ttd",
+        yield return
+        [
+            "ttd",
             "non-existing-app",
             $@"[
             {{
@@ -81,8 +97,7 @@ public class GetScopesFromMaskinPortenTests : AppScopesControllerTestsBase<GetAp
                     ""maskinporten""
                 ]
             }}
-        ]"
+        ]",
         ];
     }
-
 }

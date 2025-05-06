@@ -81,15 +81,14 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Email == input.Email ||
-                    (this.Email != null &&
-                    this.Email.Equals(input.Email))) &&
-                (
-                    this.Verified == input.Verified ||
-                    (this.Verified != null &&
-                    this.Verified.Equals(input.Verified)));
+            return (
+                    this.Email == input.Email
+                    || (this.Email != null && this.Email.Equals(input.Email))
+                )
+                && (
+                    this.Verified == input.Verified
+                    || (this.Verified != null && this.Verified.Equals(input.Verified))
+                );
         }
 
         /// <summary>
@@ -121,7 +120,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

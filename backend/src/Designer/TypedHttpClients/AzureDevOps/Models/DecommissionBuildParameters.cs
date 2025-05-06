@@ -25,4 +25,3 @@ public class DecommissionBuildParameters
     [JsonPropertyName("APP_ENVIRONMENT")]
     public string AppEnvironment { get; set; }
 }
-

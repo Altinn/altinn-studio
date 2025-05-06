@@ -11,13 +11,11 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
     {
         readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-        private CachingDelegatingHandler GenerateCachingDelegatingHandler() => new(_memoryCache, 10)
-        {
-            InnerHandler = new HttpClientHandler()
+        private CachingDelegatingHandler GenerateCachingDelegatingHandler() =>
+            new(_memoryCache, 10)
             {
-                AllowAutoRedirect = true
-            }
-        };
+                InnerHandler = new HttpClientHandler() { AllowAutoRedirect = true },
+            };
 
         [Theory]
         [InlineData(new byte[] { 1, 2, 3 })]
@@ -30,10 +28,13 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
             CachingDelegatingHandler.CacheResponseDataEntry cacheResponseDataEntry = new()
             {
                 Data = expectedResponse,
-                StatusCode = System.Net.HttpStatusCode.OK
+                StatusCode = System.Net.HttpStatusCode.OK,
             };
 
-            _memoryCache.Set($"{HttpMethod.Get}_http://nonexistingurl1234.no/", cacheResponseDataEntry);
+            _memoryCache.Set(
+                $"{HttpMethod.Get}_http://nonexistingurl1234.no/",
+                cacheResponseDataEntry
+            );
 
             var response = await client.GetAsync("http://nonexistingurl1234.no/");
 
@@ -79,7 +80,12 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            Assert.True(_memoryCache.TryGetValue($"{HttpMethod.Get}_https://docs.altinn.studio/", out CachingDelegatingHandler.CacheResponseDataEntry _));
+            Assert.True(
+                _memoryCache.TryGetValue(
+                    $"{HttpMethod.Get}_https://docs.altinn.studio/",
+                    out CachingDelegatingHandler.CacheResponseDataEntry _
+                )
+            );
         }
     }
 }

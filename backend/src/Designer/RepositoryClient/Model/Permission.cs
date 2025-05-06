@@ -25,9 +25,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Permission"/> class.
         /// </summary>
-        public Permission()
-        {
-        }
+        public Permission() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Permission" /> class.
@@ -35,7 +33,11 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="admin">Admin.</param>
         /// <param name="pull">Pull.</param>
         /// <param name="push">Push.</param>
-        public Permission(bool? admin = default(bool?), bool? pull = default(bool?), bool? push = default(bool?))
+        public Permission(
+            bool? admin = default(bool?),
+            bool? pull = default(bool?),
+            bool? push = default(bool?)
+        )
         {
             this.Admin = admin;
             this.Pull = pull;
@@ -97,19 +99,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Admin == input.Admin ||
-                    (this.Admin != null &&
-                    this.Admin.Equals(input.Admin))) &&
-                (
-                    this.Pull == input.Pull ||
-                    (this.Pull != null &&
-                    this.Pull.Equals(input.Pull))) &&
-                (
-                    this.Push == input.Push ||
-                    (this.Push != null &&
-                    this.Push.Equals(input.Push)));
+            return (
+                    this.Admin == input.Admin
+                    || (this.Admin != null && this.Admin.Equals(input.Admin))
+                )
+                && (this.Pull == input.Pull || (this.Pull != null && this.Pull.Equals(input.Pull)))
+                && (this.Push == input.Push || (this.Push != null && this.Push.Equals(input.Push)));
         }
 
         /// <summary>
@@ -146,7 +141,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

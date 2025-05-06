@@ -9,11 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.Preview;
 
-public class InstancesControllerTests(
-        WebApplicationFactory<Program> factory
-) : PreviewControllerTestsBase<DataControllerTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class InstancesControllerTests(WebApplicationFactory<Program> factory)
+    : PreviewControllerTestsBase<DataControllerTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-
     [Fact]
     public async Task Post_ReturnsCreated()
     {
@@ -34,7 +33,10 @@ public class InstancesControllerTests(
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string responseBody = await response.Content.ReadAsStringAsync();
-        Instance responseInstance = JsonSerializer.Deserialize<Instance>(responseBody, JsonSerializerOptions);
+        Instance responseInstance = JsonSerializer.Deserialize<Instance>(
+            responseBody,
+            JsonSerializerOptions
+        );
         Assert.NotNull(responseInstance);
         Assert.Equal(instance.Id, responseInstance.Id);
     }

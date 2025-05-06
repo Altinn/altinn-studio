@@ -28,7 +28,9 @@ namespace Altinn.Studio.DataModeling.Utils
                 case XmlSchemaAttributeGroup x:
                     return x.Name;
                 default:
-                    throw new ArgumentException($"Item of type '{item.GetType().Name}' cannot have a name");
+                    throw new ArgumentException(
+                        $"Item of type '{item.GetType().Name}' cannot have a name"
+                    );
             }
         }
     }

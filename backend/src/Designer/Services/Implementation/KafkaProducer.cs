@@ -18,13 +18,17 @@ public class KafkaProducer : IKafkaProducer
         _kafkaSettings = kafkaSettings;
     }
 
-    public async Task<StudioStatisticsModel> ProduceAsync(StudioStatisticsModel studioStatisticsModel, CancellationToken cancellationToken = default)
+    public async Task<StudioStatisticsModel> ProduceAsync(
+        StudioStatisticsModel studioStatisticsModel,
+        CancellationToken cancellationToken = default
+    )
     {
         using var producer = GetProducer();
-        await producer.ProduceAsync(_kafkaSettings.StatisticsTopic, new Message<Null, StudioStatisticsModel>
-        {
-            Value = studioStatisticsModel
-        }, cancellationToken);
+        await producer.ProduceAsync(
+            _kafkaSettings.StatisticsTopic,
+            new Message<Null, StudioStatisticsModel> { Value = studioStatisticsModel },
+            cancellationToken
+        );
 
         return studioStatisticsModel;
     }
@@ -34,7 +38,12 @@ public class KafkaProducer : IKafkaProducer
         var jsonSerializerConfig = new JsonSerializerConfig();
 
         return new ProducerBuilder<Null, StudioStatisticsModel>(GetProducerConfig())
-            .SetValueSerializer(new JsonSerializer<StudioStatisticsModel>(GetSchemaRegistryClient(), jsonSerializerConfig))
+            .SetValueSerializer(
+                new JsonSerializer<StudioStatisticsModel>(
+                    GetSchemaRegistryClient(),
+                    jsonSerializerConfig
+                )
+            )
             .Build();
     }
 
@@ -44,7 +53,7 @@ public class KafkaProducer : IKafkaProducer
         {
             BootstrapServers = _kafkaSettings.BootstrapServers,
             SaslUsername = _kafkaSettings.KafkaUserName,
-            SaslPassword = _kafkaSettings.KafkaPassword
+            SaslPassword = _kafkaSettings.KafkaPassword,
         };
 
         if (!_kafkaSettings.UseSaslSsl)
@@ -69,7 +78,8 @@ public class KafkaProducer : IKafkaProducer
         {
             Url = _kafkaSettings.SchemaRegistryUrl,
             BasicAuthCredentialsSource = AuthCredentialsSource.UserInfo,
-            BasicAuthUserInfo = $"{_kafkaSettings.SchemaRegistryUserName}:{_kafkaSettings.SchemaRegistryPassword}"
+            BasicAuthUserInfo =
+                $"{_kafkaSettings.SchemaRegistryUserName}:{_kafkaSettings.SchemaRegistryPassword}",
         };
     }
 }

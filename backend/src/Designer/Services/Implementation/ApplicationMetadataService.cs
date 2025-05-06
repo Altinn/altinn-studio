@@ -46,7 +46,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAltinnStorageAppMetadataClient storageAppMetadataClient,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaApiWrapper)
+            IGitea giteaApiWrapper
+        )
         {
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;
@@ -56,7 +57,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title)
+        public async Task UpdateAppTitleInAppMetadata(
+            string org,
+            string app,
+            string languageId,
+            string title
+        )
         {
             ApplicationMetadata appMetadata = await GetApplicationMetadataFromRepository(org, app);
 
@@ -76,35 +82,57 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateApplicationMetaDataLocally(string org, string app, ApplicationMetadata applicationMetadata)
+        public async Task UpdateApplicationMetaDataLocally(
+            string org,
+            string app,
+            ApplicationMetadata applicationMetadata
+        )
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         /// <inheritdic />
         public async Task<ServiceConfiguration> GetAppMetadataConfigAsync(string org, string app)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             try
             {
-                ServiceConfiguration serviceConfiguration = await altinnAppGitRepository.GetAppMetadataConfig();
+                ServiceConfiguration serviceConfiguration =
+                    await altinnAppGitRepository.GetAppMetadataConfig();
                 return serviceConfiguration;
             }
             catch (FileNotFoundException)
             {
-                ServiceConfiguration serviceConfiguration = new() { RepositoryName = app, ServiceName = app };
+                ServiceConfiguration serviceConfiguration = new()
+                {
+                    RepositoryName = app,
+                    ServiceName = app,
+                };
                 return serviceConfiguration;
             }
         }
 
         /// <inheritdic />
-        public async Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration)
+        public async Task UpdateAppMetadataConfigAsync(
+            string org,
+            string app,
+            ServiceConfiguration serviceConfiguration
+        )
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             await altinnAppGitRepository.SaveAppMetadataConfig(serviceConfiguration);
         }
 
@@ -116,7 +144,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
         public async Task CreateApplicationMetadata(string org, string app, string appTitle)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
             string id = ApplicationHelper.GetFormattedApplicationId(org, app);
             ApplicationMetadata appMetadata = new(id)
             {
@@ -144,39 +174,51 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             AutoCreate = true,
                             ClassRef = "Altinn.App.Models.model.model",
                             AllowAnonymousOnStateless = false,
-                            AutoDeleteOnProcessEnd = false
+                            AutoDeleteOnProcessEnd = false,
                         },
                         TaskId = "Task_1",
                         MaxCount = 1,
                         MinCount = 1,
                         EnablePdfCreation = true,
                         EnableFileScan = false,
-                        ValidationErrorOnPendingFileScan = false
-                    }
+                        ValidationErrorOnPendingFileScan = false,
+                    },
                 },
-                PartyTypesAllowed = new PartyTypesAllowed()
+                PartyTypesAllowed = new PartyTypesAllowed(),
             };
 
             await UpdateApplicationMetaDataLocally(org, app, appMetadata);
         }
 
         /// <inheritdoc/>
-        public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
+        public async Task AddMetadataForAttachment(
+            string org,
+            string app,
+            string applicationMetadata
+        )
         {
             DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
-            ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata existingApplicationMetadata =
+                await GetApplicationMetadataFromRepository(org, app);
             existingApplicationMetadata.DataTypes.Add(formMetadata);
 
             await UpdateApplicationMetaDataLocally(org, app, existingApplicationMetadata);
         }
 
         /// <inheritdoc/>
-        public async Task UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
+        public async Task UpdateMetadataForAttachment(
+            string org,
+            string app,
+            string applicationMetadata
+        )
         {
             dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
             string attachmentId = attachmentMetadata.GetValue("id").Value;
-            ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-            DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
+            ApplicationMetadata existingApplicationMetadata =
+                await GetApplicationMetadataFromRepository(org, app);
+            DataType applicationForm =
+                existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId)
+                ?? new DataType();
             applicationForm.AllowedContentTypes = new List<string>();
 
             if (attachmentMetadata.GetValue("fileType") != null)
@@ -191,8 +233,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             applicationForm.Id = attachmentMetadata.GetValue("id").Value;
-            applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
-            applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
+            applicationForm.MaxCount = Convert.ToInt32(
+                attachmentMetadata.GetValue("maxCount").Value
+            );
+            applicationForm.MinCount = Convert.ToInt32(
+                attachmentMetadata.GetValue("minCount").Value
+            );
             applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
 
             await DeleteMetadataForAttachment(org, app, attachmentId);
@@ -205,11 +251,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
+                ApplicationMetadata existingApplicationMetadata =
+                    await GetApplicationMetadataFromRepository(org, app);
 
                 if (existingApplicationMetadata.DataTypes != null)
                 {
-                    DataType removeForm = existingApplicationMetadata.DataTypes.Find(m => m.Id == id);
+                    DataType removeForm = existingApplicationMetadata.DataTypes.Find(m =>
+                        m.Id == id
+                    );
                     existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
@@ -224,18 +273,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken)
+        public async Task UpdateApplicationMetadataInStorageAsync(
+            string org,
+            string app,
+            string shortCommitId,
+            string envName,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ApplicationMetadata applicationFromRepository = await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
-            await UpdateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
+            ApplicationMetadata applicationFromRepository =
+                await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
+            await UpdateApplicationMetadataInStorage(
+                org,
+                app,
+                applicationFromRepository,
+                envName,
+                shortCommitId
+            );
         }
 
-        public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app)
+        public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(
+            string org,
+            string app
+        )
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            ApplicationMetadata applicationMetadata =
+                await altinnAppGitRepository.GetApplicationMetadata();
             return applicationMetadata;
         }
 
@@ -246,39 +315,66 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
         /// <returns>The application metadata for an application.</returns>
-        private async Task<ApplicationMetadata> GetApplicationMetadataFromSpecificReference(string org, string app, string referenceId)
+        private async Task<ApplicationMetadata> GetApplicationMetadataFromSpecificReference(
+            string org,
+            string app,
+            string referenceId
+        )
         {
-            var file = await _giteaApiWrapper.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
+            var file = await _giteaApiWrapper.GetFileAsync(
+                org,
+                app,
+                "App/config/applicationmetadata.json",
+                referenceId
+            );
             if (string.IsNullOrEmpty(file.Content))
             {
-                throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");
+                throw new NotFoundHttpRequestException(
+                    "There is no ApplicationMetadata file in repo."
+                );
             }
 
             // It's used to avoid sensibility to BOM
             using var fileStream = new MemoryStream(Convert.FromBase64String(file.Content));
             using StreamReader utf8Reader = new(fileStream, Encoding.UTF8);
-            return JsonSerializer.Deserialize<ApplicationMetadata>(await utf8Reader.ReadToEndAsync(),
+            return JsonSerializer.Deserialize<ApplicationMetadata>(
+                await utf8Reader.ReadToEndAsync(),
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                });
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                }
+            );
         }
 
         public bool ApplicationMetadataExistsInRepository(string org, string app)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(
+                _httpContextAccessor.HttpContext
+            );
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             return altinnAppGitRepository.ApplicationMetadataExists();
         }
 
-        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
+        private async Task UpdateApplicationMetadataInStorage(
+            string org,
+            string app,
+            ApplicationMetadata applicationFromRepository,
+            string envName,
+            string shortCommitId
+        )
         {
             applicationFromRepository.Id = $"{org}/{app}";
             applicationFromRepository.VersionId = shortCommitId;
 
-            await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationFromRepository, envName);
+            await _storageAppMetadataClient.UpsertApplicationMetadata(
+                org,
+                app,
+                applicationFromRepository,
+                envName
+            );
         }
     }
 }

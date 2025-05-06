@@ -18,11 +18,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class ApplicationMetadataTests : PreviewControllerTestsBase<ApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ApplicationMetadataTests
+        : PreviewControllerTestsBase<ApplicationMetadataTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
         private readonly Mock<IAppDevelopmentService> _appDevelopmentServiceMock;
-        public ApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
+
+        public ApplicationMetadataTests(WebApplicationFactory<Program> factory)
+            : base(factory)
         {
             _appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
         }
@@ -30,7 +33,8 @@ namespace Designer.Tests.Controllers.PreviewController
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+                c.RepositoryLocation = TestRepositoriesLocation
+            );
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton(_appDevelopmentServiceMock.Object);
         }
@@ -38,7 +42,12 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_ApplicationMetadata_Ok()
         {
-            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/config/applicationmetadata.json");
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
             _appDevelopmentServiceMock
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(NuGet.Versioning.NuGetVersion.Parse("1.0.0"));
@@ -50,16 +59,28 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
+            ApplicationMetadata expectedApplicationMetadata =
+                JsonSerializer.Deserialize<ApplicationMetadata>(
+                    expectedApplicationMetadataString,
+                    JsonSerializerOptions
+                );
             expectedApplicationMetadata.AltinnNugetVersion = string.Empty;
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(
+                expectedApplicationMetadata,
+                JsonSerializerOptions
+            );
             Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
         }
 
         [Fact]
         public async Task Get_ApplicationMetadata_With_V8_Altinn_Nuget_Version_Ok()
         {
-            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/config/applicationmetadata.json");
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
             _appDevelopmentServiceMock
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
@@ -71,17 +92,33 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
+            ApplicationMetadata expectedApplicationMetadata =
+                JsonSerializer.Deserialize<ApplicationMetadata>(
+                    expectedApplicationMetadataString,
+                    JsonSerializerOptions
+                );
             expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(
+                expectedApplicationMetadata,
+                JsonSerializerOptions
+            );
             Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
         }
 
         [Fact]
         public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
         {
-            string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");
-            ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(originalApplicationMetadataString, JsonSerializerOptions);
+            string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                AppV4,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
+            ApplicationMetadata originalApplicationMetadata =
+                JsonSerializer.Deserialize<ApplicationMetadata>(
+                    originalApplicationMetadataString,
+                    JsonSerializerOptions
+                );
 
             Assert.True(originalApplicationMetadata.PartyTypesAllowed.Person);
             Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organisation);
@@ -92,7 +129,6 @@ namespace Designer.Tests.Controllers.PreviewController
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
-
             string dataPathWithData = $"{Org}/{AppV4}/api/v1/applicationmetadata";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
@@ -101,7 +137,11 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(responseBody, JsonSerializerOptions);
+            ApplicationMetadata responseApplicationMetadata =
+                JsonSerializer.Deserialize<ApplicationMetadata>(
+                    responseBody,
+                    JsonSerializerOptions
+                );
 
             Assert.False(responseApplicationMetadata.PartyTypesAllowed.Person);
             Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organisation);

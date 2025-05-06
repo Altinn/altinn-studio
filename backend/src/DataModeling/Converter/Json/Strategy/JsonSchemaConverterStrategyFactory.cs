@@ -23,12 +23,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 foreach ((_, string ns) in namespaces.Namespaces)
                 {
-                    if (ns.Equals(KnownXmlNamespaces.SERES, StringComparison.InvariantCultureIgnoreCase))
+                    if (
+                        ns.Equals(
+                            KnownXmlNamespaces.SERES,
+                            StringComparison.InvariantCultureIgnoreCase
+                        )
+                    )
                     {
                         return new SeresJsonSchemaConverterStrategy();
                     }
 
-                    if (ns.Equals(KnownXmlNamespaces.OR, StringComparison.InvariantCultureIgnoreCase))
+                    if (
+                        ns.Equals(
+                            KnownXmlNamespaces.OR,
+                            StringComparison.InvariantCultureIgnoreCase
+                        )
+                    )
                     {
                         return new OrJsonSchemaConverterStrategy();
                     }
@@ -40,9 +50,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 JsonElement value = info.Value;
                 if (value.ValueKind == JsonValueKind.Object)
                 {
-                    JsonElement generatorScriptName = value.EnumerateObject().FirstOrDefault(obj => obj.NameEquals("XSLT-skriptnavn")).Value;
-                    if (generatorScriptName.ValueKind == JsonValueKind.String &&
-                        generatorScriptName.ValueEquals("SERES_XSD_GEN"))
+                    JsonElement generatorScriptName = value
+                        .EnumerateObject()
+                        .FirstOrDefault(obj => obj.NameEquals("XSLT-skriptnavn"))
+                        .Value;
+                    if (
+                        generatorScriptName.ValueKind == JsonValueKind.String
+                        && generatorScriptName.ValueEquals("SERES_XSD_GEN")
+                    )
                     {
                         return new SeresJsonSchemaConverterStrategy();
                     }

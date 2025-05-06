@@ -73,10 +73,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                    this.Emails == input.Emails ||
-                    (this.Emails != null &&
-                    this.Emails.SequenceEqual(input.Emails));
+            return this.Emails == input.Emails
+                || (this.Emails != null && this.Emails.SequenceEqual(input.Emails));
         }
 
         /// <summary>
@@ -103,7 +101,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

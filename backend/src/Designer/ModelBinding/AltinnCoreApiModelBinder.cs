@@ -48,7 +48,11 @@ namespace Altinn.Studio.Designer.ModelBinding
             }
             catch (Exception ex)
             {
-                bindingContext.ModelState.AddModelError(modelBindingKey, ex, bindingContext.ModelMetadata);
+                bindingContext.ModelState.AddModelError(
+                    modelBindingKey,
+                    ex,
+                    bindingContext.ModelMetadata
+                );
                 return;
             }
         }

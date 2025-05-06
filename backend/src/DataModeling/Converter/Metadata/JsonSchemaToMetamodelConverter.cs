@@ -74,7 +74,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private const int MAX_MAX_OCCURS = 99999;
 
         private readonly IJsonSchemaAnalyzer _schemaAnalyzer;
-        private readonly Dictionary<string, List<string>> _requiredProperties = new Dictionary<string, List<string>>();
+        private readonly Dictionary<string, List<string>> _requiredProperties =
+            new Dictionary<string, List<string>>();
         private ModelMetadata _modelMetadata;
         private JsonSchema _schema;
         private JsonSchemaXsdMetadata _schemaXsdMetadata;
@@ -113,7 +114,13 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             var rootPath = JsonPointer.Parse("#");
             var name = ConvertToCSharpCompatibleName(ModelName);
-            var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
+            var context = new SchemaContext()
+            {
+                Id = name,
+                ParentId = string.Empty,
+                Name = name,
+                XPath = "/",
+            };
             SetTargetNamespace(schema);
 
             var propertiesKeyword = schema.GetKeywordOrNull<PropertiesKeyword>();
@@ -135,7 +142,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessKeyword(JsonPointer path, IJsonSchemaKeyword keyword, SchemaContext context)
+        private void ProcessKeyword(
+            JsonPointer path,
+            IJsonSchemaKeyword keyword,
+            SchemaContext context
+        )
         {
             switch (keyword)
             {
@@ -194,7 +205,9 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     break;
 
                 default:
-                    throw new MetamodelConvertException($"Keyword {keyword.Keyword()} not processed!. It's not supported in the current version of the JsonSchemaToMetamodelConverter.");
+                    throw new MetamodelConvertException(
+                        $"Keyword {keyword.Keyword()} not processed!. It's not supported in the current version of the JsonSchemaToMetamodelConverter."
+                    );
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
@@ -208,7 +221,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             ProcessSubSchema(refPath, refSchema, context);
         }
 
-        private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword, SchemaContext context)
+        private void ProcessOneOfKeyword(
+            JsonPointer path,
+            OneOfKeyword keyword,
+            SchemaContext context
+        )
         {
             // A oneOf keyword with only one subschema which isn't null makes it required
             if (KeywordHasSingleNonNullSchema(keyword))
@@ -233,7 +250,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 return false;
             }
 
-            if (keyword.Schemas.First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null)
+            if (
+                keyword.Schemas.First().TryGetKeyword<TypeKeyword>(out var typeKeyword)
+                && typeKeyword.Type != SchemaValueType.Null
+            )
             {
                 return true;
             }
@@ -247,7 +267,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword, SchemaContext context)
+        private void ProcessAnyOfKeyword(
+            JsonPointer path,
+            AnyOfKeyword keyword,
+            SchemaContext context
+        )
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.Schemas)
@@ -259,7 +283,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessAllOfKeyword(JsonPointer path, AllOfKeyword keyword, SchemaContext context)
+        private void ProcessAllOfKeyword(
+            JsonPointer path,
+            AllOfKeyword keyword,
+            SchemaContext context
+        )
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.Schemas)
@@ -271,11 +299,22 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessPropertiesKeyword(JsonPointer path, PropertiesKeyword keyword, SchemaContext context)
+        private void ProcessPropertiesKeyword(
+            JsonPointer path,
+            PropertiesKeyword keyword,
+            SchemaContext context
+        )
         {
             foreach (var (name, property) in keyword.Properties)
             {
-                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name), OrderOblivious = context.OrderOblivious };
+                var currentContext = new SchemaContext()
+                {
+                    Id = CombineId(context.Id, name),
+                    Name = name,
+                    ParentId = context.Id,
+                    XPath = CombineXPath(context.XPath, context.Name),
+                    OrderOblivious = context.OrderOblivious,
+                };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
                 if (property.TryGetKeyword(out XsdTextKeyword xsdTextKeyword))
@@ -304,10 +343,16 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 ProcessNonPrimitiveType(path, subSchema, context);
             }
 
-            OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
+            OnSubSchemaProcessed(
+                new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema }
+            );
         }
 
-        private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessPrimitiveType(
+            JsonPointer path,
+            JsonSchema subSchema,
+            SchemaContext context
+        )
         {
             var typeKeyword = subSchema.GetKeywordOrNull<TypeKeyword>();
 
@@ -340,11 +385,13 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
 
             // If the array has a properties keyword, the type should be created with the node name.
-            if (singleSchema!.Keywords.TryGetKeyword(out PropertiesKeyword propertiesKeyword) && propertiesKeyword.Properties.Any())
+            if (
+                singleSchema!.Keywords.TryGetKeyword(out PropertiesKeyword propertiesKeyword)
+                && propertiesKeyword.Properties.Any()
+            )
             {
                 ProcessRegularType(path, subSchema, context);
             }
-
 
             foreach (var keyword in singleSchema.Keywords!)
             {
@@ -354,7 +401,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessNonPrimitiveType(
+            JsonPointer path,
+            JsonSchema subSchema,
+            SchemaContext context
+        )
         {
             if (IsRefType(subSchema))
             {
@@ -391,30 +442,46 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             ProcessSubSchema(refPath, refSchema, context);
         }
 
-        private void ProcessRestrictionType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessRestrictionType(
+            JsonPointer path,
+            JsonSchema subSchema,
+            SchemaContext context
+        )
         {
             var allOfKeyword = subSchema.GetKeywordOrNull<AllOfKeyword>();
 
             // If it's a single subschema with only a reference then follow it.
-            if (allOfKeyword.Schemas.Count == 1 && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>())
+            if (
+                allOfKeyword.Schemas.Count == 1
+                && allOfKeyword.Schemas.First().HasKeyword<RefKeyword>()
+            )
             {
                 var refSchema = allOfKeyword.Schemas.First();
                 ProcessRefType(refSchema, context);
             }
             else
             {
-                var refKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeywordOrNull<RefKeyword>();
+                var refKeyword = allOfKeyword
+                    .Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>())
+                    ?.GetKeywordOrNull<RefKeyword>();
                 if (refKeyword is not null)
                 {
                     PopulateRestrictions(allOfKeyword, context.Restrictions);
-                    ProcessRefType(allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()), context);
+                    ProcessRefType(
+                        allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<RefKeyword>()),
+                        context
+                    );
                     return;
                 }
 
-                var typeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeywordOrNull<TypeKeyword>();
+                var typeKeyword = allOfKeyword
+                    .Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                    .GetKeywordOrNull<TypeKeyword>();
                 context.SchemaValueType = typeKeyword.Type;
 
-                var enumSchema = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
+                var enumSchema = allOfKeyword.Schemas.FirstOrDefault(s =>
+                    s.HasKeyword<EnumKeyword>()
+                );
                 if (enumSchema != null)
                 {
                     AddElement(path, enumSchema, context);
@@ -426,14 +493,24 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessNillableType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessNillableType(
+            JsonPointer path,
+            JsonSchema subSchema,
+            SchemaContext context
+        )
         {
             TypeKeyword typeKeyword = null;
-            if (subSchema.TryGetKeyword(out typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
+            if (
+                subSchema.TryGetKeyword(out typeKeyword)
+                && typeKeyword.Type.HasFlag(SchemaValueType.Array)
+            )
             {
                 ProcessArrayType(path, subSchema, context);
             }
-            else if (subSchema.TryGetKeyword(out typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Null))
+            else if (
+                subSchema.TryGetKeyword(out typeKeyword)
+                && typeKeyword.Type.HasFlag(SchemaValueType.Null)
+            )
             {
                 context.IsNillable = true;
                 ProcessPrimitiveType(path, subSchema, context);
@@ -449,7 +526,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             }
         }
 
-        private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessRegularType(
+            JsonPointer path,
+            JsonSchema subSchema,
+            SchemaContext context
+        )
         {
             var id = CombineId(context.ParentId, context.Name);
 
@@ -468,7 +549,11 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             int maxOccurs = GetMaxOccurs(subSchema, context);
             string xPath = CombineXPath(context.XPath, context.Name);
             string name = ConvertToCSharpCompatibleName(context.Name);
-            EnrichRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema, context.Restrictions);
+            EnrichRestrictions(
+                MapToXsdValueType(context.SchemaValueType, subSchema),
+                subSchema,
+                context.Restrictions
+            );
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
@@ -477,19 +562,28 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     Name = name,
                     XName = context.Name,
                     TypeName = typeName,
-                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+                    ParentElement = string.IsNullOrEmpty(context.ParentId)
+                        ? null
+                        : context.ParentId,
                     XPath = xPath,
                     JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
                     Restrictions = context.Restrictions,
-                    DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
+                    DataBindingName = GetDataBindingName(
+                        ElementType.Group,
+                        maxOccurs,
+                        id,
+                        null,
+                        xPath
+                    ),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
                     IsTagContent = context.XmlText,
                     Nillable = context.IsNillable,
-                    OrderOblivious = context.OrderOblivious
-                });
+                    OrderOblivious = context.OrderOblivious,
+                }
+            );
         }
 
         private void AddElement(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -532,7 +626,9 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     Name = name,
                     XName = context.Name,
                     TypeName = typeName,
-                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+                    ParentElement = string.IsNullOrEmpty(context.ParentId)
+                        ? null
+                        : context.ParentId,
                     XsdValueType = xsdValueType,
                     XPath = xPath,
                     JsonSchemaPointer = path.ToString(JsonPointerStyle.Plain),
@@ -542,17 +638,25 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     Restrictions = context.Restrictions,
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
-                    DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),
+                    DisplayString = GetDisplayString(
+                        id,
+                        context.SchemaValueType.ToString(),
+                        minOccurs,
+                        maxOccurs
+                    ),
                     IsTagContent = context.XmlText,
                     Nillable = context.IsNillable,
-                    OrderOblivious = context.OrderOblivious
-                });
+                    OrderOblivious = context.OrderOblivious,
+                }
+            );
         }
 
         private static string CombineId(string parentId, string elementName)
         {
             var typeSafeElementName = ConvertToCSharpCompatibleName(elementName);
-            return string.IsNullOrEmpty(parentId) ? typeSafeElementName : $"{parentId}.{typeSafeElementName}";
+            return string.IsNullOrEmpty(parentId)
+                ? typeSafeElementName
+                : $"{parentId}.{typeSafeElementName}";
         }
 
         private bool IdAlreadyAdded(string id)
@@ -570,7 +674,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             return name.Replace("-", string.Empty);
         }
 
-        private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType, JsonSchema subSchema)
+        private static BaseValueType? MapToXsdValueType(
+            SchemaValueType jsonValueType,
+            JsonSchema subSchema
+        )
         {
             return jsonValueType switch
             {
@@ -579,7 +686,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 SchemaValueType.Number => BaseValueType.Decimal,
                 SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
                 SchemaValueType.Array => MapValueFromArray(subSchema),
-                _ => null
+                _ => null,
             };
         }
 
@@ -604,7 +711,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
                 SchemaValueType.Boolean => BaseValueType.Boolean,
                 SchemaValueType.Number => BaseValueType.Decimal,
-                _ => null
+                _ => null,
             };
         }
 
@@ -620,22 +727,33 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             return baseValueType;
         }
 
-        private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
+        private static bool TryParseXsdTypeKeyword(
+            JsonSchema subSchema,
+            out BaseValueType baseValueType
+        )
         {
             BaseValueType parsedBaseValueType = BaseValueType.String;
             bool parseSuccess = false;
 
-            if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
+            if (
+                subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword)
+                && !string.IsNullOrEmpty(xsdTypeKeyword.Value)
+            )
             {
                 parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
             }
             else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
-                xsdTypeKeyword = allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                xsdTypeKeyword = allOfKeyword
+                    .Schemas.FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
                     ?.GetKeywordOrNull<XsdTypeKeyword>();
                 if (xsdTypeKeyword is not null)
                 {
-                    parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+                    parseSuccess = Enum.TryParse(
+                        xsdTypeKeyword.Value,
+                        true,
+                        out parsedBaseValueType
+                    );
                 }
             }
 
@@ -647,7 +765,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             BaseValueType baseValueType = BaseValueType.String;
 
-            if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
+            if (
+                subSchema.TryGetKeyword(out FormatKeyword formatKeyword)
+                && !string.IsNullOrEmpty(formatKeyword.Value.Key)
+            )
             {
                 var format = formatKeyword.Value.Key;
                 switch (format)
@@ -747,12 +868,23 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             return ElementType.Field;
         }
 
-        private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
+        private static string GetDisplayString(
+            string id,
+            string typeName,
+            int minOccurs,
+            int maxOccurs
+        )
         {
             return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
         }
 
-        private static string GetDataBindingName(ElementType @type, int maxOccurs, string id, string fixedValue, string xPath)
+        private static string GetDataBindingName(
+            ElementType @type,
+            int maxOccurs,
+            string id,
+            string fixedValue,
+            string xPath
+        )
         {
             if (@type != ElementType.Group && id.Contains(".") && string.IsNullOrEmpty(fixedValue))
             {
@@ -769,7 +901,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         private static string GetDataBindingName(string id, string xPath)
         {
             var firstPropertyName = id[0..id.IndexOf(".")];
-            string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
+            string dataBindingNameWithoutFirstPropertyName = xPath.Replace(
+                "/" + firstPropertyName + "/",
+                string.Empty
+            );
             string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
 
             return dataBindingName;
@@ -782,12 +917,20 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         private bool IsRestrictionType(JsonPointer path)
         {
-            return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleTypeRestriction);
+            return _schemaXsdMetadata
+                .GetCompatibleTypes(path)
+                .Contains(CompatibleXsdType.SimpleTypeRestriction);
         }
 
         private static string GetTypeNameFromRefPath(JsonPointer pointer)
         {
-            if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
+            if (
+                pointer.Segments.Length != 2
+                || (
+                    pointer.Segments[0].Value != "$defs"
+                    && pointer.Segments[0].Value != "definitions"
+                )
+            )
             {
                 return string.Empty;
             }
@@ -890,9 +1033,15 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         /// SchemaValueType is a bitwise Enum and can hold all possible combinations.
         /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type.
         /// </summary>
-        private static bool IsNullablePrimitiveType(SchemaValueType actualType, SchemaValueType expectedType)
+        private static bool IsNullablePrimitiveType(
+            SchemaValueType actualType,
+            SchemaValueType expectedType
+        )
         {
-            if ((actualType | (expectedType | SchemaValueType.Null)) == (expectedType | SchemaValueType.Null))
+            if (
+                (actualType | (expectedType | SchemaValueType.Null))
+                == (expectedType | SchemaValueType.Null)
+            )
             {
                 return true;
             }
@@ -950,9 +1099,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             var attributesKeyword = jsonSchema.GetKeywordOrNull<XsdSchemaAttributesKeyword>();
 
-            var targetNamespace =
-                attributesKeyword?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))
-                    .Select(x => x.Value).FirstOrDefault();
+            var targetNamespace = attributesKeyword
+                ?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))
+                .Select(x => x.Value)
+                .FirstOrDefault();
 
             if (!string.IsNullOrWhiteSpace(targetNamespace))
             {

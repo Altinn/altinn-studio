@@ -28,30 +28,43 @@ public class ReleaseRepository : IReleaseRepository
         return releaseEntity;
     }
 
-    public async Task<IEnumerable<ReleaseEntity>> Get(string org, string app, DocumentQueryModel query)
+    public async Task<IEnumerable<ReleaseEntity>> Get(
+        string org,
+        string app,
+        DocumentQueryModel query
+    )
     {
-        var releasesQuery = _dbContext.Releases.AsNoTracking().Where(x => x.Org == org && x.App == app);
+        var releasesQuery = _dbContext
+            .Releases.AsNoTracking()
+            .Where(x => x.Org == org && x.App == app);
 
-        releasesQuery = query.SortDirection == SortDirection.Descending
-            ? releasesQuery.OrderByDescending(r => r.Created)
-            : releasesQuery.OrderBy(r => r.Created);
+        releasesQuery =
+            query.SortDirection == SortDirection.Descending
+                ? releasesQuery.OrderByDescending(r => r.Created)
+                : releasesQuery.OrderBy(r => r.Created);
 
-        releasesQuery = releasesQuery
-            .Take(query.Top ?? int.MaxValue);
+        releasesQuery = releasesQuery.Take(query.Top ?? int.MaxValue);
 
         var dbObjects = await releasesQuery.ToListAsync();
         return ReleaseMapper.MapToModels(dbObjects);
     }
 
-    public async Task<IEnumerable<ReleaseEntity>> Get(string org, string app, string tagName, List<string> buildStatus,
-        List<string> buildResult)
+    public async Task<IEnumerable<ReleaseEntity>> Get(
+        string org,
+        string app,
+        string tagName,
+        List<string> buildStatus,
+        List<string> buildResult
+    )
     {
-        var query = _dbContext.Releases
-            .Where(r => r.Org == org && r.App == app && r.Tagname == tagName);
+        var query = _dbContext.Releases.Where(r =>
+            r.Org == org && r.App == app && r.Tagname == tagName
+        );
 
         query = query.Where(r =>
-            (buildStatus != null && buildStatus.Any(bs => r.Buildstatus.Equals(bs))) ||
-            (buildResult != null && buildResult.Any(br => r.Buildresult.Equals(br))));
+            (buildStatus != null && buildStatus.Any(bs => r.Buildstatus.Equals(bs)))
+            || (buildResult != null && buildResult.Any(br => r.Buildresult.Equals(br)))
+        );
 
         var dbObjects = await query.ToListAsync();
         return ReleaseMapper.MapToModels(dbObjects);
@@ -59,22 +72,29 @@ public class ReleaseRepository : IReleaseRepository
 
     public async Task<IEnumerable<ReleaseEntity>> Get(string org, string buildId)
     {
-        var dbObjects = await _dbContext.Releases.AsNoTracking().Where(r => r.Org == org && r.Buildid == buildId).ToListAsync();
+        var dbObjects = await _dbContext
+            .Releases.AsNoTracking()
+            .Where(r => r.Org == org && r.Buildid == buildId)
+            .ToListAsync();
         return ReleaseMapper.MapToModels(dbObjects);
     }
 
-    public async Task<ReleaseEntity> GetSucceededReleaseFromDb(string org, string app, string tagName)
+    public async Task<ReleaseEntity> GetSucceededReleaseFromDb(
+        string org,
+        string app,
+        string tagName
+    )
     {
         List<string> buildResultFilter = [BuildResult.Succeeded.ToEnumMemberAttributeValue()];
 
-        IEnumerable<ReleaseEntity> releases =
-            await Get(org, app, tagName, null, buildResultFilter);
+        IEnumerable<ReleaseEntity> releases = await Get(org, app, tagName, null, buildResultFilter);
         return releases.Single();
     }
 
     public async Task Update(ReleaseEntity releaseEntity)
     {
-        long sequenceNo = _dbContext.Releases.AsNoTracking()
+        long sequenceNo = _dbContext
+            .Releases.AsNoTracking()
             .Where(r => r.Org == releaseEntity.Org && r.Buildid == releaseEntity.Build.Id)
             .Select(r => r.Sequenceno)
             .Single();

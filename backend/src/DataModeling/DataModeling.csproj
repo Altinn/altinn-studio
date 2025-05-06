@@ -1,17 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
     <Version>1.0.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Templates\general.template.json" />
     <None Remove="Templates\seres.template.json" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="Templates\general.template.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -20,23 +17,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
-      <PackageReference Include="Basic.Reference.Assemblies" />
-      <PackageReference Include="JsonSchema.Net" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
-      <PackageReference Include="Microsoft.CodeAnalysis.Common" />
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Basic.Reference.Assemblies" />
+    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>bin\Release</OutputPath>
     <DocumentationFile>bin\Release\AltinnCore.DataModeling.xml</DocumentationFile>
   </PropertyGroup>
-
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
-
 </Project>

@@ -20,13 +20,15 @@ namespace DataModeling.Tests.BaseClasses
 
         protected Assembly CompiledAssembly { get; set; }
 
-        protected virtual void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
-        {
-        }
+        protected virtual void JsonToMetamodelKeywordProcessedHandler(
+            object sender,
+            KeywordProcessedEventArgs e
+        ) { }
 
-        protected virtual void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
-        {
-        }
+        protected virtual void JsonToMetamodelSubSchemaProcessedHandler(
+            object sender,
+            SubSchemaProcessedEventArgs e
+        ) { }
 
         protected TTestType ConvertedJsonSchemaConvertedToModelMetadata()
         {
@@ -35,11 +37,17 @@ namespace DataModeling.Tests.BaseClasses
             metamodelConverter.KeywordProcessed += JsonToMetamodelKeywordProcessedHandler;
             metamodelConverter.SubSchemaProcessed += JsonToMetamodelSubSchemaProcessedHandler;
 
-            string jsonSchemaString = JsonSerializer.Serialize(ConvertedJsonSchema, new JsonSerializerOptions()
-            {
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-                WriteIndented = true
-            });
+            string jsonSchemaString = JsonSerializer.Serialize(
+                ConvertedJsonSchema,
+                new JsonSerializerOptions()
+                {
+                    Encoder = JavaScriptEncoder.Create(
+                        UnicodeRanges.BasicLatin,
+                        UnicodeRanges.Latin1Supplement
+                    ),
+                    WriteIndented = true,
+                }
+            );
 
             ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
             return this as TTestType;
@@ -59,13 +67,26 @@ namespace DataModeling.Tests.BaseClasses
         protected TTestType ModelMetadataLoaded(string jsonSchemaPath)
         {
             string metamodelString = SharedResourcesHelper.LoadTestDataAsString(jsonSchemaPath);
-            ModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(metamodelString, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            ModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(
+                metamodelString,
+                new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new JsonStringEnumConverter() },
+                }
+            );
             return this as TTestType;
         }
 
         protected TTestType ModelMetadataConvertedToCsharpClass()
         {
-            CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata, separateNamespaces: false, useNullableReferenceTypes: false);
+            CSharpClasses = new JsonMetadataToCsharpConverter(
+                new CSharpGenerationSettings()
+            ).CreateModelFromMetadata(
+                ModelMetadata,
+                separateNamespaces: false,
+                useNullableReferenceTypes: false
+            );
             return this as TTestType;
         }
 

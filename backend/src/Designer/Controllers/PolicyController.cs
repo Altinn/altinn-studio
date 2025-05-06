@@ -12,7 +12,9 @@ using PolicyAdmin.Models;
 namespace Altinn.Studio.Designer.Controllers
 {
     [ApiController]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/policy")]
+    [Route(
+        "/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/policy"
+    )]
     public class PolicyController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -46,7 +48,6 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(resourcePolicy);
         }
 
-
         /// <summary>
         /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}.
         /// </summary>
@@ -70,7 +71,6 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(resourcePolicy);
         }
 
-
         /// <summary>
         /// Puts the application policy, url PUT "/designer/api/org/app/apppolicy
         /// </summary>
@@ -81,7 +81,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [HttpPost]
         [Route("")]
-        public async Task<ActionResult> UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> UpdateApplicationPolicy(
+            string org,
+            string app,
+            [FromBody] ResourcePolicy applicationPolicy
+        )
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
@@ -101,7 +105,12 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [HttpPost]
         [Route("{resourceid}")]
-        public async Task<ActionResult> UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> UpdateResourcePolicy(
+            string org,
+            string app,
+            string resourceid,
+            [FromBody] ResourcePolicy applicationPolicy
+        )
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
@@ -133,7 +142,8 @@ namespace Altinn.Studio.Designer.Controllers
             if (xacmlPolicy == null)
             {
                 ModelState.AddModelError("policy", "policyerror.missingpolicy");
-                ValidationProblemDetails missigPolicyValidation = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+                ValidationProblemDetails missigPolicyValidation =
+                    ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
                 missigPolicyValidation.Status = 404;
 
                 return Ok(missigPolicyValidation);
@@ -150,34 +160,48 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("subjectoptions")]
-        public async Task<ActionResult> GetSubjectOptions(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetSubjectOptions(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
         {
-            List<SubjectOption> subjectOptions = await _policyOptions.GetSubjectOptions(cancellationToken);
+            List<SubjectOption> subjectOptions = await _policyOptions.GetSubjectOptions(
+                cancellationToken
+            );
             return Ok(subjectOptions);
         }
 
-
         [HttpGet]
         [Route("actionoptions")]
-        public async Task<ActionResult> GetActionOptions(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetActionOptions(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
         {
-            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions(cancellationToken);
+            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions(
+                cancellationToken
+            );
 
             return Ok(actionOptions);
         }
 
         [HttpGet]
         [Route("accesspackageoptions")]
-        public async Task<ActionResult> GetAccessPackageOptions(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetAccessPackageOptions(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
         {
-            List<AccessPackageAreaGroup> accessPackageOptions = await _policyOptions.GetAccessPackageOptions(cancellationToken);
+            List<AccessPackageAreaGroup> accessPackageOptions =
+                await _policyOptions.GetAccessPackageOptions(cancellationToken);
             return Ok(accessPackageOptions);
         }
 
-
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
         {
-
             if (policy.Rules == null || policy.Rules.Count == 0)
             {
                 ModelState.AddModelError("policy.rules", "policyerror.norules");
@@ -188,23 +212,35 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 if (rule.Subject == null || rule.Subject.Count == 0)
                 {
-                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingsubject");
+                    ModelState.AddModelError(
+                        $"policy.rules[{ruleIndex}]",
+                        "policyerror.missingsubject"
+                    );
                 }
 
                 if (rule.Actions == null || rule.Actions.Count == 0)
                 {
-                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingaction");
+                    ModelState.AddModelError(
+                        $"policy.rules[{ruleIndex}]",
+                        "policyerror.missingaction"
+                    );
                 }
 
                 if (rule.Resources == null || rule.Resources.Count == 0)
                 {
-                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingresource");
+                    ModelState.AddModelError(
+                        $"policy.rules[{ruleIndex}]",
+                        "policyerror.missingresource"
+                    );
                 }
 
                 ruleIndex++;
             }
 
-            ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+            ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(
+                HttpContext,
+                ModelState
+            );
 
             return details;
         }

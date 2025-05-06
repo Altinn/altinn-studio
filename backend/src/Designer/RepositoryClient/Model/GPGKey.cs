@@ -38,7 +38,20 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="primaryKeyId">PrimaryKeyId.</param>
         /// <param name="publicKey">PublicKey.</param>
         /// <param name="subkeys">Subkeys.</param>
-        public GPGKey(bool? canCertify = default(bool?), bool? canEncryptComms = default(bool?), bool? canEncryptStorage = default(bool?), bool? canSign = default(bool?), DateTime? createdAt = default(DateTime?), List<GPGKeyEmail> emails = default(List<GPGKeyEmail>), DateTime? expiresAt = default(DateTime?), long? id = default(long?), string keyId = default(string), string primaryKeyId = default(string), string publicKey = default(string), List<GPGKey> subkeys = default(List<GPGKey>))
+        public GPGKey(
+            bool? canCertify = default(bool?),
+            bool? canEncryptComms = default(bool?),
+            bool? canEncryptStorage = default(bool?),
+            bool? canSign = default(bool?),
+            DateTime? createdAt = default(DateTime?),
+            List<GPGKeyEmail> emails = default(List<GPGKeyEmail>),
+            DateTime? expiresAt = default(DateTime?),
+            long? id = default(long?),
+            string keyId = default(string),
+            string primaryKeyId = default(string),
+            string publicKey = default(string),
+            List<GPGKey> subkeys = default(List<GPGKey>)
+        )
         {
             this.CanCertify = canCertify;
             this.CanEncryptComms = canEncryptComms;
@@ -172,55 +185,57 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.CanCertify == input.CanCertify ||
-                    (this.CanCertify != null &&
-                    this.CanCertify.Equals(input.CanCertify))) &&
-                (
-                    this.CanEncryptComms == input.CanEncryptComms ||
-                    (this.CanEncryptComms != null &&
-                    this.CanEncryptComms.Equals(input.CanEncryptComms))) &&
-                (
-                    this.CanEncryptStorage == input.CanEncryptStorage ||
-                    (this.CanEncryptStorage != null &&
-                    this.CanEncryptStorage.Equals(input.CanEncryptStorage))) &&
-                (
-                    this.CanSign == input.CanSign ||
-                    (this.CanSign != null &&
-                    this.CanSign.Equals(input.CanSign))) &&
-                (
-                    this.CreatedAt == input.CreatedAt ||
-                    (this.CreatedAt != null &&
-                    this.CreatedAt.Equals(input.CreatedAt))) &&
-                (
-                    this.Emails == input.Emails ||
-                    (this.Emails != null &&
-                    this.Emails.SequenceEqual(input.Emails))) &&
-                (
-                    this.ExpiresAt == input.ExpiresAt ||
-                    (this.ExpiresAt != null &&
-                    this.ExpiresAt.Equals(input.ExpiresAt))) &&
-                (
-                    this.Id == input.Id ||
-                    (this.Id != null &&
-                    this.Id.Equals(input.Id))) &&
-                (
-                    this.KeyId == input.KeyId ||
-                    (this.KeyId != null &&
-                    this.KeyId.Equals(input.KeyId))) &&
-                (
-                    this.PrimaryKeyId == input.PrimaryKeyId ||
-                    (this.PrimaryKeyId != null &&
-                    this.PrimaryKeyId.Equals(input.PrimaryKeyId))) &&
-                (
-                    this.PublicKey == input.PublicKey ||
-                    (this.PublicKey != null &&
-                    this.PublicKey.Equals(input.PublicKey))) &&
-                (
-                    this.Subkeys == input.Subkeys ||
-                    (this.Subkeys != null &&
-                    this.Subkeys.SequenceEqual(input.Subkeys)));
+            return (
+                    this.CanCertify == input.CanCertify
+                    || (this.CanCertify != null && this.CanCertify.Equals(input.CanCertify))
+                )
+                && (
+                    this.CanEncryptComms == input.CanEncryptComms
+                    || (
+                        this.CanEncryptComms != null
+                        && this.CanEncryptComms.Equals(input.CanEncryptComms)
+                    )
+                )
+                && (
+                    this.CanEncryptStorage == input.CanEncryptStorage
+                    || (
+                        this.CanEncryptStorage != null
+                        && this.CanEncryptStorage.Equals(input.CanEncryptStorage)
+                    )
+                )
+                && (
+                    this.CanSign == input.CanSign
+                    || (this.CanSign != null && this.CanSign.Equals(input.CanSign))
+                )
+                && (
+                    this.CreatedAt == input.CreatedAt
+                    || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt))
+                )
+                && (
+                    this.Emails == input.Emails
+                    || (this.Emails != null && this.Emails.SequenceEqual(input.Emails))
+                )
+                && (
+                    this.ExpiresAt == input.ExpiresAt
+                    || (this.ExpiresAt != null && this.ExpiresAt.Equals(input.ExpiresAt))
+                )
+                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+                && (
+                    this.KeyId == input.KeyId
+                    || (this.KeyId != null && this.KeyId.Equals(input.KeyId))
+                )
+                && (
+                    this.PrimaryKeyId == input.PrimaryKeyId
+                    || (this.PrimaryKeyId != null && this.PrimaryKeyId.Equals(input.PrimaryKeyId))
+                )
+                && (
+                    this.PublicKey == input.PublicKey
+                    || (this.PublicKey != null && this.PublicKey.Equals(input.PublicKey))
+                )
+                && (
+                    this.Subkeys == input.Subkeys
+                    || (this.Subkeys != null && this.Subkeys.SequenceEqual(input.Subkeys))
+                );
         }
 
         /// <summary>
@@ -302,7 +317,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteCodeListTests
+    : DesignerEndpointsTestsBase<DeleteCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public DeleteCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public DeleteCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Repo = "org-content";
@@ -36,7 +37,9 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(
+            responseBody
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -63,8 +66,12 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"The code list file {CodeListId}.json does not exist.", responseDocument.RootElement.ToString());
+        Assert.Equal(
+            $"The code list file {CodeListId}.json does not exist.",
+            responseDocument.RootElement.ToString()
+        );
     }
 
-    private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/{codeListId}";
+    private static string ApiUrl(string targetOrg, string codeListId) =>
+        $"designer/api/{targetOrg}/code-lists/{codeListId}";
 }

@@ -10,16 +10,17 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ImageController;
 
-public class GetAllImagesFileNamesTests : DesignerEndpointsTestsBase<GetAllImagesFileNamesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetAllImagesFileNamesTests
+    : DesignerEndpointsTestsBase<GetAllImagesFileNamesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
     private const string App = "app-with-wwwroot-content";
     private const string EmptyApp = "empty-app";
 
-    public GetAllImagesFileNamesTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetAllImagesFileNamesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task GetAllImagesFileNames_ReturnsArrayOfImageFilePathsRelativeFromWwwroot()
@@ -31,7 +32,12 @@ public class GetAllImagesFileNamesTests : DesignerEndpointsTestsBase<GetAllImage
         string responseBody = await response.Content.ReadAsStringAsync();
         List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseBody);
         responseList = responseList.Select(filePath => filePath.Replace("\\", "/")).ToList(); // Needed for test to run on Windows
-        var expectedFileNames = new List<string> { "ttd.png", "images/patentstyret-varemerke.jpg", "images/images/altinn-logo.svg" };
+        var expectedFileNames = new List<string>
+        {
+            "ttd.png",
+            "images/patentstyret-varemerke.jpg",
+            "images/images/altinn-logo.svg",
+        };
 
         Assert.Equal(expectedFileNames, responseList);
     }

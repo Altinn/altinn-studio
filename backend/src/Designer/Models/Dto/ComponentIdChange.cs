@@ -6,8 +6,7 @@ public class ComponentIdChange
 {
     [JsonPropertyName("oldComponentId")]
     public string OldComponentId { get; set; }
+
     [JsonPropertyName("newComponentId")]
     public string NewComponentId { get; set; }
 }
-
-

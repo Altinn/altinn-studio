@@ -8,6 +8,7 @@ public class FormLayoutPayload
 {
     [JsonPropertyName("componentIdsChange")]
     public List<ComponentIdChange> ComponentIdsChange { get; set; }
+
     [JsonPropertyName("layout")]
     public JsonNode Layout { get; set; }
 }

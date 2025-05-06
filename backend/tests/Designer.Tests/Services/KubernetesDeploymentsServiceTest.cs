@@ -23,11 +23,15 @@ namespace Designer.Tests.Services
         public KubernetesDeploymentsServiceTest()
         {
             _environementsService = new Mock<IEnvironmentsService>();
-            _environementsService.Setup(req => req.GetEnvironments())
+            _environementsService
+                .Setup(req => req.GetEnvironments())
                 .ReturnsAsync(GetEnvironments("environments.json"));
 
             _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
+            _kubernetesWrapperClient
+                .Setup(req =>
+                    req.GetDeploymentAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>())
+                )
                 .ReturnsAsync(new KubernetesDeployment());
 
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
@@ -39,18 +43,32 @@ namespace Designer.Tests.Services
         {
             // Arrange
             var environments = GetEnvironments("environments.json");
-            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            _environementsService
+                .Setup(e => e.GetOrganizationEnvironments(org))
+                .ReturnsAsync(environments);
             var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
             foreach (EnvironmentModel environment in environments)
             {
-                _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync(org, app, It.Is<EnvironmentModel>(env => env.Name == environment.Name)))
-                    .ReturnsAsync(kubernetesDeployments.FirstOrDefault(deployment => deployment.EnvName == environment.Name) ?? new KubernetesDeployment { EnvName = environment.Name });
+                _kubernetesWrapperClient
+                    .Setup(req =>
+                        req.GetDeploymentAsync(
+                            org,
+                            app,
+                            It.Is<EnvironmentModel>(env => env.Name == environment.Name)
+                        )
+                    )
+                    .ReturnsAsync(
+                        kubernetesDeployments.FirstOrDefault(deployment =>
+                            deployment.EnvName == environment.Name
+                        ) ?? new KubernetesDeployment { EnvName = environment.Name }
+                    );
             }
 
             KubernetesDeploymentsService kubernetesDeploymentsService = new(
                 _environementsService.Object,
                 _kubernetesWrapperClient.Object,
-                _deploymentLogger.Object);
+                _deploymentLogger.Object
+            );
 
             // Act
             List<KubernetesDeployment> kubernetesDeploymentList =
@@ -62,10 +80,21 @@ namespace Designer.Tests.Services
 
         private static List<EnvironmentModel> GetEnvironments(string filename)
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development",
-                "azure-devops-mock", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "development",
+                "azure-devops-mock",
+                filename
+            );
             if (File.Exists(path))
             {
                 string environments = File.ReadAllText(path);
@@ -80,9 +109,18 @@ namespace Designer.Tests.Services
 
         private static List<KubernetesDeployment> GetKubernetesDeployments(string filename)
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "KubernetesDeployments",
+                filename
+            );
             if (!File.Exists(path))
             {
                 return null;

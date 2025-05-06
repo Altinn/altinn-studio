@@ -12,17 +12,30 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class AddDataTypeToApplicationMetadataTests : DesignerEndpointsTestsBase<AddDataTypeToApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class AddDataTypeToApplicationMetadataTests
+        : DesignerEndpointsTestsBase<AddDataTypeToApplicationMetadataTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository, string dataTypeId, string taskId) => $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
+        private static string VersionPrefix(
+            string org,
+            string repository,
+            string dataTypeId,
+            string taskId
+        ) =>
+            $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
 
-        public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
-        public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId, string taskId)
+        public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
+            string org,
+            string app,
+            string developer,
+            string dataTypeId,
+            string taskId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -32,11 +45,16 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             using var response = await HttpClient.SendAsync(request);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application appMetadata = JsonSerializer.Deserialize<Application>(appMetadataString, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            string appMetadataString = TestDataHelper.GetFileFromRepo(
+                org,
+                targetRepository,
+                developer,
+                "App/config/applicationmetadata.json"
+            );
+            Application appMetadata = JsonSerializer.Deserialize<Application>(
+                appMetadataString,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
             DataType expectedDataType = new()
             {
                 Id = dataTypeId,
@@ -48,17 +66,29 @@ namespace Designer.Tests.Controllers.ProcessModelingController
                 EnableFileScan = false,
                 ValidationErrorOnPendingFileScan = false,
                 EnabledFileAnalysers = new List<string>(),
-                EnabledFileValidators = new List<string>()
+                EnabledFileValidators = new List<string>(),
             };
 
             Assert.Equal(2, appMetadata.DataTypes.Count);
-            AssertionUtil.AssertEqualTo(expectedDataType, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId));
-            Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
+            AssertionUtil.AssertEqualTo(
+                expectedDataType,
+                appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId)
+            );
+            Assert.Equal(
+                taskId,
+                appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId
+            );
         }
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser", "ref-data-as-pdf", "task_1")]
-        public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId, string taskId)
+        public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(
+            string org,
+            string app,
+            string developer,
+            string dataTypeId,
+            string taskId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -68,11 +98,16 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application appMetadata = JsonSerializer.Deserialize<Application>(appMetadataString, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            string appMetadataString = TestDataHelper.GetFileFromRepo(
+                org,
+                targetRepository,
+                developer,
+                "App/config/applicationmetadata.json"
+            );
+            Application appMetadata = JsonSerializer.Deserialize<Application>(
+                appMetadataString,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
 
             Assert.Single(appMetadata.DataTypes);
         }

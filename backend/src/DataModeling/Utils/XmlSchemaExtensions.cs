@@ -20,7 +20,7 @@ public static class XmlSchemaExtensions
             (nameof(XmlSchema.AttributeFormDefault), schema.AttributeFormDefault.ToString()),
             (nameof(XmlSchema.ElementFormDefault), schema.ElementFormDefault.ToString()),
             (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
-            (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString())
+            (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()),
         };
 
         if (!string.IsNullOrWhiteSpace(schema.TargetNamespace))

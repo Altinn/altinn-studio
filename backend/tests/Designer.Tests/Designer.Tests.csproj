@@ -1,15 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
     <RootNamespace>Designer.Tests</RootNamespace>
   </PropertyGroup>
-
   <PropertyGroup>
     <TestRepoPrefix>test-repo-</TestRepoPrefix>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Basic.Reference.Assemblies" />
@@ -35,17 +32,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="System.Linq.Dynamic.Core" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Designer\Designer.csproj" />
     <ProjectReference Include="..\SharedResources.Tests\SharedResources.Tests.csproj" />
   </ItemGroup>
-
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Remove="_TestData\**\*.*" />
     <Compile Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
@@ -96,7 +90,7 @@
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
     <None Remove="_TestData\Remote\ttd\existing-repo\content.json" />
-     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\32578.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json" />

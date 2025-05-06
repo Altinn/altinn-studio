@@ -7,7 +7,11 @@ namespace Altinn.Studio.Designer.Converters;
 
 public class TaskNavigationGroupJsonConverter : JsonConverter<TaskNavigationGroup>
 {
-    public override TaskNavigationGroup Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TaskNavigationGroup Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
@@ -25,7 +29,11 @@ public class TaskNavigationGroupJsonConverter : JsonConverter<TaskNavigationGrou
         throw new JsonException("Unknown TaskNavigationGroup type");
     }
 
-    public override void Write(Utf8JsonWriter writer, TaskNavigationGroup value, JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        TaskNavigationGroup value,
+        JsonSerializerOptions options
+    )
     {
         JsonSerializer.Serialize(writer, (object)value!, value.GetType(), options);
     }

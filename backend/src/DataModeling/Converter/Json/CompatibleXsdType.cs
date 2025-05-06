@@ -23,6 +23,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         Nillable,
         UnhandledAttribute,
         UnhandledEnumAttribute,
-        Array
+        Array,
     }
 }

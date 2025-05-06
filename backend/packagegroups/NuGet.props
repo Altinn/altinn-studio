@@ -1,12 +1,10 @@
 <Project>
-
   <ItemGroup Label="Altinn specific packages">
     <PackageReference Update="Altinn.App.Core" Version="8.0.0-rc1" />
     <PackageReference Update="Altinn.Common.AccessToken" Version="5.0.3" />
     <PackageReference Update="Altinn.Common.AccessTokenClient" Version="3.0.14" />
     <PackageReference Update="Altinn.Platform.Storage.Interface" Version="3.34.0" />
   </ItemGroup>
-
   <ItemGroup Label="Shared nuget packages">
     <PackageReference Update="JsonSchema.Net" Version="5.5.1" />
     <PackageReference Update="CompilerAttributes" Version="1.1.2" />
@@ -57,7 +55,6 @@
     <PackageReference Update="Quartz.Extensions.Hosting" Version="3.14.0" />
     <PackageReference Update="Quartz.Serialization.SystemTextJson" Version="3.14.0" />
   </ItemGroup>
-
   <ItemGroup Label="Packages used for testing">
     <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.4" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.13.0" />

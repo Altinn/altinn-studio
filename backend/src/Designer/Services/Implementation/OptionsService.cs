@@ -28,7 +28,10 @@ public class OptionsService : IOptionsService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="appDevelopmentService"></param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
+    public OptionsService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IAppDevelopmentService appDevelopmentService
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _appDevelopmentService = appDevelopmentService;
@@ -37,7 +40,11 @@ public class OptionsService : IOptionsService
     /// <inheritdoc />
     public string[] GetOptionsListIds(string org, string repo, string developer)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         try
         {
@@ -51,14 +58,27 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> GetOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         List<Option> optionsList;
 
-        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
+        string optionsListString = await altinnAppGitRepository.GetOptionsList(
+            optionsListId,
+            cancellationToken
+        );
         try
         {
             optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
@@ -66,27 +86,44 @@ public class OptionsService : IOptionsService
         }
         catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
-            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in option list: {optionsListId}.");
+            throw new InvalidOptionsFormatException(
+                $"One or more of the options have an invalid format in option list: {optionsListId}."
+            );
         }
 
         return optionsList;
     }
 
     /// <inheritdoc />
-    public async Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+    public async Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository =
-            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
 
-        var optionListReferences = await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
-        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(altinnRepoEditingContext, optionListReferences, cancellationToken);
+        var optionListReferences =
+            await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
+        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(
+            altinnRepoEditingContext,
+            optionListReferences,
+            cancellationToken
+        );
 
         return optionListReferencesWithTaskData;
     }
 
-    public async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken = default)
+    public async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        List<RefToOptionListSpecifier> optionListReferences,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (optionListReferences.Count == 0)
@@ -94,7 +131,10 @@ public class OptionsService : IOptionsService
             return optionListReferences;
         }
 
-        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
+        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+            altinnRepoEditingContext,
+            cancellationToken
+        );
         if (layoutSetsModel.Sets.Count == 0)
         {
             return optionListReferences;
@@ -105,7 +145,10 @@ public class OptionsService : IOptionsService
         return optionListReferences;
     }
 
-    private static void AddTaskDataToOptionListReference(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToOptionListReference(
+        List<RefToOptionListSpecifier> optionListReferences,
+        LayoutSetsModel layoutSetsModel
+    )
     {
         foreach (var reference in optionListReferences)
         {
@@ -113,7 +156,10 @@ public class OptionsService : IOptionsService
         }
     }
 
-    private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToOptionListReference(
+        RefToOptionListSpecifier reference,
+        LayoutSetsModel layoutSetsModel
+    )
     {
         foreach (var source in reference.OptionListIdSources)
         {
@@ -121,18 +167,27 @@ public class OptionsService : IOptionsService
         }
     }
 
-    private static void AddTaskDataToSourceFromLayoutSetModels(OptionListIdSource source, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToSourceFromLayoutSetModels(
+        OptionListIdSource source,
+        LayoutSetsModel layoutSetsModel
+    )
     {
         var layoutSetModel = FindLayoutSetModelBySourceId(layoutSetsModel, source.LayoutSetId);
         AddTaskDataToSource(source, layoutSetModel);
     }
 
-    private static LayoutSetModel FindLayoutSetModelBySourceId(LayoutSetsModel layoutSetsModels, string sourceId)
+    private static LayoutSetModel FindLayoutSetModelBySourceId(
+        LayoutSetsModel layoutSetsModels,
+        string sourceId
+    )
     {
         return layoutSetsModels.Sets.FirstOrDefault(set => set.Id == sourceId);
     }
 
-    private static void AddTaskDataToSource(OptionListIdSource source, LayoutSetModel layoutSetModel)
+    private static void AddTaskDataToSource(
+        OptionListIdSource source,
+        LayoutSetModel layoutSetModel
+    )
     {
         source.TaskId = layoutSetModel?.Task.Id;
         source.TaskType = layoutSetModel?.Task.Type;
@@ -145,33 +200,69 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> CreateOrOverwriteOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        List<Option> payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
+        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+            optionsListId,
+            payload,
+            cancellationToken
+        );
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> UploadNewOption(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        IFormFile payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(
+            payload.OpenReadStream(),
+            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true }
+        );
 
-        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
+        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option =>
+            option.Value == null || option.Label == null
+        );
         if (optionListHasInvalidNullFields)
         {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+            throw new InvalidOptionsFormatException(
+                "Uploaded file is missing one of the following attributes for an option: value or label."
+            );
         }
 
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+            optionsListId,
+            deserializedOptions,
+            cancellationToken
+        );
 
         return deserializedOptions;
     }
@@ -179,13 +270,23 @@ public class OptionsService : IOptionsService
     /// <inheritdoc />
     public void DeleteOptionsList(string org, string repo, string developer, string optionsListId)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         altinnAppGitRepository.DeleteOptionsList(optionsListId);
     }
 
     /// <inheritdoc />
-    public async Task<bool> OptionsListExists(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<bool> OptionsListExists(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -201,21 +302,43 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId,
-        string newOptionsListName, CancellationToken cancellationToken = default)
+    public void UpdateOptionsListId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string optionsListId,
+        string newOptionsListName,
+        CancellationToken cancellationToken = default
+    )
     {
         AltinnAppGitRepository altinnAppGitRepository =
-            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-        altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
+            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
+        altinnAppGitRepository.UpdateOptionsListId(
+            $"{optionsListId}.json",
+            $"{newOptionsListName}.json"
+        );
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        bool optionListExists = await OptionsListExists(org, repo, developer, optionListId, cancellationToken);
+        bool optionListExists = await OptionsListExists(
+            org,
+            repo,
+            developer,
+            optionListId,
+            cancellationToken
+        );
         if (optionListExists)
         {
             return null;
@@ -224,13 +347,27 @@ public class OptionsService : IOptionsService
         return await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
     }
 
-    private async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    private async Task<List<Option>> ImportOptionListFromOrg(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        CancellationToken cancellationToken
+    )
     {
         AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        AltinnAppGitRepository altinnAppGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
-        string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
+        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(
+            optionListId,
+            cancellationToken
+        );
+        string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+            optionListId,
+            codeList,
+            cancellationToken
+        );
         return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
     }
 

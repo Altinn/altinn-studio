@@ -26,21 +26,9 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> expectedCodeList = new()
         {
-            new Option
-            {
-                Label = "En",
-                Value = 1.05
-            },
-            new Option
-            {
-                Label = "To",
-                Value = 2.01
-            },
-            new Option
-            {
-                Label = "Tre",
-                Value = 3.1
-            }
+            new Option { Label = "En", Value = 1.05 },
+            new Option { Label = "To", Value = 2.01 },
+            new Option { Label = "Tre", Value = 3.1 },
         };
 
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -50,7 +38,9 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var fetchedCodeLists = await service.GetCodeLists(TargetOrg, Developer);
-        List<Option> fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber").Data;
+        List<Option> fetchedCodeListData = fetchedCodeLists
+            .Find(e => e.Title == "codeListNumber")
+            .Data;
 
         // Assert
         Assert.Equal(expectedCodeList.Count, fetchedCodeListData?.Count);
@@ -70,16 +60,8 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> newCodeList = new()
         {
-            new Option
-            {
-                Label = "label1",
-                Value = "value1"
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2"
-            }
+            new Option { Label = "label1", Value = "value1" },
+            new Option { Label = "label2", Value = "value2" },
         };
 
         const string CodeListId = "newCoodeList";
@@ -89,7 +71,12 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        var codeListData = await service.CreateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
+        var codeListData = await service.CreateCodeList(
+            TargetOrg,
+            Developer,
+            CodeListId,
+            newCodeList
+        );
         List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
         // Assert
@@ -111,11 +98,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> newCodeList = new()
         {
-            new Option
-            {
-                Label = "someLabel",
-                Value = "Updated value"
-            }
+            new Option { Label = "someLabel", Value = "Updated value" },
         };
         const string CodeListId = "codeListTrailingComma";
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -124,7 +107,12 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        var codeListData = await service.UpdateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
+        var codeListData = await service.UpdateCodeList(
+            TargetOrg,
+            Developer,
+            CodeListId,
+            newCodeList
+        );
         List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
         // Assert
@@ -146,16 +134,13 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string CodeListId = "newCodeList";
         const string FileName = $"{CodeListId}.json";
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": ""someLabel"",""value"": ""someValue"" },
         ]";
         List<Option> expectedCodeList = new()
         {
-            new Option
-            {
-                Label = "someLabel",
-                Value = "someValue"
-            }
+            new Option { Label = "someLabel", Value = "someValue" },
         };
         byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
         var stream = new MemoryStream(codeListBytes);
@@ -212,7 +197,9 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act and assert
-        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await service.DeleteCodeList(TargetOrg, Developer, CodeListId));
+        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () =>
+            await service.DeleteCodeList(TargetOrg, Developer, CodeListId)
+        );
     }
 
     [Fact]
@@ -284,8 +271,9 @@ public class OrgCodeListServiceTests : IDisposable
 
     private static OrgCodeListService GetOrgCodeListService()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-            new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         OrgCodeListService service = new(altinnGitRepositoryFactory);
 
         return service;

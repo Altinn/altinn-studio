@@ -20,7 +20,9 @@ public class PreviewHubTests
     {
         _logger = new Mock<ILogger<PreviewHub>>();
         _httpContextAccessor = new Mock<IHttpContextAccessor>();
-        _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser(TestUser));
+        _httpContextAccessor
+            .Setup(req => req.HttpContext)
+            .Returns(GetHttpContextForTestUser(TestUser));
     }
 
     [Fact]
@@ -32,7 +34,10 @@ public class PreviewHubTests
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
-        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object) { Clients = mockClients.Object };
+        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object)
+        {
+            Clients = mockClients.Object,
+        };
 
         // act
         await previewHubMock.SendMessage("testMessage");
@@ -50,7 +55,10 @@ public class PreviewHubTests
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
-        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object) { Clients = mockClients.Object };
+        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object)
+        {
+            Clients = mockClients.Object,
+        };
 
         // act
         await previewHubMock.SendMessage("testMessage");

@@ -20,11 +20,26 @@ public class RequestSynchronizationMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext httpContext, IRequestSyncResolver requestSyncResolver, IDistributedLockProvider synchronizationProvider)
+    public async Task InvokeAsync(
+        HttpContext httpContext,
+        IRequestSyncResolver requestSyncResolver,
+        IDistributedLockProvider synchronizationProvider
+    )
     {
-        if (requestSyncResolver.TryResolveSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
+        if (
+            requestSyncResolver.TryResolveSyncRequest(
+                httpContext,
+                out AltinnRepoEditingContext editingContext
+            )
+        )
         {
-            await using (await synchronizationProvider.AcquireLockAsync(editingContext, _waitTimeout, httpContext.RequestAborted))
+            await using (
+                await synchronizationProvider.AcquireLockAsync(
+                    editingContext,
+                    _waitTimeout,
+                    httpContext.RequestAborted
+                )
+            )
             {
                 await _next(httpContext);
                 return;
