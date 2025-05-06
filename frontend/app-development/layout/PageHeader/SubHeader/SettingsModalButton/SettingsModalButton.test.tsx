@@ -13,12 +13,30 @@ import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+  useLocation: jest.fn().mockImplementation(() => ({
+    pathname: '',
+    state: { from: '' },
+  })),
+}));
+
+const mockNavigate = jest.fn();
+
 describe('SettingsModal', () => {
   const user = userEvent.setup();
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    typedLocalStorage.removeItem('featureFlags');
+    jest.clearAllMocks();
+  });
 
   it('has SettingsModal default to closed', async () => {
     renderSettingsModalButton();
@@ -89,6 +107,79 @@ describe('SettingsModal', () => {
     expect(
       screen.getByRole('button', { name: textMock('sync_header.settings') }),
     ).toBeInTheDocument();
+  });
+
+  it('renders back icon and button text when on settings page and feature is enabled', () => {
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useLocation as jest.Mock).mockReturnValue({
+      pathname: `/org/app/${RoutePaths.AppSettings}`,
+      state: { from: RoutePaths.UIEditor },
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_go_back'),
+    });
+    expect(goBackButton).toBeInTheDocument();
+  });
+
+  it('navigates to settings page when clicking the settings button', async () => {
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useLocation as jest.Mock).mockReturnValue({
+      pathname: `/org/app/${RoutePaths.UIEditor}`,
+      state: { from: RoutePaths.UIEditor },
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
+    await user.click(settingsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.AppSettings, {
+      state: { from: RoutePaths.UIEditor },
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back from the settings page when clicking the go back button', async () => {
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useLocation as jest.Mock).mockReturnValue({
+      pathname: `/org/app/${RoutePaths.AppSettings}`,
+      state: { from: RoutePaths.UIEditor },
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_go_back'),
+    });
+    await user.click(goBackButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.UIEditor);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to "overview" page when clicking go back and on settings page and from is null', async () => {
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useLocation as jest.Mock).mockReturnValue({
+      pathname: `/org/app/${RoutePaths.AppSettings}`,
+      state: { from: null },
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_go_back'),
+    });
+    await user.click(goBackButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.Overview);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });
 

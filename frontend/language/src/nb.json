@@ -1203,6 +1203,7 @@
   "sync_header.review_file_changes": "Se siste endringer",
   "sync_header.service_updated_to_latest": "Appen din er oppdatert til siste versjon",
   "sync_header.settings": "Innstillinger",
+  "sync_header.settings_go_back": "Tilbake",
   "sync_header.sharing_changes_completed": "Du har delt dine endringer og appen er oppdatert til siste versjon",
   "sync_header.sharing_changes_no_access": "Du har ikke skriverettigheter til denne appen og kan ikke dele dine endringer med andre",
   "sync_header.show_changes_modal.close_button": "Lukk",
