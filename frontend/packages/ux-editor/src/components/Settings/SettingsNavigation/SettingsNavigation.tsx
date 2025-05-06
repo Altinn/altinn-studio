@@ -9,7 +9,6 @@ import { isTaskReceipt, getTaskIcon, taskNavigationType } from '../SettingsUtils
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
 import { TasksTable } from '../../TasksTable/TasksTable';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
@@ -19,12 +18,8 @@ export const SettingsNavigation = (): ReactElement => {
     org,
     app,
   );
-  const { data: layoutSetsModel, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(
-    org,
-    app,
-  );
 
-  if (tasksIsPending || layoutSetsPending)
+  if (tasksIsPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
 
   if (!taskNavigationGroups?.length)
