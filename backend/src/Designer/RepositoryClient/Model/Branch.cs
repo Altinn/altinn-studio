@@ -28,12 +28,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Branch" /> class.
         /// </summary>
-        /// <param name="Commit">Commit.</param>
-        /// <param name="Name">Name.</param>
-        public Branch(PayloadCommit Commit = default(PayloadCommit), string Name = default(string))
+        /// <param name="commit">Commit.</param>
+        /// <param name="name">Name.</param>
+        public Branch(PayloadCommit commit = default(PayloadCommit), string name = default(string))
         {
-            this.Commit = Commit;
-            this.Name = Name;
+            this.Commit = commit;
+            this.Name = name;
         }
 
         /// <summary>

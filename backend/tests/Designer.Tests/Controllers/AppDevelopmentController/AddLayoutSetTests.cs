@@ -88,8 +88,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            const string existingTaskId = "Task_1";
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [existingTaskId] };
+            const string ExistingTaskId = "Task_1";
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [ExistingTaskId] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
             { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
 
@@ -104,7 +104,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-            Assert.Equal($"Layout set with task, {existingTaskId}, already exists.", responseMessage["infoMessage"]);
+            Assert.Equal($"Layout set with task, {ExistingTaskId}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]

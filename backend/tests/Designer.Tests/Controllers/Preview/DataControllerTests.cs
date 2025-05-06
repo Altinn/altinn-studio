@@ -16,7 +16,7 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Post_ReturnsCreated()
     {
-        Instance instance = await createInstance();
+        Instance instance = await CreateInstance();
         string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
@@ -32,8 +32,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Get_ReturnsOk()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement = await CreateDataElement(instance, "datamodel");
 
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
         using HttpRequestMessage httpRequestMessageGet = new(HttpMethod.Get, dataPath);
@@ -47,8 +47,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Patch_ReturnsOk()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement = await CreateDataElement(instance, "datamodel");
 
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
         using HttpRequestMessage httpRequestMessagePatch = new(HttpMethod.Patch, dataPath);
@@ -66,9 +66,9 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task PatchMultiple_ReturnsOk()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement1 = await createDataElement(instance, "datamodel");
-        DataElement dataElement2 = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement1 = await CreateDataElement(instance, "datamodel");
+        DataElement dataElement2 = await CreateDataElement(instance, "datamodel");
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data";
         using HttpRequestMessage httpRequestMessagePatchMultiple = new(HttpMethod.Patch, dataPath);
 
@@ -89,8 +89,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Delete_ReturnsOk()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement = await CreateDataElement(instance, "datamodel");
 
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
         using HttpRequestMessage httpRequestMessageDelete = new(HttpMethod.Delete, dataPath);
@@ -101,8 +101,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Validate_ReturnsOk()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement = await CreateDataElement(instance, "datamodel");
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}/validate";
         using HttpRequestMessage httpRequestMessageValidate = new(HttpMethod.Get, dataPath);
         using HttpResponseMessage responseValidate = await HttpClient.SendAsync(httpRequestMessageValidate);
@@ -112,8 +112,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
     [Fact]
     public async Task Tag_ReturnsCreateOkd()
     {
-        Instance instance = await createInstance();
-        DataElement dataElement = await createDataElement(instance, "datamodel");
+        Instance instance = await CreateInstance();
+        DataElement dataElement = await CreateDataElement(instance, "datamodel");
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}/tags";
         using HttpRequestMessage httpRequestMessageTag = new(HttpMethod.Post, dataPath);
         httpRequestMessageTag.Content = new StringContent("\"test\"", System.Text.Encoding.UTF8, "application/json");

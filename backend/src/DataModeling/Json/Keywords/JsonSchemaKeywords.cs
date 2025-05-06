@@ -12,21 +12,21 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     /// </summary>
     public static class JsonSchemaKeywords
     {
-        private static readonly object Lock = new object();
+        private static readonly object s_lock = new object();
 
-        private static volatile bool _keywordsRegistered;
+        private static volatile bool s_keywordsRegistered;
 
         /// <summary>
-        /// Register custom keywords in 
+        /// Register custom keywords in
         /// </summary>
         public static void RegisterXsdKeywords()
         {
             // Basic double checked locking pattern
-            if (!_keywordsRegistered)
+            if (!s_keywordsRegistered)
             {
-                lock (Lock)
+                lock (s_lock)
                 {
-                    if (!_keywordsRegistered)
+                    if (!s_keywordsRegistered)
                     {
                         IEnumerable<Type> keywordTypes = typeof(JsonSchemaKeywords)
                            .Assembly
@@ -45,7 +45,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                                .Invoke(null, Array.Empty<object>());
                         }
 
-                        _keywordsRegistered = true;
+                        s_keywordsRegistered = true;
                     }
                 }
             }
