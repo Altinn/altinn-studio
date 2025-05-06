@@ -1,4 +1,4 @@
-name: Build and deploy Studio Components with preview
+name: Build and deploy Studio Components Legacy with preview
 
 on:
   push:
