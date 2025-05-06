@@ -143,18 +143,19 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.NotNull(response.Headers.GetValues("Reason"));
+        string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
+        Assert.Equal($"{orgName} is not a valid organisation", reasonHeader);
 
         _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
     }
 
     [Fact]
-    public async Task GetOrgContentReferences_WhenContentRepoDoesNotExist_ShouldReturnNoContent()
+    public async Task GetOrgContentReferences_WhenContentRepoDoesNotExist_ShouldReturnNoContentWithHeaderMessage()
     {
         // Arrange
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
 
-        const string orgName = "org-without-repos";
+        const string orgName = "orgWithoutRepositories";
         string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
         using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
@@ -163,7 +164,8 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.NotNull(response.Headers.GetValues("Reason"));
+        string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
+        Assert.Equal($"{orgName}-content repo does not exist", reasonHeader);
 
         _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
     }
