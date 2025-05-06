@@ -28,22 +28,22 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommit" /> class.
         /// </summary>
-        /// <param name="Author">Author.</param>
-        /// <param name="Committer">Committer.</param>
-        /// <param name="Id">sha1 hash of the commit.</param>
-        /// <param name="Message">Message.</param>
-        /// <param name="Timestamp">Timestamp.</param>
-        /// <param name="Url">Url.</param>
-        /// <param name="Verification">Verification.</param>
-        public PayloadCommit(PayloadUser Author = default(PayloadUser), PayloadUser Committer = default(PayloadUser), string Id = default(string), string Message = default(string), string Timestamp = default(string), string Url = default(string), PayloadCommitVerification Verification = default(PayloadCommitVerification))
+        /// <param name="author">Author.</param>
+        /// <param name="committer">Committer.</param>
+        /// <param name="id">sha1 hash of the commit.</param>
+        /// <param name="message">Message.</param>
+        /// <param name="timestamp">Timestamp.</param>
+        /// <param name="url">Url.</param>
+        /// <param name="verification">Verification.</param>
+        public PayloadCommit(PayloadUser author = default(PayloadUser), PayloadUser committer = default(PayloadUser), string id = default(string), string message = default(string), string timestamp = default(string), string url = default(string), PayloadCommitVerification verification = default(PayloadCommitVerification))
         {
-            this.Author = Author;
-            this.Committer = Committer;
-            this.Id = Id;
-            this.Message = Message;
-            this.Timestamp = Timestamp;
-            this.Url = Url;
-            this.Verification = Verification;
+            this.Author = author;
+            this.Committer = committer;
+            this.Id = id;
+            this.Message = message;
+            this.Timestamp = timestamp;
+            this.Url = url;
+            this.Verification = verification;
         }
 
         /// <summary>

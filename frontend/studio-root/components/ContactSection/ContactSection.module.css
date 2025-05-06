@@ -1,5 +1,5 @@
 .section {
-  background-color: var(--colors-grey-100);
+  background-color: var(--fds-colors-grey-100);
   border-radius: 4px;
   display: flex;
   gap: var(--fds-spacing-6);
@@ -10,7 +10,7 @@
 .iconContainer {
   background-color: var(--primary-color-700);
   border-radius: 100%;
-  color: var(--colors-white);
+  color: var(--fds-colors-white);
   display: flex;
   align-items: center;
   justify-content: center;
