@@ -54,7 +54,7 @@ export type StudioCodeListEditorProps = {
   onInvalid?: () => void;
   onUpdateCodeList?: (codeList: CodeList) => void;
   onUpdateTextResource?: (textResource: TextResource) => void;
-  textResources?: TextResource[];
+  textResources: TextResource[];
   texts: CodeListEditorTexts;
 };
 
@@ -83,7 +83,7 @@ function StatefulCodeListEditor({
 }: StatefulCodeListEditorProps): ReactElement {
   const initialState: ReducerState = {
     codeList: givenCodeList,
-    textResources: givenTextResources ?? [],
+    textResources: givenTextResources,
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -97,7 +97,7 @@ function StatefulCodeListEditor({
   useEffect(() => {
     dispatch({
       type: ReducerActionType.SetTextResources,
-      textResources: givenTextResources ?? [],
+      textResources: givenTextResources,
     });
   }, [givenTextResources]);
 

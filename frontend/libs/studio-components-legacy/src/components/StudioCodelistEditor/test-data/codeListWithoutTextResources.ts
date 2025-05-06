@@ -2,23 +2,17 @@ import type { CodeList } from '../types/CodeList';
 import type { CodeListItem } from '../types/CodeListItem';
 
 const item1: CodeListItem = {
-  description: 'Test 1 description',
-  helpText: 'Test 1 help text',
-  label: 'Test 1',
+  label: '',
   value: 'test1',
 };
 
 const item2: CodeListItem = {
-  description: 'Test 2 description',
-  helpText: 'Test 2 help text',
-  label: 'Test 2',
+  label: '',
   value: 'test2',
 };
 
 const item3: CodeListItem = {
-  description: 'Test 3 description',
-  helpText: 'Test 3 help text',
-  label: 'Test 3',
+  label: '',
   value: 'test3',
 };
 
