@@ -138,7 +138,16 @@ export const DesignView = (): ReactNode => {
   const hasGroups = pagesModel?.groups?.length > 0;
 
   const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
-  const handleAddGroup = () => addGroupMutation();
+  const handleAddGroup = () => {
+    addGroupMutation(undefined, {
+      onSuccess: async () => {
+        await updateLayoutsForPreview(selectedFormLayoutSetName);
+      },
+      onError: (error) => {
+        console.error('Failed to add group:', error);
+      },
+    });
+  };
 
   return (
     <div className={classes.root}>
