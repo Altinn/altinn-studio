@@ -166,8 +166,8 @@ public class GetOrgContentReferencesTests
         // Arrange
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(false);
 
-        const string orgName = "invalidOrgName";
-        string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
+        const string OrgName = "invalidOrgName";
+        string apiBaseUrl = new Organisation(OrgName).ApiBaseUrl;
         using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
@@ -176,9 +176,9 @@ public class GetOrgContentReferencesTests
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
-        Assert.Equal($"{orgName} is not a valid organisation", reasonHeader);
+        Assert.Equal($"{OrgName} is not a valid organisation", reasonHeader);
 
-        _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
+        _orgServiceMock.Verify(service => service.IsOrg(OrgName), Times.Once);
     }
 
     [Fact]
@@ -187,8 +187,8 @@ public class GetOrgContentReferencesTests
         // Arrange
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
 
-        const string orgName = "orgWithoutRepositories";
-        string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
+        const string OrgName = "orgWithoutRepositories";
+        string apiBaseUrl = new Organisation(OrgName).ApiBaseUrl;
         using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
@@ -197,7 +197,7 @@ public class GetOrgContentReferencesTests
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
-        Assert.Equal($"{orgName}-content repo does not exist", reasonHeader);
+        Assert.Equal($"{OrgName}-content repo does not exist", reasonHeader);
 
         _orgServiceMock.Verify(service => service.IsOrg(OrgName), Times.Once);
     }
