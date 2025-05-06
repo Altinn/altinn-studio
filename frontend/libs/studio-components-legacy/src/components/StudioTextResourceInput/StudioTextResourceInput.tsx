@@ -27,10 +27,10 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
-  onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
-  onChangeTextResource?: (textResource: TextResource) => void;
-  onCreateTextResource?: (newTextResource: TextResource) => void;
+  onChangeTextResource: (textResource: TextResource) => void;
+  onCreateTextResource: (newTextResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -44,7 +44,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       currentId: givenCurrentId,
       currentIdClass,
       inputClass,
-      onBlurTextResource,
+      onUpdateTextResource,
       onChangeTextResource,
       onChangeCurrentId,
       onCreateTextResource,
@@ -67,17 +67,17 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
 
     const handleCreateTextResource = (textResource: TextResource): void => {
       setCurrentId(textResource.id);
-      onCreateTextResource?.(textResource);
+      onCreateTextResource(textResource);
     };
 
     const handleTextResourceBlur = (textResource: TextResource): void => {
-      onBlurTextResource?.(textResource);
+      onUpdateTextResource(textResource);
     };
 
     const handleTextResourceChange = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
-      onChangeTextResource?.(newTextResource);
+      onChangeTextResource(newTextResource);
     };
 
     const rootClass = cn(givenClass, classes.container);
@@ -88,7 +88,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           currentId={currentId}
           inputClass={inputClass}
           mode={mode}
-          onBlurTextResource={handleTextResourceBlur}
+          onUpdateTextResource={handleTextResourceBlur}
           onChangeCurrentId={handleChangeCurrentId}
           onChangeTextResource={handleTextResourceChange}
           onKeyDown={onKeyDown}
@@ -117,7 +117,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       currentId,
       inputClass,
       mode,
-      onBlurTextResource,
+      onUpdateTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onKeyDown,
@@ -138,7 +138,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
           <ValueField
             className={className}
             label={texts.valueLabel}
-            onBlurTextResource={onBlurTextResource}
+            onBlurTextResource={onUpdateTextResource}
             onChangeTextResource={onChangeTextResource}
             onKeyDown={onKeyDown}
             ref={ref}

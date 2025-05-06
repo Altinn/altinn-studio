@@ -32,6 +32,7 @@ export const textResourceProps = (rowNumber: number): CellTextResourceInputProps
   onChangeCurrentId: jest.fn(),
   onChangeTextResource: jest.fn(),
   onCreateTextResource: jest.fn(),
+  onUpdateTextResource: jest.fn(),
 });
 
 export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => ({

@@ -33,7 +33,7 @@ const onCreateTextResource = jest.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
   texts,
-  onBlurTextResource,
+  onUpdateTextResource: onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
   onCreateTextResource,
