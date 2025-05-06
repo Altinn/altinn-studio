@@ -52,9 +52,9 @@ export const PageGroupAccordion = ({
 
     const handleConfirmDelete = () => {
       if (confirm(t('ux_editor.component_group_navigation_deletion_text'))) {
+        const updatedGroups = groups.filter((g) => g.name !== group.name);
         deletePageGroup({
-          ...group,
-          groups: [],
+          groups: updatedGroups,
         });
       }
     };
