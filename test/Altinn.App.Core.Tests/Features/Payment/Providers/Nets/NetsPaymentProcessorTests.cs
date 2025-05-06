@@ -258,8 +258,8 @@ public class NetsPaymentProcessorTests
             .ReturnsAsync(new HttpApiResult<NetsPaymentFull>());
 
         // Act & Assert
-        await Assert.ThrowsAsync<PaymentException>(
-            () => _processor.GetPaymentStatus(instance, paymentReference, expectedTotalIncVat, null)
+        await Assert.ThrowsAsync<PaymentException>(() =>
+            _processor.GetPaymentStatus(instance, paymentReference, expectedTotalIncVat, null)
         );
     }
 

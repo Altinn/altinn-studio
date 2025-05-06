@@ -211,8 +211,8 @@ public class SigningUserActionTests
         );
 
         // Act
-        await Assert.ThrowsAsync<ApplicationConfigException>(
-            async () => await userAction.HandleAction(userActionContext)
+        await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
+            await userAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }
@@ -242,8 +242,8 @@ public class SigningUserActionTests
         );
 
         // Act
-        await Assert.ThrowsAsync<ApplicationConfigException>(
-            async () => await userAction.HandleAction(userActionContext)
+        await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
+            await userAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }
@@ -274,8 +274,8 @@ public class SigningUserActionTests
         );
 
         // Act
-        await Assert.ThrowsAsync<ApplicationConfigException>(
-            async () => await userAction.HandleAction(userActionContext)
+        await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
+            await userAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }

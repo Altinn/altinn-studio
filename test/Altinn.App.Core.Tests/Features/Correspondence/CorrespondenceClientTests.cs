@@ -258,12 +258,11 @@ public class CorrespondenceClientTests
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
         mockHttpClient
             .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                () =>
-                    throw new CorrespondenceRequestException(
-                        "Yikes",
-                        new CorrespondenceRequestException("Sometimes there's an inner exception")
-                    )
+            .ReturnsAsync(() =>
+                throw new CorrespondenceRequestException(
+                    "Yikes",
+                    new CorrespondenceRequestException("Sometimes there's an inner exception")
+                )
             );
 
         // Act

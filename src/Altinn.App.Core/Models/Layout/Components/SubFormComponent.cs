@@ -50,7 +50,6 @@ public record SubFormComponent : BaseComponent
     // /// </summary>
     // public bool ShowDeleteButton { get; }
 
-
     /// <summary>
     /// Specification for preview of subForms in main form
     /// </summary>

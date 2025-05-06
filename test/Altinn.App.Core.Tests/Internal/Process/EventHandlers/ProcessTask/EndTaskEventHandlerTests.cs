@@ -186,8 +186,8 @@ public class EndTaskEventHandlerTests
         var taskId = "Task_1";
         Mock<IProcessTask> mockProcessTask = new();
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await eteh.Execute(mockProcessTask.Object, taskId, instance)
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await eteh.Execute(mockProcessTask.Object, taskId, instance)
         );
         Assert.Equal("PdfServiceTask not found in serviceTasks", ex.Message);
     }
@@ -204,8 +204,8 @@ public class EndTaskEventHandlerTests
         var taskId = "Task_1";
         Mock<IProcessTask> mockProcessTask = new();
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await eteh.Execute(mockProcessTask.Object, taskId, instance)
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await eteh.Execute(mockProcessTask.Object, taskId, instance)
         );
         Assert.Equal("EformidlingServiceTask not found in serviceTasks", ex.Message);
     }

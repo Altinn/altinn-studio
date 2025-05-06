@@ -110,8 +110,8 @@ public class SignClientTests
             new DataElementSignature(dataElementId)
         );
 
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () => await signClient.SignDataElements(signatureContext)
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await signClient.SignDataElements(signatureContext)
         );
         ex.Should().NotBeNull();
         ex.Response.Should().NotBeNull();

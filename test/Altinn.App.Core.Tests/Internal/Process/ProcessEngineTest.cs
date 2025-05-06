@@ -1172,39 +1172,36 @@ public sealed class ProcessEngineTest
                 );
             processNavigatorMock
                 .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
-                .ReturnsAsync(
-                    () =>
-                        new ProcessTask()
-                        {
-                            Id = "Task_1",
-                            Incoming = new List<string> { "Flow_1" },
-                            Outgoing = new List<string> { "Flow_2" },
-                            Name = "Utfylling",
-                            ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
-                        }
+                .ReturnsAsync(() =>
+                    new ProcessTask()
+                    {
+                        Id = "Task_1",
+                        Incoming = new List<string> { "Flow_1" },
+                        Outgoing = new List<string> { "Flow_2" },
+                        Name = "Utfylling",
+                        ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+                    }
                 );
             processNavigatorMock
                 .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
-                .ReturnsAsync(
-                    () =>
-                        new ProcessTask()
-                        {
-                            Id = "Task_2",
-                            Incoming = new List<string> { "Flow_2" },
-                            Outgoing = new List<string> { "Flow_3" },
-                            Name = "Bekreft",
-                            ExtensionElements = new() { TaskExtension = new() { TaskType = "confirmation" } },
-                        }
+                .ReturnsAsync(() =>
+                    new ProcessTask()
+                    {
+                        Id = "Task_2",
+                        Incoming = new List<string> { "Flow_2" },
+                        Outgoing = new List<string> { "Flow_3" },
+                        Name = "Bekreft",
+                        ExtensionElements = new() { TaskExtension = new() { TaskType = "confirmation" } },
+                    }
                 );
             processNavigatorMock
                 .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
-                .ReturnsAsync(
-                    () =>
-                        new EndEvent()
-                        {
-                            Id = "EndEvent_1",
-                            Incoming = new List<string> { "Flow_3" },
-                        }
+                .ReturnsAsync(() =>
+                    new EndEvent()
+                    {
+                        Id = "EndEvent_1",
+                        Incoming = new List<string> { "Flow_3" },
+                    }
                 );
             if (updatedInstance is not null)
             {

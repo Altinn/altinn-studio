@@ -173,8 +173,7 @@ public class PaymentServiceTests
         fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(
-            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -204,8 +203,7 @@ public class PaymentServiceTests
             .ThrowsAsync(new Exception());
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(
-            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -241,8 +239,7 @@ public class PaymentServiceTests
             .ReturnsAsync(paymentDetails);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(
-            () => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -309,8 +306,8 @@ public class PaymentServiceTests
             .ThrowsAsync(new PaymentException("Some exception"));
 
         // Act & Assert
-        await Assert.ThrowsAsync<PaymentException>(
-            () => fixture.Service.CheckAndStorePaymentStatus(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<PaymentException>(() =>
+            fixture.Service.CheckAndStorePaymentStatus(instance, paymentConfiguration, language)
         );
     }
 
@@ -473,8 +470,8 @@ public class PaymentServiceTests
             .Setup(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()))
             .ReturnsAsync(false);
 
-        await Assert.ThrowsAsync<PaymentException>(
-            async () => await fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<PaymentException>(async () =>
+            await fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
 
         // Act & Assert

@@ -222,15 +222,14 @@ public class ValidationControllerValidateDataTests
         }
         else
         {
-            var exception = await Assert.ThrowsAsync<ValidationException>(
-                () =>
-                    validateController.ValidateData(
-                        Org,
-                        App,
-                        InstanceOwnerId,
-                        testScenario.InstanceId,
-                        testScenario.DataGuid
-                    )
+            var exception = await Assert.ThrowsAsync<ValidationException>(() =>
+                validateController.ValidateData(
+                    Org,
+                    App,
+                    InstanceOwnerId,
+                    testScenario.InstanceId,
+                    testScenario.DataGuid
+                )
             );
             Assert.Equal(testScenario.ExpectedExceptionMessage, exception.Message);
         }

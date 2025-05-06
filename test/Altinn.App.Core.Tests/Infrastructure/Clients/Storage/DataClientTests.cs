@@ -199,9 +199,8 @@ public class DataClientTests
         var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is not a pdf, but no one here will care."));
 
         // Act
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await target.InsertBinaryData("instanceId", "catstories", "application/pdf", "a cats story.pdf", stream)
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await target.InsertBinaryData("instanceId", "catstories", "application/pdf", "a cats story.pdf", stream)
         );
 
         // Assert
@@ -268,15 +267,14 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
             }
         );
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.UpdateBinaryData(
-                    instanceIdentifier,
-                    "application/json",
-                    "test.json",
-                    dataGuid,
-                    new MemoryStream()
-                )
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.UpdateBinaryData(
+                instanceIdentifier,
+                "application/json",
+                "test.json",
+                dataGuid,
+                new MemoryStream()
+            )
         );
         invocations.Should().Be(1);
         actual.Should().NotBeNull();
@@ -298,15 +296,14 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.Conflict };
             }
         );
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.UpdateBinaryData(
-                    instanceIdentifier,
-                    "application/json",
-                    "test.json",
-                    dataGuid,
-                    new MemoryStream()
-                )
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.UpdateBinaryData(
+                instanceIdentifier,
+                "application/json",
+                "test.json",
+                dataGuid,
+                new MemoryStream()
+            )
         );
         invocations.Should().Be(1);
         actual.Should().NotBeNull();
@@ -398,15 +395,14 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
             }
         );
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.GetBinaryData(
-                    "ttd",
-                    "app",
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    dataGuid
-                )
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.GetBinaryData(
+                "ttd",
+                "app",
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid
+            )
         );
         invocations.Should().Be(1);
         actual.Should().NotBeNull();
@@ -492,14 +488,13 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
             }
         );
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.GetBinaryDataList(
-                    "ttd",
-                    "app",
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid
-                )
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.GetBinaryDataList(
+                "ttd",
+                "app",
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid
+            )
         );
         invocations.Should().Be(1);
         actual.Should().NotBeNull();
@@ -561,15 +556,14 @@ public class DataClientTests
             $"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}?delay=False",
             UriKind.RelativeOrAbsolute
         );
-        var actual = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.DeleteBinaryData(
-                    "ttd",
-                    "app",
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    dataGuid
-                )
+        var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.DeleteBinaryData(
+                "ttd",
+                "app",
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                dataGuid
+            )
         );
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
@@ -666,17 +660,16 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.OK };
             }
         );
-        await Assert.ThrowsAsync<TargetInvocationException>(
-            async () =>
-                await dataClient.UpdateData(
-                    exampleModel,
-                    instanceIdentifier.InstanceGuid,
-                    typeof(DataElement),
-                    "ttd",
-                    "app",
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    dataGuid
-                )
+        await Assert.ThrowsAsync<TargetInvocationException>(async () =>
+            await dataClient.UpdateData(
+                exampleModel,
+                instanceIdentifier.InstanceGuid,
+                typeof(DataElement),
+                "ttd",
+                "app",
+                instanceIdentifier.InstanceOwnerPartyId,
+                dataGuid
+            )
         );
         invocations.Should().Be(0);
     }
@@ -702,17 +695,16 @@ public class DataClientTests
             $"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}",
             UriKind.RelativeOrAbsolute
         );
-        var result = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () =>
-                await dataClient.UpdateData(
-                    exampleModel,
-                    instanceIdentifier.InstanceGuid,
-                    typeof(ExampleModel),
-                    "ttd",
-                    "app",
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    dataGuid
-                )
+        var result = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.UpdateData(
+                exampleModel,
+                instanceIdentifier.InstanceGuid,
+                typeof(ExampleModel),
+                "ttd",
+                "app",
+                instanceIdentifier.InstanceOwnerPartyId,
+                dataGuid
+            )
         );
         invocations.Should().Be(1);
         platformRequest?.Should().NotBeNull();
@@ -772,8 +764,8 @@ public class DataClientTests
             $"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock",
             UriKind.RelativeOrAbsolute
         );
-        var result = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () => await dataClient.LockDataElement(instanceIdentifier, dataGuid)
+        var result = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.LockDataElement(instanceIdentifier, dataGuid)
         );
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put);
@@ -832,8 +824,8 @@ public class DataClientTests
             $"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock",
             UriKind.RelativeOrAbsolute
         );
-        var result = await Assert.ThrowsAsync<PlatformHttpException>(
-            async () => await dataClient.UnlockDataElement(instanceIdentifier, dataGuid)
+        var result = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+            await dataClient.UnlockDataElement(instanceIdentifier, dataGuid)
         );
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);

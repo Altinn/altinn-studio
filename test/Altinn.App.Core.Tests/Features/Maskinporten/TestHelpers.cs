@@ -32,13 +32,12 @@ internal static class TestHelpers
                 ItExpr.Is(_isTokenRequest),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(
-                () =>
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
-                    }
+            .ReturnsAsync(() =>
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                }
             );
 
         altinnAccessToken ??= TestAuthentication.GetServiceOwnerToken("405003309", org: "ttd");
@@ -48,13 +47,12 @@ internal static class TestHelpers
                 ItExpr.Is(_isExchangeRequest),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(
-                () =>
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(altinnAccessToken),
-                    }
+            .ReturnsAsync(() =>
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(altinnAccessToken),
+                }
             );
 
         return handlerMock;

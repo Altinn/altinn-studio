@@ -106,9 +106,8 @@ public class ExternalApiServiceTests
         var externalApiService = new ExternalApiService(_loggerMock.Object, _serviceProviderMock.Object);
 
         // Assert
-        await Assert.ThrowsAsync<HttpRequestException>(
-            async () =>
-                await externalApiService.GetExternalApiData(externalApiId, _instanceIdentifierMock.Object, queryParams)
+        await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await externalApiService.GetExternalApiData(externalApiId, _instanceIdentifierMock.Object, queryParams)
         );
     }
 }

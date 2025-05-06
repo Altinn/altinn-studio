@@ -92,8 +92,8 @@ public class ProcessNavigatorTests
         var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
         using var fixture = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
         var (_, processNavigator) = fixture;
-        await Assert.ThrowsAsync<ProcessException>(
-            async () => await processNavigator.GetNextTask(instance, "Task_Sign1", "sign")
+        await Assert.ThrowsAsync<ProcessException>(async () =>
+            await processNavigator.GetNextTask(instance, "Task_Sign1", "sign")
         );
     }
 
@@ -205,8 +205,8 @@ public class ProcessNavigatorTests
         var (_, processNavigator) = fixture;
         Instance i = new Instance() { DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } } };
 
-        var result = await Assert.ThrowsAsync<ProcessException>(
-            async () => await processNavigator.GetNextTask(i, "Task1", null)
+        var result = await Assert.ThrowsAsync<ProcessException>(async () =>
+            await processNavigator.GetNextTask(i, "Task1", null)
         );
         result
             .Message.Should()

@@ -75,7 +75,6 @@ public class ValidateControllerTests
     {
         // Arrange
 
-
         Instance instance = new Instance { Id = "instanceId", Process = null };
 
         _instanceMock
@@ -87,8 +86,8 @@ public class ValidateControllerTests
         var validateController = sp.GetRequiredService<ValidateController>();
 
         // Assert
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
+        var exception = await Assert.ThrowsAsync<ValidationException>(() =>
+            validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
         );
         Assert.Equal("Unable to validate instance without a started process.", exception.Message);
     }
@@ -112,8 +111,8 @@ public class ValidateControllerTests
         var validateController = sp.GetRequiredService<ValidateController>();
 
         // Assert
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
+        var exception = await Assert.ThrowsAsync<ValidationException>(() =>
+            validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
         );
         Assert.Equal("Unable to validate instance without a started process.", exception.Message);
     }
@@ -225,8 +224,8 @@ public class ValidateControllerTests
         var validateController = sp.GetRequiredService<ValidateController>();
 
         // Assert
-        var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(
-            () => validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
+        var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
         );
         Assert.Equal(exception, thrownException);
     }

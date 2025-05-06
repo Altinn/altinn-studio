@@ -36,7 +36,7 @@ public static class FakeLoggerXunit
         return $"""
             [{ShortLogLevel(log.Level)}] {log.Category}:
             {log.Message}{(log.Exception is not null ? "\n" : "")}{log.Exception}
-            
+
             """;
     }
 
