@@ -95,12 +95,7 @@
         "children": [
           "RepeatingGroup-Group"
         ], 
-        "addButtonSettings" : {
-          "size": "lg",
-          "textAlign" : "left",
-          "fullWidth": false,
-          "position": "center"
-        }
+       
       },
       {
         "id": "RepeatingGroup-With-Group-Input-Name",
@@ -149,12 +144,6 @@
       {
         "id": "RepeatingGroup-With-RepeatingGroup",
         "type": "RepeatingGroup",
-        "addButtonSettings" : {
-          "size": "sm",
-          "textAlign" : "left",
-          "fullWidth": false,
-          "position": "right"
-        },
         "textResourceBindings": {
           "title": "Nøstet Repeterende Gruppe",
           "description": "Beskrivelse av repeterende gruppe"
@@ -214,13 +203,7 @@
           "NestedRepeatingGroup-Input-CarBrand",
           "RepeatingGroup-With-RepeatingGroup-Input-Model",
           "RepeatingGroup-With-RepeatingGroup-Input-ModelYear"
-        ],
-        "addButtonSettings" : {
-          "size": "sm",
-          "textAlign" : "left",
-          "fullWidth": false,
-          "position": "center"
-        }
+        ]
       },
       {
         "id": "NestedRepeatingGroup-Input-CarBrand",
