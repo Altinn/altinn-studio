@@ -6,6 +6,7 @@ import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
@@ -14,7 +15,7 @@ export type CodeListsActionsBarProps = {
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
-  externalResourceIds?: string[];
+  externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
@@ -25,7 +26,7 @@ export function CodeListsActionsBar({
   codeListNames,
   onSetSearchString,
   textResources,
-  externalResourceIds,
+  externalResources,
   onImportCodeListFromOrg,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ export function CodeListsActionsBar({
         onCreateCodeList={onCreateCodeList}
         onUploadCodeList={onUploadCodeList}
         textResources={textResources}
-        externalResourceIds={externalResourceIds}
+        externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
     </div>
