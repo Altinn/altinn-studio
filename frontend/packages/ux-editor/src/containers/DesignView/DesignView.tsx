@@ -162,14 +162,16 @@ export const DesignView = (): ReactNode => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        <StudioButton
-          icon={<PlusIcon aria-hidden />}
-          onClick={() => handleAddPage()}
-          className={classes.button}
-          disabled={isAddPageMutationPending}
-        >
-          {t('ux_editor.pages_add')}
-        </StudioButton>
+        {!isTaskNavigationPageGroups && !hasGroups && (
+          <StudioButton
+            icon={<PlusIcon aria-hidden />}
+            onClick={() => handleAddPage()}
+            className={classes.button}
+            disabled={isAddPageMutationPending}
+          >
+            {t('ux_editor.pages_add')}
+          </StudioButton>
+        )}
         {isTaskNavigationPageGroups && (
           <StudioButton
             icon={<PlusIcon aria-hidden />}
