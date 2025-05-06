@@ -54,6 +54,8 @@ import {
   layoutPagesPath,
   orgTextResourcesPath,
   importCodeListFromOrgPath,
+  layoutConvertToPageGroupsPath,
+  layoutConvertToPageOrderPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -148,6 +150,8 @@ export const createPage = (org: string, app: string, layoutSetName: string, payl
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
 export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
 export const changePageOrder = (org: string, app: string, layoutSetName: string, pages: PagesModel) => put(layoutPagesPath(org, app, layoutSetName), pages);
+export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
+export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
