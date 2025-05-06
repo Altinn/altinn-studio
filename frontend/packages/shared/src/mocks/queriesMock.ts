@@ -123,8 +123,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
-  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
+  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
+  getOrgTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -281,6 +282,8 @@ export const queriesMock: ServicesContextProps = {
   createPage: jest.fn().mockImplementation(() => Promise.resolve()),
   changePageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
   changePageGroups: jest.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageGroups: jest.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),

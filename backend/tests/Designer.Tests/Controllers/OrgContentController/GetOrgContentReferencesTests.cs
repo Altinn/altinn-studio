@@ -14,11 +14,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgContentController;
 
-public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgContentReferencesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOrgContentReferencesTests
+    : DesignerEndpointsTestsBase<GetOrgContentReferencesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IOrgService> _orgServiceMock;
 
-    public GetOrgContentReferencesTests(WebApplicationFactory<Program> factory) : base(factory)
+    public GetOrgContentReferencesTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _orgServiceMock = new Mock<IOrgService>();
     }
@@ -43,12 +46,17 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
+            List<LibraryContentReference>
+        >();
         Assert.Equal(8, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.CodeList);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.TextResource);
-        Assert.All(contentList, contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source));
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source)
+        );
 
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
@@ -61,19 +69,27 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
-        const LibraryContentType resourceType = LibraryContentType.CodeList;
-        string apiUrlWithCodeListParameter = $"{apiBaseUrl}?contentType={resourceType}";
+        const LibraryContentType ResourceType = LibraryContentType.CodeList;
+        string apiUrlWithCodeListParameter = $"{apiBaseUrl}?contentType={ResourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithCodeListParameter);
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
+            List<LibraryContentReference>
+        >();
         Assert.Equal(6, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.CodeList, contentItem.Type));
-        Assert.All(contentList, contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source));
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal(LibraryContentType.CodeList, contentItem.Type)
+        );
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source)
+        );
 
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
@@ -86,19 +102,27 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
-        const LibraryContentType resourceType = LibraryContentType.TextResource;
-        string apiUrlWithTextResourceParameter = $"{apiBaseUrl}?contentType={resourceType}";
+        const LibraryContentType ResourceType = LibraryContentType.TextResource;
+        string apiUrlWithTextResourceParameter = $"{apiBaseUrl}?contentType={ResourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
+            List<LibraryContentReference>
+        >();
         Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type));
-        Assert.All(contentList, contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source));
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type)
+        );
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source)
+        );
 
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
@@ -111,19 +135,27 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
-        const string resourceType = "textRESOURCE";
-        string apiUrlWithTextResourceParameter = $"{apiBaseUrl}?contentType={resourceType}";
+        const string ResourceType = "textRESOURCE";
+        string apiUrlWithTextResourceParameter = $"{apiBaseUrl}?contentType={ResourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextResourceParameter);
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
-        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
+            List<LibraryContentReference>
+        >();
         Assert.Equal(2, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.All(contentList, contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type));
-        Assert.All(contentList, contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source));
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal(LibraryContentType.TextResource, contentItem.Type)
+        );
+        Assert.All(
+            contentList,
+            contentItem => Assert.Equal($"org.{orgAndRepoName.Org.Name}", contentItem.Source)
+        );
 
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
@@ -134,20 +166,40 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         // Arrange
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(false);
 
-        const string orgName = "invalidOrgName";
-        string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
-        const LibraryContentType resourceType = LibraryContentType.CodeList;
-        string apiUrlWithTextInvalidOrg = $"{apiBaseUrl}?contentType={resourceType}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextInvalidOrg);
+        const string OrgName = "invalidOrgName";
+        string apiBaseUrl = new Organisation(OrgName).ApiBaseUrl;
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.NotNull(response.Headers.GetValues("Reason"));
+        string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
+        Assert.Equal($"{OrgName} is not a valid organisation", reasonHeader);
 
-        _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
+        _orgServiceMock.Verify(service => service.IsOrg(OrgName), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrgContentReferences_WhenContentRepoDoesNotExist_ShouldReturnNoContentWithHeaderMessage()
+    {
+        // Arrange
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+
+        const string OrgName = "orgWithoutRepositories";
+        string apiBaseUrl = new Organisation(OrgName).ApiBaseUrl;
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        string reasonHeader = Assert.Single(response.Headers.GetValues("Reason"));
+        Assert.Equal($"{OrgName}-content repo does not exist", reasonHeader);
+
+        _orgServiceMock.Verify(service => service.IsOrg(OrgName), Times.Once);
     }
 
     [Fact]
@@ -158,8 +210,8 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
-        const string invalidResourceType = "invalidResourceType";
-        string apiUrlWithInvalidResourceType = $"{apiBaseUrl}?contentType={invalidResourceType}";
+        const string InvalidResourceType = "invalidResourceType";
+        string apiUrlWithInvalidResourceType = $"{apiBaseUrl}?contentType={InvalidResourceType}";
         using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithInvalidResourceType);
 
         // Act
@@ -187,13 +239,13 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
     private async Task CreateTestRepository(OrgAndRepoName orgAndRepoName)
     {
-        const string username = "testUser";
-        const string orgName = "ttd";
-        const string repoName = "org-content";
+        const string Username = "testUser";
+        const string OrgName = "ttd";
+        const string RepoName = "org-content";
         await CopyOrgRepositoryForTest(
-            username,
-            orgName,
-            repoName,
+            Username,
+            OrgName,
+            RepoName,
             orgAndRepoName.Org.Name,
             orgAndRepoName.RepoName
         );

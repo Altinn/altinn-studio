@@ -5,9 +5,9 @@ namespace Altinn.Studio.DataModeling.Json.Formats
     /// </summary>
     public static class JsonSchemaFormats
     {
-        private static readonly object Lock = new object();
+        private static readonly object s_lock = new object();
 
-        private static volatile bool _formatsRegistered;
+        private static volatile bool s_formatsRegistered;
 
         /// <summary>
         /// Register all custom format keywords.
@@ -15,16 +15,16 @@ namespace Altinn.Studio.DataModeling.Json.Formats
         public static void RegisterFormats()
         {
             // Basic double checked locking pattern
-            if (!_formatsRegistered)
+            if (!s_formatsRegistered)
             {
-                lock (Lock)
+                lock (s_lock)
                 {
-                    if (!_formatsRegistered)
+                    if (!s_formatsRegistered)
                     {
                         global::Json.Schema.Formats.Register(CustomFormats.Year);
                         global::Json.Schema.Formats.Register(CustomFormats.YearMonth);
 
-                        _formatsRegistered = true;
+                        s_formatsRegistered = true;
                     }
                 }
             }
