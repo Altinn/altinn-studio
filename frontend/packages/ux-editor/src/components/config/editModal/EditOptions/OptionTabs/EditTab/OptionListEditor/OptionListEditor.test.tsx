@@ -12,6 +12,9 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
+import type { ITextResources } from 'app-shared/types/global';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 
@@ -31,6 +34,9 @@ const optionList: OptionList = [
 const app = 'app';
 const org = 'org';
 const appRouteParams: AppRouteParams = { org, app };
+const textResources: ITextResources = {
+  [DEFAULT_LANGUAGE]: textResourcesMock.resources,
+};
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -131,8 +137,14 @@ function renderOptionListEditorWithData({
 }
 
 function createQueryClientWithData(): QueryClient {
-  const queryClient = createQueryClientMock();
+  const queryClient = createQueryClientWithTextResources();
   queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
+  return queryClient;
+}
+
+function createQueryClientWithTextResources(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }
 
@@ -145,7 +157,7 @@ type RenderOptionListEditorArgs = {
 function renderOptionListEditor({
   queries = {},
   props = {},
-  queryClient = createQueryClientMock(),
+  queryClient = createQueryClientWithTextResources(),
 }: RenderOptionListEditorArgs = {}): void {
   renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries,
