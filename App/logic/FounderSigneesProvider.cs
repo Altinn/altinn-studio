@@ -29,7 +29,7 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
                     [stifterPerson.Fornavn, stifterPerson.Mellomnavn, stifterPerson.Etternavn]
                 ),
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
-                ContactDetails = new ContactDetails
+                CommunicationConfig = new CommunicationConfig
                 {
                     InboxMessage = new InboxMessage
                     {
@@ -64,7 +64,7 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
                 Name = stifterVirksomhet.Navn,
                 OrganizationNumber =
                     stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
-                ContactDetails = new ContactDetails
+                CommunicationConfig = new CommunicationConfig
                 {
                     InboxMessage = new InboxMessage
                     {

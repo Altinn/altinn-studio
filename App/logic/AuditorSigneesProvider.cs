@@ -28,7 +28,7 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
         {
             Name = revisor.Navn,
             OrganizationNumber = revisor.Organisasjonsnummer,
-            ContactDetails = new ContactDetails
+            CommunicationConfig = new CommunicationConfig
             {
                 InboxMessage = new InboxMessage
                 {
