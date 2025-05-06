@@ -25,10 +25,7 @@ export const SettingsModalButton = (): ReactElement => {
 
   const isSettingsPage: boolean =
     currentRoutePath === RoutePaths.AppSettings && shouldDisplayFeature(FeatureFlag.SettingsPage);
-
-  const buttonText: string = isSettingsPage
-    ? t('sync_header.settings_go_back')
-    : t('sync_header.settings');
+  const buttonText: string = t(getButtonTextKey(isSettingsPage));
 
   const handleClick = () => {
     if (isSettingsPage) {
@@ -55,7 +52,7 @@ export const SettingsModalButton = (): ReactElement => {
       <StudioPageHeader.HeaderButton
         color='light'
         onClick={handleClick}
-        icon={isSettingsPage ? <ArrowLeftIcon /> : <CogIcon />}
+        icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
         variant={variant}
         aria-label={buttonText}
       >
@@ -65,3 +62,14 @@ export const SettingsModalButton = (): ReactElement => {
     </>
   );
 };
+
+function getButtonTextKey(isSettingsPage: boolean): string {
+  return isSettingsPage ? 'sync_header.settings_go_back' : 'sync_header.settings';
+}
+
+type ButtonIconProps = {
+  isSettingsPage: boolean;
+};
+function ButtonIcon({ isSettingsPage }: ButtonIconProps): ReactElement {
+  return isSettingsPage ? <ArrowLeftIcon /> : <CogIcon />;
+}

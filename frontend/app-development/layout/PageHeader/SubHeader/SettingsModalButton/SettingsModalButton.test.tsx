@@ -29,8 +29,6 @@ jest.mock('react-router-dom', () => ({
   })),
 }));
 
-const mockNavigate = jest.fn();
-
 describe('SettingsModal', () => {
   const user = userEvent.setup();
   afterEach(() => {
@@ -110,6 +108,7 @@ describe('SettingsModal', () => {
   });
 
   it('renders back icon and button text when on settings page and feature is enabled', () => {
+    const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     (useLocation as jest.Mock).mockReturnValue({
       pathname: `/org/app/${RoutePaths.AppSettings}`,
@@ -126,6 +125,7 @@ describe('SettingsModal', () => {
   });
 
   it('navigates to settings page when clicking the settings button', async () => {
+    const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     (useLocation as jest.Mock).mockReturnValue({
       pathname: `/org/app/${RoutePaths.UIEditor}`,
@@ -145,6 +145,7 @@ describe('SettingsModal', () => {
   });
 
   it('navigates back from the settings page when clicking the go back button', async () => {
+    const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     (useLocation as jest.Mock).mockReturnValue({
       pathname: `/org/app/${RoutePaths.AppSettings}`,
@@ -164,6 +165,7 @@ describe('SettingsModal', () => {
   });
 
   it('navigates to "overview" page when clicking go back and on settings page and from is null', async () => {
+    const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     (useLocation as jest.Mock).mockReturnValue({
       pathname: `/org/app/${RoutePaths.AppSettings}`,
