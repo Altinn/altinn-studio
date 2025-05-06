@@ -36,7 +36,11 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -70,7 +74,11 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
     internal class XsdMinOccursKeywordJsonConverter : JsonConverter<XsdMinOccursKeyword>
     {
         /// <inheritdoc/>
-        public override XsdMinOccursKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdMinOccursKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.Number)
             {
@@ -81,7 +89,11 @@ public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinO
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdMinOccursKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdMinOccursKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteNumber(Name, value.Value);
         }

@@ -6,7 +6,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKeywordTests, XsdTotalDigitsKeyword, uint>
+public class XsdTotalDigitsKeywordTests
+    : ValueKeywordTestsBase<XsdTotalDigitsKeywordTests, XsdTotalDigitsKeyword, uint>
 {
     private const string KeywordPlaceholder = "totalDigits";
 
@@ -29,7 +30,8 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
         var expectedKeyword = new XsdTotalDigitsKeyword(value);
         object expectedKeywordObject = new XsdTotalDigitsKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);
@@ -51,15 +53,23 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
     [InlineData(2, "2.234", false)]
     [InlineData(4, "2.234", true)]
     [InlineData(4, "2.12", true)]
-    public void Keyword_ShouldValidate(uint totalDigitsValue, string jsonDataValue, bool shouldBeValid)
+    public void Keyword_ShouldValidate(
+        uint totalDigitsValue,
+        string jsonDataValue,
+        bool shouldBeValid
+    )
     {
         var schema = JsonSchema.FromText(TotalDigitsSchema(totalDigitsValue));
         var node = JsonNode.Parse(TotalDigitsJson(jsonDataValue));
-        var validationResults = schema.Evaluate(node, new EvaluationOptions() { ProcessCustomKeywords = true });
+        var validationResults = schema.Evaluate(
+            node,
+            new EvaluationOptions() { ProcessCustomKeywords = true }
+        );
         Assert.Equal(shouldBeValid, validationResults.IsValid);
     }
 
-    private static string TotalDigitsSchema(uint value) => @$"
+    private static string TotalDigitsSchema(uint value) =>
+        @$"
                 {{
                   ""$id"": ""totaldigits.schema.json"",
                   ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
@@ -74,7 +84,8 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
                 }}
             ";
 
-    private static string TotalDigitsJson(string value) => @$"{{
+    private static string TotalDigitsJson(string value) =>
+        @$"{{
                 ""digitsExample"": {value}
         }}";
 }

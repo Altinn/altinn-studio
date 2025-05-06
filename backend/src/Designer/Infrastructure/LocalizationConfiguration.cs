@@ -18,21 +18,23 @@ namespace Altinn.Studio.Designer.Infrastructure
         public static IServiceCollection ConfigureLocalization(this IServiceCollection services)
         {
             services.AddLocalization();
-            services.Configure<RequestLocalizationOptions>(
-                options =>
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                List<CultureInfo> supportedCultures = new List<CultureInfo>
                 {
-                    List<CultureInfo> supportedCultures = new List<CultureInfo>
-                        {
-                            // The current supported languages. Can easily be added more.
-                            new CultureInfo("en-US"),
-                            new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO"),
-                        };
+                    // The current supported languages. Can easily be added more.
+                    new CultureInfo("en-US"),
+                    new CultureInfo("nb-NO"),
+                    new CultureInfo("nn-NO"),
+                };
 
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
-                    options.SupportedCultures = supportedCultures;
-                    options.SupportedUICultures = supportedCultures;
-                });
+                options.DefaultRequestCulture = new RequestCulture(
+                    culture: "nb-NO",
+                    uiCulture: "nb-NO"
+                );
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
 
             return services;
         }

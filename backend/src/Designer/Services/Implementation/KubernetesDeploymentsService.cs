@@ -22,7 +22,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public KubernetesDeploymentsService(
             IEnvironmentsService environmentsService,
             IKubernetesWrapperClient kubernetesWrapperClient,
-            ILogger<DeploymentService> logger)
+            ILogger<DeploymentService> logger
+        )
         {
             _environmentsService = environmentsService;
             _kubernetesWrapperClient = kubernetesWrapperClient;
@@ -34,7 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<KubernetesDeployment> kubernetesDeploymentList = [];
 
-            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            IEnumerable<EnvironmentModel> environments =
+                await _environmentsService.GetOrganizationEnvironments(org);
 
             foreach (EnvironmentModel env in environments)
             {
@@ -42,12 +44,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 try
                 {
-                    kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env);
+                    kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(
+                        org,
+                        app,
+                        env
+                    );
                 }
                 catch (KubernetesWrapperResponseException e)
                 {
                     kubernetesDeployment = new KubernetesDeployment();
-                    _logger.LogError(e, "Make sure the requested environment, {EnvName}, exists", env.Hostname);
+                    _logger.LogError(
+                        e,
+                        "Make sure the requested environment, {EnvName}, exists",
+                        env.Hostname
+                    );
                 }
 
                 if (kubernetesDeployment != null)

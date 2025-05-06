@@ -54,7 +54,10 @@ namespace Altinn.Studio.DataModeling.Json
             return builder.Build();
         }
 
-        private IEnumerable<IJsonSchemaKeyword> NormalizeKeyword(JsonSchema schema, IJsonSchemaKeyword keyword)
+        private IEnumerable<IJsonSchemaKeyword> NormalizeKeyword(
+            JsonSchema schema,
+            IJsonSchemaKeyword keyword
+        )
         {
             var keywords = new List<IJsonSchemaKeyword>();
 
@@ -99,10 +102,18 @@ namespace Altinn.Studio.DataModeling.Json
                 switch (keywords[i])
                 {
                     case ISchemaContainer container:
-                        keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), NormalizeSchema(container.Schema));
+                        keywords[i] = (IJsonSchemaKeyword)
+                            Activator.CreateInstance(
+                                keywords[i].GetType(),
+                                NormalizeSchema(container.Schema)
+                            );
                         break;
                     case ISchemaCollector collector:
-                        keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), collector.Schemas.Select(NormalizeSchema));
+                        keywords[i] = (IJsonSchemaKeyword)
+                            Activator.CreateInstance(
+                                keywords[i].GetType(),
+                                collector.Schemas.Select(NormalizeSchema)
+                            );
                         break;
                     case IKeyedSchemaCollector keyedCollector:
                         var schemas = new List<(string Name, JsonSchema Schema)>();
@@ -111,7 +122,11 @@ namespace Altinn.Studio.DataModeling.Json
                             schemas.Add((key, NormalizeSchema(s)));
                         }
 
-                        keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), schemas.ToDictionary(x => x.Name, x => x.Schema));
+                        keywords[i] = (IJsonSchemaKeyword)
+                            Activator.CreateInstance(
+                                keywords[i].GetType(),
+                                schemas.ToDictionary(x => x.Name, x => x.Schema)
+                            );
                         break;
                 }
             }

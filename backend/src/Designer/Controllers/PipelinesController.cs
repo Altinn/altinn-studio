@@ -30,7 +30,8 @@ namespace Altinn.Studio.Designer.Controllers
         public PipelinesController(
             IReleaseService releaseService,
             IDeploymentService deploymentService,
-            ILogger<PipelinesController> logger)
+            ILogger<PipelinesController> logger
+        )
         {
             _releaseService = releaseService;
             _deploymentService = deploymentService;
@@ -46,10 +47,19 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("checkreleasebuildstatus")]
         // Route that is consistent with newer version
         [Route("check-release-build-status")]
-        public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
+        public async Task<IActionResult> CheckReleaseStatus(
+            [FromBody] AzureDevOpsWebHookEventModel model
+        )
         {
-            _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
-            await _releaseService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
+            _logger.LogInformation(
+                "checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}",
+                model?.Resource?.BuildNumber,
+                model?.Resource?.ResourceOwner
+            );
+            await _releaseService.UpdateAsync(
+                model?.Resource?.BuildNumber,
+                model?.Resource?.ResourceOwner
+            );
             return Ok();
         }
 
@@ -63,7 +73,9 @@ namespace Altinn.Studio.Designer.Controllers
         // Route that is consistent with newer version
         [Route("check-deployment-build-status")]
         [Obsolete]
-        public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
+        public async Task<IActionResult> CheckDeploymentStatus(
+            [FromBody] AzureDevOpsWebHookEventModel model
+        )
         {
             // Updating of the status is done with the quartz job.
             // This method is obsolete and should be removed when the pipeline is updated.

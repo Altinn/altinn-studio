@@ -31,15 +31,12 @@ public class AnsattPortenController : ControllerBase
     public async Task<IActionResult> AuthStatus()
     {
         await Task.CompletedTask;
-        var authenticateResult =
-            await HttpContext.AuthenticateAsync(AnsattPortenConstants.AnsattportenAuthenticationScheme);
+        var authenticateResult = await HttpContext.AuthenticateAsync(
+            AnsattPortenConstants.AnsattportenAuthenticationScheme
+        );
 
-        var authStatus = new AuthStatus
-        {
-            IsLoggedIn = authenticateResult.Succeeded
-        };
+        var authStatus = new AuthStatus { IsLoggedIn = authenticateResult.Succeeded };
 
         return Ok(authStatus);
     }
-
 }

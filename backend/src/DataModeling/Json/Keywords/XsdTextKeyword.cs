@@ -31,9 +31,8 @@ public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeywo
     /// <summary>
     /// Create a new instance of XsdTextKeyword with the default false value.
     /// </summary>
-    public XsdTextKeyword() : this(false)
-    {
-    }
+    public XsdTextKeyword()
+        : this(false) { }
 
     /// <summary>
     /// Create a new instance of XsdTextKeyword with the specified false value.
@@ -43,7 +42,11 @@ public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeywo
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -77,7 +80,11 @@ public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeywo
     internal class XsdTextKeywordJsonConverter : JsonConverter<XsdTextKeyword>
     {
         /// <inheritdoc/>
-        public override XsdTextKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdTextKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.True && reader.TokenType != JsonTokenType.False)
             {
@@ -88,7 +95,11 @@ public sealed class XsdTextKeyword : IJsonSchemaKeyword, IEquatable<XsdTextKeywo
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdTextKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdTextKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteBoolean(Name, value.Value);
         }

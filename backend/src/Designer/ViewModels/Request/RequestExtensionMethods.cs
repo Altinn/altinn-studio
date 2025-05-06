@@ -13,13 +13,13 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         /// </summary>
         /// <param name="viewmodel">CreateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseEntity ToEntityModel(this CreateReleaseRequestViewModel viewmodel)
-            => new ReleaseEntity
+        public static ReleaseEntity ToEntityModel(this CreateReleaseRequestViewModel viewmodel) =>
+            new ReleaseEntity
             {
                 Body = viewmodel.Body,
                 Name = viewmodel.Name,
                 TagName = viewmodel.TagName,
-                TargetCommitish = viewmodel.TargetCommitish
+                TargetCommitish = viewmodel.TargetCommitish,
             };
 
         /// <summary>
@@ -27,8 +27,8 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         /// </summary>
         /// <param name="viewmodel">UpdateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseEntity ToEntityModel(this UpdateReleaseRequestViewModel viewmodel)
-            => new ReleaseEntity
+        public static ReleaseEntity ToEntityModel(this UpdateReleaseRequestViewModel viewmodel) =>
+            new ReleaseEntity
             {
                 Build = new BuildEntity
                 {
@@ -36,8 +36,8 @@ namespace Altinn.Studio.Designer.ViewModels.Request
                     Status = viewmodel.Status,
                     Result = viewmodel.Result,
                     Started = viewmodel.Started,
-                    Finished = viewmodel.Finished
-                }
+                    Finished = viewmodel.Finished,
+                },
             };
 
         /// <summary>
@@ -45,11 +45,8 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         /// </summary>
         /// <param name="viewmodel">CreateDeploymentRequestViewModel</param>
         /// <returns></returns>
-        public static DeploymentModel ToDomainModel(this CreateDeploymentRequestViewModel viewmodel)
-            => new DeploymentModel
-            {
-                TagName = viewmodel.TagName,
-                EnvName = viewmodel.EnvName
-            };
+        public static DeploymentModel ToDomainModel(
+            this CreateDeploymentRequestViewModel viewmodel
+        ) => new DeploymentModel { TagName = viewmodel.TagName, EnvName = viewmodel.EnvName };
     }
 }

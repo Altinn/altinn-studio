@@ -9,19 +9,25 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
-public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandler<ProcessTaskIdChangedEvent>
+public class ProcessTaskIdChangedApplicationMetadataHandler
+    : INotificationHandler<ProcessTaskIdChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessTaskIdChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessTaskIdChangedApplicationMetadataHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ProcessTaskIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         bool hasChanges = false;
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
@@ -33,9 +39,12 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
 
-                var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
+                var applicationMetadata = await repository.GetApplicationMetadata(
+                    cancellationToken
+                );
 
                 if (TryChangeTaskIds(applicationMetadata, notification.OldId, notification.NewId))
                 {
@@ -44,7 +53,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     /// <summary>
@@ -52,11 +62,18 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
     /// If there are changes, the application metadata is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>
-    private static bool TryChangeTaskIds(Application applicationMetadata, string oldId, string newId)
+    private static bool TryChangeTaskIds(
+        Application applicationMetadata,
+        string oldId,
+        string newId
+    )
     {
         bool hasChanges = false;
-        foreach (DataType applicationMetadataDataType in applicationMetadata.DataTypes.Where(x =>
-                     x.TaskId == oldId))
+        foreach (
+            DataType applicationMetadataDataType in applicationMetadata.DataTypes.Where(x =>
+                x.TaskId == oldId
+            )
+        )
         {
             applicationMetadataDataType.TaskId = newId;
             hasChanges = true;

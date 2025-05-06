@@ -24,7 +24,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            PlatformSettings options)
+            PlatformSettings options
+        )
         {
             _httpClient = httpClient;
             _environmentsService = environmentsService;
@@ -46,7 +47,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         private async Task<Uri> CreatePostUri(string envName, string org, string app)
         {
             var platformUri = await _environmentsService.CreatePlatformUri(envName);
-            return new Uri($"{platformUri}{_platformSettings.ApiStorageApplicationUri}{org}/{app}/texts");
+            return new Uri(
+                $"{platformUri}{_platformSettings.ApiStorageApplicationUri}{org}/{app}/texts"
+            );
         }
     }
 }

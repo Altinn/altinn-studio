@@ -22,9 +22,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="AccessToken" /> class.
         /// </summary>
         [JsonConstructor]
-        protected AccessToken()
-        {
-        }
+        protected AccessToken() { }
 
         /// <summary>
         /// Name of the repository to create

@@ -9,7 +9,8 @@ using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {
-    public class Seres2JsonSchema2SeresTests : SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
+    public class Seres2JsonSchema2SeresTests
+        : SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
 
@@ -20,9 +21,13 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(RoundTripConversionTestData))]
-        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
+        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(
+            string xsdSchemaPath,
+            string xmlPath
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
                 .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
@@ -37,7 +42,10 @@ namespace DataModeling.Tests
             return this;
         }
 
-        private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstSchema(string xmlPath, XmlSchema schema)
+        private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstSchema(
+            string xmlPath,
+            XmlSchema schema
+        )
         {
             if (!string.IsNullOrEmpty(xmlPath))
             {
@@ -55,7 +63,9 @@ namespace DataModeling.Tests
             var validXml = xmlSchemaValidator.Validate(xml);
             if (!validXml)
             {
-                xmlSchemaValidator.ValidationErrors.ForEach(e => _testOutputHelper.WriteLine(e.Message));
+                xmlSchemaValidator.ValidationErrors.ForEach(e =>
+                    _testOutputHelper.WriteLine(e.Message)
+                );
             }
 
             return validXml;

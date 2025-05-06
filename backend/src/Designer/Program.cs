@@ -72,21 +72,38 @@ void ConfigureSetupLogging()
     logger = logFactory.CreateLogger<Program>();
 }
 
-async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
+async Task SetConfigurationProviders(
+    ConfigurationManager config,
+    IWebHostEnvironment hostingEnvironment
+)
 {
-    logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
+    logger.LogInformation(
+        "// Program.cs // SetConfigurationProviders // Attempting to configure providers"
+    );
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
-    config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile(
+        basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
+        optional: true,
+        reloadOnChange: true
+    );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
     {
-        config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+        config.AddJsonFile(
+            basePath + "app/appsettings.json",
+            optional: false,
+            reloadOnChange: true
+        );
     }
     else
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + "/appsettings.json",
+            optional: false,
+            reloadOnChange: true
+        );
     }
 
     config.AddEnvironmentVariables();
@@ -95,35 +112,55 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     KeyVaultSettings keyVaultSettings = new();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
 
-    if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
-        !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
-        !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
-        !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
+    if (
+        !string.IsNullOrEmpty(keyVaultSettings.ClientId)
+        && !string.IsNullOrEmpty(keyVaultSettings.TenantId)
+        && !string.IsNullOrEmpty(keyVaultSettings.ClientSecret)
+        && !string.IsNullOrEmpty(keyVaultSettings.SecretUri)
+    )
     {
-        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
-        AzureServiceTokenProvider azureServiceTokenProvider = new($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
+        logger.LogInformation(
+            "// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault"
+        );
+        AzureServiceTokenProvider azureServiceTokenProvider = new(
+            $"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}"
+        );
         KeyVaultClient keyVaultClient = new(
             new KeyVaultClient.AuthenticationCallback(
-                azureServiceTokenProvider.KeyVaultTokenCallback));
+                azureServiceTokenProvider.KeyVaultTokenCallback
+            )
+        );
         config.AddAzureKeyVault(
-            keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
+            keyVaultSettings.SecretUri,
+            keyVaultClient,
+            new DefaultKeyVaultSecretManager()
+        );
         try
         {
             string secretId = "ApplicationInsights--ConnectionString";
             SecretBundle secretBundle = await keyVaultClient.GetSecretAsync(
-                keyVaultSettings.SecretUri, secretId);
+                keyVaultSettings.SecretUri,
+                secretId
+            );
 
             applicationInsightsConnectionString = secretBundle.Value;
         }
         catch (Exception vaultException)
         {
-            logger.LogError(vaultException, $"Could not find secretBundle for application insights");
+            logger.LogError(
+                vaultException,
+                $"Could not find secretBundle for application insights"
+            );
         }
     }
 
     if (hostingEnvironment.IsDevelopment() && !Directory.GetCurrentDirectory().Contains("app"))
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json",
+            optional: true,
+            reloadOnChange: true
+        );
         Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
         if (assembly != null)
         {
@@ -151,20 +188,28 @@ void ConfigureLogging(ILoggingBuilder builder)
         // standalone package Microsoft.Extensions.Logging.ApplicationInsights
         // or if you want to capture logs from early in the application startup
         // pipeline from Startup.cs or Program.cs itself.
-        builder.AddApplicationInsights(configureTelemetryConfiguration: config =>
-        {
-            config.ConnectionString = applicationInsightsConnectionString;
-        },
-        configureApplicationInsightsLoggerOptions: _ => { });
+        builder.AddApplicationInsights(
+            configureTelemetryConfiguration: config =>
+            {
+                config.ConnectionString = applicationInsightsConnectionString;
+            },
+            configureApplicationInsightsLoggerOptions: _ => { }
+        );
 
         // Optional: Apply filters to control what logs are sent to Application Insights.
         // The following configures LogLevel Information or above to be sent to
         // Application Insights for all categories.
-        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(
+            string.Empty,
+            LogLevel.Warning
+        );
 
         // Adding the filter below to ensure logs of all severity from Program.cs
         // is sent to ApplicationInsights.
-        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(
+            typeof(Program).FullName,
+            LogLevel.Trace
+        );
     }
     else
     {
@@ -175,7 +220,11 @@ void ConfigureLogging(ILoggingBuilder builder)
     }
 }
 
-void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+void ConfigureServices(
+    IServiceCollection services,
+    IConfiguration configuration,
+    IWebHostEnvironment env
+)
 {
     logger.LogInformation("// Program.cs // ConfigureServices // Attempting to configure services");
 
@@ -184,34 +233,65 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
-    services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
+    services.ConfigureResourceRegistryIntegrationSettings(
+        configuration.GetSection("ResourceRegistryIntegrationSettings")
+    );
+    services.ConfigureMaskinportenIntegrationSettings(
+        configuration.GetSection("MaskinportenClientSettings")
+    );
 
-    services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    services.Configure<MaskinportenClientSettings>(
+        configuration.GetSection("MaskinportenClientSettings")
+    );
     var maskinPortenClientName = "MaskinportenClient";
-    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
+        maskinPortenClientName,
+        configuration.GetSection("MaskinportenClientSettings")
+    );
     services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
 
-    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
+    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>(
+        "MaskinportenHttpClient",
+        maskinportenSettings
+    );
 
     // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
-        services.AddApplicationInsightsTelemetry(options => { options.ConnectionString = applicationInsightsConnectionString; });
+        services.AddApplicationInsightsTelemetry(options =>
+        {
+            options.ConnectionString = applicationInsightsConnectionString;
+        });
         services.ConfigureTelemetryModule<EventCounterCollectionModule>(
             (module, o) =>
             {
                 module.Counters.Clear();
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
-            });
+                module.Counters.Add(
+                    new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length")
+                );
+                module.Counters.Add(
+                    new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count")
+                );
+                module.Counters.Add(
+                    new EventCounterCollectionRequest(
+                        "System.Runtime",
+                        "monitor-lock-contention-count"
+                    )
+                );
+                module.Counters.Add(
+                    new EventCounterCollectionRequest("System.Runtime", "gc-heap-size")
+                );
+                module.Counters.Add(
+                    new EventCounterCollectionRequest("System.Runtime", "time-in-gc")
+                );
+                module.Counters.Add(
+                    new EventCounterCollectionRequest("System.Runtime", "working-set")
+                );
+            }
+        );
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
@@ -252,7 +332,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.RegisterSynchronizationServices(configuration);
 
     var signalRBuilder = services.AddSignalR();
-    var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
+    var redisSettings = configuration
+        .GetSection(nameof(RedisCacheSettings))
+        .Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)
     {
         services.AddStackExchangeRedisCache(options =>
@@ -293,18 +375,20 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        OnPrepareResponse = context =>
+    app.UseStaticFiles(
+        new StaticFileOptions
         {
-            ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-            headers.CacheControl = new CacheControlHeaderValue
+            OnPrepareResponse = context =>
             {
-                Public = true,
-                MaxAge = TimeSpan.FromMinutes(60),
-            };
+                ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                headers.CacheControl = new CacheControlHeaderValue
+                {
+                    Public = true,
+                    MaxAge = TimeSpan.FromMinutes(60),
+                };
+            },
         }
-    });
+    );
 
     app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
@@ -337,11 +421,16 @@ void CreateDirectory(IConfiguration configuration)
 
     // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
     // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-    var repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation") ??
-                                                       configuration["ServiceRepositorySettings:RepositoryLocation"];
+    var repoLocation =
+        Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation")
+        ?? configuration["ServiceRepositorySettings:RepositoryLocation"];
     if (string.IsNullOrWhiteSpace(repoLocation))
     {
-        repoLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
+        repoLocation = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "altinn",
+            "repos"
+        );
         configuration.GetSection("ServiceRepositorySettings")["RepositoryLocation"] = repoLocation;
     }
 

@@ -9,7 +9,9 @@ namespace Altinn.Studio.Designer.Helpers
     /// </summary>
     public static class MimeTypeMap
     {
-        private static readonly Lazy<IDictionary<string, string>> s_mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
+        private static readonly Lazy<IDictionary<string, string>> s_mappings = new Lazy<
+            IDictionary<string, string>
+        >(BuildMappings);
 
         private static IDictionary<string, string> BuildMappings()
         {
@@ -144,10 +146,16 @@ namespace Altinn.Studio.Designer.Helpers
                 { ".dlm", "text/dlm" },
                 { ".doc", "application/msword" },
                 { ".docm", "application/vnd.ms-word.document.macroEnabled.12" },
-                { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                {
+                    ".docx",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                },
                 { ".dot", "application/msword" },
                 { ".dotm", "application/vnd.ms-word.template.macroEnabled.12" },
-                { ".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template" },
+                {
+                    ".dotx",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+                },
                 { ".dsp", "application/octet-stream" },
                 { ".dsw", "text/plain" },
                 { ".dtd", "text/xml" },
@@ -385,16 +393,25 @@ namespace Altinn.Studio.Designer.Helpers
                 { ".pnz", "image/png" },
                 { ".pot", "application/vnd.ms-powerpoint" },
                 { ".potm", "application/vnd.ms-powerpoint.template.macroEnabled.12" },
-                { ".potx", "application/vnd.openxmlformats-officedocument.presentationml.template" },
+                {
+                    ".potx",
+                    "application/vnd.openxmlformats-officedocument.presentationml.template"
+                },
                 { ".ppa", "application/vnd.ms-powerpoint" },
                 { ".ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12" },
                 { ".ppm", "image/x-portable-pixmap" },
                 { ".pps", "application/vnd.ms-powerpoint" },
                 { ".ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12" },
-                { ".ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow" },
+                {
+                    ".ppsx",
+                    "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+                },
                 { ".ppt", "application/vnd.ms-powerpoint" },
                 { ".pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12" },
-                { ".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
+                {
+                    ".pptx",
+                    "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                },
                 { ".prf", "application/pics-rules" },
                 { ".prm", "application/octet-stream" },
                 { ".prx", "application/octet-stream" },
@@ -645,7 +662,7 @@ namespace Altinn.Studio.Designer.Helpers
                 { "application/x-x509-ca-cert", ".cer" },
                 { "application/x-zip-compressed", ".zip" },
                 { "application/xhtml+xml", ".xhtml" },
-                { "application/xml", ".xml" },  // anomoly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
+                { "application/xml", ".xml" }, // anomoly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
                 { "audio/aac", ".AAC" },
                 { "audio/aiff", ".aiff" },
                 { "audio/basic", ".snd" },
@@ -710,7 +727,9 @@ namespace Altinn.Studio.Designer.Helpers
                 extension = "." + extension;
             }
 
-            return s_mappings.Value.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
+            return s_mappings.Value.TryGetValue(extension, out string mime)
+                ? mime
+                : "application/octet-stream";
         }
 
         /// <summary>

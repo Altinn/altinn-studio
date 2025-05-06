@@ -43,6 +43,7 @@ namespace Altinn.Studio.DataModeling.Metamodel
         /// </summary>
         [JsonProperty(PropertyName = "elements")]
         [JsonPropertyName("elements")]
-        public Dictionary<string, ElementMetadata> Elements { get; set; } = new Dictionary<string, ElementMetadata>();
+        public Dictionary<string, ElementMetadata> Elements { get; set; } =
+            new Dictionary<string, ElementMetadata>();
     }
 }

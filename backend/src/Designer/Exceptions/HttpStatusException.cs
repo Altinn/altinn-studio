@@ -15,7 +15,12 @@ namespace Altinn.Studio.Designer.Exceptions
         /// <param name="title">The title of the error</param>
         /// <param name="statusCode">The status code of the error</param>
         /// <param name="traceId">The id of the error that can be traced</param>
-        public HttpStatusException(string type, string title, HttpStatusCode statusCode, string traceId)
+        public HttpStatusException(
+            string type,
+            string title,
+            HttpStatusCode statusCode,
+            string traceId
+        )
         {
             Type = type;
             Title = title;

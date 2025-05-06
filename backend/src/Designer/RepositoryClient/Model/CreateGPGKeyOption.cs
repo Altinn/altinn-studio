@@ -28,9 +28,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
         [JsonConstructor]
-        protected CreateGPGKeyOption()
-        {
-        }
+        protected CreateGPGKeyOption() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
@@ -41,7 +39,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             // to ensure "ArmoredPublicKey" is required (not null)
             if (armoredPublicKey == null)
             {
-                throw new InvalidDataException("ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null");
+                throw new InvalidDataException(
+                    "ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null"
+                );
             }
             this.ArmoredPublicKey = armoredPublicKey;
         }
@@ -87,10 +87,11 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                    this.ArmoredPublicKey == input.ArmoredPublicKey ||
-                    (this.ArmoredPublicKey != null &&
-                    this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
+            return this.ArmoredPublicKey == input.ArmoredPublicKey
+                || (
+                    this.ArmoredPublicKey != null
+                    && this.ArmoredPublicKey.Equals(input.ArmoredPublicKey)
+                );
         }
 
         /// <summary>
@@ -117,7 +118,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

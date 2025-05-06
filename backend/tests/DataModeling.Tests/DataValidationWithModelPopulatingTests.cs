@@ -16,7 +16,8 @@ using Xunit.Abstractions;
 
 namespace DataModeling.Tests;
 
-public class DataValidationWithModelPopulatingTests : CsharpModelConversionTestsBase<DataValidationWithModelPopulatingTests>
+public class DataValidationWithModelPopulatingTests
+    : CsharpModelConversionTestsBase<DataValidationWithModelPopulatingTests>
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
@@ -39,14 +40,14 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
     [ClassData(typeof(ValidationTestData))]
     public void Data_ShouldValidateAgainstSchemas(string xsdSchemaPath)
     {
-        Given.That.XsdSchemaLoaded(xsdSchemaPath)
+        Given
+            .That.XsdSchemaLoaded(xsdSchemaPath)
             .When.LoadedXsdSchemaConvertedToJsonSchema()
             .And.ConvertedJsonSchemaConvertedToModelMetadata()
             .And.ModelMetadataConvertedToCsharpClass()
             .And.CSharpClassesCompiledToAssembly();
 
         Assert.NotNull(CompiledAssembly);
-
 
         When.RepresentingTypeFromLoadedFromAssembly()
             .And.RandomRepresentingObjectGenerated()
@@ -57,19 +58,30 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
 
     private DataValidationWithModelPopulatingTests RepresentingTypeFromLoadedFromAssembly()
     {
-        RepresentingType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        RepresentingType = CompiledAssembly
+            .GetTypes()
+            .Single(type =>
+                type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute))
+            );
         return this;
     }
 
     private DataValidationWithModelPopulatingTests RandomRepresentingObjectGenerated()
     {
-        RandomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(RepresentingType);
+        RandomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(
+            RepresentingType
+        );
         return this;
     }
 
     private DataValidationWithModelPopulatingTests RepresentingObject_ShouldBeValid()
     {
-        var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null, true);
+        var isValid = Validator.TryValidateObject(
+            RandomRepresentingObject,
+            new ValidationContext(RandomRepresentingObject),
+            null,
+            true
+        );
 
         Assert.True(isValid);
         return this;
@@ -111,10 +123,16 @@ public class DataValidationWithModelPopulatingTests : CsharpModelConversionTests
 
     private void RepresentingObject_ShouldValidateAgainstJsonSchema()
     {
-        var json = JsonSerializer.Serialize(RandomRepresentingObject, new JsonSerializerOptions
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
-        });
+        var json = JsonSerializer.Serialize(
+            RandomRepresentingObject,
+            new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(
+                    UnicodeRanges.BasicLatin,
+                    UnicodeRanges.Latin1Supplement
+                ),
+            }
+        );
         var jsonNode = JsonNode.Parse(json);
         var validationResults = ConvertedJsonSchema.Evaluate(jsonNode);
 

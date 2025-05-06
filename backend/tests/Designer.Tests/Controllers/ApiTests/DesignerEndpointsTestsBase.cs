@@ -20,7 +20,8 @@ namespace Designer.Tests.Controllers.ApiTests
     /// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
     /// </summary>
     /// <typeparam name="TControllerTest">Tests class type.</typeparam>
-    public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
+    public abstract class DesignerEndpointsTestsBase<TControllerTest>
+        : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         /// <summary>
@@ -36,7 +37,8 @@ namespace Designer.Tests.Controllers.ApiTests
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+                c.RepositoryLocation = TestRepositoriesLocation
+            );
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {
@@ -53,12 +55,11 @@ namespace Designer.Tests.Controllers.ApiTests
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new JsonStringEnumConverter() }
+            Converters = { new JsonStringEnumConverter() },
         };
 
-        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         /// <summary>
         /// Copies a repository from the test repositories location to a temporary location for testing.
@@ -70,13 +71,23 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="repo">Repository name.</param>
         /// <param name="developer">Developer username.</param>
         /// <param name="targetRepository">Test repository name.</param>
-        protected async Task CopyRepositoryForTest(string org, string repo, string developer, string targetRepository)
+        protected async Task CopyRepositoryForTest(
+            string org,
+            string repo,
+            string developer,
+            string targetRepository
+        )
         {
             if (TestRepoPath is not null)
             {
                 throw new InvalidOperationException("Repository already created for test.");
             }
-            TestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
+            TestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+                org,
+                repo,
+                developer,
+                targetRepository
+            );
         }
 
         /// <summary>
@@ -88,13 +99,21 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="org">Organisation short name.</param>
         /// <param name="repo">Repository name</param>
         /// <param name="targetRepository">Test repository name.</param>
-        protected async Task CopyRemoteRepositoryForTest(string org, string repo, string targetRepository)
+        protected async Task CopyRemoteRepositoryForTest(
+            string org,
+            string repo,
+            string targetRepository
+        )
         {
             if (RemoteTestRepoPath is not null)
             {
                 throw new InvalidOperationException("Remote repository already created for test.");
             }
-            RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
+            RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(
+                org,
+                repo,
+                targetRepository
+            );
         }
 
         /// <summary>
@@ -109,13 +128,25 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="targetOrg">Test organisation name.</param>
         /// <param name="targetRepository">test repository name.</param>
         /// <exception cref="InvalidOperationException"></exception>
-        protected async Task CopyOrgRepositoryForTest(string developer, string org, string repo, string targetOrg, string targetRepository)
+        protected async Task CopyOrgRepositoryForTest(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
             if (TestOrgPath is not null)
             {
                 throw new InvalidOperationException("Organisation already created for test.");
             }
-            TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
+            TestOrgPath = await TestDataHelper.CopyOrgForTest(
+                developer,
+                org,
+                repo,
+                targetOrg,
+                targetRepository
+            );
         }
 
         /// <summary>
@@ -130,13 +161,27 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <remarks>
         /// <see cref="CopyOrgRepositoryForTest"/> must be used first.
         /// </remarks>
-        protected async Task AddRepositoryToTestOrg(string developer, string org, string repo, string targetOrg, string targetRepository)
+        protected async Task AddRepositoryToTestOrg(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
             if (TestOrgPath is null)
             {
-                throw new InvalidOperationException("Organisation has not been instantiated for test.");
+                throw new InvalidOperationException(
+                    "Organisation has not been instantiated for test."
+                );
             }
-            await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
+            await TestDataHelper.AddRepositoryToTestOrg(
+                developer,
+                org,
+                repo,
+                targetOrg,
+                targetRepository
+            );
         }
 
         protected override void Dispose(bool disposing)

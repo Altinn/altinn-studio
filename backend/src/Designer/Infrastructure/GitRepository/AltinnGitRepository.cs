@@ -34,7 +34,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="developer">Developer that is working on the repository.</param>
         /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
-        public AltinnGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(repositoriesRootDirectory, repositoryDirectory)
+        public AltinnGitRepository(
+            string org,
+            string repository,
+            string developer,
+            string repositoriesRootDirectory,
+            string repositoryDirectory
+        )
+            : base(repositoriesRootDirectory, repositoryDirectory)
         {
             Guard.AssertNotNullOrEmpty(org, nameof(org));
             Guard.AssertNotNullOrEmpty(repository, nameof(repository));
@@ -73,7 +80,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
         public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
         {
-            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings, true);
+            await WriteObjectByRelativePathAsync(
+                STUDIO_SETTINGS_FILEPATH,
+                altinnStudioSettings,
+                true
+            );
         }
 
         /// <summary>
@@ -126,11 +137,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
             else
             {
-                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
+                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) =
+                    await MigrateExistingAltinnStudioSettings();
 
                 if (needsSaving)
                 {
-                    await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
+                    await WriteObjectByRelativePathAsync(
+                        STUDIO_SETTINGS_FILEPATH,
+                        altinnStudioSettings
+                    );
                 }
 
                 _altinnStudioSettings = altinnStudioSettings;
@@ -150,16 +165,31 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return settings;
         }
 
-        private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()
+        private async Task<(
+            AltinnStudioSettings AltinnStudioSettinngs,
+            bool NeedsSaving
+        )> MigrateExistingAltinnStudioSettings()
         {
-            string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
-            AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(
+                STUDIO_SETTINGS_FILEPATH
+            );
+            AltinnStudioSettings altinnStudioSettings =
+                JsonSerializer.Deserialize<AltinnStudioSettings>(
+                    altinnStudioSettingsJson,
+                    new JsonSerializerOptions()
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new JsonStringEnumConverter() },
+                    }
+                );
 
             bool needsSaving = false;
 
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
-                altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
+                altinnStudioSettings.RepoType = IsDatamodelsRepo()
+                    ? AltinnRepositoryType.Datamodels
+                    : AltinnRepositoryType.App;
                 needsSaving = true;
             }
 
@@ -207,7 +237,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string xsd;
             await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            await using (
+                var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true })
+            )
             {
                 xmlSchema.Write(xw);
                 xsd = sw.ToString();

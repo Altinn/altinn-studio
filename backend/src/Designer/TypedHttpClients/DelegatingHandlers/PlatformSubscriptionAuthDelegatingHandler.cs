@@ -12,7 +12,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 /// A delegating handler that adds subscription keys to requests based on the host of the request URI.
 /// </summary>
 /// <param name="platformSettings">A <see cref="PlatformSettings"/> registered in the configuration.</param>
-public class PlatformSubscriptionAuthDelegatingHandler(PlatformSettings platformSettings) : DelegatingHandler
+public class PlatformSubscriptionAuthDelegatingHandler(PlatformSettings platformSettings)
+    : DelegatingHandler
 {
     private readonly HashSet<KeyValuePair<string, string>> _environmentSubscriptions =
     [
@@ -22,22 +23,31 @@ public class PlatformSubscriptionAuthDelegatingHandler(PlatformSettings platform
         new("at23", platformSettings.SubscriptionKeyAT23),
         new("at24", platformSettings.SubscriptionKeyAT24),
         new("tt02", platformSettings.SubscriptionKeyTT02),
-        new("yt01", platformSettings.SubscriptionKeyYT01)
+        new("yt01", platformSettings.SubscriptionKeyYT01),
     ];
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-        CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         var uri = request.RequestUri!;
         string host = uri.Host;
 
         if (host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
         {
-            request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyProd);
+            request.Headers.Add(
+                platformSettings.SubscriptionKeyHeaderName,
+                platformSettings.SubscriptionKeyProd
+            );
         }
         else
         {
-            foreach (var entry in _environmentSubscriptions.Where(entry => host.Contains(entry.Key, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (
+                var entry in _environmentSubscriptions.Where(entry =>
+                    host.Contains(entry.Key, StringComparison.InvariantCultureIgnoreCase)
+                )
+            )
             {
                 request.Headers.Add(platformSettings.SubscriptionKeyHeaderName, entry.Value);
                 break;

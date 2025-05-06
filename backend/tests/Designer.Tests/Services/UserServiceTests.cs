@@ -22,14 +22,18 @@ namespace Designer.Tests.Services
         [Theory]
         [InlineData("org1", false)]
         [InlineData("org2", true)]
-        public async Task GetUserOrgPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
+        public async Task GetUserOrgPermission_ReturnsCorrectPermission(
+            string org,
+            bool expectedCanCreate
+        )
         {
             var teams = new List<Team>
             {
                 new()
                 {
-                    Organization = new Organization { Username = org }, CanCreateOrgRepo = expectedCanCreate
-                }
+                    Organization = new Organization { Username = org },
+                    CanCreateOrgRepo = expectedCanCreate,
+                },
             };
 
             _giteaApi.Setup(api => api.GetTeams()).ReturnsAsync(teams);

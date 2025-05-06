@@ -27,9 +27,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository"/> class.
         /// </summary>
-        public Repository()
-        {
-        }
+        public Repository() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository" /> class.
@@ -57,7 +55,31 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="updatedAt">UpdatedAt.</param>
         /// <param name="watchersCount">WatchersCount.</param>
         /// <param name="website">Website.</param>
-        public Repository(string cloneUrl = default(string), DateTime? createdAt = default(DateTime?), string defaultBranch = default(string), string description = default(string), bool? empty = default(bool?), bool? fork = default(bool?), long? forksCount = default(long?), string fullName = default(string), string htmlUrl = default(string), long? id = default(long?), bool? mirror = default(bool?), string name = default(string), long? openIssuesCount = default(long?), User owner = default(User), Repository parent = default(Repository), Permission permissions = default(Permission), bool? @private = default(bool?), long? size = default(long?), string sshUrl = default(string), long? starsCount = default(long?), DateTime? updatedAt = default(DateTime?), long? watchersCount = default(long?), string website = default(string))
+        public Repository(
+            string cloneUrl = default(string),
+            DateTime? createdAt = default(DateTime?),
+            string defaultBranch = default(string),
+            string description = default(string),
+            bool? empty = default(bool?),
+            bool? fork = default(bool?),
+            long? forksCount = default(long?),
+            string fullName = default(string),
+            string htmlUrl = default(string),
+            long? id = default(long?),
+            bool? mirror = default(bool?),
+            string name = default(string),
+            long? openIssuesCount = default(long?),
+            User owner = default(User),
+            Repository parent = default(Repository),
+            Permission permissions = default(Permission),
+            bool? @private = default(bool?),
+            long? size = default(long?),
+            string sshUrl = default(string),
+            long? starsCount = default(long?),
+            DateTime? updatedAt = default(DateTime?),
+            long? watchersCount = default(long?),
+            string website = default(string)
+        )
         {
             this.CloneUrl = cloneUrl;
             this.CreatedAt = createdAt;
@@ -291,99 +313,93 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.CloneUrl == input.CloneUrl ||
-                    (this.CloneUrl != null &&
-                    this.CloneUrl.Equals(input.CloneUrl))) &&
-                (
-                    this.CreatedAt == input.CreatedAt ||
-                    (this.CreatedAt != null &&
-                    this.CreatedAt.Equals(input.CreatedAt))) &&
-                (
-                    this.DefaultBranch == input.DefaultBranch ||
-                    (this.DefaultBranch != null &&
-                    this.DefaultBranch.Equals(input.DefaultBranch))) &&
-                (
-                    this.Description == input.Description ||
-                    (this.Description != null &&
-                    this.Description.Equals(input.Description))) &&
-                (
-                    this.Empty == input.Empty ||
-                    (this.Empty != null &&
-                    this.Empty.Equals(input.Empty))) &&
-                (
-                    this.Fork == input.Fork ||
-                    (this.Fork != null &&
-                    this.Fork.Equals(input.Fork))) &&
-                (
-                    this.ForksCount == input.ForksCount ||
-                    (this.ForksCount != null &&
-                    this.ForksCount.Equals(input.ForksCount))) &&
-                (
-                    this.FullName == input.FullName ||
-                    (this.FullName != null &&
-                    this.FullName.Equals(input.FullName))) &&
-                (
-                    this.HtmlUrl == input.HtmlUrl ||
-                    (this.HtmlUrl != null &&
-                    this.HtmlUrl.Equals(input.HtmlUrl))) &&
-                (
-                    this.Id == input.Id ||
-                    (this.Id != null &&
-                    this.Id.Equals(input.Id))) &&
-                (
-                    this.Mirror == input.Mirror ||
-                    (this.Mirror != null &&
-                    this.Mirror.Equals(input.Mirror))) &&
-                (
-                    this.Name == input.Name ||
-                    (this.Name != null &&
-                    this.Name.Equals(input.Name))) &&
-                (
-                    this.OpenIssuesCount == input.OpenIssuesCount ||
-                    (this.OpenIssuesCount != null &&
-                    this.OpenIssuesCount.Equals(input.OpenIssuesCount))) &&
-                (
-                    this.Owner == input.Owner ||
-                    (this.Owner != null &&
-                    this.Owner.Equals(input.Owner))) &&
-                (
-                    this.Parent == input.Parent ||
-                    (this.Parent != null &&
-                    this.Parent.Equals(input.Parent))) &&
-                (
-                    this.Permissions == input.Permissions ||
-                    (this.Permissions != null &&
-                    this.Permissions.Equals(input.Permissions))) &&
-                (
-                    this.IsPrivate == input.IsPrivate ||
-                    (this.IsPrivate != null &&
-                    this.IsPrivate.Equals(input.IsPrivate))) &&
-                (
-                    this.Size == input.Size ||
-                    (this.Size != null &&
-                    this.Size.Equals(input.Size))) &&
-                (
-                    this.SshUrl == input.SshUrl ||
-                    (this.SshUrl != null &&
-                    this.SshUrl.Equals(input.SshUrl))) &&
-                (
-                    this.StarsCount == input.StarsCount ||
-                    (this.StarsCount != null &&
-                    this.StarsCount.Equals(input.StarsCount))) &&
-                (
-                    this.UpdatedAt == input.UpdatedAt ||
-                    (this.UpdatedAt != null &&
-                    this.UpdatedAt.Equals(input.UpdatedAt))) &&
-                (
-                    this.WatchersCount == input.WatchersCount ||
-                    (this.WatchersCount != null &&
-                    this.WatchersCount.Equals(input.WatchersCount))) &&
-                (
-                    this.Website == input.Website ||
-                    (this.Website != null &&
-                    this.Website.Equals(input.Website)));
+            return (
+                    this.CloneUrl == input.CloneUrl
+                    || (this.CloneUrl != null && this.CloneUrl.Equals(input.CloneUrl))
+                )
+                && (
+                    this.CreatedAt == input.CreatedAt
+                    || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt))
+                )
+                && (
+                    this.DefaultBranch == input.DefaultBranch
+                    || (
+                        this.DefaultBranch != null && this.DefaultBranch.Equals(input.DefaultBranch)
+                    )
+                )
+                && (
+                    this.Description == input.Description
+                    || (this.Description != null && this.Description.Equals(input.Description))
+                )
+                && (
+                    this.Empty == input.Empty
+                    || (this.Empty != null && this.Empty.Equals(input.Empty))
+                )
+                && (this.Fork == input.Fork || (this.Fork != null && this.Fork.Equals(input.Fork)))
+                && (
+                    this.ForksCount == input.ForksCount
+                    || (this.ForksCount != null && this.ForksCount.Equals(input.ForksCount))
+                )
+                && (
+                    this.FullName == input.FullName
+                    || (this.FullName != null && this.FullName.Equals(input.FullName))
+                )
+                && (
+                    this.HtmlUrl == input.HtmlUrl
+                    || (this.HtmlUrl != null && this.HtmlUrl.Equals(input.HtmlUrl))
+                )
+                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+                && (
+                    this.Mirror == input.Mirror
+                    || (this.Mirror != null && this.Mirror.Equals(input.Mirror))
+                )
+                && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
+                && (
+                    this.OpenIssuesCount == input.OpenIssuesCount
+                    || (
+                        this.OpenIssuesCount != null
+                        && this.OpenIssuesCount.Equals(input.OpenIssuesCount)
+                    )
+                )
+                && (
+                    this.Owner == input.Owner
+                    || (this.Owner != null && this.Owner.Equals(input.Owner))
+                )
+                && (
+                    this.Parent == input.Parent
+                    || (this.Parent != null && this.Parent.Equals(input.Parent))
+                )
+                && (
+                    this.Permissions == input.Permissions
+                    || (this.Permissions != null && this.Permissions.Equals(input.Permissions))
+                )
+                && (
+                    this.IsPrivate == input.IsPrivate
+                    || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate))
+                )
+                && (this.Size == input.Size || (this.Size != null && this.Size.Equals(input.Size)))
+                && (
+                    this.SshUrl == input.SshUrl
+                    || (this.SshUrl != null && this.SshUrl.Equals(input.SshUrl))
+                )
+                && (
+                    this.StarsCount == input.StarsCount
+                    || (this.StarsCount != null && this.StarsCount.Equals(input.StarsCount))
+                )
+                && (
+                    this.UpdatedAt == input.UpdatedAt
+                    || (this.UpdatedAt != null && this.UpdatedAt.Equals(input.UpdatedAt))
+                )
+                && (
+                    this.WatchersCount == input.WatchersCount
+                    || (
+                        this.WatchersCount != null && this.WatchersCount.Equals(input.WatchersCount)
+                    )
+                )
+                && (
+                    this.Website == input.Website
+                    || (this.Website != null && this.Website.Equals(input.Website))
+                );
         }
 
         /// <summary>
@@ -520,7 +536,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

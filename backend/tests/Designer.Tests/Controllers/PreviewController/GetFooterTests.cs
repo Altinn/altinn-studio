@@ -12,16 +12,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetFooterTests : PreviewControllerTestsBase<GetFooterTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetFooterTests
+        : PreviewControllerTestsBase<GetFooterTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public GetFooterTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetFooterTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Footer_Exists_Ok()
         {
-            string expectedFooter = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/ui/footer.json");
+            string expectedFooter = TestDataHelper.GetFileFromRepo(
+                Org,
+                AppV4,
+                Developer,
+                "App/ui/footer.json"
+            );
             FooterFile actualFooterFile = JsonSerializer.Deserialize<FooterFile>(expectedFooter);
 
             string dataPathWithData = $"{Org}/{AppV4}/api/v1/footer";

@@ -8,11 +8,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
 public class Custom401Handler : DelegatingHandler
 {
-    public Custom401Handler(HttpClientHandler innerHandler) : base(innerHandler)
-    {
-    }
+    public Custom401Handler(HttpClientHandler innerHandler)
+        : base(innerHandler) { }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         var response = await base.SendAsync(request, cancellationToken);
 

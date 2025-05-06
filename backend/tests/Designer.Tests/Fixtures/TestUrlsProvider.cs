@@ -6,7 +6,8 @@ namespace Designer.Tests.Fixtures
 {
     public sealed class TestUrlsProvider
     {
-        private static readonly Lazy<TestUrlsProvider> s_instance = new(() => new TestUrlsProvider());
+        private static readonly Lazy<TestUrlsProvider> s_instance = new(() => new TestUrlsProvider()
+        );
 
         public static TestUrlsProvider Instance => s_instance.Value;
 
@@ -22,7 +23,6 @@ namespace Designer.Tests.Fixtures
             GiteaPort = GetRandomAvailablePort();
             DesignerUrl = $"http://localhost:{DesignerPort}";
             GiteaUrl = $"http://localhost:{GiteaPort}";
-
         }
 
         public static int GetRandomAvailablePort()

@@ -7,7 +7,12 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
     {
         public static Uri Append(this Uri uri, params string[] paths)
         {
-            return new Uri(paths.Aggregate(uri.AbsoluteUri, (current, path) => $"{current.TrimEnd('/')}/{path.TrimStart('/')}"));
+            return new Uri(
+                paths.Aggregate(
+                    uri.AbsoluteUri,
+                    (current, path) => $"{current.TrimEnd('/')}/{path.TrimStart('/')}"
+                )
+            );
         }
     }
 }

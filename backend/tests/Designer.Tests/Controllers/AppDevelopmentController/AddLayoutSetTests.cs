@@ -19,21 +19,33 @@ using Xunit;
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
-          : DesignerEndpointsTestsBase<AddLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+        : DesignerEndpointsTestsBase<AddLayoutSetTests>(factory),
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-development";
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-        public async Task AddLayoutSets_NewSet_ReturnsOk(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSets_NewSet_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = ["NewTask"],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = "data",
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
@@ -41,7 +53,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -58,71 +74,122 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task AddLayoutSet_NewLayoutSetIdExistsBefore_ReturnsOKButWithConflictDetails(string org, string app, string developer,
-           string layoutSetId)
+        public async Task AddLayoutSet_NewLayoutSetIdExistsBefore_ReturnsOKButWithConflictDetails(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["newTask"] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = ["newTask"],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = "data",
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
-            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-            Assert.Equal($"Layout set name, {layoutSetId}, already exists.", responseMessage["infoMessage"]);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<
+                Dictionary<string, string>
+            >(responseContent);
+            Assert.Equal(
+                $"Layout set name, {layoutSetId}, already exists.",
+                responseMessage["infoMessage"]
+            );
         }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-        public async Task AddLayoutSet_NewLayoutSetTaskIdExistsBefore_ReturnsOKButWithConflictDetails(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSet_NewLayoutSetTaskIdExistsBefore_ReturnsOKButWithConflictDetails(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             const string ExistingTaskId = "Task_1";
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [ExistingTaskId] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = [ExistingTaskId],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = "data",
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
-            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-            Assert.Equal($"Layout set with task, {ExistingTaskId}, already exists.", responseMessage["infoMessage"]);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<
+                Dictionary<string, string>
+            >(responseContent);
+            Assert.Equal(
+                $"Layout set with task, {ExistingTaskId}, already exists.",
+                responseMessage["infoMessage"]
+            );
         }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = "" };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = "data",
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -131,20 +198,35 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-        public async Task AddLayoutSet_TaskTypeIsNull_AddsLayoutSetAndReturnsOk(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSet_TaskTypeIsNull_AddsLayoutSetAndReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = ["NewTask"],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = null, LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = null,
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -153,56 +235,96 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-        public async Task AddLayoutSet_TaskTypeIsPayment_AddsLayoutSetWithPaymentComponentInInitialLayoutAndReturnsOk(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSet_TaskTypeIsPayment_AddsLayoutSetWithPaymentComponentInInitialLayoutAndReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = ["NewTask"],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = TaskType.Payment, LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = TaskType.Payment,
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            JsonNode initialLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId);
+            JsonNode initialLayout = await GetLayoutFile(
+                org,
+                targetRepository,
+                developer,
+                layoutSetId
+            );
 
             var defaultComponent = new JsonObject
             {
                 ["id"] = "PaymentComponentId",
                 ["type"] = "Payment",
-                ["renderAsSummary"] = true
+                ["renderAsSummary"] = true,
             };
 
             JsonArray layout = initialLayout["data"]["layout"] as JsonArray;
 
             Assert.Single(layout);
-            Assert.True(JsonUtils.DeepEquals(defaultComponent.ToJsonString(), initialLayout["data"]["layout"][0].ToJsonString()));
+            Assert.True(
+                JsonUtils.DeepEquals(
+                    defaultComponent.ToJsonString(),
+                    initialLayout["data"]["layout"][0].ToJsonString()
+                )
+            );
         }
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
-            string layoutSetId)
+        public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(
+            string org,
+            string app,
+            string developer,
+            string layoutSetId
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
+            var newLayoutSetConfig = new LayoutSetConfig()
+            {
+                Id = layoutSetId,
+                Tasks = ["NewTask"],
+            };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            {
+                TaskType = "data",
+                LayoutSetConfig = newLayoutSetConfig,
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json")
+                Content = new StringContent(
+                    JsonSerializer.Serialize(layoutSetPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -211,23 +333,32 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
         {
-            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-                new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+                TestDataHelper.GetTestDataRepositoriesRootDirectory()
+            );
             AltinnAppGitRepository altinnAppGitRepository =
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
 
             return await altinnAppGitRepository.GetLayoutSetsFile();
         }
 
-        private async Task<JsonNode> GetLayoutFile(string org, string app, string developer, string layoutSetName)
+        private async Task<JsonNode> GetLayoutFile(
+            string org,
+            string app,
+            string developer,
+            string layoutSetName
+        )
         {
-            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-                new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+                TestDataHelper.GetTestDataRepositoriesRootDirectory()
+            );
             AltinnAppGitRepository altinnAppGitRepository =
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
 
-            return await altinnAppGitRepository.GetLayout(layoutSetName, AltinnAppGitRepository.InitialLayoutFileName);
+            return await altinnAppGitRepository.GetLayout(
+                layoutSetName,
+                AltinnAppGitRepository.InitialLayoutFileName
+            );
         }
     }
 }
-

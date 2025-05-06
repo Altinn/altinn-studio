@@ -51,7 +51,9 @@ public class EnvironmentsService : IEnvironmentsService
         string cachekey = System.Reflection.MethodBase.GetCurrentMethod().Name;
         if (!_cache.TryGetValue(cachekey, out environmentModel))
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
+            HttpResponseMessage response = await _httpClient.GetAsync(
+                _generalSettings.EnvironmentsUrl
+            );
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 EnvironmentsModel result = await response.Content.ReadAsAsync<EnvironmentsModel>();
@@ -76,8 +78,10 @@ public class EnvironmentsService : IEnvironmentsService
 
         string content = await response.Content.ReadAsStringAsync();
         var responseJsonContent = JsonNode.Parse(content);
-        var orgEnvironmentNames = JsonSerializer.Deserialize<List<string>>(responseJsonContent["orgs"][org]["environments"].ToJsonString(), new JsonSerializerOptions
-        { PropertyNameCaseInsensitive = true });
+        var orgEnvironmentNames = JsonSerializer.Deserialize<List<string>>(
+            responseJsonContent["orgs"][org]["environments"].ToJsonString(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
 
         var allEnvs = await GetEnvironments();
         var orgEnvModels = allEnvs.Where(env => orgEnvironmentNames.Contains(env.Name)).ToList();

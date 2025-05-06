@@ -10,9 +10,8 @@ namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
 
 public class CreateIntegrationTests : ReleaseEntityIntegrationTestsBase
 {
-    public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public CreateIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd")]
@@ -20,13 +19,16 @@ public class CreateIntegrationTests : ReleaseEntityIntegrationTestsBase
     {
         var repository = new ReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(org, buildId: buildId.ToString());
+        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(
+            org,
+            buildId: buildId.ToString()
+        );
         await repository.Create(releaseEntity);
-        var dbRecord = await DbFixture.DbContext.Releases.AsNoTracking().FirstOrDefaultAsync(d =>
-            d.Org == org &&
-            d.App == releaseEntity.App &&
-            d.Buildid == buildId.ToString());
+        var dbRecord = await DbFixture
+            .DbContext.Releases.AsNoTracking()
+            .FirstOrDefaultAsync(d =>
+                d.Org == org && d.App == releaseEntity.App && d.Buildid == buildId.ToString()
+            );
         EntityAssertions.AssertEqual(releaseEntity, dbRecord);
     }
-
 }

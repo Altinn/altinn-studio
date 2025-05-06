@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-      <IsPackable>false</IsPackable>
-    </PropertyGroup>
-
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\testdata\Model\**\*.*">
       <LinkBase>TestData\Model</LinkBase>
@@ -17,27 +15,22 @@
   <ItemGroup>
     <EmbeddedResource Remove="..\..\..\testdata\Model\CSharp\melding.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="..\..\..\testdata\Model\CSharp\**" />
     <Compile Remove="..\..\..\testdata\Model\Issue\**\*.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\..\..\testdata\Model\CSharp\melding.cs">
       <Link>TestData\Model\CSharp\melding.cs</Link>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\testdata\App\**\*.*">
       <LinkBase>TestData\App</LinkBase>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" />
   </ItemGroup>
-
 </Project>

@@ -52,7 +52,11 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
         ProcessContent = processContent;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -72,7 +76,9 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
             return true;
         }
 
-        return Id == other.Id && Namespace == other.Namespace && ProcessContent == other.ProcessContent;
+        return Id == other.Id
+            && Namespace == other.Namespace
+            && ProcessContent == other.ProcessContent;
     }
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
@@ -98,7 +104,11 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
         /// <summary>
         /// Read @xsdAnyAttribute keyword from json schema
         /// </summary>
-        public override XsdAnyAttributeKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdAnyAttributeKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 
@@ -111,7 +121,9 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
             string @namespace = null;
             string processContent = null;
 
-            IEnumerable<(string Name, string Value)> properties = document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString()));
+            IEnumerable<(string Name, string Value)> properties = document
+                .RootElement.EnumerateObject()
+                .Select(p => (p.Name, p.Value.GetString()));
             foreach (var property in properties)
             {
                 switch (property.Name)
@@ -136,7 +148,11 @@ public sealed class XsdAnyAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdA
         /// <summary>
         /// Write @xsdAnyAttribute keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdAnyAttributeKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdAnyAttributeKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteStartObject();

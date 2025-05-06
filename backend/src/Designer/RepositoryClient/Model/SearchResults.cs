@@ -17,16 +17,17 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults"/> class.
         /// </summary>
-        public SearchResults()
-        {
-        }
+        public SearchResults() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults" /> class.
         /// </summary>
         /// <param name="data">Data.</param>
         /// <param name="ok">Ok.</param>
-        public SearchResults(List<Repository> data = default(List<Repository>), bool? ok = default(bool?))
+        public SearchResults(
+            List<Repository> data = default(List<Repository>),
+            bool? ok = default(bool?)
+        )
         {
             this.Data = data;
             this.Ok = ok;
@@ -92,15 +93,10 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Data == other.Data ||
-                    (this.Data != null &&
-                    this.Data.SequenceEqual(other.Data))) &&
-                (
-                    this.Ok == other.Ok ||
-                    (this.Ok != null &&
-                    this.Ok.Equals(other.Ok)));
+            return (
+                    this.Data == other.Data
+                    || (this.Data != null && this.Data.SequenceEqual(other.Data))
+                ) && (this.Ok == other.Ok || (this.Ok != null && this.Ok.Equals(other.Ok)));
         }
 
         /// <summary>
@@ -132,7 +128,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

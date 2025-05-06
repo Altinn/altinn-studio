@@ -12,8 +12,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Exceptions
         /// </summary>
         /// <param name="message">A custom message for this specific exception</param>
         public GiteaUnathorizedException(string message)
-            : base(message)
-        {
-        }
+            : base(message) { }
     }
 }

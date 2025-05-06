@@ -36,7 +36,11 @@ public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxO
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -70,7 +74,11 @@ public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxO
     internal class XsdMaxOccursKeywordJsonConverter : JsonConverter<XsdMaxOccursKeyword>
     {
         /// <inheritdoc/>
-        public override XsdMaxOccursKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdMaxOccursKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {
@@ -81,7 +89,11 @@ public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxO
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdMaxOccursKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdMaxOccursKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteString(Name, value.Value);
         }

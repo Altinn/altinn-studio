@@ -35,7 +35,10 @@ public class RestrictionHelperTests
     [InlineData("-2344.22", 4)]
     [InlineData("-1.011", 3)]
     [InlineData("-12.33", 3)]
-    public void TotalDigitsDecimalRegexString_ShouldNotMatch_Too_Long(string input, uint totalDigits)
+    public void TotalDigitsDecimalRegexString_ShouldNotMatch_Too_Long(
+        string input,
+        uint totalDigits
+    )
     {
         var regex = new Regex(RestrictionsHelper.TotalDigitsDecimalRegexString(totalDigits));
 
@@ -63,7 +66,10 @@ public class RestrictionHelperTests
     [InlineData("-1111123", 5)]
     [InlineData("-12374628964", 8)]
     [InlineData("-123.1", 4)]
-    public void TotalDigitsRegexInteger_ShouldNotMatch_Too_Long_Or_Decimal(string input, uint totalDigits)
+    public void TotalDigitsRegexInteger_ShouldNotMatch_Too_Long_Or_Decimal(
+        string input,
+        uint totalDigits
+    )
     {
         var regex = new Regex(RestrictionsHelper.TotalDigitsIntegerRegexString(totalDigits));
 

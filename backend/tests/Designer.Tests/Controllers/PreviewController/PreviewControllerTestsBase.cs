@@ -12,8 +12,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PreviewControllerTestsBase<TTestClass>(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<TTestClass>(factory)
-    where TTestClass : class
+    public class PreviewControllerTestsBase<TTestClass>(WebApplicationFactory<Program> factory)
+        : DesignerEndpointsTestsBase<TTestClass>(factory)
+        where TTestClass : class
     {
         protected const string Org = "ttd";
         protected const string AppV3 = "app-without-layoutsets";
@@ -32,8 +33,9 @@ namespace Designer.Tests.Controllers.PreviewController
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             base.ConfigureTestServices(services);
-            var cacheServices = services.Where(
-                d => d.ServiceType == typeof(IDistributedCache)).ToList();
+            var cacheServices = services
+                .Where(d => d.ServiceType == typeof(IDistributedCache))
+                .ToList();
             foreach (ServiceDescriptor serviceDescriptor in cacheServices)
             {
                 services.Remove(serviceDescriptor);
@@ -44,27 +46,34 @@ namespace Designer.Tests.Controllers.PreviewController
 
         protected async Task<Instance> CreateInstance()
         {
-            string dataPath = $"{Org}/{AppV4}/instances?instanceOwnerPartyId={PartyId}&taskId={TaskId}";
+            string dataPath =
+                $"{Org}/{AppV4}/instances?instanceOwnerPartyId={PartyId}&taskId={TaskId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPath);
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseBody = await response.Content.ReadAsStringAsync();
-            Instance dataItem = JsonSerializer.Deserialize<Instance>(responseBody, JsonSerializerOptions);
+            Instance dataItem = JsonSerializer.Deserialize<Instance>(
+                responseBody,
+                JsonSerializerOptions
+            );
             Assert.NotNull(dataItem);
             return dataItem;
         }
 
         protected async Task<DataElement> CreateDataElement(Instance instance, string dataType)
         {
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data?dataType={dataType}";
+            string dataPathWithData =
+                $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data?dataType={dataType}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             string responseBody = await response.Content.ReadAsStringAsync();
-            DataElement dataElement = JsonSerializer.Deserialize<DataElement>(responseBody, JsonSerializerOptions);
+            DataElement dataElement = JsonSerializer.Deserialize<DataElement>(
+                responseBody,
+                JsonSerializerOptions
+            );
             Assert.NotNull(dataElement);
             return dataElement;
         }
-
     }
 }

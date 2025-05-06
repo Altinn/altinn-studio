@@ -21,9 +21,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadUser"/> class.
         /// </summary>
-        public PayloadUser()
-        {
-        }
+        public PayloadUser() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadUser" /> class.
@@ -31,7 +29,11 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="email">Email.</param>
         /// <param name="name">Full name of the commit author.</param>
         /// <param name="username">Username.</param>
-        public PayloadUser(string email = default(string), string name = default(string), string username = default(string))
+        public PayloadUser(
+            string email = default(string),
+            string name = default(string),
+            string username = default(string)
+        )
         {
             this.Email = email;
             this.Name = name;

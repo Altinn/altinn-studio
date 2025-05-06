@@ -23,7 +23,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
         /// <param name="serviceConfiguration">ServiceConfiguration</param>
-        public Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration);
+        public Task UpdateAppMetadataConfigAsync(
+            string org,
+            string app,
+            ServiceConfiguration serviceConfiguration
+        );
 
         /// <summary>
         /// Registers the metadata connected to a specific GITEA repository on a certain commitId
@@ -33,7 +37,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="fullCommitId">Commit Id</param>
         /// <param name="envName">Environment Name</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task UpdateApplicationMetadataInStorageAsync(string org, string app, string fullCommitId, string envName, CancellationToken cancellationToken = default);
+        public Task UpdateApplicationMetadataInStorageAsync(
+            string org,
+            string app,
+            string fullCommitId,
+            string envName,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Updates app title in application metadata
@@ -42,7 +52,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="languageId"> the language id</param>
         /// <param name="title"> new application title </param>
-        public Task UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title);
+        public Task UpdateAppTitleInAppMetadata(
+            string org,
+            string app,
+            string languageId,
+            string title
+        );
 
         /// <summary>
         /// Updates application metadata
@@ -50,7 +65,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata to be updated</param>
-        public Task UpdateApplicationMetaDataLocally(string org, string app, ApplicationMetadata applicationMetadata);
+        public Task UpdateApplicationMetaDataLocally(
+            string org,
+            string app,
+            ApplicationMetadata applicationMetadata
+        );
 
         /// <summary>
         /// Returns the application metadata for an application.
@@ -58,7 +77,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application  metadata for an application.</returns>
-        public Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app);
+        public Task<ApplicationMetadata> GetApplicationMetadataFromRepository(
+            string org,
+            string app
+        );
 
         /// <summary>
         /// Returns the application metadata exists in repo.

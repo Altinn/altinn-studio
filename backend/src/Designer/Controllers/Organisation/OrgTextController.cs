@@ -39,13 +39,22 @@ public class OrgTextController : ControllerBase
     /// <returns>The JSON config</returns>
     [HttpGet]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> GetResources(string org, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> GetResources(
+        string org,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         try
         {
-            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
+            TextResource textResource = await _orgTextsService.GetText(
+                org,
+                developer,
+                languageCode,
+                cancellationToken
+            );
             return Ok(textResource);
         }
         catch (NotFoundException)
@@ -64,15 +73,31 @@ public class OrgTextController : ControllerBase
     /// <returns>The updated resource file</returns>
     [HttpPost]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> CreateResource([FromBody] TextResource jsonData, string languageCode, string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> CreateResource(
+        [FromBody] TextResource jsonData,
+        string languageCode,
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            await _orgTextsService.SaveText(org, developer, jsonData, languageCode, cancellationToken);
-            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
+            await _orgTextsService.SaveText(
+                org,
+                developer,
+                jsonData,
+                languageCode,
+                cancellationToken
+            );
+            TextResource textResource = await _orgTextsService.GetText(
+                org,
+                developer,
+                languageCode,
+                cancellationToken
+            );
             return Ok(textResource);
         }
         catch (ArgumentException e)
@@ -93,15 +118,31 @@ public class OrgTextController : ControllerBase
     /// <returns>The updated resource file</returns>
     [HttpPatch]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> UpdateResource(string org, [FromBody] Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> UpdateResource(
+        string org,
+        [FromBody] Dictionary<string, string> keysTexts,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            await _orgTextsService.UpdateTextsForKeys(org, developer, keysTexts, languageCode, cancellationToken);
-            TextResource textResource = await _orgTextsService.GetText(org, developer, languageCode, cancellationToken);
+            await _orgTextsService.UpdateTextsForKeys(
+                org,
+                developer,
+                keysTexts,
+                languageCode,
+                cancellationToken
+            );
+            TextResource textResource = await _orgTextsService.GetText(
+                org,
+                developer,
+                languageCode,
+                cancellationToken
+            );
             return Ok(textResource);
         }
         catch (ArgumentException exception)
@@ -110,7 +151,9 @@ public class OrgTextController : ControllerBase
         }
         catch (NotFoundException)
         {
-            return BadRequest($"The text resource, resource.{languageCode}.json, could not be updated.");
+            return BadRequest(
+                $"The text resource, resource.{languageCode}.json, could not be updated."
+            );
         }
     }
 
@@ -122,7 +165,10 @@ public class OrgTextController : ControllerBase
     /// <returns>List of language codes</returns>
     [HttpGet]
     [Route("languages")]
-    public ActionResult<List<string>> GetLanguages(string org, CancellationToken cancellationToken = default)
+    public ActionResult<List<string>> GetLanguages(
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

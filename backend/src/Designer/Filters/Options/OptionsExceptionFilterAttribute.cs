@@ -19,8 +19,16 @@ public class OptionsExceptionFilterAttribute : ExceptionFilterAttribute
 
         if (context.Exception is InvalidOptionsFormatException)
         {
-            context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, OptionsErrorCodes.InvalidOptionsFormat, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    OptionsErrorCodes.InvalidOptionsFormat,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
         }
     }
-
 }

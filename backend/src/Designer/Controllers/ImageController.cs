@@ -22,10 +22,11 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images")]
+[Route(
+    "designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images"
+)]
 public class ImageController : ControllerBase
 {
-
     private readonly IImagesService _imagesService;
     private readonly ImageClient _imageClient;
 
@@ -49,7 +50,11 @@ public class ImageController : ControllerBase
     /// <returns>Image</returns>
     [HttpGet("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public FileStreamResult GetImageByName(string org, string app, [FromRoute] string encodedImagePath)
+    public FileStreamResult GetImageByName(
+        string org,
+        string app,
+        [FromRoute] string encodedImagePath
+    )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
@@ -98,7 +103,12 @@ public class ImageController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "file")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
+    public async Task<ActionResult> UploadImage(
+        string org,
+        string app,
+        [FromForm(Name = "file")] IFormFile image,
+        [FromForm(Name = "overrideExisting")] bool overrideExisting = false
+    )
     {
         if (image == null || image.Length == 0)
         {
@@ -106,7 +116,9 @@ public class ImageController : ControllerBase
         }
         if (!IsValidImageContentType(image.ContentType))
         {
-            throw new InvalidExtensionImageUploadException("The uploaded file is not a valid image.");
+            throw new InvalidExtensionImageUploadException(
+                "The uploaded file is not a valid image."
+            );
         }
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -115,7 +127,12 @@ public class ImageController : ControllerBase
         try
         {
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            await _imagesService.UploadImage(editingContext, imageName, image.OpenReadStream(), overrideExisting);
+            await _imagesService.UploadImage(
+                editingContext,
+                imageName,
+                image.OpenReadStream(),
+                overrideExisting
+            );
             return NoContent();
         }
         catch (InvalidOperationException e)
@@ -132,7 +149,11 @@ public class ImageController : ControllerBase
     /// <param name="encodedImagePath">Relative encoded path of image to delete</param>
     [HttpDelete("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteImage(string org, string app, [FromRoute] string encodedImagePath)
+    public async Task<ActionResult> DeleteImage(
+        string org,
+        string app,
+        [FromRoute] string encodedImagePath
+    )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
@@ -145,12 +166,13 @@ public class ImageController : ControllerBase
 
     private static string GetFileNameFromUploadedFile(IFormFile image)
     {
-        return ContentDispositionHeaderValue.Parse(new StringSegment(image.ContentDisposition)).FileName.ToString();
+        return ContentDispositionHeaderValue
+            .Parse(new StringSegment(image.ContentDisposition))
+            .FileName.ToString();
     }
 
     private bool IsValidImageContentType(string contentType)
     {
         return contentType.ToLower().StartsWith("image/");
     }
-
 }

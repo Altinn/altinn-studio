@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class LanguageTests : PreviewControllerTestsBase<LanguageTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class LanguageTests
+        : PreviewControllerTestsBase<LanguageTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public LanguageTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public LanguageTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Text_Ok()
@@ -26,7 +26,9 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
+            TextResource text = JsonConvert.DeserializeObject<TextResource>(
+                responseDocument.RootElement.ToString()
+            );
             Assert.Equal("nb", text.Language);
         }
     }

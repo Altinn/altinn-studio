@@ -5,9 +5,8 @@ namespace Altinn.Studio.Designer.Models.App;
 /// </summary>
 public class ApplicationMetadata : Altinn.App.Core.Models.ApplicationMetadata
 {
-    public ApplicationMetadata(string id) : base(id)
-    {
-    }
+    public ApplicationMetadata(string id)
+        : base(id) { }
 
     /// <summary>
     /// Gets or sets the altinn nuget version

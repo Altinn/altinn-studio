@@ -16,7 +16,10 @@ public static class HeadersExtensions
 
     public static IEnumerable<string> GetCookies(this HttpResponseMessage response)
     {
-        return response.Headers.TryGetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie, out IEnumerable<string> values)
+        return response.Headers.TryGetValues(
+            Microsoft.Net.Http.Headers.HeaderNames.SetCookie,
+            out IEnumerable<string> values
+        )
             ? values
             : new List<string>();
     }
@@ -27,7 +30,10 @@ public static class HeadersExtensions
         return cookies.Where(x => x.Contains("i_like_gitea") || x.Contains("_flash"));
     }
 
-    public static IEnumerable<string> GetCookies(this HttpResponseMessage response, string searchTerm)
+    public static IEnumerable<string> GetCookies(
+        this HttpResponseMessage response,
+        string searchTerm
+    )
     {
         return response.GetCookies().Where(x => x.Contains(searchTerm));
     }
@@ -36,6 +42,4 @@ public static class HeadersExtensions
     {
         request.Headers.Add("X-XSRF-TOKEN", xsrfToken);
     }
-
 }
-

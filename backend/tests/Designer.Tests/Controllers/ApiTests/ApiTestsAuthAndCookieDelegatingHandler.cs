@@ -16,16 +16,18 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
 {
     private readonly string _baseAddress;
 
-    public ApiTestsAuthAndCookieDelegatingHandler() : this("http://localhost")
-    {
-    }
+    public ApiTestsAuthAndCookieDelegatingHandler()
+        : this("http://localhost") { }
 
     public ApiTestsAuthAndCookieDelegatingHandler(string baseAddress)
     {
         _baseAddress = baseAddress;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         if (request.Headers.TryGetValues("X-XSRF-TOKEN", out IEnumerable<string> _))
         {
@@ -38,7 +40,9 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
         using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
         xsrfResponse.EnsureSuccessStatusCode();
 
-        string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.Headers.GetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie));
+        string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(
+            xsrfResponse.Headers.GetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie)
+        );
         request.AddXsrfToken(xsrfToken);
 
         return await base.SendAsync(request, cancellationToken);

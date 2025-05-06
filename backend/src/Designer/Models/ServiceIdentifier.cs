@@ -21,9 +21,10 @@ namespace Altinn.Studio.Designer.Models
         /// <returns> The <see cref="bool"/>. </returns>
         public bool Equals(ServiceIdentifier other)
         {
-            return Org != null && Service != null
-                   && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
-                   && Service.Equals(other?.Service, StringComparison.CurrentCultureIgnoreCase);
+            return Org != null
+                && Service != null
+                && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
+                && Service.Equals(other?.Service, StringComparison.CurrentCultureIgnoreCase);
         }
 
         /// <summary> String representation of object. </summary>

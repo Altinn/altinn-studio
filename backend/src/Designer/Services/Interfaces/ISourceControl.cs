@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -26,7 +25,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "");
+        Task<string> CloneRemoteRepository(
+            string org,
+            string repository,
+            string destinationPath,
+            string branchName = ""
+        );
 
         /// <summary>
         /// Stores a App token for user
@@ -48,7 +52,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message);
+        Task CommitAndPushChanges(
+            string org,
+            string repository,
+            string branchName,
+            string localPath,
+            string message
+        );
 
         /// <summary>
         /// Pull remote changes
@@ -140,7 +150,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="branchName">Name of branch</param>
-        Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName);
+        Task<RepositoryClient.Model.Branch> CreateBranch(
+            string org,
+            string repository,
+            string branchName
+        );
 
         /// <summary>
         /// Creates a pull request for merging source into target for the provided repository.
@@ -150,7 +164,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="target">The name of the base ref</param>
         /// <param name="source">The name of the head ref</param>
         /// <param name="title">The pull request title</param>
-        Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title);
+        Task<bool> CreatePullRequest(
+            string org,
+            string repository,
+            string target,
+            string source,
+            string title
+        );
 
         /// <summary>
         /// Deletes the provided repository. Both local clone and remote repo.

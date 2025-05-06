@@ -14,10 +14,17 @@ namespace Designer.Tests.Kafka;
 public class KafkaProducerTests : IDisposable
 {
     private readonly string _kafkaCompooseFilePath;
+
     public KafkaProducerTests()
     {
         _kafkaCompooseFilePath = AltinnStudioRepositoryScanner.FindKafkaComposerFilePath();
-        if (!CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} up -d", out string _, out string error))
+        if (
+            !CommandExecutor.TryExecute(
+                $"docker compose -f {_kafkaCompooseFilePath} up -d",
+                out string _,
+                out string error
+            )
+        )
         {
             throw new Exception($"Failed to start kafka stack. Error: {error}");
         }
@@ -35,7 +42,7 @@ public class KafkaProducerTests : IDisposable
             SchemaRegistryUrl = LocalKafkaConstants.SchemaRegistryUrl,
             SchemaRegistryUserName = LocalKafkaConstants.SchemaRegistryUserName,
             SchemaRegistryPassword = LocalKafkaConstants.SchemaRegistryPassword,
-            StatisticsTopic = "altinn-app"
+            StatisticsTopic = "altinn-app",
         };
 
         var kafkaProducer = new KafkaProducer(kafkaSettings);
@@ -47,7 +54,7 @@ public class KafkaProducerTests : IDisposable
             Description = "Test",
             Org = "ttd",
             App = "app",
-            AdditionalData = new Dictionary<string, string> { { "studioEnvironment", "local" } }
+            AdditionalData = new Dictionary<string, string> { { "studioEnvironment", "local" } },
         };
 
         await kafkaProducer.ProduceAsync(studioStatistics);
@@ -56,6 +63,10 @@ public class KafkaProducerTests : IDisposable
     public void Dispose()
     {
         // try to stop kafka stack
-        CommandExecutor.TryExecute($"docker compose -f {_kafkaCompooseFilePath} down", out _, out _);
+        CommandExecutor.TryExecute(
+            $"docker compose -f {_kafkaCompooseFilePath} down",
+            out _,
+            out _
+        );
     }
 }

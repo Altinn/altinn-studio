@@ -11,7 +11,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ImagesService : IImagesService
 {
-
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
     /// <summary>
@@ -23,22 +22,45 @@ public class ImagesService : IImagesService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public FileStreamResult GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
+    public FileStreamResult GetImage(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string imageFilePath
+    )
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
-        return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
+        return new FileStreamResult(
+            imageStream,
+            MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower())
+        );
     }
 
     public List<string> GetAllImageFileNames(AltinnRepoEditingContext altinnRepoEditingContext)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         return altinnAppGitRepository.GetAllImageFileNames();
     }
 
-    public async Task UploadImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageName, Stream imageStream, bool overrideExisting)
+    public async Task UploadImage(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string imageName,
+        Stream imageStream,
+        bool overrideExisting
+    )
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         bool imageExists = altinnAppGitRepository.DoesImageExist(imageName);
         if (imageExists && !overrideExisting)
         {
@@ -49,9 +71,16 @@ public class ImagesService : IImagesService
         await altinnAppGitRepository.SaveImageAsMemoryStream(imageMemoryStream, imageName);
     }
 
-    public async Task DeleteImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
+    public async Task DeleteImage(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string imageFilePath
+    )
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         await altinnAppGitRepository.DeleteImageByImageFilePath(imageFilePath);
     }
 }

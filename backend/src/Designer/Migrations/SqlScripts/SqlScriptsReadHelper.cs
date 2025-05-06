@@ -15,7 +15,8 @@ public class SqlScriptsReadHelper
         }
 
         var assembly = typeof(SqlScriptsReadHelper).Assembly;
-        string resourceName = assembly.GetManifestResourceNames()
+        string resourceName = assembly
+            .GetManifestResourceNames()
             .Single(x => x.EndsWith(resourceNameEnding));
 
         using Stream stream = assembly.GetManifestResourceStream(resourceName);

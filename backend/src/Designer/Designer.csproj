@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Altinn.Studio.Designer</AssemblyName>
@@ -13,7 +12,6 @@
     <InvariantGlobalization>false</InvariantGlobalization>
     <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Altinn.App.Core" />
     <PackageReference Include="Altinn.Authorization.ABAC" />
@@ -64,14 +62,15 @@
     <PackageReference Include="Quartz.Serialization.SystemTextJson" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <Watch Include="**\*.cs;**\*.csproj" Exclude="node_modules\**\*;**\*.js.map;obj\**\*;bin\**\*;**\*.js" />
+    <Watch
+      Include="**\*.cs;**\*.csproj"
+      Exclude="node_modules\**\*;**\*.js.map;obj\**\*;bin\**\*;**\*.js"
+    />
   </ItemGroup>
-
   <ItemGroup>
     <CoreTemplates Include="../Templates/**/*" />
     <CoreTestdata Include="../Testdata/**/*" />
@@ -152,41 +151,36 @@
     <Watch Remove="TypedHttpClients\ResourceRegistryOptions\IResourceRegistryOptions.cs" />
     <Watch Remove="TypedHttpClients\ResourceRegistryOptions\ResourceRegistryOptionsClient.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Update="Views\Home\AppToken.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
   </ItemGroup>
-
-
   <ItemGroup>
     <EmbeddedResource Include="Services\Implementation\ProcessModeling\Templates\**\*.*" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Migrations/SqlScripts/**/*.sql" />
   </ItemGroup>
-
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
     <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />
     <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
-    <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates\%(RecursiveDir)" />
+    <Copy
+      SourceFiles="@(CoreTemplates)"
+      DestinationFolder="$(PublishDir)Templates\%(RecursiveDir)"
+    />
     <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
     <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
   </Target>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>bin\Release</OutputPath>
     <DocumentationFile>bin\Release\AltinnCore.Designer.xml</DocumentationFile>
   </PropertyGroup>
-
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

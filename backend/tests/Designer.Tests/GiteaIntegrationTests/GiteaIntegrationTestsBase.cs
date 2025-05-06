@@ -31,7 +31,6 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     protected override string TestRepositoriesLocation =>
         Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
 
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -50,10 +49,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             return;
         }
 
-        var directory = new DirectoryInfo(directoryPath)
-        {
-            Attributes = FileAttributes.Normal
-        };
+        var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
 
         foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
         {
@@ -63,17 +59,17 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         directory.Delete(true);
     }
 
-    protected sealed override void ConfigureTestServices(IServiceCollection services)
+    protected sealed override void ConfigureTestServices(IServiceCollection services) { }
+
+    protected GiteaIntegrationTestsBase(
+        GiteaWebAppApplicationFactoryFixture<Program> factory,
+        GiteaFixture giteaFixture,
+        SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
+    )
+        : base(factory)
     {
-
-    }
-
-    protected GiteaIntegrationTestsBase(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory)
-    {
-
         GiteaFixture = giteaFixture;
         _sharedDesignerHttpClientProvider = sharedDesignerHttpClientProvider;
-
     }
 
     private readonly SharedDesignerHttpClientProvider _sharedDesignerHttpClientProvider;
@@ -96,28 +92,35 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             .AddEnvironmentVariables()
             .Build();
 
-        Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((t, conf) =>
+        Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath, false, false);
-                conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
-                conf.AddEnvironmentVariables();
-            });
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (t, conf) =>
+                    {
+                        conf.AddJsonFile(configPath, false, false);
+                        conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
+                        conf.AddEnvironmentVariables();
+                    }
+                );
 
-            builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient();
+                builder.ConfigureTestServices(ConfigureTestServices);
+            })
+            .CreateDefaultClient();
 
-        _sharedDesignerHttpClientProvider.SharedHttpClient =
-            new HttpClient(new GiteaAuthDelegatingHandler()
+        _sharedDesignerHttpClientProvider.SharedHttpClient = new HttpClient(
+            new GiteaAuthDelegatingHandler()
             {
                 InnerHandler = new CookieContainerHandler(CookieContainer)
                 {
-                    InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
-                }
-            })
-            { BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl) };
+                    InnerHandler = new HttpClientHandler { AllowAutoRedirect = false },
+                },
+            }
+        )
+        {
+            BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl),
+        };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
@@ -125,9 +128,16 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     protected Stream GenerateGiteaOverrideConfigStream()
     {
         string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
-        string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
+        string templateLocationPath = Path.Combine(
+            CommonDirectoryPath.GetSolutionDirectory().DirectoryPath,
+            "..",
+            "testdata",
+            "AppTemplates",
+            "AspNet"
+        );
         string templateLocation = new Uri(templateLocationPath).AbsolutePath;
-        string configOverride = $@"
+        string configOverride =
+            $@"
               {{
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
@@ -178,11 +188,13 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
     protected async Task CreateAppUsingDesigner(string org, string repoName)
     {
-        CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
+        CreatedFolderPath =
+            $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
         // Create repo with designer
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
             HttpMethod.Post,
-            $"designer/api/repos/create-app?org={org}&repository={repoName}");
+            $"designer/api/repos/create-app?org={org}&repository={repoName}"
+        );
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

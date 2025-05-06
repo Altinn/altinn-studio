@@ -9,7 +9,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     /// </summary>
     public interface ITextsService
     {
-
         /// <summary>
         /// Creates the default text resource file in old text format with appName
         /// </summary>
@@ -36,7 +35,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
         /// <returns>The text file</returns>
-        public Task<TextResource> GetText(string org, string repo, string developer, string languageCode);
+        public Task<TextResource> GetText(
+            string org,
+            string repo,
+            string developer,
+            string languageCode
+        );
 
         /// <summary>
         /// Saves text resource in old format.
@@ -47,7 +51,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="textResource">The text resource to be saved</param>
         /// <param name="languageCode">LanguageCode</param>
         /// <returns></returns>
-        public Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode);
+        public Task SaveText(
+            string org,
+            string repo,
+            string developer,
+            TextResource textResource,
+            string languageCode
+        );
 
         /// <summary>
         /// Updates values for
@@ -58,7 +68,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="keysTexts"></param>
         /// <param name="languageCode"></param>
         /// <returns></returns>
-        public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
+        public Task UpdateTextsForKeys(
+            string org,
+            string repo,
+            string developer,
+            Dictionary<string, string> keysTexts,
+            string languageCode
+        );
 
         /// <summary>
         /// Updates references to text keys in layout files.
@@ -68,6 +84,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="keyMutations">A list of the keys that are updated</param>
         /// <returns></returns>
-        public Task<List<string>> UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
+        public Task<List<string>> UpdateRelatedFiles(
+            string org,
+            string app,
+            string developer,
+            List<TextIdMutation> keyMutations
+        );
     }
 }

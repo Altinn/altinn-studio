@@ -11,21 +11,31 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class GetProcessDefinitionTests : DesignerEndpointsTestsBase<GetProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetProcessDefinitionTests
+        : DesignerEndpointsTestsBase<GetProcessDefinitionTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "app-with-options", "testUser", "App/config/process/process.bpmn")]
-        public async Task GetProcessDefinitionTests_ShouldReturnOK(string org, string app, string developer, string bpmnFilePath)
+        public async Task GetProcessDefinitionTests_ShouldReturnOK(
+            string org,
+            string app,
+            string developer,
+            string bpmnFilePath
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string fileContent = await AddFileToRepo(bpmnFilePath, "App/config/process/process.bpmn");
+            string fileContent = await AddFileToRepo(
+                bpmnFilePath,
+                "App/config/process/process.bpmn"
+            );
 
             string url = VersionPrefix(org, targetRepository);
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -42,7 +52,10 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets")]
-        public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(string org, string app)
+        public async Task GetProcessDefinitionTests_If_Doesnt_Exists_ShouldReturnNotFound(
+            string org,
+            string app
+        )
         {
             string url = VersionPrefix(org, app);
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -51,7 +64,10 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        private async Task<string> AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
+        private async Task<string> AddFileToRepo(
+            string fileToCopyPath,
+            string relativeCopyRepoLocation
+        )
         {
             string fileContent = SharedResourcesHelper.LoadTestDataAsString(fileToCopyPath);
             string filePath = Path.Combine(TestRepoPath, relativeCopyRepoLocation);
@@ -63,6 +79,5 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             await File.WriteAllTextAsync(filePath, fileContent);
             return fileContent;
         }
-
     }
 }

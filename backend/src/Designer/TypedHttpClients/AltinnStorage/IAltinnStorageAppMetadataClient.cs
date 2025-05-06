@@ -18,7 +18,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// <param name="applicationMetadata">Application</param>
         /// <param name="envName">Environment Name</param>
         /// <returns></returns>
-        Task UpsertApplicationMetadata(string org, string app, ApplicationMetadata applicationMetadata, string envName);
+        Task UpsertApplicationMetadata(
+            string org,
+            string app,
+            ApplicationMetadata applicationMetadata,
+            string envName
+        );
 
         /// <summary>
         /// Returns the application metadata that is stored in Platform.Storage
@@ -27,7 +32,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// <param name="envName">A name of the platform environment.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>An <see cref="ApplicationMetadata"/> that's currently stored in the storage</returns>
-        Task<ApplicationMetadata> GetApplicationMetadataAsync(AltinnRepoContext altinnRepoContext, string envName, CancellationToken cancellationToken = default);
-
+        Task<ApplicationMetadata> GetApplicationMetadataAsync(
+            AltinnRepoContext altinnRepoContext,
+            string envName,
+            CancellationToken cancellationToken = default
+        );
     }
 }

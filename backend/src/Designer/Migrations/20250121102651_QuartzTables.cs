@@ -11,14 +11,20 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("QuartzTables/tables_postgres.sql"));
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("QuartzTables/setup-grants.sql"));
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript("QuartzTables/tables_postgres.sql")
+            );
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript("QuartzTables/setup-grants.sql")
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("QuartzTables/drop_tables.sql"));
+            migrationBuilder.Sql(
+                SqlScriptsReadHelper.ReadSqlScript("QuartzTables/drop_tables.sql")
+            );
         }
     }
 }

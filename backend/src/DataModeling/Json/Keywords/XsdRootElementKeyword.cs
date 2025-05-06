@@ -37,7 +37,11 @@ public sealed class XsdRootElementKeyword : IJsonSchemaKeyword, IEquatable<XsdRo
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -71,7 +75,11 @@ public sealed class XsdRootElementKeyword : IJsonSchemaKeyword, IEquatable<XsdRo
     internal class XsdRootElementKeywordJsonConverter : JsonConverter<XsdRootElementKeyword>
     {
         /// <inheritdoc/>
-        public override XsdRootElementKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdRootElementKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {
@@ -82,7 +90,11 @@ public sealed class XsdRootElementKeyword : IJsonSchemaKeyword, IEquatable<XsdRo
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdRootElementKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdRootElementKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteString(Name, value.Value);
         }

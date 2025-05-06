@@ -9,11 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgTextController;
 
-public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetLanguagesTests
+    : DesignerEndpointsTestsBase<GetLanguagesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetLanguagesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string DeveloperName = "testUser";
     private const string OrgName = "ttd";
@@ -25,7 +26,13 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
         const string RepoName = "org-content";
         string targetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(DeveloperName, OrgName, RepoName, targetOrgName, targetRepoName);
+        await CopyOrgRepositoryForTest(
+            DeveloperName,
+            OrgName,
+            RepoName,
+            targetOrgName,
+            targetRepoName
+        );
 
         string apiUrl = ApiUrl(targetOrgName);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -49,7 +56,13 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
         const string RepoName = "org-content-empty";
         string targetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(DeveloperName, OrgName, RepoName, targetOrgName, targetRepoName);
+        await CopyOrgRepositoryForTest(
+            DeveloperName,
+            OrgName,
+            RepoName,
+            targetOrgName,
+            targetRepoName
+        );
 
         string apiUrl = ApiUrl(targetOrgName);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

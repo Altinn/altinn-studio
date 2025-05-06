@@ -22,7 +22,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaPushPermissionHandler(
             IGitea giteaApiWrapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaApiWrapper = giteaApiWrapper;
@@ -31,7 +32,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaPushPermissionRequirement requirement)
+            GiteaPushPermissionRequirement requirement
+        )
         {
             if (_httpContext == null)
             {
@@ -41,16 +43,17 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             string org = _httpContext.GetRouteValue("org")?.ToString();
             string app = _httpContext.GetRouteValue("app")?.ToString();
 
-            if (string.IsNullOrWhiteSpace(org) ||
-                string.IsNullOrWhiteSpace(app))
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
             {
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
-            RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
-            if (repository?.Permissions?.Push == true ||
-                repository?.Permissions?.Admin == true)
+            RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(
+                org,
+                app
+            );
+            if (repository?.Permissions?.Push == true || repository?.Permissions?.Admin == true)
             {
                 context.Succeed(requirement);
             }

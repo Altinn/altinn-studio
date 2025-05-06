@@ -7,21 +7,32 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetValidateResourceTests : ResourceAdminControllerTestsBaseClass<GetValidateResourceTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetValidateResourceTests
+        : ResourceAdminControllerTestsBaseClass<GetValidateResourceTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetValidateResourceTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetValidateResourceTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task ValidateServiceResourceById_IsValid()
         {
             //Arrange
             string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
-            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
+            RepositoryMock
+                .Setup(r =>
+                    r.GetServiceResourceById(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .Returns(GetServiceResourceForValidationTest(true));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -36,9 +47,20 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         {
             //Arrange
             string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
-            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
+            RepositoryMock
+                .Setup(r =>
+                    r.GetServiceResourceById(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .Returns(GetServiceResourceForValidationTest(false));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

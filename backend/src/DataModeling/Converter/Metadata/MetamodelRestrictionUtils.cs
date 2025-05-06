@@ -15,21 +15,23 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata;
 /// </summary>
 public static class MetamodelRestrictionUtils
 {
-    private static IEnumerable<Type> SupportedStringRestrictions => new List<Type>
-    {
-        typeof(MaxLengthKeyword),
-        typeof(PatternKeyword),
-        typeof(MinLengthKeyword),
-    };
+    private static IEnumerable<Type> SupportedStringRestrictions =>
+        new List<Type>
+        {
+            typeof(MaxLengthKeyword),
+            typeof(PatternKeyword),
+            typeof(MinLengthKeyword),
+        };
 
-    private static IEnumerable<Type> SupportedNumberRestrictions => new List<Type>
-    {
-        typeof(MaximumKeyword),
-        typeof(MinimumKeyword),
-        typeof(ExclusiveMaximumKeyword),
-        typeof(ExclusiveMinimumKeyword),
-        typeof(XsdTotalDigitsKeyword)
-    };
+    private static IEnumerable<Type> SupportedNumberRestrictions =>
+        new List<Type>
+        {
+            typeof(MaximumKeyword),
+            typeof(MinimumKeyword),
+            typeof(ExclusiveMaximumKeyword),
+            typeof(ExclusiveMinimumKeyword),
+            typeof(XsdTotalDigitsKeyword),
+        };
 
     private static IEnumerable<Type> AllSupportedRestrictions =>
         SupportedNumberRestrictions.Union(SupportedStringRestrictions);
@@ -50,7 +52,11 @@ public static class MetamodelRestrictionUtils
     /// <param name="xsdValueType">A <see cref="BaseValueType"/></param>
     /// <param name="subSchema">A <see cref="JsonSchema"/> holding restrictions in json schema</param>
     /// <param name="restrictions">Restrictions dictionary</param>
-    public static void EnrichRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
+    public static void EnrichRestrictions(
+        BaseValueType? xsdValueType,
+        JsonSchema subSchema,
+        Dictionary<string, Restriction> restrictions
+    )
     {
         if (xsdValueType == null)
         {
@@ -81,7 +87,10 @@ public static class MetamodelRestrictionUtils
     /// </summary>
     /// <param name="allOfKeyword">Composition keyword.</param>
     /// <param name="restrictions">Restrictions dictionary to populate.</param>
-    public static void PopulateRestrictions(AllOfKeyword allOfKeyword, Dictionary<string, Restriction> restrictions)
+    public static void PopulateRestrictions(
+        AllOfKeyword allOfKeyword,
+        Dictionary<string, Restriction> restrictions
+    )
     {
         foreach (var restrictionKeywordType in AllSupportedRestrictions)
         {
@@ -95,7 +104,10 @@ public static class MetamodelRestrictionUtils
     /// <summary>
     /// Adding restrictions for string type.
     /// </summary>
-    private static void AddStringRestrictions(JsonSchema subSchema, IDictionary<string, Restriction> restrictions)
+    private static void AddStringRestrictions(
+        JsonSchema subSchema,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         var enumKeyword = subSchema.GetKeywordOrNull<EnumKeyword>();
         if (enumKeyword != null)
@@ -118,7 +130,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedStringRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedStringRestrictions(
+        AllOfKeyword allOfKeyword,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
@@ -129,7 +144,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddEnumRestrictions(EnumKeyword enumKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddEnumRestrictions(
+        EnumKeyword enumKeyword,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         if (enumKeyword == null)
         {
@@ -153,7 +171,10 @@ public static class MetamodelRestrictionUtils
     /// <summary>
     /// Adding restrictions for number types.
     /// </summary>
-    private static void AddNumberRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
+    private static void AddNumberRestrictions(
+        JsonSchema subSchema,
+        Dictionary<string, Restriction> restrictions
+    )
     {
         if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
         {
@@ -170,7 +191,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedNumberRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedNumberRestrictions(
+        AllOfKeyword allOfKeyword,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
@@ -181,11 +205,16 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas(this AllOfKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordFromSubSchemas(
+        this AllOfKeyword allOfKeyword,
+        Type type,
+        out IJsonSchemaKeyword keyword
+    )
     {
         keyword = default;
-        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))
-            ?.TryGetKeywordByType(type, out keyword) ?? false;
+        return allOfKeyword
+                .Schemas.FirstOrDefault(s => s.HasKeyword(type))
+                ?.TryGetKeywordByType(type, out keyword) ?? false;
     }
 
     /// <summary>
@@ -198,7 +227,10 @@ public static class MetamodelRestrictionUtils
     /// <see cref="ExclusiveMaximumKeyword"/>,
     /// <see cref="ExclusiveMinimumKeyword"/>
     /// </summary>
-    private static void AddRestrictionFromKeyword<T>(this IDictionary<string, Restriction> restrictions, T keyword)
+    private static void AddRestrictionFromKeyword<T>(
+        this IDictionary<string, Restriction> restrictions,
+        T keyword
+    )
         where T : IJsonSchemaKeyword
     {
         var valueString = keyword switch
@@ -211,13 +243,16 @@ public static class MetamodelRestrictionUtils
             ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             XsdTotalDigitsKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            _ => throw new Exception("Not supported keyword type")
-
+            _ => throw new Exception("Not supported keyword type"),
         };
         restrictions.TryAdd(keyword.Keyword(), new Restriction { Value = valueString });
     }
 
-    private static bool TryGetKeywordByType(this JsonSchema schema, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordByType(
+        this JsonSchema schema,
+        Type type,
+        out IJsonSchemaKeyword keyword
+    )
     {
         keyword = schema?.Keywords?.SingleOrDefault(k => k.GetType() == type);
 

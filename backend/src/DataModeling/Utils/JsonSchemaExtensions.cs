@@ -56,7 +56,10 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="keywords">Look for the keyword in this list of keywords</param>
         /// <param name="keyword">The keyword or <code>null</code> if not found</param>
         /// <returns><code>true</code> if the keyword is found, <code>false</code> otherwise</returns>
-        public static bool TryGetKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords, out T keyword)
+        public static bool TryGetKeyword<T>(
+            this IEnumerable<IJsonSchemaKeyword> keywords,
+            out T keyword
+        )
             where T : IJsonSchemaKeyword
         {
             keyword = (T)keywords.SingleOrDefault(keyword => keyword is T);
@@ -104,12 +107,12 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="keywords">Look for the keyword in this schema instance</param>
         /// <param name="filter">A filter callback func</param>
         /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords, Func<T, bool> filter)
+        public static bool HasKeyword<T>(
+            this IEnumerable<IJsonSchemaKeyword> keywords,
+            Func<T, bool> filter
+        )
         {
-            return keywords
-                .Where(keyword => keyword is T)
-                .Cast<T>()
-                .Any(filter);
+            return keywords.Where(keyword => keyword is T).Cast<T>().Any(filter);
         }
 
         /// <summary>
@@ -129,10 +132,12 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="keywords">Look for the keywords in this schema instance</param>
         /// <param name="keywordTypes">The keyword types to look for</param>
         /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasAnyOfKeywords(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypes)
+        public static bool HasAnyOfKeywords(
+            this IEnumerable<IJsonSchemaKeyword> keywords,
+            params Type[] keywordTypes
+        )
         {
-            return keywords
-                .Any(keyword => keywordTypes.Contains(keyword.GetType()));
+            return keywords.Any(keyword => keywordTypes.Contains(keyword.GetType()));
         }
 
         /// <summary>
@@ -150,7 +155,9 @@ namespace Altinn.Studio.DataModeling.Utils
         /// </summary>
         /// <param name="keywords">The schema instance</param>
         /// <returns>A <see cref="WorkList{T}"/> of keywords</returns>
-        public static WorkList<IJsonSchemaKeyword> AsWorkList(this IEnumerable<IJsonSchemaKeyword> keywords)
+        public static WorkList<IJsonSchemaKeyword> AsWorkList(
+            this IEnumerable<IJsonSchemaKeyword> keywords
+        )
         {
             return new WorkList<IJsonSchemaKeyword>(keywords);
         }
@@ -161,7 +168,10 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="keywords">The list of keywords to filter</param>
         /// <param name="keywordTypesToFilterAway">The types of keyword to filter away</param>
         /// <returns>enumerable without the filtered out keywords</returns>
-        public static IEnumerable<IJsonSchemaKeyword> Filter(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypesToFilterAway)
+        public static IEnumerable<IJsonSchemaKeyword> Filter(
+            this IEnumerable<IJsonSchemaKeyword> keywords,
+            params Type[] keywordTypesToFilterAway
+        )
         {
             return keywords.Where(keyword => !keywordTypesToFilterAway.Contains(keyword.GetType()));
         }
@@ -173,7 +183,11 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="type">The type.  Can be combined with the bit-wise OR operator `|`.</param>
         /// <param name="isNillable">Indicating if type should be build in combination with <see cref="SchemaValueType.Null"/>/></param>
         /// <returns>Builder.</returns>
-        public static JsonSchemaBuilder Type(this JsonSchemaBuilder builder, SchemaValueType type, bool isNillable)
+        public static JsonSchemaBuilder Type(
+            this JsonSchemaBuilder builder,
+            SchemaValueType type,
+            bool isNillable
+        )
         {
             if (isNillable)
             {
@@ -193,7 +207,9 @@ namespace Altinn.Studio.DataModeling.Utils
         /// </summary>
         /// <param name="keywords"></param>
         /// <returns></returns>
-        public static IEnumerable<IJsonSchemaKeyword> OrderByPriority(this IEnumerable<IJsonSchemaKeyword> keywords)
+        public static IEnumerable<IJsonSchemaKeyword> OrderByPriority(
+            this IEnumerable<IJsonSchemaKeyword> keywords
+        )
         {
             return keywords.OrderBy(item => item.GetType() != typeof(XsdStructureKeyword));
         }

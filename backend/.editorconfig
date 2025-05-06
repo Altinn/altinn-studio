@@ -134,7 +134,6 @@ dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # Code style defaults
 csharp_using_directive_placement = outside_namespace:suggestion
-dotnet_sort_system_directives_first = true
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true:none
 csharp_preserve_single_line_statements = false:none
@@ -207,7 +206,70 @@ csharp_space_between_square_brackets = false
 
 # Custom style
 dotnet_diagnostic.IDE0011.severity = warning
-dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0005.severity = none
+
+# Conflicts with CSharpier
+dotnet_diagnostic.IDE0055.severity = none
+dotnet_diagnostic.SA1000.severity = none
+dotnet_diagnostic.SA1009.severity = none
+dotnet_diagnostic.SA1111.severity = none
+dotnet_diagnostic.SA1118.severity = none
+dotnet_diagnostic.SA1137.severity = none
+dotnet_diagnostic.SA1413.severity = none
+dotnet_diagnostic.SA1500.severity = none
+dotnet_diagnostic.SA1501.severity = none
+dotnet_diagnostic.SA1502.severity = none
+dotnet_diagnostic.SA1504.severity = none
+dotnet_diagnostic.SA1515.severity = none
+dotnet_diagnostic.SA1516.severity = none
+dotnet_diagnostic.SA1001.severity = none
+dotnet_diagnostic.SA1002.severity = none
+dotnet_diagnostic.SA1003.severity = none
+dotnet_diagnostic.SA1007.severity = none
+dotnet_diagnostic.SA1008.severity = none
+dotnet_diagnostic.SA1010.severity = none
+dotnet_diagnostic.SA1011.severity = none
+dotnet_diagnostic.SA1012.severity = none
+dotnet_diagnostic.SA1013.severity = none
+dotnet_diagnostic.SA1014.severity = none
+dotnet_diagnostic.SA1015.severity = none
+dotnet_diagnostic.SA1016.severity = none
+dotnet_diagnostic.SA1017.severity = none
+dotnet_diagnostic.SA1018.severity = none
+dotnet_diagnostic.SA1019.severity = none
+dotnet_diagnostic.SA1020.severity = none
+dotnet_diagnostic.SA1021.severity = none
+dotnet_diagnostic.SA1022.severity = none
+dotnet_diagnostic.SA1023.severity = none
+dotnet_diagnostic.SA1024.severity = none
+dotnet_diagnostic.SA1025.severity = none
+dotnet_diagnostic.SA1026.severity = none
+dotnet_diagnostic.SA1027.severity = none
+dotnet_diagnostic.SA1028.severity = none
+dotnet_diagnostic.SA1102.severity = none
+dotnet_diagnostic.SA1103.severity = none
+dotnet_diagnostic.SA1104.severity = none
+dotnet_diagnostic.SA1105.severity = none
+dotnet_diagnostic.SA1107.severity = none
+dotnet_diagnostic.SA1110.severity = none
+dotnet_diagnostic.SA1112.severity = none
+dotnet_diagnostic.SA1113.severity = none
+dotnet_diagnostic.SA1114.severity = none
+dotnet_diagnostic.SA1115.severity = none
+dotnet_diagnostic.SA1116.severity = none
+dotnet_diagnostic.SA1117.severity = none
+dotnet_diagnostic.SA1127.severity = none
+dotnet_diagnostic.SA1128.severity = none
+dotnet_diagnostic.SA1136.severity = none
+dotnet_diagnostic.SA1505.severity = none
+dotnet_diagnostic.SA1506.severity = none
+dotnet_diagnostic.SA1507.severity = none
+dotnet_diagnostic.SA1508.severity = none
+dotnet_diagnostic.SA1509.severity = none
+dotnet_diagnostic.SA1510.severity = none
+dotnet_diagnostic.SA1511.severity = none
+dotnet_diagnostic.SA1517.severity = none
+dotnet_diagnostic.SA1518.severity = none
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]

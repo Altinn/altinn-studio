@@ -16,7 +16,8 @@ namespace Altinn.Studio.Designer.Migrations
                 table: "deployments",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
         }
 
         /// <inheritdoc />
@@ -25,7 +26,8 @@ namespace Altinn.Studio.Designer.Migrations
             migrationBuilder.DropColumn(
                 name: "deployment_type",
                 schema: "designer",
-                table: "deployments");
+                table: "deployments"
+            );
         }
     }
 }

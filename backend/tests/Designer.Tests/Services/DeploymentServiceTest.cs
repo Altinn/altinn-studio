@@ -50,7 +50,8 @@ namespace Designer.Tests.Services
             _releaseRepository = new Mock<IReleaseRepository>();
             _environementsService = new Mock<IEnvironmentsService>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
-            _environementsService.Setup(req => req.GetEnvironments())
+            _environementsService
+                .Setup(req => req.GetEnvironments())
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _mediatrMock = new Mock<IPublisher>();
@@ -66,29 +67,42 @@ namespace Designer.Tests.Services
             // Arrange
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
-            _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetReleases("updatedRelease.json").First());
+            _releaseRepository
+                .Setup(r =>
+                    r.GetSucceededReleaseFromDb(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
-            _applicationInformationService.Setup(ais => ais.UpdateApplicationInformationAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            _applicationInformationService
+                .Setup(ais =>
+                    ais.UpdateApplicationInformationAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(Task.CompletedTask);
 
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<QueueBuildParameters>(),
-                It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient
+                .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()))
+                .ReturnsAsync(GetBuild());
 
-            _deploymentRepository.Setup(r => r.Create(
-                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+            _deploymentRepository
+                .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
             // Setup get deployments
-            _deploymentRepository.Setup(r => r.Get(
-                org,
-                app,
-                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
+            _deploymentRepository
+                .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(
+                    GetDeployments("createdDeployment.json")
+                        .Where(d => d.Org == org && d.App == app)
+                );
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -101,11 +115,15 @@ namespace Designer.Tests.Services
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
                 _generalSettings,
-                _fakeTimeProvider);
+                _fakeTimeProvider
+            );
 
             // Act
-            DeploymentEntity deploymentEntity =
-                await deploymentService.CreateAsync(org, app, deploymentModel);
+            DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(
+                org,
+                app,
+                deploymentModel
+            );
 
             // Assert
             Assert.NotNull(deploymentEntity);
@@ -117,25 +135,44 @@ namespace Designer.Tests.Services
             }
 
             _releaseRepository.Verify(
-                r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
-                Times.Once);
+                r =>
+                    r.GetSucceededReleaseFromDb(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
             _applicationInformationService.Verify(
-                ais => ais.UpdateApplicationInformationAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                ais =>
+                    ais.UpdateApplicationInformationAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
             _azureDevOpsBuildClient.Verify(
-                b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
+                b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()),
+                Times.Once
+            );
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
 
-            _mediatrMock.Verify(m => m.Publish(It.Is<DeploymentPipelineQueued>(n =>
-                n.EditingContext.Org == org &&
-                n.EditingContext.Repo == app &&
-                n.Environment == deploymentModel.EnvName &&
-                n.PipelineType == PipelineType.Deploy), It.IsAny<CancellationToken>()), Times.Once);
+            _mediatrMock.Verify(
+                m =>
+                    m.Publish(
+                        It.Is<DeploymentPipelineQueued>(n =>
+                            n.EditingContext.Org == org
+                            && n.EditingContext.Repo == app
+                            && n.Environment == deploymentModel.EnvName
+                            && n.PipelineType == PipelineType.Deploy
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
 
         [Theory]
@@ -144,9 +181,12 @@ namespace Designer.Tests.Services
         {
             // Arrange
             var environments = GetEnvironments("environments.json");
-            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            _environementsService
+                .Setup(e => e.GetOrganizationEnvironments(org))
+                .ReturnsAsync(environments);
             var pipelineDeployments = GetDeployments("completedDeployments.json");
-            _deploymentRepository.Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
+            _deploymentRepository
+                .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(pipelineDeployments);
 
             DeploymentService deploymentService = new(
@@ -160,27 +200,35 @@ namespace Designer.Tests.Services
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
                 _generalSettings,
-                _fakeTimeProvider);
+                _fakeTimeProvider
+            );
 
             // Act
-            SearchResults<DeploymentEntity> results =
-                await deploymentService.GetAsync(org, app, new DocumentQueryModel());
+            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(
+                org,
+                app,
+                new DocumentQueryModel()
+            );
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+            _deploymentRepository.Verify(
+                r => r.Get(org, app, It.IsAny<DocumentQueryModel>()),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task UpdateAsync()
         {
             // Arrange
-            _deploymentRepository.Setup(r => r.Get(
-                It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+            _deploymentRepository
+                .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
-            _deploymentRepository.Setup(r => r.Update(
-                It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
+            _deploymentRepository
+                .Setup(r => r.Update(It.IsAny<DeploymentEntity>()))
+                .Returns(Task.CompletedTask);
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -193,24 +241,41 @@ namespace Designer.Tests.Services
                 _deploymentLogger.Object,
                 _mediatrMock.Object,
                 _generalSettings,
-                _fakeTimeProvider);
+                _fakeTimeProvider
+            );
 
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
+            _azureDevOpsBuildClient
+                .Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
-            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
+            await deploymentService.UpdateAsync(
+                GetDeployments("createdDeployment.json").First().Build.Id,
+                "ttd"
+            );
 
             // Assert
-            _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _deploymentRepository.Verify(
+                r => r.Get(It.IsAny<string>(), It.IsAny<string>()),
+                Times.Once
+            );
             _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
         }
 
         private static List<ReleaseEntity> GetReleases(string filename)
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "ReleasesCollection",
+                filename
+            );
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -222,9 +287,18 @@ namespace Designer.Tests.Services
 
         private static List<DeploymentEntity> GetDeployments(string filename)
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "Deployments",
+                filename
+            );
             if (!File.Exists(path))
             {
                 return null;
@@ -236,10 +310,21 @@ namespace Designer.Tests.Services
 
         private static List<EnvironmentModel> GetEnvironments(string filename)
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development",
-                "azure-devops-mock", filename);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+            );
+            string path = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "development",
+                "azure-devops-mock",
+                filename
+            );
             if (File.Exists(path))
             {
                 string environments = File.ReadAllText(path);
@@ -252,10 +337,14 @@ namespace Designer.Tests.Services
             return null;
         }
 
-
         private static Build GetBuild()
         {
-            return new Build { Id = 1, Status = BuildStatus.InProgress, StartTime = DateTime.Now };
+            return new Build
+            {
+                Id = 1,
+                Status = BuildStatus.InProgress,
+                StartTime = DateTime.Now,
+            };
         }
 
         private static AzureDevOpsSettings GetAzureDevOpsSettings()
@@ -264,7 +353,7 @@ namespace Designer.Tests.Services
             {
                 BaseUri = "https://dev.azure.com/brreg/altinn-studio/_apis/",
                 BuildDefinitionId = 69,
-                DeployDefinitionId = 81
+                DeployDefinitionId = 81,
             };
         }
     }

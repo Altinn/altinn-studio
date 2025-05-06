@@ -23,10 +23,13 @@ public static class JsonStringEnumMemberNameExtensions
             }
         }
 
-        throw new ArgumentException($"'{enumValue}' does not have a JsonStringEnumMemberName attribute.");
+        throw new ArgumentException(
+            $"'{enumValue}' does not have a JsonStringEnumMemberName attribute."
+        );
     }
 
-    public static TEnum ToEnumValue<TEnum>(this string name) where TEnum : struct, Enum
+    public static TEnum ToEnumValue<TEnum>(this string name)
+        where TEnum : struct, Enum
     {
         foreach (TEnum value in Enum.GetValues<TEnum>().Cast<TEnum>())
         {
@@ -37,6 +40,8 @@ public static class JsonStringEnumMemberNameExtensions
             }
         }
 
-        throw new ArgumentException($"'{name}' is not a valid {typeof(TEnum).Name} JSON enum name.");
+        throw new ArgumentException(
+            $"'{name}' is not a valid {typeof(TEnum).Name} JSON enum name."
+        );
     }
 }

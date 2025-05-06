@@ -13,18 +13,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <summary>
         /// Initializes a new instance of the <see cref="SeresJsonSchemaAnalyzer"/> class.
         /// </summary>
-        public SeresJsonSchemaAnalyzer() : base()
-        {
-        }
+        public SeresJsonSchemaAnalyzer()
+            : base() { }
 
         /// <inheritdoc />
         public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             JsonSchema = schema;
-            Metadata = new JsonSchemaXsdMetadata()
-            {
-                SchemaOrigin = "Seres"
-            };
+            Metadata = new JsonSchemaXsdMetadata() { SchemaOrigin = "Seres" };
 
             if (JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword))
             {
@@ -35,8 +31,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 var messageNameElement = info.Value.GetProperty("meldingsnavn");
                 var messageTypeNameElement = info.Value.GetProperty("modellnavn");
 
-                Metadata.MessageName = messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
-                Metadata.MessageTypeName = messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
+                Metadata.MessageName =
+                    messageNameElement.ValueKind == JsonValueKind.Undefined
+                        ? "melding"
+                        : messageNameElement.GetString();
+                Metadata.MessageTypeName =
+                    messageTypeNameElement.ValueKind == JsonValueKind.Undefined
+                        ? null
+                        : messageNameElement.GetString();
             }
             else
             {

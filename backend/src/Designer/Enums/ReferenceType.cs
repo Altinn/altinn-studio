@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Enums
         Task,
         LayoutSet,
         Layout,
-        Component
+        Component,
     }
 }

@@ -10,13 +10,19 @@ public class RequestSyncResolver : IRequestSyncResolver
     private readonly IEnumerable<IRequestSyncEvaluator> _requestSyncEvaluators;
     private readonly IEditingContextResolver _editingContextResolver;
 
-    public RequestSyncResolver(IEnumerable<IRequestSyncEvaluator> requestSyncEvaluators, IEditingContextResolver editingContextResolver)
+    public RequestSyncResolver(
+        IEnumerable<IRequestSyncEvaluator> requestSyncEvaluators,
+        IEditingContextResolver editingContextResolver
+    )
     {
         _requestSyncEvaluators = requestSyncEvaluators;
         _editingContextResolver = editingContextResolver;
     }
 
-    public bool TryResolveSyncRequest(HttpContext httpContext, out AltinnRepoEditingContext editingContext)
+    public bool TryResolveSyncRequest(
+        HttpContext httpContext,
+        out AltinnRepoEditingContext editingContext
+    )
     {
         if (!_editingContextResolver.TryResolveContext(httpContext, out editingContext))
         {

@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Models
     public class RepoStatus
     {
         /// <summary>
-        /// The number of commits behind the 
+        /// The number of commits behind the
         /// </summary>
         public int? BehindBy { get; set; }
 

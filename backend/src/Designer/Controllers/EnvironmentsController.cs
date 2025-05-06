@@ -17,7 +17,6 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IEnvironmentsService _environmentsService;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EnvironmentsController"/> class.
         /// </summary>

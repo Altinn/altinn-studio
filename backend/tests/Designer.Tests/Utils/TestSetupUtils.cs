@@ -10,7 +10,16 @@ public class TestSetupUtils
     {
         if (System.Environment.OSVersion.Platform == PlatformID.Unix)
         {
-            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            Environment.SetEnvironmentVariable(
+                "ALTINN_KEYS_DIRECTORY",
+                Path.Combine(
+                    System.Environment.GetFolderPath(
+                        System.Environment.SpecialFolder.ApplicationData
+                    ),
+                    "ASP.NET",
+                    "DataProtection-Keys"
+                )
+            );
         }
     }
 }

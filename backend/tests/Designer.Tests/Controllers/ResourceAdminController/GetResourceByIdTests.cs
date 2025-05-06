@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetResourceByIdTests
+        : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetResourceByIdTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetResourceByIdTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetResourceById_OK()
@@ -24,7 +24,13 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
 
             RepositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r =>
+                    r.GetServiceResourceById(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
                 .Returns(
                     new ServiceResource
                     {
@@ -39,12 +45,21 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                         ResourceReferences = GetTestResourceReferences(),
                         Delegable = true,
                         Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                        HasCompetentAuthority = new CompetentAuthority
+                        {
+                            Organization = "ttd",
+                            Orgcode = "test",
+                            Name = new Dictionary<string, string>(),
+                        },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                    });
+                    }
+                );
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -57,9 +72,13 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetResourceById_NotFound()
         {
             // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
+            string uri =
+                $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -74,7 +93,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             // Arrange
             string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -87,9 +109,13 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetResourceById_PassingNoValidArgument_NotFound()
         {
             // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
+            string uri =
+                $"{VersionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

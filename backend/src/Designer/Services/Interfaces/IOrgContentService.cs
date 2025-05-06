@@ -19,5 +19,9 @@ public interface IOrgContentService
     /// <param name="context">The organisation context.</param>
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<LibraryContentReference>> GetOrgContentReferences(
+        LibraryContentType? contentType,
+        AltinnOrgContext context,
+        CancellationToken cancellationToken = default
+    );
 }

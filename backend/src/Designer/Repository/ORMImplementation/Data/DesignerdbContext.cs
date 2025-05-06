@@ -7,9 +7,7 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 public class DesignerdbContext : DbContext
 {
     public DesignerdbContext(DbContextOptions<DesignerdbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public virtual DbSet<DeploymentDbModel> Deployments { get; set; }
     public virtual DbSet<ReleaseDbModel> Releases { get; set; }

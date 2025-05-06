@@ -10,12 +10,15 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class SetServiceConfigTests : DesignerEndpointsTestsBase<SetServiceConfigTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class SetServiceConfigTests
+        : DesignerEndpointsTestsBase<SetServiceConfigTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
-        public SetServiceConfigTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/config";
+
+        public SetServiceConfigTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser")]
@@ -25,12 +28,28 @@ namespace Designer.Tests.Controllers.ConfigController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string dataPathWithData = VersionPrefix(org, targetRepository);
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Content = JsonContent.Create(new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                dataPathWithData
+            );
+            httpRequestMessage.Content = JsonContent.Create(
+                new
+                {
+                    serviceName = "Alternative-form-name",
+                    serviceDescription = "",
+                    serviceId = "",
+                }
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
-            ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, targetRepository, "testUser");
+            ServiceConfiguration serviceConfiguration =
+                ServiceConfigurationUtils.GetServiceConfiguration(
+                    TestRepositoriesLocation,
+                    org,
+                    targetRepository,
+                    "testUser"
+                );
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName);

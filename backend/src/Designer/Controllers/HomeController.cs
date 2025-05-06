@@ -42,7 +42,8 @@ namespace Altinn.Studio.Designer.Controllers
             GeneralSettings generalSettings,
             IGitea giteaWrapper,
             ISourceControl sourceControl,
-            ApplicationInsightsSettings applicationInsightsSettings)
+            ApplicationInsightsSettings applicationInsightsSettings
+        )
         {
             _logger = logger;
             _settings = repositorySettings;
@@ -72,7 +73,6 @@ namespace Altinn.Studio.Designer.Controllers
             Response.Cookies.Delete(General.DesignerCookieName);
             Response.Cookies.Delete(_settings.GiteaCookieName);
             return View("StartPage");
-
         }
 
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
@@ -117,11 +117,8 @@ namespace Altinn.Studio.Designer.Controllers
             HttpContext.Response.Cookies.Append(
                 _generalSettings.SessionTimeoutCookieName,
                 string.Empty,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTime.Now.AddDays(-10)
-                });
+                new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
+            );
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");

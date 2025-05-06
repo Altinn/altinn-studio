@@ -12,7 +12,7 @@ on:
 
 jobs:
   dotnet-format-check:
-    name: Format check
+    name: dotnet format
     runs-on: ubuntu-latest
     steps:
       - name: Setup .NET
@@ -25,4 +25,13 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: FormatCheck
         run: |
-           dotnet format backend/Designer.sln --verify-no-changes
+           dotnet format backend/Designer.sln style --verify-no-changes
+           dotnet format backend/Designer.sln analyzers --verify-no-changes
+  csharpier_formatting_check:
+    runs-on: ubuntu-latest
+    name: csharpier check
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          dotnet tool restore
+          dotnet csharpier check backend/

@@ -27,7 +27,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
             IAltinnAuthenticationClient altinnAuthenticationClient,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings
+        )
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
@@ -41,7 +42,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <param name="request">System.Net.Http.HttpResponseMessage</param>
         /// <param name="cancellationToken">System.Threading.CancellationToken</param>
         /// <returns>HttpResponseMessage</returns>
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
             string issuer;
             if (_generalSettings.HostName.Contains("dev"))
@@ -58,7 +62,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
             }
 
             string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
-            string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
+            string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(
+                designerToken,
+                request.RequestUri
+            );
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
             return await base.SendAsync(request, cancellationToken);

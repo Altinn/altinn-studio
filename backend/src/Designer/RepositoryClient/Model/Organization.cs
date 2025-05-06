@@ -22,9 +22,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Organization"/> class.
         /// </summary>
-        public Organization()
-        {
-        }
+        public Organization() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Organization" /> class.
@@ -36,7 +34,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="location">Location.</param>
         /// <param name="username">Username.</param>
         /// <param name="website">Website.</param>
-        public Organization(string avatarUrl = default(string), string description = default(string), string fullName = default(string), long? id = default(long?), string location = default(string), string username = default(string), string website = default(string))
+        public Organization(
+            string avatarUrl = default(string),
+            string description = default(string),
+            string fullName = default(string),
+            long? id = default(long?),
+            string location = default(string),
+            string username = default(string),
+            string website = default(string)
+        )
         {
             this.AvatarUrl = avatarUrl;
             this.Description = description;

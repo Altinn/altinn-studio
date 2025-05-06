@@ -6,18 +6,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetRepositoryTests : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRepositoryTests
+        : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public GetRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetRepositoryTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetResourceRepository_OK()
         {
             // Arrange
             string uri = $"{VersionPrefix}/ttd/resources";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -32,7 +36,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             // Arrange
             string uri = $"{VersionPrefix}/orgwithoutrepo/resources";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

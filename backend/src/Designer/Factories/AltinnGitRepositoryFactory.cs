@@ -17,9 +17,8 @@ namespace Altinn.Studio.Designer.Factories
         /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
         /// </summary>
         /// <param name="serviceRepositorySettings">Settings controlling where to find the repositories (using the value <see cref="ServiceRepositorySettings.RepositoryLocation"/>.</param>
-        public AltinnGitRepositoryFactory(ServiceRepositorySettings serviceRepositorySettings) : this(serviceRepositorySettings.RepositoryLocation)
-        {
-        }
+        public AltinnGitRepositoryFactory(ServiceRepositorySettings serviceRepositorySettings)
+            : this(serviceRepositorySettings.RepositoryLocation) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
@@ -34,20 +33,40 @@ namespace Altinn.Studio.Designer.Factories
         /// Creates an instance of <see cref="AltinnGitRepository"/>
         /// </summary>
         /// <returns><see cref="AltinnGitRepository"/></returns>
-        public AltinnGitRepository GetAltinnGitRepository(string org, string repository, string developer)
+        public AltinnGitRepository GetAltinnGitRepository(
+            string org,
+            string repository,
+            string developer
+        )
         {
             var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-            return new AltinnGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
+            return new AltinnGitRepository(
+                org,
+                repository,
+                developer,
+                _repositoriesRootDirectory,
+                repositoryDirectory
+            );
         }
 
         /// <summary>
         /// Creates an instance of <see cref="AltinnAppGitRepository"/>
         /// </summary>
         /// <returns><see cref="AltinnAppGitRepository"/></returns>
-        public AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer)
+        public AltinnAppGitRepository GetAltinnAppGitRepository(
+            string org,
+            string repository,
+            string developer
+        )
         {
             var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-            return new AltinnAppGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
+            return new AltinnAppGitRepository(
+                org,
+                repository,
+                developer,
+                _repositoriesRootDirectory,
+                repositoryDirectory
+            );
         }
 
         /// <summary>
@@ -59,7 +78,13 @@ namespace Altinn.Studio.Designer.Factories
         /// <returns>Returns the full, OS normalized, path to the root directory of the repository.</returns>
         public string GetRepositoryPath(string org, string repository, string developer)
         {
-            string[] paths = { _repositoriesRootDirectory, developer.AsFileName(), org.AsFileName(), repository.AsFileName() };
+            string[] paths =
+            {
+                _repositoriesRootDirectory,
+                developer.AsFileName(),
+                org.AsFileName(),
+                repository.AsFileName(),
+            };
             return Path.Combine(paths);
         }
 
@@ -67,10 +92,20 @@ namespace Altinn.Studio.Designer.Factories
         /// Creates an instance of <see cref="AltinnOrgGitRepository"/>
         /// </summary>
         /// <returns><see cref="AltinnOrgGitRepository"/></returns>
-        public AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer)
+        public AltinnOrgGitRepository GetAltinnOrgGitRepository(
+            string org,
+            string repository,
+            string developer
+        )
         {
             var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-            return new AltinnOrgGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
+            return new AltinnOrgGitRepository(
+                org,
+                repository,
+                developer,
+                _repositoriesRootDirectory,
+                repositoryDirectory
+            );
         }
     }
 }

@@ -12,7 +12,7 @@ public class SlackClient : ISlackClient
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     public SlackClient(HttpClient httpClient)
@@ -20,13 +20,22 @@ public class SlackClient : ISlackClient
         _httpClient = httpClient;
     }
 
-    public async Task SendMessage(SlackRequest request, CancellationToken cancellationToken = default)
+    public async Task SendMessage(
+        SlackRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var payloadContent = new StringContent(JsonSerializer.Serialize(request, _jsonSerializerOptions),
+        using var payloadContent = new StringContent(
+            JsonSerializer.Serialize(request, _jsonSerializerOptions),
             Encoding.UTF8,
-            MediaTypeNames.Application.Json);
+            MediaTypeNames.Application.Json
+        );
 
-        using var response = await _httpClient.PostAsync(string.Empty, payloadContent, cancellationToken);
+        using var response = await _httpClient.PostAsync(
+            string.Empty,
+            payloadContent,
+            cancellationToken
+        );
         response.EnsureSuccessStatusCode();
     }
 }

@@ -14,7 +14,7 @@ public static class DeploymentMapper
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
     public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity)
@@ -29,12 +29,25 @@ public static class DeploymentMapper
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
             CreatedBy = deploymentEntity.CreatedBy,
-            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)(int)deploymentEntity.DeploymentType,
+            DeploymentType =
+                (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
+                    (int)deploymentEntity.DeploymentType,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
-            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy ? BuildType.Deployment : BuildType.Decommission)
+            Build = BuildMapper.MapToDbModel(
+                deploymentEntity.Build,
+                deploymentEntity.DeploymentType
+                == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy
+                    ? BuildType.Deployment
+                    : BuildType.Decommission
+            ),
         };
     }
-    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
+
+    public static DeploymentDbModel MapToDbModel(
+        DeploymentEntity deploymentEntity,
+        long deploymentSequenceNo,
+        long buildId
+    )
     {
         var dbModel = MapToDbModel(deploymentEntity);
         dbModel.Sequenceno = deploymentSequenceNo;
@@ -54,11 +67,14 @@ public static class DeploymentMapper
             Build = BuildMapper.MapToModel(dbObject.Build),
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
-            DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType
+            DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)
+                (int)dbObject.DeploymentType,
         };
     }
 
-    public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<DeploymentDbModel> deployments)
+    public static IEnumerable<DeploymentEntity> MapToModels(
+        IEnumerable<DeploymentDbModel> deployments
+    )
     {
         return deployments.Select(MapToModel);
     }

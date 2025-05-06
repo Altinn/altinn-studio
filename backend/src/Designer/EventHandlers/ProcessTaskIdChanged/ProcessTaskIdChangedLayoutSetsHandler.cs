@@ -14,19 +14,25 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessTaskIdChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessTaskIdChangedLayoutSetsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(
+        ProcessTaskIdChangedEvent notification,
+        CancellationToken cancellationToken
+    )
     {
         var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             notification.EditingContext.Org,
             notification.EditingContext.Repo,
-            notification.EditingContext.Developer);
+            notification.EditingContext.Developer
+        );
 
         if (!repository.AppUsesLayoutSets())
         {
@@ -49,13 +55,18 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
                 }
 
                 return hasChanged;
-            });
+            }
+        );
     }
 
     private static bool TryChangeLayoutSetTaskIds(LayoutSets layoutSets, string oldId, string newId)
     {
         bool hasChanged = false;
-        foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks != null && layoutSet.Tasks.Contains(oldId)))
+        foreach (
+            var layoutSet in layoutSets.Sets.Where(layoutSet =>
+                layoutSet.Tasks != null && layoutSet.Tasks.Contains(oldId)
+            )
+        )
         {
             layoutSet.Tasks!.Remove(oldId);
             layoutSet.Tasks!.Add(newId);

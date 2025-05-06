@@ -11,14 +11,12 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
-
 using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
 {
     public static class TestDataHelper
     {
-
         public static string LoadDataFromEmbeddedResourceAsString(string resourceName)
         {
             var resourceStream = LoadDataFromEmbeddedResource(resourceName);
@@ -36,7 +34,9 @@ namespace Designer.Tests.Utils
 
             if (resourceStream == null)
             {
-                throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
+                throw new InvalidOperationException(
+                    "Unable to find test data embedded in the test assembly."
+                );
             }
 
             resourceStream.Seek(0, SeekOrigin.Begin);
@@ -48,7 +48,14 @@ namespace Designer.Tests.Utils
         {
             var assembly = Assembly.GetExecutingAssembly();
             string unitTestFolder = Path.GetDirectoryName(new Uri(assembly.Location).LocalPath);
-            string testDataFile = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", resourceName);
+            string testDataFile = Path.Combine(
+                unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                resourceName
+            );
             Stream resource = File.OpenRead(testDataFile);
 
             if (resource == null)
@@ -96,8 +103,11 @@ namespace Designer.Tests.Utils
 
         public static string GetTestDataDirectory()
         {
-            var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData")) + Path.DirectorySeparatorChar;
+            var unitTestFolder = Path.GetDirectoryName(
+                new Uri(Assembly.GetExecutingAssembly().Location).LocalPath
+            );
+            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData"))
+                + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoriesRootDirectory()
@@ -106,7 +116,11 @@ namespace Designer.Tests.Utils
             return Path.Combine(unitTestFolder, "Repositories") + Path.DirectorySeparatorChar;
         }
 
-        public static string GetTestDataRepositoryDirectory(string org, string repository, string developer)
+        public static string GetTestDataRepositoryDirectory(
+            string org,
+            string repository,
+            string developer
+        )
         {
             var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
             return Path.Combine(repositoriesRootDirectory, developer, org, repository);
@@ -151,20 +165,38 @@ namespace Designer.Tests.Utils
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }
 
-        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepository)
+        public static async Task<string> CopyRepositoryForTest(
+            string org,
+            string repository,
+            string developer,
+            string targetRepository
+        )
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
-            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepository);
+            var targetDirectory = Path.Combine(
+                GetTestDataRepositoriesRootDirectory(),
+                developer,
+                org,
+                targetRepository
+            );
 
             await CopyDirectory(sourceAppRepository, targetDirectory);
 
             return targetDirectory;
         }
 
-        public static async Task<string> CopyRemoteRepositoryForTest(string org, string repository, string targetRepository)
+        public static async Task<string> CopyRemoteRepositoryForTest(
+            string org,
+            string repository,
+            string targetRepository
+        )
         {
             var sourceRemoteRepository = GetTestDataRemoteRepository(org, repository);
-            var targetDirectory = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), org, targetRepository);
+            var targetDirectory = Path.Combine(
+                GetTestDataRemoteRepositoryRootDirectory(),
+                org,
+                targetRepository
+            );
 
             await CopyDirectory(sourceRemoteRepository, targetDirectory);
 
@@ -183,7 +215,9 @@ namespace Designer.Tests.Utils
 
             if (!directoryToDeleteInfo.Exists)
             {
-                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
+                throw new DirectoryNotFoundException(
+                    $"Directory does not exist or could not be found: {directoryToDelete}"
+                );
             }
 
             DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
@@ -205,7 +239,11 @@ namespace Designer.Tests.Utils
             Directory.Delete(directoryToDeleteInfo.FullName);
         }
 
-        private static void DeleteFileWithRetry(string filePath, int retries = 3, int waitTimeMs = 100)
+        private static void DeleteFileWithRetry(
+            string filePath,
+            int retries = 3,
+            int waitTimeMs = 100
+        )
         {
             int attempt = 1;
             while (attempt <= retries)
@@ -236,22 +274,37 @@ namespace Designer.Tests.Utils
             return fullPath;
         }
 
-        public static string CreateEmptyRepositoryForTest(string org, string repository, string developer)
+        public static string CreateEmptyRepositoryForTest(
+            string org,
+            string repository,
+            string developer
+        )
         {
             var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = Path.Combine(repositoriesRootDirectory, developer, org, repository);
+            var repositoryDirectory = Path.Combine(
+                repositoriesRootDirectory,
+                developer,
+                org,
+                repository
+            );
             Directory.CreateDirectory(repositoryDirectory);
 
             return repositoryDirectory;
         }
 
-        public static async Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        public static async Task CopyDirectory(
+            string sourceDirectory,
+            string targetDirectory,
+            bool copySubDirs = true
+        )
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
             if (!sourceDirectoryInfo.Exists)
             {
-                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDirectory}");
+                throw new DirectoryNotFoundException(
+                    $"Source directory does not exist or could not be found: {sourceDirectory}"
+                );
             }
 
             DirectoryInfo[] sourceSubDirectories = sourceDirectoryInfo.GetDirectories();
@@ -259,19 +312,25 @@ namespace Designer.Tests.Utils
             Directory.CreateDirectory(targetDirectory);
 
             FileInfo[] files = sourceDirectoryInfo.GetFiles();
-            await Parallel.ForEachAsync(files, async (file, _) =>
-            {
-                string tempPath = Path.Combine(targetDirectory, file.Name);
-                await CopyFileIfNotExistsAsync(file, tempPath);
-            });
+            await Parallel.ForEachAsync(
+                files,
+                async (file, _) =>
+                {
+                    string tempPath = Path.Combine(targetDirectory, file.Name);
+                    await CopyFileIfNotExistsAsync(file, tempPath);
+                }
+            );
 
             if (copySubDirs)
             {
-                await Parallel.ForEachAsync(sourceSubDirectories, async (subDir, _) =>
-                {
-                    string tempPath = Path.Combine(targetDirectory, subDir.Name);
-                    await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
-                });
+                await Parallel.ForEachAsync(
+                    sourceSubDirectories,
+                    async (subDir, _) =>
+                    {
+                        string tempPath = Path.Combine(targetDirectory, subDir.Name);
+                        await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
+                    }
+                );
             }
         }
 
@@ -283,7 +342,11 @@ namespace Designer.Tests.Utils
                 return;
             }
             await using FileStream sourceStream = file.OpenRead();
-            await using FileStream destinationStream = File.Create(destinationPath, bufferSize: 4096, FileOptions.Asynchronous);
+            await using FileStream destinationStream = File.Create(
+                destinationPath,
+                bufferSize: 4096,
+                FileOptions.Asynchronous
+            );
             await sourceStream.CopyToAsync(destinationStream, bufferSize: 4096);
             File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
@@ -294,7 +357,10 @@ namespace Designer.Tests.Utils
 
             foreach (string subDir in Directory.GetDirectories(dir))
             {
-                if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
+                if (
+                    subDir.Contains($"{repository}_branch")
+                    || subDir.Equals(Path.Combine(dir, repository))
+                )
                 {
                     DeleteDirectory(subDir, true);
                 }
@@ -314,9 +380,17 @@ namespace Designer.Tests.Utils
             }
         }
 
-        public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
+        public static string GetFileFromRepo(
+            string org,
+            string repository,
+            string developer,
+            string relativePath
+        )
         {
-            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            string filePath = Path.Combine(
+                GetTestDataRepositoryDirectory(org, repository, developer),
+                relativePath
+            );
             if (File.Exists(filePath))
             {
                 return File.ReadAllText(filePath);
@@ -325,9 +399,17 @@ namespace Designer.Tests.Utils
             return string.Empty;
         }
 
-        public static byte[] GetFileAsByteArrayFromRepo(string org, string repository, string developer, string relativePath)
+        public static byte[] GetFileAsByteArrayFromRepo(
+            string org,
+            string repository,
+            string developer,
+            string relativePath
+        )
         {
-            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            string filePath = Path.Combine(
+                GetTestDataRepositoryDirectory(org, repository, developer),
+                relativePath
+            );
             if (File.Exists(filePath))
             {
                 return File.ReadAllBytes(filePath);
@@ -336,47 +418,63 @@ namespace Designer.Tests.Utils
             return new byte[0];
         }
 
-        public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)
+        public static bool FileExistsInRepo(
+            string org,
+            string repository,
+            string developer,
+            string relativePath
+        )
         {
-            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            string filePath = Path.Combine(
+                GetTestDataRepositoryDirectory(org, repository, developer),
+                relativePath
+            );
             return File.Exists(filePath);
         }
 
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
 
-        public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
-        {
-            builder.ClearProviders();
-            builder
-                .AddSimpleConsole(options =>
+        public static ILoggerFactory LogFactory { get; } =
+            LoggerFactory.Create(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddSimpleConsole(options =>
                 {
                     options.IncludeScopes = true;
                     options.TimestampFormat = "hh:mm:ss ";
                 });
-        });
+            });
 
         public static ServiceRepositorySettings GetServiceRepositorySettings()
         {
             var options = new ServiceRepositorySettings()
             {
-                RepositoryBaseURL = @"http://studio.localhost/repos"
+                RepositoryBaseURL = @"http://studio.localhost/repos",
             };
 
             return options;
         }
 
-        public static ServiceRepositorySettings ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
+        public static ServiceRepositorySettings ServiceRepositorySettings { get; } =
+            GetServiceRepositorySettings();
 
-        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
+        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter =>
+            new XmlSchemaToJsonSchemaConverter();
 
-        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter =>
+            new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
-        public static IModelMetadataToCsharpConverter ModelMetadataToCsharpConverter => new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
+        public static IModelMetadataToCsharpConverter ModelMetadataToCsharpConverter =>
+            new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking
         /// </summary>
-        private static byte[] ReadAllBytesWithoutLocking(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite)
+        private static byte[] ReadAllBytesWithoutLocking(
+            string filePath,
+            FileAccess fileAccess = FileAccess.Read,
+            FileShare shareMode = FileShare.ReadWrite
+        )
         {
             using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
             {
@@ -391,7 +489,13 @@ namespace Designer.Tests.Utils
         /// <summary>
         /// Same method as <see cref="ReadAllBytesWithoutLocking(string, FileAccess, FileShare)"/> but with retries in case some other process has a lock on the file.
         /// </summary>
-        private static byte[] ReadAllBytesWithoutLockingWithRetry(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite, int retries = 3, int waitTimeMs = 100)
+        private static byte[] ReadAllBytesWithoutLockingWithRetry(
+            string filePath,
+            FileAccess fileAccess = FileAccess.Read,
+            FileShare shareMode = FileShare.ReadWrite,
+            int retries = 3,
+            int waitTimeMs = 100
+        )
         {
             byte[] bytes = Array.Empty<byte>();
             int attempt = 1;
@@ -432,11 +536,21 @@ namespace Designer.Tests.Utils
             return $"{org}-content";
         }
 
-        public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg, string targetRepository)
+        public static async Task<string> CopyOrgForTest(
+            string developer,
+            string org,
+            string repository,
+            string targetOrg,
+            string targetRepository
+        )
         {
             string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
             string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
-            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+            string targetRepoDirectory = GetOrgRepositoryDirectory(
+                developer,
+                targetOrg,
+                targetRepository
+            );
 
             CreateEmptyDirectory(targetOrgDirectory);
             await CopyDirectory(sourceDirectory, targetRepoDirectory);
@@ -444,10 +558,20 @@ namespace Designer.Tests.Utils
             return targetOrgDirectory;
         }
 
-        public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
+        public static async Task AddRepositoryToTestOrg(
+            string developer,
+            string org,
+            string repository,
+            string targetOrg,
+            string targetRepository
+        )
         {
             string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
-            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+            string targetRepoDirectory = GetOrgRepositoryDirectory(
+                developer,
+                targetOrg,
+                targetRepository
+            );
 
             await CopyDirectory(sourceDirectory, targetRepoDirectory);
         }
@@ -457,7 +581,11 @@ namespace Designer.Tests.Utils
             return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
         }
 
-        public static string GetOrgRepositoryDirectory(string developer, string org, string repository)
+        public static string GetOrgRepositoryDirectory(
+            string developer,
+            string org,
+            string repository
+        )
         {
             return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
         }

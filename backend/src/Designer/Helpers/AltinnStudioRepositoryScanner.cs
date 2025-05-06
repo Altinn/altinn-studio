@@ -23,17 +23,23 @@ public static class AltinnStudioRepositoryScanner
 
     private static string GetDirectoryPathBySearchPattern(string path, string searchPattern)
     {
-        return GetDirectoryPathBySearchPattern(Directory.Exists(path) ? new DirectoryInfo(path) : null, searchPattern);
+        return GetDirectoryPathBySearchPattern(
+            Directory.Exists(path) ? new DirectoryInfo(path) : null,
+            searchPattern
+        );
     }
 
     private static string GetDirectoryPathBySearchPattern(DirectoryInfo path, string searchPattern)
     {
         if (path != null)
         {
-            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any() ? path.FullName : GetDirectoryPathBySearchPattern(path.Parent, searchPattern);
+            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any()
+                ? path.FullName
+                : GetDirectoryPathBySearchPattern(path.Parent, searchPattern);
         }
 
-        string message = $"Cannot find '{searchPattern}' and resolve the base directory in the directory tree.";
+        string message =
+            $"Cannot find '{searchPattern}' and resolve the base directory in the directory tree.";
         throw new DirectoryNotFoundException(message);
     }
 }

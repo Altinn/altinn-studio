@@ -14,18 +14,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ContentsTests : DesignerEndpointsTestsBase<ContentsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ContentsTests
+        : DesignerEndpointsTestsBase<ContentsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public ContentsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public ContentsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+                c.RepositoryLocation = TestRepositoriesLocation
+            );
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton(_ => _repositoryMock.Object);
         }
@@ -37,19 +40,26 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/ttd/apps-test/contents";
 
             _repositoryMock
-                .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new List<FileSystemObject>
-                {
-                    new FileSystemObject
+                .Setup(r =>
+                    r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+                )
+                .Returns(
+                    new List<FileSystemObject>
                     {
-                        Name = "appsettings.Development.json",
-                        Encoding = "Unicode (UTF-8)",
-                        Path = "App/appsettings.Development.json",
-                        Type = "File"
+                        new FileSystemObject
+                        {
+                            Name = "appsettings.Development.json",
+                            Encoding = "Unicode (UTF-8)",
+                            Path = "App/appsettings.Development.json",
+                            Type = "File",
+                        },
                     }
-                });
+                );
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -65,10 +75,15 @@ namespace Designer.Tests.Controllers.RepositoryController
             string uri = $"{VersionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
 
             _repositoryMock
-                .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r =>
+                    r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+                )
                 .Returns((List<FileSystemObject>)null);
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Get,
+                uri
+            );
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -76,6 +91,5 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
-
     }
 }

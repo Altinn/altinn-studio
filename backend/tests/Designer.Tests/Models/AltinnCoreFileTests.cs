@@ -14,7 +14,11 @@ namespace Designer.Tests
             var org = "ttd";
             var repository = "ttd-datamodels";
             var userName = "testUser";
-            var repositoryRootPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, userName);
+            var repositoryRootPath = TestDataHelper.GetTestDataRepositoryDirectory(
+                org,
+                repository,
+                userName
+            );
             var fileName = "0678.xsd";
             var directory = Path.Combine(repositoryRootPath, "App", "models");
             var filePath = Path.Combine(directory, "0678.xsd");
@@ -32,11 +36,15 @@ namespace Designer.Tests
         [Theory]
         [InlineData("")]
         [InlineData(@"c:\this\does\not\exists")]
-        public void CreateFromPath_InvalidPath_ShouldThrowFileNotFoundException(string repositoryRootPath)
+        public void CreateFromPath_InvalidPath_ShouldThrowFileNotFoundException(
+            string repositoryRootPath
+        )
         {
             var filePath = $"{repositoryRootPath}\\myimaginary.schema.json";
 
-            Assert.Throws<FileNotFoundException>(() => AltinnCoreFile.CreateFromPath(filePath, repositoryRootPath));
+            Assert.Throws<FileNotFoundException>(() =>
+                AltinnCoreFile.CreateFromPath(filePath, repositoryRootPath)
+            );
         }
     }
 }

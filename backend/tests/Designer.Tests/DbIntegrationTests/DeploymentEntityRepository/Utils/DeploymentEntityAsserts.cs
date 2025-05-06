@@ -10,25 +10,39 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityAssertions
 {
-    public static void AssertEqual(DeploymentEntity deploymentEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord)
+    public static void AssertEqual(
+        DeploymentEntity deploymentEntity,
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord
+    )
     {
         Assert.Equal(dbRecord.App, deploymentEntity.App);
         Assert.Equal(dbRecord.Org, deploymentEntity.Org);
         Assert.Equal(dbRecord.CreatedBy, deploymentEntity.CreatedBy);
         Assert.Equal(dbRecord.Buildid, deploymentEntity.Build.Id);
-        Assert.Equal(dbRecord.Buildresult, deploymentEntity.Build.Result.ToEnumMemberAttributeValue());
+        Assert.Equal(
+            dbRecord.Buildresult,
+            deploymentEntity.Build.Result.ToEnumMemberAttributeValue()
+        );
         Assert.Equal(dbRecord.Tagname, deploymentEntity.TagName);
         Assert.Equal(dbRecord.EnvName, deploymentEntity.EnvName);
-        var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(dbRecord.Entity, JsonOptions);
+        var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(
+            dbRecord.Entity,
+            JsonOptions
+        );
         AssertionUtil.AssertEqualTo(deploymentEntity, entityFromColumn);
 
-        Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel buildDbModel = dbRecord.Build;
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel buildDbModel =
+            dbRecord.Build;
         Assert.Equal(buildDbModel.ExternalId, deploymentEntity.Build.Id);
         Assert.Equal(buildDbModel.Status, deploymentEntity.Build.Status.ToString());
         Assert.Equal(buildDbModel.Result, deploymentEntity.Build.Result.ToString());
         Assert.Equal(BuildType.Deployment, buildDbModel.BuildType);
 
-        AssertionUtil.AssertCloseTo(buildDbModel.Started!.Value.UtcDateTime, deploymentEntity.Build.Started!.Value, TimeSpan.FromMilliseconds(100));
+        AssertionUtil.AssertCloseTo(
+            buildDbModel.Started!.Value.UtcDateTime,
+            deploymentEntity.Build.Started!.Value,
+            TimeSpan.FromMilliseconds(100)
+        );
 
         if (!buildDbModel.Finished.HasValue)
         {
@@ -36,11 +50,19 @@ public static partial class EntityAssertions
         }
         else
         {
-            AssertionUtil.AssertCloseTo(buildDbModel.Finished!.Value.UtcDateTime, deploymentEntity.Build.Finished!.Value, TimeSpan.FromMilliseconds(100));
+            AssertionUtil.AssertCloseTo(
+                buildDbModel.Finished!.Value.UtcDateTime,
+                deploymentEntity.Build.Finished!.Value,
+                TimeSpan.FromMilliseconds(100)
+            );
         }
     }
 
-    public static void AssertEqual(DeploymentEntity expected, DeploymentEntity actual, TimeSpan datesTolerance)
+    public static void AssertEqual(
+        DeploymentEntity expected,
+        DeploymentEntity actual,
+        TimeSpan datesTolerance
+    )
     {
         Assert.Equal(expected.App, actual.App);
         Assert.Equal(expected.Org, actual.Org);
@@ -59,7 +81,11 @@ public static partial class EntityAssertions
         }
         else
         {
-            AssertionUtil.AssertCloseTo(expected.Build.Started.Value, actual.Build.Started.Value, datesTolerance);
+            AssertionUtil.AssertCloseTo(
+                expected.Build.Started.Value,
+                actual.Build.Started.Value,
+                datesTolerance
+            );
         }
 
         if (!expected.Build.Finished.HasValue)
@@ -69,7 +95,11 @@ public static partial class EntityAssertions
         }
         else
         {
-            AssertionUtil.AssertCloseTo(expected.Build.Finished.Value, actual.Build.Finished.Value, datesTolerance);
+            AssertionUtil.AssertCloseTo(
+                expected.Build.Finished.Value,
+                actual.Build.Finished.Value,
+                datesTolerance
+            );
         }
     }
 }

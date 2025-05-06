@@ -36,7 +36,10 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="configuration">The configuration for the project</param>
-        public static IServiceCollection RegisterServiceImplementations(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection RegisterServiceImplementations(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
@@ -49,7 +52,9 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddDbContext<DesignerdbContext>(options =>
             {
-                PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                PostgreSQLSettings postgresSettings = configuration
+                    .GetSection(nameof(PostgreSQLSettings))
+                    .Get<PostgreSQLSettings>();
                 options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
@@ -90,10 +95,19 @@ namespace Altinn.Studio.Designer.Infrastructure
             return services;
         }
 
-        public static IServiceCollection RegisterDatamodeling(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection RegisterDatamodeling(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
-            services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
-            services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
+            services.AddTransient<
+                IXmlSchemaToJsonSchemaConverter,
+                XmlSchemaToJsonSchemaConverter
+            >();
+            services.AddTransient<
+                IJsonSchemaToXmlSchemaConverter,
+                JsonSchemaToXmlSchemaConverter
+            >();
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.RegisterSettings<CSharpGenerationSettings>(configuration);

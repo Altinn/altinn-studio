@@ -14,5 +14,5 @@ public record DeploymentPipelineQueued : INotification
 public enum PipelineType
 {
     Deploy,
-    Undeploy
+    Undeploy,
 }

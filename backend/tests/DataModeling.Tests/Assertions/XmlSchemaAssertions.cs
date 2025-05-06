@@ -30,27 +30,52 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.Items, actual.Items);
         }
 
-        private static void IsEquivalentTo(XmlSerializerNamespaces expected, XmlSerializerNamespaces actual)
+        private static void IsEquivalentTo(
+            XmlSerializerNamespaces expected,
+            XmlSerializerNamespaces actual
+        )
         {
-            Dictionary<string, XmlQualifiedName> actualNamespaces = actual.ToArray().ToDictionary(ns => $"{ns.Name}:{ns.Namespace}");
+            Dictionary<string, XmlQualifiedName> actualNamespaces = actual
+                .ToArray()
+                .ToDictionary(ns => $"{ns.Name}:{ns.Namespace}");
 
             foreach (XmlQualifiedName expectedNs in expected.ToArray())
             {
-                if (!actualNamespaces.TryGetValue($"{expectedNs.Name}:{expectedNs.Namespace}", out XmlQualifiedName actualNs))
+                if (
+                    !actualNamespaces.TryGetValue(
+                        $"{expectedNs.Name}:{expectedNs.Namespace}",
+                        out XmlQualifiedName actualNs
+                    )
+                )
                 {
-                    throw ContainsException.ForKeyNotFound(expectedNs.Namespace, string.Join(',', actualNamespaces.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        expectedNs.Namespace,
+                        string.Join(',', actualNamespaces.Select(x => x.Key))
+                    );
                 }
 
                 actualNamespaces.Remove($"{actualNs.Name}:{actualNs.Namespace}");
             }
 
-            if (actualNamespaces.Count > 0 && (actualNamespaces.First().Key != "xsi:http://www.w3.org/2001/XMLSchema-instance" && actualNamespaces.First().Key != "xs:http://www.w3.org/2001/XMLSchema"))
+            if (
+                actualNamespaces.Count > 0
+                && (
+                    actualNamespaces.First().Key != "xsi:http://www.w3.org/2001/XMLSchema-instance"
+                    && actualNamespaces.First().Key != "xs:http://www.w3.org/2001/XMLSchema"
+                )
+            )
             {
-                throw DoesNotContainException.ForKeyFound(actualNamespaces.First().Key.ToString(), string.Join(',', expected.ToArray().Select(x => $"{x.Name}:{x.Namespace}")));
+                throw DoesNotContainException.ForKeyFound(
+                    actualNamespaces.First().Key.ToString(),
+                    string.Join(',', expected.ToArray().Select(x => $"{x.Name}:{x.Namespace}"))
+                );
             }
         }
 
-        private static void IsEquivalentTo(XmlSchemaObjectCollection expected, XmlSchemaObjectCollection actual)
+        private static void IsEquivalentTo(
+            XmlSchemaObjectCollection expected,
+            XmlSchemaObjectCollection actual
+        )
         {
             if (expected == null)
             {
@@ -277,7 +302,10 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.AnyAttribute, actual.AnyAttribute);
         }
 
-        private static void Equal(XmlSchemaAttributeGroupRef expected, XmlSchemaAttributeGroupRef actual)
+        private static void Equal(
+            XmlSchemaAttributeGroupRef expected,
+            XmlSchemaAttributeGroupRef actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.RefName, actual.RefName);
@@ -296,7 +324,10 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.Content, actual.Content);
         }
 
-        private static void Equal(XmlSchemaComplexContentExtension expected, XmlSchemaComplexContentExtension actual)
+        private static void Equal(
+            XmlSchemaComplexContentExtension expected,
+            XmlSchemaComplexContentExtension actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);
@@ -305,7 +336,10 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.AnyAttribute, actual.AnyAttribute);
         }
 
-        private static void Equal(XmlSchemaComplexContentRestriction expected, XmlSchemaComplexContentRestriction actual)
+        private static void Equal(
+            XmlSchemaComplexContentRestriction expected,
+            XmlSchemaComplexContentRestriction actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);
@@ -426,7 +460,10 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.Content, actual.Content);
         }
 
-        private static void Equal(XmlSchemaSimpleContentExtension expected, XmlSchemaSimpleContentExtension actual)
+        private static void Equal(
+            XmlSchemaSimpleContentExtension expected,
+            XmlSchemaSimpleContentExtension actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);
@@ -434,7 +471,10 @@ namespace DataModeling.Tests.Assertions
             IsEquivalentTo(expected.AnyAttribute, actual.AnyAttribute);
         }
 
-        private static void Equal(XmlSchemaSimpleContentRestriction expected, XmlSchemaSimpleContentRestriction actual)
+        private static void Equal(
+            XmlSchemaSimpleContentRestriction expected,
+            XmlSchemaSimpleContentRestriction actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);
@@ -462,7 +502,10 @@ namespace DataModeling.Tests.Assertions
             }
         }
 
-        private static void Equal(XmlSchemaSimpleTypeRestriction expected, XmlSchemaSimpleTypeRestriction actual)
+        private static void Equal(
+            XmlSchemaSimpleTypeRestriction expected,
+            XmlSchemaSimpleTypeRestriction actual
+        )
         {
             AnnotatedEqual(expected, actual);
             Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);
@@ -470,7 +513,10 @@ namespace DataModeling.Tests.Assertions
             FacetsEquivalentTo(expected.Facets, actual.Facets);
         }
 
-        private static void Equal(XmlSchemaSimpleTypeUnion expected, XmlSchemaSimpleTypeUnion actual)
+        private static void Equal(
+            XmlSchemaSimpleTypeUnion expected,
+            XmlSchemaSimpleTypeUnion actual
+        )
         {
             throw new NotImplementedException();
         }
@@ -487,7 +533,10 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Value, actual.Value);
         }
 
-        private static void XmlAttributesIsEquivalentTo(IReadOnlyCollection<XmlAttribute> expected, IReadOnlyCollection<XmlAttribute> actual)
+        private static void XmlAttributesIsEquivalentTo(
+            IReadOnlyCollection<XmlAttribute> expected,
+            IReadOnlyCollection<XmlAttribute> actual
+        )
         {
             if (expected == null)
             {
@@ -499,12 +548,22 @@ namespace DataModeling.Tests.Assertions
 
             Assert.Equal(expected.Count, actual.Count);
 
-            Dictionary<string, XmlAttribute> actualAttributes = actual.ToDictionary(attr => attr.Name);
+            Dictionary<string, XmlAttribute> actualAttributes = actual.ToDictionary(attr =>
+                attr.Name
+            );
             foreach (XmlAttribute expectedAttribute in expected)
             {
-                if (!actualAttributes.TryGetValue(expectedAttribute.Name, out XmlAttribute actualAttribute))
+                if (
+                    !actualAttributes.TryGetValue(
+                        expectedAttribute.Name,
+                        out XmlAttribute actualAttribute
+                    )
+                )
                 {
-                    throw ContainsException.ForCollectionItemNotFound(expectedAttribute.Name, string.Join(',', actualAttributes.Select(x => x.Key)));
+                    throw ContainsException.ForCollectionItemNotFound(
+                        expectedAttribute.Name,
+                        string.Join(',', actualAttributes.Select(x => x.Key))
+                    );
                 }
 
                 actualAttributes.Remove(actualAttribute.Name);
@@ -515,7 +574,10 @@ namespace DataModeling.Tests.Assertions
             if (actualAttributes.Count > 0)
             {
                 XmlAttribute actualAttribute = actualAttributes.First().Value;
-                throw DoesNotContainException.ForKeyFound($"{actualAttribute.Name}=\"{actualAttribute.Value}\"", string.Join(',', expected.ToDictionary(x => x.Name).Select(x => x.Key)));
+                throw DoesNotContainException.ForKeyFound(
+                    $"{actualAttribute.Name}=\"{actualAttribute.Value}\"",
+                    string.Join(',', expected.ToDictionary(x => x.Name).Select(x => x.Key))
+                );
             }
         }
 
@@ -544,11 +606,12 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.TypeCode, actual.TypeCode);
         }
 
-        private static void FacetsEquivalentTo(XmlSchemaObjectCollection expected, XmlSchemaObjectCollection actual)
+        private static void FacetsEquivalentTo(
+            XmlSchemaObjectCollection expected,
+            XmlSchemaObjectCollection actual
+        )
         {
-            List<XmlSchemaFacet> actualFacets = actual
-                .Cast<XmlSchemaFacet>()
-                .ToList();
+            List<XmlSchemaFacet> actualFacets = actual.Cast<XmlSchemaFacet>().ToList();
 
             foreach (XmlSchemaFacet expectedFacet in expected.Cast<XmlSchemaFacet>())
             {
@@ -565,15 +628,19 @@ namespace DataModeling.Tests.Assertions
 
                 if (!found)
                 {
-                    throw ContainsException.ForCollectionItemNotFound(expectedFacet.Value!, string.Join(',', actualFacets.Select(x => x.Value)));
+                    throw ContainsException.ForCollectionItemNotFound(
+                        expectedFacet.Value!,
+                        string.Join(',', actualFacets.Select(x => x.Value))
+                    );
                 }
             }
 
             if (actualFacets.Count > 0)
             {
-                throw ContainsException.ForCollectionItemNotFound(actualFacets.First().Value!, string.Join(',', expected
-                    .Cast<XmlSchemaFacet>()
-                    .ToList().Select(x => x.Value)));
+                throw ContainsException.ForCollectionItemNotFound(
+                    actualFacets.First().Value!,
+                    string.Join(',', expected.Cast<XmlSchemaFacet>().ToList().Select(x => x.Value))
+                );
             }
         }
 

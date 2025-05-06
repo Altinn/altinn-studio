@@ -28,11 +28,13 @@ internal class StepsBuilder
     /// <param name="builder">A <see cref="JsonSchemaBuilder"/> on which <see cref="AllOfKeyword"/> will be generated with all steps mapped to <see cref="JsonSchemaBuilder"/>.</param>
     public void BuildWithAllOf(JsonSchemaBuilder builder)
     {
-        builder.AllOf(_steps.Select(step =>
-        {
-            JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-            step(stepBuilder);
-            return stepBuilder.Build();
-        }));
+        builder.AllOf(
+            _steps.Select(step =>
+            {
+                JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
+                step(stepBuilder);
+                return stepBuilder.Build();
+            })
+        );
     }
 }

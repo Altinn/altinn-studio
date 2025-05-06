@@ -14,7 +14,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
     {
         private readonly HttpClient _client;
         private readonly ILogger<PolicyOptionsClient> _logger;
-        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, };
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
 
         public PolicyOptionsClient(HttpClient httpClient, ILogger<PolicyOptionsClient> logger)
         {
@@ -22,19 +25,27 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             _logger = logger;
         }
 
-        public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
+        public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
+            string url =
+                "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
 
             List<AccessPackageAreaGroup> accessPackageOptions;
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-                string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, _serializerOptions);
+                string accessPackageOptionsString = await response.Content.ReadAsStringAsync(
+                    cancellationToken
+                );
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(
+                    accessPackageOptionsString,
+                    _serializerOptions
+                );
                 return accessPackageOptions;
             }
             catch (Exception ex)
@@ -43,41 +54,54 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             }
         }
 
-        public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
+        public async Task<List<ActionOption>> GetActionOptions(
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
+            string url =
+                "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
 
             List<ActionOption> actionOptions;
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-                string actionOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(actionOptionsString);
+                string actionOptionsString = await response.Content.ReadAsStringAsync(
+                    cancellationToken
+                );
+                actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(
+                    actionOptionsString
+                );
                 return actionOptions;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Something went wrong when retrieving Action options", ex);
             }
-
         }
 
-        public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
+        public async Task<List<SubjectOption>> GetSubjectOptions(
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
+            string url =
+                "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
 
             List<SubjectOption> subjectOptions;
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-                string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+                string subjectOptionsString = await response.Content.ReadAsStringAsync(
+                    cancellationToken
+                );
 
-                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString);
+                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(
+                    subjectOptionsString
+                );
                 return subjectOptions;
             }
             catch (Exception ex)
@@ -88,7 +112,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
         private string GetOptionsPath()
         {
-            string configTest = Path.GetDirectoryName(new Uri(typeof(PolicyOptionsClient).Assembly.Location).LocalPath);
+            string configTest = Path.GetDirectoryName(
+                new Uri(typeof(PolicyOptionsClient).Assembly.Location).LocalPath
+            );
             return Path.Combine(configTest, "Authorization");
         }
     }

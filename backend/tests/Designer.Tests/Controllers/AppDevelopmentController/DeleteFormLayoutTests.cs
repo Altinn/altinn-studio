@@ -12,22 +12,32 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class DeleteFormLayoutTests : DesignerEndpointsTestsBase<DeleteFormLayoutTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DeleteFormLayoutTests
+        : DesignerEndpointsTestsBase<DeleteFormLayoutTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public DeleteFormLayoutTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/app-development";
+
+        public DeleteFormLayoutTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1")]
-        public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(string org, string app, string developer, [CanBeNull] string layoutSetName, string layoutName)
+        public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(
+            string org,
+            string app,
+            string developer,
+            [CanBeNull] string layoutSetName,
+            string layoutName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            string url =
+                $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -42,14 +52,27 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "nonExistingLayoutFile")]
+        [InlineData(
+            "ttd",
+            "app-with-layoutsets",
+            "testUser",
+            "layoutSet1",
+            "nonExistingLayoutFile"
+        )]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "nonExistingLayoutFile")]
-        public async Task DeleteFormLayout_NonExistingFile_Should_AndReturnNotFound(string org, string app, string developer, string layoutSetName, string layoutName)
+        public async Task DeleteFormLayout_NonExistingFile_Should_AndReturnNotFound(
+            string org,
+            string app,
+            string developer,
+            string layoutSetName,
+            string layoutName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            string url =
+                $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -59,13 +82,19 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "testUser", "layout", "Side2")]
-        public async Task DeleteFormLayout_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName)
+        public async Task DeleteFormLayout_DeletesAssociatedSummary2Components_ReturnsOk(
+            string org,
+            string developer,
+            string layoutSetName,
+            string layoutName
+        )
         {
             string actualApp = "app-with-summary2-components";
             string app = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, actualApp, developer, app);
 
-            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            string url =
+                $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -73,19 +102,32 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string expectedApp = "app-with-summary2-components-after-deleting-references";
 
-            string[] layoutPaths = [
+            string[] layoutPaths =
+            [
                 "layout/layouts/Side1.json",
                 "layout/layouts/Side2.json",
                 "layout2/layouts/Side1.json",
                 "layout2/layouts/Side2.json",
             ];
 
-            layoutPaths.ToList().ForEach(file =>
-            {
-                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
-                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
-                Assert.True(JsonUtils.DeepEquals(actual, expected));
-            });
+            layoutPaths
+                .ToList()
+                .ForEach(file =>
+                {
+                    string actual = TestDataHelper.GetFileFromRepo(
+                        org,
+                        app,
+                        developer,
+                        $"App/ui/{file}"
+                    );
+                    string expected = TestDataHelper.GetFileFromRepo(
+                        org,
+                        expectedApp,
+                        developer,
+                        $"App/ui/{file}"
+                    );
+                    Assert.True(JsonUtils.DeepEquals(actual, expected));
+                });
         }
     }
 }

@@ -14,7 +14,10 @@ namespace Designer.Tests.Assertions
             IsEquivalentTo(expected.Elements, actual.Elements);
         }
 
-        private static void IsEquivalentTo(Dictionary<string, ElementMetadata> expected, Dictionary<string, ElementMetadata> actual)
+        private static void IsEquivalentTo(
+            Dictionary<string, ElementMetadata> expected,
+            Dictionary<string, ElementMetadata> actual
+        )
         {
             Assert.Equal(expected.Count, actual.Count);
 
@@ -27,7 +30,10 @@ namespace Designer.Tests.Assertions
             }
         }
 
-        private static void IsEquivalentTo(ElementMetadata expectedElement, ElementMetadata actualElement)
+        private static void IsEquivalentTo(
+            ElementMetadata expectedElement,
+            ElementMetadata actualElement
+        )
         {
             Assert.Equal(expectedElement.ID, actualElement.ID);
             Assert.Equal(expectedElement.ParentElement, expectedElement.ParentElement);

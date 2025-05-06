@@ -131,7 +131,12 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            return Path.Combine(RepositoryLocation, developer ?? string.Empty, org ?? string.Empty, app ?? string.Empty);
+            return Path.Combine(
+                RepositoryLocation,
+                developer ?? string.Empty,
+                org ?? string.Empty,
+                app ?? string.Empty
+            );
         }
 
         /// <summary>
@@ -143,7 +148,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetLanguageResourcePath(string org, string app, string developer)
         {
-            return Path.Combine(GetServicePath(org, app, developer), CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            return Path.Combine(
+                GetServicePath(org, app, developer),
+                CONFIG_FOLDER_PATH,
+                LANGUAGE_RESOURCE_FOLDER_NAME
+            );
         }
 
         /// <summary>
@@ -178,7 +187,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The path to widget settings in the app repo, ending with "/"</returns>
         public string GetWidgetSettingsPath(string org, string app, string developer)
         {
-            return Path.Combine(GetServicePath(org, app, developer), WIDGETS_FOLDER_NAME, WidgetSettingsFileName);
+            return Path.Combine(
+                GetServicePath(org, app, developer),
+                WIDGETS_FOLDER_NAME,
+                WidgetSettingsFileName
+            );
         }
     }
 }

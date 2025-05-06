@@ -48,8 +48,16 @@ namespace Altinn.Studio.Designer.Helpers
 
                     foreach (string linkString in linkStrings)
                     {
-                        var relMatch = Regex.Match(linkString, "(?<=rel=\").+?(?=\")", RegexOptions.IgnoreCase);
-                        var linkMatch = Regex.Match(linkString, "(?<=<).+?(?=>)", RegexOptions.IgnoreCase);
+                        var relMatch = Regex.Match(
+                            linkString,
+                            "(?<=rel=\").+?(?=\")",
+                            RegexOptions.IgnoreCase
+                        );
+                        var linkMatch = Regex.Match(
+                            linkString,
+                            "(?<=<).+?(?=>)",
+                            RegexOptions.IgnoreCase
+                        );
 
                         if (relMatch.Success && linkMatch.Success)
                         {

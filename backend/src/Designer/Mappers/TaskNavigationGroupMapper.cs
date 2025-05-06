@@ -7,7 +7,10 @@ namespace Altinn.Studio.Designer.Mappers;
 
 public static class TaskNavigationGroupMapper
 {
-    public static TaskNavigationGroupDto ToDto(this TaskNavigationGroup taskNavigationGroup, Func<string, string> resolveTaskType)
+    public static TaskNavigationGroupDto ToDto(
+        this TaskNavigationGroup taskNavigationGroup,
+        Func<string, string> resolveTaskType
+    )
     {
         return taskNavigationGroup switch
         {
@@ -22,7 +25,9 @@ public static class TaskNavigationGroupMapper
                 TaskType = receipt.Type.ToStringValue(),
                 Name = receipt.Name,
             },
-            _ => throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroup.Name}': {taskNavigationGroup.GetType().Name}")
+            _ => throw new ArgumentException(
+                $"Unknown TaskNavigationGroup type for '{taskNavigationGroup.Name}': {taskNavigationGroup.GetType().Name}"
+            ),
         };
     }
 
@@ -46,6 +51,8 @@ public static class TaskNavigationGroupMapper
             };
         }
 
-        throw new ArgumentException($"Unknown TaskNavigationGroup type for '{taskNavigationGroupDto.Name}': {taskNavigationGroupDto.GetType().Name}");
+        throw new ArgumentException(
+            $"Unknown TaskNavigationGroup type for '{taskNavigationGroupDto.Name}': {taskNavigationGroupDto.GetType().Name}"
+        );
     }
 }

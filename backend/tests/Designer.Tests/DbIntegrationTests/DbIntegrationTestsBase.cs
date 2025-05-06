@@ -13,7 +13,7 @@ public abstract class DbIntegrationTestsBase
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
     protected DesignerDbFixture DbFixture { get; }
 

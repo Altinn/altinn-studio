@@ -18,12 +18,13 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
+    [Route(
+        "{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data"
+    )]
     public class DataController(
         IInstanceService instanceService,
         IDataService dataService,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory
-
     ) : Controller
     {
         // <summary>
@@ -34,7 +35,8 @@ namespace Altinn.Studio.Designer.Controllers.Preview
             string org = context.RouteData.Values["org"] as string;
             string app = context.RouteData.Values["app"] as string;
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
                 RouteValueDictionary routeData = context.RouteData.Values;
@@ -42,16 +44,17 @@ namespace Altinn.Studio.Designer.Controllers.Preview
                 {
                     routeData[queryParam.Key] = queryParam.Value.ToString();
                 }
-                context.Result = base.RedirectToActionPreserveMethod(controllerName: "OldData", routeValues: routeData);
+                context.Result = base.RedirectToActionPreserveMethod(
+                    controllerName: "OldData",
+                    routeValues: routeData
+                );
             }
             base.OnActionExecuting(context);
         }
 
         [HttpGet("{dataGuid}")]
         [UseSystemTextJson]
-        public ActionResult Get(
-                [FromRoute] Guid dataGuid
-        )
+        public ActionResult Get([FromRoute] Guid dataGuid)
         {
             JsonNode dataItem = dataService.GetDataElement(dataGuid);
             return Ok(dataItem);
@@ -60,12 +63,16 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         [HttpPost]
         [UseSystemTextJson]
         public ActionResult<DataElement> Post(
-                [FromRoute] int partyId,
-                [FromRoute] Guid instanceGuid,
-                [FromQuery] string dataType
+            [FromRoute] int partyId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string dataType
         )
         {
-            DataElement dataElement = dataService.CreateDataElement(partyId, instanceGuid, dataType);
+            DataElement dataElement = dataService.CreateDataElement(
+                partyId,
+                instanceGuid,
+                dataType
+            );
             instanceService.AddDataElement(instanceGuid, dataElement);
             return Created("link-to-app-placeholder", dataElement);
         }
@@ -73,11 +80,11 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         [HttpPatch]
         [UseSystemTextJson]
         public ActionResult<DataPatchResponseMultiple> PatchMultiple(
-                [FromRoute] string org,
-                [FromRoute] string app,
-                [FromRoute] int partyId,
-                [FromRoute] Guid instanceGuid,
-                [FromBody] DataPatchRequestMultiple dataPatch
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int partyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] DataPatchRequestMultiple dataPatch
         )
         {
             Instance instance = instanceService.GetInstance(instanceGuid);
@@ -89,33 +96,31 @@ namespace Altinn.Studio.Designer.Controllers.Preview
                 newDataModels.Add(new DataModelPairResponse(patch.DataElementId, dataItem));
             });
 
-            return Ok(new DataPatchResponseMultiple()
-            {
-                ValidationIssues = [],
-                NewDataModels = newDataModels,
-                Instance = instance,
-            });
+            return Ok(
+                new DataPatchResponseMultiple()
+                {
+                    ValidationIssues = [],
+                    NewDataModels = newDataModels,
+                    Instance = instance,
+                }
+            );
         }
 
         [HttpPatch("{dataGuid}")]
         [UseSystemTextJson]
         public ActionResult<DataPatchResponse> Patch(
-                [FromRoute] Guid dataGuid,
-                [FromBody] DataPatchRequest dataPatch
+            [FromRoute] Guid dataGuid,
+            [FromBody] DataPatchRequest dataPatch
         )
         {
             JsonNode dataItem = dataService.PatchDataElement(dataGuid, dataPatch.Patch);
-            return Ok(new DataPatchResponse()
-            {
-                ValidationIssues = [],
-                NewDataModel = dataItem,
-            });
+            return Ok(new DataPatchResponse() { ValidationIssues = [], NewDataModel = dataItem });
         }
 
         [HttpDelete("{dataGuid}")]
         public ActionResult<DataPostResponse> Delete(
-                [FromRoute] Guid instanceGuid,
-                [FromRoute] Guid dataGuid
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] Guid dataGuid
         )
         {
             instanceService.RemoveDataElement(instanceGuid, dataGuid);
@@ -123,17 +128,13 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         }
 
         [HttpGet("{dataGuid}/validate")]
-        public ActionResult ValidateInstanceForData(
-                [FromRoute] Guid dataGuid
-        )
+        public ActionResult ValidateInstanceForData([FromRoute] Guid dataGuid)
         {
             return Ok(new List<string>());
         }
 
         [HttpPost("{dataGuid}/tags")]
-        public ActionResult UpdateTagsForAttachment(
-                [FromBody] string tag
-        )
+        public ActionResult UpdateTagsForAttachment([FromBody] string tag)
         {
             return Created("link-to-app-placeholder", tag);
         }

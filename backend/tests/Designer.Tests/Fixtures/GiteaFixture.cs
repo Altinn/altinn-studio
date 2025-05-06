@@ -35,14 +35,22 @@ namespace Designer.Tests.Fixtures
         private Lazy<HttpClient> _giteaClient;
         public Lazy<HttpClient> GiteaClient
         {
-            get => _giteaClient ??= new Lazy<HttpClient>(() => new HttpClient(new EnsureSuccessHandler()
-            {
-                InnerHandler = new HttpClientHandler(),
-            })
-            {
-                BaseAddress = new Uri(TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"),
-                DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
-            });
+            get =>
+                _giteaClient ??= new Lazy<HttpClient>(() =>
+                    new HttpClient(
+                        new EnsureSuccessHandler() { InnerHandler = new HttpClientHandler() }
+                    )
+                    {
+                        BaseAddress = new Uri(TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"),
+                        DefaultRequestHeaders =
+                        {
+                            Authorization = new BasicAuthenticationHeaderValue(
+                                GiteaConstants.AdminUser,
+                                GiteaConstants.AdminPassword
+                            ),
+                        },
+                    }
+                );
         }
 
         public string OAuthApplicationClientId { get; private set; }
@@ -50,15 +58,15 @@ namespace Designer.Tests.Fixtures
 
         public string DbConnectionString => _postgreSqlContainer?.GetConnectionString();
 
-        private static AsyncRetryPolicy GiteaClientRetryPolicy => Policy.Handle<HttpRequestException>()
-            .Or<SocketException>()
-            .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+        private static AsyncRetryPolicy GiteaClientRetryPolicy =>
+            Policy
+                .Handle<HttpRequestException>()
+                .Or<SocketException>()
+                .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
         private async Task BuildAndCreateGiteaNetworkAsync()
         {
-            _giteaNetwork = new NetworkBuilder()
-                .WithName(Guid.NewGuid().ToString("D"))
-                .Build();
+            _giteaNetwork = new NetworkBuilder().WithName(Guid.NewGuid().ToString("D")).Build();
             await _giteaNetwork.CreateAsync();
         }
 
@@ -90,93 +98,172 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartAltinnGiteaAsync()
         {
-            string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
+            string giteaDockerFilePath = Path.Combine(
+                CommonDirectoryPath.GetSolutionDirectory().DirectoryPath,
+                "..",
+                "gitea"
+            );
 
             const string GiteaTestImageName = "repositories:latest";
 
-            if (!CommandExecutor.TryExecute($"docker build --no-cache -t {GiteaTestImageName} {giteaDockerFilePath}", out string _, out string error))
+            if (
+                !CommandExecutor.TryExecute(
+                    $"docker build --no-cache -t {GiteaTestImageName} {giteaDockerFilePath}",
+                    out string _,
+                    out string error
+                )
+            )
             {
                 throw new Exception($"Failed to build gitea image. Error: {error}");
             }
 
-            _giteaContainer = new ContainerBuilder().WithImage(GiteaTestImageName)
+            _giteaContainer = new ContainerBuilder()
+                .WithImage(GiteaTestImageName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")
                 .WithPortBinding(TestUrlsProvider.Instance.GiteaPort, 3000)
                 .WithPortBinding(22, true)
-                .WithEnvironment(new Dictionary<string, string>
-                {
-                    {"GITEA____RUN_MODE", "prod"},
-                    {"GITEA__database__DB_TYPE", "postgres"},
-                    {"GITEA__database__HOST", "db:5432"},
-                    {"GITEA__database__NAME", TestDbConstants.Database},
-                    {"GITEA__database__USER", TestDbConstants.AdminUser},
-                    {"GITEA__database__PASSWD", TestDbConstants.AdminPassword},
-                    {"GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.GiteaUrl}"},
-                    {"USER_GID", "1000"},
-                    {"USER_UID", "1000"}
-                })
+                .WithEnvironment(
+                    new Dictionary<string, string>
+                    {
+                        { "GITEA____RUN_MODE", "prod" },
+                        { "GITEA__database__DB_TYPE", "postgres" },
+                        { "GITEA__database__HOST", "db:5432" },
+                        { "GITEA__database__NAME", TestDbConstants.Database },
+                        { "GITEA__database__USER", TestDbConstants.AdminUser },
+                        { "GITEA__database__PASSWD", TestDbConstants.AdminPassword },
+                        { "GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.GiteaUrl}" },
+                        { "USER_GID", "1000" },
+                        { "USER_UID", "1000" },
+                    }
+                )
                 .Build();
             await _giteaContainer.StartAsync();
-
         }
 
         private async Task ConfigureGitea()
         {
             await CreateGiteaUsers();
             await CreateTestOrg();
-            await CreateTestOrg(GiteaConstants.SecondaryTestOrgUsername, GiteaConstants.SecondaryTestOrgName, GiteaConstants.SecondaryTestOrgDescription);
+            await CreateTestOrg(
+                GiteaConstants.SecondaryTestOrgUsername,
+                GiteaConstants.SecondaryTestOrgName,
+                GiteaConstants.SecondaryTestOrgDescription
+            );
             await CreateTestOrgTeams();
             await CreateTestOrgTeams(GiteaConstants.SecondaryTestOrgUsername);
-            await AddUserToTeams(GiteaConstants.TestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
-            await AddUserToTeams(GiteaConstants.SecondaryTestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
+            await AddUserToTeams(
+                GiteaConstants.TestOrgUsername,
+                "Owners",
+                "Deploy-TT02",
+                "Devs",
+                "Deploy-AT21",
+                "Deploy-AT22"
+            );
+            await AddUserToTeams(
+                GiteaConstants.SecondaryTestOrgUsername,
+                "Owners",
+                "Deploy-TT02",
+                "Devs",
+                "Deploy-AT21",
+                "Deploy-AT22"
+            );
             await GenerateApplicationClientIdAndClientSecretInGitea();
         }
 
         private async Task CreateGiteaUsers()
         {
-            var retryPolicy = Policy.HandleResult<ExecResult>(x => x.ExitCode != 0)
-                .FallbackAsync(t => throw new Exception("Failed to execute command on gitea container"))
+            var retryPolicy = Policy
+                .HandleResult<ExecResult>(x => x.ExitCode != 0)
+                .FallbackAsync(t =>
+                    throw new Exception("Failed to execute command on gitea container")
+                )
                 .WrapAsync(
-                    Policy.HandleResult<ExecResult>(x => x.ExitCode != 0)
+                    Policy
+                        .HandleResult<ExecResult>(x => x.ExitCode != 0)
                         .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(retryAttempt))
                 );
 
-            await retryPolicy.ExecuteAsync(_ => _giteaContainer.ExecAsync(new[]
-            {
-                "/bin/sh", "-c", $"gitea admin user create --username {GiteaConstants.AdminUser} --password {GiteaConstants.AdminPassword} --email {GiteaConstants.AdminEmail} --must-change-password=false --admin"
-            }, _), CancellationToken.None);
+            await retryPolicy.ExecuteAsync(
+                _ =>
+                    _giteaContainer.ExecAsync(
+                        new[]
+                        {
+                            "/bin/sh",
+                            "-c",
+                            $"gitea admin user create --username {GiteaConstants.AdminUser} --password {GiteaConstants.AdminPassword} --email {GiteaConstants.AdminEmail} --must-change-password=false --admin",
+                        },
+                        _
+                    ),
+                CancellationToken.None
+            );
 
-            await retryPolicy.ExecuteAsync(_ => _giteaContainer.ExecAsync(new[]
-            {
-                "/bin/sh", "-c", $"gitea admin user create --username {GiteaConstants.TestUser} --password {GiteaConstants.TestUserPassword} --email {GiteaConstants.TestUserEmail} --must-change-password=false"
-            }, _), CancellationToken.None);
+            await retryPolicy.ExecuteAsync(
+                _ =>
+                    _giteaContainer.ExecAsync(
+                        new[]
+                        {
+                            "/bin/sh",
+                            "-c",
+                            $"gitea admin user create --username {GiteaConstants.TestUser} --password {GiteaConstants.TestUserPassword} --email {GiteaConstants.TestUserEmail} --must-change-password=false",
+                        },
+                        _
+                    ),
+                CancellationToken.None
+            );
         }
 
-        private async Task CreateTestOrg(string orgUserName = GiteaConstants.TestOrgUsername, string orgName = GiteaConstants.TestOrgName, string orgDescription = GiteaConstants.TestOrgDescription)
+        private async Task CreateTestOrg(
+            string orgUserName = GiteaConstants.TestOrgUsername,
+            string orgName = GiteaConstants.TestOrgName,
+            string orgDescription = GiteaConstants.TestOrgDescription
+        )
         {
-            string body = @$"{{
+            string body =
+                @$"{{
                     ""username"": ""{orgUserName}"",
                     ""full_name"": ""{orgName}"",
                     ""description"": ""{orgDescription}""
                 }}";
 
-            using var content = new StringContent(body, Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var content = new StringContent(
+                body,
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
 
-            await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("orgs", content, _), CancellationToken.None);
+            await GiteaClientRetryPolicy.ExecuteAsync(
+                async _ => await GiteaClient.Value.PostAsync("orgs", content, _),
+                CancellationToken.None
+            );
         }
 
         private async Task CreateTestOrgTeams(string org = GiteaConstants.TestOrgUsername)
         {
-            string teamsJsonFile = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "development", "data", "gitea-teams.json");
+            string teamsJsonFile = Path.Combine(
+                CommonDirectoryPath.GetSolutionDirectory().DirectoryPath,
+                "..",
+                "development",
+                "data",
+                "gitea-teams.json"
+            );
             string teamsContent = await File.ReadAllTextAsync(teamsJsonFile);
             JsonNode teams = JsonNode.Parse(teamsContent);
             foreach (var team in teams as JsonArray)
             {
-                team["units"] = JsonNode.Parse(@"[""repo.code"", ""repo.issues"", ""repo.pulls"", ""repo.releases""]");
-                using var content = new StringContent(team.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
-                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync($"orgs/{org}/teams", content, _), CancellationToken.None);
+                team["units"] = JsonNode.Parse(
+                    @"[""repo.code"", ""repo.issues"", ""repo.pulls"", ""repo.releases""]"
+                );
+                using var content = new StringContent(
+                    team.ToString(),
+                    Encoding.UTF8,
+                    MediaTypeNames.Application.Json
+                );
+                await GiteaClientRetryPolicy.ExecuteAsync(
+                    async _ => await GiteaClient.Value.PostAsync($"orgs/{org}/teams", content, _),
+                    CancellationToken.None
+                );
             }
         }
 
@@ -185,28 +272,49 @@ namespace Designer.Tests.Fixtures
             var allTeams = await GiteaClient.Value.GetAsync($"orgs/{org}/teams");
             string allTeamsContent = await allTeams.Content.ReadAsStringAsync();
             JsonArray teamsJson = JsonNode.Parse(allTeamsContent) as JsonArray;
-            var teamIds = teamsJson.Where(x => teams.Contains(x["name"].GetValue<string>())).Select(x => x["id"].GetValue<long>());
+            var teamIds = teamsJson
+                .Where(x => teams.Contains(x["name"].GetValue<string>()))
+                .Select(x => x["id"].GetValue<long>());
             foreach (long teamId in teamIds)
             {
-                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PutAsync($"teams/{teamId}/members/{GiteaConstants.TestUser}", null, _), CancellationToken.None);
+                await GiteaClientRetryPolicy.ExecuteAsync(
+                    async _ =>
+                        await GiteaClient.Value.PutAsync(
+                            $"teams/{teamId}/members/{GiteaConstants.TestUser}",
+                            null,
+                            _
+                        ),
+                    CancellationToken.None
+                );
             }
         }
 
         private async Task GenerateApplicationClientIdAndClientSecretInGitea()
         {
-            using var applicationContent =
-                new StringContent(
-                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc""],""trusted"":true}}",
-                    Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var applicationContent = new StringContent(
+                $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc""],""trusted"":true}}",
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
 
-            using HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);
+            using HttpResponseMessage addApplicationResponse =
+                await GiteaClientRetryPolicy.ExecuteAsync(
+                    async _ =>
+                        await GiteaClient.Value.PostAsync(
+                            "user/applications/oauth2",
+                            applicationContent,
+                            _
+                        ),
+                    CancellationToken.None
+                );
             addApplicationResponse.EnsureSuccessStatusCode();
 
-            string addApplicationResponseContent = await addApplicationResponse.Content.ReadAsStringAsync();
+            string addApplicationResponseContent =
+                await addApplicationResponse.Content.ReadAsStringAsync();
             JsonNode addApplicationResponseJson = JsonNode.Parse(addApplicationResponseContent);
             OAuthApplicationClientId = addApplicationResponseJson["client_id"].GetValue<string>();
-            OAuthApplicationClientSecret = addApplicationResponseJson["client_secret"].GetValue<string>();
+            OAuthApplicationClientSecret = addApplicationResponseJson["client_secret"]
+                .GetValue<string>();
         }
     }
-
 }

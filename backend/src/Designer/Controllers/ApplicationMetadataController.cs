@@ -2,7 +2,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +13,9 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
+    [Route(
+        "/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata"
+    )]
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IApplicationMetadataService _applicationMetadataService;
@@ -37,7 +38,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<ActionResult> GetApplicationMetadata(string org, string app)
         {
-            ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata application =
+                await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             if (application == null)
             {
                 return NotFound();
@@ -54,10 +56,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
-        public async Task<ActionResult> UpdateApplicationMetadata(string org, string app, [FromBody] ApplicationMetadata applicationMetadata)
+        public async Task<ActionResult> UpdateApplicationMetadata(
+            string org,
+            string app,
+            [FromBody] ApplicationMetadata applicationMetadata
+        )
         {
-            await _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, applicationMetadata);
-            ApplicationMetadata updatedApplicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            await _applicationMetadataService.UpdateApplicationMetaDataLocally(
+                org,
+                app,
+                applicationMetadata
+            );
+            ApplicationMetadata updatedApplicationMetadata =
+                await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             return Ok(updatedApplicationMetadata);
         }
 
@@ -70,14 +81,16 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateApplicationMetadata(string org, string app)
         {
-            bool applicationMetadataAlreadyExists = _applicationMetadataService.ApplicationMetadataExistsInRepository(org, app);
+            bool applicationMetadataAlreadyExists =
+                _applicationMetadataService.ApplicationMetadataExistsInRepository(org, app);
             if (applicationMetadataAlreadyExists)
             {
                 return Conflict("ApplicationMetadata already exists.");
             }
 
             await _applicationMetadataService.CreateApplicationMetadata(org, app, app);
-            ApplicationMetadata createdApplication = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata createdApplication =
+                await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             if (createdApplication == null)
             {
                 return StatusCode(500);
@@ -95,11 +108,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("attachment-component")]
-        public async Task<ActionResult> AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
+        public async Task<ActionResult> AddMetadataForAttachment(
+            [FromBody] dynamic applicationMetadata,
+            string org,
+            string app
+        )
         {
             try
             {
-                await _applicationMetadataService.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
+                await _applicationMetadataService.AddMetadataForAttachment(
+                    org,
+                    app,
+                    applicationMetadata.ToString()
+                );
                 return Ok("Metadata saved");
             }
             catch (IOException)
@@ -117,11 +138,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [HttpPut]
         [Route("attachment-component")]
-        public async Task<ActionResult> UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
+        public async Task<ActionResult> UpdateMetadataForAttachment(
+            [FromBody] dynamic applicationMetadata,
+            string org,
+            string app
+        )
         {
             try
             {
-                await _applicationMetadataService.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
+                await _applicationMetadataService.UpdateMetadataForAttachment(
+                    org,
+                    app,
+                    applicationMetadata.ToString()
+                );
                 return Ok("Metadata updated");
             }
             catch (IOException)
@@ -139,7 +168,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("attachment-component")]
-        public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, [FromBody] string id)
+        public async Task<ActionResult> DeleteMetadataForAttachment(
+            string org,
+            string app,
+            [FromBody] string id
+        )
         {
             try
             {

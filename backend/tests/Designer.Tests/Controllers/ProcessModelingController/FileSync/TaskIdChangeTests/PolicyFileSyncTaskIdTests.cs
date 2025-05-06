@@ -16,20 +16,26 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class PolicyFileSyncTaskIdTests : DesignerEndpointsTestsBase<PolicyFileSyncTaskIdTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class PolicyFileSyncTaskIdTests
+    : DesignerEndpointsTestsBase<PolicyFileSyncTaskIdTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-    public PolicyFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public PolicyFileSyncTaskIdTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [MemberData(nameof(UpsertProcessDefinitionAndNotifyTestData))]
-    public async Task UpsertProcessDefinition_ShouldSyncLayoutSets(string org, string app, string developer,
-        string bpmnFilePath, string policyFilePath, ProcessDefinitionMetadata metadata)
+    public async Task UpsertProcessDefinition_ShouldSyncLayoutSets(
+        string org,
+        string app,
+        string developer,
+        string bpmnFilePath,
+        string policyFilePath,
+        ProcessDefinitionMetadata metadata
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -44,32 +50,43 @@ public class PolicyFileSyncTaskIdTests : DesignerEndpointsTestsBase<PolicyFileSy
         string url = VersionPrefix(org, targetRepository);
 
         using var form = new MultipartFormDataContent();
-        string metadataString = JsonSerializer.Serialize(metadata,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string metadataString = JsonSerializer.Serialize(
+            metadata,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         form.Add(new StreamContent(processStream), "content", "process.bpmn");
-        form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
+        form.Add(
+            new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json),
+            "metadata"
+        );
 
         using var response = await HttpClient.PutAsync(url, form);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string policyFileFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/authorization/policy.xml");
+        string policyFileFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/config/authorization/policy.xml"
+        );
 
         Assert.DoesNotContain(metadata.TaskIdChange.OldId, policyFileFromRepo);
         Assert.Contains(metadata.TaskIdChange.NewId, policyFileFromRepo);
-
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
     {
         yield return new object[]
         {
-            "ttd", "empty-app", "testUser", "App/config/process/process.bpmn",
+            "ttd",
+            "empty-app",
+            "testUser",
+            "App/config/process/process.bpmn",
             "App/config/authorization/policy.xml",
             new ProcessDefinitionMetadata
             {
-                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
-            }
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" },
+            },
         };
     }
 

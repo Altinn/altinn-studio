@@ -22,7 +22,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="deployment">Release containing data from client</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The created document in db</returns>
-        Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default);
+        Task<DeploymentEntity> CreateAsync(
+            string org,
+            string app,
+            DeploymentModel deployment,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Gets deployments
@@ -32,7 +37,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="query">DocumentQueryModel</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query, CancellationToken cancellationToken = default);
+        Task<SearchResults<DeploymentEntity>> GetAsync(
+            string org,
+            string app,
+            DocumentQueryModel query,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Updates a deployment entity
@@ -40,8 +50,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="buildNumber">Azure DevOps build number</param>
         /// <param name="appOwner">Application owner.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task UpdateAsync(string buildNumber, string appOwner, CancellationToken cancellationToken = default);
-
+        Task UpdateAsync(
+            string buildNumber,
+            string appOwner,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Undeploys an application from a specified environment.
@@ -53,6 +66,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <remarks>
         /// This method handles the undeploy of an application from the specified environment.
         /// </remarks>
-        Task UndeployAsync(AltinnRepoEditingContext editingContext, string env, CancellationToken cancellationToken = default);
+        Task UndeployAsync(
+            AltinnRepoEditingContext editingContext,
+            string env,
+            CancellationToken cancellationToken = default
+        );
     }
 }

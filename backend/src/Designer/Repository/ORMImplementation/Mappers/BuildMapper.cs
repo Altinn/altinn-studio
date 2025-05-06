@@ -14,7 +14,7 @@ public static class BuildMapper
             Status = Enum.Parse<BuildStatus>(buildDbModel.Status, true),
             Result = Enum.Parse<BuildResult>(buildDbModel.Result, true),
             Started = buildDbModel.Started?.UtcDateTime,
-            Finished = buildDbModel.Finished?.UtcDateTime
+            Finished = buildDbModel.Finished?.UtcDateTime,
         };
 
     public static BuildDbModel MapToDbModel(BuildEntity buildEntity, BuildType buildType) =>
@@ -25,6 +25,6 @@ public static class BuildMapper
             Result = buildEntity.Result.ToString(),
             Started = buildEntity.Started?.ToUniversalTime(),
             Finished = buildEntity.Finished?.ToUniversalTime(),
-            BuildType = buildType
+            BuildType = buildType,
         };
 }

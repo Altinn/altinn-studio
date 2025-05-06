@@ -16,7 +16,9 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaSpecVersion(SpecVersion.Draft202012)]
 [SchemaSpecVersion(SpecVersion.DraftNext)]
 [JsonConverter(typeof(FormatExclusiveMinimumKeywordJsonConverter))]
-public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatable<FormatExclusiveMinimumKeyword>
+public sealed class FormatExclusiveMinimumKeyword
+    : IJsonSchemaKeyword,
+        IEquatable<FormatExclusiveMinimumKeyword>
 {
     /// <summary>
     /// The name of the keyword
@@ -37,7 +39,11 @@ public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatab
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -68,12 +74,17 @@ public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatab
     /// <summary>
     /// Serializer for the FormatExclusiveMinimumKeyword keyword
     /// </summary>
-    internal class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
+    internal class FormatExclusiveMinimumKeywordJsonConverter
+        : JsonConverter<FormatExclusiveMinimumKeyword>
     {
         /// <summary>
         /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
-        public override FormatExclusiveMinimumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override FormatExclusiveMinimumKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {
@@ -86,7 +97,11 @@ public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatab
         /// <summary>
         /// Write formatExclusiveMaximum keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, FormatExclusiveMinimumKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            FormatExclusiveMinimumKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteString(Name, value.Value);
         }

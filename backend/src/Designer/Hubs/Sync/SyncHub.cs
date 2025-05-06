@@ -19,7 +19,9 @@ public class SyncHub : Hub<ISyncClient>
 
     public override async Task OnConnectedAsync()
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string developer = AuthenticationHelper.GetDeveloperUserName(
+            _httpContextAccessor.HttpContext
+        );
         string connectionId = Context.ConnectionId;
         await Groups.AddToGroupAsync(connectionId, developer);
         await base.OnConnectedAsync();
@@ -27,7 +29,9 @@ public class SyncHub : Hub<ISyncClient>
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string developer = AuthenticationHelper.GetDeveloperUserName(
+            _httpContextAccessor.HttpContext
+        );
         string connectionId = Context.ConnectionId;
         await Groups.RemoveFromGroupAsync(connectionId, developer);
         await base.OnDisconnectedAsync(exception);

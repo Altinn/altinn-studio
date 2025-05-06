@@ -12,11 +12,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetCodeListsTests
+    : DesignerEndpointsTestsBase<GetCodeListsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetCodeListsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetCodeListsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -33,11 +34,24 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithObject = @"[{ ""value"": ""someValue"", ""label"": {}}]";
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
-        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
+        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(
+            Developer,
+            targetOrg,
+            targetRepository
+        );
         string filePath = Path.Combine(repoPath, "Codelists/");
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
+        await File.WriteAllTextAsync(
+            Path.Combine(filePath, "codeListLabelWithObject.json"),
+            codeListLabelWithObject
+        );
+        await File.WriteAllTextAsync(
+            Path.Combine(filePath, "codeListLabelWithNumber.json"),
+            codeListLabelWithNumber
+        );
+        await File.WriteAllTextAsync(
+            Path.Combine(filePath, "codeListLabelWithBool.json"),
+            codeListLabelWithBool
+        );
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -45,7 +59,9 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(
+            responseBody
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -57,8 +73,14 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         Assert.Single(responseList, e => e.Title == "codeListMissingLabel" && e.HasError == true);
         Assert.Single(responseList, e => e.Title == "codeListTrailingComma" && e.HasError == true);
         Assert.Single(responseList, e => e.Title == "codeListLabelWithBool" && e.HasError == true);
-        Assert.Single(responseList, e => e.Title == "codeListLabelWithNumber" && e.HasError == true);
-        Assert.Single(responseList, e => e.Title == "codeListLabelWithObject" && e.HasError == true);
+        Assert.Single(
+            responseList,
+            e => e.Title == "codeListLabelWithNumber" && e.HasError == true
+        );
+        Assert.Single(
+            responseList,
+            e => e.Title == "codeListLabelWithObject" && e.HasError == true
+        );
     }
 
     [Fact]
@@ -76,7 +98,9 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(
+            responseBody
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

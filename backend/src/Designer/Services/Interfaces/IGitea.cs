@@ -54,7 +54,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
+        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(
+            string org,
+            CreateRepoOption options
+        );
 
         /// <summary>
         /// Search the repository for the given searchOptions
@@ -68,7 +71,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the repository</param>
         /// <returns>Information about the repository of the given org.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository);
+        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(
+            string org,
+            string repository
+        );
 
         /// <summary>
         /// Returns organisation that user has access to
@@ -102,7 +108,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="filePath">Path to a file, may start with full commit sha</param>
         /// <param name="shortCommitId">The short hash of a commit id</param>
         /// <returns></returns>
-        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
+        Task<FileSystemObject> GetFileAsync(
+            string org,
+            string app,
+            string filePath,
+            string shortCommitId
+        );
 
         /// <summary>
         /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
@@ -111,7 +122,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">The repository</param>
         /// <param name="serviceResource">The ServiceResource that is to be converted into a ListviewServiceResource</param>
         /// <returns>Returns the ListviewServiceResource based on the information from input and additional fields</returns>
-        Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource);
+        Task<ListviewServiceResource> MapServiceResourceToListViewResource(
+            string org,
+            string repo,
+            ServiceResource serviceResource
+        );
 
         /// <summary>
         /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
@@ -121,7 +136,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="directoryPath">Path to a directort, may start with full commit sha</param>
         /// <param name="shortCommitId">The short hash of a commit id</param>
         /// <returns>a list of files in the given directory</returns>
-        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
+        Task<List<FileSystemObject>> GetDirectoryAsync(
+            string org,
+            string app,
+            string directoryPath,
+            string shortCommitId
+        );
 
         /// <summary>
         /// Retuns list of the teams the user is memeber of.
@@ -136,7 +156,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The name of repository.</param>
         /// <param name="createPullRequestOption">The createPullRequestOption.</param>
         /// <returns></returns>
-        Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
+        Task<bool> CreatePullRequest(
+            string org,
+            string repository,
+            CreatePullRequestOption createPullRequestOption
+        );
 
         /// <summary>
         /// Deletes the repository.

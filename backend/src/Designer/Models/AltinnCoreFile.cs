@@ -46,7 +46,7 @@ namespace Altinn.Studio.Designer.Models
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or sets the last changed date time 
+        /// Gets or sets the last changed date time
         /// </summary>
         public DateTime LastChanged { get; set; }
 
@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Models
         /// Creates a valid populated <see cref="AltinnCoreFile"/> object from a file path string.
         /// </summary>
         /// <param name="filePath">The complete physical path to the file.</param>
-        /// <param name="repositoryRootDirectory">Root path to calculate relative url's from. This is should be the root of the repository. If it's empty or isn't a part of the filePath parameter the RepositoryRelativeUrl will be left blank.</param>        
+        /// <param name="repositoryRootDirectory">Root path to calculate relative url's from. This is should be the root of the repository. If it's empty or isn't a part of the filePath parameter the RepositoryRelativeUrl will be left blank.</param>
         /// <returns></returns>
         public static AltinnCoreFile CreateFromPath(string filePath, string repositoryRootDirectory)
         {
@@ -69,11 +69,14 @@ namespace Altinn.Studio.Designer.Models
                 FileType = fileInfo.Extension,
                 Directory = fileInfo.DirectoryName,
                 RepositoryRelativeUrl = GetRepositoryRelativeUrl(filePath, repositoryRootDirectory),
-                LastChanged = fileInfo.LastWriteTime
+                LastChanged = fileInfo.LastWriteTime,
             };
         }
 
-        private static string GetRepositoryRelativeUrl(string filePath, string repositoryRootDirectory)
+        private static string GetRepositoryRelativeUrl(
+            string filePath,
+            string repositoryRootDirectory
+        )
         {
             Guard.AssertNotNullOrEmpty(filePath, nameof(filePath));
             Guard.AssertNotNullOrEmpty(repositoryRootDirectory, nameof(repositoryRootDirectory));
@@ -93,7 +96,9 @@ namespace Altinn.Studio.Designer.Models
         {
             if (!fileInfo.Exists)
             {
-                throw new FileNotFoundException($"Could not find the file specified at: '{fileInfo.FullName}'");
+                throw new FileNotFoundException(
+                    $"Could not find the file specified at: '{fileInfo.FullName}'"
+                );
             }
         }
     }

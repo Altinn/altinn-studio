@@ -32,12 +32,12 @@ namespace Altinn.Studio.PolicyAdmin.Constants
         public static class MatchAttributeIdentifiers
         {
             /// <summary>
-            /// Org attribute match indentifier 
+            /// Org attribute match indentifier
             /// </summary>
             public const string OrgAttribute = "urn:altinn:org";
 
             /// <summary>
-            /// App attribute match indentifier 
+            /// App attribute match indentifier
             /// </summary>
             public const string AppAttribute = "urn:altinn:app";
 
@@ -47,37 +47,37 @@ namespace Altinn.Studio.PolicyAdmin.Constants
             public const string ResourceRegistryResource = "urn:altinn:resource";
 
             /// <summary>
-            /// Instance attribute match indentifier 
+            /// Instance attribute match indentifier
             /// </summary>
             public const string InstanceAttribute = "urn:altinn:instance-id";
 
             /// <summary>
-            /// App resource attribute match indentifier 
+            /// App resource attribute match indentifier
             /// </summary>
             public const string AppResourceAttribute = "urn:altinn:appresource";
 
             /// <summary>
-            /// Task attribute match indentifier 
+            /// Task attribute match indentifier
             /// </summary>
             public const string TaskAttribute = "urn:altinn:task";
 
             /// <summary>
-            /// End-event attribute match indentifier 
+            /// End-event attribute match indentifier
             /// </summary>
             public const string EndEventAttribute = "urn:altinn:end-event";
 
             /// <summary>
-            /// Party Id attribute match indentifier 
+            /// Party Id attribute match indentifier
             /// </summary>
             public const string PartyAttribute = "urn:altinn:partyid";
 
             /// <summary>
-            /// User Id attribute match indentifier 
+            /// User Id attribute match indentifier
             /// </summary>>
             public const string UserAttribute = "urn:altinn:userid";
 
             /// <summary>
-            /// Role Code attribute match indentifier 
+            /// Role Code attribute match indentifier
             /// </summary>
             public const string RoleAttribute = "urn:altinn:rolecode";
         }
@@ -90,12 +90,14 @@ namespace Altinn.Studio.PolicyAdmin.Constants
             /// <summary>
             /// The minimum authentication level category.
             /// </summary>
-            public const string MinimumAuthenticationLevel = "urn:altinn:minimum-authenticationlevel";
+            public const string MinimumAuthenticationLevel =
+                "urn:altinn:minimum-authenticationlevel";
 
             /// <summary>
             /// The minimum authentication level for organization category
             /// </summary>
-            public const string MinimumAuthenticationLevelOrg = "urn:altinn:minimum-authenticationlevel-org";
+            public const string MinimumAuthenticationLevelOrg =
+                "urn:altinn:minimum-authenticationlevel-org";
         }
     }
 }

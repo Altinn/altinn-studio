@@ -6,4 +6,3 @@ public class MaskinPortenHttpClientSettings : ISettingsMarker
 {
     public string BaseUrl { get; set; }
 }
-

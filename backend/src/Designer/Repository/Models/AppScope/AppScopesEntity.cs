@@ -13,4 +13,3 @@ public class AppScopesEntity
     public string LastModifiedBy { get; set; }
     public uint Version { get; set; }
 }
-

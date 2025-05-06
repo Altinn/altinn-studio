@@ -6,7 +6,11 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public static class TestPolicyHelper
     {
-        public static ResourcePolicy GenerateTestPolicy(string org, string app, string resourceid = null)
+        public static ResourcePolicy GenerateTestPolicy(
+            string org,
+            string app,
+            string resourceid = null
+        )
         {
             ResourcePolicy policy = new ResourcePolicy();
 
@@ -19,12 +23,20 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             List<string> resourceSet1 = new List<string>();
             if (resourceid == null)
             {
-                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute + ":" + org);
-                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute + ":" + app);
+                resourceSet1.Add(
+                    AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute + ":" + org
+                );
+                resourceSet1.Add(
+                    AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute + ":" + app
+                );
             }
             else
             {
-                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource + ":" + resourceid);
+                resourceSet1.Add(
+                    AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource
+                        + ":"
+                        + resourceid
+                );
             }
 
             rule1.Resources.Add(resourceSet1);

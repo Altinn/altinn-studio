@@ -11,7 +11,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
     /// </summary>
     public class EnsureSuccessHandler : DelegatingHandler
     {
-
         private readonly ILogger<EnsureSuccessHandler> _logger;
 
         /// <summary>
@@ -30,20 +29,28 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <param name="request">System.Net.Http.HttpResponseMessage</param>
         /// <param name="cancellationToken">System.Threading.CancellationToken</param>
         /// <returns>HttpResponseMessage</returns>
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-
                 string errorMessage = await response.Content.ReadAsStringAsync();
                 string requestContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("// EnsureSuccessHandler // SendAsync // Request to {RequestUri} failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {RequestContent}", request.RequestUri, response.StatusCode, errorMessage, requestContent);
+                _logger.LogError(
+                    "// EnsureSuccessHandler // SendAsync // Request to {RequestUri} failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {RequestContent}",
+                    request.RequestUri,
+                    response.StatusCode,
+                    errorMessage,
+                    requestContent
+                );
 
                 throw new HttpRequestWithStatusException(response.ReasonPhrase)
                 {
-                    StatusCode = response.StatusCode
+                    StatusCode = response.StatusCode,
                 };
             }
 

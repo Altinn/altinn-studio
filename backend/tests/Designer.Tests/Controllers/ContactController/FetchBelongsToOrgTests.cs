@@ -12,12 +12,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ContactController;
 
-public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToOrgTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class FetchBelongsToOrgTests
+    : DesignerEndpointsTestsBase<FetchBelongsToOrgTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public FetchBelongsToOrgTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public FetchBelongsToOrgTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task UsersThatBelongsToOrg_ShouldReturn_True()
@@ -43,15 +43,21 @@ public class FetchBelongsToOrgTests : DesignerEndpointsTestsBase<FetchBelongsToO
             .AddEnvironmentVariables()
             .Build();
 
-        var anonymousClient = Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureTestServices(services =>
+        var anonymousClient = Factory
+            .WithWebHostBuilder(builder =>
             {
-                services.AddAuthentication("Anonymous")
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Anonymous", options => { });
-            });
-        }).CreateDefaultClient();
+                builder.UseConfiguration(configuration);
+                builder.ConfigureTestServices(services =>
+                {
+                    services
+                        .AddAuthentication("Anonymous")
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                            "Anonymous",
+                            options => { }
+                        );
+                });
+            })
+            .CreateDefaultClient();
 
         string url = "/designer/api/contact/belongs-to-org";
 

@@ -8,19 +8,22 @@ namespace DataModeling.Tests
         [Fact]
         public void CreateModelFromMetadata_InputModelWithRestrictionMinimumAndMaximum_GenerateDataAnnotationWithRangeFromMinToMax()
         {
-            Given.That.ModelMetadataLoaded(
-                    "Model/Metadata/restriction-total-digits.json")
+            Given
+                .That.ModelMetadataLoaded("Model/Metadata/restriction-total-digits.json")
                 .When.ModelMetadataConvertedToCsharpClass();
 
             Assert.NotNull(CSharpClasses);
-            Assert.Contains("[Range(-7.766279631452242E+18, 7.766279631452242E+18)]", CSharpClasses);
+            Assert.Contains(
+                "[Range(-7.766279631452242E+18, 7.766279631452242E+18)]",
+                CSharpClasses
+            );
         }
 
         [Fact]
         public void CreateModelFromMetadata_InputModelWithRestrictionMinLengthAndMaxLength_GenerateDataAnnotationWithMinLengthAndMaxLengthAttributes()
         {
-            Given.That.ModelMetadataLoaded(
-                    "Model/Metadata/restriction-total-digits.json")
+            Given
+                .That.ModelMetadataLoaded("Model/Metadata/restriction-total-digits.json")
                 .When.ModelMetadataConvertedToCsharpClass();
 
             Assert.NotNull(CSharpClasses);
@@ -32,8 +35,8 @@ namespace DataModeling.Tests
         [Fact]
         public void CreateModelFromMetadata_InputModelSpecifiedModelName_GenerateDataAnnotationForRoomElement()
         {
-            Given.That.ModelMetadataLoaded(
-                    "Model/Metadata/RA-0678_M.json")
+            Given
+                .That.ModelMetadataLoaded("Model/Metadata/RA-0678_M.json")
                 .When.ModelMetadataConvertedToCsharpClass();
 
             Assert.NotNull(CSharpClasses);
@@ -44,8 +47,8 @@ namespace DataModeling.Tests
         [Fact]
         public void CreateModelFromMetadata_StringArrayShouldUseNativeType()
         {
-            Given.That.ModelMetadataLoaded(
-                    "Model/Metadata/SimpleStringArray.json")
+            Given
+                .That.ModelMetadataLoaded("Model/Metadata/SimpleStringArray.json")
                 .When.ModelMetadataConvertedToCsharpClass();
 
             Assert.NotNull(CSharpClasses);
@@ -58,14 +61,16 @@ namespace DataModeling.Tests
         [Fact]
         public void CreateModelFromMetadata_TargetNamespaceShouldBeCarriedOverToClass()
         {
-            Given.That.ModelMetadataLoaded(
-                    "Model/Metadata/SeresBasicSchemaWithTargetNamespace.json")
+            Given
+                .That.ModelMetadataLoaded("Model/Metadata/SeresBasicSchemaWithTargetNamespace.json")
                 .When.ModelMetadataConvertedToCsharpClass();
 
             Assert.NotNull(CSharpClasses);
 
-            Assert.Matches("\\[XmlRoot\\(.*Namespace=\"urn:no:altinn:message\"\\)\\]", CSharpClasses);
-
+            Assert.Matches(
+                "\\[XmlRoot\\(.*Namespace=\"urn:no:altinn:message\"\\)\\]",
+                CSharpClasses
+            );
         }
     }
 }

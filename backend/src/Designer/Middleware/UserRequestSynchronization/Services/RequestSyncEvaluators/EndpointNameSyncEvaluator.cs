@@ -13,84 +13,80 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services.
 public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";
-    private static string TrimmedControllerName(string controllerName) => controllerName.Replace(RemoveControllerSuffix, string.Empty);
-    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<string, FrozenSet<string>>
-    {
+
+    private static string TrimmedControllerName(string controllerName) =>
+        controllerName.Replace(RemoveControllerSuffix, string.Empty);
+
+    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList =
+        new Dictionary<string, FrozenSet<string>>
         {
-            TrimmedControllerName(nameof(RepositoryController)),
-            GenerateFrozenSet(
-                nameof(RepositoryController.RepoStatus),
-                nameof(RepositoryController.RepoDiff),
-                nameof(RepositoryController.Pull),
-                nameof(RepositoryController.ResetLocalRepository),
-                nameof(RepositoryController.CommitAndPushRepo),
-                nameof(RepositoryController.Commit),
-                nameof(RepositoryController.Push)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(AppDevelopmentController)),
-            GenerateFrozenSet(
-                nameof(AppDevelopmentController.AddLayoutSet),
-                nameof(AppDevelopmentController.DeleteFormLayout),
-                nameof(AppDevelopmentController.DeleteLayoutSet),
-                nameof(AppDevelopmentController.GetModelMetadata),
-                nameof(AppDevelopmentController.SaveFormLayout),
-                nameof(AppDevelopmentController.SaveLayoutSettings),
-                nameof(AppDevelopmentController.SaveRuleConfig),
-                nameof(AppDevelopmentController.SaveRuleHandler),
-                nameof(AppDevelopmentController.UpdateFormLayoutName),
-                nameof(AppDevelopmentController.UpdateLayoutSetName)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(ApplicationMetadataController)),
-            GenerateFrozenSet(
-                nameof(ApplicationMetadataController.DeleteMetadataForAttachment)
-            )
-        },
-        {
-            TrimmedControllerName( nameof(ProcessModelingController)),
-            GenerateFrozenSet(
-                nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
-                nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
-                nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
-                nameof(ProcessModelingController.ProcessDataTypesChangedNotify)
-            )
-        },
-        {
-            TrimmedControllerName( nameof(ResourceAdminController)),
-            GenerateFrozenSet(
-                nameof(ResourceAdminController.UpdateResource)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(ReleasesController)),
-            GenerateFrozenSet(
-                nameof(ReleasesController.Create)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(DeploymentsController)),
-            GenerateFrozenSet(
-                nameof(DeploymentsController.Create),
-                nameof(DeploymentsController.Undeploy)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(DatamodelsController)),
-            GenerateFrozenSet(
-                nameof(DatamodelsController.Get),
-                nameof(DatamodelsController.PutDatamodel)
-            )
-        },
-        {
-            TrimmedControllerName(nameof(PreviewController)),
-            GenerateFrozenSet(
-                nameof(PreviewController.Datamodel)
-            )
-        }
-    }.ToFrozenDictionary();
+            {
+                TrimmedControllerName(nameof(RepositoryController)),
+                GenerateFrozenSet(
+                    nameof(RepositoryController.RepoStatus),
+                    nameof(RepositoryController.RepoDiff),
+                    nameof(RepositoryController.Pull),
+                    nameof(RepositoryController.ResetLocalRepository),
+                    nameof(RepositoryController.CommitAndPushRepo),
+                    nameof(RepositoryController.Commit),
+                    nameof(RepositoryController.Push)
+                )
+            },
+            {
+                TrimmedControllerName(nameof(AppDevelopmentController)),
+                GenerateFrozenSet(
+                    nameof(AppDevelopmentController.AddLayoutSet),
+                    nameof(AppDevelopmentController.DeleteFormLayout),
+                    nameof(AppDevelopmentController.DeleteLayoutSet),
+                    nameof(AppDevelopmentController.GetModelMetadata),
+                    nameof(AppDevelopmentController.SaveFormLayout),
+                    nameof(AppDevelopmentController.SaveLayoutSettings),
+                    nameof(AppDevelopmentController.SaveRuleConfig),
+                    nameof(AppDevelopmentController.SaveRuleHandler),
+                    nameof(AppDevelopmentController.UpdateFormLayoutName),
+                    nameof(AppDevelopmentController.UpdateLayoutSetName)
+                )
+            },
+            {
+                TrimmedControllerName(nameof(ApplicationMetadataController)),
+                GenerateFrozenSet(nameof(ApplicationMetadataController.DeleteMetadataForAttachment))
+            },
+            {
+                TrimmedControllerName(nameof(ProcessModelingController)),
+                GenerateFrozenSet(
+                    nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
+                    nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
+                    nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
+                    nameof(ProcessModelingController.ProcessDataTypesChangedNotify)
+                )
+            },
+            {
+                TrimmedControllerName(nameof(ResourceAdminController)),
+                GenerateFrozenSet(nameof(ResourceAdminController.UpdateResource))
+            },
+            {
+                TrimmedControllerName(nameof(ReleasesController)),
+                GenerateFrozenSet(nameof(ReleasesController.Create))
+            },
+            {
+                TrimmedControllerName(nameof(DeploymentsController)),
+                GenerateFrozenSet(
+                    nameof(DeploymentsController.Create),
+                    nameof(DeploymentsController.Undeploy)
+                )
+            },
+            {
+                TrimmedControllerName(nameof(DatamodelsController)),
+                GenerateFrozenSet(
+                    nameof(DatamodelsController.Get),
+                    nameof(DatamodelsController.PutDatamodel)
+                )
+            },
+            {
+                TrimmedControllerName(nameof(PreviewController)),
+                GenerateFrozenSet(nameof(PreviewController.Datamodel))
+            },
+        }.ToFrozenDictionary();
 
     private static FrozenSet<string> GenerateFrozenSet(params string[] actions)
     {
@@ -101,7 +97,8 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
     {
         var endpoint = httpContext.GetEndpoint();
 
-        var controllerActionDescriptor = endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>();
+        var controllerActionDescriptor =
+            endpoint?.Metadata.GetMetadata<ControllerActionDescriptor>();
 
         if (controllerActionDescriptor == null)
         {
@@ -111,7 +108,10 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         string controllerName = controllerActionDescriptor.ControllerName;
         string actionName = controllerActionDescriptor.ActionName;
 
-        if (_endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet) && actionSet.Contains(actionName))
+        if (
+            _endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet)
+            && actionSet.Contains(actionName)
+        )
         {
             return true;
         }

@@ -8,12 +8,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 
 public class MaskinPortenHttpClient(HttpClient client) : IMaskinPortenHttpClient
 {
-    public async Task<IEnumerable<MaskinPortenScope>> GetAvailableScopes(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MaskinPortenScope>> GetAvailableScopes(
+        CancellationToken cancellationToken = default
+    )
     {
-        using HttpResponseMessage response = await client.GetAsync("/datasharing/consumer/scope/access", cancellationToken);
+        using HttpResponseMessage response = await client.GetAsync(
+            "/datasharing/consumer/scope/access",
+            cancellationToken
+        );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<IEnumerable<MaskinPortenScope>>(cancellationToken);
+        return await response.Content.ReadFromJsonAsync<IEnumerable<MaskinPortenScope>>(
+            cancellationToken
+        );
     }
 }
-

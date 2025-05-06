@@ -41,7 +41,11 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, Evaluator);
     }
@@ -62,7 +66,11 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
             return;
         }
 
-        if (!new Regex(TotalDigitsDecimalRegexString(Value)).IsMatch(number.Value.ToString("G", NumberFormatInfo.InvariantInfo)))
+        if (
+            !new Regex(TotalDigitsDecimalRegexString(Value)).IsMatch(
+                number.Value.ToString("G", NumberFormatInfo.InvariantInfo)
+            )
+        )
         {
             evaluation.Results.Fail(Name, "Invalid value for regex");
         }
@@ -97,7 +105,11 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
     internal class XsdTotalDigitsKeywordJsonConverter : JsonConverter<XsdTotalDigitsKeyword>
     {
         /// <inheritdoc />
-        public override XsdTotalDigitsKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdTotalDigitsKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.Number)
             {
@@ -108,7 +120,11 @@ public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTo
         }
 
         /// <inheritdoc />
-        public override void Write(Utf8JsonWriter writer, XsdTotalDigitsKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdTotalDigitsKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteNumber(Name, value.Value);
         }

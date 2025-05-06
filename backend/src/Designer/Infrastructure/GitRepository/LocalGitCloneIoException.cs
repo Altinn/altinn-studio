@@ -9,18 +9,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 public class LocalGitCloneIoException : Exception
 {
     /// <inheritdoc/>
-    public LocalGitCloneIoException()
-    {
-    }
+    public LocalGitCloneIoException() { }
 
     /// <inheritdoc/>
-    public LocalGitCloneIoException(string message) : base(message)
-    {
-    }
+    public LocalGitCloneIoException(string message)
+        : base(message) { }
 
     /// <inheritdoc/>
-    public LocalGitCloneIoException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+    public LocalGitCloneIoException(string message, Exception innerException)
+        : base(message, innerException) { }
 }
-

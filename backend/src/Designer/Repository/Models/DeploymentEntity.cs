@@ -31,6 +31,6 @@ namespace Altinn.Studio.Designer.Repository.Models
     public enum DeploymentType
     {
         Deploy = 0,
-        Decommission = 1
+        Decommission = 1,
     }
 }

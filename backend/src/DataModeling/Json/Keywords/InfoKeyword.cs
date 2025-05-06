@@ -38,7 +38,11 @@ public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -79,7 +83,11 @@ public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
         /// <summary>
         /// Read info keyword from json schema
         /// </summary>
-        public override InfoKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override InfoKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.StartObject)
             {
@@ -94,7 +102,11 @@ public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
         /// <summary>
         /// Write info keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, InfoKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            InfoKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteValue(value.Value);

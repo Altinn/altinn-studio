@@ -19,6 +19,7 @@ namespace Designer.Tests.Fixtures
 
         public const string SecondaryTestOrgName = "Testdepartementet2";
         public const string SecondaryTestOrgUsername = "ttd2";
-        public const string SecondaryTestOrgDescription = "Internt organisasjon 2 for test av løsning";
+        public const string SecondaryTestOrgDescription =
+            "Internt organisasjon 2 for test av løsning";
     }
 }

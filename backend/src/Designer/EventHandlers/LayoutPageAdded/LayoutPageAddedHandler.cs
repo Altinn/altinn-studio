@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,10 +11,13 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutPageAdded;
 
-public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    IFileSyncHandlerExecutor fileSyncHandlerExecutor) : INotificationHandler<LayoutPageAddedEvent>
+public class LayoutPageAddedHandler(
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor
+) : INotificationHandler<LayoutPageAddedEvent>
 {
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory =
+        altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
 
     public async Task Handle(LayoutPageAddedEvent notification, CancellationToken cancellationToken)
@@ -26,10 +28,12 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
             "App/config/texts/resource.nb.json",
             async () =>
             {
-                AltinnAppGitRepository repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                    notification.EditingContext.Org,
-                    notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                AltinnAppGitRepository repository =
+                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                        notification.EditingContext.Org,
+                        notification.EditingContext.Repo,
+                        notification.EditingContext.Developer
+                    );
                 if (!repository.AppUsesLayoutSets())
                 {
                     return false;
@@ -46,7 +50,8 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
                     return true;
                 }
                 return false;
-            });
+            }
+        );
     }
 
     /// <summary>
@@ -55,7 +60,11 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
     /// <param name="resources">The list of TextResourceElement to which the new element will be added.</param>
     /// <param name="id">The id of the TextResourceElement to be added.</param>
     /// <param name="value">The value of the TextResourceElement to be added.</param>
-    private static void AddTextResourceIfNotExists(List<TextResourceElement> resources, string id, string value)
+    private static void AddTextResourceIfNotExists(
+        List<TextResourceElement> resources,
+        string id,
+        string value
+    )
     {
         if (!resources.Any(x => x.Id == id))
         {

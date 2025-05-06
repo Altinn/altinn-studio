@@ -6,12 +6,12 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
+using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
@@ -34,7 +34,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection RegisterTypedHttpClients(
+            this IServiceCollection services,
+            IConfiguration config
+        )
         {
             services.AddHttpClient();
             services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
@@ -43,12 +46,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
             services.AddAltinnAuthenticationTypedHttpClient(config);
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient
-                <IAltinnStorageAppMetadataClient, AltinnStorageAppMetadataClient>();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient
-                <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient
-                <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+                IAltinnStorageAppMetadataClient,
+                AltinnStorageAppMetadataClient
+            >();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+                IAltinnAuthorizationPolicyClient,
+                AltinnAuthorizationPolicyClient
+            >();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+                IAltinnStorageTextResourceClient,
+                AltinnStorageTextResourceClient
+            >();
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
@@ -61,19 +70,34 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             return services;
         }
 
-        private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(
+            this IServiceCollection services,
+            IConfiguration config
+        )
         {
-            AzureDevOpsSettings azureDevOpsSettings = config.GetSection("Integrations:AzureDevOpsSettings").Get<AzureDevOpsSettings>();
+            AzureDevOpsSettings azureDevOpsSettings = config
+                .GetSection("Integrations:AzureDevOpsSettings")
+                .Get<AzureDevOpsSettings>();
             string token = config["AccessTokenDevOps"];
-            return services.AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
-            {
-                client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>().AddHttpMessageHandler<EnsureSuccessHandler>();
+            return services
+                .AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
+                {
+                    client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}");
+                    client.DefaultRequestHeaders.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue("application/json")
+                    );
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                        "Basic",
+                        token
+                    );
+                })
+                .AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>()
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
-        private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
+        private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(
+            this IServiceCollection services
+        )
         {
             return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
             // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
@@ -81,64 +105,108 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
         }
 
-        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
-            IConfiguration config)
-            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((_, httpClient) =>
-                {
-                    ServiceRepositorySettings serviceRepoSettings =
-                        config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
-                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
-                    httpClient.BaseAddress = uri;
-                })
-                .ConfigurePrimaryHttpMessageHandler((sp) =>
-                {
-                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
+        private static IHttpClientBuilder AddGiteaTypedHttpClient(
+            this IServiceCollection services,
+            IConfiguration config
+        ) =>
+            services
+                .AddHttpClient<IGitea, GiteaAPIWrapper>(
+                    (_, httpClient) =>
+                    {
+                        ServiceRepositorySettings serviceRepoSettings = config
+                            .GetSection(nameof(ServiceRepositorySettings))
+                            .Get<ServiceRepositorySettings>();
+                        Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                        httpClient.BaseAddress = uri;
+                    }
+                )
+                .ConfigurePrimaryHttpMessageHandler(
+                    (sp) =>
+                    {
+                        var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
-                    return new Custom401Handler(handler);
-                })
+                        return new Custom401Handler(handler);
+                    }
+                )
                 .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
 
-
-        private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
-            => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>
-                {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                })
+        private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(
+            this IServiceCollection services,
+            IConfiguration config
+        ) =>
+            services
+                .AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>(
+                    (sp, httpClient) =>
+                    {
+                        httpClient.DefaultRequestHeaders.Accept.Add(
+                            new MediaTypeWithQualityHeaderValue("application/json")
+                        );
+                    }
+                )
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
 
-        private static IHttpClientBuilder AddAuthenticatedAltinnPlatformTypedHttpClient<TInterface, TImplementation>(this IServiceCollection services)
+        private static IHttpClientBuilder AddAuthenticatedAltinnPlatformTypedHttpClient<
+            TInterface,
+            TImplementation
+        >(this IServiceCollection services)
             where TImplementation : class, TInterface
-            where TInterface : class
-            => services.AddHttpClient<TInterface, TImplementation>((sp, httpClient) =>
-                {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
-                })
+            where TInterface : class =>
+            services
+                .AddHttpClient<TInterface, TImplementation>(
+                    (sp, httpClient) =>
+                    {
+                        httpClient.DefaultRequestHeaders.Accept.Add(
+                            new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json)
+                        );
+                    }
+                )
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
 
-        private static IHttpClientBuilder AddMaskinportenHttpClient(this IServiceCollection services)
+        private static IHttpClientBuilder AddMaskinportenHttpClient(
+            this IServiceCollection services
+        )
         {
             services.AddScoped<AnsattPortenTokenDelegatingHandler>();
-            return services.AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>((serviceProvider, client) =>
+            return services
+                .AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>(
+                    (serviceProvider, client) =>
                     {
-                        var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                        var options = serviceProvider
+                            .GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>()
+                            .Value;
                         client.BaseAddress = new Uri(options.BaseUrl);
-                    })
-            .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
-
+                    }
+                )
+                .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
         }
 
-        private static IHttpClientBuilder AddSlackClient(this IServiceCollection services, IConfiguration config)
+        private static IHttpClientBuilder AddSlackClient(
+            this IServiceCollection services,
+            IConfiguration config
+        )
         {
-            FeedbackFormSettings feedbackFormSettings = config.GetSection("FeedbackFormSettings").Get<FeedbackFormSettings>();
+            FeedbackFormSettings feedbackFormSettings = config
+                .GetSection("FeedbackFormSettings")
+                .Get<FeedbackFormSettings>();
             string token = config["FeedbackFormSlackToken"];
-            return services.AddHttpClient<ISlackClient, SlackClient>(client =>
-            {
-                client.BaseAddress = new Uri(feedbackFormSettings.SlackSettings.WebhookUrl + config["FeedbackFormSlackWebhookSecret"]);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+            return services
+                .AddHttpClient<ISlackClient, SlackClient>(client =>
+                {
+                    client.BaseAddress = new Uri(
+                        feedbackFormSettings.SlackSettings.WebhookUrl
+                            + config["FeedbackFormSlackWebhookSecret"]
+                    );
+                    client.DefaultRequestHeaders.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue("application/json")
+                    );
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                        "Basic",
+                        token
+                    );
+                })
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
     }
 }

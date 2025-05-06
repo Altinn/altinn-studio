@@ -33,7 +33,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public TextResourceService(
             IGitea giteaApiWrapper,
             ILogger<TextResourceService> logger,
-            IAltinnStorageTextResourceClient storageTextResourceClient)
+            IAltinnStorageTextResourceClient storageTextResourceClient
+        )
         {
             _giteaApiWrapper = giteaApiWrapper;
             _logger = logger;
@@ -41,40 +42,60 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken = default)
+        public async Task UpdateTextResourcesAsync(
+            string org,
+            string app,
+            string shortCommitId,
+            string envName,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             string textResourcesPath = GetTextResourceDirectoryPath();
-            List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+            List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(
+                org,
+                app,
+                textResourcesPath,
+                shortCommitId
+            );
             if (folder == null)
             {
                 return;
             }
 
-            var resourceFiles =
-                folder.Where(textResourceFromRepo =>
-                    Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success);
+            var resourceFiles = folder.Where(textResourceFromRepo =>
+                Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success
+            );
 
-            await Parallel.ForEachAsync(resourceFiles, cancellationToken, async (textResourceFromRepo, c) =>
-            {
-                c.ThrowIfCancellationRequested();
-                FileSystemObject populatedFile =
-                    await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
-                byte[] data = Convert.FromBase64String(populatedFile.Content);
+            await Parallel.ForEachAsync(
+                resourceFiles,
+                cancellationToken,
+                async (textResourceFromRepo, c) =>
+                {
+                    c.ThrowIfCancellationRequested();
+                    FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(
+                        org,
+                        app,
+                        textResourceFromRepo.Path,
+                        shortCommitId
+                    );
+                    byte[] data = Convert.FromBase64String(populatedFile.Content);
 
-                try
-                {
-                    PlatformStorageModels.TextResource content =
-                        data.Deserialize<PlatformStorageModels.TextResource>();
-                    await _storageTextResourceClient.Upsert(org, app, content, envName);
+                    try
+                    {
+                        PlatformStorageModels.TextResource content =
+                            data.Deserialize<PlatformStorageModels.TextResource>();
+                        await _storageTextResourceClient.Upsert(org, app, content, envName);
+                    }
+                    catch (SerializationException e)
+                    {
+                        _logger.LogError(
+                            $" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}"
+                        );
+                        throw;
+                    }
                 }
-                catch (SerializationException e)
-                {
-                    _logger.LogError(
-                        $" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
-                    throw;
-                }
-            });
+            );
         }
 
         private string GetTextResourceDirectoryPath()

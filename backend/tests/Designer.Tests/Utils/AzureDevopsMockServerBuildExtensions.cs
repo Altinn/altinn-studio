@@ -8,21 +8,24 @@ namespace Designer.Tests.Utils;
 
 public static class AzureDevopsMockServerBuildExtensions
 {
-    public static void PrepareQueueBuildResponse(this MockServerFixture mockServerFixture, int buildId, string responseJson)
+    public static void PrepareQueueBuildResponse(
+        this MockServerFixture mockServerFixture,
+        int buildId,
+        string responseJson
+    )
     {
-        var request = Request.Create()
+        var request = Request
+            .Create()
             .UsingPost()
             .WithPath("/build/builds")
             .WithParam("api-version", "5.1");
 
-        var response = Response.Create()
+        var response = Response
+            .Create()
             .WithStatusCode(201)
             .WithHeader("content-type", MediaTypeNames.Application.Json)
             .WithBody(responseJson);
 
-        mockServerFixture.MockApi.Given(request)
-            .RespondWith(
-                response
-            );
+        mockServerFixture.MockApi.Given(request).RespondWith(response);
     }
 }

@@ -21,7 +21,9 @@ public class PreviewHub : Hub<IPreviewClient>
 
     public override async Task OnConnectedAsync()
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string developer = AuthenticationHelper.GetDeveloperUserName(
+            _httpContextAccessor.HttpContext
+        );
         string connectionId = Context.ConnectionId;
         await Groups.AddToGroupAsync(connectionId, developer);
         await base.OnConnectedAsync();
@@ -29,7 +31,9 @@ public class PreviewHub : Hub<IPreviewClient>
 
     public async Task SendMessage(string message)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string developer = AuthenticationHelper.GetDeveloperUserName(
+            _httpContextAccessor.HttpContext
+        );
         _logger.LogInformation("Message received from client: {MessageFromClient}", message);
         await Clients.Group(developer).ReceiveMessage(message);
     }

@@ -24,7 +24,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     /// <summary>
@@ -35,13 +35,21 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="developer">Developer that is working on the repository.</param>
     /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
     /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
-    public AltinnOrgGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
-    {
-    }
+    public AltinnOrgGitRepository(
+        string org,
+        string repository,
+        string developer,
+        string repositoriesRootDirectory,
+        string repositoryDirectory
+    )
+        : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory) { }
 
     public List<string> GetLanguages()
     {
-        string[] languageFilePaths = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
+        string[] languageFilePaths = GetFilesByRelativeDirectory(
+            LanguageResourceFolderName,
+            TextResourceFileNamePattern
+        );
 
         List<string> languages = languageFilePaths
             .Select(Path.GetFileName)
@@ -61,7 +69,10 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <remarks>
     /// Format of the <see cref="TextResource"/> is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
     /// </remarks>
-    public async Task<TextResource> GetText(string languageCode, CancellationToken cancellationToken = default)
+    public async Task<TextResource> GetText(
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string resourcePath = GetPathToJsonTextsFile($"resource.{languageCode}.json");
@@ -70,7 +81,10 @@ public class AltinnOrgGitRepository : AltinnGitRepository
             throw new NotFoundException("Text resource file not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
-        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+        TextResource textResource = JsonSerializer.Deserialize<TextResource>(
+            fileContent,
+            s_jsonOptions
+        );
 
         return textResource;
     }
@@ -81,13 +95,22 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="languageCode">Language code</param>
     /// <param name="jsonTexts">text resource</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
+    public async Task SaveText(
+        string languageCode,
+        TextResource jsonTexts,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string fileName = $"resource.{languageCode}.json";
         string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
         string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
-        await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);
+        await WriteTextByRelativePathAsync(
+            textsFileRelativeFilePath,
+            texts,
+            true,
+            cancellationToken
+        );
     }
 
     /// <summary>
@@ -116,7 +139,10 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="codeListId">The name of the code list to fetch.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code list as a string.</returns>
-    public async Task<List<Option>> GetCodeList(string codeListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> GetCodeList(
+        string codeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -126,7 +152,10 @@ public class AltinnOrgGitRepository : AltinnGitRepository
             throw new NotFoundException($"code list file {codeListId}.json was not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
-        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
+        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(
+            fileContent,
+            s_jsonOptions
+        );
 
         return codeList;
     }
@@ -137,14 +166,23 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="codeListId">The name of the code list to create.</param>
     /// <param name="codeList">The code list contents.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task CreateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task CreateCodeList(
+        string codeListId,
+        List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string payloadString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
-        await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
+        await WriteTextByRelativePathAsync(
+            codeListFilePath,
+            payloadString,
+            true,
+            cancellationToken
+        );
     }
 
     /// <summary>
@@ -153,14 +191,23 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="codeListId">The name of the cost list to update.</param>
     /// <param name="codeList">The code list contents.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task UpdateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeList(
+        string codeListId,
+        List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
-        await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
+        await WriteTextByRelativePathAsync(
+            codeListFilePath,
+            codeListString,
+            false,
+            cancellationToken
+        );
     }
 
     /// <summary>
@@ -183,6 +230,8 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     private static string GetPathToJsonTextsFile(string fileName)
     {
-        return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
+        return string.IsNullOrEmpty(fileName)
+            ? LanguageResourceFolderName
+            : Path.Combine(LanguageResourceFolderName, fileName);
     }
 }

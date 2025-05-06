@@ -10,19 +10,22 @@ namespace Designer.Tests.Controllers.ApiTests;
 public class TestSchemeProvider : AuthenticationSchemeProvider
 {
     public TestSchemeProvider(IOptions<AuthenticationOptions> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
-    protected TestSchemeProvider(IOptions<AuthenticationOptions> options, IDictionary<string, AuthenticationScheme> schemes)
-        : base(options, schemes)
-    {
-    }
+    protected TestSchemeProvider(
+        IOptions<AuthenticationOptions> options,
+        IDictionary<string, AuthenticationScheme> schemes
+    )
+        : base(options, schemes) { }
 
     public override Task<AuthenticationScheme> GetSchemeAsync(string name)
     {
         // Replace cookies scheme used in oidc setup with test scheme
-        if (name is CookieAuthenticationDefaults.AuthenticationScheme or AnsattPortenConstants.AnsattportenAuthenticationScheme)
+        if (
+            name
+            is CookieAuthenticationDefaults.AuthenticationScheme
+                or AnsattPortenConstants.AnsattportenAuthenticationScheme
+        )
         {
             return base.GetSchemeAsync(TestAuthConstants.TestAuthenticationScheme);
         }

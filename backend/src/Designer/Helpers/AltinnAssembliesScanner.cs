@@ -17,12 +17,13 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (DependencyContext == null)
             {
-                throw new InvalidOperationException("PreserveCompilationContext should be set to true for default DependencyContext.");
+                throw new InvalidOperationException(
+                    "PreserveCompilationContext should be set to true for default DependencyContext."
+                );
             }
 
             return DependencyContext
-                .RuntimeLibraries
-                .Where(IsAltinnLibrary)
+                .RuntimeLibraries.Where(IsAltinnLibrary)
                 .Where(IsLoadable)
                 .Select(library => Assembly.Load(new AssemblyName(library.Name)))
                 .GetTypesAssignedFrom<TAssignedFrom>();
@@ -47,14 +48,20 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-        private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(this IEnumerable<Assembly> assemblies)
+        private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(
+            this IEnumerable<Assembly> assemblies
+        )
         {
             return assemblies.SelectMany(a => a.GetTypesAssignedFrom<TAssignedFrom>());
         }
 
         private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(this Assembly assembly)
         {
-            return assembly.GetLoadableTypes().Where(type => typeof(TAssignedFrom).IsAssignableFrom(type) && type != typeof(TAssignedFrom));
+            return assembly
+                .GetLoadableTypes()
+                .Where(type =>
+                    typeof(TAssignedFrom).IsAssignableFrom(type) && type != typeof(TAssignedFrom)
+                );
         }
 
         private static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
@@ -71,8 +78,13 @@ namespace Altinn.Studio.Designer.Helpers
 
         private static bool IsAltinnLibrary(RuntimeLibrary library)
         {
-            return library.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
-                || library.Dependencies.Any(d => d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase));
+            return library.Name.StartsWith(
+                    AltinnAssemblyIdentifier,
+                    StringComparison.OrdinalIgnoreCase
+                )
+                || library.Dependencies.Any(d =>
+                    d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
+                );
         }
     }
 }

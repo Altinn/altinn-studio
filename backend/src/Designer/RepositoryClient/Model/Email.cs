@@ -28,7 +28,11 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="email">_Email.</param>
         /// <param name="primary">Primary.</param>
         /// <param name="verified">Verified.</param>
-        public Email(string email = default(string), bool? primary = default(bool?), bool? verified = default(bool?))
+        public Email(
+            string email = default(string),
+            bool? primary = default(bool?),
+            bool? verified = default(bool?)
+        )
         {
             this.EmailId = email;
             this.Primary = primary;
@@ -90,19 +94,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.EmailId == input.EmailId ||
-                    (this.EmailId != null &&
-                    this.EmailId.Equals(input.EmailId))) &&
-                (
-                    this.Primary == input.Primary ||
-                    (this.Primary != null &&
-                    this.Primary.Equals(input.Primary))) &&
-                (
-                    this.Verified == input.Verified ||
-                    (this.Verified != null &&
-                    this.Verified.Equals(input.Verified)));
+            return (
+                    this.EmailId == input.EmailId
+                    || (this.EmailId != null && this.EmailId.Equals(input.EmailId))
+                )
+                && (
+                    this.Primary == input.Primary
+                    || (this.Primary != null && this.Primary.Equals(input.Primary))
+                )
+                && (
+                    this.Verified == input.Verified
+                    || (this.Verified != null && this.Verified.Equals(input.Verified))
+                );
         }
 
         /// <summary>
@@ -139,7 +142,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(
+            ValidationContext validationContext
+        )
         {
             yield break;
         }

@@ -18,18 +18,33 @@ public class AppScopesRepository : IAppScopesRepository
         _dbContext = dbContext;
     }
 
-    public async Task<AppScopesEntity> GetAppScopesAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken = default)
+    public async Task<AppScopesEntity> GetAppScopesAsync(
+        AltinnRepoContext repoContext,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var appScope = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == repoContext.Org && a.App == repoContext.Repo, cancellationToken);
+        var appScope = await _dbContext
+            .AppScopes.AsNoTracking()
+            .SingleOrDefaultAsync(
+                a => a.Org == repoContext.Org && a.App == repoContext.Repo,
+                cancellationToken
+            );
 
         return appScope is null ? null : AppScopesMapper.MapToModel(appScope);
     }
 
-    public async Task<AppScopesEntity> UpsertAppScopesAsync(AppScopesEntity appScopesEntity,
-        CancellationToken cancellationToken = default)
+    public async Task<AppScopesEntity> UpsertAppScopesAsync(
+        AppScopesEntity appScopesEntity,
+        CancellationToken cancellationToken = default
+    )
     {
-        AppScopesDbModel existing = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App, cancellationToken);
+        AppScopesDbModel existing = await _dbContext
+            .AppScopes.AsNoTracking()
+            .SingleOrDefaultAsync(
+                a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App,
+                cancellationToken
+            );
 
         var dbObject = existing is null
             ? AppScopesMapper.MapToDbModel(appScopesEntity)

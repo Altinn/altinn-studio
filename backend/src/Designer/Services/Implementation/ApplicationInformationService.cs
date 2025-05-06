@@ -20,7 +20,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ApplicationInformationService(
             IApplicationMetadataService applicationMetadataService,
             IAuthorizationPolicyService authorizationPolicyService,
-            ITextResourceService textResourceService)
+            ITextResourceService textResourceService
+        )
         {
             _applicationMetadataService = applicationMetadataService;
             _authorizationPolicyService = authorizationPolicyService;
@@ -33,23 +34,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string app,
             string shortCommitId,
             string envName,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await _applicationMetadataService
-                .UpdateApplicationMetadataInStorageAsync(org, app, shortCommitId, envName, cancellationToken);
+            await _applicationMetadataService.UpdateApplicationMetadataInStorageAsync(
+                org,
+                app,
+                shortCommitId,
+                envName,
+                cancellationToken
+            );
 
-            Task updateAuthPolicyTask = _authorizationPolicyService
-                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, envName, cancellationToken);
+            Task updateAuthPolicyTask =
+                _authorizationPolicyService.UpdateApplicationAuthorizationPolicyAsync(
+                    org,
+                    app,
+                    shortCommitId,
+                    envName,
+                    cancellationToken
+                );
 
-            Task updateTextResources = _textResourceService
-                .UpdateTextResourcesAsync(org, app, shortCommitId, envName, cancellationToken);
+            Task updateTextResources = _textResourceService.UpdateTextResourcesAsync(
+                org,
+                app,
+                shortCommitId,
+                envName,
+                cancellationToken
+            );
 
-            await Task.WhenAll(new List<Task>
-            {
-                updateAuthPolicyTask,
-                updateTextResources
-            });
+            await Task.WhenAll(new List<Task> { updateAuthPolicyTask, updateTextResources });
         }
     }
 }

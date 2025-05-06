@@ -16,7 +16,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// <summary>
     /// Authorization Handler for GiteaDeployPermissionRequirement
     /// </summary>
-    public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
+    public class GiteaDeployPermissionHandler
+        : AuthorizationHandler<GiteaDeployPermissionRequirement>
     {
         private readonly IGitea _giteaApiWrapper;
         private readonly HttpContext _httpContext;
@@ -28,7 +29,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaDeployPermissionHandler(
             IGitea giteaApiWrapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaApiWrapper = giteaApiWrapper;
@@ -37,7 +39,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaDeployPermissionRequirement requirement)
+            GiteaDeployPermissionRequirement requirement
+        )
         {
             if (_httpContext == null)
             {
@@ -47,8 +50,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             string org = _httpContext.GetRouteValue("org")?.ToString();
             string app = _httpContext.GetRouteValue("app")?.ToString();
 
-            if (string.IsNullOrWhiteSpace(org) ||
-                string.IsNullOrWhiteSpace(app))
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
             {
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
@@ -60,12 +62,15 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             {
                 _httpContext.Request.EnableBuffering();
 
-                using (var reader = new StreamReader(
-                   _httpContext.Request.Body,
-                   encoding: Encoding.UTF8,
-                   detectEncodingFromByteOrderMarks: false,
-                   bufferSize: 1024,
-                   leaveOpen: true))
+                using (
+                    var reader = new StreamReader(
+                        _httpContext.Request.Body,
+                        encoding: Encoding.UTF8,
+                        detectEncodingFromByteOrderMarks: false,
+                        bufferSize: 1024,
+                        leaveOpen: true
+                    )
+                )
                 {
                     try
                     {
@@ -95,9 +100,10 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             string matchTeam = $"Deploy-{environment}";
             List<Team> teams = await _giteaApiWrapper.GetTeams();
 
-            bool any = teams.Any(t => t.Organization.Username.Equals(
-                org, System.StringComparison.OrdinalIgnoreCase)
-                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
+            bool any = teams.Any(t =>
+                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+            );
 
             if (any)
             {

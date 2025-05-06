@@ -17,11 +17,16 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(Xml2JsonTestData))]
-        public void XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
+        public void XmlSchema_to_JsonSchema_Converter(
+            string schemaPath,
+            string expectedPath,
+            string testCase
+        )
         {
             _testOutputHelper.WriteLine(testCase);
 
-            Given.That.XsdSchemaLoaded(schemaPath)
+            Given
+                .That.XsdSchemaLoaded(schemaPath)
                 .And.JsonSchemaLoaded(expectedPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .Then.LoadedAndConvertedJsonSchemasShouldBeEquivalent();

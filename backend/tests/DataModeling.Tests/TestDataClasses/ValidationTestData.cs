@@ -14,8 +14,14 @@ public class ValidationTestData : IEnumerable<object[]>
         yield return ["Model/XmlSchema/Gitea/nbib-melding.xsd"];
         yield return ["Model/XmlSchema/Gitea/udir-vfkl.xsd"];
         yield return ["Model/XmlSchema/Gitea/dat-bilpleie-soknad.xsd"];
-        yield return ["Model/XmlSchema/Gitea/Kursdomene_BliTjenesteeier_M_2020-05-25_5703_34553_SERES.xsd"];
-        yield return ["Model/XmlSchema/Gitea/Kursdomene_BekrefteBruksvilkår_M_2020-05-25_5704_34554_SERES.xsd"];
+        yield return
+        [
+            "Model/XmlSchema/Gitea/Kursdomene_BliTjenesteeier_M_2020-05-25_5703_34553_SERES.xsd",
+        ];
+        yield return
+        [
+            "Model/XmlSchema/Gitea/Kursdomene_BekrefteBruksvilkår_M_2020-05-25_5704_34554_SERES.xsd",
+        ];
         yield return ["Model/XmlSchema/Gitea/stami-atid-databehandler-2022.xsd"];
         yield return ["Model/XmlSchema/Gitea/stami-mu-databehandler-2021.xsd"];
         yield return ["Model/XmlSchema/Gitea/skd-formueinntekt-skattemelding-v2.xsd"];
@@ -27,7 +33,6 @@ public class ValidationTestData : IEnumerable<object[]>
         // yield return ["Model/XmlSchema/XsAll/igangsettingstillatelse/v4/igangsettingstillatelse.xsd"];
         // yield return ["Model/XmlSchema/XsAll/midlertidigbrukstillatelse/v4/midlertidigbrukstillatelse.xsd"];
         yield return ["Model/XmlSchema/XsAll/planvarsel/v2/planvarsel.xsd"];
-
 
         // Can generate non valid date string from regex
         // yield return new object[] { "Model/XmlSchema/Gitea/hi-algeskjema.xsd" };

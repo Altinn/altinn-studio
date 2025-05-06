@@ -2,8 +2,6 @@
 
 namespace Altinn.Studio.Designer.Configuration
 {
-    public class ResourceRegistryIntegrationSettings : Dictionary<string, ResourceRegistryEnvironmentSettings>
-    {
-
-    }
+    public class ResourceRegistryIntegrationSettings
+        : Dictionary<string, ResourceRegistryEnvironmentSettings> { }
 }

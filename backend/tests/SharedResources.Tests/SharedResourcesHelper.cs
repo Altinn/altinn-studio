@@ -9,7 +9,8 @@ namespace SharedResources.Tests;
 
 public static class SharedResourcesHelper
 {
-    private static readonly Assembly s_sharedResourcesAssembly = typeof(SharedResourcesHelper).Assembly;
+    private static readonly Assembly s_sharedResourcesAssembly =
+        typeof(SharedResourcesHelper).Assembly;
 
     public static string LoadTestDataAsString(string resourceName)
     {
@@ -21,7 +22,8 @@ public static class SharedResourcesHelper
     public static Stream LoadTestData(string resourceName)
     {
         string resourceNameEnding = resourceName.Replace('/', '.');
-        string embeddedResourceName = s_sharedResourcesAssembly.GetManifestResourceNames()
+        string embeddedResourceName = s_sharedResourcesAssembly
+            .GetManifestResourceNames()
             .Single(x => x.EndsWith(resourceNameEnding));
         return s_sharedResourcesAssembly.GetManifestResourceStream(embeddedResourceName);
     }
@@ -46,6 +48,9 @@ public static class SharedResourcesHelper
 
     public static void WriteUpdatedTestData(string resourceName, string cSharpClasses)
     {
-        File.WriteAllText(Path.Join("..", "..", "..", "..", "..", "..", "testdata", resourceName), cSharpClasses);
+        File.WriteAllText(
+            Path.Join("..", "..", "..", "..", "..", "..", "testdata", resourceName),
+            cSharpClasses
+        );
     }
 }

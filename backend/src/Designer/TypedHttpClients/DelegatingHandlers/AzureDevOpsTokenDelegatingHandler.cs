@@ -7,7 +7,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
 public class AzureDevOpsTokenDelegatingHandler : DelegatingHandler
 {
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
@@ -15,7 +18,9 @@ public class AzureDevOpsTokenDelegatingHandler : DelegatingHandler
         {
             return new HttpResponseMessage(HttpStatusCode.InternalServerError)
             {
-                Content = new StringContent("Failed to interact with Azure DevOps. Contact system support.")
+                Content = new StringContent(
+                    "Failed to interact with Azure DevOps. Contact system support."
+                ),
             };
         }
 
