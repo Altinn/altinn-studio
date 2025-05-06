@@ -48,11 +48,17 @@ public class OrgContentController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
         {
-            HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation.";
+            HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation";
             return NoContent();
         }
 
         var editingContext = CreateAltinnOrgContext(orgName);
+        if (!_orgContentService.OrgContentRepoExists(editingContext))
+        {
+            HttpContext.Response.Headers["Reason"] = $"{orgName}-content repo does not exist";
+            return NoContent();
+        }
+
         if (string.IsNullOrEmpty(contentType))
         {
             return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);

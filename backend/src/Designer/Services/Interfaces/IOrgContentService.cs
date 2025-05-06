@@ -20,4 +20,11 @@ public interface IOrgContentService
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
     public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if the organisation's content repository exists in the specified context.
+    /// </summary>
+    /// <param name="context">The organisation context containing organisation and developer information.</param>
+    /// <returns>True if the content repository exists; otherwise, false.</returns>
+    public bool OrgContentRepoExists(AltinnOrgContext context);
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Moq;
 using Xunit;
@@ -21,9 +22,10 @@ public class OrgContentServiceTests
 
     public OrgContentServiceTests()
     {
+        Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = new();
         _mockOrgCodeListService = new Mock<IOrgCodeListService>();
         _mockOrgTextsService = new Mock<IOrgTextsService>();
-        _orgContentService = new OrgContentService(_mockOrgCodeListService.Object, _mockOrgTextsService.Object);
+        _orgContentService = new OrgContentService(altinnGitRepositoryFactory.Object, _mockOrgCodeListService.Object, _mockOrgTextsService.Object);
         _context = AltinnOrgContext.FromOrg(OrgName, DeveloperName);
     }
 
