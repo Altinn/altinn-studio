@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_InstanceForNextTaskForV4App_Ok_TaskIsIncreased()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 

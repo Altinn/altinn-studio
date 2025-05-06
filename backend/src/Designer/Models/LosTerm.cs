@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Models
         public string InternalId { get; set; }
         public List<string> Children { get; set; }
         public List<string> Parents { get; set; }
-        public bool isTheme { get; set; }
+        public bool IsTheme { get; set; }
         public List<string> LosPaths { get; set; }
         public Dictionary<string, string> Name { get; set; }
         public string Definition { get; set; }

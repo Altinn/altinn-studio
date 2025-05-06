@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger<AltinnStorageAppMetadataClient> _logger;
 
-        private static readonly JsonSerializerOptions _jsonOptions = new()
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -86,7 +86,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             Uri uri = new($"{storageUri}{altinnRepoContext.Org}/{altinnRepoContext.Repo}");
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
-            return await response.Content.ReadFromJsonAsync<ApplicationMetadata>(_jsonOptions, cancellationToken);
+            return await response.Content.ReadFromJsonAsync<ApplicationMetadata>(s_jsonOptions, cancellationToken);
 
         }
 

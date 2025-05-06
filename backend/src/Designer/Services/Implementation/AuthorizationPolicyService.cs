@@ -58,9 +58,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetAuthorizationPolicyFilePath()
         {
-            const string metadataFolderName = ServiceRepositorySettings.AUTHORIZATION_FOLDER_NAME;
+            const string MetadataFolderName = ServiceRepositorySettings.AUTHORIZATION_FOLDER_NAME;
             string authorizationPolicyFileName = _serviceRepositorySettings.AuthorizationPolicyFileName;
-            return $"{metadataFolderName}{authorizationPolicyFileName}";
+            return $"{MetadataFolderName}{authorizationPolicyFileName}";
         }
     }
 }

@@ -20,15 +20,15 @@ namespace Altinn.Studio.Designer.Helpers
         {
             get
             {
-                if (upperCaseUtf8Encoding == null)
+                if (s_upperCaseUtf8Encoding == null)
                 {
-                    upperCaseUtf8Encoding = new UpperCaseUtf8Encoding();
+                    s_upperCaseUtf8Encoding = new UpperCaseUtf8Encoding();
                 }
 
-                return upperCaseUtf8Encoding;
+                return s_upperCaseUtf8Encoding;
             }
         }
 
-        private static UpperCaseUtf8Encoding upperCaseUtf8Encoding = null;
+        private static UpperCaseUtf8Encoding s_upperCaseUtf8Encoding = null;
     }
 }
