@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.AnsattPortenController;
 
 public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string _versionPrefix => "/designer/api/ansattporten/auth-status";
+    private static string VersionPrefix => "/designer/api/ansattporten/auth-status";
 
     // Setup unauthenticated http client
     protected override HttpClient GetTestClient()
@@ -50,7 +50,7 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
     [Fact]
     public async Task AuthStatus_Should_ReturnFalse_IfNotAuthenticated()
     {
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, _versionPrefix);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -71,7 +71,7 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
             services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
         };
 
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, _versionPrefix);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

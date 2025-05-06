@@ -16,7 +16,7 @@ namespace Designer.Tests.Services;
 
 public class OrgTextsServiceTests : IDisposable
 {
-    private string _targetOrg { get; set; }
+    private string TargetOrg { get; set; }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -26,16 +26,16 @@ public class OrgTextsServiceTests : IDisposable
     public async Task GetText_ShouldReturnAllTexts(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         TextResource expectedTextResource = GetInitialTextResources();
         string expectedTextResourceJson = JsonSerializer.Serialize(expectedTextResource, s_jsonOptions);
 
         // Act
-        TextResource fetchedTexts = await service.GetText(_targetOrg, Developer, lang);
+        TextResource fetchedTexts = await service.GetText(TargetOrg, Developer, lang);
 
         // Assert
         Assert.Equal(lang, fetchedTexts.Language);
@@ -48,13 +48,13 @@ public class OrgTextsServiceTests : IDisposable
     public async Task GetText_ShouldReturnNotFoundException_WhenFileDoesNotExist(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.GetText(_targetOrg, Developer, lang));
+        await Assert.ThrowsAsync<NotFoundException>(async () => await service.GetText(TargetOrg, Developer, lang));
     }
 
     [Theory]
@@ -62,19 +62,19 @@ public class OrgTextsServiceTests : IDisposable
     public async Task SaveText_ShouldCreateTextFile(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         List<TextResourceElement> newResourceElements = [new() { Id = "newId", Value = "newValue" }];
         TextResource newTextResource = new() { Language = lang, Resources = newResourceElements };
 
         // Act
-        await service.SaveText(_targetOrg, Developer, newTextResource, lang);
+        await service.SaveText(TargetOrg, Developer, newTextResource, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(_targetOrg, targetRepo, Developer, RelativePath(lang));
+        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
         TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         Assert.Equal(newTextResource.Resources[0].Id, actualResource.Resources[0].Id);
         Assert.Equal(newTextResource.Resources[0].Value, actualResource.Resources[0].Value);
@@ -85,9 +85,9 @@ public class OrgTextsServiceTests : IDisposable
     public async Task UpdateTextsForKeys_ShouldUpdateExistingId(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         const string EditedValue = "edited value!";
@@ -100,10 +100,10 @@ public class OrgTextsServiceTests : IDisposable
         expectedTextResources.Resources.Find(e => e.Id == EditedId).Value = EditedValue;
 
         // Act
-        await service.UpdateTextsForKeys(_targetOrg, Developer, newTextIds, lang);
+        await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(_targetOrg, targetRepo, Developer, RelativePath(lang));
+        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
         TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         for (int i = 0; i < actualResource.Resources.Count; i++)
         {
@@ -117,9 +117,9 @@ public class OrgTextsServiceTests : IDisposable
     public async Task UpdateTextsForKeys_ShouldCreateNewIdWhenTextResourceDoesNotExit(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         const string NewId = "someNewId";
@@ -133,10 +133,10 @@ public class OrgTextsServiceTests : IDisposable
         expectedTextResources.Resources.Add(expectedResourceElement);
 
         // Act
-        await service.UpdateTextsForKeys(_targetOrg, Developer, newTextIds, lang);
+        await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(_targetOrg, targetRepo, Developer, RelativePath(lang));
+        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
         TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         TextResourceElement newResourceElement = actualResource.Resources.Find(e => e.Id == NewId);
         Assert.Equal(expectedResourceElement.Id, newResourceElement.Id);
@@ -148,9 +148,9 @@ public class OrgTextsServiceTests : IDisposable
     public async Task UpdateTextsForKeys_ShouldUpdateTextWithVariables(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         const string IdOfItemToUpdate = "TextUsingVariables";
@@ -164,10 +164,10 @@ public class OrgTextsServiceTests : IDisposable
         TextResourceElement expectedResourceElement = expectedTextResources.Resources.Find(e => e.Id == IdOfItemToUpdate);
 
         // Act
-        await service.UpdateTextsForKeys(_targetOrg, Developer, newTextIds, lang);
+        await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
 
         // Assert
-        string actualContent = TestDataHelper.GetFileFromRepo(_targetOrg, targetRepo, Developer, RelativePath(lang));
+        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
         TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         TextResourceElement newResourceElement = actualResource.Resources.Find(e => e.Id == IdOfItemToUpdate);
         Assert.Equal(expectedResourceElement.Id, newResourceElement.Id);
@@ -180,9 +180,9 @@ public class OrgTextsServiceTests : IDisposable
     public async Task UpdateTextsForKeys_ShouldThrowExceptionWhenLanguageDoesNotExist(string repo, string lang)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         Dictionary<string, string> newTextIds = new()
@@ -191,7 +191,7 @@ public class OrgTextsServiceTests : IDisposable
         };
 
         // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(_targetOrg, Developer, newTextIds, lang));
+        await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang));
     }
 
     [Theory]
@@ -199,13 +199,13 @@ public class OrgTextsServiceTests : IDisposable
     public async Task GetTextIds_ShouldReturnUniqueTextIds(string repo)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         // Act
-        List<string> textIds = await service.GetTextIds(_targetOrg, Developer);
+        List<string> textIds = await service.GetTextIds(TargetOrg, Developer);
 
         // Assert
         Assert.Equal(2, textIds.Count);
@@ -217,13 +217,13 @@ public class OrgTextsServiceTests : IDisposable
     public async Task GetTextIds_ShouldReturnEmptyList_WhenTextIdsDoesNotExist(string repo)
     {
         // Arrange
-        _targetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepo = TestDataHelper.GetOrgContentRepoName(_targetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, _targetOrg, targetRepo);
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepo = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
         // Act
-        List<string> textIds = await service.GetTextIds(_targetOrg, Developer);
+        List<string> textIds = await service.GetTextIds(TargetOrg, Developer);
 
         // Assert
         Assert.Empty(textIds);
@@ -257,9 +257,9 @@ public class OrgTextsServiceTests : IDisposable
 
     public void Dispose()
     {
-        if (!string.IsNullOrEmpty(_targetOrg))
+        if (!string.IsNullOrEmpty(TargetOrg))
         {
-            TestDataHelper.DeleteOrgDirectory(Developer, _targetOrg);
+            TestDataHelper.DeleteOrgDirectory(Developer, TargetOrg);
         }
     }
 }

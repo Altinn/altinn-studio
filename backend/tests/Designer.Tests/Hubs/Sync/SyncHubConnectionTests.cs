@@ -10,7 +10,7 @@ namespace Designer.Tests.Hubs.Sync;
 
 public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private HubConnection _hubConnection { get; set; }
+    private HubConnection HubConnection { get; set; }
 
     public SyncHubConnectionTests(WebApplicationFactory<Program> factory) : base(factory)
     {
@@ -21,22 +21,22 @@ public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnecti
     {
         await When.ConnectionStarted();
 
-        Assert.True(_hubConnection.State == HubConnectionState.Connected);
+        Assert.True(HubConnection.State == HubConnectionState.Connected);
 
-        await And.When._hubConnection.StopAsync();
+        await And.When.HubConnection.StopAsync();
 
-        Assert.True(_hubConnection.State == HubConnectionState.Disconnected);
+        Assert.True(HubConnection.State == HubConnectionState.Disconnected);
     }
 
     private async Task ConnectionStarted()
     {
-        _hubConnection = new HubConnectionBuilder()
+        HubConnection = new HubConnectionBuilder()
             .WithUrl("ws://localhost/hubs/sync", o =>
             {
                 o.HttpMessageHandlerFactory = h => GetHandler(HttpClient);
             }).Build();
 
-        await _hubConnection.StartAsync();
+        await HubConnection.StartAsync();
     }
 
 

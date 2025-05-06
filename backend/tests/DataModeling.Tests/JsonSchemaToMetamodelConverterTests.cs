@@ -11,7 +11,7 @@ namespace DataModeling.Tests
 {
     public class JsonSchemaToMetamodelConverterTests : CsharpModelConversionTestsBase<JsonSchemaToMetamodelConverterTests>
     {
-        private ModelMetadata _expectedModelMetadata { get; set; }
+        private ModelMetadata ExpectedModelMetadata { get; set; }
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.json")]
@@ -40,14 +40,14 @@ namespace DataModeling.Tests
         private JsonSchemaToMetamodelConverterTests ExpectedMetamodelLoaded(string expectedMetamodelPath)
         {
             string expectedMetamodelJson = SharedResourcesHelper.LoadTestDataAsString(expectedMetamodelPath);
-            _expectedModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            ExpectedModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
             return this;
         }
 
         // Assertion methods
         private JsonSchemaToMetamodelConverterTests MetamodelShouldBeEquivalentToExpected()
         {
-            MetadataAssertions.IsEquivalentTo(_expectedModelMetadata, ModelMetadata);
+            MetadataAssertions.IsEquivalentTo(ExpectedModelMetadata, ModelMetadata);
             return this;
         }
 

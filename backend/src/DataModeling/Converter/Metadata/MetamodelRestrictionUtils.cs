@@ -15,14 +15,14 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata;
 /// </summary>
 public static class MetamodelRestrictionUtils
 {
-    private static IEnumerable<Type> _supportedStringRestrictions => new List<Type>
+    private static IEnumerable<Type> SupportedStringRestrictions => new List<Type>
     {
         typeof(MaxLengthKeyword),
         typeof(PatternKeyword),
         typeof(MinLengthKeyword),
     };
 
-    private static IEnumerable<Type> _supportedNumberRestrictions => new List<Type>
+    private static IEnumerable<Type> SupportedNumberRestrictions => new List<Type>
     {
         typeof(MaximumKeyword),
         typeof(MinimumKeyword),
@@ -31,8 +31,8 @@ public static class MetamodelRestrictionUtils
         typeof(XsdTotalDigitsKeyword)
     };
 
-    private static IEnumerable<Type> _allSupportedRestrictions =>
-        _supportedNumberRestrictions.Union(_supportedStringRestrictions);
+    private static IEnumerable<Type> AllSupportedRestrictions =>
+        SupportedNumberRestrictions.Union(SupportedStringRestrictions);
 
     /// <summary>
     /// Getting restriction for given type from provided json Subschema.
@@ -83,7 +83,7 @@ public static class MetamodelRestrictionUtils
     /// <param name="restrictions">Restrictions dictionary to populate.</param>
     public static void PopulateRestrictions(AllOfKeyword allOfKeyword, Dictionary<string, Restriction> restrictions)
     {
-        foreach (var restrictionKeywordType in _allSupportedRestrictions)
+        foreach (var restrictionKeywordType in AllSupportedRestrictions)
         {
             if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
             {
@@ -109,7 +109,7 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        foreach (var restrictionKeywordType in _supportedStringRestrictions)
+        foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
             if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
             {
@@ -120,7 +120,7 @@ public static class MetamodelRestrictionUtils
 
     private static void AddNestedStringRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
-        foreach (var restrictionKeywordType in _supportedStringRestrictions)
+        foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
             if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
             {
@@ -161,7 +161,7 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        foreach (var restrictionKeywordType in _supportedNumberRestrictions)
+        foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
             if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
             {
@@ -172,7 +172,7 @@ public static class MetamodelRestrictionUtils
 
     private static void AddNestedNumberRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
     {
-        foreach (var restrictionKeywordType in _supportedNumberRestrictions)
+        foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
             if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
             {

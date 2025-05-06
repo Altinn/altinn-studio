@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string RuleConfigurationFilename = "RuleConfiguration.json";
         private const string ProcessDefinitionFilename = "process.bpmn";
 
-        private static string _processDefinitionFilePath =>
+        private static string ProcessDefinitionFilePath =>
             Path.Combine(ProcessDefinitionFolderPath, ProcessDefinitionFilename);
 
         private const string LayoutSettingsSchemaUrl =
@@ -1108,7 +1108,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await Guard.AssertValidXmlStreamAndRewindAsync(file);
 
             await WriteStreamByRelativePathAsync(
-                _processDefinitionFilePath,
+                ProcessDefinitionFilePath,
                 file,
                 true,
                 cancellationToken
@@ -1117,12 +1117,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public Stream GetProcessDefinitionFile()
         {
-            if (!FileExistsByRelativePath(_processDefinitionFilePath))
+            if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
             {
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return OpenStreamByRelativePath(_processDefinitionFilePath);
+            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
         public Definitions GetDefinitions()

@@ -25,7 +25,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
     protected string CreatedFolderPath { get; set; }
 
-    private CookieContainer _cookieContainer { get; } = new();
+    private CookieContainer CookieContainer { get; } = new();
 
     /// On some systems path too long error occurs if repo is nested deep in file system.
     protected override string TestRepositoriesLocation =>
@@ -112,7 +112,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         _sharedDesignerHttpClientProvider.SharedHttpClient =
             new HttpClient(new GiteaAuthDelegatingHandler()
             {
-                InnerHandler = new CookieContainerHandler(_cookieContainer)
+                InnerHandler = new CookieContainerHandler(CookieContainer)
                 {
                     InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
                 }

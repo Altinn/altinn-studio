@@ -11,7 +11,7 @@ namespace Altinn.Studio.DataModeling.Templates
     {
         private const string JSON_TEMPLATE_FILEPATH = "Templates/seres.template.json";
 
-        private static string _jsonSchemaTemplate { get; }
+        private static string JsonSchemaTemplate { get; }
 
         /// <summary>
         /// Static constructor to ensure the JsonTemplate is loaded and set,
@@ -19,7 +19,7 @@ namespace Altinn.Studio.DataModeling.Templates
         /// </summary>
         static SeresJsonTemplate()
         {
-            _jsonSchemaTemplate = File.ReadAllText(JSON_TEMPLATE_FILEPATH, Encoding.UTF8);
+            JsonSchemaTemplate = File.ReadAllText(JSON_TEMPLATE_FILEPATH, Encoding.UTF8);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Altinn.Studio.DataModeling.Templates
         /// </summary>
         public SeresJsonTemplate(Uri uri, string schemaName)
         {
-            JsonSchemaInstance = _jsonSchemaTemplate;
+            JsonSchemaInstance = JsonSchemaTemplate;
             SetId(uri);
             SetMeldingsNavn(schemaName);
             SetModellnavn($"{schemaName}-modell");

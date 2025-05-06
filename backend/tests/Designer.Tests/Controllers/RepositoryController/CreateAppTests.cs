@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
-        private static string _versionPrefix => "/designer/api/repos";
+        private static string VersionPrefix => "/designer/api/repos";
         public CreateAppTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task CreateApp_InvalidRepoName_BadRequest()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/create-app?org=ttd&repository=2021-application";
+            string uri = $"{VersionPrefix}/create-app?org=ttd&repository=2021-application";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task CreateApp_ValidRepoName_Created()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/create-app?org=ttd&repository=test";
+            string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test";
 
             _repositoryMock
                 .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))

@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.DataModelsController;
 public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    private string _targetTestRepository { get; }
+    private string TargetTestRepository { get; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
@@ -42,7 +42,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
 
     public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
-        _targetTestRepository = TestDataHelper.GenerateTestRepoName();
+        TargetTestRepository = TestDataHelper.GenerateTestRepoName();
     }
 
     [Theory]
@@ -52,11 +52,11 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [InlineData("App%2Fmodels%2FtestModel.schema.json", "ttd", "hvem-er-hvem", "testUser")]
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files(string modelPath, string org, string repo, string user)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel?modelPath={modelPath}";
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
         string fileName = Path.GetFileName(HttpUtility.UrlDecode(modelPath));
         string modelName = fileName!.Remove(fileName.Length - ".schema.json".Length);
 
-        await CopyRepositoryForTest(org, repo, user, _targetTestRepository);
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -72,9 +72,9 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser")]
     public async Task InvalidInput_ShouldReturn_BadRequest_And_CustomErrorMessages(string modelPath, string org, string repo, string user)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel?modelPath={modelPath}";
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
 
-        await CopyRepositoryForTest(org, repo, user, _targetTestRepository);
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -101,8 +101,8 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser", "Model/JsonSchema/General/NonXsdContextSchema.json")]
     public async Task ValidSchema_ShouldReturn_NoContent_And_Create_Files(string modelPath, string org, string repo, string user, string schemaPath)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel?modelPath={modelPath}";
-        await CopyRepositoryForTest(org, repo, user, _targetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         string schema = SharedResourcesHelper.LoadTestDataAsString(schemaPath);
 
@@ -119,8 +119,8 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [MemberData(nameof(IncompatibleSchemasTestData))]
     public async Task IncompatibleSchema_ShouldReturn422(string modelPath, string schemaPath, string org, string repo, string user, params Tuple<string, string>[] expectedValidationIssues)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel?modelPath={modelPath}";
-        await CopyRepositoryForTest(org, repo, user, _targetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         string schema = SharedResourcesHelper.LoadTestDataAsString(schemaPath);
 
@@ -150,8 +150,8 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
     public async Task PutDatamodelDataType_ShouldReturnWithoutErrors(string datamodelName, string org, string repo)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel/{datamodelName}/dataType";
-        await CopyRepositoryForTest(org, repo, "testUser", _targetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
+        await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
 
         DataType dataType = new()
         {
@@ -175,8 +175,8 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
     public async Task PutDatamodelDataType_FailsIfDatamodelNameMismatchesObjectId(string datamodelName, string org, string repo)
     {
-        string url = $"{VersionPrefix(org, _targetTestRepository)}/datamodel/{datamodelName}/dataType";
-        await CopyRepositoryForTest(org, repo, "testUser", _targetTestRepository);
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
+        await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
 
         DataType dataType = new()
         {

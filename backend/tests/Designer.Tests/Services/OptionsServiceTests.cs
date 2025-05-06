@@ -18,8 +18,8 @@ namespace Designer.Tests.Services;
 
 public class OptionsServiceTests : IDisposable
 {
-    private string _targetOrgName { get; set; }
-    private string _testRepoPath { get; set; }
+    private string TargetOrgName { get; set; }
+    private string TestRepoPath { get; set; }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -30,7 +30,7 @@ public class OptionsServiceTests : IDisposable
         // Arrange
         const string Repo = "app-with-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -46,7 +46,7 @@ public class OptionsServiceTests : IDisposable
         // Arrange
         const string Repo = "empty-app";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -77,7 +77,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "app-with-options";
         const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -132,7 +132,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "empty-app";
         const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -171,7 +171,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "app-with-options";
         const string ExistingOptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -196,7 +196,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "app-with-options";
         const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -213,7 +213,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "empty-app";
         const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
@@ -231,7 +231,7 @@ public class OptionsServiceTests : IDisposable
         const string Repo = "app-with-options";
         const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        _testRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
@@ -332,19 +332,19 @@ public class OptionsServiceTests : IDisposable
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
 
-        _targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(_targetOrgName);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, _targetOrgName, targetOrgRepository);
+        TargetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, TargetOrgName, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, _targetOrgName, targetAppRepository);
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        string expectedOptionListString = TestDataHelper.GetFileFromRepo(_targetOrgName, targetOrgRepository, Developer, "Codelists/codeListString.json");
+        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "Codelists/codeListString.json");
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(_targetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
 
         // Assert
         Assert.Equal(expectedOptionList.Count, optionList.Count);
@@ -366,21 +366,21 @@ public class OptionsServiceTests : IDisposable
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
 
-        _targetOrgName = TestDataHelper.GenerateTestOrgName();
-        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(_targetOrgName);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, _targetOrgName, targetOrgRepository);
+        TargetOrgName = TestDataHelper.GenerateTestOrgName();
+        string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, TargetOrgName, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, _targetOrgName, targetAppRepository);
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
         const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
-        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(_targetOrgName, targetAppRepository, Developer);
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrgName, targetAppRepository, Developer);
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(_targetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
 
         // Assert
         Assert.Null(optionList);
@@ -506,14 +506,14 @@ public class OptionsServiceTests : IDisposable
 
     public void Dispose()
     {
-        if (!string.IsNullOrEmpty(_targetOrgName))
+        if (!string.IsNullOrEmpty(TargetOrgName))
         {
-            TestDataHelper.DeleteOrgDirectory(Developer, _targetOrgName);
+            TestDataHelper.DeleteOrgDirectory(Developer, TargetOrgName);
         }
 
-        if (!string.IsNullOrEmpty(_testRepoPath))
+        if (!string.IsNullOrEmpty(TestRepoPath))
         {
-            TestDataHelper.DeleteDirectory(_testRepoPath);
+            TestDataHelper.DeleteDirectory(TestRepoPath);
         }
     }
 }
