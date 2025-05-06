@@ -22,6 +22,7 @@ describe('taskNavigationType', () => {
     expect(taskNavigationType('payment')).toBe('ux_editor.task_table_type.payment');
     expect(taskNavigationType('signing')).toBe('ux_editor.task_table_type.signing');
     expect(taskNavigationType('confirmation')).toBe('ux_editor.task_table_type.confirmation');
+    expect(taskNavigationType(undefined)).toBe('ux_editor.task_table_type.unknown');
   });
 });
 
