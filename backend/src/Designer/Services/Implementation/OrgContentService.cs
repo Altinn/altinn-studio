@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -31,15 +30,7 @@ public class OrgContentService : IOrgContentService
     {
         string contentRepoName = GetContentRepoName(context.Org);
         string repoPath = _altinnGitRepositoryFactory.GetRepositoryPath(context.Org, contentRepoName, context.DeveloperName);
-        try
-        {
-            Guard.AssertDirectoryExists(repoPath);
-            return true;
-        }
-        catch (DirectoryNotFoundException)
-        {
-            return false;
-        }
+        return Directory.Exists(repoPath);
     }
 
     /// <inheritdoc />
@@ -74,14 +65,14 @@ public class OrgContentService : IOrgContentService
 
     private List<LibraryContentReference> GetCodeListReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
-            List<string> codeListIds = _orgCodeListService.GetCodeListIds(context.Org, context.DeveloperName, cancellationToken);
-            return CreateContentReferences(LibraryContentType.CodeList, codeListIds, context.Org);
+        List<string> codeListIds = _orgCodeListService.GetCodeListIds(context.Org, context.DeveloperName, cancellationToken);
+        return CreateContentReferences(LibraryContentType.CodeList, codeListIds, context.Org);
     }
 
     private async Task<List<LibraryContentReference>> GetTextResourceReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
     {
-            List<string> textIds = await _orgTextsService.GetTextIds(context.Org, context.DeveloperName, cancellationToken);
-            return CreateContentReferences(LibraryContentType.TextResource, textIds, context.Org);
+        List<string> textIds = await _orgTextsService.GetTextIds(context.Org, context.DeveloperName, cancellationToken);
+        return CreateContentReferences(LibraryContentType.TextResource, textIds, context.Org);
     }
 
     private static List<LibraryContentReference> CreateContentReferences(LibraryContentType contentType, List<string> contentIds, string orgName)

@@ -68,7 +68,7 @@ public class OrgContentController : ControllerBase
         {
             return BadRequest($"Invalid content type '{contentType}'.");
         }
-        
+
         return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
     }
 
