@@ -53,6 +53,11 @@ public class OrgContentController : ControllerBase
         }
 
         var editingContext = CreateAltinnOrgContext(orgName);
+        if (!_orgContentService.OrgContentRepoExists(editingContext))
+        {
+            return NoContent();
+        }
+
         if (string.IsNullOrEmpty(contentType))
         {
             return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);
@@ -63,7 +68,7 @@ public class OrgContentController : ControllerBase
         {
             return BadRequest($"Invalid content type '{contentType}'.");
         }
-
+        
         return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
     }
 
