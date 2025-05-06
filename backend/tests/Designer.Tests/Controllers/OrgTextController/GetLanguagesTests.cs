@@ -22,10 +22,10 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
     public async Task GetLanguages_Returns200Ok_WithAllLanguages()
     {
         // Arrange
-        const string repoName = "org-content";
+        const string RepoName = "org-content";
         string targetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(DeveloperName, OrgName, repoName, targetOrgName, targetRepoName);
+        await CopyOrgRepositoryForTest(DeveloperName, OrgName, RepoName, targetOrgName, targetRepoName);
 
         string apiUrl = ApiUrl(targetOrgName);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -46,10 +46,10 @@ public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, 
     public async Task GetLanguages_Returns204NoContent_WhenThereAreNoLanguages()
     {
         // Arrange
-        const string repoName = "org-content-empty";
+        const string RepoName = "org-content-empty";
         string targetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetRepoName = TestDataHelper.GetOrgContentRepoName(targetOrgName);
-        await CopyOrgRepositoryForTest(DeveloperName, OrgName, repoName, targetOrgName, targetRepoName);
+        await CopyOrgRepositoryForTest(DeveloperName, OrgName, RepoName, targetOrgName, targetRepoName);
 
         string apiUrl = ApiUrl(targetOrgName);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

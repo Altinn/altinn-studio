@@ -12,6 +12,6 @@ namespace Altinn.Studio.Designer.Models
 
         public string StartUse { get; set; }
 
-        public ConceptSchema conceptSchema { get; set; }
+        public ConceptSchema ConceptSchema { get; set; }
     }
 }

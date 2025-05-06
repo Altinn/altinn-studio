@@ -14,7 +14,7 @@
 }
 
 .tab.selected {
-  border-left: var(--fds-sizing-1) solid var(--semantic-surface-action-default);
+  border-left: var(--fds-sizing-1) solid var(--fds-semantic-surface-action-default);
   background-color: white;
 }
 
