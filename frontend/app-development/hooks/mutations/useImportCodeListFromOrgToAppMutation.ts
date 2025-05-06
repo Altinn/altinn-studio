@@ -16,7 +16,7 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
       Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.OptionList, org] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.CodeListTitles, org] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AvailableOrgResources, org] }),
       ]),
   });
 };
