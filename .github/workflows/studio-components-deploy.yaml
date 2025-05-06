@@ -33,6 +33,6 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.STUDIO_COMPONENTS_STATIC_WEB_APP_KEY }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "storybook-static"
+          app_location: "frontend/libs/studio-components/storybook-static"
           api_location: ""
           output_location: ""
