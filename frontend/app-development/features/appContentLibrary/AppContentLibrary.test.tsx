@@ -85,7 +85,7 @@ describe('AppContentLibrary', () => {
 
   it('Renders with the given code list titles', () => {
     renderAppContentLibraryWithData();
-    const codeListTitlesData = retrieveConfig().codeList.props.externalResourceIds;
+    const codeListTitlesData = retrieveConfig().codeList.props.externalResources;
     expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
@@ -148,6 +148,18 @@ describe('AppContentLibrary', () => {
 
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, currentName, newName);
+  });
+
+  it('calls onUpdateOptionList with correct data when onCreateCodeList is triggered', async () => {
+    const { title, data: codeList } = optionList1Data;
+    const newCodeList: CodeListWithMetadata = { title, codeList };
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onCreateCodeList(newCodeList);
+    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
   });
 
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
@@ -217,7 +229,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  queryClient.setQueryData([QueryKey.CodeListTitles, org], codeListTitles);
+  queryClient.setQueryData([QueryKey.AvailableOrgResources, org], codeListTitles);
   return queryClient;
 }
 

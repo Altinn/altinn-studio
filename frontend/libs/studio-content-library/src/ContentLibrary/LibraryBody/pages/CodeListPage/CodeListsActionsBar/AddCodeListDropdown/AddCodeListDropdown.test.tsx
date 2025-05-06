@@ -6,11 +6,11 @@ import { AddCodeListDropdown } from './AddCodeListDropdown';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
+import { externalResources } from '../../../../../../test-data/externalResources';
 
 const onUploadCodeListMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
-const externalResourceIds = ['externalResourceId1', 'externalResourceId2'];
 
 describe('AddCodeListDropdown', () => {
   afterEach(jest.clearAllMocks);
@@ -90,7 +90,7 @@ describe('AddCodeListDropdown', () => {
 
   it('opens the import code list dialog when clicking on the import menu button', async () => {
     const user = userEvent.setup();
-    renderAddCodeListDropdown({ externalResourceIds });
+    renderAddCodeListDropdown({ externalResources });
     const importCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.import_from_org_library'),
     });
@@ -120,7 +120,7 @@ const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: st
 
 const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   onUploadCodeList: onUploadCodeListMock,
-  onUpdateCodeList: jest.fn(),
+  onCreateCodeList: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
 };
 

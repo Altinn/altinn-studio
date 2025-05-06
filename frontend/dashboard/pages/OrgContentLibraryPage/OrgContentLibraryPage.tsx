@@ -18,6 +18,7 @@ import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpda
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import type { ApiError } from 'app-shared/types/api/ApiError';
+import { useCreateOrgCodeListMutation } from 'app-shared/hooks/mutations/useCreateOrgCodeListMutation';
 import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
@@ -107,6 +108,7 @@ function OrgContentLibraryWithContextAndData({
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
   const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
+  const { mutate: createCodeList } = useCreateOrgCodeListMutation(orgName);
   const { mutate: updateTextResources } = useUpdateTextResourcesForOrgMutation(orgName);
 
   const handleUpload = useUploadCodeList(orgName);
@@ -127,11 +129,16 @@ function OrgContentLibraryWithContextAndData({
     updateCodeList({ title, data: codeList });
   };
 
+  const handleCreate = ({ title, codeList }: CodeListWithMetadata): void => {
+    createCodeList({ title, data: codeList });
+  };
+
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
           codeListsData: codeListDataList,
+          onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,

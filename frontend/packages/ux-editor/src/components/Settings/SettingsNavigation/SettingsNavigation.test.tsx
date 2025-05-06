@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithProviders } from '../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { SettingsNavigation } from './SettingsNavigation';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
