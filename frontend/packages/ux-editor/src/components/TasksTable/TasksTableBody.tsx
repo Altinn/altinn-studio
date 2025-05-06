@@ -6,7 +6,9 @@ import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon } from '../Settings/SettingsUtils';
+import { getTaskIcon, getTaskName, taskNavigationType } from '../Settings/SettingsUtils';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -20,6 +22,8 @@ export const TasksTableBody = ({
   onSelectTask,
 }: TasksTableBodyProps): ReactElement | ReactElement[] => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
   const displayInfoMessage = isNavigationMode && tasks.length === 0;
 
   if (displayInfoMessage) {
@@ -39,6 +43,8 @@ export const TasksTableBody = ({
 
   return tasks.map((task, index) => {
     const TaskIcon = getTaskIcon(task.taskType);
+    const taskType = taskNavigationType(task.taskType);
+    const taskName = getTaskName(task, layoutSetsModel);
     const uniqueKey = `${task.taskType}-${index}-${isNavigationMode ? 'navigation' : 'hidden'}`;
     return (
       <StudioTable.Row
@@ -48,10 +54,10 @@ export const TasksTableBody = ({
         <StudioTable.Cell>
           <div className={classes.taskTypeCellContent}>
             <TaskIcon />
-            {task.taskType}
+            {t(taskType)}
           </div>
         </StudioTable.Cell>
-        <StudioTable.Cell>{task?.name}</StudioTable.Cell>
+        <StudioTable.Cell>{t(taskName)}</StudioTable.Cell>
         <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
         <StudioTable.Cell>
           <StudioButton

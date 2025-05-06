@@ -8,14 +8,23 @@ import { useTranslation } from 'react-i18next';
 import { isTaskReceipt, getTaskIcon, taskNavigationType } from '../SettingsUtils';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './SettingsNavigation.module.css';
+import { TasksTable } from '../../TasksTable/TasksTable';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
 
   const { org, app } = useStudioEnvironmentParams();
-  const { data: taskNavigationGroups, isPending } = useTaskNavigationGroupQuery(org, app);
+  const { data: taskNavigationGroups, isPending: tasksIsPending } = useTaskNavigationGroupQuery(
+    org,
+    app,
+  );
+  const { data: layoutSetsModel, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(
+    org,
+    app,
+  );
 
-  if (isPending)
+  if (tasksIsPending || layoutSetsPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
 
   if (!taskNavigationGroups?.length)
@@ -35,6 +44,12 @@ export const SettingsNavigation = (): ReactElement => {
           {t('ux_editor.settings.navigation_tab_description')}
         </StudioParagraph>
       </div>
+      {/*TODO: OnSelectTask and OnSelectAllTasks - Hide tasks #15239 and #15250 */}
+      <TasksTable
+        onSelectTask={() => {}}
+        onSelectAllTasks={() => {}}
+        tasks={taskNavigationGroups}
+      />
       <div className={classes.navigationTaskList}>
         {taskNavigationGroups.map((task: TaskNavigationGroup, key: number) => (
           <TaskNavigation key={`${task.taskType}-${key}`} taskType={task.taskType} />
