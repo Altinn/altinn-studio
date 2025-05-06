@@ -57,10 +57,30 @@ describe('DesignView', () => {
 
   it('adds page with correct name', async () => {
     const user = userEvent.setup();
-    renderDesignView({
+    setupFeatureFlag(false);
+    const customPagesModel = {
+      pages: [{ id: 'someName' }, { id: 'someOtherName' }],
+      groups: [],
+    };
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
+    queryClient.setQueryData(
+      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
+      convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+    );
+    queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet], {
       ...formLayoutSettingsMock,
       pages: { order: ['someName', 'someOtherName'] },
     });
+
+    renderWithProviders(
+      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+        <FormItemContextProvider>
+          <DesignView />
+        </FormItemContextProvider>
+      </StudioDragAndDrop.Provider>,
+      { queryClient },
+    );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
     expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
@@ -70,16 +90,35 @@ describe('DesignView', () => {
 
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
+    setupFeatureFlag(false);
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
-    renderDesignView(
-      {
-        ...formLayoutSettingsMock,
-        pages: {
-          order: [`${textMock('ux_editor.page')}${1}`, `${textMock('ux_editor.page')}${2}`],
-          pdfLayoutName,
-        },
+    const customPagesModel = {
+      pages: [
+        { id: `${textMock('ux_editor.page')}${1}` },
+        { id: `${textMock('ux_editor.page')}${2}` },
+      ],
+      groups: [],
+    };
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
+    queryClient.setQueryData(
+      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
+      convertExternalLayoutsToInternalFormat({ [pdfLayoutName]: layout1Mock }),
+    );
+    queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet], {
+      ...formLayoutSettingsMock,
+      pages: {
+        order: [`${textMock('ux_editor.page')}${1}`, `${textMock('ux_editor.page')}${2}`],
+        pdfLayoutName,
       },
-      { [pdfLayoutName]: layout1Mock },
+    });
+    renderWithProviders(
+      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+        <FormItemContextProvider>
+          <DesignView />
+        </FormItemContextProvider>
+      </StudioDragAndDrop.Provider>,
+      { queryClient },
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
@@ -112,11 +151,32 @@ describe('DesignView', () => {
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
     const user = userEvent.setup();
-    renderDesignView();
+    setupFeatureFlag(false);
+    const customPagesModel = {
+      pages: [{ id: 'Side1' }, { id: 'Side2' }],
+      groups: [],
+    };
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
+    queryClient.setQueryData(
+      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
+      convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+    );
+    queryClient.setQueryData(
+      [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
+      formLayoutSettingsMock,
+    );
+    renderWithProviders(
+      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+        <FormItemContextProvider>
+          <DesignView />
+        </FormItemContextProvider>
+      </StudioDragAndDrop.Provider>,
+      { queryClient },
+    );
 
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-
     expect(queriesMock.createPage).toHaveBeenCalled();
   });
 
