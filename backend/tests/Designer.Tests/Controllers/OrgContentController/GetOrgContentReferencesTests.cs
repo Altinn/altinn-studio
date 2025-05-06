@@ -136,9 +136,27 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
         const string orgName = "invalidOrgName";
         string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
-        const LibraryContentType resourceType = LibraryContentType.CodeList;
-        string apiUrlWithTextInvalidOrg = $"{apiBaseUrl}?contentType={resourceType}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, apiUrlWithTextInvalidOrg);
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.NotNull(response.Headers.GetValues("Reason"));
+
+        _orgServiceMock.Verify(service => service.IsOrg(orgName), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrgContentReferences_WhenContentRepoDoesNotExist_ShouldReturnNoContent()
+    {
+        // Arrange
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+
+        const string orgName = "org-without-repos";
+        string apiBaseUrl = new Organisation(orgName).ApiBaseUrl;
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
 
         // Act
         var response = await HttpClient.SendAsync(request);
