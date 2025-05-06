@@ -3,8 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Core.Features.Signing.Interfaces;
-using Altinn.App.Core.Features.Signing.Models;
+using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.Skjemadata;
@@ -23,16 +22,22 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
         List<ProvidedSignee> providedSignees = [];
         foreach (StifterPerson stifterPerson in formData.StifterPerson)
         {
-            var personSignee = new ProvidedSignee.Person
+            var personSignee = new ProvidedPerson
             {
                 FullName = string.Join(
                     " ",
                     [stifterPerson.Fornavn, stifterPerson.Mellomnavn, stifterPerson.Etternavn]
                 ),
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
-                Notifications = new Notifications
+                CommunicationConfig = new CommunicationConfig
                 {
-                    OnSignatureAccessRightsDelegated = new Notification
+                    InboxMessage = new InboxMessage
+                    {
+                        TitleTextResourceKey = "signing.correspondence_title_common",
+                        SummaryTextResourceKey = "signing.correspondence_summary_stifter_person",
+                        BodyTextResourceKey = "signing.correspondence_body_stifter_person"
+                    },
+                    Notification = new Notification
                     {
                         Email = new Email
                         {
@@ -46,7 +51,7 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
                             BodyTextResourceKey = "signing.notification_content"
                         }
                     }
-                }
+                },
             };
 
             providedSignees.Add(personSignee);
@@ -54,14 +59,20 @@ public class FounderSigneesProvider(IDataClient dataClient) : ISigneeProvider
 
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
         {
-            var organisationSignee = new ProvidedSignee.Organization
+            var organisationSignee = new ProvidedOrganization
             {
                 Name = stifterVirksomhet.Navn,
                 OrganizationNumber =
                     stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
-                Notifications = new Notifications
+                CommunicationConfig = new CommunicationConfig
                 {
-                    OnSignatureAccessRightsDelegated = new Notification
+                    InboxMessage = new InboxMessage
+                    {
+                        TitleTextResourceKey = "signing.correspondence_title_common",
+                        SummaryTextResourceKey = "signing.correspondence_summary_stifter_organisasjon",
+                        BodyTextResourceKey = "signing.correspondence_body_stifter_organisasjon"
+                    },
+                    Notification = new Notification
                     {
                         Email = new Email
                         {

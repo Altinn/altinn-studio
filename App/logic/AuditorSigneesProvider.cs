@@ -2,8 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Core.Features.Signing.Interfaces;
-using Altinn.App.Core.Features.Signing.Models;
+using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.Skjemadata;
@@ -25,13 +24,19 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
             return new SigneeProviderResult { Signees = [] };
         }
 
-        var organisationSignee = new ProvidedSignee.Organization
+        var organisationSignee = new ProvidedOrganization
         {
             Name = revisor.Navn,
             OrganizationNumber = revisor.Organisasjonsnummer,
-            Notifications = new Notifications
+            CommunicationConfig = new CommunicationConfig
             {
-                OnSignatureAccessRightsDelegated = new Notification
+                InboxMessage = new InboxMessage
+                {
+                    TitleTextResourceKey = "signing.correspondence_title_common",
+                    SummaryTextResourceKey = "signing.correspondence_summary_revisor",
+                    BodyTextResourceKey = "signing.correspondence_body_revisor"
+                },
+                Notification = new Notification
                 {
                     Email = new Email
                     {
