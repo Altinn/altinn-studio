@@ -2,8 +2,8 @@ name: Build and deploy Studio Components Legacy with preview
 
 on:
   push:
-  pull_request:
-    types: [ opened, synchronize, reopened, closed ]
+    branches:
+      - main
     paths:
       - 'frontend/libs/studio-components-legacy/**'
 
