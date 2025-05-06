@@ -8,12 +8,9 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { useDeletePageGroupMutation } from './useDeletePageGroupMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import { org, app, selectedLayoutSet } from '@studio/testing/testids';
 
 describe('useDeletePageGroupMutation', () => {
-  const org = 'org';
-  const app = 'app';
-  const layoutSetName = 'layoutSetName';
-
   it('should call changePageGroups and invalidate queries on mutation success', async () => {
     const changePageGroupsMock = jest.fn().mockResolvedValue(undefined);
     const queryClient = new QueryClient({
@@ -40,7 +37,7 @@ describe('useDeletePageGroupMutation', () => {
     const { result } = renderUseDeletePageGroupMutation(
       org,
       app,
-      layoutSetName,
+      selectedLayoutSet,
       {
         changePageGroups: changePageGroupsMock,
       },
@@ -52,20 +49,14 @@ describe('useDeletePageGroupMutation', () => {
     });
 
     await waitFor(() => {
-      expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, layoutSetName, pageGroups);
+      expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, selectedLayoutSet, pageGroups);
     });
   });
 
   it('should handle mutation error', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const changePageGroupsMock = jest.fn().mockRejectedValue(new Error('Failed'));
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        mutations: {
-          retry: false,
-        },
-      },
-    });
+    const queryClient = new QueryClient();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
     const pageGroups: PagesModel = {
       groups: [
@@ -83,7 +74,7 @@ describe('useDeletePageGroupMutation', () => {
     const { result } = renderUseDeletePageGroupMutation(
       org,
       app,
-      layoutSetName,
+      selectedLayoutSet,
       {
         changePageGroups: changePageGroupsMock,
       },
@@ -95,7 +86,7 @@ describe('useDeletePageGroupMutation', () => {
     });
 
     await waitFor(() => {
-      expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, layoutSetName, pageGroups);
+      expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, selectedLayoutSet, pageGroups);
     });
 
     await waitFor(() => {
@@ -107,9 +98,9 @@ describe('useDeletePageGroupMutation', () => {
 });
 
 export const renderUseDeletePageGroupMutation = (
-  org = 'org',
-  app = 'app',
-  layoutSetName = 'layoutSetName',
+  orgParam = org,
+  appParam = app,
+  layoutSetName = selectedLayoutSet,
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = new QueryClient({
     defaultOptions: {
@@ -130,7 +121,7 @@ export const renderUseDeletePageGroupMutation = (
     </QueryClientProvider>
   );
 
-  return renderHook(() => useDeletePageGroupMutation(org, app, layoutSetName), {
+  return renderHook(() => useDeletePageGroupMutation(orgParam, appParam, layoutSetName), {
     wrapper,
   });
 };

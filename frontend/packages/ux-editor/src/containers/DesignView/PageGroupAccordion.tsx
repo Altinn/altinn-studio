@@ -47,12 +47,12 @@ export const PageGroupAccordion = ({
     selectedFormLayoutSetName,
   );
 
-  return groups.map((group) => {
+  return groups.map((group, index) => {
     if (!group.order || group.order.length === 0) return null;
 
     const handleConfirmDelete = () => {
       if (confirm(t('ux_editor.component_group_navigation_deletion_text'))) {
-        const updatedGroups = groups.filter((g) => g.name !== group.name);
+        const updatedGroups = groups.filter((_, i) => i !== index);
         deletePageGroup({
           groups: updatedGroups,
         });

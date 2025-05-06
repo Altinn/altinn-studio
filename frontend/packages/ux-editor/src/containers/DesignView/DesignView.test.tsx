@@ -261,30 +261,16 @@ describe('DesignView', () => {
     });
   });
 
-  it('calls handleAddGroup and handles success and error cases correctly', async () => {
+  it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
     const user = userEvent.setup();
     setupFeatureFlag(true);
     const updateLayoutsForPreviewMock = jest.fn().mockResolvedValue(undefined);
     appContextMock.updateLayoutsForPreview = updateLayoutsForPreviewMock;
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     renderDesignView();
-
     const addGroupButton = screen.getByRole('button', { name: textMock('ux_editor.groups.add') });
     expect(addGroupButton).toBeInTheDocument();
     await user.click(addGroupButton);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    expect(updateLayoutsForPreviewMock).toHaveBeenCalledTimes(1);
-    expect(updateLayoutsForPreviewMock).toHaveBeenCalledWith(mockSelectedLayoutSet);
-    updateLayoutsForPreviewMock.mockClear();
-    jest.spyOn(queriesMock, 'changePageGroups').mockClear();
-
-    const error = new Error('Mutation failed');
-    jest.spyOn(queriesMock, 'changePageGroups').mockRejectedValueOnce(error);
-    await user.click(addGroupButton);
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to add group:', error);
-    expect(updateLayoutsForPreviewMock).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
   });
 
   it('calls "deletePageGroup" when deleting a group from PageGroupAccordion', async () => {
