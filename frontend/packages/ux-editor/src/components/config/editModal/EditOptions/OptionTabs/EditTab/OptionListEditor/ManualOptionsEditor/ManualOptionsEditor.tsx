@@ -13,11 +13,10 @@ import {
   resetComponentOptions,
   updateComponentOptions,
 } from '../../../utils/optionsUtils';
-import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
+import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './ManualOptionsEditor.module.css';
-import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
 
 export type ManualOptionsEditorProps = {
   handleDelete: () => void;
@@ -28,14 +27,13 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const { t } = useTranslation();
     const { org, app } = useStudioEnvironmentParams();
     const { data: textResources } = useTextResourcesQuery(org, app);
-    const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
     const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-    const handleBlurTextResource = useHandleBlurTextResource(language, updateTextResource);
+    const handleUpdateTextResource = useHandleUpdateTextResource(language);
 
-    const handleOptionsListChange = (options: Option[]) => {
+    const handleUpdateCodeList = (options: Option[]) => {
       const updatedComponent = updateComponentOptions(component, options);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -65,9 +63,9 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
         >
           <StudioCodeListEditor
             codeList={component.options}
-            onAddOrDeleteItem={handleOptionsListChange}
-            onBlurAny={handleOptionsListChange}
-            onBlurTextResource={handleBlurTextResource}
+            onCreateTextResource={handleUpdateTextResource}
+            onUpdateTextResource={handleUpdateTextResource}
+            onUpdateCodeList={handleUpdateCodeList}
             texts={editorTexts}
             textResources={textResourcesForLanguage}
           />
