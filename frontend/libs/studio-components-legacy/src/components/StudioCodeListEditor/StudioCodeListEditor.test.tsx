@@ -1,6 +1,6 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeList } from './types/CodeList';
@@ -9,7 +9,13 @@ import userEvent from '@testing-library/user-event';
 import { texts } from './test-data/texts';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
-import { textResources } from './test-data/textResources';
+import {
+  description4Resource,
+  helpText4Resource,
+  label4Resource,
+  textResources,
+} from './test-data/textResources';
+import type { TextResource } from '../../types/TextResource';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';
 import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';
@@ -181,6 +187,54 @@ describe('StudioCodeListEditor', () => {
 
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenCalledWith(expectedCodeList);
+    });
+
+    it('Calls the onUpdateCodeList callback with the new code list when a label is changed', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
+      await switchToSearchMode(user, propertyCoords);
+      await user.click(getTextResourcePicker(propertyCoords));
+      await user.click(getTextResourceOption(label4Resource));
+      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
+        { ...codeListWithStrings[0], label: label4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
+      ]);
+    });
+
+    it('Calls the onUpdateCodeList callback with the new code list when a description is changed', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Description];
+      await switchToSearchMode(user, propertyCoords);
+      await user.click(getTextResourcePicker(propertyCoords));
+      await user.click(getTextResourceOption(description4Resource));
+      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
+        { ...codeListWithStrings[0], description: description4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
+      ]);
+    });
+
+    it('Calls the onUpdateCodeList callback with the new code list when a help text is changed', async () => {
+      const user = userEvent.setup();
+      renderCodeListEditor();
+      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.HelpText];
+      await switchToSearchMode(user, propertyCoords);
+      await user.click(getTextResourcePicker(propertyCoords));
+      await user.click(getTextResourceOption(helpText4Resource));
+      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
+        { ...codeListWithStrings[0], helpText: helpText4Resource.id },
+        codeListWithStrings[1],
+        codeListWithStrings[2],
+      ]);
     });
   });
 
@@ -562,6 +616,15 @@ function getTextResourcePicker(textPropertyCoords: TextPropertyCoords): HTMLElem
 function getTextResourceValueInput(textPropertyCoords: TextPropertyCoords): HTMLElement {
   const name = texts.textResourceTexts(...textPropertyCoords).valueLabel;
   return screen.getByRole('textbox', { name });
+}
+
+function getTextResourceOption(textResource: TextResource): HTMLElement {
+  const name = retrieveTextResourceOptionName(textResource);
+  return screen.getByRole('option', { name });
+}
+
+function retrieveTextResourceOptionName(textResource: TextResource): string {
+  return textResource.value + ' ' + textResource.id;
 }
 
 const getTypeSelector = (): HTMLElement =>
