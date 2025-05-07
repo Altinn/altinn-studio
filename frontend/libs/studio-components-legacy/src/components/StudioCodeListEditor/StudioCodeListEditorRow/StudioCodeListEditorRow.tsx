@@ -34,10 +34,10 @@ export function StudioCodeListEditorRow({
   number,
   onChange,
   onDeleteButtonClick,
+  onCreateTextResource,
   onUpdateCodeListItem,
   onUpdateTextResource,
   textResources,
-  onCreateTextResource,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -317,10 +317,10 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
-      onUpdateTextResource={handleUpdateTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
       onCreateTextResource={handleCreateTextResource}
+      onUpdateTextResource={handleUpdateTextResource}
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
