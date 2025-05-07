@@ -4,7 +4,7 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { MenuElipsisVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
@@ -93,14 +93,6 @@ export const PageGroupAccordion = ({
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
-            <StudioButton
-              title={t('general.delete_item', { item: group.name })}
-              color='danger'
-              icon={<TrashIcon />}
-              onClick={handleConfirmDelete}
-              variant='tertiary'
-              disabled={isPending}
-            />
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger variant='tertiary'>
                 <MenuElipsisVerticalIcon />
@@ -124,6 +116,12 @@ export const PageGroupAccordion = ({
                 </div>
               </StudioPopover>
             </StudioPopover.TriggerContext>
+            <StudioDeleteButton
+              title={t('general.delete_item', { item: group.name })}
+              onClick={handleConfirmDelete}
+              variant='tertiary'
+              disabled={isPending}
+            />
           </div>
         </div>
         {group.order.map((page) => {
