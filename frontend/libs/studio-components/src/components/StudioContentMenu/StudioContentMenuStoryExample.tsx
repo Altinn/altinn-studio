@@ -18,10 +18,6 @@ export function StudioContentMenuStoryExample<TabId extends string>({
   buttonTabs,
   linkTabs,
 }: StudioContentMenuStoryExampleProps<TabId>): ReactElement {
-  console.log('selectedTabId', selectedTabId);
-  console.log('onChangeTab', onChangeTab);
-  console.log('buttonTabs', buttonTabs);
-  console.log('linkTabs', linkTabs);
   return (
     <div className={classes.contentMenuWrapper} data-size='sm'>
       <StudioContentMenu selectedTabId={selectedTabId} onChangeTab={onChangeTab}>
