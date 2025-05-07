@@ -16,7 +16,6 @@ import {
   layout1Mock,
   layout1NameMock,
   layout2NameMock,
-  pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -57,10 +56,17 @@ describe('DesignView', () => {
 
   it('adds page with correct name', async () => {
     const user = userEvent.setup();
-    renderDesignView({
-      ...formLayoutSettingsMock,
-      pages: { order: ['someName', 'someOtherName'] },
-    });
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: { order: ['someName', 'someOtherName'] },
+      },
+      externalLayoutsMock,
+      {
+        pages: [{ id: 'someName' }, { id: 'someOtherName' }],
+        groups: [],
+      },
+    );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
     expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
@@ -70,6 +76,7 @@ describe('DesignView', () => {
 
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
+    setupFeatureFlag(false);
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
     renderDesignView(
       {
@@ -80,6 +87,13 @@ describe('DesignView', () => {
         },
       },
       { [pdfLayoutName]: layout1Mock },
+      {
+        pages: [
+          { id: `${textMock('ux_editor.page')}${1}` },
+          { id: `${textMock('ux_editor.page')}${2}` },
+        ],
+        groups: [],
+      },
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
@@ -112,11 +126,19 @@ describe('DesignView', () => {
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
     const user = userEvent.setup();
-    renderDesignView();
-
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: { order: [mockPageName1, mockPageName2] },
+      },
+      externalLayoutsMock,
+      {
+        pages: [{ id: mockPageName1 }, { id: mockPageName2 }],
+        groups: [],
+      },
+    );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
-
     expect(queriesMock.createPage).toHaveBeenCalled();
   });
 
@@ -228,14 +250,14 @@ describe('DesignView', () => {
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,
   externalLayout: FormLayoutsResponse = externalLayoutsMock,
+  pagesModel = groupsPagesModelMock,
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayout),
   );
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     layoutSettings,
