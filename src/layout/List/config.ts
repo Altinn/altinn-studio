@@ -36,11 +36,21 @@ export const Config = new CG.component({
           )
           .optional(),
       ),
+      new CG.prop(
+        'checked',
+        new CG.dataModelBinding()
+          .setTitle('checked')
+          .setDescription(
+            'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
+          )
+          .optional(),
+      ),
     )
       .optional()
       .additionalProperties(new CG.dataModelBinding().optional())
       .exportAs('IDataModelBindingsForList'),
   )
+  .addProperty(new CG.prop('deletionStrategy', new CG.enum('soft', 'hard').optional()))
   .addProperty(
     new CG.prop(
       'tableHeaders',

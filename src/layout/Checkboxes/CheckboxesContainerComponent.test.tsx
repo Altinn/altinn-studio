@@ -216,7 +216,7 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')).toHaveClass('horizontal');
+    expect(screen.queryByTestId('checkboxes-fieldset')?.className).toContain('horizontal');
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', async () => {
@@ -229,7 +229,7 @@ describe('CheckboxesContainerComponent', () => {
       options: twoOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')).toHaveClass('horizontal');
+    expect(screen.queryByTestId('checkboxes-fieldset')?.className).toContain('horizontal');
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', async () => {

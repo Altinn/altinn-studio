@@ -2,6 +2,7 @@ import React from 'react';
 
 import { ErrorMessage, Label, List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import dot from 'dot-object';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -11,11 +12,13 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
-import { useNodeFormData } from 'src/utils/layout/useNodeItem';
+import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValidTypes = 'MultipleSelect' | 'Checkboxes';
 type ValidNodes = LayoutNode<ValidTypes>;
+
+type Row = Record<string, string | number | boolean>;
 
 interface MultipleValueSummaryProps {
   title: React.ReactNode;
@@ -46,16 +49,33 @@ export const MultipleValueSummary = ({
   isCompact,
   emptyFieldText,
 }: MultipleValueSummaryProps) => {
+  const { dataModelBindings } = useNodeItem(componentNode);
   const options = useNodeOptions(componentNode).options;
   const rawFormData = useNodeFormData(componentNode);
   const { langAsString } = useLanguage();
-  const displayValues = Object.values(getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString));
+
+  const relativeCheckedPath =
+    dataModelBindings?.checked && dataModelBindings?.group
+      ? dataModelBindings.checked.field.replace(`${dataModelBindings.group.field}.`, '')
+      : undefined;
+
+  const relativeSimpleBindingPath =
+    dataModelBindings?.simpleBinding && dataModelBindings?.group
+      ? dataModelBindings.simpleBinding.field.replace(`${dataModelBindings.group.field}.`, '')
+      : undefined;
+
+  const displayRows: string[] = (rawFormData?.group as unknown as Row[])
+    ?.filter((row) => (!relativeCheckedPath ? true : dot.pick(relativeCheckedPath, row) === true))
+    .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
+
+  const displayValues = dataModelBindings.group
+    ? displayRows
+    : Object.values(getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString));
 
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
 
   const displayType = getDisplayType(displayValues, showAsList, isCompact);
-
   return (
     <div className={classes.summaryItemWrapper}>
       <div className={classes.summaryItem}>

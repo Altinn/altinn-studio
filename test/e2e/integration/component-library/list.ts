@@ -49,19 +49,31 @@ describe('List component', () => {
 
     cy.get(repGroup).findAllByRole('row').should('have.length', 0);
 
-    // Checking 'Kari' again does not bring back the surname
+    // Checking 'Kari' again should bring back the surname
     cy.get(list).findByRole('cell', { name: 'Kari' }).parent().click();
     cy.get(repGroup).findAllByRole('row').should('have.length', 2); // Header + 1 row
     cy.get(repGroup).findByRole('cell', { name: 'Kari' }).should('exist');
-    cy.get(repGroup).findAllByRole('cell', { name: 'Olsen' }).should('not.exist');
+    cy.get(repGroup).findAllByRole('cell', { name: 'Olsen' }).should('exist');
 
     // Testing summaries
     cy.get(list).findByRole('cell', { name: 'Johanne' }).parent().click();
     cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 2 rows
-    cy.get(summary1).should('contain.text', 'Kari, Johanne');
+    cy.get(summary1).should('contain.text', 'Johanne, Kari');
 
     // Summary2 is a bit more tricky to find
     cy.get('table').last().should('have.not.have.attr', 'id');
     cy.get('table').last().findAllByRole('row').should('have.length', 3); // Header + 2 row
+
+    // Find Kåre, make sure he's selected in both summaries
+    cy.get(list).findByRole('cell', { name: 'Kåre' }).parent().click();
+    cy.get(repGroup).findAllByRole('row').should('have.length', 4); // Header + 3 rows
+    cy.get(summary1).should('contain.text', 'Johanne, Kari, Kåre');
+    cy.get('table').last().findAllByRole('row').should('have.length', 4); // Header + 3 rows
+
+    // Uncheck Kåre again, make sure he's no longer in any summaries
+    cy.get(list).findByRole('cell', { name: 'Kåre' }).parent().click();
+    cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 2 rows
+    cy.get(summary1).should('contain.text', 'Johanne, Kari');
+    cy.get('table').last().findAllByRole('row').should('have.length', 3); // Header + 2 rows
   });
 });

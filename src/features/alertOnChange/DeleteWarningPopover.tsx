@@ -35,7 +35,7 @@ export function DeleteWarningPopover({
       onOpenChange={() => setOpen(!open)}
     >
       <Popover.Trigger asChild>{children}</Popover.Trigger>
-      <Popover.Content>
+      <Popover.Content className={classes.popoverContent}>
         <div>{messageText}</div>
         <div className={classes.popoverButtonContainer}>
           <Button

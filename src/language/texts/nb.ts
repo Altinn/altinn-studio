@@ -378,6 +378,10 @@ export function nb() {
       "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er en motsetning, siden brukeren aldri vil få lov til å utføre handlingene bak legg-til knappen.",
     'config_error.file_upload_same_binding':
       'Det er flere filopplastingskomponenter med samme datamodell-binding. Hver komponent må ha en unik binding. Andre komponenter med samme binding: {0}',
+    'config_error.deletion_strategy_no_group': 'Feltene deletionStrategy og checked kan kun brukes sammen med group.',
+    'config_error.group_no_deletion_strategy': 'Når du har satt group må du også sette deletionStrategy.',
+    'config_error.soft_delete_no_checked': 'Når du har satt deletionStrategy til soft må du også sette "checked".',
+    'config_error.hard_delete_with_checked': 'Når du har satt deletionStrategy til hard kan du ikke sette "checked".',
     'version_error.version_mismatch': 'Versjonsfeil',
     'version_error.version_mismatch_message':
       'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',

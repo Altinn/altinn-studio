@@ -374,6 +374,11 @@ export function en() {
       "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
     'config_error.file_upload_same_binding':
       'There are multiple FileUpload components with the same data model binding. Each component must have a unique binding. Other components with the same binding: {0}',
+    'config_error.deletion_strategy_no_group':
+      'The fields deletionStrategy and checked can only be used together with group.',
+    'config_error.group_no_deletion_strategy': 'When you have set group, you must also set deletionStrategy.',
+    'config_error.soft_delete_no_checked': 'When you have set deletionStrategy to soft, you must also set "checked".',
+    'config_error.hard_delete_with_checked': 'When you have set deletionStrategy to hard, you cannot set "checked".',
     'version_error.version_mismatch': 'Version mismatch',
     'version_error.version_mismatch_message':
       'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',

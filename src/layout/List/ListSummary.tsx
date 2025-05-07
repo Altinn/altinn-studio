@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Heading, Table } from '@digdir/designsystemet-react';
+import dot from 'dot-object';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
@@ -33,9 +34,16 @@ export const ListSummary = ({ componentNode, isCompact, emptyFieldText }: ListCo
   const { tableHeaders, dataModelBindings } = useNodeItem(componentNode);
   const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
 
-  const displayRows = (formData?.group as Row[])?.map((row: Row) => {
-    const { altinnRowId: _, ...rest } = row;
-    return rest;
+  const relativeCheckedPath =
+    dataModelBindings?.checked && dataModelBindings?.group
+      ? dataModelBindings.checked.field.replace(`${dataModelBindings.group.field}.`, '')
+      : undefined;
+
+  const displayRows = (formData?.group as Row[])?.filter((row) => {
+    if (!relativeCheckedPath) {
+      return true;
+    }
+    return dot.pick(relativeCheckedPath, row) === true;
   });
 
   if (displayRows?.length > 0) {
@@ -72,21 +80,27 @@ export const ListSummary = ({ componentNode, isCompact, emptyFieldText }: ListCo
             </Table.Row>
           </Table.Head>
           <Table.Body>
-            {displayRows?.map((row, rowIndex) => {
-              const rowItem = row;
-              return (
-                <Table.Row key={rowIndex}>
-                  {Object.entries(tableHeaders).map(([key]) => (
+            {displayRows?.map((row, rowIndex) => (
+              <Table.Row key={rowIndex}>
+                {Object.entries(tableHeaders).map(([key]) => {
+                  const binding = dataModelBindings?.[key];
+                  if (!binding || !dataModelBindings?.group) {
+                    return null;
+                  }
+
+                  const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
+                  const data = dot.pick(relativePath, row);
+                  return (
                     <Table.Cell
                       key={key}
                       align='left'
                     >
-                      {rowItem[key]}
+                      {data}
                     </Table.Cell>
-                  ))}
-                </Table.Row>
-              );
-            })}
+                  );
+                })}
+              </Table.Row>
+            ))}
           </Table.Body>
         </Table>
       </div>

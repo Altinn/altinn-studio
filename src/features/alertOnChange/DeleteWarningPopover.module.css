@@ -1,3 +1,6 @@
+.popoverContent {
+  z-index: 1700;
+}
 .popoverButtonContainer {
   display: flex;
   flex-direction: row;

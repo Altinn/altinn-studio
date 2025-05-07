@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import cn from 'classnames';
 
@@ -23,16 +23,10 @@ export type LabelContentProps = Readonly<{
   labelSettings?: ILabelSettings;
 }> & { className?: string };
 
-export function LabelContent({
-  componentId,
-  label,
-  description,
-  required,
-  readOnly,
-  help,
-  labelSettings,
-  className,
-}: LabelContentProps) {
+export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(function LabelContent(
+  { componentId, label, description, required, readOnly, help, labelSettings, className },
+  ref,
+) {
   const { overrideDisplay } = useFormComponentCtx() ?? {};
   const { elementAsString } = useLanguage();
 
@@ -41,7 +35,10 @@ export function LabelContent({
   }
 
   return (
-    <span className={cn(classes.labelWrapper, className)}>
+    <span
+      className={cn(classes.labelWrapper, className)}
+      ref={ref}
+    >
       <span className={classes.labelContainer}>
         <span className={classes.labelContent}>
           {typeof label === 'string' ? <Lang id={label} /> : label}
@@ -70,4 +67,4 @@ export function LabelContent({
       )}
     </span>
   );
-}
+});
