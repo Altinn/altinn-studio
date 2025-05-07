@@ -52,9 +52,33 @@ export const getTaskName = (task: TaskNavigationGroup, layoutSetsModel: LayoutSe
   if (task.taskType === TaskType.Receipt) {
     return 'ux_editor.task_table_type.receipt';
   }
-
+  console.log(layoutSetsModel.sets);
   const matchingTask = layoutSetsModel?.sets.find(
     (layoutSet) => layoutSet.task?.id === task.taskId,
   );
   return matchingTask?.id ?? '-';
+};
+
+type GetHiddenTasksProps = {
+  taskNavigationGroups: TaskNavigationGroup[];
+  layoutSetsModel: LayoutSetsModel;
+};
+
+export const getHiddenTasks = ({ taskNavigationGroups, layoutSetsModel }: GetHiddenTasksProps) => {
+  const layoutSets = layoutSetsModel.sets;
+
+  const hiddenTasks = layoutSets.filter((layoutSet) => {
+    return !taskNavigationGroups.some((task) => task.taskId === layoutSet.task?.id);
+  });
+
+  const filteredHiddenTasks = hiddenTasks.filter((task) => {
+    return task?.type !== 'subform';
+  });
+
+  return filteredHiddenTasks.map((task) => ({
+    taskType: task.task?.type,
+    name: task.id,
+    pageCount: undefined,
+    taskId: task.id,
+  }));
 };
