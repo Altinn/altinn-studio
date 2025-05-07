@@ -80,7 +80,11 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     <StudioCard className={classes.editCard}>
       <StudioParagraph size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
-        label={t('ux_editor.component_properties.layoutSet')}
+        label={
+          layoutSetModel.type === 'subform'
+            ? t('ux_editor.task_card.subform_name_label')
+            : t('ux_editor.task_card.task_name_label')
+        }
         value={id}
         error={idValidationError}
         onKeyUp={(event) => {

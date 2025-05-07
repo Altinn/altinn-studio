@@ -85,7 +85,7 @@ describe('taskCard', () => {
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
     await user.type(
-      screen.getByRole('textbox', { name: /ux_editor.component_properties.layoutSet/ }),
+      screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ }),
       'test',
     );
     await user.click(screen.getByRole('button', { name: /general.save/ }));
