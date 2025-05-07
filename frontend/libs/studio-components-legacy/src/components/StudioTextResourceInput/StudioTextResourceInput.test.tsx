@@ -26,14 +26,14 @@ const texts: TextResourceInputTexts = {
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
-const onUpdateTextResource = jest.fn();
+const onBlurTextResource = jest.fn();
 const onChangeCurrentId = jest.fn();
 const onChangeTextResource = jest.fn();
 const onCreateTextResource = jest.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
   texts,
-  onUpdateTextResource,
+  onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
   onCreateTextResource,
@@ -59,15 +59,15 @@ describe('StudioTextResourceInput', () => {
     expect(onChangeTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
   });
 
-  it('Calls the onUpdateTextResource callback with the updated text resource when the field is blurred', async () => {
+  it('Calls the onBlurTextResource callback with the updated text resource when the field is blurred', async () => {
     const user = userEvent.setup();
     renderTextResourceInput();
     const additionalText = 'abc';
     const newValue = currentTextResource.value + additionalText;
     await user.type(getValueField(), additionalText);
     await user.tab();
-    expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
-    expect(onUpdateTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
+    expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+    expect(onBlurTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
   });
 
   it('Calls the onCreateTextResource callback when current id is undefined and the field is blurred', async () => {

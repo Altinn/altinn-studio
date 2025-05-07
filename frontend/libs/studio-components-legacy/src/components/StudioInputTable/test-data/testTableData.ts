@@ -29,10 +29,10 @@ export const textResourceProps = (rowNumber: number): CellTextResourceInputProps
   textResources: textResourcesMock,
   texts: textResourceTexts(rowNumber),
   currentId: 'land.NO',
+  onBlurTextResource: jest.fn(),
   onChangeCurrentId: jest.fn(),
   onChangeTextResource: jest.fn(),
   onCreateTextResource: jest.fn(),
-  onUpdateTextResource: jest.fn(),
 });
 
 export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => ({

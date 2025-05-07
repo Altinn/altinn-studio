@@ -27,10 +27,10 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
+  onBlurTextResource: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource: (textResource: TextResource) => void;
   onCreateTextResource: (newTextResource: TextResource) => void;
-  onUpdateTextResource: (textResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -44,11 +44,11 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       currentId: givenCurrentId,
       currentIdClass,
       inputClass,
+      onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onCreateTextResource,
       onKeyDown,
-      onUpdateTextResource,
       textResources: givenTextResources,
       texts,
       toggleClass,
@@ -71,7 +71,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     };
 
     const handleBlurTextResource = (textResource: TextResource): void => {
-      onUpdateTextResource(textResource);
+      onBlurTextResource(textResource);
     };
 
     const handleChangeTextResource = (newTextResource: TextResource): void => {
@@ -88,11 +88,11 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           currentId={currentId}
           inputClass={inputClass}
           mode={mode}
+          onBlurTextResource={handleBlurTextResource}
           onChangeCurrentId={handleChangeCurrentId}
           onChangeTextResource={handleChangeTextResource}
           onCreateTextResource={handleCreateTextResource}
           onKeyDown={onKeyDown}
-          onUpdateTextResource={handleBlurTextResource}
           ref={ref}
           textResources={textResources}
           texts={texts}
@@ -117,11 +117,11 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       currentId,
       inputClass,
       mode,
+      onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onCreateTextResource,
       onKeyDown,
-      onUpdateTextResource,
       required,
       textResources,
       texts,
@@ -138,7 +138,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
           <ValueField
             className={className}
             label={texts.valueLabel}
-            onBlurTextResource={onUpdateTextResource}
+            onBlurTextResource={onBlurTextResource}
             onChangeTextResource={onChangeTextResource}
             onCreateTextResource={onCreateTextResource}
             onKeyDown={onKeyDown}
