@@ -1,22 +1,24 @@
 ﻿#nullable enable
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
-using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Models;
 using Altinn.App.Models.Skjemadata;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.logic;
 
-public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
+public class AuditorSigneesProvider : ISigneeProvider
 {
     public string Id { get; init; } = "auditor";
 
-    public async Task<SigneeProviderResult> GetSigneesAsync(Instance instance)
+    public async Task<SigneeProviderResult> GetSigneesAsync(GetSigneesParameters parameters)
     {
-        Skjemadata formData = await GetFormData(instance);
+        DataElement dataElement = parameters.InstanceDataAccessor
+            .GetDataElementsForType("Skjemadata")
+            .Single();
+
+        var formData = await parameters.InstanceDataAccessor.GetFormData<Skjemadata>(dataElement);
         Revisor revisor = formData.Revisor;
 
         if (formData.Revisor.HarRevisor == "nei")
@@ -49,21 +51,5 @@ public class AuditorSigneesProvider(IDataClient dataClient) : ISigneeProvider
         };
 
         return new SigneeProviderResult { Signees = [organisationSignee] };
-    }
-
-    private async Task<Skjemadata> GetFormData(Instance instance)
-    {
-        DataElement modelData = instance.Data.Single(x => x.DataType == "Skjemadata");
-        InstanceIdentifier instanceIdentifier = new(instance);
-
-        return (Skjemadata)
-            await dataClient.GetFormData(
-                instanceIdentifier.InstanceGuid,
-                typeof(Skjemadata),
-                instance.Org,
-                instance.AppId,
-                instanceIdentifier.InstanceOwnerPartyId,
-                new Guid(modelData.Id)
-            );
     }
 }
