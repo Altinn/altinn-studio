@@ -18,7 +18,6 @@ import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
-import { StudioSelect } from '@studio/components';
 
 export type TaskCardEditingProps = {
   layoutSetModel: LayoutSetModel;
