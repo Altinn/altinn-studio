@@ -55,15 +55,17 @@ export const PageGroupAccordion = ({
   );
 
   const moveGroupUp = (groupIndex: number) => {
-    const moveGroup = pages.groups.splice(groupIndex, 1);
-    pages.groups.splice(groupIndex - 1, 0, ...moveGroup);
-    changePageGroupOrder(pages);
+    const newGroups = [...pages.groups];
+    const moveGroup = newGroups.splice(groupIndex, 1);
+    newGroups.splice(groupIndex - 1, 0, ...moveGroup);
+    changePageGroupOrder({ ...pages, groups: newGroups });
   };
 
   const moveGroupDown = (groupIndex: number) => {
-    const moveGroup = pages.groups.splice(groupIndex, 1);
-    pages.groups.splice(groupIndex + 1, 0, ...moveGroup);
-    changePageGroupOrder(pages);
+    const newGroups = [...pages.groups];
+    const moveGroup = newGroups.splice(groupIndex, 1);
+    newGroups.splice(groupIndex + 1, 0, ...moveGroup);
+    changePageGroupOrder({ ...pages, groups: newGroups });
   };
 
   return pages?.groups.map((group, groupIndex) => {
