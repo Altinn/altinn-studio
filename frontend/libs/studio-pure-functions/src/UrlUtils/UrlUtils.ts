@@ -16,6 +16,20 @@ export class UrlUtils {
   static extractSecondLastRouterParam = (pathname: string): string => {
     return extractParamFromEnd(pathname, 2);
   };
+
+  /**
+   * Returns the third parameter from the url pathname.
+   * @param pathname The url pathname to extract the third parameter from.
+   * @returns The third parameter from the url pathname.
+   */
+  static extractThirdRouterParam = (pathname: string): string => {
+    return extractParamFromStart(pathname, 3);
+  };
+}
+
+function extractParamFromStart(pathname: string, positionFromStart: number): string {
+  const params = extractParams(pathname);
+  return params[positionFromStart] || '';
 }
 
 function extractParamFromEnd(pathname: string, positionFromEnd: number): string {
