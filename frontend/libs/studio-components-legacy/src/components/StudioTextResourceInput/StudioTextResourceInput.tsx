@@ -27,10 +27,10 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
-  onBlurTextResource: (textResource: TextResource) => void;
+  onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
-  onChangeTextResource: (textResource: TextResource) => void;
-  onCreateTextResource: (newTextResource: TextResource) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (newTextResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -67,17 +67,17 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
 
     const handleCreateTextResource = (textResource: TextResource): void => {
       setCurrentId(textResource.id);
-      onCreateTextResource(textResource);
+      onCreateTextResource?.(textResource);
     };
 
     const handleBlurTextResource = (textResource: TextResource): void => {
-      onBlurTextResource(textResource);
+      onBlurTextResource?.(textResource);
     };
 
     const handleChangeTextResource = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
-      onChangeTextResource(newTextResource);
+      onChangeTextResource?.(newTextResource);
     };
 
     const rootClass = cn(givenClass, classes.container);
