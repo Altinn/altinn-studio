@@ -282,12 +282,9 @@ function TextResourceSelectorCell({
     texts: { textResourceTexts },
   } = useStudioCodeListEditorContext();
 
-  const handleUpdateTextResource = useCallback(
-    (newTextResource: TextResource) => {
-      onUpdateTextResource(newTextResource);
-    },
-    [onUpdateTextResource],
-  );
+  const handleUpdateTextResource = (newTextResource: TextResource) => {
+    onUpdateTextResource(newTextResource);
+  };
 
   const handleChangeTextResource = useCallback(
     (newTextResource: TextResource) => {

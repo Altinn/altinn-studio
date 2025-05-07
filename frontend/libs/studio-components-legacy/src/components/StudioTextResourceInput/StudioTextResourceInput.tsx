@@ -70,11 +70,11 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onCreateTextResource(textResource);
     };
 
-    const handleTextResourceBlur = (textResource: TextResource): void => {
+    const handleBlurTextResource = (textResource: TextResource): void => {
       onUpdateTextResource(textResource);
     };
 
-    const handleTextResourceChange = (newTextResource: TextResource): void => {
+    const handleChangeTextResource = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
       onChangeTextResource(newTextResource);
@@ -89,10 +89,10 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           inputClass={inputClass}
           mode={mode}
           onChangeCurrentId={handleChangeCurrentId}
-          onChangeTextResource={handleTextResourceChange}
+          onChangeTextResource={handleChangeTextResource}
           onCreateTextResource={handleCreateTextResource}
           onKeyDown={onKeyDown}
-          onUpdateTextResource={handleTextResourceBlur}
+          onUpdateTextResource={handleBlurTextResource}
           ref={ref}
           textResources={textResources}
           texts={texts}
