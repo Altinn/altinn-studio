@@ -8,8 +8,8 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UrlUtils } from '@studio/pure-functions';
+import { useNavigate } from 'react-router-dom';
+import { useNavigateFrom } from './useNavigateFrom';
 
 export const SettingsModalButton = (): ReactElement => {
   const { t } = useTranslation();
@@ -18,14 +18,13 @@ export const SettingsModalButton = (): ReactElement => {
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const navigate = useNavigate();
-  const location = useLocation();
-  const urlState = location?.state as { from: RoutePaths } | null;
-  const currentRoutePath: string = UrlUtils.extractThirdRouterParam(location?.pathname);
-  const pageNavigateToSettingsFrom: RoutePaths = urlState?.from || RoutePaths.Overview;
+
+  const { navigateFrom, currentRoutePath } = useNavigateFrom();
+  const pageNavigateToSettingsFrom: RoutePaths = navigateFrom || RoutePaths.Overview;
 
   const isSettingsPage: boolean =
     currentRoutePath === RoutePaths.AppSettings && shouldDisplayFeature(FeatureFlag.SettingsPage);
-  const buttonText: string = t(getButtonTextKey(isSettingsPage));
+  const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
 
   const handleClick = () => {
     if (isSettingsPage) {
@@ -63,8 +62,8 @@ export const SettingsModalButton = (): ReactElement => {
   );
 };
 
-function getButtonTextKey(isSettingsPage: boolean): string {
-  return isSettingsPage ? 'sync_header.settings_go_back' : 'sync_header.settings';
+function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
+  return isSettingsPage ? `sync_header.settings_back_to_${from}` : 'sync_header.settings';
 }
 
 type ButtonIconProps = {
