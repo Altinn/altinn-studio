@@ -29,10 +29,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
     public async Task Post_Returns_200OK_When_Uploading_New_OptionsList()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "options.json";
         string jsonOptions = @"[
@@ -65,10 +65,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
     public async Task Post_Returns_200OK_When_Uploading_New_OptionsList_With_Empty_Strings()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "simple-options.json";
         string jsonOptions = @"[
@@ -97,10 +97,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
     public async Task Post_Returns_400BadRequest_When_Uploading_New_OptionsList_With_Missing_Fields()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "missing-fields-options.json";
         string jsonOptions = @"[
@@ -130,10 +130,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
     public async Task Post_Returns_400BadRequest_When_Uploading_New_OptionsList_With_Null_Values()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "null-options.json";
         string jsonOptions = @"[
@@ -162,10 +162,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
     public async Task Post_Returns_400BadRequest_When_Uploading_New_OptionsList_With_Invalid_Format()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "invalid-value-options.json";
         string jsonOptions = @"[{""value"": {}, ""label"": """"}]";

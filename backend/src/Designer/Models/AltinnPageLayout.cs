@@ -27,11 +27,11 @@ namespace Altinn.Studio.Designer.Models
             Structure = structure;
         }
 
-        string generateRandomId(int length = 6)
+        string GenerateRandomId(int length = 6)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+            const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
             return new string(
-                [.. Enumerable.Repeat(chars, length).Select(s => s[_random.Next(s.Length)])]
+                [.. Enumerable.Repeat(Chars, length).Select(s => s[_random.Next(s.Length)])]
             );
         }
 
@@ -46,7 +46,7 @@ namespace Altinn.Studio.Designer.Models
             (Structure["data"]["layout"] as JsonArray).Add(
                 new JsonObject()
                 {
-                    ["id"] = "NavigationButtons-" + generateRandomId(),
+                    ["id"] = "NavigationButtons-" + GenerateRandomId(),
                     ["showBackButton"] = true,
                     ["textResourceBindings"] = { },
                     ["type"] = "NavigationButtons",

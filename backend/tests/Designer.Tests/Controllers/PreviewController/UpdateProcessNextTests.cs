@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Put_ProcessNext_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{instance.Id}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
@@ -32,7 +32,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Put_ProcessNextForV4AppForNonExistingTask_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 

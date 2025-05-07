@@ -92,14 +92,14 @@ namespace Designer.Tests.Fixtures
         {
             string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
 
-            const string giteaTestImageName = "repositories:latest";
+            const string GiteaTestImageName = "repositories:latest";
 
-            if (!CommandExecutor.TryExecute($"docker build --no-cache -t {giteaTestImageName} {giteaDockerFilePath}", out string _, out string error))
+            if (!CommandExecutor.TryExecute($"docker build --no-cache -t {GiteaTestImageName} {giteaDockerFilePath}", out string _, out string error))
             {
                 throw new Exception($"Failed to build gitea image. Error: {error}");
             }
 
-            _giteaContainer = new ContainerBuilder().WithImage(giteaTestImageName)
+            _giteaContainer = new ContainerBuilder().WithImage(GiteaTestImageName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")
