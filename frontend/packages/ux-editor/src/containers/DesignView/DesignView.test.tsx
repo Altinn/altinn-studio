@@ -16,7 +16,6 @@ import {
   layout1Mock,
   layout1NameMock,
   layout2NameMock,
-  pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -57,29 +56,16 @@ describe('DesignView', () => {
 
   it('adds page with correct name', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(false);
-    const customPagesModel = {
-      pages: [{ id: 'someName' }, { id: 'someOtherName' }],
-      groups: [],
-    };
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
-    queryClient.setQueryData(
-      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
-      convertExternalLayoutsToInternalFormat(externalLayoutsMock),
-    );
-    queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet], {
-      ...formLayoutSettingsMock,
-      pages: { order: ['someName', 'someOtherName'] },
-    });
-
-    renderWithProviders(
-      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-        <FormItemContextProvider>
-          <DesignView />
-        </FormItemContextProvider>
-      </StudioDragAndDrop.Provider>,
-      { queryClient },
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: { order: ['someName', 'someOtherName'] },
+      },
+      externalLayoutsMock,
+      {
+        pages: [{ id: 'someName' }, { id: 'someOtherName' }],
+        groups: [],
+      },
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
@@ -92,33 +78,22 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     setupFeatureFlag(false);
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
-    const customPagesModel = {
-      pages: [
-        { id: `${textMock('ux_editor.page')}${1}` },
-        { id: `${textMock('ux_editor.page')}${2}` },
-      ],
-      groups: [],
-    };
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
-    queryClient.setQueryData(
-      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
-      convertExternalLayoutsToInternalFormat({ [pdfLayoutName]: layout1Mock }),
-    );
-    queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet], {
-      ...formLayoutSettingsMock,
-      pages: {
-        order: [`${textMock('ux_editor.page')}${1}`, `${textMock('ux_editor.page')}${2}`],
-        pdfLayoutName,
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: {
+          order: [`${textMock('ux_editor.page')}${1}`, `${textMock('ux_editor.page')}${2}`],
+          pdfLayoutName,
+        },
       },
-    });
-    renderWithProviders(
-      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-        <FormItemContextProvider>
-          <DesignView />
-        </FormItemContextProvider>
-      </StudioDragAndDrop.Provider>,
-      { queryClient },
+      { [pdfLayoutName]: layout1Mock },
+      {
+        pages: [
+          { id: `${textMock('ux_editor.page')}${1}` },
+          { id: `${textMock('ux_editor.page')}${2}` },
+        ],
+        groups: [],
+      },
     );
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
@@ -151,30 +126,17 @@ describe('DesignView', () => {
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(false);
-    const customPagesModel = {
-      pages: [{ id: 'Side1' }, { id: 'Side2' }],
-      groups: [],
-    };
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], customPagesModel);
-    queryClient.setQueryData(
-      [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
-      convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: { order: [mockPageName1, mockPageName2] },
+      },
+      externalLayoutsMock,
+      {
+        pages: [{ id: mockPageName1 }, { id: mockPageName2 }],
+        groups: [],
+      },
     );
-    queryClient.setQueryData(
-      [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
-      formLayoutSettingsMock,
-    );
-    renderWithProviders(
-      <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-        <FormItemContextProvider>
-          <DesignView />
-        </FormItemContextProvider>
-      </StudioDragAndDrop.Provider>,
-      { queryClient },
-    );
-
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
     expect(queriesMock.createPage).toHaveBeenCalled();
@@ -314,14 +276,14 @@ describe('DesignView', () => {
 const renderDesignView = (
   layoutSettings: ILayoutSettings = formLayoutSettingsMock,
   externalLayout: FormLayoutsResponse = externalLayoutsMock,
+  pagesModel = groupsPagesModelMock,
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayout),
   );
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     layoutSettings,

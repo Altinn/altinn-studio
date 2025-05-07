@@ -25,10 +25,10 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
     public async Task GetCodeLists_Returns200Ok_With_CodeLists()
     {
         // Arrange
-        const string repo = "org-content";
+        const string Repo = "org-content";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
         string codeListLabelWithObject = @"[{ ""value"": ""someValue"", ""label"": {}}]";
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
@@ -65,10 +65,10 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
     public async Task GetCodeLists_Returns200Ok_With_No_CodeLists()
     {
         // Arrange
-        const string repo = "org-content-empty";
+        const string Repo = "org-content-empty";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
-        await CopyOrgRepositoryForTest(Developer, Org, repo, targetOrg, targetRepository);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

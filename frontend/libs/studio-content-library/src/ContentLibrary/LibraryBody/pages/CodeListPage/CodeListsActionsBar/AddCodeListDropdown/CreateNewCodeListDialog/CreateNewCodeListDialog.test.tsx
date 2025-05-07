@@ -7,6 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
 import type { CreateNewCodeListDialogProps } from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textResourcesNb } from '../../../../../../../test-data/textResources';
 
 const onCreateCodeList = jest.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
@@ -134,6 +135,7 @@ const getSaveButton = () => {
 const defaultProps: CreateNewCodeListDialogProps = {
   onCreateCodeList,
   codeListNames: [existingCodeListTitle],
+  textResources: textResourcesNb,
 };
 
 const renderCreateNewCodeListDialog = (

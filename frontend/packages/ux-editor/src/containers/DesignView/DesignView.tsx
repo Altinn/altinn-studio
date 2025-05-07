@@ -162,7 +162,7 @@ export const DesignView = (): ReactNode => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        {!isTaskNavigationPageGroups && !hasGroups && (
+        {!hasGroups && (
           <StudioButton
             icon={<PlusIcon aria-hidden />}
             onClick={() => handleAddPage()}
@@ -172,7 +172,7 @@ export const DesignView = (): ReactNode => {
             {t('ux_editor.pages_add')}
           </StudioButton>
         )}
-        {isTaskNavigationPageGroups && (
+        {hasGroups && (
           <StudioButton
             icon={<PlusIcon aria-hidden />}
             onClick={handleAddGroup}

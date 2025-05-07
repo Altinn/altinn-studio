@@ -2,7 +2,7 @@
 {
     public class ResourceRegistryBaseUrlSetting
     {
-        public string environment { get; set; }
+        public string Environment { get; set; }
 
         public string ResourceRegistryEnvBaseUrl { get; set; }
     }

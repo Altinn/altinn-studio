@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Post_Attachment_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{instance.Id}/data?dataType=FileUploadId";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Post_AttachmentForV4App_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data?dataType=FileUploadId";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 

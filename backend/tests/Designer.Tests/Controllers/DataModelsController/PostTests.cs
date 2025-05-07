@@ -16,9 +16,9 @@ namespace Designer.Tests.Controllers.DataModelsController;
 public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    private static readonly string Org = "ttd";
-    private static readonly string Repo = "empty-app";
-    private static readonly string Developer = "testUser";
+    private const string Org = "ttd";
+    private const string Repo = "empty-app";
+    private const string Developer = "testUser";
 
     public PostTests(WebApplicationFactory<Program> factory) : base(factory)
     {

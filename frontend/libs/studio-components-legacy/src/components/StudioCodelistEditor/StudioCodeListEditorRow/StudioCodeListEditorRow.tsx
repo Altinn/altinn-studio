@@ -2,7 +2,7 @@ import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
-import type { FocusEvent, HTMLInputAutoCompleteAttribute, ReactElement, Dispatch } from 'react';
+import type { FocusEvent, HTMLInputAutoCompleteAttribute, Dispatch } from 'react';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
@@ -98,7 +98,7 @@ export function StudioCodeListEditorRow({
         onUpdateValue={handleUpdateValue}
         value={item.value}
       />
-      <TextResourceIdCell
+      <TextResourceSelectorCell
         currentId={item.label}
         dispatch={dispatch}
         label={texts.itemLabel(number)}
@@ -112,7 +112,7 @@ export function StudioCodeListEditorRow({
         required={true}
         textResources={textResources}
       />
-      <TextResourceIdCell
+      <TextResourceSelectorCell
         currentId={item.description}
         dispatch={dispatch}
         label={texts.itemDescription(number)}
@@ -126,7 +126,7 @@ export function StudioCodeListEditorRow({
         required={false}
         textResources={textResources}
       />
-      <TextResourceIdCell
+      <TextResourceSelectorCell
         currentId={item.helpText}
         dispatch={dispatch}
         label={texts.itemHelpText(number)}
@@ -278,15 +278,6 @@ type TextResourceIdCellProps = {
   required: boolean;
   textResources: TextResource[];
 };
-
-function TextResourceIdCell(props: TextResourceIdCellProps): ReactElement {
-  const { currentId, onChangeCurrentId, textResources, label } = props;
-  if (textResources.length !== 0) {
-    return <TextResourceSelectorCell {...props} textResources={textResources} />;
-  } else {
-    return <TypedInputCell label={label} onChange={onChangeCurrentId} value={currentId || ''} />;
-  }
-}
 
 function TextResourceSelectorCell({
   currentId,
