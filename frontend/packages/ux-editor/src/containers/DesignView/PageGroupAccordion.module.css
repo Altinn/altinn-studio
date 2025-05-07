@@ -15,9 +15,14 @@
   align-items: center;
 }
 
+.rightIconsContainer {
+  display: flex;
+  align-items: center;
+}
+
 .rightIcon {
   margin-right: var(--fds-spacing-2);
-  font-size: var(--fds-sizing-6);
+  font-size: var(--fds-sizing-5);
 }
 
 .groupAccordionWrapper {
@@ -35,4 +40,9 @@
 
 .button {
   height: max-content;
+}
+
+.ellipsisMenuContent {
+  display: flex;
+  flex-direction: column;
 }

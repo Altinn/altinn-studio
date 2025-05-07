@@ -35,25 +35,25 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
         /// </summary>
-        /// <param name="Key">An armored SSH key to add (required).</param>
-        /// <param name="_ReadOnly">Describe if the key has only read access or read/write.</param>
-        /// <param name="Title">Title of the key to add (required).</param>
-        public CreateKeyOption(string Key = default(string), bool? _ReadOnly = default(bool?), string Title = default(string))
+        /// <param name="key">An armored SSH key to add (required).</param>
+        /// <param name="readOnly">Describe if the key has only read access or read/write.</param>
+        /// <param name="title">Title of the key to add (required).</param>
+        public CreateKeyOption(string key = default(string), bool? readOnly = default(bool?), string title = default(string))
         {
             // to ensure "Key" is required (not null)
-            if (Key == null)
+            if (key == null)
             {
                 throw new InvalidDataException("Key is a required property for CreateKeyOption and cannot be null");
             }
 
             // to ensure "Title" is required (not null)
-            if (Title == null)
+            if (title == null)
             {
                 throw new InvalidDataException("Title is a required property for CreateKeyOption and cannot be null");
             }
-            this.Key = Key;
-            this.Title = Title;
-            IsReadOnly = _ReadOnly;
+            this.Key = key;
+            this.Title = title;
+            IsReadOnly = readOnly;
         }
 
         /// <summary>

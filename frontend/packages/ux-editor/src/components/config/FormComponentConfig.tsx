@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
@@ -44,6 +44,7 @@ export const FormComponentConfig = ({
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [openObjectCards, setOpenObjectCards] = useState<Record<string, boolean>>({});
 
   const selectedDataType = useComponentPropertyEnumValue();
 
@@ -134,6 +135,13 @@ export const FormComponentConfig = ({
     ? t('ux_editor.component_other_properties_hide_many_settings')
     : t('ux_editor.component_other_properties_show_many_settings');
 
+  const toggleObjectCard = (propertyKey: string) => {
+    setOpenObjectCards((prev) => ({
+      ...prev,
+      [propertyKey]: !prev[propertyKey],
+    }));
+  };
+
   return (
     <>
       {layoutSet && component['layoutSet'] && (
@@ -207,7 +215,7 @@ export const FormComponentConfig = ({
       {grid && (
         <>
           {showGrid ? (
-            <StudioCard>
+            <StudioCard className={classes.objectPropertyContainer}>
               <StudioCard.Header className={classes.gridHeader}>
                 <div className={classes.flexContainer}>
                   <Heading size='xs' className={classes.heading}>
@@ -308,30 +316,49 @@ export const FormComponentConfig = ({
 
       {/** Object properties  */}
       {objectPropertyKeys.map((propertyKey) => {
+        const isOpen = openObjectCards[propertyKey] || false;
         return (
-          <Card key={propertyKey} className={classes.objectPropertyContainer}>
-            <Heading level={3} size='xxsmall'>
-              {componentPropertyLabel(propertyKey)}
-            </Heading>
-            {properties[propertyKey]?.description && (
-              <Paragraph size='small'>
-                {componentPropertyDescription(propertyKey) ?? properties[propertyKey].description}
-              </Paragraph>
+          <div key={propertyKey}>
+            {isOpen ? (
+              <StudioCard>
+                <div className={classes.flexContainer}>
+                  <StudioCard.Header className={classes.gridHeader} data-size='md'>
+                    {componentPropertyLabel(propertyKey)}
+                  </StudioCard.Header>
+                  <StudioButton
+                    icon={<XMarkIcon />}
+                    onClick={() => toggleObjectCard(propertyKey)}
+                    title={t('general.close')}
+                    variant='secondary'
+                  />
+                </div>
+                <StudioCard.Content>
+                  {componentPropertyDescription(propertyKey) && (
+                    <Paragraph size='small'>{componentPropertyDescription(propertyKey)}</Paragraph>
+                  )}
+                  <FormComponentConfig
+                    schema={properties[propertyKey]}
+                    component={component[propertyKey] || {}}
+                    handleComponentUpdate={(updatedComponent: FormComponent) => {
+                      handleComponentUpdate({
+                        ...component,
+                        [propertyKey]: updatedComponent,
+                      });
+                    }}
+                    editFormId={editFormId}
+                    hideUnsupported
+                  />
+                </StudioCard.Content>
+              </StudioCard>
+            ) : (
+              <StudioProperty.Button
+                className={classes.gridButton}
+                icon={<PlusCircleIcon />}
+                onClick={() => toggleObjectCard(propertyKey)}
+                property={componentPropertyLabel(propertyKey)}
+              />
             )}
-            <FormComponentConfig
-              key={propertyKey}
-              schema={properties[propertyKey]}
-              component={component[propertyKey] || {}}
-              handleComponentUpdate={(updatedComponent: FormComponent) => {
-                handleComponentUpdate({
-                  ...component,
-                  [propertyKey]: updatedComponent,
-                });
-              }}
-              editFormId={editFormId}
-              hideUnsupported
-            />
-          </Card>
+          </div>
         );
       })}
       {/* Show information about unsupported properties if there are any */}

@@ -12,7 +12,7 @@ public static class AppFrontendVersionHelper
 
     // allow overwriting altinn-app-frontend version with a meta tag
     // i.e. <meta data-altinn-app-frontend-version="4" />
-    private static string getMetaTagVersion(HtmlDocument htmlDoc)
+    private static string GetMetaTagVersion(HtmlDocument htmlDoc)
     {
         HtmlNode metaTag = htmlDoc.DocumentNode.SelectSingleNode("//meta[@data-altinn-app-frontend-version]");
         return metaTag?.GetAttributeValue("data-altinn-app-frontend-version", null);
@@ -26,7 +26,7 @@ public static class AppFrontendVersionHelper
         var htmlDoc = new HtmlDocument();
         htmlDoc.LoadHtml(fileContent);
 
-        string metaTagVersion = getMetaTagVersion(htmlDoc);
+        string metaTagVersion = GetMetaTagVersion(htmlDoc);
         if (metaTagVersion != null)
         {
             version = metaTagVersion;
@@ -44,18 +44,18 @@ public static class AppFrontendVersionHelper
             return false;
         }
 
-        const string prefix = "https://altinncdn.no/toolkits/altinn-app-frontend/";
-        const string suffix = "/altinn-app-frontend.js";
+        const string Prefix = "https://altinncdn.no/toolkits/altinn-app-frontend/";
+        const string Suffix = "/altinn-app-frontend.js";
 
-        int prefixIndex = srcAttribute.IndexOf(prefix, StringComparison.Ordinal);
-        int suffixIndex = srcAttribute.IndexOf(suffix, StringComparison.Ordinal);
+        int prefixIndex = srcAttribute.IndexOf(Prefix, StringComparison.Ordinal);
+        int suffixIndex = srcAttribute.IndexOf(Suffix, StringComparison.Ordinal);
 
         if (prefixIndex == -1 || suffixIndex == -1 || prefixIndex >= suffixIndex)
         {
             return false;
         }
 
-        int startIndex = prefixIndex + prefix.Length;
+        int startIndex = prefixIndex + Prefix.Length;
         int endIndex = suffixIndex;
 
         string foundVersion = srcAttribute.Substring(startIndex, endIndex - startIndex);

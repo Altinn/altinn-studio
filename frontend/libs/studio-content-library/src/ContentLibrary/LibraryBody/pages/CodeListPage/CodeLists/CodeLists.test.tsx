@@ -12,6 +12,7 @@ import type { CodeList as StudioComponentsCodeList } from '@studio/components-le
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
+import { textResourcesNb } from '../../../../../test-data/textResources';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -300,6 +301,7 @@ const defaultProps: CodeListsProps = {
   codeListInEditMode: undefined,
   codeListNames: [],
   codeListsUsages: [],
+  textResources: textResourcesNb,
 };
 
 const renderCodeLists = (props: Partial<CodeListsProps> = {}): RenderResult => {

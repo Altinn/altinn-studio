@@ -10,7 +10,7 @@ namespace DataModeling.Tests.Json.Formats;
 
 public class CustomFormatsTests
 {
-    private static readonly Type Type = typeof(CustomFormats);
+    private static readonly Type s_type = typeof(CustomFormats);
     private const string JsonStructure = @"{
                                               ""DateField"": ""1994-01"",
                                               ""Number"": 100,
@@ -23,7 +23,7 @@ public class CustomFormatsTests
     [InlineData("Object", true)]
     public void TestDateFormat(string property, bool expected)
     {
-        var checkDateMethod = Type
+        var checkDateMethod = s_type
             .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .First(x => x.Name == "CheckDate" && x.IsPrivate && x.IsStatic);
 

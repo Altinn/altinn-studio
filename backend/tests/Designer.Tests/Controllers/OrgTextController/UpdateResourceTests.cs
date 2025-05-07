@@ -31,7 +31,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
         string file = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
-        TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, _jsonOptions);
+        TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         string apiUrl = ApiUrl(targetOrg, lang);
@@ -44,7 +44,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string actualContent = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
-        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, _jsonOptions), actualContent));
+        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), actualContent));
     }
 
     [Theory]
@@ -57,7 +57,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
         string originalFile = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
-        TextResource originalResource = JsonSerializer.Deserialize<TextResource>(originalFile, _jsonOptions);
+        TextResource originalResource = JsonSerializer.Deserialize<TextResource>(originalFile, s_jsonOptions);
         List<TextResourceVariable> expectedVariables = originalResource.Resources.Find(e => e.Id == "TextUsingVariables").Variables;
 
         string apiUrl = ApiUrl(targetOrg, lang);
@@ -70,7 +70,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string actualContent = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, _jsonOptions);
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         List<TextResourceVariable> actualVariables = actualResource.Resources.Find(e => e.Id == "TextUsingVariables").Variables;
         Assert.NotNull(actualVariables);
         Assert.Equal(expectedVariables.Count, actualVariables.Count);
@@ -80,7 +80,7 @@ public class UpdateResourceTests : DesignerEndpointsTestsBase<UpdateResourceTest
 
     private static string RelativePath(string language) => $"Texts/resource.{language}.json";
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

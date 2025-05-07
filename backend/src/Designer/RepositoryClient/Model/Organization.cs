@@ -29,22 +29,22 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Organization" /> class.
         /// </summary>
-        /// <param name="AvatarUrl">AvatarUrl.</param>
-        /// <param name="Description">Description.</param>
-        /// <param name="FullName">FullName.</param>
-        /// <param name="Id">Id.</param>
-        /// <param name="Location">Location.</param>
-        /// <param name="Username">Username.</param>
-        /// <param name="Website">Website.</param>
-        public Organization(string AvatarUrl = default(string), string Description = default(string), string FullName = default(string), long? Id = default(long?), string Location = default(string), string Username = default(string), string Website = default(string))
+        /// <param name="avatarUrl">AvatarUrl.</param>
+        /// <param name="description">Description.</param>
+        /// <param name="fullName">FullName.</param>
+        /// <param name="id">Id.</param>
+        /// <param name="location">Location.</param>
+        /// <param name="username">Username.</param>
+        /// <param name="website">Website.</param>
+        public Organization(string avatarUrl = default(string), string description = default(string), string fullName = default(string), long? id = default(long?), string location = default(string), string username = default(string), string website = default(string))
         {
-            this.AvatarUrl = AvatarUrl;
-            this.Description = Description;
-            this.FullName = FullName;
-            this.Id = Id;
-            this.Location = Location;
-            this.Username = Username;
-            this.Website = Website;
+            this.AvatarUrl = avatarUrl;
+            this.Description = description;
+            this.FullName = fullName;
+            this.Id = id;
+            this.Location = location;
+            this.Username = username;
+            this.Website = website;
         }
 
         /// <summary>
