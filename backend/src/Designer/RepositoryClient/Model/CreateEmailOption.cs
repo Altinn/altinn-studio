@@ -26,10 +26,10 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateEmailOption" /> class.
         /// </summary>
-        /// <param name="Emails">email addresses to add.</param>
-        public CreateEmailOption(List<string> Emails = default(List<string>))
+        /// <param name="emails">email addresses to add.</param>
+        public CreateEmailOption(List<string> emails = default(List<string>))
         {
-            this.Emails = Emails;
+            this.Emails = emails;
         }
 
         /// <summary>

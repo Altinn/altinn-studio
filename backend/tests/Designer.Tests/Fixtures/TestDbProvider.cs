@@ -10,8 +10,8 @@ namespace Designer.Tests.Fixtures;
 
 public class TestDbProvider
 {
-    private static readonly Lazy<TestDbProvider> _instance = new(() => new TestDbProvider(), LazyThreadSafetyMode.ExecutionAndPublication);
-    public static TestDbProvider Instance => _instance.Value;
+    private static readonly Lazy<TestDbProvider> s_instance = new(() => new TestDbProvider(), LazyThreadSafetyMode.ExecutionAndPublication);
+    public static TestDbProvider Instance => s_instance.Value;
 
     private PostgreSqlContainer _postgreSqlContainer;
     public PostgreSqlContainer PostgreSqlContainer => _postgreSqlContainer ?? throw new InvalidOperationException("You need to create a Postgres container first");

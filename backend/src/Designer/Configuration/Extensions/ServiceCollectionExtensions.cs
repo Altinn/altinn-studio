@@ -61,8 +61,8 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             {
                 ResourceRegistryEnvironmentSettings rris = new ResourceRegistryEnvironmentSettings();
                 settingSection.Bind(rris);
-                rris.environment = settingSection.Key;
-                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.environment.ToLower(), rris));
+                rris.Environment = settingSection.Key;
+                services.Configure<ResourceRegistryIntegrationSettings>(x => x.Add(rris.Environment.ToLower(), rris));
             }
 
             return services;

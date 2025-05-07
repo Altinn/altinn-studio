@@ -25,19 +25,19 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     public async Task Post_Returns200OK_WhenImportingCodeListFromOrg()
     {
         // Arrange
-        const string orgRepoName = "org-content";
-        const string appRepoName = "empty-app";
-        const string optionListId = "codeListString";
-        const string stringCodeList = @"[
+        const string OrgRepoName = "org-content";
+        const string AppRepoName = "empty-app";
+        const string OptionListId = "codeListString";
+        const string StringCodeList = @"[
             {""value"": ""norway"",""label"": ""Norge""},
             {""value"": ""denmark"",""label"": ""Danmark""},
             {""value"": ""sweden"",""label"": ""country.label.sweden""}
         ]";
-        List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(stringCodeList);
+        List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(StringCodeList);
 
-        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 
-        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
@@ -62,13 +62,13 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     public async Task Post_Returns404NotFound_WhenCodeListDoesNotExist()
     {
         // Arrange
-        const string orgRepoName = "org-content";
-        const string appRepoName = "empty-app";
-        const string optionListId = "nonExistentCodeList";
+        const string OrgRepoName = "org-content";
+        const string AppRepoName = "empty-app";
+        const string OptionListId = "nonExistentCodeList";
 
-        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 
-        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
@@ -77,25 +77,25 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"The code list file {optionListId}.json does not exist.", responseContent);
+        Assert.Equal($"The code list file {OptionListId}.json does not exist.", responseContent);
     }
 
     [Fact]
     public async Task Post_Returns409Conflict_WhenOptionListAlreadyExists()
     {
         // Arrange
-        const string orgRepoName = "org-content";
-        const string appRepoName = "app-with-options";
-        const string optionListId = "codeListString";
+        const string OrgRepoName = "org-content";
+        const string AppRepoName = "app-with-options";
+        const string OptionListId = "codeListString";
 
-        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(orgRepoName, appRepoName);
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 
-        const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
+        const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrgName, targetAppRepoName, Username);
         string filePath = Path.Combine(repoPath, "App/options");
-        await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionListId}.json"), codeList);
+        await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
 
-        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, optionListId);
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
 
         // Act
@@ -104,7 +104,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Equal($"The options file {optionListId}.json already exists.", responseContent);
+        Assert.Equal($"The options file {OptionListId}.json already exists.", responseContent);
     }
 
     private async Task<(string targetOrgName, string targetAppRepoName)> SetupTestOrgAndRepo(string orgRepoName, string appRepoName)
