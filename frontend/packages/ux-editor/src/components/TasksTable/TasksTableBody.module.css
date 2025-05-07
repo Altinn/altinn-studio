@@ -11,7 +11,9 @@
 }
 
 .taskRow td:nth-child(2) {
-  width: 35%;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .taskRow td:nth-child(4) {

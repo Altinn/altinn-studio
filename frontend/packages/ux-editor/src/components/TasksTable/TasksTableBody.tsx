@@ -85,9 +85,10 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
         <StudioButton
           variant='tertiary'
           icon={isNavigationMode ? <MenuElipsisVerticalIcon /> : <EyeClosedIcon />}
-          title={isNavigationMode ? undefined : t('ux_editor.task_table_display')}
           onClick={() => onSelectTask(index)}
-        />
+        >
+          {!isNavigationMode && t('ux_editor.task_table_display')}
+        </StudioButton>
       </StudioTable.Cell>
     </StudioTable.Row>
   );
