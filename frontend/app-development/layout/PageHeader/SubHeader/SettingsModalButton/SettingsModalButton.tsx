@@ -25,7 +25,7 @@ export const SettingsModalButton = (): ReactElement => {
 
   const isSettingsPage: boolean =
     currentRoutePath === RoutePaths.AppSettings && shouldDisplayFeature(FeatureFlag.SettingsPage);
-  const buttonText: string = t(getButtonTextKey(isSettingsPage));
+  const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
 
   const handleClick = () => {
     if (isSettingsPage) {
@@ -63,8 +63,8 @@ export const SettingsModalButton = (): ReactElement => {
   );
 };
 
-function getButtonTextKey(isSettingsPage: boolean): string {
-  return isSettingsPage ? 'sync_header.settings_go_back' : 'sync_header.settings';
+function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
+  return isSettingsPage ? `sync_header.settings_back_to_${from}` : 'sync_header.settings';
 }
 
 type ButtonIconProps = {

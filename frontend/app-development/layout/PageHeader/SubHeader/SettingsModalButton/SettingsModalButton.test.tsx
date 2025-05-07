@@ -119,7 +119,7 @@ describe('SettingsModal', () => {
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
-      name: textMock('sync_header.settings_go_back'),
+      name: textMock('sync_header.settings_back_to_ui-editor'),
     });
     expect(goBackButton).toBeInTheDocument();
   });
@@ -156,7 +156,7 @@ describe('SettingsModal', () => {
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
-      name: textMock('sync_header.settings_go_back'),
+      name: textMock('sync_header.settings_back_to_ui-editor'),
     });
     await user.click(goBackButton);
 
@@ -176,7 +176,7 @@ describe('SettingsModal', () => {
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
-      name: textMock('sync_header.settings_go_back'),
+      name: textMock('sync_header.settings_back_to_overview'),
     });
     await user.click(goBackButton);
 
