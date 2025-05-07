@@ -13,20 +13,25 @@ import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { useNavigateFrom } from './useNavigateFrom';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+
+jest.mock('./useNavigateFrom.ts', () => ({
+  ...jest.requireActual('./useNavigateFrom.ts'),
+  useNavigateFrom: jest.fn().mockImplementation(() => ({
+    navigateFrom: '',
+    currentRoutePath: '',
+  })),
+}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),
-  useLocation: jest.fn().mockImplementation(() => ({
-    pathname: '',
-    state: { from: '' },
-  })),
 }));
 
 describe('SettingsModal', () => {
@@ -110,9 +115,9 @@ describe('SettingsModal', () => {
   it('renders back icon and button text when on settings page and feature is enabled', () => {
     const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useLocation as jest.Mock).mockReturnValue({
-      pathname: `/org/app/${RoutePaths.AppSettings}`,
-      state: { from: RoutePaths.UIEditor },
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: RoutePaths.UIEditor,
     });
 
     addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
@@ -127,9 +132,9 @@ describe('SettingsModal', () => {
   it('navigates to settings page when clicking the settings button', async () => {
     const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useLocation as jest.Mock).mockReturnValue({
-      pathname: `/org/app/${RoutePaths.UIEditor}`,
-      state: { from: RoutePaths.UIEditor },
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.UIEditor,
+      navigateFrom: RoutePaths.UIEditor,
     });
 
     addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
@@ -147,9 +152,9 @@ describe('SettingsModal', () => {
   it('navigates back from the settings page when clicking the go back button', async () => {
     const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useLocation as jest.Mock).mockReturnValue({
-      pathname: `/org/app/${RoutePaths.AppSettings}`,
-      state: { from: RoutePaths.UIEditor },
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: RoutePaths.UIEditor,
     });
 
     addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
@@ -167,9 +172,9 @@ describe('SettingsModal', () => {
   it('navigates to "overview" page when clicking go back and on settings page and from is null', async () => {
     const mockNavigate = jest.fn();
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useLocation as jest.Mock).mockReturnValue({
-      pathname: `/org/app/${RoutePaths.AppSettings}`,
-      state: { from: null },
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: null,
     });
 
     addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
