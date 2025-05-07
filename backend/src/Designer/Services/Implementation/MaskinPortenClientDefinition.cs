@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class MaskinPortenClientDefinition : IClientDefinition
     {
         public IMaskinportenSettings ClientSettings { get; set; }
-        private ISecret _secrets { get; set; }
+        private ISecret Secrets { get; set; }
 
         public MaskinPortenClientDefinition(IOptions<MaskinportenClientSettings> clientSettings)
         {

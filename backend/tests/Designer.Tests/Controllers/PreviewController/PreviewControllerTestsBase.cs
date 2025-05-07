@@ -42,7 +42,7 @@ namespace Designer.Tests.Controllers.PreviewController
             services.AddDistributedMemoryCache();
         }
 
-        protected async Task<Instance> createInstance()
+        protected async Task<Instance> CreateInstance()
         {
             string dataPath = $"{Org}/{AppV4}/instances?instanceOwnerPartyId={PartyId}&taskId={TaskId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPath);
@@ -54,7 +54,7 @@ namespace Designer.Tests.Controllers.PreviewController
             return dataItem;
         }
 
-        protected async Task<DataElement> createDataElement(Instance instance, string dataType)
+        protected async Task<DataElement> CreateDataElement(Instance instance, string dataType)
         {
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data?dataType={dataType}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);

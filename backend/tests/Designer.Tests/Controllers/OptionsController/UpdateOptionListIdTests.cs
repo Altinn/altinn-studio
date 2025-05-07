@@ -21,24 +21,24 @@ public class UpdateOptionListIdTests(WebApplicationFactory<Program> factory)
     public async Task Put_Returns_200OK_With_Same_File_Content_When_Updating_Id()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "test-options";
-        const string newOptionListId = "new-option-list-id";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "test-options";
+        const string NewOptionListId = "new-option-list-id";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var originalOptionList = TestDataHelper.GetFileFromRepo(Org, repo, Developer, $"App/options/{optionsListId}.json");
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        var originalOptionList = TestDataHelper.GetFileFromRepo(Org, Repo, Developer, $"App/options/{OptionsListId}.json");
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content =
-            new StringContent($"\"{newOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+            new StringContent($"\"{NewOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        var optionListWithNewId = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/options/{newOptionListId}.json");
+        var optionListWithNewId = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/options/{NewOptionListId}.json");
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equal(originalOptionList, optionListWithNewId);
     }
@@ -47,18 +47,18 @@ public class UpdateOptionListIdTests(WebApplicationFactory<Program> factory)
     public async Task Put_Returns_400BadRequest_When_Updating_Id_To_Existing_Option_File_Name()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "test-options";
-        const string newOptionListId = "other-options";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "test-options";
+        const string NewOptionListId = "other-options";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        var originalOptionList = TestDataHelper.GetFileFromRepo(Org, repo, Developer, $"App/options/{optionsListId}.json");
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        var originalOptionList = TestDataHelper.GetFileFromRepo(Org, Repo, Developer, $"App/options/{OptionsListId}.json");
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content =
-            new StringContent($"\"{newOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+            new StringContent($"\"{NewOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -66,9 +66,9 @@ public class UpdateOptionListIdTests(WebApplicationFactory<Program> factory)
         string responseString = JsonSerializer.Deserialize<string>(responseContent);
 
         // Assert
-        var optionListWithSameId = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/options/{optionsListId}.json");
+        var optionListWithSameId = TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, $"App/options/{OptionsListId}.json");
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-        Assert.Equal($"Suggested file name {newOptionListId}.json already exists.", responseString);
+        Assert.Equal($"Suggested file name {NewOptionListId}.json already exists.", responseString);
         Assert.Equal(originalOptionList, optionListWithSameId);
     }
 
@@ -76,18 +76,18 @@ public class UpdateOptionListIdTests(WebApplicationFactory<Program> factory)
     public async Task Put_Returns_400BadRequest_When_Updating_Id_Of_NonExistent_Option_File()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "options-that-does-not-exist";
-        const string newOptionListId = "new-option-list-id";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "options-that-does-not-exist";
+        const string NewOptionListId = "new-option-list-id";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
-        string relativePath = $"App/options/{optionsListId}.json";
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        string relativePath = $"App/options/{OptionsListId}.json";
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/change-name/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content =
-            new StringContent($"\"{newOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+            new StringContent($"\"{NewOptionListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

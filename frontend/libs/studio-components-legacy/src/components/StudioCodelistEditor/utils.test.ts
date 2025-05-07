@@ -14,7 +14,7 @@ import {
 } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
-import { codeListWithoutTextResources as codeListWithStrings } from './test-data/codeListWithoutTextResources';
+import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';
 import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';

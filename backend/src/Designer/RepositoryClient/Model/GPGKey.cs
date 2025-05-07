@@ -26,32 +26,32 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="GPGKey" /> class.
         /// </summary>
-        /// <param name="CanCertify">CanCertify.</param>
-        /// <param name="CanEncryptComms">CanEncryptComms.</param>
-        /// <param name="CanEncryptStorage">CanEncryptStorage.</param>
-        /// <param name="CanSign">CanSign.</param>
-        /// <param name="CreatedAt">CreatedAt.</param>
-        /// <param name="Emails">Emails.</param>
-        /// <param name="ExpiresAt">ExpiresAt.</param>
-        /// <param name="Id">Id.</param>
-        /// <param name="KeyId">KeyId.</param>
-        /// <param name="PrimaryKeyId">PrimaryKeyId.</param>
-        /// <param name="PublicKey">PublicKey.</param>
-        /// <param name="Subkeys">Subkeys.</param>
-        public GPGKey(bool? CanCertify = default(bool?), bool? CanEncryptComms = default(bool?), bool? CanEncryptStorage = default(bool?), bool? CanSign = default(bool?), DateTime? CreatedAt = default(DateTime?), List<GPGKeyEmail> Emails = default(List<GPGKeyEmail>), DateTime? ExpiresAt = default(DateTime?), long? Id = default(long?), string KeyId = default(string), string PrimaryKeyId = default(string), string PublicKey = default(string), List<GPGKey> Subkeys = default(List<GPGKey>))
+        /// <param name="canCertify">CanCertify.</param>
+        /// <param name="canEncryptComms">CanEncryptComms.</param>
+        /// <param name="canEncryptStorage">CanEncryptStorage.</param>
+        /// <param name="canSign">CanSign.</param>
+        /// <param name="createdAt">CreatedAt.</param>
+        /// <param name="emails">Emails.</param>
+        /// <param name="expiresAt">ExpiresAt.</param>
+        /// <param name="id">Id.</param>
+        /// <param name="keyId">KeyId.</param>
+        /// <param name="primaryKeyId">PrimaryKeyId.</param>
+        /// <param name="publicKey">PublicKey.</param>
+        /// <param name="subkeys">Subkeys.</param>
+        public GPGKey(bool? canCertify = default(bool?), bool? canEncryptComms = default(bool?), bool? canEncryptStorage = default(bool?), bool? canSign = default(bool?), DateTime? createdAt = default(DateTime?), List<GPGKeyEmail> emails = default(List<GPGKeyEmail>), DateTime? expiresAt = default(DateTime?), long? id = default(long?), string keyId = default(string), string primaryKeyId = default(string), string publicKey = default(string), List<GPGKey> subkeys = default(List<GPGKey>))
         {
-            this.CanCertify = CanCertify;
-            this.CanEncryptComms = CanEncryptComms;
-            this.CanEncryptStorage = CanEncryptStorage;
-            this.CanSign = CanSign;
-            this.CreatedAt = CreatedAt;
-            this.Emails = Emails;
-            this.ExpiresAt = ExpiresAt;
-            this.Id = Id;
-            this.KeyId = KeyId;
-            this.PrimaryKeyId = PrimaryKeyId;
-            this.PublicKey = PublicKey;
-            this.Subkeys = Subkeys;
+            this.CanCertify = canCertify;
+            this.CanEncryptComms = canEncryptComms;
+            this.CanEncryptStorage = canEncryptStorage;
+            this.CanSign = canSign;
+            this.CreatedAt = createdAt;
+            this.Emails = emails;
+            this.ExpiresAt = expiresAt;
+            this.Id = id;
+            this.KeyId = keyId;
+            this.PrimaryKeyId = primaryKeyId;
+            this.PublicKey = publicKey;
+            this.Subkeys = subkeys;
         }
 
         /// <summary>
