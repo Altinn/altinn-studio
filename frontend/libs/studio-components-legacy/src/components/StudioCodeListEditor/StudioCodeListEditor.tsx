@@ -141,7 +141,6 @@ type ControlledCodeListEditorProps = Omit<
   StatefulCodeListEditorProps,
   'onInvalid' | 'onCreateTextResource'
 > & {
-  textResources: TextResource[];
   dispatch: Dispatch<ReducerAction>;
   onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
   onChange: (codeList: CodeList) => void;
