@@ -41,7 +41,7 @@ describe('SettingsNavigation', () => {
 
     renderSettingsNavigation();
 
-    const dataTask = screen.getByText(textMock('ux_editor.task_table_type.data'));
+    const dataTask = screen.getAllByText(textMock('ux_editor.task_table_type.data'))[0];
     expect(dataTask).toBeInTheDocument();
     const receiptTask = screen.getAllByText(textMock('ux_editor.task_table_type.receipt'))[0];
     expect(receiptTask).toBeInTheDocument();
