@@ -23,9 +23,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task UsesGroup_ShouldReturnTrue_IfUsingGroups()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
             editingContext,
@@ -37,9 +37,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task UsesGroup_ShouldReturnFalse_IfNotUsingGroups()
     {
-        const string repo = "app-with-layoutsets";
+        const string Repo = "app-with-layoutsets";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         bool isLayoutUsingGroups = await layoutService.IsLayoutUsingPageGroups(
             editingContext,
@@ -51,9 +51,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task OrderToPageGroupConversion_ShouldIncludeAllPages()
     {
-        const string repo = "app-with-layoutsets";
+        const string Repo = "app-with-layoutsets";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         PagesDto pagesBeforeConvert = PagesDto.From(
             await layoutService.GetLayoutSettings(editingContext, "layoutSet1")
@@ -82,9 +82,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task PageGroupToOrderConversion_ShouldIncludeAllPages()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         PagesDto pagesBeforeConvert = PagesDto.From(
             await layoutService.GetLayoutSettings(editingContext, "form")
@@ -111,12 +111,12 @@ public class LayoutServiceTests
     [Fact]
     public async Task DeletingPageGroup_ShouldDeletePagesInGroup()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (
             AltinnRepoEditingContext editingContext,
             LayoutService layoutService,
             Mock<IPublisher> mediatr
-        ) = await PrepareTestForRepo(repo);
+        ) = await PrepareTestForRepo(Repo);
 
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
@@ -169,9 +169,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task RenamingPageGroups_ShouldNotDeletePagesInGroup()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
@@ -211,12 +211,12 @@ public class LayoutServiceTests
     [Fact]
     public async Task PageGroupAddingPages_ShouldCreateLayouts()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (
             AltinnRepoEditingContext editingContext,
             LayoutService layoutService,
             Mock<IPublisher> mediatr
-        ) = await PrepareTestForRepo(repo);
+        ) = await PrepareTestForRepo(Repo);
 
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
@@ -270,9 +270,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
     {
-        const string repo = "app-with-groups-and-taskNavigation";
+        const string Repo = "app-with-groups-and-taskNavigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await layoutService.ConvertPagesToPageGroups(editingContext, "form")
@@ -282,9 +282,9 @@ public class LayoutServiceTests
     [Fact]
     public async Task PageOrderToGroupConversion_ShouldThrowException_IfInvalid()
     {
-        const string repo = "app-with-layoutsets";
+        const string Repo = "app-with-layoutsets";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
-            await PrepareTestForRepo(repo);
+            await PrepareTestForRepo(Repo);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await layoutService.ConvertPageGroupsToPages(editingContext, "layoutSet1")

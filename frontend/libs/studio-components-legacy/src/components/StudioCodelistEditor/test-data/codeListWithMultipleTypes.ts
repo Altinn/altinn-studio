@@ -1,24 +1,19 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeList } from '../types/CodeList';
+import { codeListWithStrings } from './codeListWithStrings';
 
 const item1: CodeListItem = {
-  description: 'number',
-  helpText: 'Test 1 help text',
-  label: 'Test 1',
+  ...codeListWithStrings[0],
   value: 1,
 };
 
 const item2: CodeListItem = {
-  description: 'boolean',
-  helpText: 'Test 2 help text',
-  label: 'Test 2',
+  ...codeListWithStrings[1],
   value: true,
 };
 
 const item3: CodeListItem = {
-  description: 'string',
-  helpText: 'Test 3 help text',
-  label: 'Test 3',
+  ...codeListWithStrings[2],
   value: 'test-value',
 };
 
