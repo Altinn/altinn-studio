@@ -16,8 +16,8 @@ function getNextTab({
   key,
   currentTarget,
 }: React.KeyboardEvent<HTMLTabElement>): HTMLTabElement | null {
-  const tablist = getParentTablist(currentTarget);
-  const tabs = getTabs(tablist);
+  const tablist: HTMLDivElement | null = getParentTablist(currentTarget);
+  const tabs: HTMLTabElement[] | null = getTabs(tablist);
   switch (key) {
     case 'ArrowUp':
       return getTabElementAbove(tabs, currentTarget);
@@ -28,7 +28,10 @@ function getNextTab({
   }
 }
 
-function getTabElementAbove(tabs: HTMLTabElement[], currentTab: HTMLTabElement): HTMLTabElement {
+function getTabElementAbove(
+  tabs: HTMLTabElement[],
+  currentTab: HTMLTabElement,
+): HTMLTabElement | null {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex > 0) {
     return tabs[currentIndex - 1];
@@ -36,7 +39,10 @@ function getTabElementAbove(tabs: HTMLTabElement[], currentTab: HTMLTabElement):
   return null;
 }
 
-function getTabElementBelow(tabs: HTMLTabElement[], currentTab: HTMLTabElement): HTMLTabElement {
+function getTabElementBelow(
+  tabs: HTMLTabElement[],
+  currentTab: HTMLTabElement,
+): HTMLTabElement | null {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex < tabs.length - 1) {
     return tabs[currentIndex + 1] as HTMLTabElement;
@@ -44,7 +50,10 @@ function getTabElementBelow(tabs: HTMLTabElement[], currentTab: HTMLTabElement):
   return null;
 }
 
-function getTabs(tablist: HTMLDivElement): HTMLTabElement[] {
+function getTabs(tablist: HTMLDivElement | null): HTMLTabElement[] {
+  if (!tablist) {
+    return [];
+  }
   return Array.from(tablist.querySelectorAll('[role="tab"]')) as HTMLTabElement[];
 }
 

@@ -5,7 +5,7 @@ import { StudioContentMenuContextProvider } from './context/StudioContentMenuCon
 
 export type StudioContentMenuBaseProps<TabId extends string> = {
   children: ReactNode;
-  selectedTabId: TabId;
+  selectedTabId?: TabId;
   onChangeTab: (tabId: TabId) => void;
 };
 

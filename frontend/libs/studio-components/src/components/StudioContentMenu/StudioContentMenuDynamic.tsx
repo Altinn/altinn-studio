@@ -7,7 +7,7 @@ function StudioContentMenuDynamicForwarded<TabId extends string>(
   { children, selectedTabId, onChangeTab }: StudioContentMenuBaseProps<TabId>,
   ref: React.Ref<HTMLDivElement>,
 ): ReactElement {
-  const firstTabId = getFirstTabId<TabId>(children);
+  const firstTabId: TabId = getFirstTabId<TabId>(children);
   const [selectedTab, setSelectedTab] = useState<TabId>(selectedTabId ?? firstTabId);
 
   const handleChangeTab = (tabId: TabId): void => {
@@ -27,7 +27,7 @@ export const StudioContentMenuDynamic = forwardRef<
   StudioContentMenuBaseProps<string>
 >(StudioContentMenuDynamicForwarded);
 
-function getFirstTabId<TabId extends string>(children: ReactNode): TabId | undefined {
+function getFirstTabId<TabId extends string>(children: ReactNode): TabId {
   return Children.toArray(children).filter((child): child is ReactElement<{ tabId: TabId }> =>
     React.isValidElement(child),
   )[0]?.props.tabId;
