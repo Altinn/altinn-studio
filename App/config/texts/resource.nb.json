@@ -267,15 +267,15 @@
     },
     {
       "id": "signing.correspondence_body_stifter_person",
-      "value": "Du har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $InstanceUrl <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+      "value": "Du har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $instanceUrl$ <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
       "id": "signing.correspondence_body_stifter_organisasjon",
-      "value": "Organisjonen har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $InstanceUrl <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+      "value": "Organisjonen har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $instanceUrl$ <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
       "id": "signing.correspondence_body_revisor",
-      "value": "Organisjonen har blitt lagt til som revisor for et selskap. Revisor må signere for å ta på seg oppdraget. <br /> $InstanceUrl <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+      "value": "Organisjonen har blitt lagt til som revisor for et selskap. Revisor må signere for å ta på seg oppdraget. <br /> $instanceUrl$ <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     },
     {
       "id": "signing.notification_content",
@@ -292,16 +292,6 @@
     {
       "id": "signing.revisor_email_subject",
       "value": "Revisjonsoppdrag mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
-    },
-    {
-      "id": "singing.summary.title.override",
-      "value": "Disse har signert på vegne av {0}",
-      "variables": [
-        {
-          "key": "instanceOwnerName",
-          "dataSource": "instanceContext"
-        }
-      ]
     }
   ]
 }
