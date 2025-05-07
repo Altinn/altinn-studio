@@ -25,5 +25,12 @@ const config: StorybookConfig = {
   docs: {
     autodocs: 'tag',
   },
+  refs: {
+    'studio-components-legacy': {
+      title: 'Studio Components Legacy',
+      url: 'https://ambitious-glacier-071516503.6.azurestaticapps.net/?path=/story',
+      expanded: false,
+    },
+  },
 };
 export default config;

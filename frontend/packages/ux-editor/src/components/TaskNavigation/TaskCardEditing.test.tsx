@@ -22,6 +22,13 @@ jest.mock('app-development/hooks/mutations/useUpdateLayoutSetIdMutation', () => 
 }));
 
 const datamodels = ['datamodell123', 'unuseddatamodel'];
+const dataTaskLayoutSet: LayoutSetModel = {
+  id: 'dataTaskLayoutSet1',
+  dataType: datamodels[0],
+  type: null,
+  task: { id: 'activity-123', type: 'DataTask' },
+};
+
 const subformLayoutSet: LayoutSetModel = {
   id: 'test',
   dataType: datamodels[0],
@@ -52,6 +59,16 @@ describe('taskCard', () => {
   it('should render with disabled save button without changes', () => {
     render();
     expect(screen.getByRole('button', { name: /general.save/ })).toBeDisabled();
+  });
+
+  it('should render a task name label when editing a non-subform', () => {
+    render({ layoutSetModel: dataTaskLayoutSet });
+    expect(layoutSetNameTextbox()).toBeInTheDocument();
+  });
+
+  it('should render a subform name label when editing a subform', () => {
+    render({ layoutSetModel: subformLayoutSet });
+    expect(subformNameTextbox()).toBeInTheDocument();
   });
 
   it('should show alert when changing data model', async () => {
@@ -105,7 +122,7 @@ describe('taskCard', () => {
   it('should call updateLayoutSetidMutation when layout set id is changed', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    render({ onClose, layoutSetModel: subformLayoutSet });
+    render({ onClose });
 
     await user.clear(layoutSetNameTextbox());
     const newLayoutSetId = 'CoolLayoutName';
@@ -115,7 +132,7 @@ describe('taskCard', () => {
     expect(updateLayoutSetIdMutation).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetIdMutation).toHaveBeenCalledWith(
       {
-        layoutSetIdToUpdate: subformLayoutSet.id,
+        layoutSetIdToUpdate: dataTaskLayoutSet.id,
         newLayoutSetId: newLayoutSetId,
       },
       expect.anything(),
@@ -126,7 +143,7 @@ describe('taskCard', () => {
   it('should be able to update layoutSetId with enter-key', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    render({ onClose, layoutSetModel: subformLayoutSet });
+    render({ onClose });
 
     await user.clear(layoutSetNameTextbox());
     const newLayoutSetId = 'CoolLayoutName';
@@ -136,7 +153,7 @@ describe('taskCard', () => {
     expect(updateLayoutSetIdMutation).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetIdMutation).toHaveBeenCalledWith(
       {
-        layoutSetIdToUpdate: subformLayoutSet.id,
+        layoutSetIdToUpdate: dataTaskLayoutSet.id,
         newLayoutSetId: newLayoutSetId,
       },
       expect.anything(),
@@ -180,13 +197,16 @@ const render = (props?: Partial<TaskCardEditingProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, true], datamodels);
   renderWithProviders(
-    <TaskCardEditing layoutSetModel={subformLayoutSet} onClose={jest.fn()} {...props} />,
+    <TaskCardEditing layoutSetModel={dataTaskLayoutSet} onClose={jest.fn()} {...props} />,
     { queryClient },
   );
 };
 
 const layoutSetNameTextbox = (): Element =>
-  screen.getByRole('textbox', { name: /ux_editor.component_properties.layoutSet/ });
+  screen.getByRole('textbox', { name: /ux_editor.task_card.task_name_label/ });
+
+const subformNameTextbox = (): Element =>
+  screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ });
 
 const dataModelBindingCombobox = (): Element =>
   screen.getByRole('combobox', { name: /ux_editor.modal_properties_data_model_binding/ });
