@@ -6,7 +6,7 @@ import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 
-type ContentMenuProps = {
+export type ContentMenuProps = {
   currentTab: SettingsModalTabId;
   onChangeTab: (tabId: SettingsModalTabId) => void;
 };

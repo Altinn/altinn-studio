@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import type { SettingsTabId } from '../../types/SettingsTabId';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
-type TabsContentProps = {
+export type TabsContentProps = {
   currentTab: SettingsTabId;
 };
 
