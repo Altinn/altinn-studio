@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 export function useConcatOptionsLabels(
   optionsList: Option[],
-  textResources: TextResource[],
+  textResources?: TextResource[],
 ): string {
   const { t } = useTranslation();
   const labels: string[] = [];
   const optionLabels: string[] = optionsList.map((option: Option): string => option.label);
 
   for (const label of optionLabels) {
-    const textResource: TextResource = textResources.find(
+    const textResource: TextResource = textResources?.find(
       (resource: TextResource) => resource.id === label,
     );
 
