@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -128,14 +127,12 @@ public class OrgTextController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        try
+        List<string> languages = _orgTextsService.GetLanguages(org, developer, cancellationToken);
+
+        if (languages.Count > 0)
         {
-            List<string> languages = _orgTextsService.GetLanguages(org, developer, cancellationToken);
             return Ok(languages);
         }
-        catch (DirectoryNotFoundException)
-        {
-            return NoContent();
-        }
+        return NoContent();
     }
 }
