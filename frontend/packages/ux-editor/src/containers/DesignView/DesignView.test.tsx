@@ -223,6 +223,32 @@ describe('DesignView', () => {
     });
   });
 
+  it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
+    const user = userEvent.setup();
+    setupFeatureFlag(true);
+    const updateLayoutsForPreviewMock = jest.fn().mockResolvedValue(undefined);
+    appContextMock.updateLayoutsForPreview = updateLayoutsForPreviewMock;
+    renderDesignView();
+    const addGroupButton = screen.getByRole('button', { name: textMock('ux_editor.groups.add') });
+    expect(addGroupButton).toBeInTheDocument();
+    await user.click(addGroupButton);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls "deletePageGroup" when deleting a group from PageGroupAccordion', async () => {
+    const user = userEvent.setup();
+    setupFeatureFlag(true);
+    renderDesignView();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    const deleteButton = screen.getAllByRole('button', {
+      name: textMock('general.delete_item', { item: 'Sideoppsett 1' }),
+    })[0];
+    await user.click(deleteButton);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+    confirmSpy.mockRestore();
+  });
+
   it('calls "setSelectedFormLayoutName" with page name when clicking a closed accordion in a group', async () => {
     const user = userEvent.setup();
     setupFeatureFlag(true);
