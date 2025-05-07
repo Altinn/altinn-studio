@@ -1,47 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './AppSettings.module.css';
-// import { useLocation } from 'react-router-dom';
-// import type { RoutePaths } from 'app-development/enums/RoutePaths';
-import type { SettingsTabId } from './types/SettingsTabId';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useTranslation } from 'react-i18next';
 import { StudioHeading } from '@studio/components';
+import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import { TabsContent } from './components/TabsContent';
+import { ContentMenu } from './components/ContentMenu';
 
 export function AppSettings(): ReactElement {
-  // const location = useLocation();
-  // const state = location.state as { from: RoutePaths };
   const { t } = useTranslation();
+  const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
+
+  const handleChangeTab = (tabId: SettingsModalTabId): void => {
+    setCurrentTab(tabId);
+  };
 
   return (
     <div className={classes.settingsWrapper}>
-      <div className={classes.leftNavWrapper}></div>
+      <div className={classes.leftNavWrapper}>
+        <ContentMenu currentTab={currentTab} onChangeTab={handleChangeTab} />
+      </div>
+      <div className={classes.contentWrapper}>
+        <StudioHeading level={1}>{t('settings_modal.heading')}</StudioHeading>
+        <TabsContent currentTab={currentTab} />
+      </div>
     </div>
   );
-}
-
-//<StudioHeading level={1}>{t('settings_modal.heading')}</StudioHeading>
-
-type TabsProps = {
-  currentTab: SettingsTabId;
-};
-
-function Tabs({ currentTab }: TabsProps): ReactElement {
-  switch (currentTab) {
-    case 'about': {
-      return <div>About tab</div>;
-    }
-    case 'setup': {
-      return <div>Setup tab</div>;
-    }
-    case 'policy': {
-      return <div>Policy tab</div>;
-    }
-    case 'access_control': {
-      return <div>Access Control tab</div>;
-    }
-    case 'maskinporten': {
-      return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <div>Maskinporten tab</div> : null;
-    }
-  }
 }

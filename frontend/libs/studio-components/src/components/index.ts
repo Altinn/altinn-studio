@@ -16,4 +16,6 @@ export { StudioSelect } from './StudioSelect';
 export { StudioTable } from './StudioTable';
 export { StudioTag } from './StudioTag';
 export { StudioValidationMessage } from './StudioValidationMessage';
+
 export { StudioContentMenu } from './StudioContentMenu';
+export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
