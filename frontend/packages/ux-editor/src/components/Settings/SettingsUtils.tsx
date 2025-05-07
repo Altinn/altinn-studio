@@ -52,7 +52,7 @@ export const getTaskName = (task: TaskNavigationGroup, layoutSetsModel: LayoutSe
   if (task.taskType === TaskType.Receipt) {
     return 'ux_editor.task_table_type.receipt';
   }
-  console.log(layoutSetsModel.sets);
+
   const matchingTask = layoutSetsModel?.sets.find(
     (layoutSet) => layoutSet.task?.id === task.taskId,
   );
