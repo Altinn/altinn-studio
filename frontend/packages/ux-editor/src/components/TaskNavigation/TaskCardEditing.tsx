@@ -18,6 +18,7 @@ import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { StudioSelect } from '@studio/components';
 
 export type TaskCardEditingProps = {
   layoutSetModel: LayoutSetModel;
@@ -95,7 +96,9 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value=''>{t('ux_editor.task_card.no_datamodel')}</option>
+        <option value='' disabled>
+          {t('ux_editor.task_card.choose_datamodel')}
+        </option>
         {layoutSetModel.dataType && (
           <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
         )}
