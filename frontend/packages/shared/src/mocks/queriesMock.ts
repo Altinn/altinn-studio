@@ -281,6 +281,8 @@ export const queriesMock: ServicesContextProps = {
   modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),
   createPage: jest.fn().mockImplementation(() => Promise.resolve()),
   changePageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageGroups: jest.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
