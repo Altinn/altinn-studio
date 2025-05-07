@@ -6,6 +6,7 @@ import { ProcessEditor } from 'app-development/features/processEditor';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { UiEditor } from 'app-development/features/uiEditor/UiEditor';
+import { AppSettings } from 'app-development/features/appSettings/AppSettings';
 
 interface RouterRoute {
   path: RoutePaths;
@@ -40,5 +41,9 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.ContentLibrary,
     subapp: AppContentLibrary,
+  },
+  {
+    path: RoutePaths.AppSettings,
+    subapp: AppSettings,
   },
 ];
