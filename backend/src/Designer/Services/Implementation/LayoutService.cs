@@ -268,7 +268,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     altinnPageLayout = altinnPageLayout.WithNavigationButtons();
                 }
                 await appRepository.CreatePageLayoutFile(layoutSetId, pageId, altinnPageLayout);
-
                 await mediatr.Publish(
                     new LayoutPageAddedEvent
                     {
