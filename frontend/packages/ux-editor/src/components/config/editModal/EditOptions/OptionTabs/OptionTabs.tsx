@@ -14,20 +14,6 @@ type OptionTabsProps = {
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function OptionTabs({ component, handleComponentChange, optionListIds }: OptionTabsProps) {
-  return (
-    <OptionTabsMergedTabs
-      component={component}
-      handleComponentChange={handleComponentChange}
-      optionListIds={optionListIds}
-    />
-  );
-}
-
-function OptionTabsMergedTabs({
-  component,
-  handleComponentChange,
-  optionListIds,
-}: OptionTabsProps) {
   const initialSelectedOptionsType = getSelectedOptionsType(
     component.optionsId,
     component.options,
