@@ -31,7 +31,7 @@ public class StatelessDataController : ControllerBase
     private readonly IAppModel _appModel;
     private readonly IAppResources _appResourcesService;
     private readonly IPrefill _prefillService;
-    private readonly IAltinnPartyClient _altinnPartyClientClient;
+    private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IPDP _pdp;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -50,7 +50,7 @@ public class StatelessDataController : ControllerBase
         IAppModel appModel,
         IAppResources appResourcesService,
         IPrefill prefillService,
-        IAltinnPartyClient altinnPartyClientClient,
+        IAltinnPartyClient altinnPartyClient,
         IPDP pdp,
         IAuthenticationContext authenticationContext,
         IServiceProvider serviceProvider
@@ -60,7 +60,7 @@ public class StatelessDataController : ControllerBase
         _appModel = appModel;
         _appResourcesService = appResourcesService;
         _prefillService = prefillService;
-        _altinnPartyClientClient = altinnPartyClientClient;
+        _altinnPartyClient = altinnPartyClient;
         _pdp = pdp;
         _authenticationContext = authenticationContext;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
@@ -371,11 +371,11 @@ public class StatelessDataController : ControllerBase
             var idPrefix = headerParts[0].ToLowerInvariant();
             var party = idPrefix switch
             {
-                PartyPrefix => await _altinnPartyClientClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
+                PartyPrefix => await _altinnPartyClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
 
                 // Frontend seems to only use partyId, not orgnr or ssn.
-                PersonPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = id }),
-                OrgPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = id }),
+                PersonPrefix => await _altinnPartyClient.LookupParty(new PartyLookup { Ssn = id }),
+                OrgPrefix => await _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = id }),
                 _ => null,
             };
 

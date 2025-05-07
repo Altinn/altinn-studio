@@ -107,6 +107,7 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<IDataClient, DataClientMock>();
     services.AddTransient<IAltinnPartyClient, AltinnPartyClientMock>();
+    services.AddTransient<IRegisterClient, RegisterClientMock>();
     services.AddTransient<IProfileClient, ProfileClientMock>();
     services.AddTransient<IInstanceEventClient, InstanceEventClientMock>();
     services.AddTransient<IAppModel, AppModelMock<Program>>();

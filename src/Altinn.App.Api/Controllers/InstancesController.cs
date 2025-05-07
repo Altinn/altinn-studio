@@ -55,7 +55,8 @@ public class InstancesController : ControllerBase
 
     private readonly IInstanceClient _instanceClient;
     private readonly IDataClient _dataClient;
-    private readonly IAltinnPartyClient _altinnPartyClientClient;
+    private readonly IAltinnPartyClient _altinnPartyClient;
+    private readonly IRegisterClient _registerClient;
     private readonly IEventsClient _eventsClient;
     private readonly IProfileClient _profileClient;
 
@@ -80,7 +81,7 @@ public class InstancesController : ControllerBase
     /// </summary>
     public InstancesController(
         ILogger<InstancesController> logger,
-        IAltinnPartyClient altinnPartyClientClient,
+        IAltinnPartyClient altinnPartyClient,
         IInstanceClient instanceClient,
         IDataClient dataClient,
         IAppMetadata appMetadata,
@@ -103,7 +104,8 @@ public class InstancesController : ControllerBase
         _instanceClient = instanceClient;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
-        _altinnPartyClientClient = altinnPartyClientClient;
+        _altinnPartyClient = altinnPartyClient;
+        _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _appModel = appModel;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _pdp = pdp;
@@ -127,6 +129,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="cancellationToken">cancellation token</param>
     /// <returns>the instance</returns>
     [Authorize]
     [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
@@ -137,7 +140,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
     )
     {
         EnforcementResult enforcementResult = await AuthorizeAction(
@@ -165,7 +169,7 @@ public class InstancesController : ControllerBase
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
 
-            var instanceOwnerParty = await _altinnPartyClientClient.GetParty(instanceOwnerPartyId);
+            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
 
             var dto = InstanceResponse.From(instance, instanceOwnerParty);
 
@@ -1085,8 +1089,9 @@ public class InstancesController : ControllerBase
         {
             try
             {
-                return await _altinnPartyClientClient.GetParty(
-                    int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture)
+                return await _registerClient.GetPartyUnchecked(
+                    int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
+                    this.HttpContext.RequestAborted
                 );
             }
             catch (Exception e) when (e is not ServiceException)
@@ -1108,14 +1113,12 @@ public class InstancesController : ControllerBase
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
                     lookupNumber = "personNumber";
-                    return await _altinnPartyClientClient.LookupParty(
-                        new PartyLookup { Ssn = instanceOwner.PersonNumber }
-                    );
+                    return await _altinnPartyClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                 {
                     lookupNumber = "organisationNumber";
-                    return await _altinnPartyClientClient.LookupParty(
+                    return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
                     );
                 }

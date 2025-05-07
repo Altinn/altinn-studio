@@ -17,7 +17,7 @@ public class PrefillSI : IPrefill
 {
     private readonly ILogger _logger;
     private readonly IAppResources _appResourcesService;
-    private readonly IAltinnPartyClient _altinnPartyClientClient;
+    private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly Telemetry? _telemetry;
     private static readonly string _erKey = "ER";
@@ -31,20 +31,20 @@ public class PrefillSI : IPrefill
     /// </summary>
     /// <param name="logger">The logger</param>
     /// <param name="appResourcesService">The app's resource service</param>
-    /// <param name="altinnPartyClientClient">The register client</param>
+    /// <param name="altinnPartyClient">The register client</param>
     /// <param name="authenticationContext">The authentication context</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public PrefillSI(
         ILogger<PrefillSI> logger,
         IAppResources appResourcesService,
-        IAltinnPartyClient altinnPartyClientClient,
+        IAltinnPartyClient altinnPartyClient,
         IAuthenticationContext authenticationContext,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
         _appResourcesService = appResourcesService;
-        _altinnPartyClientClient = altinnPartyClientClient;
+        _altinnPartyClient = altinnPartyClient;
         _authenticationContext = authenticationContext;
         _telemetry = telemetry;
     }
@@ -96,7 +96,7 @@ public class PrefillSI : IPrefill
             Authenticated.SystemUser systemUser
                 when await systemUser.LoadDetails() is { } details && details.Party.PartyId == partyIdNum =>
                 details.Party,
-            _ => await _altinnPartyClientClient.GetParty(partyIdNum),
+            _ => await _altinnPartyClient.GetParty(partyIdNum),
         };
         if (party == null)
         {

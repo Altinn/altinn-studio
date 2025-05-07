@@ -103,6 +103,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
+        services.AddRegisterClient();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete

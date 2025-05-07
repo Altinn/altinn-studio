@@ -111,6 +111,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddAppImplementationFactory();
 
         services.AddSingleton(new Mock<IAltinnPartyClient>().Object);
+        services.AddSingleton(new Mock<IRegisterClient>().Object);
         services.AddSingleton(new Mock<IInstanceClient>().Object);
         services.AddSingleton(new Mock<IDataClient>().Object);
         services.AddSingleton(new Mock<IAppMetadata>().Object);
