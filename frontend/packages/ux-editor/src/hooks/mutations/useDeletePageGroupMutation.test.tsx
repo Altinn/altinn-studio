@@ -10,30 +10,28 @@ import { useDeletePageGroupMutation } from './useDeletePageGroupMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { org, app, selectedLayoutSet } from '@studio/testing/testids';
 
+const createTestPageGroups = (): PagesModel => ({
+  groups: [
+    {
+      name: 'group1',
+      order: [],
+    },
+    {
+      name: 'group2',
+      order: [],
+    },
+  ],
+});
+
 describe('useDeletePageGroupMutation', () => {
   it('should call changePageGroups and invalidate queries on mutation success', async () => {
     const changePageGroupsMock = jest.fn().mockResolvedValue(undefined);
     const queryClient = new QueryClient({
       defaultOptions: {
-        mutations: {
-          retry: false,
-        },
+        mutations: {},
       },
     });
-
-    const pageGroups: PagesModel = {
-      groups: [
-        {
-          name: 'group1',
-          order: [],
-        },
-        {
-          name: 'group2',
-          order: [],
-        },
-      ],
-    };
-
+    createTestPageGroups();
     const { result } = renderUseDeletePageGroupMutation(
       org,
       app,
@@ -43,13 +41,16 @@ describe('useDeletePageGroupMutation', () => {
       },
       queryClient,
     );
-
     await waitFor(() => {
-      result.current.mutate(pageGroups);
+      result.current.mutate(createTestPageGroups());
     });
-
     await waitFor(() => {
-      expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, selectedLayoutSet, pageGroups);
+      expect(changePageGroupsMock).toHaveBeenCalledWith(
+        org,
+        app,
+        selectedLayoutSet,
+        createTestPageGroups(),
+      );
     });
   });
 
@@ -58,19 +59,7 @@ describe('useDeletePageGroupMutation', () => {
     const changePageGroupsMock = jest.fn().mockRejectedValue(new Error('Failed'));
     const queryClient = new QueryClient();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-    const pageGroups: PagesModel = {
-      groups: [
-        {
-          name: 'group1',
-          order: [],
-        },
-        {
-          name: 'group2',
-          order: [],
-        },
-      ],
-    };
-
+    const pageGroups = createTestPageGroups();
     const { result } = renderUseDeletePageGroupMutation(
       org,
       app,
@@ -92,8 +81,8 @@ describe('useDeletePageGroupMutation', () => {
     await waitFor(() => {
       expect(invalidateQueriesSpy).not.toHaveBeenCalled();
     });
-
     consoleErrorSpy.mockRestore();
+    invalidateQueriesSpy.mockRestore();
   });
 });
 
