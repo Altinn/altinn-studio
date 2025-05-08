@@ -22,7 +22,7 @@ function StudioSpinner(
       <Spinner
         data-size={dataSize}
         aria-label={ariaLabel}
-        aria-describedby={spinnerTitle ? spinnerDescriptionId : null}
+        aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
         data-testid='studio-spinner-test-id'
       />
       {spinnerTitle && <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>}
