@@ -33,11 +33,11 @@ import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMerg
 import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
+import { useTextResourcesForOrgQuery } from 'app-shared/hooks/queries/useTextResourcesForOrgQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateTextResourcesForOrgMutation } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
-import { useFetchOrCreateOrgTextResources } from '../../hooks/useFetchOrCreateTextResources/useFetchOrCreateOrgTextResources';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -72,7 +72,7 @@ type MergeableOrgContentLibraryProps = {
 function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps): ReactElement {
   const { t } = useTranslation();
   const { data: codeListDataList, status: codeListDataListStatus } = useOrgCodeListsQuery(orgName);
-  const { data: textResources, status: textResourcesStatus } = useFetchOrCreateOrgTextResources(
+  const { data: textResources, status: textResourcesStatus } = useTextResourcesForOrgQuery(
     orgName,
     DEFAULT_LANGUAGE,
   );
