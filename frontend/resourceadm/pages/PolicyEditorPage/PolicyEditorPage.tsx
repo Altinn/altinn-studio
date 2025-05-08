@@ -119,6 +119,12 @@ export const PolicyEditorPage = ({
         ...policyData,
         rules: getConsentResourceDefaultRules(resourceId),
       };
+    } else if (!isConsentResource && hasConsentRules()) {
+      // remove consent rules if resource has consent rules but is not a consent resource
+      return {
+        ...policyData,
+        rules: [],
+      };
     }
     return policyData;
   };
