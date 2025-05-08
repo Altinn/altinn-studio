@@ -19,13 +19,11 @@ type StudioCodeListEditorRowProps = {
   error: ValueError | null;
   item: CodeListItem;
   number: number;
-  onBlurTextResource: (textResource: TextResource) => void;
   onChange: (newItem: CodeListItem) => void;
-  onChangeTextResource?: (textResource: TextResource) => void;
-  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
+  onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
   onDeleteButtonClick: () => void;
   onUpdateCodeListItem: (newItem: CodeListItem) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   textResources: TextResource[];
 };
 
@@ -34,14 +32,12 @@ export function StudioCodeListEditorRow({
   error,
   item,
   number,
-  onBlurTextResource,
   onChange,
-  onChangeTextResource,
   onDeleteButtonClick,
+  onCreateTextResource,
   onUpdateCodeListItem,
   onUpdateTextResource,
   textResources,
-  onCreateTextResource,
 }: StudioCodeListEditorRowProps) {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -56,7 +52,7 @@ export function StudioCodeListEditorRow({
   const handleUpdateValue = useCallback(
     (value: CodeListItemValue) => {
       const updatedItem = changeValue(item, value);
-      onUpdateCodeListItem?.(updatedItem);
+      onUpdateCodeListItem(updatedItem);
     },
     [item, onUpdateCodeListItem],
   );
@@ -65,7 +61,7 @@ export function StudioCodeListEditorRow({
     (label: string) => {
       const updatedItem = changeLabel(item, label);
       onChange(updatedItem);
-      onUpdateCodeListItem?.(updatedItem);
+      onUpdateCodeListItem(updatedItem);
     },
     [item, onChange, onUpdateCodeListItem],
   );
@@ -74,7 +70,7 @@ export function StudioCodeListEditorRow({
     (description: string) => {
       const updatedItem = changeDescription(item, description);
       onChange(updatedItem);
-      onUpdateCodeListItem?.(updatedItem);
+      onUpdateCodeListItem(updatedItem);
     },
     [item, onChange, onUpdateCodeListItem],
   );
@@ -83,7 +79,7 @@ export function StudioCodeListEditorRow({
     (helpText: string) => {
       const updatedItem = changeHelpText(item, helpText);
       onChange(updatedItem);
-      onUpdateCodeListItem?.(updatedItem);
+      onUpdateCodeListItem(updatedItem);
     },
     [item, onChange, onUpdateCodeListItem],
   );
@@ -103,9 +99,7 @@ export function StudioCodeListEditorRow({
         dispatch={dispatch}
         label={texts.itemLabel(number)}
         number={number}
-        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleLabelChange}
-        onChangeTextResource={onChangeTextResource}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.Label}
@@ -117,9 +111,7 @@ export function StudioCodeListEditorRow({
         dispatch={dispatch}
         label={texts.itemDescription(number)}
         number={number}
-        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleDescriptionChange}
-        onChangeTextResource={onChangeTextResource}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.Description}
@@ -131,9 +123,7 @@ export function StudioCodeListEditorRow({
         dispatch={dispatch}
         label={texts.itemHelpText(number)}
         number={number}
-        onBlurTextResource={onBlurTextResource}
         onChangeCurrentId={handleHelpTextChange}
-        onChangeTextResource={onChangeTextResource}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}
         property={CodeListItemTextProperty.HelpText}
@@ -150,7 +140,7 @@ type TypedInputCellProps<T extends CodeListItemValue> = {
   label: string;
   onChange: (newValue: T) => void;
   onFocus?: (event: FocusEvent) => void;
-  onUpdateValue?: (newValue: T) => void;
+  onUpdateValue: (newValue: T) => void;
   autoComplete?: HTMLInputAutoCompleteAttribute;
   error?: string;
 };
@@ -188,7 +178,7 @@ const NumberfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<number 
 
     const handleNumberBlur = useCallback(
       (numberValue: number | undefined): void => {
-        onUpdateValue?.(numberValue);
+        onUpdateValue(numberValue);
       },
       [onUpdateValue],
     );
@@ -213,7 +203,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, TypedInputCellProps<boolean>>(
     const handleBooleanChange = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>): void => {
         onChange(event.target.checked);
-        onUpdateValue?.(event.target.checked);
+        onUpdateValue(event.target.checked);
       },
       [onChange, onUpdateValue],
     );
@@ -244,7 +234,7 @@ const TextfieldCell = forwardRef<HTMLInputElement, TypedInputCellProps<string>>(
 
     const handleTextBlur = useCallback(
       (event: FocusEvent<HTMLInputElement>) => {
-        onUpdateValue?.(event.target.value);
+        onUpdateValue(event.target.value);
       },
       [onUpdateValue],
     );
@@ -269,11 +259,9 @@ type TextResourceIdCellProps = {
   dispatch: Dispatch<ReducerAction>;
   label: string;
   number: number;
-  onBlurTextResource: (textResource: TextResource) => void;
   onChangeCurrentId: (newId: string) => void;
-  onChangeTextResource?: (textResource: TextResource) => void;
-  onCreateTextResource?: (args: CreateTextResourceInternalArgs) => void;
-  onUpdateTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
+  onUpdateTextResource: (textResource: TextResource) => void;
   property: CodeListItemTextProperty;
   required: boolean;
   textResources: TextResource[];
@@ -283,9 +271,7 @@ function TextResourceSelectorCell({
   currentId,
   dispatch,
   number,
-  onBlurTextResource,
   onChangeCurrentId,
-  onChangeTextResource,
   onCreateTextResource,
   onUpdateTextResource,
   property,
@@ -296,13 +282,9 @@ function TextResourceSelectorCell({
     texts: { textResourceTexts },
   } = useStudioCodeListEditorContext();
 
-  const handleBlurTextResource = useCallback(
-    (newTextResource: TextResource) => {
-      onUpdateTextResource?.(newTextResource);
-      onBlurTextResource?.(newTextResource);
-    },
-    [onUpdateTextResource, onBlurTextResource],
-  );
+  const handleUpdateTextResource = (newTextResource: TextResource) => {
+    onUpdateTextResource(newTextResource);
+  };
 
   const handleChangeTextResource = useCallback(
     (newTextResource: TextResource) => {
@@ -311,9 +293,8 @@ function TextResourceSelectorCell({
         textResourceId: newTextResource.id,
         newValue: newTextResource.value,
       });
-      onChangeTextResource?.(newTextResource);
     },
-    [dispatch, onChangeTextResource],
+    [dispatch],
   );
 
   const handleCreateTextResource = useCallback(
@@ -325,7 +306,7 @@ function TextResourceSelectorCell({
         codeItemIndex,
         property,
       });
-      onCreateTextResource?.({ textResource, codeItemIndex, property });
+      onCreateTextResource({ textResource, codeItemIndex, property });
     },
     [dispatch, onCreateTextResource, number, property],
   );
@@ -333,7 +314,7 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
-      onBlurTextResource={handleBlurTextResource}
+      onBlurTextResource={handleUpdateTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
       onCreateTextResource={handleCreateTextResource}
