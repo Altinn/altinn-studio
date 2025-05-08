@@ -1,13 +1,29 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
-import { MenuElipsisVerticalIcon, MinusCircleIcon, PlusCircleIcon } from '@studio/icons';
+import { MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
+import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
+import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGroups';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../hooks';
+import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { mutate: convertToPageOrder } = useConvertToPageOrder(org, app, selectedFormLayoutSetName);
+  const { mutate: convertToPageGroups } = useConvertToPageGroups(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+
+  const isUsingPageGroups = pagesModel?.groups?.length > 0;
 
   return (
     <div data-testid='design-view-navigation'>
@@ -39,14 +55,15 @@ export const DesignViewNavigation = () => {
                   <DropdownMenu.Item onClick={undefined}>
                     {t('ux_editor.page_layout_perform_another_task')}
                   </DropdownMenu.Item>
-                  <DropdownMenu.Item onClick={undefined}>
-                    <MinusCircleIcon />
-                    {t('ux_editor.page_layout_remove_group_division')}
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item onClick={undefined}>
-                    <PlusCircleIcon />
-                    {t('ux_editor.page_layout_add_group_division')}
-                  </DropdownMenu.Item>
+                  {isUsingPageGroups ? (
+                    <DropdownMenu.Item onClick={() => convertToPageOrder()}>
+                      {t('ux_editor.page_layout_remove_group_division')}
+                    </DropdownMenu.Item>
+                  ) : (
+                    <DropdownMenu.Item onClick={() => convertToPageGroups()}>
+                      {t('ux_editor.page_layout_add_group_division')}
+                    </DropdownMenu.Item>
+                  )}
                 </DropdownMenu.Group>
               </DropdownMenu.Content>
             </DropdownMenu>

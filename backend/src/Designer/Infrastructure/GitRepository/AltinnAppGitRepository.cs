@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
         };
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 cancellationToken
             );
             ApplicationMetadata applicationMetaData =
-                JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, JsonOptions);
+                JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, s_jsonOptions);
 
             return applicationMetaData;
         }
@@ -140,7 +140,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
         public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
         {
-            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, JsonOptions);
+            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(
                 ConfigFolderPath,
                 AppMetadataFilename
@@ -154,7 +154,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="serviceConfiguration">The updated config to persist.</param>
         public async Task SaveAppMetadataConfig(ServiceConfiguration serviceConfiguration)
         {
-            string config = JsonSerializer.Serialize(serviceConfiguration, JsonOptions);
+            string config = JsonSerializer.Serialize(serviceConfiguration, s_jsonOptions);
             string configRelativeFilePath = Path.Combine(ServiceConfigFilename);
             await WriteTextByRelativePathAsync(configRelativeFilePath, config, true);
         }
@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(serviceConfigFilePath);
             ServiceConfiguration config = JsonSerializer.Deserialize<ServiceConfiguration>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return config;
         }
@@ -304,7 +304,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<TextResource> GetTextV1(
+        public async Task<TextResource> GetText(
             string language,
             CancellationToken cancellationToken = default
         )
@@ -318,92 +318,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
             TextResource textResource = JsonSerializer.Deserialize<TextResource>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
 
             return textResource;
         }
 
-        public async Task SaveTextV1(string languageCode, TextResource jsonTexts)
+        public async Task SaveText(string languageCode, TextResource jsonTexts)
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
+            string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
-        }
-
-        /// <summary>
-        /// Reads text file from disk written in the new text format
-        /// identified by the languageCode in filename.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <returns>Texts as a string</returns>
-        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
-        {
-            string fileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<
-                Dictionary<string, string>
-            >(texts, JsonOptions);
-
-            return jsonTexts;
-        }
-
-        /// <summary>
-        /// Overwrite a V2 texts file with an updated V2 texts file
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="jsonTexts">Text file for language as string</param>
-        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
-        {
-            string fileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
-            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
-        }
-
-        /// <summary>
-        /// Overwrite or creates a markdown file for a specific text for a specific language.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="text">KeyValuePair containing markdown text</param>
-        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
-        {
-            string fileName = $"{text.Key}.{languageCode}.texts.md";
-            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
-            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
-        }
-
-        /// <summary>
-        /// Get the markdown text specific for a key identified in the filename.
-        /// </summary>
-        /// <param name="markdownFileName">Filename for file with markdown text for a key</param>
-        /// <returns>Markdown text as a string</returns>
-        public async Task<string> GetTextMarkdown(string markdownFileName)
-        {
-            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
-            string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-
-            return text;
-        }
-
-        /// <summary>
-        /// Deletes the texts file for a specific languageCode.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        public void DeleteTexts(string languageCode)
-        {
-            string textsFileName = $"{languageCode}.texts.json";
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
-            DeleteFileByRelativePath(textsFileRelativeFilePath);
-            IEnumerable<string> fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
-            foreach (string fileNamePath in fileNames)
-            {
-                string fileName = Path.GetFileName(fileNamePath);
-                textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
-                DeleteFileByRelativePath(textsFileRelativeFilePath);
-            }
         }
 
         public async Task CreatePageLayoutFile(
@@ -578,7 +504,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
             LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return layoutSettings;
         }
@@ -594,8 +520,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             CancellationToken cancellationToken = default
         )
         {
-            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             cancellationToken.ThrowIfCancellationRequested();
+
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
             {
                 await CreateLayoutSettings(layoutSetName);
@@ -607,6 +534,44 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var layoutSettings = JsonNode.Parse(fileContent);
 
             return layoutSettings;
+        }
+
+        public async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSets(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string[] layoutSetNames = GetLayoutSetNames();
+
+            return await FindOptionListReferencesInGivenLayoutSets(layoutSetNames, cancellationToken);
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInGivenLayoutSets(string[] layoutSetNames, CancellationToken cancellationToken)
+        {
+            List<RefToOptionListSpecifier> optionsListReferences = [];
+            foreach (string layoutSetName in layoutSetNames)
+            {
+                optionsListReferences = await FindOptionListReferencesInLayoutSet(layoutSetName, optionsListReferences, cancellationToken);
+            }
+
+            return optionsListReferences;
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInLayoutSet(string layoutSetName, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string[] layoutNames = GetLayoutNames(layoutSetName);
+
+            return await FindOptionListReferencesInGivenLayouts(layoutSetName, layoutNames, optionsListReferences, cancellationToken);
+        }
+
+        private async Task<List<RefToOptionListSpecifier>> FindOptionListReferencesInGivenLayouts(string layoutSetName, string[] layoutNames, List<RefToOptionListSpecifier> optionsListReferences, CancellationToken cancellationToken)
+        {
+            foreach (string layoutName in layoutNames)
+            {
+                var layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
+                optionsListReferences = FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+            }
+
+            return optionsListReferences;
         }
 
         /// <summary>
@@ -793,7 +758,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayoutSettings(string layoutSetName, JsonNode layoutSettings)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            string serializedLayoutSettings = layoutSettings.ToJsonString(JsonOptions);
+            string serializedLayoutSettings = layoutSettings.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
@@ -802,7 +767,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             string serializedLayoutSettings = JsonSerializer.Serialize<LayoutSettings>(
                 layoutSettings,
-                JsonOptions
+                s_jsonOptions
             );
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
@@ -824,7 +789,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string serializedLayout = layout.ToJsonString(JsonOptions);
+            string serializedLayout = layout.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(
                 layoutFilePath,
                 serializedLayout,
@@ -858,7 +823,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 );
                 LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(
                     fileContent,
-                    JsonOptions
+                    s_jsonOptions
                 );
                 return layoutSetsFile;
             }
@@ -871,7 +836,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             if (AppUsesLayoutSets())
             {
                 string layoutSetsFilePath = GetPathToLayoutSetsFile();
-                string layoutSetsString = JsonSerializer.Serialize(layoutSets, JsonOptions);
+                string layoutSetsString = JsonSerializer.Serialize(layoutSets, s_jsonOptions);
                 await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
             }
             else
@@ -890,7 +855,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             );
             FooterFile footerFile = JsonSerializer.Deserialize<FooterFile>(
                 fileContent,
-                JsonOptions
+                s_jsonOptions
             );
             return footerFile;
         }
@@ -946,7 +911,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             cancellationToken.ThrowIfCancellationRequested();
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
-            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(JsonOptions);
+            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(s_jsonOptions);
             await WriteTextByRelativePathAsync(
                 ruleConfigurationPath,
                 serializedRuleConfiguration,
@@ -1256,19 +1221,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Finds all schema files in repository.
-        /// </summary>
-        public IList<AltinnCoreFile> GetAllSchemaFiles(bool xsd = false)
-        {
-            string schemaFilesPattern = xsd ? SchemaFilePatternXsd : SchemaFilePatternJson;
-
-            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
-            var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
-
-            return altinnCoreSchemaFiles;
-        }
-
-        /// <summary>
         /// Finds all schema files in App/models directory.
         /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
@@ -1328,16 +1280,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return string.IsNullOrEmpty(fileName)
                 ? Path.Combine(ConfigFolderPath, LanguageResourceFolderName)
                 : Path.Combine(ConfigFolderPath, LanguageResourceFolderName, fileName);
-        }
-
-        private static string GetPathToMarkdownTextFile(string fileName)
-        {
-            return Path.Combine(
-                ConfigFolderPath,
-                LanguageResourceFolderName,
-                MarkdownTextsFolderName,
-                fileName
-            );
         }
 
         // can be null if app does not use layout set

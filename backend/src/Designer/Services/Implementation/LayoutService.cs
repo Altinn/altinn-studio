@@ -213,6 +213,74 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSettings.Pages is PagesWithGroups;
         }
 
+        public async Task UpdatePageGroups(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            PagesWithGroups pagesWithGroups
+        )
+        {
+            ArgumentNullException.ThrowIfNull(editingContext);
+            ArgumentException.ThrowIfNullOrEmpty(layoutSetId);
+            ArgumentNullException.ThrowIfNull(pagesWithGroups);
+
+            AltinnAppGitRepository appRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                );
+            LayoutSettings originalLayoutSettings = await appRepository.GetLayoutSettings(
+                layoutSetId
+            );
+            if (originalLayoutSettings.Pages is not PagesWithGroups originalPagesWithGroups)
+            {
+                throw new InvalidOperationException(
+                    "Cannot update page groups in layout using order."
+                );
+            }
+            IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
+            IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany(
+                (group) => group.Order
+            );
+            var deletedPages = originalOrder.Except(order).ToList();
+            foreach (string pageId in deletedPages)
+            {
+                appRepository.DeleteLayout(layoutSetId, pageId);
+                await mediatr.Publish(
+                    new LayoutPageDeletedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutName = pageId,
+                        LayoutSetName = layoutSetId,
+                    }
+                );
+            }
+            var createdPages = order.Except(originalOrder).ToList();
+            LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
+                editingContext,
+                layoutSetId
+            );
+            foreach (string pageId in createdPages)
+            {
+                AltinnPageLayout altinnPageLayout = new();
+                if (originalOrder.Any())
+                {
+                    altinnPageLayout = altinnPageLayout.WithNavigationButtons();
+                }
+                await appRepository.CreatePageLayoutFile(layoutSetId, pageId, altinnPageLayout);
+                await mediatr.Publish(
+                    new LayoutPageAddedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutName = pageId,
+                        LayoutSetConfig = layoutSetConfig,
+                    }
+                );
+            }
+            originalLayoutSettings.Pages = pagesWithGroups;
+            await appRepository.SaveLayoutSettings(layoutSetId, originalLayoutSettings);
+        }
+
         /// <exception cref="InvalidOperationException">
         /// Thrown when layout already uses page groups
         /// </exception>

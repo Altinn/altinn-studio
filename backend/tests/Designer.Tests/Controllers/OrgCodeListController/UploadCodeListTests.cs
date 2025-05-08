@@ -32,11 +32,11 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string jsonCodeList = @"[
+        const string JsonCodeList = @"[
             {""label"": ""Label1"", ""value"": ""Value1"", ""description"": ""Description1"", ""helpText"": ""helpText"" },
             {""label"": ""Label2"", ""value"": ""Value2"" }
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
+        var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -57,10 +57,10 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string jsonCodeList = @"[
+        const string JsonCodeList = @"[
             {""label"": """", ""value"": """" },
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
+        var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -77,11 +77,11 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string jsonCodeList = @"[
+        const string JsonCodeList = @"[
             {""label"": """" },
             {""value"": """" },
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
+        var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -98,10 +98,10 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string jsonCodeList = @"[
+        const string JsonCodeList = @"[
             {""label"": null, ""value"": null }
         ]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
+        var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -118,8 +118,8 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string jsonCodeList = @"[{""value"": {}, ""label"": """"}]";
-        var httpRequestMessage = CreateTestFile(jsonCodeList, targetOrg);
+        const string JsonCodeList = @"[{""value"": {}, ""label"": """"}]";
+        var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

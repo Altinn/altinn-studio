@@ -52,6 +52,7 @@ export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/option
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
+export const importCodeListFromOrgPath = (org, app, codeListId) => `${basePath}/${org}/${app}/options/import/${codeListId}`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
@@ -65,6 +66,9 @@ export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${ba
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 export const layoutPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
 export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutPath(org, app, layoutSetName)}/pages/${pageName ? pageName : ''}`;
+export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
+export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
+export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
 export const taskNavigationGroupPath = (org, app) => `${basePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
 
 // Gitea
@@ -91,6 +95,8 @@ export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${basePath}/${org}/text/language/${language}`; // Get, patch, post
+export const orgTextLanguagesPath = (org) => `${basePath}/${org}/text/language/languages`; // Get
+export const availableResourcesInOrgLibraryPath = (org, contentType) => `${basePath}/${org}/content?${s({ contentType })}`; // Get
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get

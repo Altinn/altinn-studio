@@ -3,7 +3,6 @@
   display: flex;
   align-items: flex-start;
   font-family: var(--studio-font-family);
-
   margin: var(--fds-spacing-1);
   padding: var(--fds-spacing-5);
   gap: var(--fds-spacing-3);
@@ -22,6 +21,8 @@
 
 .addCardsContainer {
   display: flex;
+  min-height: 320px;
+  height: fit-content;
   flex-direction: column;
   gap: var(--fds-spacing-3);
   padding-left: var(--fds-spacing-1);
@@ -29,5 +30,4 @@
 
 .addCardsContainer > * {
   flex: 1;
-  min-height: 0;
 }

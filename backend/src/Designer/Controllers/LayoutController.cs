@@ -16,13 +16,13 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app}/layouts/layoutSet/{layoutSetId}/")]
-    [UseSystemTextJson]
     public class LayoutController(ILayoutService layoutService) : Controller
     {
         [EndpointSummary("Retrieve pages")]
         [ProducesResponseType<PagesDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("pages")]
+        [UseSystemTextJson]
         public async Task<ActionResult<PagesDto>> GetPages(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -43,6 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("pages")]
+        [UseSystemTextJson]
         public async Task<ActionResult<PageDto>> CreatePage(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -73,7 +74,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType<PageDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("pages/{pageId}")]
-        [ProducesResponseType<PageDto>(StatusCodes.Status200OK)]
+        [UseSystemTextJson]
         public async Task<ActionResult<PageDto>> GetPage(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -100,6 +101,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType<PageDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("pages/{pageId}")]
+        [UseSystemTextJson]
         public async Task<ActionResult<PageDto>> ModifyPage(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -129,6 +131,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpDelete("pages/{pageId}")]
+        [UseSystemTextJson]
         public async Task<ActionResult> DeletePage(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -156,6 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
         [EndpointSummary("Modify pages")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPut("pages")]
+        [UseSystemTextJson]
         public async Task<ActionResult> ModifyPages(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -178,6 +182,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("convert-to-pagegroups")]
+        [UseSystemTextJson]
         public async Task<ActionResult> ConvertToPageGroups(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -206,6 +211,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [HttpPost("convert-to-pageorder")]
+        [UseSystemTextJson]
         public async Task<ActionResult> ConvertToPageOrder(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -226,6 +232,29 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return Conflict(e.Message);
             }
+            return Ok();
+        }
+
+        [EndpointSummary("Update pages")]
+        [EndpointDescription(
+            @"This endpoint should not be preferred over a more explicit endpoint.
+            i.e. use `DeletePage` instead if possible."
+        )]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPut("page-groups")]
+        [UseSystemTextJson]
+        public async Task<ActionResult> UpdatePageGroups(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] string layoutSetId,
+            [FromBody] PagesDto pages
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            PagesWithGroups pagesWithGroups = pages.ToBusiness() as PagesWithGroups;
+            await layoutService.UpdatePageGroups(editingContext, layoutSetId, pagesWithGroups);
             return Ok();
         }
     }

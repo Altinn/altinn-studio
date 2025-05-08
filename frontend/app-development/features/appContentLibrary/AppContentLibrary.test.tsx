@@ -19,6 +19,7 @@ import type {
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
+import { codeListTitles } from './test-data/codeListTitles';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -61,6 +62,14 @@ describe('AppContentLibrary', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
+  it('Renders an error message when getAvailableResourcesFromOrg fails', async () => {
+    const getAvailableResourcesFromOrg = () => Promise.reject(new Error('Test error'));
+    renderAppContentLibrary({ queries: { getAvailableResourcesFromOrg } });
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
   it('Renders with the given code lists', () => {
     renderAppContentLibraryWithData();
     const codeListDataList = retrieveConfig().codeList.props.codeListsData;
@@ -72,6 +81,12 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const textResourcesData = retrieveConfig().codeList.props.textResources;
     expect(textResourcesData).toEqual(textResources);
+  });
+
+  it('Renders with the given code list titles', () => {
+    renderAppContentLibraryWithData();
+    const codeListTitlesData = retrieveConfig().codeList.props.externalResources;
+    expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
   it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
@@ -135,6 +150,18 @@ describe('AppContentLibrary', () => {
     expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, currentName, newName);
   });
 
+  it('calls onUpdateOptionList with correct data when onCreateCodeList is triggered', async () => {
+    const { title, data: codeList } = optionList1Data;
+    const newCodeList: CodeListWithMetadata = { title, codeList };
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onCreateCodeList(newCodeList);
+    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
+  });
+
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
     renderAppContentLibraryWithData();
 
@@ -165,6 +192,17 @@ describe('AppContentLibrary', () => {
       expectedPayload,
     );
   });
+
+  it('calls importCodeListFromOrg with correct data when onImportCodeListFromOrg is triggered', async () => {
+    const codeListId = 'codeListId';
+    renderAppContentLibraryWithData();
+
+    retrieveConfig().codeList.props.onImportCodeListFromOrg(codeListId);
+    await waitFor(expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled);
+
+    expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);
+    expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledWith(org, app, codeListId);
+  });
 });
 
 type RenderAppContentLibraryProps = {
@@ -191,6 +229,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData([QueryKey.OptionLists, org, app], optionListDataList);
   queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  queryClient.setQueryData([QueryKey.AvailableOrgResources, org], codeListTitles);
   return queryClient;
 }
 

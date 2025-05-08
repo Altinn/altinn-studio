@@ -17,6 +17,14 @@ export class CodeLists extends BasePage {
     await expect(heading).toBeVisible();
   }
 
+  public async clickOnAddNewCodeListDropdown(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('app_content_library.code_lists.add_new_code_list'),
+      })
+      .click();
+  }
+
   public async clickOnCreateNewCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -40,23 +48,6 @@ export class CodeLists extends BasePage {
         name: this.textMock('app_content_library.code_lists.create_new_code_list_name'),
       })
       .fill(title);
-  }
-
-  public async clickOnAddAlternativeButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('code_list_editor.add_option'),
-      })
-      .click();
-  }
-
-  public async verifyNewItemValueFieldIsVisible(itemNumber: number): Promise<void> {
-    const newItemValueField = this.page.getByRole('textbox', {
-      name: this.textMock('code_list_editor.value_item', { number: itemNumber.toString() }),
-      exact: true,
-    });
-
-    await expect(newItemValueField).toBeVisible();
   }
 
   public async writeCodelistValue(itemNumber: number, value: string): Promise<void> {
@@ -116,14 +107,6 @@ export class CodeLists extends BasePage {
     await this.page.getByRole('heading', { name: codeListTitle }).click();
   }
 
-  public async typeInSearchBox(searchTerm: string): Promise<void> {
-    await this.page
-      .getByRole('searchbox', {
-        name: this.textMock('app_content_library.code_lists.search_label'),
-      })
-      .fill(searchTerm);
-  }
-
   public async clickOnDeleteCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -159,12 +142,8 @@ export class CodeLists extends BasePage {
   }
 
   public async clickOnUploadButtonAndSelectFileToUpload(fileName: string): Promise<void> {
-    const fileChooserPromise = this.page.waitForEvent('filechooser');
-
     await this.clickOnUploadCodelistButton();
-
-    const fileChooser = await fileChooserPromise;
-    await fileChooser.setFiles(path.join(__dirname, fileName));
+    await this.page.setInputFiles('input[type="file"]', path.join(__dirname, fileName));
   }
 
   public async listenToAndWaitForConfirmDeleteCodeList(codeListTitle: string): Promise<void> {

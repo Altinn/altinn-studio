@@ -6,16 +6,12 @@ import { screen } from '@testing-library/react';
 import { app, org, studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('taskCard', () => {
   let confirmSpy: jest.SpyInstance;
   beforeAll(() => {
     confirmSpy = jest.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(jest.fn(() => true));
-
-    typedLocalStorage.setItem('featureFlags', FeatureFlag.TaskNavigationEditCards);
   });
 
   afterAll(() => {
@@ -79,7 +75,7 @@ describe('taskCard', () => {
     render();
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
-    await user.click(screen.getByRole('button', { name: /general.close/ }));
+    await user.click(screen.getByRole('button', { name: /general.cancel/ }));
     expect(screen.queryByRole('button', { name: /general.save/ })).not.toBeInTheDocument();
   });
 
@@ -89,7 +85,7 @@ describe('taskCard', () => {
     await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
     await user.click(screen.getByRole('button', { name: /ux_editor.task_card.edit/ }));
     await user.type(
-      screen.getByRole('textbox', { name: /ux_editor.component_properties.layoutSet/ }),
+      screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ }),
       'test',
     );
     await user.click(screen.getByRole('button', { name: /general.save/ }));

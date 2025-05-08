@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -25,9 +28,9 @@ public class OptionsServiceTests : IDisposable
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
     {
         // Arrange
-        const string repo = "app-with-options";
+        const string Repo = "app-with-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -41,9 +44,9 @@ public class OptionsServiceTests : IDisposable
     public async Task GetOptionsListIds_ShouldReturnEmptyArray_WhenOptionsListsDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app";
+        const string Repo = "empty-app";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -71,14 +74,14 @@ public class OptionsServiceTests : IDisposable
             }
         };
 
-        const string repo = "app-with-options";
-        const string optionListId = "test-options";
+        const string Repo = "app-with-options";
+        const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var fetchedOptions = await optionsService.GetOptionsList(Org, targetRepository, Developer, optionListId);
+        var fetchedOptions = await optionsService.GetOptionsList(Org, targetRepository, Developer, OptionListId);
 
         // Assert
         Assert.Equal(expectedOptions.Count, fetchedOptions.Count);
@@ -96,15 +99,15 @@ public class OptionsServiceTests : IDisposable
     public async Task GetOptionsList_ShouldThrowNotFoundException_WhenOptionsListDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app";
-        const string optionListId = "test-options";
+        const string Repo = "empty-app";
+        const string OptionListId = "test-options";
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act and assert
         await Assert.ThrowsAsync<NotFoundException>(async () =>
         {
-            await optionsService.GetOptionsList(Org, repo, Developer, optionListId);
+            await optionsService.GetOptionsList(Org, Repo, Developer, OptionListId);
         });
     }
 
@@ -126,14 +129,14 @@ public class OptionsServiceTests : IDisposable
             }
         };
 
-        const string repo = "empty-app";
-        const string optionListId = "test-options";
+        const string Repo = "empty-app";
+        const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, optionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, OptionListId, newOptions);
 
         // Assert
         Assert.Equal(newOptions.Count, updatedOptions.Count);
@@ -165,14 +168,14 @@ public class OptionsServiceTests : IDisposable
             }
         };
 
-        const string repo = "app-with-options";
-        const string existingOptionListId = "test-options";
+        const string Repo = "app-with-options";
+        const string ExistingOptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, existingOptionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, ExistingOptionListId, newOptions);
 
         // Assert
         Assert.Equal(updatedOptions.Count, updatedOptions.Count);
@@ -190,14 +193,14 @@ public class OptionsServiceTests : IDisposable
     public async Task DeleteOptionsList_ShouldDeleteOptionsList_WhenOptionsListExist()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionListId = "test-options";
+        const string Repo = "app-with-options";
+        const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        optionsService.DeleteOptionsList(Org, targetRepository, Developer, optionListId);
+        optionsService.DeleteOptionsList(Org, targetRepository, Developer, OptionListId);
 
         // Assert
         Assert.True(true); // No exception thrown
@@ -207,17 +210,17 @@ public class OptionsServiceTests : IDisposable
     public async Task DeleteOptions_ShouldThrowNotFoundException_WhenOptionsDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app";
-        const string optionListId = "test-options";
+        const string Repo = "empty-app";
+        const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act and assert
         Assert.Throws<NotFoundException>(() =>
         {
-            optionsService.DeleteOptionsList(Org, targetRepository, Developer, optionListId);
+            optionsService.DeleteOptionsList(Org, targetRepository, Developer, OptionListId);
         });
     }
 
@@ -225,15 +228,15 @@ public class OptionsServiceTests : IDisposable
     public async Task OptionsListExists_ShouldReturnTrue_WhenOptionsListExists()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionListId = "test-options";
+        const string Repo = "app-with-options";
+        const string OptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        bool optionListExists = await optionsService.OptionsListExists(Org, targetRepository, Developer, optionListId);
+        bool optionListExists = await optionsService.OptionsListExists(Org, targetRepository, Developer, OptionListId);
 
         // Assert
         Assert.True(optionListExists);
@@ -243,13 +246,13 @@ public class OptionsServiceTests : IDisposable
     public async Task OptionListsExists_ShouldReturnFalse_WhenOptionsListDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app";
-        const string optionListId = "test-options";
+        const string Repo = "empty-app";
+        const string OptionListId = "test-options";
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        bool optionListExists = await optionsService.OptionsListExists(Org, repo, Developer, optionListId);
+        bool optionListExists = await optionsService.OptionsListExists(Org, Repo, Developer, OptionListId);
 
         // Assert
         Assert.False(optionListExists);
@@ -259,76 +262,89 @@ public class OptionsServiceTests : IDisposable
     public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenOptionsListExists()
     {
         // Arrange
-        const string repo = "app-with-options";
+        const string Repo = "app-with-options";
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        List<RefToOptionListSpecifier> optionListsReferences = await optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer));
+        List<RefToOptionListSpecifier> optionListsReferences = await optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, Repo, Developer));
 
-        List<RefToOptionListSpecifier> expectedResponseList = new()
-        {
-            new RefToOptionListSpecifier
-            {
-                OptionListId = "test-options", OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
-                        LayoutName = "layoutWithOneOptionListIdRef",
-                        LayoutSetId = "layoutSet1"
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-another-set"],
-                        LayoutName = "layoutWithTwoOptionListIdRefs",
-                        LayoutSetId = "layoutSet2"
-                    }
-                ]
-            },
-            new()
-            {
-                OptionListId = "other-options", OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-other-options-id"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1"
-                    }
-                ]
-            }
-        };
         // Assert
+        List<RefToOptionListSpecifier> expectedResponseList = OptionListReferenceTestDataWithTaskData();
         Assert.Equivalent(optionListsReferences, expectedResponseList);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldAddCorrectTaskData_WhenReferencesExist()
+    {
+        // Arrange
+        const string Repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, Repo, Developer);
+        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
+
+        // Assert
+        List<RefToOptionListSpecifier> expectedResult = OptionListReferenceTestDataWithTaskData();
+        Assert.Equivalent(result, expectedResult);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenGivenListIsEmpty()
+    {
+        // Arrange
+        const string Repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, Repo, Developer);
+        List<RefToOptionListSpecifier> emptyReferenceList = [];
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, emptyReferenceList);
+
+        // Assert
+        Assert.Same(result, emptyReferenceList);
+    }
+
+    [Fact]
+    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenLayoutSetsModelIsEmpty()
+    {
+        // Arrange
+        const string Repo = "app-with-options";
+        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, Repo, Developer);
+        var appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
+        appDevelopmentServiceMock.Setup(s => s.GetLayoutSetsExtended(repoEditingContext, new CancellationToken())).ReturnsAsync(new LayoutSetsModel());
+        var optionsService = GetOptionsServiceForTestWithMockedAppDevelopmentService(appDevelopmentServiceMock);
+        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
+
+        // Act
+        List<RefToOptionListSpecifier> result = await optionsService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
+
+        // Assert
+        Assert.Same(result, referencesWithoutTaskData);
     }
 
     [Fact]
     public async Task ImportOptionListFromOrgIfIdIsVacant_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
-        const string orgRepo = "org-content";
-        const string appRepo = "app-with-options";
-        const string optionListId = "codeListString";
+        const string OrgRepo = "org-content";
+        const string AppRepo = "app-with-options";
+        const string OptionListId = "codeListString";
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, orgRepo, TargetOrgName, targetOrgRepository);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, TargetOrgName, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, appRepo, TargetOrgName, targetAppRepository);
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
         string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "Codelists/codeListString.json");
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, optionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
 
         // Assert
         Assert.Equal(expectedOptionList.Count, optionList.Count);
@@ -346,34 +362,144 @@ public class OptionsServiceTests : IDisposable
     public async Task ImportOptionListFromOrgIfIdIsVacant_ShouldReturnNull_WhenOptionsListDoesAlreadyExist()
     {
         // Arrange
-        const string orgRepo = "org-content";
-        const string appRepo = "app-with-options";
-        const string optionListId = "codeListString";
+        const string OrgRepo = "org-content";
+        const string AppRepo = "app-with-options";
+        const string OptionListId = "codeListString";
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, orgRepo, TargetOrgName, targetOrgRepository);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, OrgRepo, TargetOrgName, targetOrgRepository);
 
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, appRepo, TargetOrgName, targetAppRepository);
+        await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        const string codeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
+        const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrgName, targetAppRepository, Developer);
         string filePath = Path.Combine(repoPath, "App/options");
-        await File.WriteAllTextAsync(Path.Combine(filePath, $"{optionListId}.json"), codeList);
+        await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, optionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
 
         // Assert
         Assert.Null(optionList);
     }
 
+    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithoutTaskData()
+    {
+        return new List<RefToOptionListSpecifier>
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                    }
+                ]
+            }
+        };
+    }
+
+    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithTaskData()
+    {
+        return new List<RefToOptionListSpecifier>
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs",
+                        LayoutSetId = "layoutSet2",
+                        TaskId = "Task_2",
+                        TaskType = "data"
+                    }
+                ]
+            },
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "other-options",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
+                        LayoutSetId = "layoutSet1",
+                        TaskId = "Task_1",
+                        TaskType = "data"
+                    }
+                ]
+            }
+        };
+    }
+
     private static OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
+        AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentService);
+
+        return optionsService;
+    }
+
+
+
+    private static OptionsService GetOptionsServiceForTestWithMockedAppDevelopmentService(Mock<IAppDevelopmentService> appDevelopmentServiceMock)
+    {
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        OptionsService optionsService = new(altinnGitRepositoryFactory, appDevelopmentServiceMock.Object);
 
         return optionsService;
     }

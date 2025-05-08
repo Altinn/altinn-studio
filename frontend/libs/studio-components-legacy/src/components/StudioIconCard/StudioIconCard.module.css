@@ -5,14 +5,13 @@
   --icon-background-size: 63px;
 
   --icon-card-width: 300px;
-  --icon-card-min-width: 300px;
-  --icon-card-height: 428px;
+  --icon-card-height: 320px;
 }
 
 .card {
   width: var(--icon-card-width);
-  min-width: var(--icon-card-min-width);
   min-height: var(--icon-card-height);
+  height: fit-content;
   background-color: var(--fds-semantic-background-default);
   display: flex;
   flex-direction: column;
@@ -24,14 +23,9 @@
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: var(--fds-spacing-6);
-  padding-bottom: var(--fds-spacing-7);
   gap: var(--fds-spacing-4);
   text-align: left;
   font-weight: normal;
-  height: 100%;
-  flex-grow: 1;
 }
 
 .content button {
@@ -59,10 +53,6 @@
   height: 100%;
 }
 
-.card:not(:hover) .editIcon {
-  display: none;
-}
-
 .editIcon {
   padding: var(--fds-sizing-0);
   position: absolute;
@@ -74,7 +64,7 @@
 }
 
 .iconContainer {
-  padding: var(--fds-spacing-2);
+  padding: var(--fds-spacing-1);
   height: var(--icon-container-height);
   flex-shrink: 0;
   display: flex;
