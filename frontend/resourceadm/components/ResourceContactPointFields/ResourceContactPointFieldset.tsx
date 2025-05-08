@@ -86,7 +86,6 @@ export const ResourceContactPointFieldset = ({
             <div className={classes.categoryHeader}>
               {t('resourceadm.about_resource_contact_label_category')}
               <StudioHelpText
-                data-size='md'
                 aria-label={`${t('resourceadm.about_resource_contact_label_category_help_prefix')} ${t('resourceadm.about_resource_contact_label_category_help_text')}`}
               >
                 {t('resourceadm.about_resource_contact_label_category_help_text')}

@@ -27,10 +27,10 @@ export const StudioHelpText = forwardRef<HTMLButtonElement, StudioHelpTextProps>
         ref={ref}
         variant='tertiary'
         data-color='info'
-        data-size='lg'
+        data-size='md'
         {...rest}
       />
-      <Popover placement={placement} data-color='info' data-size='sm' variant='tinted'>
+      <Popover placement={placement} data-color='info' variant='tinted'>
         {children}
       </Popover>
     </Popover.TriggerContext>

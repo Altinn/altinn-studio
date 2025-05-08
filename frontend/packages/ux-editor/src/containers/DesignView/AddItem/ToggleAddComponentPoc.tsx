@@ -38,7 +38,6 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           Prøv nytt design
         </StudioSwitch>
         <StudioHelpText
-          data-size='md'
           aria-label='Prøv vårt nye design for å legge til komponenter'
           placement='bottom'
         >

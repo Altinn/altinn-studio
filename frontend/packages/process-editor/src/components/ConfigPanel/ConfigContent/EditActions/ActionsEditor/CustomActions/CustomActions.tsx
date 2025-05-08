@@ -56,7 +56,6 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
           {t('process_editor.configuration_panel_actions_set_server_action_label')}
         </Switch>
         <StudioHelpText
-          data-size='md'
           aria-label={t('process_editor.configuration_panel_actions_action_type_help_text')}
         >
           {t('process_editor.configuration_panel_actions_set_server_action_info')}
