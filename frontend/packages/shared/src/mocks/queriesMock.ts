@@ -178,6 +178,7 @@ export const queriesMock: ServicesContextProps = {
   getAccessLists: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
+  getAllAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
   getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
   getResourceAccessLists: jest
     .fn()

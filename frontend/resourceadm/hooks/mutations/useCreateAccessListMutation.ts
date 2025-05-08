@@ -17,6 +17,7 @@ export const useCreateAccessListMutation = (org: string, env: string) => {
     mutationFn: (payload: Partial<AccessList>) => createAccessList(org, env, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AllAccessLists] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env] });
     },
   });

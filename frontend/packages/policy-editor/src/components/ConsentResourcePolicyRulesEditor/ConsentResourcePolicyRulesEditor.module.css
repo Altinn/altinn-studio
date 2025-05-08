@@ -1,0 +1,11 @@
+.consentRuleCard {
+  border: solid 1px var(--fds-semantic-border-divider-default);
+  padding: var(--fds-spacing-5);
+  margin-bottom: var(--fds-spacing-5);
+  border-radius: var(--fds-sizing-3);
+}
+
+.accessLists {
+  margin-left: var(--fds-spacing-8);
+  margin-top: var(--fds-spacing-4);
+}

@@ -70,6 +70,7 @@ export enum QueryKey {
   PublishResource = 'PublishResource',
   Altinn2Services = 'Altinn2Services',
   ImportAltinn2Resource = 'ImportAltinn2Resource',
+  AllAccessLists = 'AccessLists',
   AccessLists = 'AccessLists',
   AccessList = 'AccessList',
   AccessListMembers = 'AccessListMembers',

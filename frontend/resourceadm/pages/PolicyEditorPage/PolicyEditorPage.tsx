@@ -2,12 +2,14 @@ import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import {
   PolicyEditor,
+  getConsentResourceDefaultRules,
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
+  organizationSubject,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
-import { useResourcePolicyQuery } from '../../hooks/queries';
+import { useResourcePolicyQuery, useSinlgeResourceQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,6 +18,7 @@ import {
   useResourceAccessPackagesQuery,
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
+import { useGetAllAccessListsQuery } from '../../hooks/queries/useGetAllAccessListsQuery';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -45,6 +48,16 @@ export const PolicyEditorPage = ({
     app,
     resourceId,
   );
+  const { data: resourceData, isPending: isLoadingResource } = useSinlgeResourceQuery(
+    org,
+    app,
+    resourceId,
+  );
+  const isConsentResource = resourceData?.resourceType === 'Consentresource';
+  const { data: accessLists, isPending: isLoadingAccessLists } = useGetAllAccessListsQuery(
+    org,
+    isConsentResource,
+  );
   const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
   const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
     org,
@@ -67,11 +80,61 @@ export const PolicyEditorPage = ({
     });
   };
 
+  const getConsentResourceSubjects = () => {
+    const accessListSubjects = accessLists.map((accessList) => {
+      return {
+        subjectId: `${accessList.identifier}`,
+        subjectSource: `altinn:accesslist:${org}`,
+        subjectTitle: accessList.name,
+        subjectDescription: '',
+      };
+    });
+    return [...subjectData, ...accessListSubjects, organizationSubject];
+  };
+
+  const getConsentResourceActions = () => {
+    return [
+      {
+        actionId: 'consent',
+        actionTitle: 'Samtykke',
+        actionDescription: null,
+      },
+    ];
+  };
+
+  const hasConsentRules = (): boolean => {
+    const hasAcceptConsentAction = policyData.rules.some((rule) =>
+      rule.actions.some((action) => action === 'consent'),
+    );
+    const hasRequestConsentAction = policyData.rules.some((rule) =>
+      rule.actions.some((action) => action === 'requestconsent'),
+    );
+
+    return hasAcceptConsentAction && hasRequestConsentAction;
+  };
+
+  const getResourcePolicy = () => {
+    if (isConsentResource && !hasConsentRules()) {
+      return {
+        ...policyData,
+        rules: getConsentResourceDefaultRules(resourceId),
+      };
+    }
+    return policyData;
+  };
+
   /**
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (isPolicyPending || isActionPending || isSubjectsPending || isLoadingAccessPackages) {
+    if (
+      isPolicyPending ||
+      isActionPending ||
+      isSubjectsPending ||
+      isLoadingAccessPackages ||
+      isLoadingResource ||
+      (isConsentResource && isLoadingAccessLists)
+    ) {
       return (
         <div className={classes.spinnerWrapper}>
           <StudioSpinner
@@ -83,12 +146,16 @@ export const PolicyEditorPage = ({
       );
     }
 
-    const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
-    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjectData);
+    const mergedActions = isConsentResource
+      ? getConsentResourceActions()
+      : mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
+    const subjects = isConsentResource ? getConsentResourceSubjects() : subjectData;
+    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjects);
+    const policy = getResourcePolicy();
 
     return (
       <PolicyEditor
-        policy={policyData}
+        policy={policy}
         actions={mergedActions}
         subjects={mergedSubjects}
         accessPackages={accessPackages}
@@ -96,6 +163,7 @@ export const PolicyEditorPage = ({
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
         usageType='resource'
+        isConsentResource={isConsentResource}
       />
     );
   };

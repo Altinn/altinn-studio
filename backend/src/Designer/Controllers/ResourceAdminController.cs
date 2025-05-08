@@ -139,6 +139,52 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Route("designer/api/{org}/resources/allaccesslists")]
+        public async Task<ActionResult> GetAccessListIdentifiers(string org)
+        {
+            List<string> envs = GetEnvironmentsForOrg(org);
+            List<AccessList> accessLists = [];
+            foreach (string environment in envs)
+            {
+                List<AccessList> envAccessLists = await GetAllAccessListsForEnv(environment, org);
+                foreach (AccessList accessList in envAccessLists)
+                {
+                    if (!accessLists.Any(x => x.Identifier == accessList.Identifier))
+                    {
+                        accessLists.Add(accessList);
+                    }
+                }
+            }
+
+            return Ok(accessLists);
+        }
+
+        private async Task<List<AccessList>> GetAllAccessListsForEnv(string env, string org)
+        {
+            List<AccessList> accessLists = [];
+            try
+            {
+                PagedAccessListResponse pagedListResponse = await _resourceRegistry.GetAccessLists(org, env, "");
+                accessLists.AddRange(pagedListResponse.Data);
+                string nextPage = pagedListResponse.NextPage;
+            
+                // load rest of pages
+                while (!string.IsNullOrWhiteSpace(nextPage))
+                {
+                    PagedAccessListResponse nextPagedListResponse = await _resourceRegistry.GetAccessLists(org, env, nextPage);
+                    accessLists.AddRange(nextPagedListResponse.Data);
+                    nextPage = nextPagedListResponse.NextPage;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching access lists for org {org} in env {env}: {ex.Message}");
+            }
+            
+            return accessLists;
+        }
+
+        [HttpGet]
         [Route("designer/api/{org}/resources")]
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {

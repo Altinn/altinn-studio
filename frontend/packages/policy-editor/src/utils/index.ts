@@ -20,6 +20,16 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
+/**
+ * Organization subject used by consent resource
+ */
+export const organizationSubject: PolicySubject = {
+  subjectId: 'organization',
+  subjectSource: 'altinn:partytype',
+  subjectTitle: '',
+  subjectDescription: '',
+};
+
 export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
   const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
     const splitted = policySubject.split(':');
@@ -256,4 +266,22 @@ export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
     return '1';
   }
   return String(largestNumberedRuleId + 1);
+};
+
+export const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [acceptConsentRule, requestConsentRule];
 };

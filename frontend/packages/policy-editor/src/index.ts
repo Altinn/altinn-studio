@@ -10,4 +10,6 @@ export type {
 export {
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
+  getConsentResourceDefaultRules,
+  organizationSubject,
 } from './utils';

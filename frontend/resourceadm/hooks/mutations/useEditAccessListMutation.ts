@@ -25,6 +25,7 @@ export const useEditAccessListMutation = (
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AllAccessLists] });
     },
   });
 };

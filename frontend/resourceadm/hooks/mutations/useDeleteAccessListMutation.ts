@@ -17,6 +17,7 @@ export const useDeleteAccessListMutation = (org: string, listIdentifier: string,
     mutationFn: (etag: string) => deleteAccessList(org, listIdentifier, env, etag),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AllAccessLists] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env] });
     },
   });
