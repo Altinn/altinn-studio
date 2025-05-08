@@ -4,7 +4,6 @@ import type { RenderResult } from '@testing-library/react';
 import { StudioSpinner } from './StudioSpinner';
 import type { StudioSpinnerProps } from './StudioSpinner';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
-import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 const mockTestId: string = 'testId';
 
