@@ -130,9 +130,7 @@
         "id": "number3",
         "type": "Number",
         "textResourceBindings": {
-          "title": "Kredittkort prosent",
-          "description": "",
-          "helpText": ""
+          "title": "Kredittkort prosent"
         },
         "value": ["dataModel","GridData.Kredittkort.Prosent"],
         "direction": "horizontal",
