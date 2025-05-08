@@ -9,7 +9,7 @@ describe('LoadingTabData', () => {
   it('displays the spinner when the component loads', () => {
     render(<LoadingTabData />);
 
-    const loadingText = screen.getByTitle(textMock('app_settings.loading_content'));
+    const loadingText = screen.getByText(textMock('app_settings.loading_content'));
     expect(loadingText).toBeInTheDocument();
   });
 });
