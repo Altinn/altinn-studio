@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
@@ -27,7 +28,7 @@ public class OrgTextsService : IOrgTextsService
     public async Task<TextResource> GetText(string org, string developer, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = GetContentRepoName(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         TextResource texts = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
@@ -39,7 +40,7 @@ public class OrgTextsService : IOrgTextsService
     public async Task SaveText(string org, string developer, TextResource textResource, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = GetContentRepoName(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
@@ -57,12 +58,12 @@ public class OrgTextsService : IOrgTextsService
     public async Task UpdateTextsForKeys(string org, string developer, Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
+        string repo = GetContentRepoName(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        await EnsureTextResourceExists(altinnOrgGitRepository, languageCode, cancellationToken);
         TextResource textResourceObject = await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
 
-        // handle if file not already exist
         foreach (KeyValuePair<string, string> kvp in keysTexts)
         {
             TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
@@ -88,6 +89,19 @@ public class OrgTextsService : IOrgTextsService
         await altinnOrgGitRepository.SaveText(languageCode, textResourceObject, cancellationToken);
     }
 
+    private static async Task EnsureTextResourceExists(AltinnOrgGitRepository altinnOrgGitRepository, string languageCode, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
+        }
+        catch (NotFoundException)
+        {
+            var emptyTextResource = new TextResource { Language = languageCode, Resources = [] };
+            await altinnOrgGitRepository.SaveText(languageCode, emptyTextResource, cancellationToken);
+        }
+    }
+
     /// <inheritdoc />
     public async Task<List<string>> GetTextIds(string org, string developer, CancellationToken cancellationToken = default)
     {
@@ -110,13 +124,13 @@ public class OrgTextsService : IOrgTextsService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string repo = GetStaticContentRepo(org);
+        string repo = GetContentRepoName(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         return altinnOrgGitRepository.GetLanguages();
     }
 
-    private static string GetStaticContentRepo(string org)
+    private static string GetContentRepoName(string org)
     {
         return $"{org}-content";
     }
