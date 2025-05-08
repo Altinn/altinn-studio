@@ -50,6 +50,26 @@ export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, co
   if (dateOrFlag === DateFlags.Today) {
     return shiftTime(new Date());
   }
+  if (dateOrFlag === DateFlags.Yesterday) {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    return shiftTime(date);
+  }
+  if (dateOrFlag === DateFlags.Tomorrow) {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return shiftTime(date);
+  }
+  if (dateOrFlag === DateFlags.OneYearAgo) {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 1);
+    return shiftTime(date);
+  }
+  if (dateOrFlag === DateFlags.OneYearFromNow) {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return shiftTime(date);
+  }
 
   const date = strictParseISO(dateOrFlag);
   if (date && isValid(date)) {

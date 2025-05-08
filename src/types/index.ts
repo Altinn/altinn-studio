@@ -37,6 +37,10 @@ export enum PresentationType {
 
 export enum DateFlags {
   Today = 'today',
+  Yesterday = 'yesterday',
+  Tomorrow = 'tomorrow',
+  OneYearAgo = 'oneYearAgo',
+  OneYearFromNow = 'oneYearFromNow',
 }
 
 export function isProcessTaskType(taskType: string): taskType is ProcessTaskType {

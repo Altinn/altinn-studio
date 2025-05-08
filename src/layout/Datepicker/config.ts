@@ -27,7 +27,14 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'minDate',
-      new CG.union(new CG.str(), new CG.const('today'))
+      new CG.union(
+        new CG.str(),
+        new CG.const('today'),
+        new CG.const('yesterday'),
+        new CG.const('tomorrow'),
+        new CG.const('oneYearAgo'),
+        new CG.const('oneYearFromNow'),
+      )
         .optional({ default: '1900-01-01T12:00:00.000Z' })
         .setTitle('Earliest date')
         .setDescription(
@@ -39,7 +46,14 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'maxDate',
-      new CG.union(new CG.str(), new CG.const('today'))
+      new CG.union(
+        new CG.str(),
+        new CG.const('today'),
+        new CG.const('yesterday'),
+        new CG.const('tomorrow'),
+        new CG.const('oneYearAgo'),
+        new CG.const('oneYearFromNow'),
+      )
         .optional({ default: '2100-01-01T12:00:00.000Z' })
         .setTitle('Latest date')
         .setDescription(
