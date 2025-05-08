@@ -68,52 +68,6 @@ describe('StudioCodeListEditorReducer', () => {
     });
   });
 
-  describe('DeleteTextResource', () => {
-    const textResourceId: string = textResources[0].id;
-    const codeItemIndex = 0;
-    const property = CodeListItemTextProperty.Description;
-
-    const result: ReducerState = dispatch({
-      type: ReducerActionType.DeleteTextResource,
-      textResourceId,
-      codeItemIndex,
-      property,
-    });
-
-    it('Removes a text resource from the list of text resources', () => {
-      expect(result.textResources).not.toContain(textResources[0]);
-    });
-
-    it('Updates the given code item property with the value null', () => {
-      expect(result.codeList[codeItemIndex].description).toBeNull();
-    });
-  });
-
-  describe('UpdateTextResourceId', () => {
-    const textResource: TextResource = textResources[2];
-    const textResourceId: string = textResource.id;
-    const newId: string = 'newId';
-    const codeItemIndex = 0;
-    const property = CodeListItemTextProperty.HelpText;
-
-    const result: ReducerState = dispatch({
-      type: ReducerActionType.UpdateTextResourceId,
-      textResourceId,
-      newId,
-      codeItemIndex,
-      property,
-    });
-
-    it('Updates the id property of a text resource in the list of text resources', () => {
-      expect(result.textResources).not.toContain(textResource);
-      expect(result.textResources.find((item) => item.id === newId)).toBeTruthy();
-    });
-
-    it('Updates the correct code item in the list with a reference to the updated text resource', () => {
-      expect(result.codeList[codeItemIndex].helpText).toEqual(newId);
-    });
-  });
-
   describe('UpdateTextResourceValue', () => {
     it('Updates the value property of a text resource in the list of text resources', () => {
       const textResourceId: string = textResources[2].id;
