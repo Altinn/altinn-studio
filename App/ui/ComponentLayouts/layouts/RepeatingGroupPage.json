@@ -95,7 +95,7 @@
         "children": [
           "RepeatingGroup-Group"
         ],
-        "addButtonSettings" : {
+        "addButton" : {
           "size": "lg",
           "textAlign" : "left",
           "fullWidth": false,
@@ -149,7 +149,7 @@
       {
         "id": "RepeatingGroup-With-RepeatingGroup",
         "type": "RepeatingGroup",
-        "addButtonSettings" : {
+        "addButton" : {
           "size": "sm",
           "textAlign" : "left",
           "fullWidth": false,
@@ -215,7 +215,7 @@
           "RepeatingGroup-With-RepeatingGroup-Input-Model",
           "RepeatingGroup-With-RepeatingGroup-Input-ModelYear"
         ],
-        "addButtonSettings" : {
+        "addButton" : {
           "size": "sm",
           "textAlign" : "left",
           "fullWidth": false,
