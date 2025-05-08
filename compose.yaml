@@ -9,7 +9,6 @@ volumes:
   pgdata:
   pgadmindata:
   redisdata:
-  runnerdata:
 
 services:
   studio_azure_mock:
@@ -166,11 +165,12 @@ services:
     build:
       context: ./gitea-runner
     privileged: false
-    volumes:
-      - runnerdata:/data
     environment:
       - GITEA_INSTANCE_URL=http://studio_repositories:3000
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+      - GITEA_RUNNER_EPHEMERAL=1
+      - GITEA_RUNNER_ONCE=0
+      - GITEA_RUNNER_LABELS=ubuntu-latest:host
 
   studio_db:
     container_name: studio-db
