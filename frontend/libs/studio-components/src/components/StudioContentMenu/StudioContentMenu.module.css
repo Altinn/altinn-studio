@@ -1,0 +1,12 @@
+.menuContainer {
+  height: 100%;
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.tabsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-border-width-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
+  padding: var(--ds-border-width-default);
+}
