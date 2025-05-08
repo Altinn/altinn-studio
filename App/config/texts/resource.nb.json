@@ -292,6 +292,10 @@
     {
       "id": "signing.revisor_email_subject",
       "value": "Revisjonsoppdrag mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
+    },
+    {
+      "id": "singing.summary.title.override",
+      "value": "Følgende parter har signert stiftelsesdokumentene"
     }
   ]
 }
