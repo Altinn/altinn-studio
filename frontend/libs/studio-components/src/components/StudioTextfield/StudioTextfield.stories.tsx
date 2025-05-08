@@ -11,7 +11,10 @@ const meta: Meta = {
     multiline: {
       control: 'boolean',
     },
-    withAsterisk: {
+    required: {
+      control: 'boolean',
+    },
+    showRequiredText: {
       control: 'boolean',
     },
   },
@@ -23,7 +26,9 @@ Preview.args = {
   description: '',
   error: '',
   multiline: false,
-  withAsterisk: false,
+  required: false,
+  requiredText: 'Må fylles ut',
+  showRequiredText: true,
 };
 
 export default meta;

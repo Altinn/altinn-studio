@@ -7,9 +7,6 @@ export type StudioLabelWrapperProps = HTMLAttributes<HTMLSpanElement> & {
   withAsterisk?: boolean;
 };
 
-/**
- * @deprecated use `StudioLabelWrapper` from `@studio/components` instead
- */
 const StudioLabelWrapper = forwardRef<HTMLSpanElement, StudioLabelWrapperProps>(
   ({ children, className, withAsterisk, ...rest }, ref) => {
     const finalClassName = cn(

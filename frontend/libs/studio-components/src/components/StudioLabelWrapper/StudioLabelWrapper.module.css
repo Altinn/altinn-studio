@@ -1,5 +1,0 @@
-.studioLabelWrapper.withAsterisk::after {
-  content: '*';
-  color: var(--ds-color-warning-text-default);
-  margin-left: var(--ds-size-1);
-}
