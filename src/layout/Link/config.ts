@@ -47,35 +47,7 @@ export const Config = new CG.component({
         .setDescription('The style of the link (a primary/secondary button, or an actual link)'),
     ),
   )
-  .addProperty(
-    new CG.prop(
-      'size',
-      new CG.enum('sm', 'md', 'lg')
-        .optional({ default: 'md' })
-        .setTitle('Size')
-        .setDescription('The size of the button. Only effective using style of primary or secondary')
-        .exportAs('LinkButtonSize'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'linkButtonTextAlign',
-      new CG.enum('left', 'center', 'right')
-        .optional({ default: 'center' })
-        .setTitle('Text Align')
-        .setDescription('Text align when using style of primary or secondary.')
-        .exportAs('LinkButtonTextAlign'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'fullWidth',
-      new CG.bool()
-        .optional()
-        .setTitle('Full width')
-        .setDescription('Whether a link button should expand to full width'),
-    ),
-  )
+  .extends(CG.common('IButtonProps'))
   .addProperty(
     new CG.prop(
       'openInNewTab',

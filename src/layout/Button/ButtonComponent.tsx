@@ -11,6 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { ProcessTaskType } from 'src/types';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -70,6 +71,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   return (
     <ComponentStructureWrapper node={node}>
       <Button
+        style={item?.position ? { ...alignStyle(item?.position) } : {}}
         textAlign={item.textAlign}
         size={item.size}
         fullWidth={item.fullWidth}

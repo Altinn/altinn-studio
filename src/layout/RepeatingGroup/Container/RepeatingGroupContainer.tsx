@@ -24,6 +24,7 @@ import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { ButtonPosition } from 'src/layout/common.generated';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const { node } = useRepeatingGroup();
@@ -138,6 +139,17 @@ function ModeShowAll() {
   );
 }
 
+export const alignStyle = (align: ButtonPosition): React.CSSProperties => {
+  switch (align) {
+    case 'right':
+      return { marginLeft: 'auto' };
+    case 'center':
+      return { margin: '0 auto' };
+    default:
+      return {};
+  }
+};
+
 function AddButton() {
   const { lang, langAsString } = useLanguage();
   const { triggerFocus } = useRepeatingGroupsFocusContext();
@@ -151,12 +163,17 @@ function AddButton() {
   }));
 
   const item = useNodeItem(node);
-  const { textResourceBindings, id, edit } = item;
+  const { textResourceBindings, id, edit, addButton } = item;
   const { add_button, add_button_full } = textResourceBindings || {};
 
   const numRows = visibleRows.length;
   const tooManyRows = 'maxCount' in item && typeof item.maxCount == 'number' && numRows >= item.maxCount;
   const forceShow = editingAll || editingNone || edit?.alwaysShowAddButton === true;
+
+  // Making sure the default width for the add button is full:
+  const fullWidth = addButton?.fullWidth === undefined ? true : addButton?.fullWidth;
+
+  const size = addButton?.size === undefined ? 'md' : addButton?.size;
 
   if (edit?.addButton === false) {
     return null;
@@ -172,8 +189,11 @@ function AddButton() {
 
   return (
     <Button
+      textAlign={addButton?.textAlign}
+      fullWidth={fullWidth}
       id={`add-button-${id}`}
-      size='md'
+      size={size}
+      style={addButton?.position ? { ...alignStyle(addButton?.position) } : {}}
       onClick={async () => {
         const newRow = await addRow();
         newRow.index !== undefined && triggerFocus(newRow.index);
@@ -187,7 +207,6 @@ function AddButton() {
       }}
       variant='secondary'
       disabled={currentlyAddingRow}
-      fullWidth
     >
       <PlusIcon
         fontSize='1.5rem'

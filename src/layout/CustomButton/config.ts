@@ -82,7 +82,7 @@ export const Config = new CG.component({
         .setTitle('Button size override')
         .setDescription('The size of the button.')
         .optional({ default: undefined })
-        .exportAs('ButtonSize'),
+        .exportAs('CustomButtonSize'),
     ),
   )
   .addTextResource(new CG.trb({ name: 'title', title: 'Title', description: 'The title/text on the button' }));

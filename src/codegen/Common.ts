@@ -4,6 +4,40 @@ import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
 const common = {
+  IButtonProps: () =>
+    new CG.obj(
+      new CG.prop(
+        'size',
+        new CG.enum('sm', 'md', 'lg')
+          .optional({ default: 'md' })
+          .setTitle('Size')
+          .setDescription('The size of the button. Only effective using style of primary or secondary')
+          .exportAs('ButtonSize'),
+      ),
+      new CG.prop(
+        'textAlign',
+        new CG.enum('left', 'center', 'right')
+          .optional({ default: 'center' })
+          .setTitle('Text Align')
+          .setDescription('Text align when using style of primary or secondary.')
+          .exportAs('ButtonTextAlign'),
+      ),
+      new CG.prop(
+        'fullWidth',
+        new CG.bool()
+          .optional()
+          .setTitle('Full width')
+          .setDescription('Whether a link button should expand to full width'),
+      ),
+      new CG.prop(
+        'position',
+        new CG.enum('left', 'center', 'right')
+          .optional()
+          .setTitle('Position')
+          .setDescription('Position the button left, center or right on the screen.')
+          .exportAs('ButtonPosition'),
+      ),
+    ),
   ISummaryOverridesCommon: () =>
     new CG.obj(
       new CG.prop('componentId', new CG.str()),
@@ -11,6 +45,7 @@ const common = {
       new CG.prop('forceShow', new CG.bool().optional()),
       new CG.prop('emptyFieldText', new CG.str().optional()),
     ),
+
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),

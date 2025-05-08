@@ -33,29 +33,5 @@ export const Config = new CG.component({
         .exportAs('ButtonMode'),
     ),
   )
-  .addProperty(
-    new CG.prop(
-      'textAlign',
-      new CG.enum('left', 'center', 'right')
-        .optional({ default: 'center' })
-        .setTitle('Text Align')
-        .exportAs('ButtonTextAlign'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'size',
-      new CG.enum('sm', 'md', 'lg')
-        .optional({ default: 'md' })
-        .setTitle('Size')
-        .setDescription('The size of the button')
-        .exportAs('Size'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'fullWidth',
-      new CG.bool().optional().setTitle('Full width').setDescription('Whether the button should expand to full width'),
-    ),
-  )
+  .extends(CG.common('IButtonProps'))
   .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));

@@ -6,6 +6,7 @@ import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
@@ -22,11 +23,12 @@ export function LinkComponent({ node }: ILinkComponent) {
   const {
     id,
     style: linkStyle,
+    position,
     openInNewTab,
     textResourceBindings,
     size,
     fullWidth,
-    linkButtonTextAlign,
+    textAlign,
   } = useNodeItem(node);
   const { langAsString } = useLanguage();
 
@@ -48,7 +50,8 @@ export function LinkComponent({ node }: ILinkComponent) {
 
   const LinkButton = () => (
     <Button
-      textAlign={linkButtonTextAlign}
+      style={position ? { ...alignStyle(position) } : {}}
+      textAlign={textAlign}
       id={`link-${id}`}
       color={buttonStyles[linkStyle].color}
       variant={buttonStyles[linkStyle].variant}

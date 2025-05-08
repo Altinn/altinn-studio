@@ -8,6 +8,10 @@ describe('Group summary test', () => {
     cy.gotoNavPage('Repeterende gruppe');
   });
 
+  it('Renders the different options for add buttons correctly', () => {
+    cy.snapshot('repeatingGroupAddButtons');
+  });
+
   it('Fills in an input in the repeating group, the text appears in summary', () => {
     const inputValue = 'Test input for group';
 

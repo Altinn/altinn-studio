@@ -343,4 +343,6 @@ export const Config = new CG.component({
         .setDescription('If set to true, the header of the repeating group will be sticky'),
     ),
   )
-  .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()));
+  .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()))
+
+  .addProperty(new CG.prop('addButton', new CG.obj().extends(CG.common('IButtonProps')).optional()));
