@@ -1,10 +1,32 @@
-import React from 'react';
-import type { ReactElement } from 'react';
+import React, { forwardRef, useId } from 'react';
+import type { ReactElement, Ref } from 'react';
+import classes from './StudioSpinner.module.css';
 import { Spinner } from '@digdir/designsystemet-react';
 import type { SpinnerProps } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '../StudioParagraph';
 
-export type StudioSpinnerProps = SpinnerProps;
+export type StudioSpinnerProps = {
+  spinnerTitle?: string;
+} & SpinnerProps;
 
-export function StudioSpinner(props: StudioSpinnerProps): ReactElement {
-  return <Spinner {...props} />;
+function StudioSpinner(
+  { spinnerTitle, ...rest }: StudioSpinnerProps,
+  ref: Ref<HTMLDivElement>,
+): ReactElement {
+  const spinnerDescriptionId = useId();
+
+  return (
+    <div ref={ref} className={classes.spinnerWrapper}>
+      <Spinner
+        aria-describedby={spinnerTitle ? spinnerDescriptionId : undefined}
+        data-testid='studio-spinner-test-id'
+        {...rest}
+      />
+      {spinnerTitle && <StudioParagraph id={spinnerDescriptionId}>{spinnerTitle}</StudioParagraph>}
+    </div>
+  );
 }
+
+const ForwardedStudioSpinner = forwardRef(StudioSpinner);
+
+export { ForwardedStudioSpinner as StudioSpinner };
