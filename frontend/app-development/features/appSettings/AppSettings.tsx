@@ -1,11 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ReactElement } from 'react';
-import { useLocation } from 'react-router-dom';
-import type { RoutePaths } from 'app-development/enums/RoutePaths';
+import classes from './AppSettings.module.css';
+import { useTranslation } from 'react-i18next';
+import { StudioHeading } from '@studio/components';
+import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import { TabsContent } from './components/TabsContent';
+import { ContentMenu } from './components/ContentMenu';
 
 export function AppSettings(): ReactElement {
-  const location = useLocation();
-  const state = location.state as { from: RoutePaths };
+  const { t } = useTranslation();
+  const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
 
-  return <div>Previous page: {state?.from ?? 'Ingen'}</div>;
+  const handleTabChange = (tabId: SettingsModalTabId): void => {
+    setCurrentTab(tabId);
+  };
+
+  return (
+    <div className={classes.settingsWrapper}>
+      <div className={classes.leftNavWrapper}>
+        <ContentMenu currentTab={currentTab} onChangeTab={handleTabChange} />
+      </div>
+      <div className={classes.contentWrapper}>
+        <StudioHeading level={1}>{t('settings_modal.heading')}</StudioHeading>
+        <TabsContent currentTab={currentTab} />
+      </div>
+    </div>
+  );
 }
