@@ -8,7 +8,6 @@
         "type": "Summary2",
         "target": {
           "type": "layoutSet",
-          "id": "form",
           "taskId": "Task_1"
         }
       },
