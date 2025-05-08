@@ -76,7 +76,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [get-short-sha, helm-push, determine-tag, construct-environments-array]
+    needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-environments-array]
     strategy:
       matrix:
         environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
