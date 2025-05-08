@@ -1,0 +1,28 @@
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-3);
+  width: 100%;
+  background-color: var(--ds-color-neutral-background-tinted);
+  cursor: pointer;
+  border-left: var(--ds-size-1) solid transparent;
+  border-width: 0 0 0 var(--ds-size-1);
+  border-radius: 0;
+}
+
+.tab.selected {
+  border-left: var(--ds-size-1) solid var(--ds-color-accent-border-strong);
+  background-color: white;
+}
+
+.tab:hover,
+.selectedTab:hover {
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+.tab:focus {
+  z-index: 1;
+}
