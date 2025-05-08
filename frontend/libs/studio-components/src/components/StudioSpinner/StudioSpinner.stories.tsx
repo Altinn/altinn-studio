@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioSpinner } from './StudioSpinner';
 
@@ -14,7 +15,7 @@ const meta: Meta = {
     },
   },
 };
-export const Preview: Story = (args): React.ReactElement => <StudioSpinner {...args} />;
+export const Preview: Story = (args): ReactElement => <StudioSpinner {...args} />;
 
 Preview.args = {
   'aria-label': 'Loading',

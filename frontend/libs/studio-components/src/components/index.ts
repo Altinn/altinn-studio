@@ -3,6 +3,7 @@ import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
 
 export { StudioDropdown } from './StudioDropdown';
+export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
 export { StudioButton } from './StudioButton';
 export { StudioHeading } from './StudioHeading';
@@ -17,3 +18,4 @@ export { StudioTable } from './StudioTable';
 export { StudioTag } from './StudioTag';
 export { StudioValidationMessage } from './StudioValidationMessage';
 export { StudioSpinner } from './StudioSpinner';
+export { StudioContentMenu } from './StudioContentMenu';
