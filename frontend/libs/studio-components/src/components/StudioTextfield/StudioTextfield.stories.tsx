@@ -14,9 +14,6 @@ const meta: Meta = {
     required: {
       control: 'boolean',
     },
-    showRequiredText: {
-      control: 'boolean',
-    },
   },
 };
 export const Preview: Story = (args) => <StudioTextfield {...args}></StudioTextfield>;
@@ -28,7 +25,6 @@ Preview.args = {
   multiline: false,
   required: false,
   requiredText: 'Må fylles ut',
-  showRequiredText: true,
 };
 
 export default meta;
