@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { layout1NameMock, layout2NameMock } from './layoutMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -15,6 +15,7 @@ import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
+import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -25,6 +26,11 @@ export const formLayoutSettingsMock: ILayoutSettings = {
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
+
+const defaultAppRouteParams: AppRouteParams = {
+  org: 'defaultTestOrg',
+  app: 'defaultTestApp',
+};
 
 const defaultPreviewContextProps: PreviewContextProps = {
   shouldReloadPreview: false,
@@ -37,16 +43,18 @@ type WrapperArgs = {
   queryClient: QueryClient;
   appContextProps: Partial<AppContextProps>;
   previewContextProps?: Partial<PreviewContextProps>;
+  appRouteParams?: AppRouteParams;
 };
 
-const wrapper = ({
+function wrapper({
   queries = {},
   queryClient = queryClientMock,
   appContextProps = {},
   previewContextProps = {},
-}: WrapperArgs) => {
-  const renderComponent = (component: ReactNode) => (
-    <MemoryRouter>
+  appRouteParams = defaultAppRouteParams,
+}: WrapperArgs): (component: ReactNode) => ReactElement {
+  const renderComponent = (component: ReactNode): ReactElement => (
+    <AppRouter params={appRouteParams}>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
@@ -58,16 +66,35 @@ const wrapper = ({
           </AppContext.Provider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
+    </AppRouter>
+  );
+  renderComponent.displayName = 'renderComponent';
+  return renderComponent;
+}
+
+type AppRouterProps = {
+  params: AppRouteParams;
+  children: ReactNode;
+};
+
+function AppRouter({ params: { org, app }, children }: AppRouterProps): ReactElement {
+  const route = `/${org}/${app}`;
+  const path = '/:org/:app';
+  return (
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path={path} element={children} />
+      </Routes>
     </MemoryRouter>
   );
-  return renderComponent;
-};
+}
 
 export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
   previewContextProps?: Partial<PreviewContextProps>;
+  appRouteParams?: AppRouteParams;
 }
 
 export const renderHookWithProviders = (
@@ -77,6 +104,7 @@ export const renderHookWithProviders = (
     queryClient = queryClientMock,
     appContextProps = {},
     previewContextProps = {},
+    appRouteParams = defaultAppRouteParams,
   }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
@@ -86,6 +114,7 @@ export const renderHookWithProviders = (
         queryClient,
         appContextProps,
         previewContextProps,
+        appRouteParams,
       })(children),
   });
 };
@@ -97,6 +126,7 @@ export const renderWithProviders = (
     queryClient = queryClientMock,
     appContextProps = {},
     previewContextProps = {},
+    appRouteParams = defaultAppRouteParams,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -108,6 +138,7 @@ export const renderWithProviders = (
           queryClient,
           appContextProps,
           previewContextProps,
+          appRouteParams,
         })(children),
       ...renderOptions,
     }),

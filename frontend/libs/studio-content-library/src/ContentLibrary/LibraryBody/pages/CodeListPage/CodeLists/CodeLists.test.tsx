@@ -12,6 +12,7 @@ import type { CodeList as StudioComponentsCodeList } from '@studio/components-le
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
+import { textResourcesNb } from '../../../../../test-data/textResources';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -160,6 +161,31 @@ describe('CodeLists', () => {
     });
   });
 
+  it('Calls onUpdateCodeList and onBlurTextResource when creating a new text resource', async () => {
+    const user = userEvent.setup();
+    const codeListValueText = 'codeListValueText';
+    const onBlurTextResource = jest.fn();
+    const textResources = [{ id: 'test', value: 'some value' }];
+    renderCodeLists({ onBlurTextResource, textResources });
+
+    const codeListFirstItemLabel = screen.getByRole('textbox', {
+      name: textMock('code_list_editor.text_resource.label.value', { number: 1 }),
+    });
+    await user.type(codeListFirstItemLabel, codeListValueText);
+    await user.tab();
+
+    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
+    expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
+      codeList: expect.any(Array),
+      title: codeListName,
+    });
+    expect(onBlurTextResource).toHaveBeenCalledTimes(1);
+    expect(onBlurTextResource).toHaveBeenLastCalledWith({
+      id: expect.any(String),
+      value: codeListValueText,
+    });
+  });
+
   it('renders the code list title label', () => {
     renderCodeLists();
     const codeListTitleLabel = screen.getByText(
@@ -275,6 +301,7 @@ const defaultProps: CodeListsProps = {
   codeListInEditMode: undefined,
   codeListNames: [],
   codeListsUsages: [],
+  textResources: textResourcesNb,
 };
 
 const renderCodeLists = (props: Partial<CodeListsProps> = {}): RenderResult => {

@@ -13,17 +13,19 @@ export class DesignerApi extends StudioEnvironment {
     storageState: StorageState,
     org = this.org,
   ): Promise<APIResponse> {
-    const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
-    const response = await request.post(
+    const headers = this.generateHeaders(storageState);
+    return request.post(
       `/designer/api/repos/create-app?org=${org}&repository=${this.app}&datamodellingPreference=1`,
-      {
-        // The following header is needed to be able to do API requests
-        headers: {
-          'X-Xsrf-Token': xsrfToken,
-        },
-      },
+      { headers },
     );
-    return response;
+  }
+
+  private generateHeaders(storageState: StorageState): Record<string, string> {
+    const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
+    return {
+      'X-Xsrf-Token': xsrfToken,
+      'Content-Type': 'application/json',
+    };
   }
 
   private getXsrfTokenFromStorageState(storageState: StorageState): string {

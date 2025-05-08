@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Put_UpdateFormData_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{instance.Id}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 

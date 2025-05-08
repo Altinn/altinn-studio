@@ -10,9 +10,10 @@ import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
 import {
   changeTextResourceInList,
-  determineDefaultMode,
   editTextResourceValue,
   getTextResourceById,
+  createNewTextResource,
+  getTextResourceValueIfTextResourceExists,
 } from './utils';
 import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
@@ -29,6 +30,7 @@ type TextResourceInputPropsBase = {
   onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (newTextResource: TextResource) => void;
   required?: boolean;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
@@ -43,8 +45,9 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       currentIdClass,
       inputClass,
       onBlurTextResource,
-      onChangeTextResource,
       onChangeCurrentId,
+      onChangeTextResource,
+      onCreateTextResource,
       onKeyDown,
       textResources: givenTextResources,
       texts,
@@ -55,18 +58,23 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
   ): ReactElement => {
     const [currentId, setCurrentId] = usePropState<string | null | undefined>(givenCurrentId);
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
-    const [mode, setMode] = useState<Mode>(determineDefaultMode(currentId));
+    const [mode, setMode] = useState<Mode>(Mode.EditValue);
 
     const handleChangeCurrentId = (id: string): void => {
       setCurrentId(id);
       onChangeCurrentId(id);
     };
 
-    const handleTextResourceBlur = (textResource: TextResource): void => {
+    const handleCreateTextResource = (textResource: TextResource): void => {
+      setCurrentId(textResource.id);
+      onCreateTextResource?.(textResource);
+    };
+
+    const handleBlurTextResource = (textResource: TextResource): void => {
       onBlurTextResource?.(textResource);
     };
 
-    const handleTextResourceChange = (newTextResource: TextResource): void => {
+    const handleChangeTextResource = (newTextResource: TextResource): void => {
       const newList = changeTextResourceInList(textResources, newTextResource);
       setTextResources(newList);
       onChangeTextResource?.(newTextResource);
@@ -80,9 +88,10 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           currentId={currentId}
           inputClass={inputClass}
           mode={mode}
-          onBlurTextResource={handleTextResourceBlur}
+          onBlurTextResource={handleBlurTextResource}
           onChangeCurrentId={handleChangeCurrentId}
-          onChangeTextResource={handleTextResourceChange}
+          onChangeTextResource={handleChangeTextResource}
+          onCreateTextResource={handleCreateTextResource}
           onKeyDown={onKeyDown}
           ref={ref}
           textResources={textResources}
@@ -111,6 +120,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
+      onCreateTextResource,
       onKeyDown,
       required,
       textResources,
@@ -130,9 +140,11 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             label={texts.valueLabel}
             onBlurTextResource={onBlurTextResource}
             onChangeTextResource={onChangeTextResource}
+            onCreateTextResource={onCreateTextResource}
             onKeyDown={onKeyDown}
             ref={ref}
             textResource={currentTextResource}
+            textResources={textResources}
             {...rest}
           />
         );
@@ -141,12 +153,12 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
           <StudioTextResourcePicker
             className={className}
             label={texts.textResourcePickerLabel}
-            onValueChange={onChangeCurrentId}
+            noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             onKeyDown={onKeyDown}
+            onValueChange={onChangeCurrentId}
             ref={ref}
             required={required}
             textResources={textResources}
-            noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             value={currentId}
             {...rest}
           />
@@ -158,45 +170,41 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
 InputBox.displayName = 'InputBox';
 
 type ValueFieldProps = StudioTextfieldProps & {
-  textResource?: TextResource;
   onBlurTextResource: (textResource: TextResource) => void;
   onChangeTextResource: (textResource: TextResource) => void;
+  onCreateTextResource: (textResource: TextResource) => void;
+  textResource?: TextResource;
+  textResources: TextResource[];
 };
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
-  ({ textResource, onBlurTextResource, onChangeTextResource, ...rest }, ref): ReactElement => {
-    const generalProps: StudioTextfieldProps = {
-      hideLabel: true,
-      ...rest,
-    };
-
-    if (textResource) {
-      return (
-        <EnabledValueField
-          ref={ref}
-          onBlurTextResource={onBlurTextResource}
-          onChangeTextResource={onChangeTextResource}
-          textResource={textResource}
-          {...generalProps}
-        />
-      );
-    } else {
-      return <DisabledValueField ref={ref} {...generalProps} />;
-    }
-  },
-);
-
-ValueField.displayName = 'ValueField';
-
-const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   (
-    { textResource, onBlur, onBlurTextResource, onChange, onChangeTextResource, ...rest },
+    {
+      onBlur,
+      onBlurTextResource,
+      onChange,
+      onChangeTextResource,
+      onCreateTextResource,
+      textResource,
+      textResources,
+      ...rest
+    },
     ref,
   ): ReactElement => {
+    const handleCreateTextResource = (value: string): void => {
+      const newTextResource: TextResource = createNewTextResource(value);
+      onCreateTextResource(newTextResource);
+    };
+
     const handleBlur = (event: FocusEvent<HTMLInputElement>): void => {
       const { value } = event.target;
-      const newTextResource = editTextResourceValue(textResource, value);
-      onBlurTextResource(newTextResource);
+
+      if (textResource == undefined) {
+        handleCreateTextResource(value);
+      } else {
+        const updatedTextResource = editTextResourceValue(textResource, value);
+        onBlurTextResource(updatedTextResource);
+      }
       onBlur?.(event);
     };
 
@@ -207,25 +215,22 @@ const EnabledValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       onChange?.(event);
     };
 
+    const value = getTextResourceValueIfTextResourceExists(textResources, textResource);
+
     return (
       <StudioTextfield
         onBlur={handleBlur}
         onChange={handleChange}
         ref={ref}
-        value={textResource.value}
+        value={value}
+        hideLabel={true}
         {...rest}
       />
     );
   },
 );
 
-EnabledValueField.displayName = 'EnabledValueField';
-
-const DisabledValueField = forwardRef<HTMLInputElement, StudioTextfieldProps>(
-  (props, ref): ReactElement => <StudioTextfield disabled ref={ref} {...props} />,
-);
-
-DisabledValueField.displayName = 'DisabledValueField';
+ValueField.displayName = 'ValueField';
 
 type InputModeToggleProps = {
   className?: string;

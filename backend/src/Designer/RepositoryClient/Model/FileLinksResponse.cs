@@ -7,12 +7,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     public class FileLinksResponse
     {
         [JsonProperty("git")]
-        public string git { get; set; }
+        public string Git { get; set; }
 
         [JsonProperty("html")]
-        public string html { get; set; }
+        public string Html { get; set; }
 
         [JsonProperty("self")]
-        public string self { get; set; }
+        public string Self { get; set; }
     }
 }

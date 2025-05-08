@@ -22,6 +22,7 @@ import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
+import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -47,6 +48,12 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
+
+  const { mutate: addGroupMutation, isPending: isAddGroupMutationPending } = useAddGroupMutation(
+    org,
+    app,
+  );
+
   // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
   // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
   useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
@@ -131,6 +138,7 @@ export const DesignView = (): ReactNode => {
   const hasGroups = pagesModel?.groups?.length > 0;
 
   const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+  const handleAddGroup = () => addGroupMutation();
 
   return (
     <div className={classes.root}>
@@ -139,7 +147,7 @@ export const DesignView = (): ReactNode => {
         <div className={classes.accordionWrapper}>
           {isTaskNavigationPageGroups && hasGroups ? (
             <PageGroupAccordion
-              groups={pagesModel?.groups}
+              pages={pagesModel}
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}
@@ -154,14 +162,26 @@ export const DesignView = (): ReactNode => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        <StudioButton
-          icon={<PlusIcon aria-hidden />}
-          onClick={() => handleAddPage()}
-          className={classes.button}
-          disabled={isAddPageMutationPending}
-        >
-          {t('ux_editor.pages_add')}
-        </StudioButton>
+        {!hasGroups && (
+          <StudioButton
+            icon={<PlusIcon aria-hidden />}
+            onClick={() => handleAddPage()}
+            className={classes.button}
+            disabled={isAddPageMutationPending}
+          >
+            {t('ux_editor.pages_add')}
+          </StudioButton>
+        )}
+        {hasGroups && (
+          <StudioButton
+            icon={<PlusIcon aria-hidden />}
+            onClick={handleAddGroup}
+            className={classes.button}
+            disabled={isAddGroupMutationPending}
+          >
+            {t('ux_editor.groups.add')}
+          </StudioButton>
+        )}
       </div>
       {getPdfLayoutName() && (
         <div className={classes.wrapper}>

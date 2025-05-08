@@ -1,15 +1,7 @@
 import { useParams } from 'react-router-dom';
+import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 
-interface StudioEnvironmentParams {
-  org: string;
-  app: string;
-}
-
-/**
- * Retrieves the org and app names from the URL.
- * @returns {StudioUrlParams} The org and app names.
- */
-export const useStudioEnvironmentParams = (): StudioEnvironmentParams => {
-  const { org, app } = useParams<Partial<StudioEnvironmentParams>>();
+export const useStudioEnvironmentParams = (): AppRouteParams => {
+  const { org, app } = useParams<Partial<AppRouteParams>>();
   return { org, app };
 };

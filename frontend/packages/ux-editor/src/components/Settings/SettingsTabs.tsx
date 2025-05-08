@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { SettingsNavigation } from './SettingsNavigation';
+import { SettingsNavigation } from './SettingsNavigation/SettingsNavigation';
 
 enum Tabs {
   Navigation = 'navigation',

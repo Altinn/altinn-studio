@@ -25,18 +25,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="TrackedTime" /> class.
         /// </summary>
-        /// <param name="Created">Created.</param>
-        /// <param name="Id">Id.</param>
-        /// <param name="IssueId">IssueId.</param>
-        /// <param name="Time">Time in seconds.</param>
-        /// <param name="UserId">UserId.</param>
-        public TrackedTime(DateTime? Created = default(DateTime?), long? Id = default(long?), long? IssueId = default(long?), long? Time = default(long?), long? UserId = default(long?))
+        /// <param name="created">Created.</param>
+        /// <param name="id">Id.</param>
+        /// <param name="issueId">IssueId.</param>
+        /// <param name="time">Time in seconds.</param>
+        /// <param name="userId">UserId.</param>
+        public TrackedTime(DateTime? created = default(DateTime?), long? id = default(long?), long? issueId = default(long?), long? time = default(long?), long? userId = default(long?))
         {
-            this.Created = Created;
-            this.Id = Id;
-            this.IssueId = IssueId;
-            this.Time = Time;
-            this.UserId = UserId;
+            this.Created = created;
+            this.Id = id;
+            this.IssueId = issueId;
+            this.Time = time;
+            this.UserId = userId;
         }
 
         /// <summary>

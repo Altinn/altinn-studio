@@ -36,12 +36,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string codeListJson = @"[
+        const string CodeListJson = @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
-        httpRequestMessage.Content = new StringContent(codeListJson, Encoding.UTF8, "application/json");
-        List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(codeListJson);
+        httpRequestMessage.Content = new StringContent(CodeListJson, Encoding.UTF8, "application/json");
+        List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(CodeListJson);
         List<OptionListData> expectedResponse = new([
             new OptionListData {Title = CodeListId, Data = codeListToCreate, HasError = false}
         ]);
@@ -76,13 +76,13 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string stringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList = @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
-        httpRequestMessage.Content = new StringContent(stringBoolNumbersCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(StringBoolNumbersCodeList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -101,10 +101,10 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string emptyStringCodeList = @"[
+        const string EmptyStringCodeList = @"[
             { ""label"": """", ""value"": """" },
         ]";
-        httpRequestMessage.Content = new StringContent(emptyStringCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(EmptyStringCodeList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -147,10 +147,10 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string invalidCodeList = @"[
+        const string InvalidCodeList = @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
-        httpRequestMessage.Content = new StringContent(invalidCodeList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(InvalidCodeList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -173,12 +173,12 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string codeListWithMissingFields = @"[
+        const string CodeListWithMissingFields = @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },
         ]";
-        httpRequestMessage.Content = new StringContent(codeListWithMissingFields, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(CodeListWithMissingFields, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

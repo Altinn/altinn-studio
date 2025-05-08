@@ -30,15 +30,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
         /// </summary>
-        /// <param name="Name">Name of the repository to create (required).</param>
-        public CreateAccessTokenOption(string Name = default(string))
+        /// <param name="name">Name of the repository to create (required).</param>
+        public CreateAccessTokenOption(string name = default(string))
         {
             // to ensure "Name" is required (not null)
-            if (Name == null)
+            if (name == null)
             {
                 throw new InvalidDataException("Name is a required property for CreateAccessTokenOption and cannot be null");
             }
-            this.Name = Name;
+            this.Name = name;
         }
 
         /// <summary>
