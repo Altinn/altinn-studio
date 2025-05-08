@@ -11,14 +11,14 @@ export function AppSettings(): ReactElement {
   const { t } = useTranslation();
   const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
 
-  const handleChangeTab = (tabId: SettingsModalTabId): void => {
+  const handleTabChange = (tabId: SettingsModalTabId): void => {
     setCurrentTab(tabId);
   };
 
   return (
     <div className={classes.settingsWrapper}>
       <div className={classes.leftNavWrapper}>
-        <ContentMenu currentTab={currentTab} onChangeTab={handleChangeTab} />
+        <ContentMenu currentTab={currentTab} onChangeTab={handleTabChange} />
       </div>
       <div className={classes.contentWrapper}>
         <StudioHeading level={1}>{t('settings_modal.heading')}</StudioHeading>
