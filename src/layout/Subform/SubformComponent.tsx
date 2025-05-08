@@ -13,10 +13,11 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsSubformPage, useNavigate } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/SubformComponent.module.css';
@@ -52,7 +53,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const { langAsString } = useLanguage();
   const addEntryMutation = useAddEntryMutation(dataType);
   const dataElements = useStrictDataElements(dataType);
-  const navigate = useNavigate();
+  const { enterSubform } = useNavigatePage();
   const lock = FD.useLocking(id);
   const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
   const [subformEntries, updateSubformEntries] = useState(dataElements);
@@ -64,7 +65,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
       const currentLock = await lock();
       try {
         const result = await addEntryMutation.mutateAsync({});
-        navigate(`${node.id}/${result.id}`);
+        enterSubform({ nodeId: node.id, dataElementId: result.id });
       } catch {
         // NOTE: Handled by useAddEntryMutation
       } finally {
@@ -194,7 +195,7 @@ function SubformTableRow({
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
   const { langAsString } = useLanguage();
-  const navigate = useNavigate();
+  const { enterSubform } = useNavigatePage();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteEntryMutation = useDeleteEntryMutation(id);
@@ -259,7 +260,7 @@ function SubformTableRow({
             disabled={isDeleting}
             variant='tertiary'
             color='second'
-            onClick={async () => navigate(`${node.id}/${id}${hasErrors ? '?validate=true' : ''}`)}
+            onClick={async () => enterSubform({ nodeId: node.id, dataElementId: id, validate: hasErrors })}
             aria-label={editButtonText}
             className={classes.tableButton}
           >

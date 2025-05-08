@@ -370,6 +370,29 @@ export function useNavigatePage() {
     });
   };
 
+  const enterSubform = async ({
+    nodeId,
+    dataElementId,
+    page,
+    validate,
+  }: {
+    nodeId: string;
+    dataElementId: string;
+    page?: string;
+    validate?: boolean;
+  }) => {
+    if (page && !orderRef.current.includes(page)) {
+      window.logWarn('enterSubform called with invalid page:', `"${page}"`);
+      return;
+    }
+    const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
+    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`;
+
+    await maybeSaveOnPageChange();
+    refetchInitialValidations();
+    return navigate(url, undefined, undefined, () => focusMainContent());
+  };
+
   return {
     navigateToPage,
     isValidPageId,
@@ -378,6 +401,7 @@ export function useNavigatePage() {
     navigateToPreviousPage,
     maybeSaveOnPageChange,
     exitSubform,
+    enterSubform,
   };
 }
 

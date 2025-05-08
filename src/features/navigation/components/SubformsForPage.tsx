@@ -9,9 +9,9 @@ import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContex
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
-import { useNavigate, useNavigationParams } from 'src/features/routing/AppRoutingContext';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import {
   getSubformEntryDisplayName,
   useExpressionDataSourcesForSubform,
@@ -116,8 +116,7 @@ function SubformLink({
   hasErrors: boolean;
 }) {
   const { isAnyProcessing: disabled } = useIsProcessing();
-  const { instanceOwnerPartyId, instanceGuid, taskId } = useNavigationParams();
-  const navigate = useNavigate();
+  const { enterSubform } = useNavigatePage();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
 
@@ -130,14 +129,12 @@ function SubformLink({
     return null;
   }
 
-  const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}/${nodeId}/${dataElement.id}${hasErrors ? '?validate=true' : ''}`;
-
   return (
     <li>
       <button
         disabled={disabled}
         className={cn(classes.subformLink, 'fds-focus')}
-        onClick={() => navigate(url)}
+        onClick={() => enterSubform({ nodeId, dataElementId: dataElement.id, page, validate: hasErrors })}
       >
         <span className={classes.subformLinkName}>{subformEntryName}</span>
       </button>
