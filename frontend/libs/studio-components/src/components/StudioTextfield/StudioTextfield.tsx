@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import type { Ref, ReactElement, HTMLAttributes } from 'react';
+import type { Ref, ReactElement, HTMLAttributes, ReactNode } from 'react';
 import classes from './StudioTextfield.module.css';
 import { Textfield } from '@digdir/designsystemet-react';
 import type { TextfieldProps } from '@digdir/designsystemet-react';
@@ -19,13 +19,17 @@ function StudioTextfield(
     return <Textfield ref={ref} {...rest} />;
   }
 
-  const labelComponent = (
-    <RequiredWrapper required={required} requiredText={requiredText}>
-      {label}
-    </RequiredWrapper>
+  return (
+    <Textfield
+      ref={ref}
+      {...rest}
+      label={
+        <LabelComponent required={required} requiredText={requiredText}>
+          {label}
+        </LabelComponent>
+      }
+    />
   );
-
-  return <Textfield ref={ref} {...rest} label={labelComponent} />;
 }
 
 function hasAriaLabelledBy(props: Record<string, unknown>): props is { 'aria-labelledby': string } {
@@ -61,5 +65,18 @@ function RequiredWrapper({
         </StudioTag>
       )}
     </span>
+  );
+}
+
+type LabelComponentProps = {
+  children: ReactNode;
+  requiredText?: string;
+  required?: boolean;
+};
+function LabelComponent({ children, requiredText, required }: LabelComponentProps): ReactElement {
+  return (
+    <RequiredWrapper required={required} requiredText={requiredText}>
+      {children}
+    </RequiredWrapper>
   );
 }
