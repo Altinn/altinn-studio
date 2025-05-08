@@ -4,7 +4,7 @@ import { StudioCenter } from './StudioCenter';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 // Mocks:
-jest.mock('./SchemaEditor.module.css', () => ({
+jest.mock('./StudioCenter.module.css', () => ({
   root: 'root',
 }));
 
