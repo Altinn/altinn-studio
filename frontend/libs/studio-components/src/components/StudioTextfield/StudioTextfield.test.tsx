@@ -21,7 +21,6 @@ describe('StudioTextfield', () => {
     renderStudioTextfield({
       label,
       required: true,
-      showRequiredText: true,
       requiredText,
     });
     const tag: HTMLElement = screen.getByText(requiredText);
@@ -34,7 +33,6 @@ describe('StudioTextfield', () => {
     renderStudioTextfield({
       label,
       required: false,
-      showRequiredText: true,
       requiredText: requiredText,
     });
     const tag: HTMLElement = screen.getByText(requiredText);

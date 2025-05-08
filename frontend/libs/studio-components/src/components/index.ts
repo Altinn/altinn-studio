@@ -20,3 +20,4 @@ export { StudioValidationMessage } from './StudioValidationMessage';
 export { StudioContentMenu } from './StudioContentMenu';
 export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioTextfield } from './StudioTextfield';
+export { StudioSpinner } from './StudioSpinner';
