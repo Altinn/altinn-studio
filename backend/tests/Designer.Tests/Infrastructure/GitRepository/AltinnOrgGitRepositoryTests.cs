@@ -68,7 +68,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         TextResource textResource = new() { Language = language, Resources = [new() { Id = "someId", Value = "someValue" }] };
 
         // Act
-        await altinnOrgGitRepository.SaveText(language, textResource);
+        await altinnOrgGitRepository.SaveText(textResource);
 
         // Assert
         string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathText(language));

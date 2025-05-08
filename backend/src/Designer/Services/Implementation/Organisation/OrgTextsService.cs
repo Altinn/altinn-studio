@@ -49,7 +49,7 @@ public class OrgTextsService : IOrgTextsService
                 $"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
         }
 
-        await altinnOrgGitRepository.SaveText(languageCode, textResource, cancellationToken);
+        await altinnOrgGitRepository.SaveText(textResource, cancellationToken);
     }
 
 
@@ -85,7 +85,7 @@ public class OrgTextsService : IOrgTextsService
             }
         }
 
-        await altinnOrgGitRepository.SaveText(languageCode, textResourceObject, cancellationToken);
+        await altinnOrgGitRepository.SaveText(textResourceObject, cancellationToken);
     }
 
     /// <inheritdoc />

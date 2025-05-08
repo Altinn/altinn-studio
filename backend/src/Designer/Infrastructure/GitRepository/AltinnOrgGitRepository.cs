@@ -76,14 +76,14 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Saves the text resource based on language code.
+    /// Saves the text resource.
     /// </summary>
-    /// <param name="languageCode">Language code</param>
     /// <param name="jsonTexts">text resource</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
+    public async Task SaveText(TextResource jsonTexts, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        string languageCode = jsonTexts.Language;
         string fileName = $"resource.{languageCode}.json";
         string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
         string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
