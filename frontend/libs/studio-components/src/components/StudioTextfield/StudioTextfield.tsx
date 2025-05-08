@@ -7,23 +7,20 @@ import { StudioTag } from '../StudioTag';
 
 export type StudioTextfieldProps = TextfieldProps & {
   requiredText?: string;
-  showRequiredText?: boolean;
 };
 
 function StudioTextfield(
-  { children, required, requiredText, showRequiredText, label, ...rest }: StudioTextfieldProps,
+  { children, required, requiredText, label, ...rest }: StudioTextfieldProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
+  // Designsystemet has conditional types, so if we extract label from props, we must
+  // check if the usage has aria-labelledby or aria-label and if true not use the label.
   if (hasAriaLabelledBy(rest) || hasAriaLabel(rest)) {
     return <Textfield ref={ref} {...rest} />;
   }
 
   const labelComponent = (
-    <RequiredWrapper
-      required={required}
-      showRequiredText={showRequiredText}
-      requiredText={requiredText}
-    >
+    <RequiredWrapper required={required} requiredText={requiredText}>
       {label}
     </RequiredWrapper>
   );
@@ -45,7 +42,6 @@ export { ForwardedStudioTextfield as StudioTextfield };
 
 export type RequiredWrapperProps = HTMLAttributes<HTMLSpanElement> & {
   requiredText?: string;
-  showRequiredText?: boolean;
   required?: boolean;
 };
 
@@ -53,14 +49,13 @@ function RequiredWrapper({
   children,
   className,
   requiredText,
-  showRequiredText,
   required,
   ...rest
 }: RequiredWrapperProps): ReactElement {
   return (
     <span {...rest} className={className}>
       {children}
-      {showRequiredText && (
+      {requiredText && (
         <StudioTag className={classes.requiredTag} data-color={required ? 'warning' : 'info'}>
           {requiredText}
         </StudioTag>
