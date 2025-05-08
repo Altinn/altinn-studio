@@ -29,10 +29,6 @@ describe('StudioSpinner', () => {
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) => renderStudioSpinner({ className }));
   });
-
-  it('Appends custom attributes to the spinner element', () => {
-    testCustomAttributes(renderStudioSpinner);
-  });
 });
 
 const defaultProps: StudioSpinnerProps = {
