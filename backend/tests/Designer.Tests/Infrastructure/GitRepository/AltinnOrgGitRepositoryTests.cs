@@ -53,7 +53,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string fileContent = TestDataHelper.GetFileFromRepo(Org, repository, Developer, RelativePathText(language));
-        string textResourceString = JsonSerializer.Serialize(textResource, _jsonOptions);
+        string textResourceString = JsonSerializer.Serialize(textResource, s_jsonOptions);
         Assert.True(JsonUtils.DeepEquals(fileContent, textResourceString));
     }
 
@@ -146,7 +146,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
         List<Option> newCodeList = [new() { Label = "someLabel", Value = "someValue", }];
-        string expectedCodeList = JsonSerializer.Serialize(newCodeList, _jsonOptions);
+        string expectedCodeList = JsonSerializer.Serialize(newCodeList, s_jsonOptions);
 
         // Act
         await altinnOrgGitRepository.CreateCodeList(codeListId, newCodeList);
@@ -165,7 +165,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
         List<Option> updatedCodeList = [new() { Label = "someLabel", Value = "updated Value!", }];
-        string expectedCodeList = JsonSerializer.Serialize(updatedCodeList, _jsonOptions);
+        string expectedCodeList = JsonSerializer.Serialize(updatedCodeList, s_jsonOptions);
 
         // Act
         await altinnOrgGitRepository.UpdateCodeList(codeListId, updatedCodeList);
@@ -208,7 +208,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         return altinnOrgGitRepository;
     }
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

@@ -30,5 +30,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The name of the repository as specified in Gitea.</param>
         /// <param name="developer">The user name of the developer working on the repository.</param>
         AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer);
+
+        /// <summary>
+        /// Gets the full path to a repository.
+        /// </summary>
+        /// <param name="org">The organisation owning the repository, identified by its short name.</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="developer">The developer's user name associated with the repository.</param>
+        /// <returns>The full, OS-normalized path to the root directory of the repository.</returns>
+        string GetRepositoryPath(string org, string repository, string developer);
     }
 }

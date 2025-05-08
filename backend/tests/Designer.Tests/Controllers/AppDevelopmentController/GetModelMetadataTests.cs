@@ -86,8 +86,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            const string expectedModelMetadataPath = "TestData/Model/Metadata/datamodel.json";
-            string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
+            const string ExpectedModelMetadataPath = "TestData/Model/Metadata/datamodel.json";
+            string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, ExpectedModelMetadataPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
 

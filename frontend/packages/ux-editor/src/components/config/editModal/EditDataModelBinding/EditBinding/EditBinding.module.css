@@ -8,7 +8,7 @@
 }
 
 .editBinding legend * {
-  border-bottom: 1px solid var(--semantic-surface-neutral-subtle-hover);
+  border-bottom: 1px solid var(--fds-semantic-surface-neutral-subtle-hover);
   padding-bottom: var(--fds-spacing-1);
   color: var(--fds-semantic-text-neutral-subtle);
   font-weight: normal;

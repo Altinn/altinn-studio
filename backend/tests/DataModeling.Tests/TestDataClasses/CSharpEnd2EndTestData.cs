@@ -37,6 +37,7 @@ public class CSharpEnd2EndTestData : IEnumerable<object[]>
         yield return ["Model/XmlSchema/Gitea/3430-39615.xsd", "Model/CSharp/Gitea/3430-39615.cs"];
         yield return ["Model/XmlSchema/Gitea/Brønnøysundregistrene_ReelleRettighetshavere_M.xsd", "Model/CSharp/Gitea/Brønnøysundregistrene_ReelleRettighetshavere_M.cs"];
         yield return ["Model/XmlSchema/Gitea/dev-nill-test.xsd", "Model/CSharp/Gitea/dev-nill-test.cs"];
+        yield return ["Model/Issue/gh14544/XmlSchema/simple-type-array.xsd", "Model/Issue/gh14544/CSharp/simple-type-array.cs"];
 
         // xs:all test cases
         yield return ["Model/XmlSchema/XsAll/ferdigattest/v4/ferdigattest.xsd", "Model/CSharp/XsAll/ferdigattest/v4/ferdigattest.cs"];

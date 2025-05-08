@@ -18,15 +18,15 @@ namespace DataModeling.Tests.Utils;
 [ExcludeFromCodeCoverage]
 public static class RandomObjectModelGenerator
 {
-    private static readonly Random Random = new();
+    private static readonly Random s_random = new();
 
-    private static bool _roundDecimalsToZeroPlaces = true;
+    private static bool s_roundDecimalsToZeroPlaces = true;
 
     /// <summary>
     /// Setup to round decimal values to 0 decimal places.
     /// Currently integers in xsd are represented as decimals in c# class.
     /// </summary>
-    public static void RoundDecimalToZeroDecimalPlaces(bool generateDecimalAsRound) => _roundDecimalsToZeroPlaces = generateDecimalAsRound;
+    public static void RoundDecimalToZeroDecimalPlaces(bool generateDecimalAsRound) => s_roundDecimalsToZeroPlaces = generateDecimalAsRound;
 
     public static object GenerateValidRandomObject(Type type)
     {
@@ -124,12 +124,12 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(DateTime))
         {
-            return new DateTime(Random.Next(1990, 2030), Random.Next(1, 12), Random.Next(1, 28));
+            return new DateTime(s_random.Next(1990, 2030), s_random.Next(1, 12), s_random.Next(1, 28));
         }
 
         if (type == typeof(bool))
         {
-            return Random.Next(2) == 1;
+            return s_random.Next(2) == 1;
         }
 
         if (type == typeof(Guid))
@@ -149,13 +149,13 @@ public static class RandomObjectModelGenerator
 
         if (!string.IsNullOrWhiteSpace(pattern))
         {
-            return new Xeger(pattern, Random).Generate();
+            return new Xeger(pattern, s_random).Generate();
         }
 
         var length = CalculateStringLength(minlength, maxlength);
         var allowedChars = GetAllowedCharacters().ToList();
 
-        return string.Join(string.Empty, Enumerable.Repeat(0, length).Select(_ => allowedChars[Random.Next(0, allowedChars.Count)]));
+        return string.Join(string.Empty, Enumerable.Repeat(0, length).Select(_ => allowedChars[s_random.Next(0, allowedChars.Count)]));
     }
 
     private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
@@ -180,7 +180,7 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(decimal))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToDecimal(_roundDecimalsToZeroPlaces ? Math.Round(d, 0) : d));
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToDecimal(s_roundDecimalsToZeroPlaces ? Math.Round(d, 0) : d));
         }
 
         if (type == typeof(double))
@@ -206,7 +206,7 @@ public static class RandomObjectModelGenerator
             return fromDoubleGenerator.Invoke(rnd);
         }
 
-        var noLimitsRandom = Random.NextDouble() * Random.Next();
+        var noLimitsRandom = s_random.NextDouble() * s_random.Next();
         return fromDoubleGenerator.Invoke(noLimitsRandom);
     }
 
@@ -255,32 +255,32 @@ public static class RandomObjectModelGenerator
 
     private static int CalculateStringLength(int? minLength, int? maxLength)
     {
-        const int usualLength = 10;
+        const int UsualLength = 10;
         if (minLength is not null && maxLength is not null)
         {
-            return Random.Next(minLength.Value, maxLength.Value);
+            return s_random.Next(minLength.Value, maxLength.Value);
         }
 
         if (minLength is not null)
         {
-            return Random.Next(minLength.Value, Math.Max(usualLength, minLength.Value + 1));
+            return s_random.Next(minLength.Value, Math.Max(UsualLength, minLength.Value + 1));
         }
 
         if (maxLength is not null)
         {
-            return Random.Next(0, maxLength.Value);
+            return s_random.Next(0, maxLength.Value);
         }
 
-        return usualLength;
+        return UsualLength;
     }
 
     private static double GenerateRandomDoubleWithinLimits(double lowerLimit, double upperLimit)
     {
-        const double minVal = -1_000_000_000_000;
-        const double maxVal = 1_000_000_000_000;
-        var lower = lowerLimit.Equals(double.MinValue) ? minVal : lowerLimit;
-        var upper = upperLimit.Equals(double.MaxValue) ? maxVal : upperLimit;
-        var next = Random.NextDouble();
+        const double MinVal = -1_000_000_000_000;
+        const double MaxVal = 1_000_000_000_000;
+        var lower = lowerLimit.Equals(double.MinValue) ? MinVal : lowerLimit;
+        var upper = upperLimit.Equals(double.MaxValue) ? MaxVal : upperLimit;
+        var next = s_random.NextDouble();
 
         return Convert.ToDouble(lower) + (next * (Convert.ToDouble(upper) - Convert.ToDouble(lower)));
     }
@@ -289,7 +289,7 @@ public static class RandomObjectModelGenerator
     {
         var converter = TypeDescriptor.GetConverter(type);
 
-        return converter.ConvertFrom(new Xeger(pattern, Random).Generate());
+        return converter.ConvertFrom(new Xeger(pattern, s_random).Generate());
     }
 
     private static bool IsPrimitive(Type type)

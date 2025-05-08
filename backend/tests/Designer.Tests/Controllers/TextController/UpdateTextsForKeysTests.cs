@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.TextController
         {
         }
 
-        private static readonly JsonSerializerOptions _jsonOptions = new()
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.TextController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, _jsonOptions);
+            TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
 
             PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.TextController
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, _jsonOptions), actualContent));
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), actualContent));
         }
 
         [Theory]
@@ -72,7 +72,7 @@ namespace Designer.Tests.Controllers.TextController
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, _jsonOptions);
+            TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
             Assert.NotNull(actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables);
         }
 

@@ -6,9 +6,9 @@ namespace Designer.Tests.Utils;
 
 public sealed class TestLockPathProvider
 {
-    private static readonly Lazy<TestLockPathProvider> _instance = new(() => new TestLockPathProvider(), LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly Lazy<TestLockPathProvider> s_instance = new(() => new TestLockPathProvider(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    public static TestLockPathProvider Instance => _instance.Value;
+    public static TestLockPathProvider Instance => s_instance.Value;
 
     public DirectoryInfo LockFileDirectory { get; }
 
