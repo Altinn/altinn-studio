@@ -11,9 +11,6 @@ type StudioContentMenuComponent = typeof StudioContentMenuDynamic & {
   Static: typeof StudioContentMenuBase;
 };
 
-/**
- * @deprecated Use `StudioContentMenu` from `@studio/components` instead.
- */
 export const StudioContentMenu = StudioContentMenuDynamic as StudioContentMenuComponent;
 
 StudioContentMenu.ButtonTab = StudioContentMenuButtonTab;

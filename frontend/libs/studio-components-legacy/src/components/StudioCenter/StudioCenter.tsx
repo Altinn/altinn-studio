@@ -6,8 +6,7 @@ import cn from 'classnames';
 type StudioCenterProps = HTMLAttributes<HTMLDivElement>;
 
 /**
- * @component
- *    Component that centers its content both vertically and horizontally.
+ * @deprecated use `StudioCenter` from `@studio/components` instead
  */
 export const StudioCenter = forwardRef<HTMLDivElement, StudioCenterProps>(
   ({ className, ...rest }, ref): JSX.Element => (
