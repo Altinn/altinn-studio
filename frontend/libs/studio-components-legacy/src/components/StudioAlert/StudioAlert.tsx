@@ -4,6 +4,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioAlertProps = WithoutAsChild<AlertProps>;
 
+/**
+ * @deprecated use `StudioAlert` from `@studio/components` instead
+ */
 const StudioAlert = forwardRef<HTMLDivElement, StudioAlertProps>(
   ({ size = 'sm', ...rest }, ref) => {
     return <Alert {...rest} size={size} ref={ref} />;
