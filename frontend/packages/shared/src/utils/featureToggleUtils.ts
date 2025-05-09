@@ -9,7 +9,6 @@ export enum FeatureFlag {
   ExportForm = 'exportForm',
   Maskinporten = 'maskinporten',
   MainConfig = 'mainConfig',
-  OptionListEditor = 'optionListEditor',
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
