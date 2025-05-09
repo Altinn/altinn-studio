@@ -36,7 +36,7 @@ function retrieveLabelTexts(
   return mapIdsToText(labels, textResourceMap, emptyStringText);
 }
 
-function convertTextResourcesIntoMap(textResources?: TextResource[]): Map<string, string> {
+function convertTextResourcesIntoMap(textResources: TextResource[]): Map<string, string> {
   return new Map<string, string>(
     textResources.map((resource: TextResource) => [resource.id, resource.value]),
   );
