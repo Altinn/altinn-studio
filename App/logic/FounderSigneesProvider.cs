@@ -1,11 +1,9 @@
 ﻿#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Models.Skjemadata;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -15,7 +13,7 @@ public class FounderSigneesProvider : ISigneeProvider
 {
     public string Id { get; init; } = "founders";
 
-    public async Task<SigneeProviderResult> GetSigneesAsync(GetSigneesParameters parameters)
+    public async Task<SigneeProviderResult> GetSignees(GetSigneesParameters parameters)
     {
         DataElement dataElement = parameters.InstanceDataAccessor
             .GetDataElementsForType("Skjemadata")
