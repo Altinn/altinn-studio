@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
-using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
@@ -91,11 +90,7 @@ public class OrgTextsService : IOrgTextsService
 
     private static async Task EnsureTextResourceExists(AltinnOrgGitRepository altinnOrgGitRepository, string languageCode, CancellationToken cancellationToken)
     {
-        try
-        {
-            await altinnOrgGitRepository.GetText(languageCode, cancellationToken);
-        }
-        catch (NotFoundException)
+        if (!altinnOrgGitRepository.TextResourceFileExists(languageCode))
         {
             var emptyTextResource = new TextResource { Language = languageCode, Resources = [] };
             await altinnOrgGitRepository.SaveText(languageCode, emptyTextResource, cancellationToken);
