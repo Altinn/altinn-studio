@@ -1,0 +1,15 @@
+.settingsWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.leftNavWrapper {
+  overflow-y: auto;
+  width: 250px;
+}
+
+.contentWrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--studio-modal-spacing);
+}

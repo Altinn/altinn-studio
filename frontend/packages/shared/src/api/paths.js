@@ -66,6 +66,7 @@ export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${ba
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 export const layoutPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
 export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutPath(org, app, layoutSetName)}/pages/${pageName ? pageName : ''}`;
+export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
 export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
 export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
 export const taskNavigationGroupPath = (org, app) => `${basePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
@@ -94,7 +95,7 @@ export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${basePath}/${org}/text/language/${language}`; // Get, patch, post
-export const orgTextLanguagesPath = (org) => `${basePath}/${org}/text/language/languages`; // Get
+export const orgTextLanguagesPath = (org) => `${basePath}/${org}/text/languages`; // Get
 export const availableResourcesInOrgLibraryPath = (org, contentType) => `${basePath}/${org}/content?${s({ contentType })}`; // Get
 
 // Organizations

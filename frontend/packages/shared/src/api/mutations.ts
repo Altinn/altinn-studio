@@ -54,6 +54,7 @@ import {
   layoutPagesPath,
   orgTextResourcesPath,
   importCodeListFromOrgPath,
+  layoutPageGroupsPath,
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
 } from 'app-shared/api/paths';
@@ -150,6 +151,7 @@ export const createPage = (org: string, app: string, layoutSetName: string, payl
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
 export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
 export const changePageOrder = (org: string, app: string, layoutSetName: string, pages: PagesModel) => put(layoutPagesPath(org, app, layoutSetName), pages);
+export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
 
