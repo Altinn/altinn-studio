@@ -6,10 +6,8 @@ import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon, getTaskName, taskNavigationType } from '../Settings/SettingsUtils';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
+import { getTaskIcon, taskNavigationType } from '../Settings/SettingsUtils';
+import { useTaskNames } from '@altinn/ux-editor/hooks/useTaskNames';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -63,11 +61,9 @@ type TaskRowProps = {
 
 const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
   const TaskIcon = getTaskIcon(task.taskType);
   const taskType = taskNavigationType(task.taskType);
-  const taskName = useTextResourceValue(task?.name) ?? getTaskName(task, layoutSetsModel);
+  const { taskNavigationName, taskIdName } = useTaskNames(task);
 
   return (
     <StudioTable.Row
@@ -76,10 +72,10 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
       <StudioTable.Cell>
         <div className={classes.taskTypeCellContent}>
           <TaskIcon />
-          {t(taskType)}
+          {t(taskType)}: {taskIdName}
         </div>
       </StudioTable.Cell>
-      {isNavigationMode && <StudioTable.Cell>{t(taskName)}</StudioTable.Cell>}
+      {isNavigationMode && <StudioTable.Cell>{t(taskNavigationName)}</StudioTable.Cell>}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
         <StudioButton

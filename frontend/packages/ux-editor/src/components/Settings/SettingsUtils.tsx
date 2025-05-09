@@ -12,6 +12,10 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 
 export const taskNavigationType = (taskType?: string) => {
   if (!taskType) return 'ux_editor.task_table_type.unknown';
+
+  if (taskType === TaskType.CustomReceipt || taskType === TaskType.Receipt) {
+    return 'ux_editor.task_table_type.receipt';
+  }
   return `ux_editor.task_table_type.${taskType}`;
 };
 
@@ -21,6 +25,7 @@ export enum TaskType {
   Signing = 'signing',
   Payment = 'payment',
   Receipt = 'receipt',
+  CustomReceipt = PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
 }
 
 export const getTaskIcon = (taskType: string) => {
@@ -34,6 +39,7 @@ export const getTaskIcon = (taskType: string) => {
     case TaskType.Payment:
       return CardIcon;
     case TaskType.Receipt:
+    case TaskType.CustomReceipt:
       return ReceiptIcon;
     default:
       return FolderIcon;
@@ -76,9 +82,9 @@ export const getHiddenTasks = ({ taskNavigationGroups, layoutSetsModel }: GetHid
   });
 
   return filteredHiddenTasks.map((task) => ({
-    taskType: task.task?.type,
+    taskType: Boolean(task.task?.type) ? task.task.type : task.task.id,
     name: task.id,
-    pageCount: undefined,
-    taskId: task.id,
+    pageCount: undefined, // This will be added later: https://digdir.slack.com/archives/C07PN8DMJ2E/p1746537888455189
+    taskId: task?.task.id,
   }));
 };
