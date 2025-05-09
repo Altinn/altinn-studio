@@ -31,7 +31,7 @@ function extractLabels(optionList: Option[]): string[] {
 function convertTextResourcesIntoMap(textResources: TextResource[]): Map<string, string> {
   if (!textResources) return undefined;
   return new Map<string, string>(
-    textResources.map((resource: TextResource) => [resource.id, resource.value]) ?? [],
+    textResources.map((resource: TextResource) => [resource.id, resource.value]),
   );
 }
 
