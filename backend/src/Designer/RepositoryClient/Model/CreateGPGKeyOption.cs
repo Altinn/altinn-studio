@@ -35,15 +35,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
-        /// <param name="ArmoredPublicKey">An armored GPG key to add (required).</param>
-        public CreateGPGKeyOption(string ArmoredPublicKey = default(string))
+        /// <param name="armoredPublicKey">An armored GPG key to add (required).</param>
+        public CreateGPGKeyOption(string armoredPublicKey = default(string))
         {
             // to ensure "ArmoredPublicKey" is required (not null)
-            if (ArmoredPublicKey == null)
+            if (armoredPublicKey == null)
             {
                 throw new InvalidDataException("ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null");
             }
-            this.ArmoredPublicKey = ArmoredPublicKey;
+            this.ArmoredPublicKey = armoredPublicKey;
         }
 
         /// <summary>

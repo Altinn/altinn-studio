@@ -16,7 +16,7 @@ public class LanguageTextsIdChanged(
 
     public async Task Handle(LanguageTextsKeyChangedEvent notification, CancellationToken cancellationToken)
     {
-        List<string> updatedFiles = await textsService.UpdateRelatedFiles(notification.EditingContext.Org, notification.EditingContext.Repo, notification.EditingContext.Developer, notification.idMutations);
+        List<string> updatedFiles = await textsService.UpdateRelatedFiles(notification.EditingContext.Org, notification.EditingContext.Repo, notification.EditingContext.Developer, notification.IdMutations);
         ISyncClient syncClient = syncHub.Clients.Group(notification.EditingContext.Developer);
         foreach (string updatedFile in updatedFiles)
         {

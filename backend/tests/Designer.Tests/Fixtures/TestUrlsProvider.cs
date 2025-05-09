@@ -6,9 +6,9 @@ namespace Designer.Tests.Fixtures
 {
     public sealed class TestUrlsProvider
     {
-        private static readonly Lazy<TestUrlsProvider> _instance = new(() => new TestUrlsProvider());
+        private static readonly Lazy<TestUrlsProvider> s_instance = new(() => new TestUrlsProvider());
 
-        public static TestUrlsProvider Instance => _instance.Value;
+        public static TestUrlsProvider Instance => s_instance.Value;
 
         public int DesignerPort { get; }
         public int GiteaPort { get; }

@@ -9,11 +9,7 @@ import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context/GiteaHeaderContext';
 
-export type LocalChangesProps = {
-  onDelete: () => void;
-};
-
-export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
+export const LocalChanges = (): ReactNode => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
   const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
@@ -47,7 +43,7 @@ export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
         text={t('local_changes.modal_delete_button')}
         action={{ type: 'button', onClick: openDeleteDialog }}
       />
-      <DeleteModal app={repoName} org={owner} onDelete={onDelete} ref={deleteDialogRef} />
+      <DeleteModal app={repoName} org={owner} ref={deleteDialogRef} />
     </div>
   );
 };

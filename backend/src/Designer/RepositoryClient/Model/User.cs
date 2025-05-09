@@ -32,18 +32,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="User" /> class.
         /// </summary>
-        /// <param name="AvatarUrl">URL to the user&#39;s avatar.</param>
-        /// <param name="Email">Email.</param>
-        /// <param name="FullName">the user&#39;s full name.</param>
-        /// <param name="Id">the user&#39;s id.</param>
-        /// <param name="Login">the user&#39;s username.</param>
-        public User(string AvatarUrl = default(string), string Email = default(string), string FullName = default(string), long? Id = default(long?), string Login = default(string))
+        /// <param name="avatarUrl">URL to the user&#39;s avatar.</param>
+        /// <param name="email">Email.</param>
+        /// <param name="fullName">the user&#39;s full name.</param>
+        /// <param name="id">the user&#39;s id.</param>
+        /// <param name="login">the user&#39;s username.</param>
+        public User(string avatarUrl = default(string), string email = default(string), string fullName = default(string), long? id = default(long?), string login = default(string))
         {
-            this.AvatarUrl = AvatarUrl;
-            this.Email = Email;
-            this.FullName = FullName;
-            this.Id = Id;
-            this.Login = Login;
+            this.AvatarUrl = avatarUrl;
+            this.Email = email;
+            this.FullName = fullName;
+            this.Id = id;
+            this.Login = login;
         }
 
         /// <summary>

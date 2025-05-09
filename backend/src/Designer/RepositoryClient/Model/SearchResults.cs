@@ -24,12 +24,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults" /> class.
         /// </summary>
-        /// <param name="Data">Data.</param>
-        /// <param name="Ok">Ok.</param>
-        public SearchResults(List<Repository> Data = default(List<Repository>), bool? Ok = default(bool?))
+        /// <param name="data">Data.</param>
+        /// <param name="ok">Ok.</param>
+        public SearchResults(List<Repository> data = default(List<Repository>), bool? ok = default(bool?))
         {
-            this.Data = Data;
-            this.Ok = Ok;
+            this.Data = data;
+            this.Ok = ok;
         }
 
         /// <summary>

@@ -13,12 +13,33 @@ import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
+import { useNavigate } from 'react-router-dom';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { useNavigateFrom } from './useNavigateFrom';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
+jest.mock('./useNavigateFrom.ts', () => ({
+  ...jest.requireActual('./useNavigateFrom.ts'),
+  useNavigateFrom: jest.fn().mockImplementation(() => ({
+    navigateFrom: '',
+    currentRoutePath: '',
+  })),
+}));
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
+
 describe('SettingsModal', () => {
   const user = userEvent.setup();
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    typedLocalStorage.removeItem('featureFlags');
+    jest.clearAllMocks();
+  });
 
   it('has SettingsModal default to closed', async () => {
     renderSettingsModalButton();
@@ -89,6 +110,83 @@ describe('SettingsModal', () => {
     expect(
       screen.getByRole('button', { name: textMock('sync_header.settings') }),
     ).toBeInTheDocument();
+  });
+
+  it('renders back icon and button text when on settings page and feature is enabled', () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: RoutePaths.UIEditor,
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_back_to_ui-editor'),
+    });
+    expect(goBackButton).toBeInTheDocument();
+  });
+
+  it('navigates to settings page when clicking the settings button', async () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.UIEditor,
+      navigateFrom: RoutePaths.UIEditor,
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
+    await user.click(settingsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.AppSettings, {
+      state: { from: RoutePaths.UIEditor },
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back from the settings page when clicking the go back button', async () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: RoutePaths.UIEditor,
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_back_to_ui-editor'),
+    });
+    await user.click(goBackButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.UIEditor);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to "overview" page when clicking go back and on settings page and from is null', async () => {
+    const mockNavigate = jest.fn();
+    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as jest.Mock).mockReturnValue({
+      currentRoutePath: RoutePaths.AppSettings,
+      navigateFrom: null,
+    });
+
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+    renderSettingsModalButton();
+
+    const goBackButton = screen.getByRole('button', {
+      name: textMock('sync_header.settings_back_to_overview'),
+    });
+    await user.click(goBackButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.Overview);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });
 

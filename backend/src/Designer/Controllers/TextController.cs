@@ -202,7 +202,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     await _mediator.Publish(new LanguageTextsKeyChangedEvent
                     {
-                        idMutations = mutations,
+                        IdMutations = mutations,
                         EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
                     });
                     await _textsService.SaveText(org, app, developer, textResourceObject, languageCode);

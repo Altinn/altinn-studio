@@ -16,6 +16,7 @@ import { label1ResourceNb, textResources } from '../../../../test-data/textResou
 import type { TextResource } from '../../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 
+const onCreateCodeList = jest.fn();
 const onDeleteCodeList = jest.fn();
 const onUpdateCodeListId = jest.fn();
 const onUpdateCodeList = jest.fn();
@@ -25,8 +26,10 @@ const defaultCodeListPageProps: CodeListPageProps = {
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  onCreateCodeList,
   onUploadCodeList,
   codeListsUsages: [],
+  textResources,
 };
 
 describe('CodeListPage', () => {

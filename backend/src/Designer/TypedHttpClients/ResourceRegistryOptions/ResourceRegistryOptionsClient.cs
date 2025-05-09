@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
     {
         HttpClient _client;
 
-        private readonly JsonSerializerOptions DataNorgeSerilizerOptions = new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        private readonly JsonSerializerOptions _dataNorgeSerilizerOptions = new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
 
         public ResourceRegistryOptionsClients(HttpClient client)
         {
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string content = await response.Content.ReadAsStringAsync(cancellationToken);
-                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, DataNorgeSerilizerOptions);
+                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, _dataNorgeSerilizerOptions);
                 return eurovoc;
             }
             catch (Exception ex)
@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string content = await response.Content.ReadAsStringAsync(cancellationToken);
-                losTerms = System.Text.Json.JsonSerializer.Deserialize<LosTerms>(content, DataNorgeSerilizerOptions);
+                losTerms = System.Text.Json.JsonSerializer.Deserialize<LosTerms>(content, _dataNorgeSerilizerOptions);
                 return losTerms;
             }
             catch (Exception ex)
@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string sectorscontent = await response.Content.ReadAsStringAsync(cancellationToken);
-                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, DataNorgeSerilizerOptions);
+                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, _dataNorgeSerilizerOptions);
                 return dataThemes;
             }
             catch (Exception ex)

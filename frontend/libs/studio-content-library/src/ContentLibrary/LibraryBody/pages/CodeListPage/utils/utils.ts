@@ -3,6 +3,7 @@ import type { CodeListData } from '../CodeListPage';
 import type { TextResources } from '../../../../../types/TextResources';
 import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
+import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 
 export const getCodeListSourcesById = (
   codeListsUsages: CodeListReference[] | undefined,
@@ -19,6 +20,17 @@ export const getCodeListUsageCount = (codeListSources: CodeListIdSource[]): numb
     (total: number, source: CodeListIdSource) => total + source.componentIds.length,
     0,
   );
+};
+
+export const getUsageTaskTypeTextKey = (taskType: CodeListUsageTaskType): string => {
+  switch (taskType) {
+    case CodeListUsageTaskType.Data:
+      return 'app_content_library.code_lists.code_list_usage_table_task_type_data';
+    case CodeListUsageTaskType.Signing:
+      return 'app_content_library.code_lists.code_list_usage_table_task_type_signing';
+    default:
+      return taskType;
+  }
 };
 
 export const filterCodeLists = (

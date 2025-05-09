@@ -107,16 +107,15 @@ export const CreateSubformMode = ({
 
   return (
     <StudioCard className={classes.subformCardEditMode}>
-      <StudioParagraph className={classes.cardTitle} data-size='xs'>
-        {t('ux_editor.subform')}
-      </StudioParagraph>
+      <StudioParagraph data-size='xs'>{t('ux_editor.subform')}</StudioParagraph>
       <StudioTextfield
-        label={t('ux_editor.task_card.new_subform')}
+        label={t('ux_editor.task_card.subform_name_label')}
         error={subformError}
         className={classes.textField}
         onChange={(e) => handleSubformName(e.target.value)}
       />
       <StudioTabs
+        size='sm'
         defaultValue={Tabs.Choose}
         className={classes.subformTabs}
         onChange={handleChangeTab}

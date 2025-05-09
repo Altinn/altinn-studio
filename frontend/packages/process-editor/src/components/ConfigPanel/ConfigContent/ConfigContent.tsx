@@ -21,6 +21,7 @@ import { EditLayoutSetName } from './EditLayoutSetName';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
+import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -41,10 +42,6 @@ export const ConfigContent = (): React.ReactElement => {
   const isFirstSigningTask = tasks
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
-
-  const isTaskNavigationEditCardsEnabled = shouldDisplayFeature(
-    FeatureFlag.TaskNavigationEditCards,
-  );
 
   if (shouldDisplayAction(bpmnDetails.id)) {
     return (
@@ -81,8 +78,7 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
-          {!isTaskNavigationEditCardsEnabled && taskHasConnectedLayoutSet && (
-            /*We just hide the accordion for now, It will be removed when we remove featureFlags*/
+          {taskHasConnectedLayoutSet && (
             <Accordion.Item>
               <Accordion.Header>
                 {t('process_editor.configuration_panel_design_title')}

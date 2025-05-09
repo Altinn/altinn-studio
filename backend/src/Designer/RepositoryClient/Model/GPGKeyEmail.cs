@@ -25,12 +25,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="GPGKeyEmail" /> class.
         /// </summary>
-        /// <param name="Email">Email.</param>
-        /// <param name="Verified">Verified.</param>
-        public GPGKeyEmail(string Email = default(string), bool? Verified = default(bool?))
+        /// <param name="email">Email.</param>
+        /// <param name="verified">Verified.</param>
+        public GPGKeyEmail(string email = default(string), bool? verified = default(bool?))
         {
-            this.Email = Email;
-            this.Verified = Verified;
+            this.Email = email;
+            this.Verified = verified;
         }
 
         /// <summary>

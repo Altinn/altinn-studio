@@ -29,8 +29,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Delete_AttachmentForV4App_Ok()
         {
-            Instance instance = await createInstance();
-            DataElement dataElement = await createDataElement(instance, "attachment");
+            Instance instance = await CreateInstance();
+            DataElement dataElement = await CreateDataElement(instance, "attachment");
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
 

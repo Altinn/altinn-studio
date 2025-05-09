@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 {
@@ -15,6 +16,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
         private readonly IEnvironmentsService _environmentsService;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor
@@ -22,14 +24,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         /// <param name="httpClient">HttpClient</param>
         /// <param name="environmentsService">environmentsService</param>
         /// <param name="options">OptionsMonitor of type PlatformSettings</param>
+        /// <param name="logger">logger</param>
         public AltinnAuthorizationPolicyClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            PlatformSettings options)
+            PlatformSettings options,
+             ILogger<AltinnAuthorizationPolicyClient> logger)
         {
             _httpClient = httpClient;
             _platformSettings = options;
             _environmentsService = environmentsService;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -48,6 +53,22 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             };
 
             await _httpClient.SendAsync(request);
+
+            /*
+             * After the deploy of the Policy to authorization server, we need to refresh the subjects. 
+             * This is a temporary fix until policy is directly published to resource registry endpoint
+             */
+            try
+            {
+                Uri refreshSubjectsUri = new($"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true");
+                using HttpRequestMessage getRequest = new(HttpMethod.Get, refreshSubjectsUri);
+                await _httpClient.SendAsync(getRequest);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError($"Error refreshing subjects: {ex.Message}", ex);
+            }
         }
     }
 }
