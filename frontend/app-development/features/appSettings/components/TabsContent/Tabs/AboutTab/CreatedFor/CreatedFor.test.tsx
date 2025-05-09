@@ -42,7 +42,7 @@ describe('CreatedFor', () => {
 
     expect(
       screen.getByText(
-        textMock('settings_modal.about_tab_created_date', { date: formatedDateString }),
+        textMock('app_settings.about_tab_created_date', { date: formatedDateString }),
       ),
     ).toBeInTheDocument();
   });

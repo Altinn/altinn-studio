@@ -24,11 +24,7 @@ export function CreatedFor({
   return (
     <div className={classes.createdForWrapper}>
       <StudioParagraph className={classes.boldText}>
-        {t(
-          repositoryType === RepositoryType.DataModels
-            ? 'settings_modal.about_tab_created_for_repo'
-            : 'settings_modal.about_tab_created_for_service',
-        )}
+        {t(getCreatedForTextKey(repositoryType))}
       </StudioParagraph>
       <div className={classes.createdFor}>
         <img src={repository.owner.avatar_url} className={classes.avatar} alt='' />
@@ -37,17 +33,23 @@ export function CreatedFor({
         </StudioParagraph>
       </div>
       <StudioParagraph className={classes.boldText}>
-        {t('settings_modal.about_tab_created_by')}
+        {t('app_settings.about_tab_created_by')}
       </StudioParagraph>
       <div className={classes.createdBy}>
         <PersonCircleIcon className={classes.createdByIcon} />
         <StudioParagraph className={classes.createdByText}>{authorName}</StudioParagraph>
       </div>
       <StudioParagraph className={classes.createdDate}>
-        {t('settings_modal.about_tab_created_date', {
+        {t('app_settings.about_tab_created_date', {
           date: formatDateToDateAndTimeString(repository.created_at),
         })}
       </StudioParagraph>
     </div>
   );
+}
+
+function getCreatedForTextKey(repositoryType: RepositoryType): string {
+  return repositoryType === RepositoryType.DataModels
+    ? 'app_settings.about_tab_created_for_repo'
+    : 'app_settings.about_tab_created_for_service';
 }
