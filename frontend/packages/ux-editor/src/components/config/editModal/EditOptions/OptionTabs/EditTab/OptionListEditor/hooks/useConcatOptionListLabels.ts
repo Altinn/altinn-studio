@@ -18,9 +18,7 @@ function concatOptionLabels(
   textResources?: TextResource[],
 ): string {
   const optionLabels: string[] = extractLabels(optionList);
-  const textResourceMap: Map<string, string> = convertTextResourcesIntoMap(textResources);
-  const texts = retrieveLabelTexts(optionLabels, textResourceMap, emptyStringText);
-
+  const texts = retrieveLabelTexts(optionLabels, emptyStringText, textResources);
   return labelListToString(texts);
 }
 
@@ -28,22 +26,20 @@ function extractLabels(optionList: Option[]): string[] {
   return ArrayUtils.mapByKey<Option, 'label'>(optionList, 'label');
 }
 
-function convertTextResourcesIntoMap(
+function retrieveLabelTexts(
+  labels: string[],
+  emptyStringText: string,
   textResources?: TextResource[],
-): Map<string, string> | undefined {
-  if (!textResources) return undefined;
+): string[] {
+  if (!textResources) return labels;
+  const textResourceMap = convertTextResourcesIntoMap(textResources);
+  return mapIdsToText(labels, textResourceMap, emptyStringText);
+}
+
+function convertTextResourcesIntoMap(textResources?: TextResource[]): Map<string, string> {
   return new Map<string, string>(
     textResources.map((resource: TextResource) => [resource.id, resource.value]),
   );
-}
-
-function retrieveLabelTexts(
-  labels: string[],
-  textResourceMap: Map<string, string> | undefined,
-  emptyStringText: string,
-): string[] {
-  if (!textResourceMap) return labels;
-  return mapIdsToText(labels, textResourceMap, emptyStringText);
 }
 
 function mapIdsToText(

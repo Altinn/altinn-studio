@@ -70,7 +70,7 @@ describe('useConcatOptionListLabels', () => {
     expect(result).toEqual(expectedString);
   });
 
-  it('return a string of labels with 2 placeholder values for empty value', () => {
+  it('returns a string of labels with 2 placeholder values for empty value', () => {
     const optionList: Option[] = [
       {
         value: 'value1',
