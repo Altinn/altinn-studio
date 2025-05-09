@@ -676,6 +676,36 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Action for mocking the GET method for organisation lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="organisationNumber">The organisation number to lookup</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("api/v1/lookup/organisation/{organisationNumber}")]
+        public IActionResult OrganisationLookup(string org, string app, string organisationNumber)
+        {
+            string lookupResponse = $"{{\"success\":true,\"organisationDetails\":{{\"orgNr\":\"{organisationNumber}\",\"name\":\"Test AS (preview)\"}}}}";
+            return Ok(lookupResponse);
+        }
+
+        /// <summary>
+        /// Action for mocking the POST method for person lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("api/v1/lookup/person")]
+        public IActionResult PersonLookup(string org, string app)
+        {
+            string mockSsn = "12345678912";
+            string lookupResponse = $"{{\"success\":true,\"personDetails\":{{\"ssn\":\"{mockSsn}\",\"name\":\"Test T. Testesen (preview)\", \"lastName\":\"Testesen (preview)\"}}}}";
+            return Ok(lookupResponse);
+        }
+
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
             Uri refererUri = new(refererHeader);
