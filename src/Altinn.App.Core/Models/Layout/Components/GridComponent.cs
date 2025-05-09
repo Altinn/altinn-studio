@@ -59,7 +59,7 @@ public record GridConfig
         /// Cells in the row
         /// </summary>
         [JsonPropertyName("cells")]
-        public GridCell[]? Cells { get; set; }
+        public GridCell?[]? Cells { get; set; }
 
         /// <summary>
         /// Defines a cell in a grid
@@ -82,7 +82,7 @@ public record GridConfig
     {
         return this.Rows?.Where(r => r.Cells is not null)
                 .SelectMany(r => r.Cells ?? [])
-                .Select(c => c.ComponentId)
+                .Select(c => c?.ComponentId)
                 .WhereNotNull()
                 .ToList() ?? [];
     }
