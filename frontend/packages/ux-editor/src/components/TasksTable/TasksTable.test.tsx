@@ -1,20 +1,22 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { TasksTable, type TasksTableProps } from './TasksTable';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '../../testing/mocks';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
-const tasksMock = [
-  { taskType: 'type1', taskName: 'Task 1', numberOfPages: 5 },
-  { taskType: 'type2', taskName: 'Task 2', numberOfPages: 10 },
+const tasksMock: TaskNavigationGroup[] = [
+  { taskType: 'type1', name: 'Task 1', pageCount: 5 },
+  { taskType: 'type2', name: 'Task 2', pageCount: 10 },
 ];
 
 describe('TasksTable', () => {
   it('should render the table with tasks', () => {
     renderTasksTable();
 
-    const task1 = screen.getByText('Task 1');
-    const task2 = screen.getByText('Task 2');
+    const task1 = screen.getByText(textMock('Task 1'));
+    const task2 = screen.getByText(textMock('Task 2'));
     expect(task1).toBeInTheDocument();
     expect(task2).toBeInTheDocument();
   });
@@ -62,5 +64,5 @@ const renderTasksTable = (props: Partial<TasksTableProps> = {}) => {
   };
 
   const mergedProps = { ...defaultProps, ...props };
-  return render(<TasksTable {...mergedProps} />);
+  return renderWithProviders(<TasksTable {...mergedProps} />);
 };
