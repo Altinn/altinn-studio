@@ -177,7 +177,7 @@ public class OrgTextsServiceTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "sr")]
-    public async Task UpdateTextsForKeys_ShouldThrowExceptionWhenLanguageDoesNotExist(string repo, string lang)
+    public async Task UpdateTextsForKeys_ShouldCreateTextResourceFile_WhenFileDoesNotExist(string repo, string lang)
     {
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -185,13 +185,23 @@ public class OrgTextsServiceTests : IDisposable
         await TestDataHelper.CopyOrgForTest(Developer, Org, repo, TargetOrg, targetRepo);
         var service = GetOrgTextsService();
 
-        Dictionary<string, string> newTextIds = new()
+        const string TextElementId = "someNewId";
+        const string TextElementValue = "someNewValue";
+        Dictionary<string, string> keyValuePairToUpdate = new()
         {
-            { "someNewId", "someNewValue" },
+            { TextElementId, TextElementValue },
         };
 
-        // Act and assert
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang));
+        // Act
+        await service.UpdateTextsForKeys(TargetOrg, Developer, keyValuePairToUpdate, lang);
+
+        // Assert
+        string actualContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepo, Developer, RelativePath(lang));
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
+        Assert.Equal(lang, actualResource.Language);
+        Assert.Single(actualResource.Resources);
+        Assert.Equal(TextElementId, actualResource.Resources[0].Id);
+        Assert.Equal(TextElementValue, actualResource.Resources[0].Value);
     }
 
     [Theory]

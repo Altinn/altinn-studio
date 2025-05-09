@@ -64,11 +64,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     public async Task<TextResource> GetText(string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string resourcePath = GetPathToJsonTextsFile($"resource.{languageCode}.json");
-        if (!FileExistsByRelativePath(resourcePath))
+        if (!TextResourceFileExists(languageCode))
         {
             throw new NotFoundException("Text resource file not found.");
         }
+
+        string resourcePath = GetPathToTextResourceFromLanguageCode(languageCode);
         string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
         TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
 
@@ -84,10 +85,19 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string fileName = $"resource.{languageCode}.json";
-        string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+        string textsFileRelativeFilePath = GetPathToTextResourceFromLanguageCode(languageCode);
         string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
         await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);
+    }
+
+    /// <summary>
+    /// Checks if a text resource file corresponding to the specified language code exists.
+    /// </summary>
+    /// <param name="languageCode">The language code corresponding to the text resource file.</param>
+    public bool TextResourceFileExists(string languageCode)
+    {
+        string path = GetPathToTextResourceFromLanguageCode(languageCode);
+        return FileExistsByRelativePath(path);
     }
 
     /// <summary>
@@ -181,7 +191,18 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         DeleteFileByRelativePath(codeListFilePath);
     }
 
-    private static string GetPathToJsonTextsFile(string fileName)
+    private static string GetPathToTextResourceFromLanguageCode(string languageCode)
+    {
+        string fileName = GetTextResourceFileName(languageCode);
+        return GetPathToTextResourceFileFromFilename(fileName);
+    }
+
+    private static string GetTextResourceFileName(string languageCode)
+    {
+        return $"resource.{languageCode}.json";
+    }
+
+    private static string GetPathToTextResourceFileFromFilename(string fileName)
     {
         return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
     }

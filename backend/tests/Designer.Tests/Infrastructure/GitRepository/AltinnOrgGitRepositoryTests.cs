@@ -76,6 +76,36 @@ public class AltinnOrgGitRepositoryTests : IDisposable
     }
 
     [Theory]
+    [InlineData("org-content-empty", "nb")]
+    public async Task TextResourceFileExists_WithEmptyRepo_ShouldReturnFalse(string repository, string language)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act
+        bool result = altinnOrgGitRepository.TextResourceFileExists(language);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Theory]
+    [InlineData("org-content", "nb")]
+    public async Task TextResourceFileExists_WithRepoThatHasTextResources_ShouldReturnTrue(string repository, string language)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act
+        bool result = altinnOrgGitRepository.TextResourceFileExists(language);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Theory]
     [InlineData("org-content")]
     public async Task GetCodeListIds_WithRepoThatHasCodeLists_ShouldReturnCodeListPathNames(string repository)
     {
