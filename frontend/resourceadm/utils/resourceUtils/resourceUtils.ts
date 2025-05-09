@@ -22,6 +22,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
+  Consentresource: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -376,6 +377,46 @@ export const validateResource = (
     }
   }
 
+  // validate consentTemplate
+  if (resourceData.resourceType === 'Consentresource') {
+    if (!resourceData.consentTemplate) {
+      errors.push({
+        field: 'consentTemplate',
+        error: t('resourceadm.about_resource_consent_template_missing'),
+      });
+    }
+    const consentTextError = getMissingInputLanguageString(
+      {
+        nb: resourceData.consentText?.nb,
+        nn: resourceData.consentText?.nn,
+        en: resourceData.consentText?.en,
+      },
+      t('resourceadm.about_resource_error_usage_string_consent_text'),
+      t,
+    );
+    if (consentTextError) {
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextError,
+      });
+    }
+    if (!resourceData.consentText?.nn) {
+      errors.push({
+        field: 'consentText',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
+      });
+    }
+    if (!resourceData.consentText?.en) {
+      errors.push({
+        field: 'consentText',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
+      });
+    }
+  }
+
   // validate contactPoints
   // if there are no contactPoints, an empty contactPoint is added in the contactPoints component
   if (!resourceData.contactPoints?.length) {
@@ -451,4 +492,16 @@ export const getMigrationErrorMessage = (
     };
   }
   return null;
+};
+
+const getConsentMetadataValuesFromText = (text: string) => {
+  return text.match(/{([^{}]*?)}/g) ?? [];
+};
+export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
+  const metadataValues = [
+    ...getConsentMetadataValuesFromText(consentTexts['nb']),
+    ...getConsentMetadataValuesFromText(consentTexts['nn']),
+    ...getConsentMetadataValuesFromText(consentTexts['en']),
+  ].map((match) => match.slice(1, -1));
+  return [...new Set(metadataValues)];
 };

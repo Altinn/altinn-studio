@@ -29,10 +29,13 @@
   color: var(--fds-semantic-text-neutral-subtle);
 }
 
-.checkboxParagraph {
-  margin-left: var(--fds-spacing-2);
-}
-
 .description {
   color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.consentMetadata {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--fds-spacing-1);
 }

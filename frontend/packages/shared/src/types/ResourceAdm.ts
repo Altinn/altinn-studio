@@ -6,6 +6,9 @@ export interface NewResource {
   title: SupportedLanguage;
 }
 
+export interface ConsentMetadata {
+  [key: string]: { optional: boolean };
+}
 export interface Resource {
   identifier: string;
   resourceType?: ResourceTypeOption;
@@ -24,6 +27,9 @@ export interface Resource {
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
+  consentTemplate?: string;
+  consentText?: SupportedLanguage;
+  consentMetadata?: ConsentMetadata;
 }
 
 export type ResourceAccessListMode = 'Disabled' | 'Enabled';
@@ -40,7 +46,8 @@ export type ResourceTypeOption =
   | 'Systemresource'
   | 'MaskinportenSchema'
   | 'BrokerService'
-  | 'CorrespondenceService';
+  | 'CorrespondenceService'
+  | 'Consentresource';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
@@ -64,7 +71,9 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged?: Date;
+  lastChanged?: Date | null;
+  resourceType?: ResourceTypeOption;
+  status?: ResourceStatusOption;
   identifier: string;
   environments: string[];
 }
@@ -198,4 +207,36 @@ export interface MigrateDelegationsRequest {
   serviceCode: string;
   serviceEditionCode: number;
   resourceId: string;
+}
+
+export interface ConsentTemplate {
+  id: string;
+  title: string;
+  isPoa: boolean;
+  restrictedToServiceOwners: string[];
+  isMessageSetInRequest: boolean;
+  texts: {
+    title: {
+      person: SupportedLanguage;
+      org: SupportedLanguage;
+    };
+    heading: {
+      person: SupportedLanguage;
+      org: SupportedLanguage;
+    };
+    serviceIntro: {
+      person: SupportedLanguage;
+      org: SupportedLanguage;
+    };
+    overriddenDelegationContext: SupportedLanguage | null;
+    expiration: SupportedLanguage;
+    expirationOneTime: SupportedLanguage;
+    serviceIntroAccepted: {
+      person: SupportedLanguage;
+      org: SupportedLanguage;
+    };
+    handledBy: SupportedLanguage;
+    historyUsedBody: SupportedLanguage;
+    historyUsedByHandledByBody: SupportedLanguage;
+  };
 }

@@ -177,6 +177,7 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
 export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
+export const consentTemplatesPath = (org) => `${basePath}/${org}/resources/consenttemplates/`; // Get
 
 // Preview
 export const instancesPath = (org, app) => `/${org}/${app}/instances`;

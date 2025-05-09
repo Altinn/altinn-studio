@@ -211,6 +211,7 @@ export const queriesMock: ServicesContextProps = {
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+  getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest

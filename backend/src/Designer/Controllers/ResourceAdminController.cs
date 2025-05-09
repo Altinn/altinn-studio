@@ -568,6 +568,18 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
+            if (resource.ResourceType == ResourceType.Consentresource)
+            {
+                if (string.IsNullOrWhiteSpace(resource.ConsentTemplate))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentTemplate", "resourceerror.missingconsenttemplate");
+                }
+                if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.ConsentText))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentText", "resourceerror.missingconsenttext");
+                }
+            }
+
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
@@ -615,6 +627,13 @@ namespace Altinn.Studio.Designer.Controllers
                 Console.WriteLine("Invalid repository for resource");
                 return new StatusCodeResult(400);
             }
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/consenttemplates")]
+        public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
+        {
+            return await _resourceRegistry.GetConsentTemplates(org);
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
