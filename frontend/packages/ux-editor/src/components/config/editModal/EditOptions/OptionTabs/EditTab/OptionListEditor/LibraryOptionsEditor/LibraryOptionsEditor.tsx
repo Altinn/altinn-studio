@@ -48,7 +48,11 @@ export function LibraryOptionsEditor({
 
   return (
     <>
-      <OptionListLabels optionListId={optionListId} optionList={optionList} />
+      <OptionListLabels
+        optionListId={optionListId}
+        optionList={optionList}
+        textResources={textResourcesForLanguage}
+      />
       <OptionListButtons handleClick={handleClick} handleDelete={handleDelete} />
       <StudioModal.Dialog
         ref={modalRef}
