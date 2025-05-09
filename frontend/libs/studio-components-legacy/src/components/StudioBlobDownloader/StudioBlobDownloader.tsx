@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { BlobDownloader } from '@studio/pure-functions';
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
+import { DownloadIcon } from '@studio/icons';
 
 export type StudioBlobDownloaderProps = {
   data: string;
@@ -26,7 +27,7 @@ export const StudioBlobDownloader = ({
   };
 
   return (
-    <StudioButton {...rest} onClick={handleExportClick} variant='tertiary'>
+    <StudioButton {...rest} onClick={handleExportClick} variant='tertiary' icon={<DownloadIcon />}>
       {linkText}
     </StudioButton>
   );
