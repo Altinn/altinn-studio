@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,13 +14,23 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <inheritdoc />
 public class OrgContentService : IOrgContentService
 {
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IOrgCodeListService _orgCodeListService;
     private readonly IOrgTextsService _orgTextsService;
 
-    public OrgContentService(IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
+    public OrgContentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
     {
+        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _orgCodeListService = orgCodeListService;
         _orgTextsService = orgTextsService;
+    }
+
+    /// <inheritdoc />
+    public bool OrgContentRepoExists(AltinnOrgContext context)
+    {
+        string contentRepoName = GetContentRepoName(context.Org);
+        string repoPath = _altinnGitRepositoryFactory.GetRepositoryPath(context.Org, contentRepoName, context.DeveloperName);
+        return Directory.Exists(repoPath);
     }
 
     /// <inheritdoc />
@@ -75,4 +86,9 @@ public class OrgContentService : IOrgContentService
     }
 
     private static string FormatContentSource(string orgName) => $"org.{orgName}";
+
+    private static string GetContentRepoName(string org)
+    {
+        return $"{org}-content";
+    }
 }
