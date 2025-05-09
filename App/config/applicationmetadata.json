@@ -94,12 +94,7 @@
       ],
       "taskId": "SigningTask_Founders",
       "maxCount": 10,
-      "minCount": 1,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "minCount": 1
     },
     {
       "id": "signeeStates-founders",
@@ -111,12 +106,7 @@
       ],
       "taskId": "SigningTask_Founders",
       "maxCount": 1,
-      "minCount": 0,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "minCount": 1
     },
     {
       "id": "signatures-auditor",
@@ -128,12 +118,7 @@
       ],
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
-      "minCount": 0,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "minCount": 0
     },
     {
       "id": "signeeStates-auditor",
@@ -145,12 +130,7 @@
       ],
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
-      "minCount": 0,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {
