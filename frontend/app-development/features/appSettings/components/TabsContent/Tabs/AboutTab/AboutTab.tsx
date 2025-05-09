@@ -1,0 +1,89 @@
+import React from 'react';
+import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StudioValidationMessage } from '@studio/components';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import type { RepositoryType } from 'app-shared/types/global';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useAppConfigQuery } from 'app-development/hooks/queries';
+import { useAppConfigMutation } from 'app-development/hooks/mutations';
+import { LoadingTabData } from '../../LoadingTabData';
+import { TabPageHeader } from '../../TabPageHeader';
+import { TabPageWrapper } from '../../TabPageWrapper';
+import { TabDataError } from '../../TabDataError';
+import { CreatedFor } from './CreatedFor';
+import { AboutTabInputFields } from './AboutTabInputFields';
+
+export function AboutTab(): ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <TabPageWrapper>
+      <TabPageHeader text={t('app_settings.about_tab_heading')} />
+      <AboutTabContent />
+    </TabPageWrapper>
+  );
+}
+
+function AboutTabContent(): ReactElement {
+  const { org, app } = useStudioEnvironmentParams();
+  const repositoryType: RepositoryType = getRepositoryType(org, app);
+
+  const {
+    status: appConfigStatus,
+    data: appConfigData,
+    error: appConfigError,
+  } = useAppConfigQuery(org, app);
+  const {
+    status: repositoryStatus,
+    data: repositoryData,
+    error: repositoryError,
+  } = useRepoMetadataQuery(org, app);
+  const {
+    status: applicationMetadataStatus,
+    data: applicationMetadataData,
+    error: applicationMetadataError,
+  } = useAppMetadataQuery(org, app);
+
+  const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
+
+  const handleSaveAppConfig = (appConfig: AppConfig) => {
+    updateAppConfigMutation(appConfig);
+  };
+
+  switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, applicationMetadataStatus)) {
+    case 'pending': {
+      return <LoadingTabData />;
+    }
+    case 'error': {
+      return (
+        <TabDataError>
+          {appConfigError && (
+            <StudioValidationMessage>{appConfigError.message}</StudioValidationMessage>
+          )}
+          {repositoryError && (
+            <StudioValidationMessage>{repositoryError.message}</StudioValidationMessage>
+          )}
+          {applicationMetadataError && (
+            <StudioValidationMessage>{applicationMetadataError.message}</StudioValidationMessage>
+          )}
+        </TabDataError>
+      );
+    }
+    case 'success': {
+      return (
+        <>
+          <CreatedFor
+            repositoryType={repositoryType}
+            repository={repositoryData}
+            authorName={applicationMetadataData?.createdBy}
+          />
+          <AboutTabInputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
+        </>
+      );
+    }
+  }
+}
