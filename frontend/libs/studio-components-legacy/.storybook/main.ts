@@ -18,6 +18,9 @@ const config: StorybookConfig = {
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-interactions'),
   ],
+  features: {
+    buildStoriesJson: true,
+  },
   framework: {
     name: getAbsolutePath('@storybook/react-webpack5'),
     options: {},
