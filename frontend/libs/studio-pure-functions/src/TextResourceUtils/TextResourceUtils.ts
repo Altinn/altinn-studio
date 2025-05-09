@@ -16,7 +16,7 @@ export class TextResourceUtils {
   }
 
   public update(textResource: TextResource): TextResource[] {
-    return this.textResources.map((tr) => (tr.key === textResource.key ? textResource : tr));
+    return this.textResources.map((tr) => (tr.id === textResource.id ? textResource : tr));
   }
 
   public remove(id: string): TextResource[] {

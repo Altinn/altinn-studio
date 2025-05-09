@@ -43,8 +43,7 @@ describe('TextResourceUtils', () => {
     const result = textResourceUtils.update(updatedTextResource);
 
     it('Updates the text resource with the given ID', () => {
-      expect(result).toContainEqual(updatedTextResource);
-      expect(result).toHaveLength(textResourcesToTest.length);
+      expect(result).toEqual([updatedTextResource, textResource2, textResource3]);
     });
 
     it('Is pure', verifyInitialObjectIsUnchanged);
