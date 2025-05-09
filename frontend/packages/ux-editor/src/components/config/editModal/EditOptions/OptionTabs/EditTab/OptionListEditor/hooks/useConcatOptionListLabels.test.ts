@@ -16,6 +16,12 @@ const textResources: TextResource[] = [
 ];
 
 describe('useConcatOptionListLabels', () => {
+  it('returns an empty string when option list is empty', () => {
+    const optionList: Option[] = [];
+    const result = useConcatOptionListLabels(optionList, textResources);
+    expect(result).toEqual('');
+  });
+
   it('returns a string of labels when no text resources provided', () => {
     const optionList: Option[] = [
       {

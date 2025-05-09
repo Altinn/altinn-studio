@@ -9,13 +9,13 @@ export function useConcatOptionListLabels(
 ): string {
   const { t } = useTranslation();
   const emptyStringText = t('general.empty_string');
-  return concatOptionLabels(optionList, textResources, emptyStringText);
+  return concatOptionLabels(optionList, emptyStringText, textResources);
 }
 
 function concatOptionLabels(
   optionList: Option[],
-  textResources: TextResource[],
   emptyStringText: string,
+  textResources?: TextResource[],
 ): string {
   const optionLabels: string[] = extractLabels(optionList);
   const textResourceMap: Map<string, string> = convertTextResourcesIntoMap(textResources);
@@ -28,7 +28,9 @@ function extractLabels(optionList: Option[]): string[] {
   return ArrayUtils.mapByKey<Option, 'label'>(optionList, 'label');
 }
 
-function convertTextResourcesIntoMap(textResources: TextResource[]): Map<string, string> {
+function convertTextResourcesIntoMap(
+  textResources?: TextResource[],
+): Map<string, string> | undefined {
   if (!textResources) return undefined;
   return new Map<string, string>(
     textResources.map((resource: TextResource) => [resource.id, resource.value]),
@@ -37,7 +39,7 @@ function convertTextResourcesIntoMap(textResources: TextResource[]): Map<string,
 
 function retrieveLabelTexts(
   labels: string[],
-  textResourceMap: Map<string, string>,
+  textResourceMap: Map<string, string> | undefined,
   emptyStringText: string,
 ): string[] {
   if (!textResourceMap) return labels;
