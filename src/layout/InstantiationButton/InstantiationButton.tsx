@@ -28,12 +28,15 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
         id={props.node.id}
         onClick={() =>
           performProcess(() =>
-            instantiation.instantiateWithPrefill({
-              prefill,
-              instanceOwner: {
-                partyId: party?.partyId.toString(),
+            instantiation.instantiateWithPrefill(
+              {
+                prefill,
+                instanceOwner: {
+                  partyId: party?.partyId.toString(),
+                },
               },
-            }),
+              true,
+            ),
           )
         }
         disabled={isAnyProcessing}
