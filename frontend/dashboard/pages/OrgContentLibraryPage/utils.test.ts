@@ -7,7 +7,7 @@ import type {
   TextResources,
   TextResourceWithLanguage,
 } from '@studio/content-library';
-import type { UpdateTextResourcesForOrgMutationArgs } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
+import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 
 describe('utils', () => {
@@ -22,7 +22,7 @@ describe('utils', () => {
         language,
         textResource,
       };
-      const expectedResult: UpdateTextResourcesForOrgMutationArgs = {
+      const expectedResult: UpdateOrgTextResourcesMutationArgs = {
         language,
         payload: { 'some-id': 'Some value' },
       };

@@ -1,7 +1,7 @@
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { RenderHookResult } from '@testing-library/react';
 import { waitFor } from '@testing-library/react';
-import { useTextResourcesForOrgQuery } from './useTextResourcesForOrgQuery';
+import { useOrgTextResourcesQuery } from './useOrgTextResourcesQuery';
 import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type {
@@ -16,18 +16,18 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 const orgName = 'org';
 const language = 'nb';
 const textResources = textResourcesMock;
-const key: TanstackQueryKey = [QueryKey.TextResourcesForOrg, orgName, language];
+const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
 
 // Mocks:
-const getTextResourcesForOrg = jest.fn(() => Promise.resolve(textResources));
+const getOrgTextResources = jest.fn(() => Promise.resolve(textResources));
 
-describe('useTextResourcesForOrgQuery', () => {
-  beforeEach(getTextResourcesForOrg.mockClear);
+describe('useOrgTextResourcesQuery', () => {
+  beforeEach(getOrgTextResources.mockClear);
 
-  it('calls getTextResourcesForOrg with the correct parameters', async () => {
+  it('calls getOrgTextResources with the correct parameters', async () => {
     await renderAndWaitForResult();
-    expect(getTextResourcesForOrg).toHaveBeenCalledTimes(1);
-    expect(getTextResourcesForOrg).toHaveBeenCalledWith(orgName, language);
+    expect(getOrgTextResources).toHaveBeenCalledTimes(1);
+    expect(getOrgTextResources).toHaveBeenCalledWith(orgName, language);
   });
 
   it('Stores the result in the cache with correct keys', async () => {
@@ -42,7 +42,7 @@ describe('useTextResourcesForOrgQuery', () => {
   });
 
   it('Returns a fallback object through the data property when the data is null', async () => {
-    getTextResourcesForOrg.mockReturnValueOnce(Promise.resolve(null));
+    getOrgTextResources.mockReturnValueOnce(Promise.resolve(null));
     const { result } = await renderAndWaitForResult();
     const expectedFallback: ITextResourcesWithLanguage = {
       language: expect.any(String),
@@ -56,9 +56,9 @@ const renderAndWaitForResult = async (
   queryClient: QueryClient = createQueryClientMock(),
 ): Promise<RenderHookResult<UseQueryResult<ITextResourcesWithLanguage>, void>> => {
   const utils = renderHookWithProviders<UseQueryResult<ITextResourcesWithLanguage>>(
-    () => useTextResourcesForOrgQuery(orgName, language),
+    () => useOrgTextResourcesQuery(orgName, language),
     {
-      queries: { getTextResourcesForOrg },
+      queries: { getOrgTextResources },
       queryClient,
     },
   );

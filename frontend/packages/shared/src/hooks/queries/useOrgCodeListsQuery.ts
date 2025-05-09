@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 
 export const useOrgCodeListsQuery = (org: string): UseQueryResult<CodeListsResponse> => {
-  const { getCodeListsForOrg } = useServicesContext();
+  const { getOrgCodeLists } = useServicesContext();
   return useQuery<CodeListsResponse>({
     queryKey: [QueryKey.OrgCodeLists, org],
-    queryFn: () => getCodeListsForOrg(org),
+    queryFn: () => getOrgCodeLists(org),
   });
 };

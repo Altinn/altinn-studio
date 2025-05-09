@@ -29,13 +29,13 @@ const existingCodeList: CodeListData = {
 describe('useCreateOrgCodeListMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Calls createCodeListForOrg with correct parameters', async () => {
+  it('Calls createOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org));
 
     await result.current.mutateAsync(newCodeList);
 
-    expect(queriesMock.createCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(queriesMock.createCodeListForOrg).toHaveBeenCalledWith(
+    expect(queriesMock.createOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.createOrgCodeList).toHaveBeenCalledWith(
       org,
       newCodeList.title,
       newCodeList.data,
@@ -45,10 +45,10 @@ describe('useCreateOrgCodeListMutation', () => {
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgCodeLists, org], [existingCodeList]);
-    const createCodeListForOrg = jest.fn(() => Promise.resolve([existingCodeList, newCodeList]));
+    const createOrgCodeList = jest.fn(() => Promise.resolve([existingCodeList, newCodeList]));
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org), {
       queryClient,
-      queries: { createCodeListForOrg },
+      queries: { createOrgCodeList },
     });
 
     await result.current.mutateAsync(newCodeList);

@@ -7,11 +7,11 @@ import { FileUtils } from '@studio/pure-functions';
 
 export const useUploadOrgCodeListMutation = (org: string, meta?: MutationMeta) => {
   const queryClient = useQueryClient();
-  const { uploadCodeListForOrg } = useServicesContext();
+  const { uploadOrgCodeList } = useServicesContext();
 
   const mutationFn = (file: File) => {
     const formData = FileUtils.convertToFormData(file);
-    return uploadCodeListForOrg(org, formData);
+    return uploadOrgCodeList(org, formData);
   };
 
   return useMutation({

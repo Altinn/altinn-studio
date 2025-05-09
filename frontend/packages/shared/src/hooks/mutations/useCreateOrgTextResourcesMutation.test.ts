@@ -1,5 +1,5 @@
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { useCreateTextResourcesForOrgMutation } from './useCreateTextResourcesForOrgMutation';
+import { useCreateOrgTextResourcesMutation } from './useCreateOrgTextResourcesMutation';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -15,36 +15,36 @@ const response: ITextResourcesWithLanguage = {
   language,
   resources: [],
 };
-type Request = ServicesContextProps['createTextResourcesForOrg'];
+type Request = ServicesContextProps['createOrgTextResources'];
 const mockRequest: Request = () => Promise.resolve(response);
-const createTextResourcesForOrg = jest.fn().mockImplementation(mockRequest);
+const createOrgTextResources = jest.fn().mockImplementation(mockRequest);
 
-describe('useCreateTextResourcesForOrgMutation', () => {
-  beforeEach(createTextResourcesForOrg.mockClear);
+describe('useCreateOrgTextResourcesMutation', () => {
+  beforeEach(createOrgTextResources.mockClear);
 
-  it('Calls createTextResourcesForOrg with correct arguments and payload', async () => {
+  it('Calls createOrgTextResources with correct arguments and payload', async () => {
     await renderAndMutate();
 
     const expectedPayload: ITextResourcesWithLanguage = {
       language,
       resources: [],
     };
-    expect(createTextResourcesForOrg).toHaveBeenCalledTimes(1);
-    expect(createTextResourcesForOrg).toHaveBeenCalledWith(orgName, language, expectedPayload);
+    expect(createOrgTextResources).toHaveBeenCalledTimes(1);
+    expect(createOrgTextResources).toHaveBeenCalledWith(orgName, language, expectedPayload);
   });
 
   it('Stores the result in the cache with correct keys', async () => {
     const client = createQueryClientMock();
     await renderAndMutate(client);
 
-    const key: TanstackQueryKey = [QueryKey.TextResourcesForOrg, orgName, language];
+    const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(response);
   });
 });
 
 async function renderAndMutate(queryClient = createQueryClientMock()): Promise<void> {
-  const { result } = renderHookWithProviders(() => useCreateTextResourcesForOrgMutation(orgName), {
-    queries: { createTextResourcesForOrg },
+  const { result } = renderHookWithProviders(() => useCreateOrgTextResourcesMutation(orgName), {
+    queries: { createOrgTextResources },
     queryClient,
   });
   await result.current.mutateAsync(language);

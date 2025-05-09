@@ -8,20 +8,20 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import { type ITextResourcesWithLanguage } from '../../types/global';
 
-export const useCreateTextResourcesForOrgMutation = (
+export const useCreateOrgTextResourcesMutation = (
   orgName: string,
 ): UseMutationResult<ITextResourcesWithLanguage, DefaultError, string> => {
   const client = useQueryClient();
-  const { createTextResourcesForOrg } = useServicesContext();
+  const { createOrgTextResources } = useServicesContext();
 
   return useMutation<ITextResourcesWithLanguage, DefaultError, string>({
     mutationFn: (language: string) => {
       const payload: ITextResourcesWithLanguage = createPayloadWithEmptyList(language);
-      return createTextResourcesForOrg(orgName, language, payload);
+      return createOrgTextResources(orgName, language, payload);
     },
     onSuccess: (textResourcesWithLanguage: ITextResourcesWithLanguage) => {
       const queryKey: TanstackQueryKey = [
-        QueryKey.TextResourcesForOrg,
+        QueryKey.OrgTextResources,
         orgName,
         textResourcesWithLanguage.language,
       ];

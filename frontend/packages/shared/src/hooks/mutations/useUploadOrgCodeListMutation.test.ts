@@ -31,19 +31,19 @@ const codeListResponse: CodeListsResponse = [
 describe('useUploadOrgCodeListMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Calls uploadCodeListForOrg with correct parameters', async () => {
+  it('Calls uploadOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org));
     await result.current.mutateAsync(file);
-    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadCodeListForOrg).toHaveBeenCalledWith(org, formData);
+    expect(queriesMock.uploadOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.uploadOrgCodeList).toHaveBeenCalledWith(org, formData);
   });
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
-    const uploadCodeListForOrg = jest.fn(() => Promise.resolve(codeListResponse));
+    const uploadOrgCodeList = jest.fn(() => Promise.resolve(codeListResponse));
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org), {
       queryClient,
-      queries: { uploadCodeListForOrg },
+      queries: { uploadOrgCodeList },
     });
 
     await result.current.mutateAsync(file);
