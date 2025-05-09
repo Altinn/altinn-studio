@@ -132,9 +132,9 @@ describe('CustomActions', () => {
 
     renderCustomAction();
 
-    const helpText = screen.getByText(
-      textMock('process_editor.configuration_panel_actions_action_type_help_text'),
-    );
+    const helpText = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_action_type_help_text'),
+    });
 
     expect(helpText).toBeInTheDocument();
   });

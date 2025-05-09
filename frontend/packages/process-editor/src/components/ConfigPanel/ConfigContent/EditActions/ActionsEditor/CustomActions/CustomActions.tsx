@@ -1,7 +1,8 @@
 import React from 'react';
 import { StudioTextfield } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
-import { HelpText, Switch } from '@digdir/designsystemet-react';
+import { Switch } from '@digdir/designsystemet-react';
 import {
   BpmnActionModeler,
   ActionType,
@@ -54,12 +55,11 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
         >
           {t('process_editor.configuration_panel_actions_set_server_action_label')}
         </Switch>
-        <HelpText
-          title={t('process_editor.configuration_panel_actions_action_type_help_text')}
-          size='small'
+        <StudioHelpText
+          aria-label={t('process_editor.configuration_panel_actions_action_type_help_text')}
         >
           {t('process_editor.configuration_panel_actions_set_server_action_info')}
-        </HelpText>
+        </StudioHelpText>
       </div>
     </>
   );
