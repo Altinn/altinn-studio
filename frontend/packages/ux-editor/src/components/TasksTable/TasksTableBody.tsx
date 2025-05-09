@@ -71,11 +71,15 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
     >
       <StudioTable.Cell>
         <div className={classes.taskTypeCellContent}>
-          <TaskIcon />
-          {t(taskType)}: {taskIdName}
+          <TaskIcon className={classes.taskIcon} />
+          <span className={classes.taskType} title={taskIdName}>
+            {t(taskType)}: {taskIdName}
+          </span>
         </div>
       </StudioTable.Cell>
-      {isNavigationMode && <StudioTable.Cell>{t(taskNavigationName)}</StudioTable.Cell>}
+      {isNavigationMode && (
+        <StudioTable.Cell title={taskNavigationName}>{t(taskNavigationName)}</StudioTable.Cell>
+      )}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
         <StudioButton

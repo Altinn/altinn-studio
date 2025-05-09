@@ -10,9 +10,14 @@
   border: none;
 }
 
-.taskRow td:nth-child(2) {
+.taskRow td:nth-child(-n + 2) {
   max-width: 200px;
+}
+
+.taskRow td:nth-child(2),
+.taskType {
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
@@ -35,6 +40,9 @@
   align-items: center;
   height: 100%;
   gap: var(--fds-spacing-1);
+}
+.taskIcon {
+  flex-shrink: 0;
 }
 
 .taskTypeCellContent svg {
