@@ -9,6 +9,7 @@ import { organizationSubject } from '../../utils';
 import { StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
+import { useTranslation } from 'react-i18next';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
@@ -31,6 +32,7 @@ const AcceptConsentPolicyRule = ({
   policyRule,
   showErrors,
 }: AcceptConsentPolicyRuleProps): React.ReactNode => {
+  const { t } = useTranslation();
   const uniqueId = useId();
 
   const [policyError, setPolicyError] = useState<PolicyError>({
@@ -48,7 +50,9 @@ const AcceptConsentPolicyRule = ({
       setPolicyError={setPolicyError}
     >
       <div className={classes.consentRuleCard}>
-        <StudioHeading size='xs'>Hvem skal ha rettighet til å godkjenne samtykke?</StudioHeading>
+        <StudioHeading size='xs'>
+          {t('policy_editor.consent_resource_consent_header')}
+        </StudioHeading>
         <PolicySubjects />
         <PolicyAccessPackages />
         {showErrors && <PolicyRuleErrorMessage />}
@@ -63,6 +67,7 @@ type RequestConsentPolicyRuleProps = {
   policyRule: PolicyRuleCard;
 };
 const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps) => {
+  const { t } = useTranslation();
   const { policyRules, subjects, setPolicyRules, savePolicy } = usePolicyEditorContext();
 
   const handleAccessListsChange = (newSubjects: string[]): void => {
@@ -90,16 +95,18 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
       <StudioRadio.Group
         onChange={handleRequestConsentRadioChange}
         value={isAllOrganizationsChecked ? ALL_ORGANIZATIONS : CHOSEN_ORGANIZATIONS}
-        legend='Hvem skal ha rettighet til å be om samtykke?'
+        legend={t('policy_editor.consent_resource_request_consent_header')}
       >
-        <StudioRadio value={ALL_ORGANIZATIONS}>Alle organisasjoner</StudioRadio>
+        <StudioRadio value={ALL_ORGANIZATIONS}>
+          {t('policy_editor.consent_resource_all_organizations')}
+        </StudioRadio>
         <StudioRadio value={CHOSEN_ORGANIZATIONS}>
-          Utvalgte organisasjoner i tilgangslister
+          {t('policy_editor.consent_resource_access_list_organizations')}
         </StudioRadio>
       </StudioRadio.Group>
       {!isAllOrganizationsChecked && (
         <StudioCheckbox.Group
-          legend={'Organisasjoner i valgte tilgangslister kan be om samtykke'}
+          legend={t('policy_editor.consent_resource_access_list_header')}
           onChange={handleAccessListsChange}
           value={policyRule.subject}
           className={classes.accessLists}
