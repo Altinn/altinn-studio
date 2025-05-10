@@ -5,15 +5,10 @@ import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';
 import { useTranslation } from 'react-i18next';
 import { EyeClosedIcon, EyeIcon } from '@studio/icons';
-
-export type TaskInfo = {
-  taskType: string;
-  taskName: string;
-  numberOfPages: number;
-};
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 export type TasksTableProps = {
-  tasks?: TaskInfo[];
+  tasks?: TaskNavigationGroup[];
   isNavigationMode?: boolean;
   onSelectTask: (index: number) => void;
   onSelectAllTasks: () => void;
