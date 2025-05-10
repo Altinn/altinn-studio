@@ -1,13 +1,13 @@
 import React, { type ReactElement } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { StudioButton, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { StudioAlert } from '@studio/components-legacy';
-import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { getTaskIcon, taskNavigationType } from '../Settings/SettingsUtils';
 import { useTaskNames } from '@altinn/ux-editor/hooks/useTaskNames';
+import { TaskAction } from './TaskAction';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -82,13 +82,7 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
       )}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
-        <StudioButton
-          variant='tertiary'
-          icon={isNavigationMode ? <MenuElipsisVerticalIcon /> : <EyeClosedIcon />}
-          onClick={() => onSelectTask(index)}
-        >
-          {!isNavigationMode && t('ux_editor.task_table_display')}
-        </StudioButton>
+        <TaskAction isNavigationMode={isNavigationMode} onSelectTask={onSelectTask} index={index} />
       </StudioTable.Cell>
     </StudioTable.Row>
   );
