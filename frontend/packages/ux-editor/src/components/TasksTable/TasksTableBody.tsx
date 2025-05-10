@@ -6,10 +6,8 @@ import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon, getTaskName, taskNavigationType } from '../Settings/SettingsUtils';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
+import { getTaskIcon, taskNavigationType } from '../Settings/SettingsUtils';
+import { useTaskNames } from '@altinn/ux-editor/hooks/useTaskNames';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -63,11 +61,9 @@ type TaskRowProps = {
 
 const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
   const TaskIcon = getTaskIcon(task.taskType);
   const taskType = taskNavigationType(task.taskType);
-  const taskName = useTextResourceValue(task?.name) ?? getTaskName(task, layoutSetsModel);
+  const { taskNavigationName, taskIdName } = useTaskNames(task);
 
   return (
     <StudioTable.Row
@@ -75,19 +71,24 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
     >
       <StudioTable.Cell>
         <div className={classes.taskTypeCellContent}>
-          <TaskIcon />
-          {t(taskType)}
+          <TaskIcon className={classes.taskIcon} />
+          <span className={classes.taskType} title={taskIdName}>
+            {t(taskType)}: {taskIdName}
+          </span>
         </div>
       </StudioTable.Cell>
-      <StudioTable.Cell>{t(taskName)}</StudioTable.Cell>
+      {isNavigationMode && (
+        <StudioTable.Cell title={t(taskNavigationName)}>{t(taskNavigationName)}</StudioTable.Cell>
+      )}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
         <StudioButton
           variant='tertiary'
           icon={isNavigationMode ? <MenuElipsisVerticalIcon /> : <EyeClosedIcon />}
-          title={isNavigationMode ? undefined : t('ux_editor.task_table_display')}
           onClick={() => onSelectTask(index)}
-        />
+        >
+          {!isNavigationMode && t('ux_editor.task_table_display')}
+        </StudioButton>
       </StudioTable.Cell>
     </StudioTable.Row>
   );

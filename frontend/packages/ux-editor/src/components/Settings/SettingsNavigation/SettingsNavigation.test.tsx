@@ -4,6 +4,10 @@ import { SettingsNavigation } from './SettingsNavigation';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSetsExtendedMock, layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
 jest.mock('app-shared/hooks/queries/useTaskNavigationGroupQuery', () => ({
   useTaskNavigationGroupQuery: jest.fn(),
@@ -11,12 +15,8 @@ jest.mock('app-shared/hooks/queries/useTaskNavigationGroupQuery', () => ({
 
 const defaultData = [
   {
-    taskId: '1',
+    taskId: 'Task_1',
     taskType: 'data',
-  },
-  {
-    taskId: '2',
-    taskType: 'receipt',
   },
 ];
 
@@ -39,12 +39,11 @@ describe('SettingsNavigation', () => {
       data: defaultData,
     });
 
-    renderSettingsNavigation();
-
-    const dataTask = screen.getByText(textMock('ux_editor.task_table_type.data'));
+    await renderSettingsNavigation();
+    const dataTask = screen.getByText(
+      `${textMock('ux_editor.task_table_type.data')}: ${layoutSet1NameMock}`,
+    );
     expect(dataTask).toBeInTheDocument();
-    const receiptTask = screen.getAllByText(textMock('ux_editor.task_table_type.receipt'))[0];
-    expect(receiptTask).toBeInTheDocument();
   });
 
   it('should display a info message if there are no navigation tasks', () => {
@@ -58,6 +57,9 @@ describe('SettingsNavigation', () => {
   });
 });
 
-const renderSettingsNavigation = () => {
-  return renderWithProviders(<SettingsNavigation />);
+const renderSettingsNavigation = async () => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+
+  return renderWithProviders(<SettingsNavigation />, { queryClient });
 };

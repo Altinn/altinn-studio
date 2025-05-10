@@ -10,11 +10,18 @@
   border: none;
 }
 
-.taskRow td:nth-child(2) {
-  width: 35%;
+.taskRow td:nth-child(-n + 2) {
+  max-width: 200px;
 }
 
-.taskRow td:nth-child(4) {
+.taskRow td:nth-child(2),
+.taskType {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.taskRow td:last-child {
   width: 1px;
   white-space: nowrap;
 }
@@ -24,7 +31,7 @@
   padding-bottom: 0;
 }
 
-.hiddenTaskRow td:nth-child(-n + 3) {
+.hiddenTaskRow td:nth-child(-n + 2) {
   opacity: 0.5;
 }
 
@@ -33,6 +40,9 @@
   align-items: center;
   height: 100%;
   gap: var(--fds-spacing-1);
+}
+.taskIcon {
+  flex-shrink: 0;
 }
 
 .taskTypeCellContent svg {
