@@ -12,6 +12,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+
+jest.mock('../../hooks', () => ({ useAppContext: jest.fn() }));
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -33,6 +36,14 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageGroupAccordion', () => {
+  beforeEach(() => {
+    (useAppContext as jest.Mock).mockReturnValue({
+      selectedFormLayoutSetName: layoutSetName,
+      setSelectedGroupName: jest.fn(),
+      selectedGroupName: 'Group 1',
+    });
+  });
+
   it('should disable move-up for first group, and move-down for last group', async () => {
     await renderPageGroupAccordion({});
     expect(moveGroupUpButton(0)).toBeDisabled();

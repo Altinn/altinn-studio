@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useRef } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
-import { StudioSectionHeader } from '@studio/components-legacy';
+import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
@@ -18,9 +18,16 @@ import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
 import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const PageConfigPanel = () => {
-  const { selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutName, selectedFormLayoutSetName, selectedGroupName } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const hasGroups = pagesModel?.groups?.length > 0;
+
   const t = useText();
   const modalRef = useRef<HTMLDialogElement>(null);
   const layoutIsSelected =
@@ -55,15 +62,26 @@ export const PageConfigPanel = () => {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
   }
 
+  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
+  const headerText =
+    isTaskNavigationPageGroups && hasGroups
+      ? (selectedGroupName ?? t('right_menu.content_group_empty'))
+      : headingTitle;
+
   return (
     <>
       <StudioSectionHeader
         icon={<FileIcon />}
         heading={{
-          text: headingTitle,
+          text: headerText,
           level: 2,
         }}
       />
+      {hasGroups && (
+        <StudioAlert severity='info' className={classes.configPanel}>
+          {t('right_menu.content_group_message')}
+        </StudioAlert>
+      )}
       {layoutIsSelected && (
         <Fragment key={selectedFormLayoutName}>
           <EditPageId layoutName={selectedFormLayoutName} />

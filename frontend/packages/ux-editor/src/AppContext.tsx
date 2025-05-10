@@ -1,5 +1,5 @@
 import type { MutableRefObject, ReactElement, ReactNode } from 'react';
-import React, { createContext, useCallback, useMemo, useRef } from 'react';
+import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
@@ -27,6 +27,8 @@ export interface AppContextProps {
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
+  selectedGroupName: string | null;
+  setSelectedGroupName: (groupName: string | null) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -45,7 +47,7 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-
+  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(null);
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
 
@@ -116,6 +118,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
+      selectedGroupName,
+      setSelectedGroupName,
     }),
     [
       selectedFormLayoutSetName,
@@ -130,6 +134,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
+      selectedGroupName,
+      setSelectedGroupName,
     ],
   );
 

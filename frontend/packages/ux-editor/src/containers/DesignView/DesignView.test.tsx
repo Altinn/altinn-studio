@@ -23,6 +23,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
+import { AppContext } from '@altinn/ux-editor/AppContext';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn(),
@@ -289,10 +290,17 @@ const renderDesignView = (
     layoutSettings,
   );
 
+  const appContextWithGroupsMock = {
+    ...appContextMock,
+    setSelectedGroupName: jest.fn(),
+  };
+
   return renderWithProviders(
     <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
-        <DesignView />
+        <AppContext.Provider value={appContextWithGroupsMock}>
+          <DesignView />
+        </AppContext.Provider>
       </FormItemContextProvider>
     </StudioDragAndDrop.Provider>,
     {
