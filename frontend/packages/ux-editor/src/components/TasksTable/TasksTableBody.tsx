@@ -1,15 +1,18 @@
 import React, { type ReactElement } from 'react';
-import type { TaskInfo } from './TasksTable';
-import { StudioButton, StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import { StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
 import { StudioAlert } from '@studio/components-legacy';
-import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon } from '../Settings/SettingsUtils';
+import { getTaskIcon, getTaskName, taskNavigationType } from '../Settings/SettingsUtils';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
+import { TaskAction } from './TaskAction';
 
 export type TasksTableBodyProps = {
-  tasks: TaskInfo[];
+  tasks: TaskNavigationGroup[];
   isNavigationMode: boolean;
   onSelectTask: (index: number) => void;
 };
@@ -38,30 +41,49 @@ export const TasksTableBody = ({
   }
 
   return tasks.map((task, index) => {
-    const TaskIcon = getTaskIcon(task.taskType);
     const uniqueKey = `${task.taskType}-${index}-${isNavigationMode ? 'navigation' : 'hidden'}`;
     return (
-      <StudioTable.Row
+      <TaskRow
         key={uniqueKey}
-        className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
-      >
-        <StudioTable.Cell>
-          <div className={classes.taskTypeCellContent}>
-            <TaskIcon />
-            {task.taskType}
-          </div>
-        </StudioTable.Cell>
-        <StudioTable.Cell>{task.taskName}</StudioTable.Cell>
-        <StudioTable.Cell>{task.numberOfPages}</StudioTable.Cell>
-        <StudioTable.Cell>
-          <StudioButton
-            variant='tertiary'
-            icon={isNavigationMode ? <MenuElipsisVerticalIcon /> : <EyeClosedIcon />}
-            title={isNavigationMode ? undefined : t('ux_editor.task_table_display')}
-            onClick={() => onSelectTask(index)}
-          />
-        </StudioTable.Cell>
-      </StudioTable.Row>
+        task={task}
+        index={index}
+        isNavigationMode={isNavigationMode}
+        onSelectTask={onSelectTask}
+      />
     );
   });
+};
+
+type TaskRowProps = {
+  task: TaskNavigationGroup;
+  index: number;
+  isNavigationMode: boolean;
+  onSelectTask: (index: number) => void;
+};
+
+const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
+  const TaskIcon = getTaskIcon(task.taskType);
+  const taskType = taskNavigationType(task.taskType);
+  const taskName = useTextResourceValue(task?.name) ?? getTaskName(task, layoutSetsModel);
+
+  return (
+    <StudioTable.Row
+      className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
+    >
+      <StudioTable.Cell>
+        <div className={classes.taskTypeCellContent}>
+          <TaskIcon />
+          {t(taskType)}
+        </div>
+      </StudioTable.Cell>
+      <StudioTable.Cell>{t(taskName)}</StudioTable.Cell>
+      <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
+      <StudioTable.Cell>
+        <TaskAction isNavigationMode={isNavigationMode} onSelectTask={onSelectTask} index={index} />
+      </StudioTable.Cell>
+    </StudioTable.Row>
+  );
 };

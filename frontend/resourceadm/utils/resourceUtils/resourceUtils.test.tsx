@@ -6,6 +6,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   validateResource,
   getMigrationErrorMessage,
+  getAvailableEnvironments,
 } from './';
 import type { EnvId } from './resourceUtils';
 import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
@@ -261,5 +262,41 @@ describe('getMigrationErrorMessage', () => {
   it('returns error when resource is not published', () => {
     const error = getMigrationErrorMessage(null, null, false);
     expect(error.errorMessage).toEqual('resourceadm.migration_not_published');
+  });
+});
+
+describe('getAvailableEnvironments', () => {
+  it('returns default environment list for org nav', () => {
+    const environments = getAvailableEnvironments('nav');
+    expect(environments.map(({ id }) => id)).toEqual(['tt02', 'prod']);
+  });
+
+  it('returns all environments for org ttd', () => {
+    const environments = getAvailableEnvironments('ttd');
+    expect(environments.map(({ id }) => id)).toEqual([
+      'tt02',
+      'prod',
+      'yt01',
+      'at22',
+      'at23',
+      'at24',
+    ]);
+  });
+
+  it('returns all environments for org digdir', () => {
+    const environments = getAvailableEnvironments('digdir');
+    expect(environments.map(({ id }) => id)).toEqual([
+      'tt02',
+      'prod',
+      'yt01',
+      'at22',
+      'at23',
+      'at24',
+    ]);
+  });
+
+  it('returns default environment list + yt01 for org skd', () => {
+    const environments = getAvailableEnvironments('skd');
+    expect(environments.map(({ id }) => id)).toEqual(['tt02', 'prod', 'yt01']);
   });
 });

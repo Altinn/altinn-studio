@@ -7,13 +7,12 @@ import {
   FolderIcon,
 } from '@studio/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
-export const taskNavigationType = (taskType: string) => {
-  if (taskType === 'receipt') {
-    return 'process_editor.configuration_panel_custom_receipt_accordion_header';
-  } else {
-    return `process_editor.task_type.${taskType}`;
-  }
+export const taskNavigationType = (taskType?: string) => {
+  if (!taskType) return 'ux_editor.task_table_type.unknown';
+  return `ux_editor.task_table_type.${taskType}`;
 };
 
 export enum TaskType {
@@ -42,5 +41,20 @@ export const getTaskIcon = (taskType: string) => {
 };
 
 export const isTaskReceipt = (taskType: string) => {
-  return taskType === 'receipt' || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
+  return taskType === TaskType.Receipt || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
+};
+
+export const getTaskName = (task: TaskNavigationGroup, layoutSetsModel: LayoutSetsModel) => {
+  if (task?.name) {
+    return task.name;
+  }
+
+  if (task.taskType === TaskType.Receipt) {
+    return 'ux_editor.task_table_type.receipt';
+  }
+
+  const matchingTask = layoutSetsModel?.sets.find(
+    (layoutSet) => layoutSet.task?.id === task.taskId,
+  );
+  return matchingTask?.id ?? '-';
 };

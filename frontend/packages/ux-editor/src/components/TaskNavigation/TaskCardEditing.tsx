@@ -48,6 +48,11 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
   const pendingMutation = updateProcessDataTypePending || mutateLayoutSetIdPending;
   const disableSaveButton = !fieldChanged || Boolean(idValidationError) || pendingMutation;
 
+  const taskNameFieldLabel =
+    layoutSetModel.type === 'subform'
+      ? t('ux_editor.task_card.subform_name_label')
+      : t('ux_editor.task_card.task_name_label');
+
   const onSettled = () => {
     if (!pendingMutation) onClose();
   };
@@ -80,7 +85,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
     <StudioCard className={classes.editCard}>
       <StudioParagraph size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
-        label={t('ux_editor.component_properties.layoutSet')}
+        label={taskNameFieldLabel}
         value={id}
         error={idValidationError}
         onKeyUp={(event) => {
@@ -95,7 +100,9 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value=''>{t('ux_editor.task_card.no_datamodel')}</option>
+        <option value='' disabled>
+          {t('ux_editor.task_card.choose_datamodel')}
+        </option>
         {layoutSetModel.dataType && (
           <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
         )}
