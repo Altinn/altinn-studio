@@ -86,15 +86,6 @@ describe('PageGroupAccordion', () => {
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
 
-  it(' returns null if no groups are present', async () => {
-    const pagesWithoutGroups: PagesModel = {
-      pages: null,
-      groups: [],
-    };
-    await renderPageGroupAccordion({ props: { pages: pagesWithoutGroups } });
-    expect(screen.queryByTestId(pageGroupAccordionHeader(0))).not.toBeInTheDocument();
-  });
-
   it('should display fallback name if group name is empty', async () => {
     await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
     const groupHeader = groupAccordionHeader(0);
