@@ -54,8 +54,6 @@ export const PageGroupAccordion = ({
     selectedFormLayoutSetName,
   );
 
-  if (!pages?.groups) return null;
-
   const moveGroupUp = (groupIndex: number) => {
     const newGroups = [...pages.groups];
     const moveGroup = newGroups.splice(groupIndex, 1);
