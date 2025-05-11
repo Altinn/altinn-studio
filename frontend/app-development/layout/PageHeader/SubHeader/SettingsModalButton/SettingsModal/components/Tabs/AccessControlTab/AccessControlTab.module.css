@@ -3,6 +3,10 @@
   gap: var(--fds-spacing-2);
 }
 
+.helpText {
+  margin-bottom: var(--fds-spacing-6);
+}
+
 .docsLinkText {
   margin-top: var(--fds-spacing-10);
   display: flex;

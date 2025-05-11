@@ -1,5 +1,4 @@
 .container {
-  align-items: center;
   display: flex;
   justify-content: space-between;
   min-height: var(--fds-spacing-12);
