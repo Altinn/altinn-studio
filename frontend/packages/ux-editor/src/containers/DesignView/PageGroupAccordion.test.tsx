@@ -30,6 +30,20 @@ const pagesMock: PagesModel = {
   ],
 };
 
+const pagesMockWithUnnamedGroup: PagesModel = {
+  pages: null,
+  groups: [
+    {
+      name: '',
+      order: [{ id: 'Side 1' }],
+    },
+    {
+      name: 'Group 2',
+      order: [{ id: 'Side 2' }],
+    },
+  ],
+};
+
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -70,6 +84,37 @@ describe('PageGroupAccordion', () => {
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
+  });
+
+  it(' returns null if no groups are present', async () => {
+    const pagesWithoutGroups: PagesModel = {
+      pages: null,
+      groups: [],
+    };
+    await renderPageGroupAccordion({ props: { pages: pagesWithoutGroups } });
+    expect(screen.queryByTestId(pageGroupAccordionHeader(0))).not.toBeInTheDocument();
+  });
+
+  it('should display fallback name if group name is empty', async () => {
+    await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toBeInTheDocument();
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent(`${textMock('general.layout_set')} 1`);
+  });
+
+  it('should mark group as selected when selectedGroupName matches fallback name', async () => {
+    const fallbackName = `${textMock('general.layout_set')} 1`;
+    (useAppContext as jest.Mock).mockReturnValue({
+      selectedFormLayoutSetName: layoutSetName,
+      setSelectedGroupName: jest.fn(),
+      selectedGroupName: fallbackName,
+    });
+    await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toHaveClass('selected');
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent(fallbackName);
   });
 });
 
