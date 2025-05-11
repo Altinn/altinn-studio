@@ -21,4 +21,6 @@ export const appContextMock: AppContextProps = {
   shouldReloadPreview: false,
   previewHasLoaded: jest.fn(),
   onLayoutSetNameChange: jest.fn(),
+  selectedGroupName: '',
+  setSelectedGroupName: jest.fn(),
 };
