@@ -18,6 +18,18 @@ jest.mock('../../../utils/formLayoutUtils', () => ({
   findLayoutsContainingDuplicateComponents: jest.fn(),
 }));
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn(),
+  FeatureFlag: {
+    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
+  },
+}));
+
+const setupFeatureFlag = (enabled: boolean) => {
+  const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
+  shouldDisplayFeature.mockReturnValue(enabled);
+};
+
 // Test data
 const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
@@ -118,11 +130,50 @@ describe('PageConfigPanel', () => {
       expect(modal).toBeInTheDocument();
     });
   });
+
+  describe('dispay not selected group message when TaskNavigationPageGroups feature is enabled and groups exist', () => {
+    beforeEach(() => {
+      setupFeatureFlag(true);
+      queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
+        groups: ['group1', 'group2'],
+      });
+    });
+
+    it('renders selectedGroupName as heading when selectedGroupName is defined', () => {
+      const selectedGroupName = 'myGroup';
+      renderPageConfigPanel(layout1NameMock, defaultTexts, { selectedGroupName });
+      screen.getByRole('heading', { name: selectedGroupName });
+    });
+
+    it('renders content_group_empty message as heading when selectedGroupName is undefined', () => {
+      renderPageConfigPanel(layout1NameMock, defaultTexts, { selectedGroupName: undefined });
+      screen.getByRole('heading', { name: textMock('right_menu.content_group_empty') });
+    });
+  });
+
+  it('renders StudioAlert with content_group_message when groups exist', () => {
+    queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
+      groups: ['group1', 'group2'],
+    });
+    renderPageConfigPanel(layout1NameMock, defaultTexts);
+    const alert = screen.getByText(textMock('right_menu.content_group_message'));
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('does not render StudioAlert when no groups exist', () => {
+    queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
+      groups: [],
+    });
+    renderPageConfigPanel(layout1NameMock, defaultTexts);
+    const alert = screen.queryByRole('alert');
+    expect(alert).not.toBeInTheDocument();
+  });
 });
 
 const renderPageConfigPanel = (
   selectedLayoutName: string = DEFAULT_SELECTED_LAYOUT_NAME,
   textResources = defaultTexts,
+  appContextProps = { selectedGroupName: undefined },
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
@@ -136,6 +187,10 @@ const renderPageConfigPanel = (
   );
 
   return renderWithProviders(<PageConfigPanel />, {
-    appContextProps: { selectedFormLayoutName: selectedLayoutName },
+    appContextProps: {
+      selectedFormLayoutName: selectedLayoutName,
+      selectedFormLayoutSetName: layoutSet,
+      ...appContextProps,
+    },
   });
 };
