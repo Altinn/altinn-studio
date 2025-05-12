@@ -9,7 +9,7 @@ import { DataModelMainConfig } from './DataModelMainConfig';
 import { component1Mock } from '@altinn/ux-editor/testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { dataModelMetadataResponseMock } from '@altinn/ux-editor/testing/dataModelMock';
-import { FormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
+import { FormItemContext } from '../../../../containers/FormDesigner/FormItemContext';
 import { formItemContextProviderMock } from '@altinn/ux-editor/testing/formItemContextMocks';
 
 const mockHandleComponentUpdate = jest.fn();
