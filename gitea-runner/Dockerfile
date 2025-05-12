@@ -19,5 +19,4 @@ COPY ./run.sh /usr/local/bin/run.sh
 COPY --from=renovate /usr/local/bin/renovate /usr/local/bin/renovate
 COPY --from=renovate /opt/containerbase /opt/containerbase
 
-
 ENTRYPOINT ["/usr/bin/tini","--","/usr/local/bin/run.sh"]
