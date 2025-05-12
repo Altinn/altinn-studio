@@ -422,7 +422,7 @@ export const validateResource = (
       resourceData.consentMetadata,
       resourceData.consentText,
     );
-    const errorLanguages = [];
+    const errorLanguages: string[] = [];
     Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
       if (unknowMetadataValues[language].length) {
         errors.push({

@@ -8,8 +8,14 @@ import {
   getMigrationErrorMessage,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type {
+  Resource,
+  ResourceError,
+  ResourceFormError,
+  SupportedLanguage,
+} from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -217,6 +223,133 @@ describe('deepCompare', () => {
       };
       const validationErrors = validateResource(resource, () => 'test');
       expect(validationErrors.length).toBe(16);
+    });
+
+    describe('should return error for consentText field', () => {
+      const hasConsentFieldError = (
+        errors: ResourceFormError[],
+        index: string,
+        expectedErrorText: string,
+      ) => {
+        return errors.some((validationError) => {
+          return (
+            validationError.field === 'consentText' &&
+            validationError.index === index &&
+            validationError.error === expectedErrorText
+          );
+        });
+      };
+
+      it('should return error for nb consentText field', () => {
+        const resource: Resource = {
+          identifier: 'res',
+          resourceType: 'Consentresource',
+          title: null,
+          consentMetadata: {
+            org: { optional: false },
+          },
+          consentText: {
+            nb: 'test {year}',
+            nn: 'test',
+            en: 'test',
+          },
+          contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
+        };
+        const validationErrors = validateResource(resource, textMock);
+
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nb',
+            textMock('resourceadm.about_resource_error_unknown_metadata_language', {
+              unknownMetadataValues: 'year',
+            }),
+          ),
+        ).toBeTruthy();
+      });
+
+      it('should return error for nn consentText field', () => {
+        const resource: Resource = {
+          identifier: 'res',
+          resourceType: 'Consentresource',
+          title: null,
+          consentMetadata: {
+            org: { optional: false },
+          },
+          consentText: {
+            nb: 'test',
+            nn: 'test {year}',
+            en: 'test',
+          },
+          contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
+        };
+        const validationErrors = validateResource(resource, textMock);
+
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nn',
+            textMock('resourceadm.about_resource_error_unknown_metadata_language', {
+              unknownMetadataValues: 'year',
+            }),
+          ),
+        ).toBeTruthy();
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nb',
+            textMock('resourceadm.about_resource_error_unknown_metadata', {
+              lang1: textMock('language.nn'),
+            }),
+          ),
+        ).toBeTruthy();
+      });
+
+      it('should return errors for nn and en consentText field', () => {
+        const resource: Resource = {
+          identifier: 'res',
+          resourceType: 'Consentresource',
+          title: null,
+          consentMetadata: {
+            org: { optional: false },
+          },
+          consentText: {
+            nb: 'test',
+            nn: 'test {year}',
+            en: 'test {year}',
+          },
+          contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
+        };
+        const validationErrors = validateResource(resource, textMock);
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nn',
+            textMock('resourceadm.about_resource_error_unknown_metadata_language', {
+              unknownMetadataValues: 'year',
+            }),
+          ),
+        ).toBeTruthy();
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'en',
+            textMock('resourceadm.about_resource_error_unknown_metadata_language', {
+              unknownMetadataValues: 'year',
+            }),
+          ),
+        ).toBeTruthy();
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nb',
+            textMock('resourceadm.about_resource_error_unknown_metadata_multiple', {
+              lang1: textMock('language.nn'),
+              lang2: textMock('language.en'),
+            }),
+          ),
+        ).toBeTruthy();
+      });
     });
 
     it('should show empty errors for contactPoints and resourceReferences', () => {
