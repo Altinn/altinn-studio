@@ -22,3 +22,4 @@ export { StudioSpinner } from './StudioSpinner';
 export { StudioTextfield } from './StudioTextfield';
 export { StudioContentMenu } from './StudioContentMenu';
 export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
+export { StudioCheckbox } from './StudioCheckbox';
