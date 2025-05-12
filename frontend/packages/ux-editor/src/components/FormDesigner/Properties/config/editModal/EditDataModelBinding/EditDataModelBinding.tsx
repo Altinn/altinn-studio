@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
-import { convertDataBindingToInternalFormat } from '../../../../utils/dataModelUtils';
+import { convertDataBindingToInternalFormat } from '../../../../../../utils/dataModelUtils';
 
 export interface EditDataModelBindingProps<T extends ComponentType>
   extends IGenericEditComponent<T> {

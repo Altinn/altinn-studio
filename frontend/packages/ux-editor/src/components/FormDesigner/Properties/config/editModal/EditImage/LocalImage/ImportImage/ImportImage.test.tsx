@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from '../../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ImportImage } from './ImportImage';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -9,8 +9,8 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor/components/config/editModal/EditImage/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { MAX_FILE_SIZE_MB } from '../../constants';
 
 const onImageChangeMock = jest.fn();
 

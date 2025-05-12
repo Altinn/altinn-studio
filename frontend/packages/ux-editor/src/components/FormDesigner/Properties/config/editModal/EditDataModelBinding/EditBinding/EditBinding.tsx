@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FormItem } from '../../../../../types/FormItem';
+
 import classes from './EditBinding.module.css';
 import { Fieldset } from '@digdir/designsystemet-react';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
@@ -10,13 +10,14 @@ import {
   getXsdDataTypeFromDataModelFields,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
-import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import { StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormDesigner/FormItemContext';
 
 export type EditBindingProps = {
   bindingKey: string;

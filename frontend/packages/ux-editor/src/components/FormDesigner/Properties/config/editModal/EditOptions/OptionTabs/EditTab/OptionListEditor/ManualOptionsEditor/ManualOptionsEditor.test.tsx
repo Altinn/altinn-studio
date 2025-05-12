@@ -2,10 +2,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { componentMocks } from '../../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -13,6 +11,8 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ITextResources } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { renderWithProviders } from 'dashboard/testing/mocks';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];

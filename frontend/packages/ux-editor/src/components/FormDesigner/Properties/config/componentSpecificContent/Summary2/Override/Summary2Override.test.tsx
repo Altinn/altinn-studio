@@ -14,10 +14,13 @@ import {
   layoutMock,
   container2IdMock,
   subformComponentMock,
-} from '../../../../../testing/layoutMock';
+} from '../../../../../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { layoutSet1NameMock, layoutSetsExtendedMock } from '../../../../../testing/layoutSetsMock';
-import { renderWithProviders } from '../../../../../testing/mocks';
+import {
+  layoutSet1NameMock,
+  layoutSetsExtendedMock,
+} from '../../../../../../../testing/layoutSetsMock';
+import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type {
   OverrideDisplay,
   OverrideDisplayType,

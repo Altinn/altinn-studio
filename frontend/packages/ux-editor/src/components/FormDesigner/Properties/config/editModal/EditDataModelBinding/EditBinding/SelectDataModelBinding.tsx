@@ -4,10 +4,10 @@ import { FormField } from 'app-shared/components/FormField';
 import { StudioNativeSelect } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../../hooks';
-import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
-import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useGetBindableDataTypes } from '@altinn/ux-editor/hooks/useGetBindableDataTypes';
+import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 
 type SelectDataModelProps = {
   currentDataModel: string;

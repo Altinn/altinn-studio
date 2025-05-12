@@ -3,11 +3,11 @@ import { screen } from '@testing-library/react';
 import type { LocalImageProps } from './LocalImage';
 import { LocalImage } from './LocalImage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../testing/mocks';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 describe('LocalImage', () => {
   it('renders buttons for adding from library and uploading by default', () => {

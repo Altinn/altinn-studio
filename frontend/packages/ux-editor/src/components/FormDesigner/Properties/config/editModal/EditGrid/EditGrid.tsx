@@ -9,7 +9,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
-import type { FormItem } from '../../../../types/FormItem';
+import type { FormItem } from '../../../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
 const setGridOnComponent = <T extends ComponentType>(

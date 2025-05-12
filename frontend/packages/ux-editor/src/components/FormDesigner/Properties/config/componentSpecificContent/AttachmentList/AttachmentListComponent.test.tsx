@@ -1,7 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
+import type { FormAttachmentListComponent } from '../../../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { renderWithProviders } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';

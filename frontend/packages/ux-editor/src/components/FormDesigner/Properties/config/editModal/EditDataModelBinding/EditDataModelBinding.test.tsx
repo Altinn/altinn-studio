@@ -10,7 +10,7 @@ import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
+import { layoutSet1NameMock } from '../../../../../../testing/layoutSetsMock';
 
 const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {
   component: componentMocks[ComponentType.Input],

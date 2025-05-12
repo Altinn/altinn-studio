@@ -1,4 +1,4 @@
-import { componentMocks } from '../../../../testing/componentMocks';
+import { componentMocks } from '../../../../../../testing/componentMocks';
 import {
   extractFileNameFromImageSrc,
   updateComponentWithDeletedImageReference,

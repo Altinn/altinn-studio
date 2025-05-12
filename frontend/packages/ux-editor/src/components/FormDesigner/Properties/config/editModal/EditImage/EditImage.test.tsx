@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
-import type { FormItem } from '../../../../types/FormItem';
+import type { FormItem } from '../../../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '../../../../testing/componentMocks';
+import { componentMocks } from '../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../testing/mocks';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

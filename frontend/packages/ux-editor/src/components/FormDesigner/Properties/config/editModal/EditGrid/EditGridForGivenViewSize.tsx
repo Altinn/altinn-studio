@@ -1,5 +1,5 @@
 import React from 'react';
-import { useText } from '../../../../hooks';
+import { useText } from '../../../../../../hooks';
 import type { GridSize } from '@studio/components-legacy';
 import { StudioGridSelector } from '@studio/components-legacy';
 import { Paragraph, Switch } from '@digdir/designsystemet-react';

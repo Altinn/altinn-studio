@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import type { IGenericEditComponent } from '../../../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
@@ -18,6 +17,7 @@ import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import classes from './ManualOptionsEditor.module.css';
 import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
 
 export type ManualOptionsEditorProps = {
   handleDelete: () => void;

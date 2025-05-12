@@ -9,8 +9,8 @@ import { StudioNativeSelect } from '@studio/components-legacy';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
-import { useComponentPropertyHelpText } from '../../../../../hooks';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import { useComponentPropertyHelpText } from '@altinn/ux-editor/hooks';
 
 type SelectDataFieldProps = {
   internalBindingFormat: ExplicitDataModelBinding;

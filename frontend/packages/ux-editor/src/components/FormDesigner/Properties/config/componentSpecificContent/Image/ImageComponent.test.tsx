@@ -4,10 +4,10 @@ import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderHookWithProviders, renderWithProviders } from '../../../../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormImageComponent } from '../../../../types/FormComponent';
+import type { FormImageComponent } from '../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();

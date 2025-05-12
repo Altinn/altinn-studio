@@ -1,7 +1,7 @@
 import React from 'react';
-import { renderWithProviders } from '../../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { EmptyTextField } from './EmptyTextField';
-import { component1IdMock } from '../../../../../../testing/layoutMock';
+import { component1IdMock } from '../../../../../../../../testing/layoutMock';
 import { userEvent } from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';

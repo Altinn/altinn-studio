@@ -1,7 +1,7 @@
 import React from 'react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
-import { useText } from '../../../../hooks';
+import { useText } from '../../../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
