@@ -146,9 +146,6 @@ namespace LocalTest.Controllers
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
-            // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
-            await _applicationRepository.Update(app);
-
             if (_localPlatformSettings.LocalAppMode == "http")
             {
                 // Instantiate a prefill if a file attachment exists.

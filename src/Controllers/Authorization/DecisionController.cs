@@ -197,6 +197,7 @@ namespace Altinn.Platform.Authorization.Controllers
             XacmlJsonRequestRoot jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
+            _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
 
             return Ok(jsonResponse);
         }
@@ -210,6 +211,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             string xml = builder.ToString();
+            _logger.LogInformation($"Decision: {xacmlContextResponse}");
 
             return Content(xml);
         }

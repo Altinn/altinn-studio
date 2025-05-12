@@ -66,7 +66,6 @@ services:
       context: .
     environment:
       - DOTNET_ENVIRONMENT=Docker
-      - ASPNETCORE_URLS=http://*:5101/
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
       - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:

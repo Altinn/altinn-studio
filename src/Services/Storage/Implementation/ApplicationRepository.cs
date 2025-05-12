@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
-
+using LocalTest.Services.LocalApp.Interface;
 using Microsoft.Extensions.Options;
 
 namespace LocalTest.Services.Storage.Implementation
@@ -17,10 +17,12 @@ namespace LocalTest.Services.Storage.Implementation
     public class ApplicationRepository : IApplicationRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly ILocalApp _localApp;
 
-        public ApplicationRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public ApplicationRepository(IOptions<LocalPlatformSettings> localPlatformSettings, ILocalApp localApp)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _localApp = localApp;
         }
 
         public Task<Application> Create(Application item)
@@ -35,16 +37,11 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Application> FindOne(string appId, string org)
         {
-            var filename = GetApplicationsDirectory() + appId + ".json";
-            if (File.Exists(filename))
+            var applications = await _localApp.GetApplications();
+            if (applications.ContainsKey(appId))
             {
-                var application = JsonSerializer.Deserialize<Application>(await File.ReadAllTextAsync(filename));
-                if (application is not null)
-                {
-                    return application;
-                }
+                return applications[appId];
             }
-
             throw new Exception($"applicationmetadata for '{appId} not found'");
         }
 
@@ -55,13 +52,9 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<List<Application>> FindByOrg(string org)
         {
-            var apps = new List<Application>();
-            foreach (var app in Directory.GetFiles(GetApplicationsDirectory() + org))
-            {
-                apps.Add(JsonSerializer.Deserialize<Application>(await File.ReadAllTextAsync(app)));
-            }
+            var applications = await _localApp.GetApplications();
 
-            return apps;
+            return applications.Values.Where(a=>a.Org == org).ToList();
         }
 
         public async Task<Application> Update(Application item)
@@ -78,13 +71,8 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<List<Application>> FindAll()
         {
-            var apps = new List<Application>();
-            foreach (var org in (new DirectoryInfo(GetApplicationsDirectory()).GetDirectories()))
-            {
-                apps.AddRange(await FindByOrg(org.Name));
-            }
-
-            return apps;
+            var applications = await _localApp.GetApplications();
+            return applications.Values.ToList();
         }
 
         public Task<Dictionary<string, string>> GetAllAppTitles()

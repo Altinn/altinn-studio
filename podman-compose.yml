@@ -63,7 +63,6 @@ services:
       context: .
     environment:
       - DOTNET_ENVIRONMENT=Podman
-      - ASPNETCORE_URLS=http://*:5101/
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-8000}
       - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:

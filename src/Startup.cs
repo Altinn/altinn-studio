@@ -26,6 +26,7 @@ using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
+using LocalTest.Filters;
 using LocalTest.Helpers;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
@@ -204,6 +205,10 @@ namespace LocalTest
             }
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
+
+            services.AddHttpForwarder();
+
+            services.AddHealthChecks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -225,6 +230,9 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseHealthChecks("/health");
+            app.UseMiddleware<ProxyMiddleware>();
             
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
