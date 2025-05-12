@@ -32,6 +32,18 @@ describe('StudioCheckbox', () => {
   it('Appends the given class name to the root element', () => {
     testRootClassNameAppending((className) => renderCheckbox({ label, className }));
   });
+
+  it('Renders required text when provided', () => {
+    const requiredText: string = 'Required';
+    renderCheckbox({ label, required: true, requiredText });
+    expect(screen.getByText(requiredText)).toBeInTheDocument();
+  });
+
+  it('Does not use StudioLabelWrapper when aria-label is provided', () => {
+    const requiredText: string = 'Required';
+    renderCheckbox({ 'aria-label': label, requiredText });
+    expect(screen.queryByText(requiredText)).not.toBeInTheDocument();
+  });
 });
 
 function renderCheckbox(props: StudioCheckboxProps, ref?: Ref<HTMLInputElement>): RenderResult {

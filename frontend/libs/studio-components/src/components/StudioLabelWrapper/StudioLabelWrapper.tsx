@@ -3,11 +3,12 @@ import type { HTMLAttributes, ReactElement, ReactNode } from 'react';
 import classes from './StudioLabelWrapper.module.css';
 import { StudioTag } from '../StudioTag';
 
-type StudioLabelWrapperProps = {
+export type StudioLabelWrapperProps = {
   children: ReactNode;
   requiredText?: string;
   required?: boolean;
 };
+
 export function StudioLabelWrapper({
   children,
   requiredText,
