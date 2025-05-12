@@ -7,6 +7,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { SettingsTabId } from '../../types/SettingsTabId';
 
 describe('TabsContent', () => {
   afterEach(() => {
@@ -31,7 +33,7 @@ describe('TabsContent', () => {
 
   it('should render Access Control tab content when currentTab is "access_control"', () => {
     renderTabsContent({ currentTab: 'access_control' });
-    expect(screen.getByText('Access Control tab')).toBeInTheDocument();
+    expect(getHeading('access_control')).toBeInTheDocument();
   });
 
   it('should render Maskinporten tab when feature flag is enabled', () => {
@@ -51,10 +53,16 @@ const defaultProps: TabsContentProps = {
   currentTab: 'about',
 };
 
-const renderTabsContent = (props: TabsContentProps) => {
+const renderTabsContent = (props: Partial<TabsContentProps> = {}) => {
   const queryClient = createQueryClientMock();
   return renderWithProviders(
     queriesMock,
     queryClient,
   )(<TabsContent {...defaultProps} {...props} />);
 };
+
+const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
+  screen.getByRole('heading', {
+    name: textMock(`app_settings.${tabId}_tab_heading`),
+    level: 2,
+  });
