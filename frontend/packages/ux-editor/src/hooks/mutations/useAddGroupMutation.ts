@@ -44,7 +44,7 @@ const createNewGroup = (
   nextPageNumber: number,
   t: (key: string) => string,
 ): GroupModel => ({
-  name: `${t('general.layout_set')} ${(groups?.length || 0) + 1}`,
+  name: `${t('ux_editor.page_layout_group')} ${(groups?.length || 0) + 1}`,
   order: [{ id: `${t('general.page')}${nextPageNumber}` }],
 });
 
