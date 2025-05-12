@@ -1,28 +1,28 @@
 import React, { forwardRef } from 'react';
-import type { Ref, ReactElement } from 'react';
-import { Textfield } from '@digdir/designsystemet-react';
-import type { TextfieldProps } from '@digdir/designsystemet-react';
+import type { ReactElement, Ref } from 'react';
+import { Checkbox } from '@digdir/designsystemet-react';
+import type { CheckboxProps } from '@digdir/designsystemet-react';
 import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
-export type StudioTextfieldProps = TextfieldProps & {
+export type StudioCheckboxProps = CheckboxProps & {
   requiredText?: string;
 };
 
-function StudioTextfield(
-  { children, required, requiredText, label, ...rest }: StudioTextfieldProps,
+function StudioCheckbox(
+  { required, requiredText, label, ...rest }: StudioCheckboxProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
   // Designsystemet has conditional types, so if we extract label from props, we must
   // check if the usage has aria-labelledby or aria-label and if true not use the label.
   if (hasAriaLabelledBy(rest) || hasAriaLabel(rest)) {
-    return <Textfield ref={ref} {...rest} />;
+    return <Checkbox ref={ref} {...rest} />;
   }
 
   return (
-    <Textfield
-      ref={ref}
+    <Checkbox
       {...rest}
+      ref={ref}
       label={
         <StudioLabelWrapper required={required} requiredText={requiredText}>
           {label}
@@ -32,6 +32,6 @@ function StudioTextfield(
   );
 }
 
-const ForwardedStudioTextfield = forwardRef(StudioTextfield);
+const ForwardedStudioCheckbox = forwardRef(StudioCheckbox);
 
-export { ForwardedStudioTextfield as StudioTextfield };
+export { ForwardedStudioCheckbox as StudioCheckbox };
