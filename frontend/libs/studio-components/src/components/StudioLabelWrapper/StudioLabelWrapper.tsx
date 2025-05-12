@@ -9,6 +9,12 @@ export type StudioLabelWrapperProps = {
   required?: boolean;
 };
 
+/**
+ * If there are more than one input field on a page, and some of them are reqquired,
+ * Designsystemet recommends to use a tag on all fields to indicate clearly which
+ * fields are required or not.
+ * Read more here: https://www.designsystemet.no/monstre/obligatoriske-og-valgfrie-felt
+ */
 export function StudioLabelWrapper({
   children,
   requiredText,
