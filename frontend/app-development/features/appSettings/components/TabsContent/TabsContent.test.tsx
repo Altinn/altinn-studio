@@ -64,5 +64,5 @@ const renderTabsContent = (props: Partial<TabsContentProps> = {}) => {
 const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
   screen.getByRole('heading', {
     name: textMock(`app_settings.${tabId}_tab_heading`),
-    level: 2,
+    level: 3,
   });

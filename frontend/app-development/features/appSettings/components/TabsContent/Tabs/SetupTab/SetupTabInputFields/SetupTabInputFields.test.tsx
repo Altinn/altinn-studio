@@ -49,6 +49,10 @@ describe('SetupTabInputFields', () => {
     await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      autoDeleteOnProcessEnd: false,
+    });
   });
 
   it('loads the "messageBoxConfig.hideSettings.hideAlways" value correctly', () => {
@@ -69,6 +73,16 @@ describe('SetupTabInputFields', () => {
     await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      messageBoxConfig: {
+        ...mockAppMetadata.messageBoxConfig,
+        hideSettings: {
+          ...mockAppMetadata.messageBoxConfig?.hideSettings,
+          hideAlways: false,
+        },
+      },
+    });
   });
 
   it('loads the "copyInstanceSettings.enabled" value correctly', () => {
@@ -90,6 +104,13 @@ describe('SetupTabInputFields', () => {
     await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      copyInstanceSettings: {
+        ...mockAppMetadata.copyInstanceSettings,
+        enabled: false,
+      },
+    });
   });
 
   it('loads the "onEntry.show" value correctly', () => {
@@ -111,6 +132,13 @@ describe('SetupTabInputFields', () => {
     await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      onEntry: {
+        ...mockAppMetadata.onEntry,
+        show: undefined,
+      },
+    });
   });
 });
 

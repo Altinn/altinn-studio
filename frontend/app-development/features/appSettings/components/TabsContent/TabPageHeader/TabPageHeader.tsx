@@ -9,7 +9,7 @@ export type TabPageHeaderProps = {
 
 export function TabPageHeader({ text }: TabPageHeaderProps): ReactElement {
   return (
-    <StudioHeading level={2} className={classes.heading}>
+    <StudioHeading level={3} className={classes.heading}>
       {text}
     </StudioHeading>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReactElement } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SetupTabInputFields.module.css';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -17,24 +17,27 @@ export function SetupTabInputFields({ appMetadata }: SetupTabInputFieldsProps): 
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const handleSaveAutoDeleteOnProcessEnd = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveAutoDeleteOnProcessEnd = (e: ChangeEvent<HTMLInputElement>) => {
     updateAppMetadataMutation({
       ...appMetadata,
       autoDeleteOnProcessEnd: e.target.checked,
     });
   };
 
-  const handleSaveHideSettings = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveHideSettings = (e: ChangeEvent<HTMLInputElement>) => {
     updateAppMetadataMutation({
       ...appMetadata,
       messageBoxConfig: {
         ...appMetadata.messageBoxConfig,
-        hideSettings: { ...appMetadata.messageBoxConfig, hideAlways: e.target.checked },
+        hideSettings: {
+          ...appMetadata.messageBoxConfig?.hideSettings,
+          hideAlways: e.target.checked,
+        },
       },
     });
   };
 
-  const handleSaveEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveEnabled = (e: ChangeEvent<HTMLInputElement>) => {
     updateAppMetadataMutation({
       ...appMetadata,
       copyInstanceSettings: {
@@ -44,7 +47,7 @@ export function SetupTabInputFields({ appMetadata }: SetupTabInputFieldsProps): 
     });
   };
 
-  const handleSaveShow = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveShow = (e: ChangeEvent<HTMLInputElement>) => {
     updateAppMetadataMutation({
       ...appMetadata,
       onEntry: {
