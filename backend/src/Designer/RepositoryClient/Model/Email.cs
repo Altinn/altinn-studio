@@ -25,14 +25,14 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Email" /> class.
         /// </summary>
-        /// <param name="_Email">_Email.</param>
-        /// <param name="Primary">Primary.</param>
-        /// <param name="Verified">Verified.</param>
-        public Email(string _Email = default(string), bool? Primary = default(bool?), bool? Verified = default(bool?))
+        /// <param name="email">_Email.</param>
+        /// <param name="primary">Primary.</param>
+        /// <param name="verified">Verified.</param>
+        public Email(string email = default(string), bool? primary = default(bool?), bool? verified = default(bool?))
         {
-            this.EmailId = _Email;
-            this.Primary = Primary;
-            this.Verified = Verified;
+            this.EmailId = email;
+            this.Primary = primary;
+            this.Verified = verified;
         }
 
         /// <summary>

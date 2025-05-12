@@ -69,6 +69,7 @@ import {
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
   allAccessListsPath,
+  orgTextLanguagesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -110,6 +111,7 @@ import type { CodeListsResponse } from '../types/api/CodeListsResponse';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -118,6 +120,7 @@ export const getSelectedMaskinportenScopes = (org: string, app: String) => get<M
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
+export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
@@ -139,8 +142,6 @@ export const getOptionList = (owner: string, app: string, optionsListId: string)
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getAvailableResourcesFromOrg = (owner: string, contentType: LibraryContentType) => get<string[]>(availableResourcesInOrgLibraryPath(owner, contentType));
-
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
@@ -197,5 +198,6 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
-export const getCodeListsForOrg = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getTextResourcesForOrg = async (org: string, language: string): Promise<ITextResourcesWithLanguage> => get<ITextResourcesWithLanguage>(orgTextResourcesPath(org, language));
+export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
+export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));

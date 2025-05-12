@@ -29,18 +29,12 @@ export const isSaveButtonDisabled = ({
 export const RenderDataModelOptions = (dataModelIds?: string[]): React.ReactNode => {
   const { t } = useTranslation();
 
-  if (!dataModelIds?.length) {
-    return (
-      <option value=''>
-        {t('ux_editor.component_properties.subform.data_model_empty_message')}
-      </option>
-    );
-  }
-
   return (
     <>
-      <option value='' hidden />
-      {dataModelIds.map((dataModelId: string) => (
+      <option value='' disabled>
+        {t('ux_editor.task_card.select_data_model')}
+      </option>
+      {dataModelIds?.map((dataModelId: string) => (
         <option key={dataModelId} value={dataModelId}>
           {dataModelId}
         </option>

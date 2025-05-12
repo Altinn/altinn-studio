@@ -13,6 +13,6 @@ export {
   validateResource,
   getAltinn2Reference,
   getMigrationErrorMessage,
-  getConsentMetadataValues,
+  convertMetadataStringToConsentMetadata,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

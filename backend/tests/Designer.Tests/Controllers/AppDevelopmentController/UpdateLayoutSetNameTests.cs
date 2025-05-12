@@ -58,19 +58,19 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            const string existingLayoutSetName = "layoutSet2";
+            const string ExistingLayoutSetName = "layoutSet2";
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{oldLayoutSetName}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{existingLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{ExistingLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
-            Assert.Equal($"Layout set name, {existingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
+            Assert.Equal($"Layout set name, {ExistingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]

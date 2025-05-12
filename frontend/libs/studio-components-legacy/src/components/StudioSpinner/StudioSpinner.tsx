@@ -18,6 +18,9 @@ type SizeLimits = {
   lowerLimit: ParagraphSize;
 };
 
+/**
+ * @deprecated use `StudioSpinner` from `@studio/components` instead
+ */
 export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
   (
     { spinnerTitle, showSpinnerTitle = false, size = 'medium', variant = 'interaction', ...rest },

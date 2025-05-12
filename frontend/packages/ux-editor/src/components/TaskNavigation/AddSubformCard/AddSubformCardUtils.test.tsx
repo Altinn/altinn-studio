@@ -1,3 +1,4 @@
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { isSaveButtonDisabled, RenderDataModelOptions } from './AddSubformCardUtils';
 import { render, screen } from '@testing-library/react';
 
@@ -69,12 +70,11 @@ describe('isSaveButtonDisabled', () => {
 });
 
 describe('RenderDataModelOptions', () => {
-  it('should render empty message when dataModelIds is undefined', () => {
-    render(RenderDataModelOptions(undefined));
-
-    expect(screen.getByRole('option', { hidden: true })).toHaveTextContent(
-      'ux_editor.component_properties.subform.data_model_empty_message',
-    );
+  it('should render disabeled message "velg datamodelknytning" when dataModelIds is empty', () => {
+    render(RenderDataModelOptions([]));
+    expect(
+      screen.getByRole('option', { name: textMock('ux_editor.task_card.select_data_model') }),
+    ).toBeInTheDocument();
   });
 
   it('should render options when dataModelIds is provided', () => {

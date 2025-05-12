@@ -1,0 +1,40 @@
+name: Chore ✅
+description: Create a none user-story issue (chore, tech issue, backend issue)
+labels: ["kind/chore", "status/draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please make sure this chore hasn't been already submitted by someone by looking through other open/closed chore issues.
+          
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Give us a brief description of the work that needs to be done.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: Add more details as need like links, architecture sketches etc.
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Add tasks to be done as part of this issue.
+
+  - type: textarea
+    id: acceptance-criterias
+    attributes:
+      label: Acceptance Criterias
+      description: Define the acceptance criterias that this user story should testet against (if relevant).
+
+  - type: markdown
+    attributes:
+      value: |
+        * Check the [Definition of Ready](https://docs.altinn.studio/community/devops/definition-of-ready/) if you need hints on what to include.
+        * Remember to add the correct labels (status/*, team/*, org/*)

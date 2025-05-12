@@ -13,7 +13,6 @@ import type {
   ResourceReference,
   ResourceFormError,
   ConsentTemplate,
-  ConsentMetadata,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -21,7 +20,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
-  getConsentMetadataValues,
+  convertMetadataStringToConsentMetadata,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -34,7 +33,6 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
-import { ConsentMetadataField } from 'resourceadm/components/ResourcePageInputs/ConsentMetadataField';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type AboutResourcePageProps = {
@@ -188,41 +186,6 @@ export const AboutResourcePage = ({
         />
         {resourceData.resourceType === 'Consentresource' && (
           <>
-            <div>
-              <ResourceLanguageTextField
-                id='consentText'
-                label={t('resourceadm.about_resource_consent_text_label')}
-                description={t('resourceadm.about_resource_consent_text_text')}
-                translationDescription='Samtykketekst'
-                isTranslationPanelOpen={translationType === 'consentText'}
-                useTextArea
-                value={resourceData.consentText}
-                onFocus={() => setTranslationType('consentText')}
-                onBlur={(consentTexts: SupportedLanguage) => {
-                  const uniqueMetadataValues = getConsentMetadataValues(consentTexts);
-                  const metadataValuesToSave: ConsentMetadata = {};
-                  uniqueMetadataValues.forEach((key) => {
-                    metadataValuesToSave[key] = {
-                      optional: resourceData.consentMetadata?.[key]?.optional ?? false,
-                    };
-                  });
-                  handleSave({
-                    ...resourceData,
-                    consentText: consentTexts,
-                    consentMetadata: metadataValuesToSave,
-                  });
-                }}
-                required
-                errors={validationErrors.filter((error) => error.field === 'consentText')}
-              />
-              <ConsentMetadataField
-                value={resourceData.consentMetadata ?? {}}
-                onFocus={() => setTranslationType('none')}
-                onChange={(newMetadata: ConsentMetadata) =>
-                  handleSave({ ...resourceData, consentMetadata: newMetadata })
-                }
-              />
-            </div>
             <ResourceRadioGroup
               id='consentTemplate'
               label={t('resourceadm.about_resource_consent_template_label')}
@@ -235,6 +198,34 @@ export const AboutResourcePage = ({
               }
               required
               errors={validationErrors.filter((error) => error.field === 'consentTemplate')}
+            />
+            <ResourceTextField
+              id='consentMetadata'
+              label={t('resourceadm.about_resource_consent_metadata')}
+              description={t('resourceadm.about_resource_consent_metadata_description')}
+              value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
+              onFocus={() => setTranslationType('none')}
+              onBlur={(val: string) =>
+                handleSave({
+                  ...resourceData,
+                  consentMetadata: convertMetadataStringToConsentMetadata(val),
+                })
+              }
+            />
+            <ResourceLanguageTextField
+              id='consentText'
+              label={t('resourceadm.about_resource_consent_text_label')}
+              description={t('resourceadm.about_resource_consent_text_text')}
+              translationDescription='Samtykketekst'
+              isTranslationPanelOpen={translationType === 'consentText'}
+              useTextArea
+              value={resourceData.consentText}
+              onFocus={() => setTranslationType('consentText')}
+              onBlur={(consentTexts: SupportedLanguage) =>
+                handleSave({ ...resourceData, consentText: consentTexts })
+              }
+              required
+              errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
           </>
         )}

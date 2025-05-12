@@ -7,4 +7,5 @@ export enum RoutePaths {
   Text = 'text-editor',
   ProcessEditor = 'process-editor',
   ContentLibrary = 'content-library',
+  AppSettings = 'app-settings',
 }

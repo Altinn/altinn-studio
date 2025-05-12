@@ -1,7 +1,11 @@
 import type { ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
-import type { CodeListData, CodeListWithMetadata } from '@studio/content-library';
+import type {
+  CodeListData,
+  CodeListWithMetadata,
+  TextResourceWithLanguage,
+} from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
@@ -14,16 +18,26 @@ import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpda
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import type { ApiError } from 'app-shared/types/api/ApiError';
+import { useCreateOrgCodeListMutation } from 'app-shared/hooks/mutations/useCreateOrgCodeListMutation';
 import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
+import {
+  textResourcesWithLanguageToLibraryTextResources,
+  textResourceWithLanguageToMutationArgs,
+} from './utils';
 import { isOrg } from '../../utils/orgUtils';
 import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
 import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
+import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -58,8 +72,14 @@ type MergeableOrgContentLibraryProps = {
 function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps): ReactElement {
   const { t } = useTranslation();
   const { data: codeListDataList, status: codeListDataListStatus } = useOrgCodeListsQuery(orgName);
+  const { data: textResources, status: textResourcesStatus } = useOrgTextResourcesQuery(
+    orgName,
+    DEFAULT_LANGUAGE,
+  );
 
-  switch (codeListDataListStatus) {
+  const status = mergeQueryStatuses(codeListDataListStatus, textResourcesStatus);
+
+  switch (status) {
     case 'pending':
       return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
     case 'error':
@@ -69,6 +89,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
           orgName={orgName}
+          textResources={textResources}
         />
       );
   }
@@ -77,19 +98,39 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 type OrgContentLibraryWithContextAndDataProps = {
   codeListDataList: CodeListData[];
   orgName: string;
+  textResources: ITextResourcesWithLanguage;
 };
 
 function OrgContentLibraryWithContextAndData({
   codeListDataList,
   orgName,
+  textResources: textResourcesWithLanguage,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
   const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
+  const { mutate: createCodeList } = useCreateOrgCodeListMutation(orgName);
+  const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
 
   const handleUpload = useUploadCodeList(orgName);
 
+  const textResources = useMemo(
+    () => textResourcesWithLanguageToLibraryTextResources(textResourcesWithLanguage),
+    [textResourcesWithLanguage],
+  );
+
+  const handleUpdateTextResource = useCallback(
+    (textResourceWithLanguage: TextResourceWithLanguage) => {
+      updateTextResources(textResourceWithLanguageToMutationArgs(textResourceWithLanguage));
+    },
+    [updateTextResources],
+  );
+
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateCodeList({ title, data: codeList });
+  };
+
+  const handleCreate = ({ title, codeList }: CodeListWithMetadata): void => {
+    createCodeList({ title, data: codeList });
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
@@ -97,10 +138,13 @@ function OrgContentLibraryWithContextAndData({
       codeList: {
         props: {
           codeListsData: codeListDataList,
+          onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
+          onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
+          textResources,
         },
       },
     },

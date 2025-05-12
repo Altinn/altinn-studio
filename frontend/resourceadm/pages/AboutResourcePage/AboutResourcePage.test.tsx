@@ -333,9 +333,6 @@ describe('AboutResourcePage', () => {
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockConsentResource,
-      consentMetadata: {
-        org: { optional: false },
-      },
       consentText: {
         ...mockConsentResource.consentText,
         nb: `${mockConsentResource.consentText.nb}${mockNewConsentTextInput}`,
@@ -378,17 +375,17 @@ describe('AboutResourcePage', () => {
       />,
     );
 
-    const consentMetadataSwitch = screen.getByLabelText(
-      textMock('resourceadm.about_resource_consent_metadata_optional_label', {
-        metadataName: 'org',
-      }),
+    const consentMetadataField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_metadata'),
     );
-    await user.click(consentMetadataSwitch);
+    await user.type(consentMetadataField, ', year');
+    await waitFor(() => consentMetadataField.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockConsentResource,
       consentMetadata: {
-        org: { optional: true },
+        org: { optional: false },
+        year: { optional: false },
       },
     });
   });

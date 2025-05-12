@@ -8,7 +8,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
     /// </summary>
     public class JsonSchemaXsdMetadata
     {
-        private static readonly ISet<CompatibleXsdType> Empty = new HashSet<CompatibleXsdType>();
+        private static readonly ISet<CompatibleXsdType> s_empty = new HashSet<CompatibleXsdType>();
 
         private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _types;
         private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
@@ -112,12 +112,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json
                 compatibleTypes.ExceptWith(GetIncompatibleTypes(path));
             }
 
-            return success ? compatibleTypes : Empty;
+            return success ? compatibleTypes : s_empty;
         }
 
         private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
         {
-            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes) ? incompatibleTypes : Empty;
+            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes) ? incompatibleTypes : s_empty;
         }
     }
 }
