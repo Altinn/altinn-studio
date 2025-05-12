@@ -6,7 +6,6 @@ import {
   mapKeywordStringToKeywordTypeArray,
   validateResource,
   getMigrationErrorMessage,
-  getConsentMetadataValues,
 } from './';
 import type { EnvId } from './resourceUtils';
 import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
@@ -278,17 +277,5 @@ describe('getMigrationErrorMessage', () => {
   it('returns error when resource is not published', () => {
     const error = getMigrationErrorMessage(null, null, false);
     expect(error.errorMessage).toEqual('resourceadm.migration_not_published');
-  });
-});
-
-describe('getConsentMetadataValues', () => {
-  it('returns consent metadata values', () => {
-    const consentText = {
-      nb: '{org} vil få tilgang til dine data fra {year}',
-      nn: '{org} vil få tilgong til dine data frå {year}',
-      en: 'Not available in english',
-    };
-    const metadataValues = getConsentMetadataValues(consentText);
-    expect(metadataValues).toEqual(['org', 'year']);
   });
 });

@@ -9,6 +9,7 @@ import type {
   Resource,
   ResourceFormError,
   ResourceError,
+  ConsentMetadata,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
@@ -415,6 +416,47 @@ export const validateResource = (
         error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
       });
     }
+
+    // validate consentMetadata values used in consentText
+    const unknowMetadataValues = getUnknownMetadataValues(
+      resourceData.consentMetadata,
+      resourceData.consentText,
+    );
+    const errorLanguages = [];
+    Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
+      if (unknowMetadataValues[language].length) {
+        errors.push({
+          field: 'consentText',
+          index: language,
+          error: t('resourceadm.about_resource_error_unknown_metadata_language', {
+            unknownMetadataValues: unknowMetadataValues[language].join(', '),
+          }),
+        });
+        if (language !== 'nb') {
+          errorLanguages.push(t(`language.${language}`));
+        }
+      }
+    });
+    if (errorLanguages.length) {
+      const lastErrorLanguage = errorLanguages.pop();
+      let consentTextNbError = '';
+      if (errorLanguages.length > 0) {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata_multiple', {
+          lang1: errorLanguages.join(', '),
+          lang2: lastErrorLanguage,
+        });
+      } else {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata', {
+          lang1: lastErrorLanguage,
+        });
+      }
+
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextNbError,
+      });
+    }
   }
 
   // validate contactPoints
@@ -494,14 +536,34 @@ export const getMigrationErrorMessage = (
   return null;
 };
 
-const getConsentMetadataValuesFromText = (text: string) => {
+export const convertMetadataStringToConsentMetadata = (metadataString: string): ConsentMetadata => {
+  return metadataString.split(',').reduce((acc: ConsentMetadata, key: string) => {
+    const trimmedKey = key.trim();
+    if (trimmedKey.length) {
+      acc[trimmedKey] = { optional: false };
+    }
+    return acc;
+  }, {});
+};
+
+const getConsentMetadataValuesFromText = (text: string): string[] => {
   return text.match(/{([^{}]*?)}/g) ?? [];
 };
-export const getConsentMetadataValues = (consentTexts: SupportedLanguage) => {
-  const metadataValues = [
-    ...getConsentMetadataValuesFromText(consentTexts['nb']),
-    ...getConsentMetadataValuesFromText(consentTexts['nn']),
-    ...getConsentMetadataValuesFromText(consentTexts['en']),
-  ].map((match) => match.slice(1, -1));
-  return [...new Set(metadataValues)];
+const getUnknownMetadataValuesInText = (metadataValues: ConsentMetadata, consentText: string) => {
+  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
+  const unknownMetadataValueUsed = metadataKeysInConsentText
+    .map((metadataKey) => metadataKey.slice(1, -1))
+    .filter((metadataKey) => !metadataValues[metadataKey]);
+
+  return unknownMetadataValueUsed;
+};
+const getUnknownMetadataValues = (
+  metadataValues: ConsentMetadata,
+  consentTexts: SupportedLanguage,
+) => {
+  return {
+    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts.nb),
+    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts.nn),
+    en: getUnknownMetadataValuesInText(metadataValues, consentTexts.en),
+  };
 };

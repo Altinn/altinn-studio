@@ -32,10 +32,3 @@
 .description {
   color: var(--fds-semantic-text-neutral-subtle);
 }
-
-.consentMetadata {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: var(--fds-spacing-1);
-}
