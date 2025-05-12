@@ -1,13 +1,13 @@
 import React from 'react';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { IToolbarElement } from '../../../types/global';
+import type { IToolbarElement } from '../../../../../types/global';
 import classes from './AddItemContent.module.css';
 import { ItemCategory } from './ItemCategory';
 import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
-import { useFormLayouts } from '../../../hooks';
-import { generateComponentId } from '../../../utils/generateId';
+import { useFormLayouts } from '../../../../../hooks';
+import { generateComponentId } from '../../../../../utils/generateId';
 import { StudioParagraph } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 

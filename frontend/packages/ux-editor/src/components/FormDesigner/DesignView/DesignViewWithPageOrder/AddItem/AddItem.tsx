@@ -3,12 +3,12 @@ import {
   addItemOfType,
   getDefaultChildComponentsForContainer,
   getItem,
-} from '../../../utils/formLayoutUtils';
-import { useAddItemToLayoutMutation } from '../../../hooks/mutations/useAddItemToLayoutMutation';
-import { useFormItemContext } from '../../FormItemContext';
-import { useAppContext } from '../../../hooks';
+} from '../../../../../utils/formLayoutUtils';
+import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAddItemToLayoutMutation';
+import { useAppContext } from '../../../../../hooks';
+import { useFormItemContext } from '../../../../../containers/FormDesigner/FormItemContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { IInternalLayout } from '../../../types/global';
+import type { IInternalLayout } from '../../../../../types/global';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { StudioButton } from '@studio/components-legacy';
 import type { AddedItem } from './types';

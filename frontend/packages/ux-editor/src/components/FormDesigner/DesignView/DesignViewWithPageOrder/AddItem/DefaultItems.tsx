@@ -1,14 +1,14 @@
 import React from 'react';
-import type { IToolbarElement } from '../../../types/global';
+import type { IToolbarElement } from '../../../../../types/global';
 import classes from './DefaultItems.module.css';
 import { StudioButton, StudioHeading } from '@studio/components-legacy';
 import { XMarkIcon } from '@studio/icons';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
-import { useFormLayouts } from '../../../hooks';
+import { useFormLayouts } from '../../../../../hooks';
 import { generateComponentId } from '@altinn/ux-editor/utils/generateId';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { getTitleByComponentType } from '../../../utils/language';
+import { getTitleByComponentType } from '../../../../../utils/language';
 import { useTranslation } from 'react-i18next';
 
 export type DefaultItemsProps = {

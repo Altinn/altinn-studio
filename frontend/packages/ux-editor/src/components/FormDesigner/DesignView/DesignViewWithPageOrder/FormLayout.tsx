@@ -1,7 +1,7 @@
-import type { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../../../types/global';
 import { FormTree } from './FormTree';
 import React from 'react';
-import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
+import { hasMultiPageGroup } from '../../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { FormLayoutWarning } from './FormLayoutWarning';

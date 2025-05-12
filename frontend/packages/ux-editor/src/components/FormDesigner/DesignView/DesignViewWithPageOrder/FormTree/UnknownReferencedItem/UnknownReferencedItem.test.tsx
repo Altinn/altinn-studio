@@ -1,12 +1,12 @@
-﻿import React from 'react';
+import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { UnknownReferencedItemProps } from './UnknownReferencedItem';
 import { UnknownReferencedItem } from './UnknownReferencedItem';
-import { layoutMock } from '../../../../testing/layoutMock';
+import { layoutMock } from '../../../../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithProviders } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../testing/mocks';
 
 describe('UnknownReferencedItem', () => {
   it('should display unknown reference component with help text', async () => {

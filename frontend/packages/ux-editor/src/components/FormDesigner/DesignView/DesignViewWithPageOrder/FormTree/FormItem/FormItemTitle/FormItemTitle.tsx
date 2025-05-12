@@ -4,12 +4,12 @@ import { StudioButton } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
-import type { FormComponent } from '../../../../../types/FormComponent';
-import type { FormContainer } from '../../../../../types/FormContainer';
+import type { FormComponent } from '../../../../../../../types/FormComponent';
+import type { FormContainer } from '../../../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
-import { isContainer } from '../../../../../utils/formItemUtils';
-import { useFormItemContext } from '../../../../FormItemContext';
-import { useAppContext } from '../../../../../hooks';
+import { useFormItemContext } from '../../../../../../../containers/FormDesigner/FormItemContext';
+import { isContainer } from '../../../../../../../utils/formItemUtils';
+import { useAppContext } from '../../../../../../../hooks';
 import classNames from 'classnames';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 

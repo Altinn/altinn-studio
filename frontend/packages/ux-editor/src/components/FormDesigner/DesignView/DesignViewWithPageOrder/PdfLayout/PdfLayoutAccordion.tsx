@@ -1,10 +1,10 @@
 import React from 'react';
-import { PageAccordion } from '@altinn/ux-editor/containers/DesignView/PageAccordion';
-import { duplicatedIdsExistsInLayout } from '@altinn/ux-editor/utils/formLayoutUtils';
-import { FormLayout } from '@altinn/ux-editor/containers/DesignView/FormLayout';
 import { Accordion } from '@digdir/design-system-react';
-import { useFormLayouts } from '@altinn/ux-editor/hooks';
-import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
+import { PageAccordion } from '../PageAccordion';
+import { FormLayout } from '../FormLayout';
+import { useFormLayouts } from '../../../../../hooks';
+import { mapFormLayoutsToFormLayoutPages } from '../../../../../utils/formLayoutsUtils';
+import { duplicatedIdsExistsInLayout } from '../../../../../utils/formLayoutUtils';
 
 export interface PdfLayoutAccordionProps {
   pdfLayoutName: string;

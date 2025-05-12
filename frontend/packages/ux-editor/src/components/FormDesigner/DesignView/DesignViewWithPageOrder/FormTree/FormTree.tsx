@@ -1,10 +1,10 @@
 import React from 'react';
-import type { IInternalLayout } from '../../../types/global';
+import type { IInternalLayout } from '../../../../../types/global';
 import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useFormItemContext } from '../../FormItemContext';
-import { getItem } from '../../../utils/formLayoutUtils';
+import { useFormItemContext } from '../../../../../containers/FormDesigner/FormItemContext';
+import { getItem } from '../../../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 
 export type FormTreeProps = {

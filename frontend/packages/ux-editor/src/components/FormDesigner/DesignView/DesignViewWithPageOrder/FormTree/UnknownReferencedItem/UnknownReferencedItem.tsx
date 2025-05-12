@@ -1,9 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { HelpText } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components-legacy';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
-import type { IInternalLayout } from '../../../../types/global';
+import type { IInternalLayout } from '../../../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
 import classes from './UnknownReferencedItem.module.css';
 
