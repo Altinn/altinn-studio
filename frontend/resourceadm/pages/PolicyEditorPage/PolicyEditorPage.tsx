@@ -86,7 +86,7 @@ export const PolicyEditorPage = ({
         subjectId: `${accessList.identifier}`,
         subjectSource: `altinn:accesslist:${org}`,
         subjectTitle: accessList.name,
-        subjectDescription: '',
+        subjectDescription: accessList.description,
       };
     });
     return [...subjectData, ...accessListSubjects, organizationSubject];
