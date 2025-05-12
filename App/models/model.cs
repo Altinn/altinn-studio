@@ -399,51 +399,63 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-    [XmlElement("Name", Order = 1)]
-    [JsonProperty("Name")]
-    [JsonPropertyName("Name")]
-    public Name Name { get; set; }
-
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("age", Order = 2)]
+    [XmlElement("age", Order = 1)]
     [JsonProperty("age")]
     [JsonPropertyName("age")]
     public decimal? age { get; set; }
 
     public bool ShouldSerializeage() => age.HasValue;
 
-    [XmlElement("profession", Order = 3)]
+    [XmlElement("profession", Order = 2)]
     [JsonProperty("profession")]
     [JsonPropertyName("profession")]
     public string profession { get; set; }
 
-    [XmlElement("surname", Order = 4)]
+    [XmlElement("surname", Order = 3)]
     [JsonProperty("surname")]
     [JsonPropertyName("surname")]
     public string surname { get; set; }
 
-    [XmlElement("Internal", Order = 5)]
+    [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
     public Internal Internal { get; set; }
 
+    [XmlElement("Name", Order = 5)]
+    [JsonProperty("Name")]
+    [JsonPropertyName("Name")]
+    public Name Name { get; set; }
+
   }
 
-
-  public class Name {
-    [XmlElement("firstname", Order = 1)]
-      [JsonProperty("firstname")]
-      [JsonPropertyName("firstname")]
-      public string firstname { get; set; }
-  }
-
-  public class Internal {
+  public class Internal
+  {
     [XmlElement("isChecked", Order = 1)]
     [JsonProperty("isChecked")]
     [JsonPropertyName("isChecked")]
     public bool? isChecked { get; set; }
+
     public bool ShouldSerializeisChecked() => isChecked.HasValue;
+
   }
+
+  public class Name
+  {
+    [XmlElement("firstname", Order = 1)]
+    [JsonProperty("firstname")]
+    [JsonPropertyName("firstname")]
+    public string firstname { get; set; }
+
+    [XmlElement("id", Order = 2)]
+    [JsonProperty("id")]
+    [JsonPropertyName("id")]
+    public decimal? id { get; set; }
+
+    public bool ShouldSerializeid() => id.HasValue;
+
+  }
+
   public class Dates
   {
     [XmlElement("SetDate", Order = 1)]
@@ -454,7 +466,9 @@ namespace Altinn.App.Models.Model
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-    public string String { get; set; }
+    public DateTime? String { get; set; }
+
+    public bool ShouldSerializeString() => String.HasValue;
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -463,10 +477,11 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
-    public DateOnly? DateOnly { get; set; }
+    public string DateOnly { get; set; }
 
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]

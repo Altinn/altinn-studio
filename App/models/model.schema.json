@@ -271,6 +271,9 @@
             "properties": {
               "firstname": {
                 "type": "string"
+              },
+              "id": {
+                "type": "number"
               }
             }
           }
