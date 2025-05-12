@@ -1,5 +1,5 @@
 import { renderHookWithProviders } from 'dashboard/testing/mocks';
-import { useTaskNames } from './useTaskNames';
+import { useTaskNavigationGroupName } from './useTaskNavigationGroupName';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -35,7 +35,7 @@ const renderUseTaskNames = (task: TaskNavigationGroup) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
-  return renderHookWithProviders(() => useTaskNames(task), {
+  return renderHookWithProviders(() => useTaskNavigationGroupName(task), {
     queryClient,
   });
 };

@@ -9,7 +9,7 @@ type ReturnTaskNamesProps = {
   taskIdName: string;
 };
 
-export const useTaskNames = (task: TaskNavigationGroup): ReturnTaskNamesProps => {
+export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTaskNamesProps => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);

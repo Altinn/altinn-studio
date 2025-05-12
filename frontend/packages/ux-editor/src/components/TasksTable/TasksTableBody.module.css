@@ -6,10 +6,6 @@
   margin-bottom: var(--fds-spacing-2);
 }
 
-.taskRow td {
-  border: none;
-}
-
 .taskNameCell,
 .taskTypeCell {
   max-width: 200px;
@@ -30,6 +26,7 @@
 .taskRow td {
   padding-top: 0;
   padding-bottom: 0;
+  border: none;
 }
 
 .hiddenTaskRow .taskTypeCell,

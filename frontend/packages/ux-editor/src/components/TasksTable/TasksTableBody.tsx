@@ -7,7 +7,7 @@ import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { getTaskIcon, taskNavigationType } from '../Settings/SettingsUtils';
-import { useTaskNames } from '@altinn/ux-editor/hooks/useTaskNames';
+import { useTaskNavigationGroupName } from '@altinn/ux-editor/hooks/useTaskNavigationGroupName';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -63,7 +63,7 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
   const { t } = useTranslation();
   const TaskIcon = getTaskIcon(task.taskType);
   const taskType = taskNavigationType(task.taskType);
-  const { taskNavigationName, taskIdName } = useTaskNames(task);
+  const { taskNavigationName, taskIdName } = useTaskNavigationGroupName(task);
 
   return (
     <StudioTable.Row
