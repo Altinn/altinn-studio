@@ -2,11 +2,11 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { appContextMock } from '../testing/appContextMock';
+import { appContextMock } from '../../testing/appContextMock';
 import {
   component1IdMock,
   component1Mock,
@@ -14,7 +14,7 @@ import {
   externalLayoutsMock,
   layout1NameMock,
   layoutMock,
-} from '../testing/layoutMock';
+} from '../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
