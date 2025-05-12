@@ -19,7 +19,7 @@ export const useGetAccessListsQuery = (
   const { getAccessLists } = useServicesContext();
 
   return useInfiniteQuery({
-    queryKey: [QueryKey.AccessLists, env],
+    queryKey: [QueryKey.AccessLists, org, env],
     queryFn: ({ pageParam }) => getAccessLists(org, env, pageParam),
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextPage,

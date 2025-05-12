@@ -19,7 +19,7 @@
   white-space: nowrap;
 }
 
-.hiddenTaskRow td {
+.taskRow td {
   padding-top: 0;
   padding-bottom: 0;
 }

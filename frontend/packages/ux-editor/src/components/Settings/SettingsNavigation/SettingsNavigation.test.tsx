@@ -41,23 +41,19 @@ describe('SettingsNavigation', () => {
 
     renderSettingsNavigation();
 
-    const dataTask = screen.getByText(textMock('process_editor.task_type.data'));
+    const dataTask = screen.getByText(textMock('ux_editor.task_table_type.data'));
     expect(dataTask).toBeInTheDocument();
-    const receiptTask = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
-    );
+    const receiptTask = screen.getAllByText(textMock('ux_editor.task_table_type.receipt'))[0];
     expect(receiptTask).toBeInTheDocument();
-    const receiptLockerIcon = screen.getByTestId('lockerIcon');
-    expect(receiptLockerIcon).toBeInTheDocument();
   });
 
-  it('should display a warning message if there are no tasks', () => {
+  it('should display a info message if there are no navigation tasks', () => {
     (useTaskNavigationGroupQuery as jest.Mock).mockReturnValue({
       data: [],
     });
 
     renderSettingsNavigation();
-    const warningMessage = screen.getByText(textMock('ux_editor.settings.navigation_warning'));
+    const warningMessage = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(warningMessage).toBeInTheDocument();
   });
 });

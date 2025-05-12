@@ -31,20 +31,20 @@ const otherCodeList: CodeListData = {
 describe('useDeleteOrgCodeListMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Calls deleteCodeListForOrg with correct parameters', async () => {
+  it('Calls deleteOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useDeleteOrgCodeListMutation(org));
     await result.current.mutateAsync(title);
-    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteCodeListForOrg).toHaveBeenCalledWith(org, title);
+    expect(queriesMock.deleteOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteOrgCodeList).toHaveBeenCalledWith(org, title);
   });
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgCodeLists, org], [codeListToDelete, otherCodeList]);
-    const deleteCodeListForOrg = jest.fn(() => Promise.resolve([otherCodeList]));
+    const deleteOrgCodeList = jest.fn(() => Promise.resolve([otherCodeList]));
     const { result } = renderHookWithProviders(() => useDeleteOrgCodeListMutation(org), {
       queryClient,
-      queries: { deleteCodeListForOrg },
+      queries: { deleteOrgCodeList },
     });
 
     await result.current.mutateAsync(codeListToDelete.title);
