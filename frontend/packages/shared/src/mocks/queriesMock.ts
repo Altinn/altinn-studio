@@ -256,6 +256,7 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
