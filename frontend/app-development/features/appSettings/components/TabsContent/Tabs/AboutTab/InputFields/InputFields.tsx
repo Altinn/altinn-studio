@@ -12,7 +12,7 @@ export type InputFieldsProps = {
   onSave: (appConfig: AppConfig) => void;
 };
 
-export function InputFieldsFields({ appConfig, onSave }: InputFieldsProps): ReactElement {
+export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactElement {
   const { t } = useTranslation();
 
   const [appConfigFormErrors, setAppConfigFormErrors] = useState<

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { AboutTabInputFieldsProps } from './AboutTabInputFields';
-import { AboutTabInputFields } from './AboutTabInputFields';
+import type { InputFieldsProps } from './InputFields';
+import { InputFields } from './InputFields';
 import { mockAppConfig } from 'app-development/layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/appConfigMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -10,7 +10,7 @@ const mockNewText: string = 'test';
 
 const mockOnSave = jest.fn();
 
-const defaultProps: AboutTabInputFieldsProps = {
+const defaultProps: InputFieldsProps = {
   appConfig: mockAppConfig,
   onSave: mockOnSave,
 };
@@ -19,7 +19,7 @@ describe('InputFields', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays the "repo" input as readonly', async () => {
-    render(<AboutTabInputFields {...defaultProps} />);
+    render(<InputFields {...defaultProps} />);
 
     const repoNameInput = screen.getByLabelText(textMock('app_settings.about_tab_repo_label'));
     expect(repoNameInput).toHaveValue(mockAppConfig.repositoryName);
@@ -28,7 +28,7 @@ describe('InputFields', () => {
 
   it('displays correct value in "name" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
-    renderAboutTabInputFields();
+    renderInputFields();
 
     const appName = screen.getByLabelText(textMock('app_settings.about_tab_name_label'));
     expect(appName).toHaveValue(mockAppConfig.serviceName);
@@ -40,7 +40,7 @@ describe('InputFields', () => {
 
   it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
     const user = userEvent.setup();
-    renderAboutTabInputFields();
+    renderInputFields();
 
     const altId = screen.getByLabelText(textMock('app_settings.about_tab_alt_id_label'));
     expect(altId).toHaveValue(mockAppConfig.serviceId);
@@ -55,7 +55,7 @@ describe('InputFields', () => {
     const appNameLabel = textMock('app_settings.about_tab_name_label');
 
     it('should save changes when the form is valid', async () => {
-      renderAboutTabInputFields();
+      renderInputFields();
       const appName = screen.getByLabelText(appNameLabel);
 
       await user.type(appName, mockNewText);
@@ -64,7 +64,7 @@ describe('InputFields', () => {
     });
 
     it('should not save changes when form is invalid', async () => {
-      renderAboutTabInputFields();
+      renderInputFields();
       const appName = screen.getByLabelText(appNameLabel);
 
       await user.clear(appName);
@@ -73,7 +73,7 @@ describe('InputFields', () => {
     });
 
     it('should toggle error message based on form validation', async () => {
-      renderAboutTabInputFields();
+      renderInputFields();
       const appName = screen.getByLabelText(appNameLabel);
       const errorMessage = textMock('app_settings.about_tab_name_error');
 
@@ -88,6 +88,6 @@ describe('InputFields', () => {
   });
 });
 
-const renderAboutTabInputFields = (props: Partial<AboutTabInputFieldsProps> = {}) => {
-  return render(<AboutTabInputFields {...defaultProps} {...props} />);
+const renderInputFields = (props: Partial<InputFieldsProps> = {}) => {
+  return render(<InputFields {...defaultProps} {...props} />);
 };
