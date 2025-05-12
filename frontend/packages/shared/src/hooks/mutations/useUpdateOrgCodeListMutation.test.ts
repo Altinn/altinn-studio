@@ -29,11 +29,11 @@ const updatedCodeList: CodeListData = {
 describe('useUpdateOrgCodeListMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Calls updateCodeListForOrg with correct parameters', async () => {
+  it('Calls updateOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUpdateOrgCodeListMutation(org));
     await result.current.mutateAsync(updatedCodeList);
-    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateCodeListForOrg).toHaveBeenCalledWith(
+    expect(queriesMock.updateOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOrgCodeList).toHaveBeenCalledWith(
       org,
       updatedCodeList.title,
       updatedCodeList.data,
@@ -43,10 +43,10 @@ describe('useUpdateOrgCodeListMutation', () => {
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgCodeLists, org], [oldCodeList]);
-    const updateCodeListForOrg = jest.fn(() => Promise.resolve([updatedCodeList]));
+    const updateOrgCodeList = jest.fn(() => Promise.resolve([updatedCodeList]));
     const { result } = renderHookWithProviders(() => useUpdateOrgCodeListMutation(org), {
       queryClient,
-      queries: { updateCodeListForOrg },
+      queries: { updateOrgCodeList },
     });
 
     await result.current.mutateAsync(updatedCodeList);

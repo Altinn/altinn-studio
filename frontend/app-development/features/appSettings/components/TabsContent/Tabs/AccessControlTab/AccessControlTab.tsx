@@ -7,7 +7,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioFormGroup, StudioValidationMessage } from '@studio/components';
+import type { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 
 export function AccessControlTab(): ReactElement {
   const { t } = useTranslation();
@@ -45,4 +46,20 @@ function AccessControlTabContent(): ReactElement {
       return <>todo</>;
     }
   }
+}
+
+type SelectAllowedPartyTypesProps = {
+  appMetadata: ApplicationMetadata;
+};
+
+function SelectAllowedPartyTypes({}: SelectAllowedPartyTypesProps): ReactElement {
+  const { t } = useTranslation();
+
+  // TODO - remember error when trying to remove all
+  return (
+    <StudioFormGroup
+      legend={t('settings_modal.access_control_tab_checkbox_legend_label')} // TODO
+      description={t('settings_modal.access_control_tab_checkbox_description')} // TODO
+    ></StudioFormGroup>
+  );
 }

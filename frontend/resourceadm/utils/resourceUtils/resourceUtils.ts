@@ -96,6 +96,9 @@ export const getAvailableEnvironments = (org: string): Environment[] => {
       environments['at24'],
     );
   }
+  if (org === 'skd') {
+    availableEnvs.push(environments['yt01']);
+  }
   return availableEnvs;
 };
 export const getEnvLabel = (env: EnvId): string => {

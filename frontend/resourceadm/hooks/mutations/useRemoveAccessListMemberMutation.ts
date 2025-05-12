@@ -24,10 +24,10 @@ export const useRemoveAccessListMemberMutation = (
       removeAccessListMember(org, listIdentifier, env, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QueryKey.AccessListMembers, env, listIdentifier],
+        queryKey: [QueryKey.AccessListMembers, org, env, listIdentifier],
       });
       queryClient.invalidateQueries({
-        queryKey: [QueryKey.AccessList, env, listIdentifier],
+        queryKey: [QueryKey.AccessList, org, env, listIdentifier],
       });
     },
   });

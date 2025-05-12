@@ -5,9 +5,9 @@ import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 
 export const useDeleteOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
-  const { deleteCodeListForOrg } = useServicesContext();
+  const { deleteOrgCodeList } = useServicesContext();
 
-  const mutationFn = (title: string) => deleteCodeListForOrg(org, title);
+  const mutationFn = (title: string) => deleteOrgCodeList(org, title);
 
   return useMutation({
     mutationFn,
