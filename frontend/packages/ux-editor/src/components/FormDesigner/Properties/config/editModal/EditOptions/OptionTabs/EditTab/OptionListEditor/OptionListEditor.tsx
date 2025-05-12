@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,

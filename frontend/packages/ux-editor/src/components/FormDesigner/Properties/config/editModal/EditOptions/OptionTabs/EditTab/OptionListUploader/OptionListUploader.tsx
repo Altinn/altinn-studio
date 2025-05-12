@@ -1,7 +1,5 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
-import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { StudioFileUploader } from '@studio/components-legacy';
@@ -12,6 +10,8 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import { useOptionListIdsQuery } from '@altinn/ux-editor/hooks/queries/useOptionListIdsQuery';
 
 type EditOptionListProps = Pick<
   IGenericEditComponent<SelectionComponentType>,

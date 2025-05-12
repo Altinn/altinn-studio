@@ -1,8 +1,6 @@
 import React, { createRef } from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
-import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
 import {
   StudioButton,
@@ -15,6 +13,8 @@ import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 import classes from './OptionListSelector.module.css';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import { useOptionListIdsQuery } from '@altinn/ux-editor/hooks/queries/useOptionListIdsQuery';
 
 type OptionListSelectorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,

@@ -3,11 +3,12 @@ import { OptionListSelector } from './OptionListSelector';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { renderWithProviders, optionListIdsMock } from '../../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { FormComponent } from '../../../../../../../types/FormComponent';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { optionListIdsMock } from '@altinn/ux-editor/testing/mocks';
+import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import { renderWithProviders } from 'dashboard/testing/mocks';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
