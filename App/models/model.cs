@@ -466,7 +466,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-    public string? String { get; set; }
+    public string String { get; set; }
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -475,7 +475,7 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
-     [XmlElement("DateOnly", Order = 4)]
+    [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
     public DateOnly? DateOnly { get; set; }
