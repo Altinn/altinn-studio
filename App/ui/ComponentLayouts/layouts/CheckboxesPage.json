@@ -148,7 +148,7 @@
       {
         "dataModelBindings": {
           "group": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.Name.firstname",
+          "simpleBinding": "ListCheckboxExample.Name.id",
           "checked": "ListCheckboxExample.Internal.isChecked"
         },
         "deletionStrategy":"soft",

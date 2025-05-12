@@ -1,22 +1,22 @@
 [
     {
         "label":"Karoline",
-        "value": "Karoline"
+        "value": 1
     },
     {
         "label":"Kåre",
-        "value": "Kåre"
+        "value": 2
     },
     {
         "label":"Johanne",
-        "value": "Johanne"
+        "value": 3
     },
     {
         "label":"Kari",
-        "value": "Kari"
+        "value": 4
     },
     {
         "label":"Petter",
-        "value": "Petter"
+        "value": 5
     }
 ]
