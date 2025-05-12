@@ -119,8 +119,13 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
               className={classes.accessLists}
             >
               {accessListSubjects.map((subject) => (
-                <StudioCheckbox key={subject.subjectId} value={subject.subjectId}>
-                  {subject.subjectTitle} ({subject.subjectId})
+                <StudioCheckbox
+                  key={subject.subjectId}
+                  value={subject.subjectId}
+                  description={subject.subjectDescription}
+                  className={classes.accessListItem}
+                >
+                  {subject.subjectTitle}
                 </StudioCheckbox>
               ))}
             </StudioCheckbox.Group>

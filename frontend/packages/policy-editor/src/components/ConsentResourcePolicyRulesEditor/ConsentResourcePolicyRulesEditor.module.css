@@ -9,3 +9,7 @@
   margin-left: var(--fds-spacing-8);
   margin-top: var(--fds-spacing-4);
 }
+
+.accessListItem {
+  border-bottom: solid 1px var(--fds-semantic-border-divider-default);
+}
