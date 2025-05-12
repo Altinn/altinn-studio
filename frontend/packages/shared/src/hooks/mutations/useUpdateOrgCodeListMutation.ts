@@ -8,10 +8,10 @@ type UpdateOrgCodeListMutationArgs = Pick<CodeListData, 'title' | 'data'>;
 
 export const useUpdateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
-  const { updateCodeListForOrg } = useServicesContext();
+  const { updateOrgCodeList } = useServicesContext();
 
   const mutationFn = ({ title, data }: UpdateOrgCodeListMutationArgs) =>
-    updateCodeListForOrg(org, title, data);
+    updateOrgCodeList(org, title, data);
 
   return useMutation({
     mutationFn,
