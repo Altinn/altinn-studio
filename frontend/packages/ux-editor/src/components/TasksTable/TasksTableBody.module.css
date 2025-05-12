@@ -10,11 +10,12 @@
   border: none;
 }
 
-.taskRow td:nth-child(-n + 2) {
+.taskNameCell,
+.taskTypeCell {
   max-width: 200px;
 }
 
-.taskRow td:nth-child(2),
+.taskNameCell,
 .taskType {
   overflow: hidden;
   white-space: nowrap;
@@ -31,7 +32,8 @@
   padding-bottom: 0;
 }
 
-.hiddenTaskRow td:nth-child(-n + 2) {
+.hiddenTaskRow .taskTypeCell,
+.hiddenTaskRow .taskNameCell {
   opacity: 0.5;
 }
 
