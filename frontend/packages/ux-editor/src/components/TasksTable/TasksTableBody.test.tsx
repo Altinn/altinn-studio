@@ -51,7 +51,7 @@ describe('TasksTableBody', () => {
   it('should call onSelectTask when a task is clicked', async () => {
     const user = userEvent.setup();
     const onSelectTask = jest.fn();
-    renderTasksTableBody({ onSelectTask });
+    renderTasksTableBody({ onSelectTask, isNavigationMode: false });
 
     const task1Button = screen.getAllByRole('button')[0];
     await user.click(task1Button);
