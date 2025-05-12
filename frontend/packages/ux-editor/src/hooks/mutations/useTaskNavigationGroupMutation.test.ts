@@ -5,9 +5,9 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
-describe('useNavigationGroupMutation', () => {
+describe('useTaskNavigationGroupMutation', () => {
   it('Calls updateTaskNavigationGroup with correct arguments and payload', async () => {
-    const { result } = renderNavigationGroupMutation();
+    const { result } = renderTaskNavigationGroupMutation();
     const payload: TaskNavigationGroup[] = [
       {
         taskType: 'data',
@@ -25,6 +25,6 @@ describe('useNavigationGroupMutation', () => {
   });
 });
 
-const renderNavigationGroupMutation = () => {
+const renderTaskNavigationGroupMutation = () => {
   return renderHookWithProviders(() => useTaskNavigationGroupMutation(org, app));
 };
