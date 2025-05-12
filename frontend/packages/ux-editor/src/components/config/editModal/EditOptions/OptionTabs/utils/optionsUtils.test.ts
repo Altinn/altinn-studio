@@ -5,7 +5,6 @@ import type { FormItem } from '../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import {
   getSelectedOptionsType,
-  getSelectedOptionsTypeWithManualSupport,
   hasOptionListChanged,
   handleOptionsChange,
   resetComponentOptions,
@@ -59,55 +58,6 @@ describe('optionsUtils', () => {
       const options = [{ label: 'label1', value: 'value1' }];
       const optionListIds = ['codeListId'];
       const result = getSelectedOptionsType(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.CodeList);
-    });
-  });
-
-  describe('getSelectedOptionsTypeWithManualSupport', () => {
-    it('should return SelectedOptionsType.Unknown if both options and optionsId are set', () => {
-      const codeListId = 'codeListId';
-      const options: OptionList = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = ['codeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Unknown);
-    });
-
-    it('should return SelectedOptionsType.CodeList if options is not set and codeListId is in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const options = undefined;
-      const optionListIds = [codeListId];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.CodeList);
-    });
-
-    it('should return SelectedOptionsType.ReferenceId if options is not set and codeListId is not in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const options = undefined;
-      const optionListIds = ['anotherCodeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.ReferenceId);
-    });
-
-    it('should return SelectedOptionsType.Manual if options is set and codeListId is not set', () => {
-      const codeListId = undefined;
-      const options = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = ['anotherCodeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Manual);
-    });
-
-    it('should return SelectedOptionsType.Manual if options is set and codeListId is not set, even if options has length 0', () => {
-      const codeListId = undefined;
-      const options = [];
-      const optionListIds = ['codeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Manual);
-    });
-
-    it('should use default value for optionListIds if it is not provided', () => {
-      const codeListId = '';
-      const options = undefined;
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options);
       expect(result).toEqual(SelectedOptionsType.CodeList);
     });
   });

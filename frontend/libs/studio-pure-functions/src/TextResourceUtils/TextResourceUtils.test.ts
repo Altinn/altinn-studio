@@ -35,11 +35,11 @@ describe('TextResourceUtils', () => {
   describe('set', () => {
     describe('When the given ID does not exist', () => {
       const newTextResource: TextResource = { id: '4', value: 'New Text' };
-      const result: TextResourceMap = textResourceUtils.set(newTextResource);
+      const result: TextResourceUtils = textResourceUtils.set(newTextResource);
 
       it('Adds the new text resource', () => {
         expect(result.get(newTextResource.id)).toEqual(newTextResource);
-        expect([...result.values()]).toEqual([...textResourcesToTest.values(), newTextResource]);
+        expect(result.asArray()).toEqual([...textResourcesToTest.values(), newTextResource]);
       });
 
       it('Is pure', verifyInitialMapIsUnchanged);
@@ -47,11 +47,11 @@ describe('TextResourceUtils', () => {
 
     describe('When the given ID already exists', () => {
       const updatedTextResource: TextResource = { id: text1Id, value: 'Updated Text' };
-      const result: TextResourceMap = textResourceUtils.set(updatedTextResource);
+      const result: TextResourceUtils = textResourceUtils.set(updatedTextResource);
 
       it('Updates the existing text resource', () => {
         expect(result.get(text1Id)).toEqual(updatedTextResource);
-        expect([...result.values()]).toEqual([updatedTextResource, textResource2, textResource3]);
+        expect(result.asArray()).toEqual([updatedTextResource, textResource2, textResource3]);
       });
 
       it('Is pure', verifyInitialMapIsUnchanged);
@@ -59,11 +59,11 @@ describe('TextResourceUtils', () => {
   });
 
   describe('delete', () => {
-    const result = textResourceUtils.delete(text1Id);
+    const result: TextResourceUtils = textResourceUtils.delete(text1Id);
 
     it('Removes the text resource with the given ID', () => {
       expect(result.get(text1Id)).toBeUndefined();
-      expect([...result.values()]).toEqual([textResource2, textResource3]);
+      expect(result.asArray()).toEqual([textResource2, textResource3]);
     });
 
     it('Is pure', verifyInitialMapIsUnchanged);
