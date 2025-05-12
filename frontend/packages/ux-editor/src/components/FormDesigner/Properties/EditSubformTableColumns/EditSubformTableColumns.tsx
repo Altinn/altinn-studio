@@ -3,7 +3,7 @@ import classes from './EditSubformTableColumns.module.css';
 import { StudioButton, StudioHeading } from '@studio/components-legacy';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { type IGenericEditComponent } from '../../../Properties/config/componentConfig';
+import type { IGenericEditComponent } from '../config/componentConfig';
 import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from './types/TableColumn';
 import { filterOutTableColumn, updateComponentWithSubform } from './utils';
