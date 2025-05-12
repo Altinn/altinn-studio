@@ -3,8 +3,8 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TaskCard } from './TaskCard';
 import classes from './TaskCardBar.module.css';
-import { AddNewTask } from '@altinn/ux-editor/components/TaskNavigation/AddNewTask';
-import { AddSubformCard } from '@altinn/ux-editor/components/TaskNavigation/AddSubformCard';
+import { AddNewTask } from './AddNewTask';
+import { AddSubformCard } from './AddSubformCard';
 
 export const TaskCardBar = () => {
   const { org, app } = useStudioEnvironmentParams();

@@ -2,8 +2,8 @@ import React from 'react';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App as FormDesigner } from './App';
-import { FormDesignerNavigation } from './containers/FormDesignNavigation';
 import { useAppContext } from './hooks';
+import { FormDesignerNavigation } from './containers/Home';
 
 type SubAppProps = {
   shouldReloadPreview: boolean;

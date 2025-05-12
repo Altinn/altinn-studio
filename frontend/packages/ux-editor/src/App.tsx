@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner, StudioPageError } from '@studio/components-legacy';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { FormDesignerToolbar } from './components/FormDesigner/Toolbar/FormDesignerToolbar';
+import { FormItemContextProvider } from './containers/FormDesigner/FormItemContext';
+import { FormDesigner } from './containers/FormDesigner/FormDesigner';
 
 /**
  * This is the main React component responsible for controlling

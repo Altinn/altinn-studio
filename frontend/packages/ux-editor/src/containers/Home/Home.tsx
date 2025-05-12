@@ -1,12 +1,12 @@
 import { Link } from '@digdir/designsystemet-react';
 import React from 'react';
-import classes from './FormDesignerNavigation.module.css';
+import classes from './Home.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { TaskCardBar } from '../../components/TaskCardBar/TaskCardBar';
 import { SettingsTabs } from '../../components/Home/Settings/SettingsTabs';
 import { StudioAlert } from '@studio/components-legacy';
+import { TaskCardBar } from '../../components/Home/TaskCardBar/TaskCardBar';
 
 export const FormDesignerNavigation = () => {
   const { t } = useTranslation();

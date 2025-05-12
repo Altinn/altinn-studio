@@ -7,17 +7,21 @@ import React, {
   useEffect,
   useContext,
 } from 'react';
-import type { FormContainer } from '../types/FormContainer';
-import type { FormComponent } from '../types/FormComponent';
-import type { UpdateFormContainerMutationArgs } from '../hooks/mutations/useUpdateFormContainerMutation';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
-import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { LayoutItemType } from '../types/global';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../hooks';
 import type { MutateOptions } from '@tanstack/react-query';
+import { useAppContext } from '../../hooks';
+import type {
+  UpdateFormComponentMutationArgs,
+  useUpdateFormComponentMutation,
+} from '../../hooks/mutations/useUpdateFormComponentMutation';
+import type {
+  UpdateFormContainerMutationArgs,
+  useUpdateFormContainerMutation,
+} from '../../hooks/mutations/useUpdateFormContainerMutation';
+import type { FormComponent } from '../../types/FormComponent';
+import type { FormContainer } from '../../types/FormContainer';
+import { LayoutItemType } from '../../types/global';
 
 export type FormItemContext = {
   formItemId: string;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { AddItem, type AddItemProps } from './AddItem';
-import { renderWithProviders } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
