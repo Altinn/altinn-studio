@@ -6,7 +6,8 @@ import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccess
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { organizationSubject } from '../../utils';
-import { StudioAlert, StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
+import { StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
+import { StudioAlert } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
 import { useTranslation } from 'react-i18next';

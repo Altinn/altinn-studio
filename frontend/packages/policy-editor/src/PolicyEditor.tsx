@@ -21,7 +21,7 @@ import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import { PolicyRulesEditor } from './components/PolicyRulesEditor';
 import { PolicyEditorTabs } from './components/PolicyEditorTabs';
-import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor/ConsentResourcePolicyRulesEditor';
+import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor';
 
 export type PolicyEditorProps = {
   policy: Policy;
