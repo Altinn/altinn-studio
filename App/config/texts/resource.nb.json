@@ -296,6 +296,18 @@
     {
       "id": "singing.summary.title.override",
       "value": "Følgende parter har signert stiftelsesdokumentene"
+    },
+        {
+      "id": "signing.correspondence_receipt_title",
+      "value": "Kvittering: Signering av stiftelsesdokumenter"
+    },
+    {
+      "id": "signing.correspondence_receipt_summary",
+      "value": "Du har signert stiftelsesdokumentene"
+    },
+    {
+      "id": "signing.correspondence_receipt_body",
+      "value": "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
     }
   ]
 }
