@@ -5,6 +5,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioFieldsetProps = WithoutAsChild<FieldsetProps>;
 
+/**
+ * @deprecated use `StudioFieldset` from `@studio/components` instead
+ */
 export const StudioFieldset = forwardRef<HTMLFieldSetElement, StudioFieldsetProps>((props, ref) => {
   return <Fieldset size='sm' {...props} ref={ref} />;
 });
