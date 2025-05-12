@@ -1,6 +1,6 @@
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import type { UpdateTextResourcesForOrgMutationArgs } from './useUpdateTextResourcesForOrgMutation';
-import { useUpdateTextResourcesForOrgMutation } from './useUpdateTextResourcesForOrgMutation';
+import type { UpdateOrgTextResourcesMutationArgs } from './useUpdateOrgTextResourcesMutation';
+import { useUpdateOrgTextResourcesMutation } from './useUpdateOrgTextResourcesMutation';
 import { label1TextResource, label2TextResource } from '../../mocks/textResourcesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -16,37 +16,37 @@ const payload: KeyValuePairs<string> = {
   [label1TextResource.id]: label1TextResource.value,
   [label2TextResource.id]: label2TextResource.value,
 };
-const args: UpdateTextResourcesForOrgMutationArgs = { language, payload };
+const args: UpdateOrgTextResourcesMutationArgs = { language, payload };
 
 // Mocks:
 const response: ITextResourcesWithLanguage = {
   language,
   resources: [label1TextResource, label2TextResource],
 };
-type Request = ServicesContextProps['updateTextResourcesForOrg'];
+type Request = ServicesContextProps['updateOrgTextResources'];
 const mockRequest: Request = () => Promise.resolve(response);
-const updateTextResourcesForOrg = jest.fn().mockImplementation(mockRequest);
+const updateOrgTextResources = jest.fn().mockImplementation(mockRequest);
 
-describe('useUpdateTextResourcesForOrgMutation', () => {
-  beforeEach(updateTextResourcesForOrg.mockClear);
+describe('useUpdateOrgTextResourcesMutation', () => {
+  beforeEach(updateOrgTextResources.mockClear);
 
-  it('Calls updateTextResourcesForOrg with correct arguments and payload', async () => {
+  it('Calls updateOrgTextResources with correct arguments and payload', async () => {
     await renderAndMutate();
-    expect(updateTextResourcesForOrg).toHaveBeenCalledTimes(1);
-    expect(updateTextResourcesForOrg).toHaveBeenCalledWith(orgName, language, payload);
+    expect(updateOrgTextResources).toHaveBeenCalledTimes(1);
+    expect(updateOrgTextResources).toHaveBeenCalledWith(orgName, language, payload);
   });
 
   it('Stores the result in the cache with correct keys', async () => {
     const client = createQueryClientMock();
     await renderAndMutate(client);
-    const key: TanstackQueryKey = [QueryKey.TextResourcesForOrg, orgName, language];
+    const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(response);
   });
 });
 
 async function renderAndMutate(queryClient = createQueryClientMock()): Promise<void> {
-  const { result } = renderHookWithProviders(() => useUpdateTextResourcesForOrgMutation(orgName), {
-    queries: { updateTextResourcesForOrg },
+  const { result } = renderHookWithProviders(() => useUpdateOrgTextResourcesMutation(orgName), {
+    queries: { updateOrgTextResources },
     queryClient,
   });
   await result.current.mutateAsync(args);

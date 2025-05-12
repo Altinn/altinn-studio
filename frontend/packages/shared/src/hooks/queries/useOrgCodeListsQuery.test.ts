@@ -5,9 +5,9 @@ import { org } from '@studio/testing/testids';
 import { useOrgCodeListsQuery } from '../../hooks/queries/useOrgCodeListsQuery';
 
 describe('useOrgCodeListsQuery', () => {
-  it('calls getCodeListsForOrg with the correct parameters', () => {
+  it('calls getOrgCodeLists with the correct parameters', () => {
     render();
-    expect(queriesMock.getCodeListsForOrg).toHaveBeenCalledWith(org);
+    expect(queriesMock.getOrgCodeLists).toHaveBeenCalledWith(org);
   });
 });
 

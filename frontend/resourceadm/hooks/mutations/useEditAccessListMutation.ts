@@ -22,9 +22,9 @@ export const useEditAccessListMutation = (
   return useMutation({
     mutationFn: (payload: AccessList) => updateAccessList(org, listIdentifier, env, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, org, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, org, env, listIdentifier] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, org, env] });
     },
   });
 };

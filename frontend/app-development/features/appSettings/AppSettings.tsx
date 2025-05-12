@@ -17,12 +17,16 @@ export function AppSettings(): ReactElement {
 
   return (
     <div className={classes.settingsWrapper}>
-      <div className={classes.leftNavWrapper}>
-        <ContentMenu currentTab={currentTab} onChangeTab={handleTabChange} />
-      </div>
-      <div className={classes.contentWrapper}>
-        <StudioHeading level={1}>{t('settings_modal.heading')}</StudioHeading>
-        <TabsContent currentTab={currentTab} />
+      <StudioHeading level={2} className={classes.settingsHeading}>
+        {t('app_settings.heading')}
+      </StudioHeading>
+      <div className={classes.pageContentWrapper}>
+        <div className={classes.leftNavWrapper}>
+          <ContentMenu currentTab={currentTab} onChangeTab={handleTabChange} />
+        </div>
+        <div className={classes.contentWrapper}>
+          <TabsContent currentTab={currentTab} />
+        </div>
       </div>
     </div>
   );
