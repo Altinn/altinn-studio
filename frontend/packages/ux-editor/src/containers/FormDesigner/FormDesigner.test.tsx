@@ -4,19 +4,19 @@ import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
-} from '../testing/mocks';
+} from '../../testing/mocks';
 import { FormDesigner } from './FormDesigner';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
+import { useWidgetsQuery } from '../../hooks/queries/useWidgetsQuery';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { externalLayoutsMock, layout1NameMock, pagesModelMock } from '../testing/layoutMock';
+import { externalLayoutsMock, layout1NameMock, pagesModelMock } from '../../testing/layoutMock';
 import { FormItemContext } from './FormItemContext';
-import { formItemContextProviderMock } from '../testing/formItemContextMocks';
-import { appContextMock } from '../testing/appContextMock';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
+import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { user as userMock } from 'app-shared/mocks/mocks';

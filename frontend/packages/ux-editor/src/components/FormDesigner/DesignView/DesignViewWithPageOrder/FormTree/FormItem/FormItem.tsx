@@ -1,10 +1,10 @@
 import React from 'react';
-import type { IInternalLayout } from '../../../../types/global';
-import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
+import type { IInternalLayout } from '../../../../../../types/global';
+import { getItem, isContainer } from '../../../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
 import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { FormItemTitle } from './FormItemTitle';
-import { formItemConfigs } from '../../../../data/formItemConfig';
+import { formItemConfigs } from '../../../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';

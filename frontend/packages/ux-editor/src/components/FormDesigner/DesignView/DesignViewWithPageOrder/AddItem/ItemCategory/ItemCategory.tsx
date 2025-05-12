@@ -2,10 +2,10 @@ import React from 'react';
 import { StudioCard, StudioHeading } from '@studio/components-legacy';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
-import type { IToolbarElement } from '../../../../types/global';
+import type { IToolbarElement } from '../../../../../../types/global';
 import type { AddedItem } from '../types';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { getTitleByComponentType } from '../../../../utils/language';
+import { getTitleByComponentType } from '../../../../../../utils/language';
 import { ComponentButton } from '../ComponentButton';
 
 export type ItemCategoryProps = {

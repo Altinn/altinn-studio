@@ -1,9 +1,9 @@
 import React from 'react';
-import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderWithProviders } from '../../../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { FormItemContextProvider } from '../FormItemContext';
+import { FormItemContextProvider } from '../../../../containers/FormDesigner/FormItemContext';
 import { StudioDragAndDrop } from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
@@ -19,8 +19,8 @@ import {
   pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
-import { appContextMock } from '../../testing/appContextMock';
+import { convertExternalLayoutsToInternalFormat } from '../../../../utils/formLayoutsUtils';
+import { appContextMock } from '../../../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';

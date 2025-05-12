@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Expressions } from '../../Properties/config/Expressions';
 import { useText } from '../../../hooks';
-import { useFormItemContext } from '../../../containers/FormItemContext';
+import { useFormItemContext } from '../../../containers/FormDesigner/FormItemContext';
+import { Expressions } from './config/Expressions';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
 import { DeprecatedConditionalRenderingInfo } from '@altinn/ux-editor/components/FormDesigner/Properties/DeprecatedConditionalRenderingInfo';

@@ -1,8 +1,8 @@
-﻿import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useSelectedFormLayoutWithName, useAppContext } from '../../../../hooks';
-import { useFormLayoutMutation } from '../../../../hooks/mutations/useFormLayoutMutation';
-import { removeComponent } from '../../../../utils/formLayoutUtils';
-import type { IInternalLayout } from '../../../../types/global';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useSelectedFormLayoutWithName, useAppContext } from '../../../../../../hooks';
+import { useFormLayoutMutation } from '../../../../../../hooks/mutations/useFormLayoutMutation';
+import { removeComponent } from '../../../../../../utils/formLayoutUtils';
+import type { IInternalLayout } from '../../../../../../types/global';
 
 export const useDeleteUnknownComponentReference = () => {
   const { org, app } = useStudioEnvironmentParams();

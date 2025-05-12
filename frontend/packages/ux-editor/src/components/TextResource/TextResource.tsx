@@ -11,7 +11,7 @@ import {
 import { XMarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useFormItemContext } from '../../containers/FormItemContext';
+import { useFormItemContext } from '../../containers/FormDesigner/FormItemContext';
 import { useAppContext } from '../../hooks';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
 

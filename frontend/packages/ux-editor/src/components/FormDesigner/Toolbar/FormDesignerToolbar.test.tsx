@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { FormDesignerToolbar } from './FormDesignerToolbar';
-import { renderWithProviders } from '../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   ...jest.requireActual('app-shared/utils/featureToggleUtils'),

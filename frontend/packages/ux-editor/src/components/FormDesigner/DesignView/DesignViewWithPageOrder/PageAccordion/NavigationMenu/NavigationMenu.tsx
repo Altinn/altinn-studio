@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../hooks';
+import { useAppContext } from '../../../../../../hooks';
 import { StudioButton } from '@studio/components-legacy';
-import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
-import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
+import { usePagesQuery } from '../../../../../../hooks/queries/usePagesQuery';
+import { useChangePageOrderMutation } from '../../../../../../hooks/mutations/useChangePageOrderMutation';
 
 export type NavigationMenuProps = {
   pageName: string;

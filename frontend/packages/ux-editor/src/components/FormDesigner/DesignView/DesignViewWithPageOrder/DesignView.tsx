@@ -4,24 +4,24 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/designsystemet-react';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { PageAccordion } from './PageAccordion';
-import { useAppContext, useFormLayouts } from '../../hooks';
+import { useAppContext, useFormLayouts } from '../../../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components-legacy';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
-} from '../../utils/formLayoutUtils';
-import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+} from '../../../../utils/formLayoutUtils';
 import { PlusIcon } from '@studio/icons';
-import { usePdf } from '../../hooks/usePdf/usePdf';
-import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
-import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
+import { usePdf } from '../../../../hooks/usePdf/usePdf';
+import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
+import { useAddPageMutation } from '../../../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
-import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
+import { DesignViewNavigation } from '../DesignViewWithPageGroups';
+import { PdfLayoutAccordion } from './PdfLayout/PdfLayoutAccordion';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

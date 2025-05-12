@@ -1,5 +1,4 @@
 import React from 'react';
-import { ExpressionContent } from '../../../Properties/config/ExpressionContent';
 import type { Expression } from '@studio/components-legacy';
 import type { IInternalLayout } from '../../../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
@@ -10,6 +9,7 @@ import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useDebounce } from '@studio/hooks';
 import classes from './HiddenExpressionOnLayout.module.css';
+import { ExpressionContent } from '../config/ExpressionContent';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();

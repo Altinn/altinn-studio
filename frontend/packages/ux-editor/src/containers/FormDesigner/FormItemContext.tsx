@@ -11,12 +11,12 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { MutateOptions } from '@tanstack/react-query';
 import { useAppContext } from '../../hooks';
-import type {
-  UpdateFormComponentMutationArgs,
+import {
+  type UpdateFormComponentMutationArgs,
   useUpdateFormComponentMutation,
 } from '../../hooks/mutations/useUpdateFormComponentMutation';
-import type {
-  UpdateFormContainerMutationArgs,
+import {
+  type UpdateFormContainerMutationArgs,
   useUpdateFormContainerMutation,
 } from '../../hooks/mutations/useUpdateFormContainerMutation';
 import type { FormComponent } from '../../types/FormComponent';

@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { getComponentHelperTextByComponentType } from '../../utils/language';
+import { getComponentHelperTextByComponentType } from '../../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components-legacy';
 import { InformationIcon } from '@studio/icons';

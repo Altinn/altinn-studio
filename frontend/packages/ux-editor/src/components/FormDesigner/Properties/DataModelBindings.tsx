@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { EditDataModelBinding } from '../../Properties/config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
-import { useFormItemContext } from '../../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../../hooks';
 import classes from './DataModelBindings.module.css';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../types/FormItem';
+import { EditDataModelBinding } from './config/editModal/EditDataModelBinding/EditDataModelBinding';
+import { useFormItemContext } from '../../../containers/FormDesigner/FormItemContext';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const layout = useSelectedFormLayout();

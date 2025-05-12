@@ -1,13 +1,13 @@
 import React from 'react';
 import { EditLayoutSet } from './EditLayoutSet';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
+import type { IGenericEditComponent } from '../../config/componentConfig';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { StudioButton, StudioDivider } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
-import { useAppContext } from '@altinn/ux-editor/hooks';
 import classes from './EditLayoutSetForSubform.module.css';
+import { useAppContext } from '../../../../../hooks/useAppContext';
 
 export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,

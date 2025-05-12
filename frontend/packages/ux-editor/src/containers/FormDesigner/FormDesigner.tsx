@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Properties } from '../components/Properties';
-import { DesignView } from './DesignView';
+import { Properties } from '../../components/FormDesigner/Properties';
+import { DesignView } from '../../components/FormDesigner/DesignView/DesignViewWithPageOrder';
 import classes from './FormDesigner.module.css';
-import { Elements } from '../components/Elements';
+import { Elements } from '../../components/FormDesigner/Elements';
 import { useFormItemContext } from './FormItemContext';
-import { useAppContext, useText } from '../hooks';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useAppContext, useText } from '../../hooks';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   StudioDragAndDropTree,
   StudioPageError,
@@ -15,21 +15,21 @@ import {
   useLocalStorage,
 } from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
+import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { generateComponentId } from '../utils/generateId';
+import { generateComponentId } from '../../utils/generateId';
 import {
   addItemOfType,
   getItem,
   isComponentTypeValidChild,
   moveLayoutItem,
-} from '../utils/formLayoutUtils';
-import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
-import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { Preview } from '../components/Preview';
+} from '../../utils/formLayoutUtils';
+import { useAddItemToLayoutMutation } from '../../hooks/mutations/useAddItemToLayoutMutation';
+import { useFormLayoutMutation } from '../../hooks/mutations/useFormLayoutMutation';
+import { Preview } from '../../components/FormDesigner/Preview';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 export const FormDesigner = (): JSX.Element => {

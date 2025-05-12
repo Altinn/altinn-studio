@@ -2,8 +2,8 @@ import React from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { Summary2Target } from '../../../../Properties/config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
 import classes from './SpecificMainConfig.module.css';
+import { Summary2Target } from '../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
 
 export type SummaryMainConfigProps = {
   component: FormItem<ComponentType.Summary2>;

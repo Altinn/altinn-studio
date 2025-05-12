@@ -2,7 +2,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IDataModelBindingsKeyValue, ITextResourceBindings, IOption } from './global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { SimpleComponentType } from './SimpleComponentType';
-import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
+import type { GridSizes } from '../components/FormDesigner/Properties/config/editModal/EditGrid/types/GridSizes';
 import type { BooleanExpression } from '@studio/components-legacy';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {

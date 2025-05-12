@@ -1,10 +1,10 @@
-import { renderHookWithProviders } from '../../../../../testing/mocks';
+import { renderHookWithProviders } from '../../../../../../../testing/mocks';
 import { useDeleteItem } from './useDeleteItem';
-import type { FormComponent } from '../../../../../types/FormComponent';
-import type { FormContainer } from '../../../../../types/FormContainer';
-import { componentMocks } from '../../../../../testing/componentMocks';
+import type { FormComponent } from '../../../../../../../types/FormComponent';
+import type { FormContainer } from '../../../../../../../types/FormContainer';
+import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { container1IdMock, layoutMock } from '../../../../../testing/layoutMock';
+import { container1IdMock, layoutMock } from '../../../../../../../testing/layoutMock';
 
 // Mocks:
 const mockContainerMutation = jest.fn();

@@ -2,7 +2,6 @@ import React from 'react';
 import { Properties } from './Properties';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -17,7 +16,8 @@ import {
 } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
-import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
+import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
+import { FormItemContext } from '../../../containers/FormDesigner/FormItemContext';
 
 // Test data:
 const pageConfigPanelTestId = 'pageConfigPanel';

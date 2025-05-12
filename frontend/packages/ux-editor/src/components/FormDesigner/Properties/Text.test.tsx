@@ -2,7 +2,7 @@ import React from 'react';
 import { Text } from './Text';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { FormItemContext } from '../../../containers/FormItemContext';
+import { FormItemContext } from '../../../containers/FormDesigner/FormItemContext';
 import {
   component1IdMock,
   component1Mock,

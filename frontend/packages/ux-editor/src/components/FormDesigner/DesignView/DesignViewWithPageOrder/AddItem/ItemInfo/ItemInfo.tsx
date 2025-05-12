@@ -8,7 +8,7 @@ import {
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,
-} from '../../../../utils/language';
+} from '../../../../../../utils/language';
 import type { AddedItem } from '../types';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';

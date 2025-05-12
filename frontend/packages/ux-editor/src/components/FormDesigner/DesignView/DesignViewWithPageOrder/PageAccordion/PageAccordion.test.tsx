@@ -5,12 +5,12 @@ import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '../../../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
-} from '../../../testing/mocks';
+} from '../../../../../testing/mocks';
 import { layout1NameMock, pagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
