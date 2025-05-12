@@ -18,8 +18,11 @@ export const useGetAllAccessListsQuery = (
   const { getAllAccessLists } = useServicesContext();
 
   return useQuery<AccessList[]>({
-    queryKey: [QueryKey.AllAccessLists],
+    queryKey: [QueryKey.AllAccessLists, org],
     queryFn: () => getAllAccessLists(org),
     enabled: enabled,
+    meta: {
+      hideDefaultError: true,
+    },
   });
 };

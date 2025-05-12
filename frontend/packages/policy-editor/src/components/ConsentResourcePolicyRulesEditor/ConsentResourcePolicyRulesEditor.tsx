@@ -6,7 +6,7 @@ import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccess
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { organizationSubject } from '../../utils';
-import { StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
+import { StudioAlert, StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
 import { useTranslation } from 'react-i18next';
@@ -89,6 +89,9 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   };
 
   const isAllOrganizationsChecked = policyRule.subject.indexOf(organizationSubject.subjectId) > -1;
+  const accessListSubjects = subjects.filter((subject) =>
+    subject.subjectSource.startsWith('altinn:accesslist'),
+  );
 
   return (
     <div className={classes.consentRuleCard}>
@@ -105,20 +108,24 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
         </StudioRadio>
       </StudioRadio.Group>
       {!isAllOrganizationsChecked && (
-        <StudioCheckbox.Group
-          legend={t('policy_editor.consent_resource_access_list_header')}
-          onChange={handleAccessListsChange}
-          value={policyRule.subject}
-          className={classes.accessLists}
-        >
-          {subjects
-            .filter((subject) => subject.subjectSource.startsWith('altinn:accesslist'))
-            .map((subject) => (
-              <StudioCheckbox key={subject.subjectId} value={subject.subjectId}>
-                {subject.subjectTitle} ({subject.subjectId})
-              </StudioCheckbox>
-            ))}
-        </StudioCheckbox.Group>
+        <>
+          {accessListSubjects.length === 0 ? (
+            <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
+          ) : (
+            <StudioCheckbox.Group
+              legend={t('policy_editor.consent_resource_access_list_header')}
+              onChange={handleAccessListsChange}
+              value={policyRule.subject}
+              className={classes.accessLists}
+            >
+              {accessListSubjects.map((subject) => (
+                <StudioCheckbox key={subject.subjectId} value={subject.subjectId}>
+                  {subject.subjectTitle} ({subject.subjectId})
+                </StudioCheckbox>
+              ))}
+            </StudioCheckbox.Group>
+          )}
+        </>
       )}
     </div>
   );

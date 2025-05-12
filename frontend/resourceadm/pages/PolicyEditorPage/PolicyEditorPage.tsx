@@ -81,7 +81,7 @@ export const PolicyEditorPage = ({
   };
 
   const getConsentResourceSubjects = () => {
-    const accessListSubjects = accessLists.map((accessList) => {
+    const accessListSubjects = (accessLists ?? []).map((accessList) => {
       return {
         subjectId: `${accessList.identifier}`,
         subjectSource: `altinn:accesslist:${org}`,

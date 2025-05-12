@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
@@ -142,6 +143,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/allaccesslists")]
         public async Task<ActionResult> GetAccessListIdentifiers(string org)
         {
+            // sjekk at man er medlem av minst et Resources-Publish-XXXX team for å kunne kalle dette endepunktet
+            bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
+            if (!hasPublishResourcePermission)
+            {
+                return StatusCode(403);
+            }
+
             List<string> envs = GetEnvironmentsForOrg(org);
             List<AccessList> accessLists = [];
             foreach (string environment in envs)
@@ -157,6 +165,18 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok(accessLists);
+        }
+
+        private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
+        {
+            List<Team> teams = await _giteaApi.GetTeams();
+            List<string> envs = GetEnvironmentsForOrg(org);
+
+            bool isTeamMember = teams.Any(team =>
+                team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase) &&
+                envs.Any(env => team.Name.Equals($"Resources-Publish-{env}", StringComparison.OrdinalIgnoreCase))
+            );
+            return isTeamMember;
         }
 
         private async Task<List<AccessList>> GetAllAccessListsForEnv(string env, string org)

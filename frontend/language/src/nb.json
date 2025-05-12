@@ -720,6 +720,7 @@
   "policy_editor.consent_resource_access_list_organizations": "Utvalgte organisasjoner i tilgangslister",
   "policy_editor.consent_resource_all_organizations": "Alle organisasjoner",
   "policy_editor.consent_resource_consent_header": "Hvem skal ha rettighet til å godkjenne samtykke?",
+  "policy_editor.consent_resource_no_access_lists": "Ingen tilgangslister tilgjengelig, eller du har ikke tilgang til å se tilgangslister",
   "policy_editor.consent_resource_request_consent_header": "Hvem skal ha rettighet til å be om samtykke?",
   "policy_editor.expandable_card_close_icon": "Lukk kortet",
   "policy_editor.expandable_card_dropdown_copy": "Lag kopi",
