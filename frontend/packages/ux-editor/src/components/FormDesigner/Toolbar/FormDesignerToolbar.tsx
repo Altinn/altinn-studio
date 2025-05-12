@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './FormDesignerToolbar.module.css';
-import { ToggleAddComponentPoc } from './DesignView/AddItem/ToggleAddComponentPoc';
-import { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
+import { ToggleAddComponentPoc } from '../DesignView/DesignViewWithPageOrder/AddItem/ToggleAddComponentPoc';
+import { BreadcrumbsTaskNavigation } from './Breadcrumbs';
 
 export const FormDesignerToolbar = () => {
   return (

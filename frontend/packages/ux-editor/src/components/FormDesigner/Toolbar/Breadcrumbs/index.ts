@@ -1,1 +1,1 @@
-export { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
+export { BreadcrumbsTaskNavigation } from './Breadcrumbs';

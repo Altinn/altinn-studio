@@ -1,5 +1,5 @@
 import React from 'react';
-import { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
+import { BreadcrumbsTaskNavigation } from './Breadcrumbs';
 import { screen, within } from '@testing-library/react';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
