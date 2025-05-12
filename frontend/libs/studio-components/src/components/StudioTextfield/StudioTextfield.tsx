@@ -6,11 +6,11 @@ import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
 export type StudioTextfieldProps = TextfieldProps & {
-  requiredText?: string;
+  tagText?: string;
 };
 
 function StudioTextfield(
-  { children, required, requiredText, label, ...rest }: StudioTextfieldProps,
+  { children, required, tagText, label, ...rest }: StudioTextfieldProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
   // Designsystemet has conditional types, so if we extract label from props, we must
@@ -24,7 +24,7 @@ function StudioTextfield(
       ref={ref}
       {...rest}
       label={
-        <StudioLabelWrapper required={required} requiredText={requiredText}>
+        <StudioLabelWrapper required={required} tagText={tagText}>
           {label}
         </StudioLabelWrapper>
       }

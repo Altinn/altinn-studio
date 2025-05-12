@@ -6,11 +6,11 @@ import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
 export type StudioCheckboxProps = CheckboxProps & {
-  requiredText?: string;
+  tagText?: string;
 };
 
 function StudioCheckbox(
-  { required, requiredText, label, ...rest }: StudioCheckboxProps,
+  { required, tagText, label, ...rest }: StudioCheckboxProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
   // Designsystemet has conditional types, so if we extract label from props, we must
@@ -24,7 +24,7 @@ function StudioCheckbox(
       {...rest}
       ref={ref}
       label={
-        <StudioLabelWrapper required={required} requiredText={requiredText}>
+        <StudioLabelWrapper required={required} tagText={tagText}>
           {label}
         </StudioLabelWrapper>
       }

@@ -34,15 +34,15 @@ describe('StudioCheckbox', () => {
   });
 
   it('Renders required text when provided', () => {
-    const requiredText: string = 'Required';
-    renderCheckbox({ label, required: true, requiredText });
-    expect(screen.getByText(requiredText)).toBeInTheDocument();
+    const tagText: string = 'Required';
+    renderCheckbox({ label, required: true, tagText });
+    expect(screen.getByText(tagText)).toBeInTheDocument();
   });
 
   it('Does not use StudioLabelWrapper when aria-label is provided', () => {
-    const requiredText: string = 'Required';
-    renderCheckbox({ 'aria-label': label, requiredText });
-    expect(screen.queryByText(requiredText)).not.toBeInTheDocument();
+    const tagText: string = 'Required';
+    renderCheckbox({ 'aria-label': label, tagText });
+    expect(screen.queryByText(tagText)).not.toBeInTheDocument();
   });
 });
 

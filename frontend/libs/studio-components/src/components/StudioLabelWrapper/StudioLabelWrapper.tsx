@@ -5,7 +5,7 @@ import { StudioTag } from '../StudioTag';
 
 export type StudioLabelWrapperProps = {
   children: ReactNode;
-  requiredText?: string;
+  tagText?: string;
   required?: boolean;
 };
 
@@ -17,34 +17,34 @@ export type StudioLabelWrapperProps = {
  */
 export function StudioLabelWrapper({
   children,
-  requiredText,
+  tagText,
   required,
 }: StudioLabelWrapperProps): ReactElement {
   return (
-    <RequiredWrapper required={required} requiredText={requiredText}>
+    <RequiredWrapper required={required} tagText={tagText}>
       {children}
     </RequiredWrapper>
   );
 }
 
 type RequiredWrapperProps = HTMLAttributes<HTMLSpanElement> & {
-  requiredText?: string;
+  tagText?: string;
   required?: boolean;
 };
 
 function RequiredWrapper({
   children,
   className,
-  requiredText,
+  tagText,
   required,
   ...rest
 }: RequiredWrapperProps): ReactElement {
   return (
     <span {...rest} className={className}>
       {children}
-      {requiredText && (
+      {tagText && (
         <StudioTag className={classes.requiredTag} data-color={required ? 'warning' : 'info'}>
-          {requiredText}
+          {tagText}
         </StudioTag>
       )}
     </span>

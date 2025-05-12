@@ -11,34 +11,34 @@ describe('StudioLabelWrapper', () => {
     expect(screen.getByText(childrenText)).toBeInTheDocument();
   });
 
-  it('should not render StudioTag if requiredText is not provided', () => {
+  it('should not render StudioTag if tagText is not provided', () => {
     renderStudioLabelWrapper();
-    expect(screen.queryByText(requiredText)).not.toBeInTheDocument();
+    expect(screen.queryByText(tagText)).not.toBeInTheDocument();
   });
 
   it('should render StudioTag with correct text and data-color=warning when required is true', () => {
     renderStudioLabelWrapper({
-      requiredText,
+      tagText,
       required: true,
     });
 
-    const tag = screen.getByText(requiredText);
+    const tag = screen.getByText(tagText);
     expect(tag).toBeInTheDocument();
     expect(tag).toHaveAttribute('data-color', 'warning');
   });
 
   it('should render StudioTag with data-color=info when required is false', () => {
     renderStudioLabelWrapper({
-      requiredText,
+      tagText,
       required: false,
     });
 
-    const tag = screen.getByText(requiredText);
+    const tag = screen.getByText(tagText);
     expect(tag).toHaveAttribute('data-color', 'info');
   });
 });
 
-const requiredText: string = 'Required';
+const tagText: string = 'Required';
 const childrenText: string = 'Test content';
 const children: ReactNode = <span>{childrenText}</span>;
 const defaultProps: StudioLabelWrapperProps = {
