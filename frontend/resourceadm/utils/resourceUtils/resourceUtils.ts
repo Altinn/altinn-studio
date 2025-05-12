@@ -549,8 +549,8 @@ export const convertMetadataStringToConsentMetadata = (metadataString: string): 
 const getConsentMetadataValuesFromText = (text: string): string[] => {
   return text.match(/{([^{}]*?)}/g) ?? [];
 };
-const getUnknownMetadataValuesInText = (metadataValues: ConsentMetadata, consentText: string) => {
-  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
+const getUnknownMetadataValuesInText = (metadataValues: ConsentMetadata, consentText?: string) => {
+  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText ?? '');
   const unknownMetadataValueUsed = metadataKeysInConsentText
     .map((metadataKey) => metadataKey.slice(1, -1))
     .filter((metadataKey) => !metadataValues[metadataKey]);
@@ -562,8 +562,8 @@ const getUnknownMetadataValues = (
   consentTexts: SupportedLanguage,
 ) => {
   return {
-    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts.nb),
-    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts.nn),
-    en: getUnknownMetadataValuesInText(metadataValues, consentTexts.en),
+    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nb),
+    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
+    en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
   };
 };
