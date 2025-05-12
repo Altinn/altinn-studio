@@ -70,21 +70,24 @@ type GetHiddenTasksProps = {
   layoutSetsModel: LayoutSetsModel;
 };
 
-export const getHiddenTasks = ({ taskNavigationGroups, layoutSetsModel }: GetHiddenTasksProps) => {
+export const getHiddenTasks = ({
+  taskNavigationGroups,
+  layoutSetsModel,
+}: GetHiddenTasksProps): TaskNavigationGroup[] => {
   const layoutSets = layoutSetsModel.sets;
 
   const hiddenTasks = layoutSets.filter((layoutSet) => {
-    return !taskNavigationGroups.some((task) => task.taskId === layoutSet.task?.id);
+    return !taskNavigationGroups.some((taskGroup) => taskGroup.taskId === layoutSet.task?.id);
   });
 
-  const filteredHiddenTasks = hiddenTasks.filter((task) => {
-    return task?.type !== 'subform';
+  const filteredHiddenTasks = hiddenTasks.filter((taskGroup) => {
+    return taskGroup?.type !== 'subform';
   });
 
-  return filteredHiddenTasks.map((task) => ({
-    taskType: Boolean(task.task?.type) ? task.task.type : task.task.id,
-    name: task.id,
+  return filteredHiddenTasks.map((taskGroup) => ({
+    taskType: Boolean(taskGroup.task?.type) ? taskGroup.task.type : taskGroup.task.id,
+    name: taskGroup.id,
     pageCount: undefined, // This will be added later: https://digdir.slack.com/archives/C07PN8DMJ2E/p1746537888455189
-    taskId: task?.task.id,
+    taskId: taskGroup?.task.id,
   }));
 };
