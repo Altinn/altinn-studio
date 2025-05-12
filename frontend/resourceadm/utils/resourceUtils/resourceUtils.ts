@@ -549,10 +549,13 @@ export const convertMetadataStringToConsentMetadata = (metadataString: string): 
   }, {});
 };
 
-const getConsentMetadataValuesFromText = (text?: string): string[] => {
+const getConsentMetadataValuesFromText = (text: string | null | undefined): string[] => {
   return text?.match(/{([^{}]*?)}/g) ?? [];
 };
-const getUnknownMetadataValuesInText = (metadataValues?: ConsentMetadata, consentText?: string) => {
+const getUnknownMetadataValuesInText = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentText: string | null | undefined,
+) => {
   const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
   const unknownMetadataValueUsed = metadataKeysInConsentText
     .map((metadataKey) => metadataKey.slice(1, -1))
@@ -561,8 +564,8 @@ const getUnknownMetadataValuesInText = (metadataValues?: ConsentMetadata, consen
   return unknownMetadataValueUsed;
 };
 const getUnknownMetadataValues = (
-  metadataValues?: ConsentMetadata,
-  consentTexts?: SupportedLanguage,
+  metadataValues: ConsentMetadata | null | undefined,
+  consentTexts: SupportedLanguage | null | undefined,
 ) => {
   return {
     nb: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nb),
