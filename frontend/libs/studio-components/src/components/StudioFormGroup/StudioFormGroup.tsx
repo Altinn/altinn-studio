@@ -12,7 +12,7 @@ function StudioFormGroup(
   ref: Ref<HTMLFieldSetElement>,
 ): ReactElement {
   return (
-    <StudioFieldset>
+    <StudioFieldset {...rest} ref={ref}>
       <StudioFieldset.Legend></StudioFieldset.Legend>
     </StudioFieldset>
   );

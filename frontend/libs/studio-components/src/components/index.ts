@@ -24,3 +24,4 @@ export { StudioContentMenu } from './StudioContentMenu';
 export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioFormGroup } from './StudioFormGroup';
+export { StudioSwitch } from './StudioSwitch';
