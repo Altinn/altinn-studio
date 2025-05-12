@@ -15,7 +15,7 @@ import { TabPageHeader } from '../../TabPageHeader';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { TabDataError } from '../../TabDataError';
 import { CreatedFor } from './CreatedFor';
-import { AboutTabInputFields } from './AboutTabInputFields';
+import { InputFields } from './InputFields';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -81,7 +81,7 @@ function AboutTabContent(): ReactElement {
             repository={repositoryData}
             authorName={applicationMetadataData?.createdBy}
           />
-          <AboutTabInputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
+          <InputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
         </>
       );
     }

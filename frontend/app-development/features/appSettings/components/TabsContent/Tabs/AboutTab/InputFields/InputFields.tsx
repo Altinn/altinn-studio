@@ -1,18 +1,18 @@
 import type { FormEvent, ReactElement } from 'react';
 import React, { useState } from 'react';
-import classes from './AboutTabInputFields.module.css';
+import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { StudioTextfield } from '@studio/components';
 
 type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
 
-export type AboutTabInputFieldsProps = {
+export type InputFieldsProps = {
   appConfig: AppConfig;
   onSave: (appConfig: AppConfig) => void;
 };
 
-export function AboutTabInputFields({ appConfig, onSave }: AboutTabInputFieldsProps): ReactElement {
+export function InputFieldsFields({ appConfig, onSave }: InputFieldsProps): ReactElement {
   const { t } = useTranslation();
 
   const [appConfigFormErrors, setAppConfigFormErrors] = useState<

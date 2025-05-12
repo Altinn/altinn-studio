@@ -1,1 +1,0 @@
-export { AboutTabInputFields } from './AboutTabInputFields';
