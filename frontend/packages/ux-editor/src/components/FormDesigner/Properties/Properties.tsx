@@ -2,16 +2,16 @@ import React from 'react';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/designsystemet-react';
-import { useFormItemContext } from '../../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
-import { EditFormComponent } from '../../Properties/config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
 import { PageConfigPanel } from './PageConfigPanel';
 import { DeprecatedCalculationsInfo } from '@altinn/ux-editor/components/FormDesigner/Properties/DeprecatedCalculationsInfo';
-import { Summary2Override } from '../../Properties/config/componentSpecificContent/Summary2/Override/Summary2Override';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { useFormItemContext } from '../../../containers/FormDesigner/FormItemContext';
+import { Summary2Override } from './config/componentSpecificContent/Summary2/Override/Summary2Override';
+import { EditFormComponent } from './config/EditFormComponent';
 
 export const Properties = () => {
   const { t } = useTranslation();

@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
-import { FormItemContext } from '../../../containers/FormItemContext';
+import { FormItemContext } from '../../../containers/FormDesigner/FormItemContext';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';

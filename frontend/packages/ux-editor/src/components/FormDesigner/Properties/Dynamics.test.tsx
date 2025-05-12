@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormItemContext } from '../../../containers/FormItemContext';
+import { FormItemContext } from '../../../containers/FormDesigner/FormItemContext';
 import { renderWithProviders } from '../../../testing/mocks';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';

@@ -1,19 +1,19 @@
 import React from 'react';
-import { useFormItemContext } from '../../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading } from '@digdir/designsystemet-react';
-import { EditTextResourceBindings } from '../../Properties/config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components-legacy';
-import { EditOptions } from '../../Properties/config/editModal/EditOptions';
 import type { FormComponent, FormComponentBase } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../../hooks';
-import { EditImage } from '../../Properties/config/editModal/EditImage';
 import classes from './Text.module.css';
 import { EditSubformTableColumns } from './EditSubformTableColumns';
-import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
+import { type FormContainer } from '../../../types/FormContainer';
+import { useFormItemContext } from '../../../containers/FormDesigner/FormItemContext';
+import { EditImage } from './config/editModal/EditImage';
+import { EditOptions } from './config/editModal/EditOptions';
+import { EditTextResourceBindings } from './config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
