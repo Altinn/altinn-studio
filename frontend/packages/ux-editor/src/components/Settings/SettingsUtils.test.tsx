@@ -1,4 +1,10 @@
-import { isTaskReceipt, getTaskIcon, taskNavigationType, TaskType } from './SettingsUtils';
+import {
+  isTaskReceipt,
+  getTaskIcon,
+  taskNavigationType,
+  TaskType,
+  getTaskName,
+} from './SettingsUtils';
 import {
   CardIcon,
   FolderIcon,
@@ -10,14 +16,13 @@ import {
 
 describe('taskNavigationType', () => {
   it('should return the correct text key', () => {
-    expect(taskNavigationType('receipt')).toBe(
-      'process_editor.configuration_panel_custom_receipt_accordion_header',
-    );
-    expect(taskNavigationType('data')).toBe('process_editor.task_type.data');
-    expect(taskNavigationType('feedback')).toBe('process_editor.task_type.feedback');
-    expect(taskNavigationType('payment')).toBe('process_editor.task_type.payment');
-    expect(taskNavigationType('signing')).toBe('process_editor.task_type.signing');
-    expect(taskNavigationType('confirmation')).toBe('process_editor.task_type.confirmation');
+    expect(taskNavigationType('receipt')).toBe('ux_editor.task_table_type.receipt');
+    expect(taskNavigationType('data')).toBe('ux_editor.task_table_type.data');
+    expect(taskNavigationType('feedback')).toBe('ux_editor.task_table_type.feedback');
+    expect(taskNavigationType('payment')).toBe('ux_editor.task_table_type.payment');
+    expect(taskNavigationType('signing')).toBe('ux_editor.task_table_type.signing');
+    expect(taskNavigationType('confirmation')).toBe('ux_editor.task_table_type.confirmation');
+    expect(taskNavigationType(undefined)).toBe('ux_editor.task_table_type.unknown');
   });
 });
 
@@ -39,5 +44,34 @@ describe('isTaskReceipt', () => {
 
   it('should return false if taskType is not receipt', () => {
     expect(isTaskReceipt('data')).toBe(false);
+  });
+});
+
+describe('getTaskName', () => {
+  const layoutSetsModel = {
+    sets: [
+      { id: 'laaang', dataType: '', type: null, task: { id: 'task1', type: '' } },
+      { id: 'tang', dataType: '', type: null, task: { id: 'task2', type: '' } },
+    ],
+  };
+
+  it('should return the task name if it exists', () => {
+    const task = { name: 'Task Name', taskType: 'data', taskId: 'task1' };
+    expect(getTaskName(task, layoutSetsModel)).toBe('Task Name');
+  });
+
+  it('should return the layout set id if name does not exist', () => {
+    const task = { taskType: 'data', taskId: 'task1' };
+    expect(getTaskName(task, layoutSetsModel)).toBe('laaang');
+  });
+
+  it('should return receipt text key if taskType is receipt', () => {
+    const task = { taskType: 'receipt', taskId: 'task1' };
+    expect(getTaskName(task, layoutSetsModel)).toBe('ux_editor.task_table_type.receipt');
+  });
+
+  it('should return the default value if no matching task is found', () => {
+    const task = { name: '', taskType: 'unknown', taskId: 'unknown' };
+    expect(getTaskName(task, layoutSetsModel)).toBe('-');
   });
 });

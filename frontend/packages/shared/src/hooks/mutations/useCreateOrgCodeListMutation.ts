@@ -8,10 +8,10 @@ type CreateOrgCodeListMutationArgs = Pick<CodeListData, 'title' | 'data'>;
 
 export const useCreateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();
-  const { createCodeListForOrg } = useServicesContext();
+  const { createOrgCodeList } = useServicesContext();
 
   const mutationFn = ({ title, data }: CreateOrgCodeListMutationArgs) =>
-    createCodeListForOrg(org, title, data);
+    createOrgCodeList(org, title, data);
 
   return useMutation({
     mutationFn,
