@@ -31,6 +31,8 @@ const PreviewComponent = (args): React.ReactElement => {
     const value: string = event.target.value;
     const checked: boolean = event.target.checked;
 
+    console.log('value, checked', { value, checked });
+
     if (value !== 'all' && checked) {
       setHasError(false);
       const newRowElements = rowElements.map((element) =>
@@ -48,8 +50,6 @@ const PreviewComponent = (args): React.ReactElement => {
 
       if (allAreUnchecked) {
         setHasError(true);
-      } else {
-        setHasError(false);
       }
 
       setRowElements(newRowElements);
@@ -81,7 +81,7 @@ const PreviewComponent = (args): React.ReactElement => {
                 {...getCheckboxProps({
                   allowIndeterminate: true,
                   value: 'all',
-                  checked: rowElements.every((element) => element.checked),
+                  // checked: rowElements.every((element) => element.checked),
                   onChange: handleChange,
                 })}
               />
