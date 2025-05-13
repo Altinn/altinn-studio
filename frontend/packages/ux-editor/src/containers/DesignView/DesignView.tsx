@@ -39,6 +39,7 @@ export const DesignView = (): ReactNode => {
   const {
     selectedFormLayoutSetName,
     selectedFormLayoutName,
+    setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
@@ -71,8 +72,16 @@ export const DesignView = (): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
+      setSelectedItem({
+        type: 'page',
+        id: pageName,
+      });
     } else {
       setSelectedFormLayoutName(undefined);
+      setSelectedItem({
+        type: 'page',
+        id: pageName,
+      });
     }
   };
 

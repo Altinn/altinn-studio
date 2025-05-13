@@ -41,7 +41,7 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedFormLayoutSetName, setSelectedGroupName, selectedGroupName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: changePageGroupOrder } = useChangePageGroupOrder(
     org,
@@ -82,7 +82,8 @@ export const PageGroupAccordion = ({
     const displayName = group.name || `${t('general.layout_set')} ${groupIndex + 1}`;
     const selectedGroup = pages.groups.findIndex(
       (groupp, index) =>
-        (groupp.name || `${t('general.layout_set')} ${index + 1}`) === selectedGroupName,
+        selectedItem?.type === 'group' &&
+        (groupp.name || `${t('general.layout_set')} ${index + 1}`) === selectedItem?.id,
     );
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
@@ -91,7 +92,7 @@ export const PageGroupAccordion = ({
             selectedGroup === groupIndex ? classes.selected : ''
           }`}
           data-testid={pageGroupAccordionHeader(groupIndex)}
-          onClick={() => setSelectedGroupName(displayName)}
+          onClick={() => setSelectedItem({ type: 'group', id: displayName })}
         >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />

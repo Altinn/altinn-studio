@@ -13,6 +13,11 @@ export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
 }
 
+type SelectedItem = {
+  type: 'component' | 'page' | 'group';
+  id: string;
+};
+
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
   selectedFormLayoutSetName: string;
@@ -27,8 +32,8 @@ export interface AppContextProps {
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
-  selectedGroupName: string | null;
-  setSelectedGroupName: (groupName: string | null) => void;
+  selectedItem: SelectedItem | null;
+  setSelectedItem: (selectedItem: SelectedItem | null) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -47,7 +52,7 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
 
@@ -118,8 +123,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
-      selectedGroupName,
-      setSelectedGroupName,
+      selectedItem,
+      setSelectedItem,
     }),
     [
       selectedFormLayoutSetName,
@@ -134,8 +139,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
-      selectedGroupName,
-      setSelectedGroupName,
+      selectedItem,
+      setSelectedItem,
     ],
   );
 

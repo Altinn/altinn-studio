@@ -1,9 +1,9 @@
 import React, { Fragment, useEffect, useRef } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
-import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components-legacy';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
-import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
@@ -18,23 +18,16 @@ import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
 import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const PageConfigPanel = () => {
-  const { selectedFormLayoutName, selectedFormLayoutSetName, selectedGroupName } = useAppContext();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const hasGroups = pagesModel?.groups?.length > 0;
+  const { selectedItem } = useAppContext();
 
   const t = useText();
   const modalRef = useRef<HTMLDialogElement>(null);
-  const layoutIsSelected =
-    selectedFormLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedFormLayoutName !== undefined;
+  const layoutIsSelected = selectedItem?.type === 'page';
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
-    selectedFormLayoutName,
+    selectedItem?.id,
   );
   const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
     layoutNameTextResourceSelector,
@@ -42,10 +35,10 @@ export const PageConfigPanel = () => {
   const layoutNameText = layoutNameTextResource?.value;
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : (layoutNameText ?? selectedFormLayoutName);
+    : (layoutNameText ?? selectedItem?.id);
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
-  const layout = layouts[selectedFormLayoutName];
+  const layout = layouts[selectedItem?.id];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
   const duplicateLayouts: string[] =
@@ -59,32 +52,21 @@ export const PageConfigPanel = () => {
   }, [hasDuplicatedIdsInAllLayouts]);
 
   if (layoutIsSelected && hasDuplicatedIds) {
-    return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
+    return <PageConfigWarning selectedFormLayoutName={selectedItem?.id} layout={layout} />;
   }
-
-  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
-  const headerText =
-    isTaskNavigationPageGroups && hasGroups
-      ? (selectedGroupName ?? t('right_menu.content_group_empty'))
-      : headingTitle;
 
   return (
     <>
       <StudioSectionHeader
         icon={<FileIcon />}
         heading={{
-          text: headerText,
+          text: headingTitle,
           level: 2,
         }}
       />
-      {hasGroups && (
-        <StudioAlert severity='info' className={classes.configPanel}>
-          {t('right_menu.content_group_message')}
-        </StudioAlert>
-      )}
       {layoutIsSelected && (
-        <Fragment key={selectedFormLayoutName}>
-          <EditPageId layoutName={selectedFormLayoutName} />
+        <Fragment key={selectedItem?.id}>
+          <EditPageId layoutName={selectedItem?.id} />
           <Accordion color='subtle'>
             <Accordion.Item>
               <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
@@ -92,7 +74,7 @@ export const PageConfigPanel = () => {
                 <TextResource
                   handleIdChange={() => {}}
                   label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                  textResourceId={selectedFormLayoutName}
+                  textResourceId={selectedItem?.id}
                 />
               </Accordion.Content>
             </Accordion.Item>
