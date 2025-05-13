@@ -2,10 +2,8 @@ import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import {
   PolicyEditor,
-  getConsentResourceDefaultRules,
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
-  organizationSubject,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
@@ -19,6 +17,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { useGetAllAccessListsQuery } from '../../hooks/queries/useGetAllAccessListsQuery';
+import { getConsentResourcePolicyRules, getResourceSubjects } from '../../utils/resourceUtils';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -80,55 +79,6 @@ export const PolicyEditorPage = ({
     });
   };
 
-  const getConsentResourceSubjects = () => {
-    const accessListSubjects = (accessLists ?? []).map((accessList) => {
-      return {
-        subjectId: `${accessList.identifier}`,
-        subjectSource: `altinn:accesslist:${org}`,
-        subjectTitle: accessList.name,
-        subjectDescription: accessList.description,
-      };
-    });
-    return [...subjectData, ...accessListSubjects, organizationSubject];
-  };
-
-  const getConsentResourceActions = () => {
-    return [
-      {
-        actionId: 'consent',
-        actionTitle: 'Samtykke',
-        actionDescription: null,
-      },
-    ];
-  };
-
-  const hasConsentRules = (): boolean => {
-    const hasAcceptConsentAction = policyData.rules.some((rule) =>
-      rule.actions.some((action) => action === 'consent'),
-    );
-    const hasRequestConsentAction = policyData.rules.some((rule) =>
-      rule.actions.some((action) => action === 'requestconsent'),
-    );
-
-    return hasAcceptConsentAction && hasRequestConsentAction;
-  };
-
-  const getResourcePolicy = () => {
-    if (isConsentResource && !hasConsentRules()) {
-      return {
-        ...policyData,
-        rules: getConsentResourceDefaultRules(resourceId),
-      };
-    } else if (!isConsentResource && hasConsentRules()) {
-      // remove consent rules if resource has consent rules but is not a consent resource
-      return {
-        ...policyData,
-        rules: [],
-      };
-    }
-    return policyData;
-  };
-
   /**
    * Displays the content based on the state of the page
    */
@@ -152,12 +102,10 @@ export const PolicyEditorPage = ({
       );
     }
 
-    const mergedActions = isConsentResource
-      ? getConsentResourceActions()
-      : mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
-    const subjects = isConsentResource ? getConsentResourceSubjects() : subjectData;
+    const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
+    const subjects = getResourceSubjects(accessLists, subjectData, org, isConsentResource);
     const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjects);
-    const policy = getResourcePolicy();
+    const policy = getConsentResourcePolicyRules(policyData, resourceId, isConsentResource);
 
     return (
       <PolicyEditor
