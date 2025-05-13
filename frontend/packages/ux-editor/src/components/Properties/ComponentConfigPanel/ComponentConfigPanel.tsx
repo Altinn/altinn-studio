@@ -2,7 +2,7 @@ import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
 import { Accordion } from '@digdir/designsystemet-react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
 import { EditFormComponent } from '../../config/EditFormComponent';
@@ -19,18 +19,14 @@ export const ComponentConfigPanel = () => {
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const [openList, setOpenList] = React.useState<string[]>([]);
 
-  const toggleOpen = (id: string) => {
-    if (openList.includes(id)) {
-      setOpenList(openList.filter((item) => item !== id));
-    } else {
-      setOpenList([...openList, id]);
-    }
-  };
+  const toggleOpen = (id: string) =>
+    setOpenList((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
 
-  if (!formItem) {
-    setSelectedItem(undefined);
-    return null;
-  }
+  useEffect(() => {
+    if (!formItem) setSelectedItem(undefined);
+  }, [formItem, setSelectedItem]);
+
+  if (!formItem) return null;
 
   const isNotSubformOrHasLayoutSet = formItem.type !== 'Subform' || !!formItem.layoutSet;
 

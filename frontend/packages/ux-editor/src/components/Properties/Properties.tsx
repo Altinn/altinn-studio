@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 export const Properties = () => {
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid='properties-root'>
       <PropertiesSelectedConfig />
     </div>
   );

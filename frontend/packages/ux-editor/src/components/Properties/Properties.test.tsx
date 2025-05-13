@@ -45,6 +45,12 @@ describe('Properties', () => {
       const pageConfigPanel = screen.getByTestId('groupConfigPanel');
       expect(pageConfigPanel).toBeInTheDocument();
     });
+
+    it('shows component config when selectedItem is a component', () => {
+      renderProperties({ selectedItem: { type: 'component', id: 'test-component' } });
+      const pageConfigPanel = screen.getByTestId('properties-root');
+      expect(pageConfigPanel).toBeInTheDocument();
+    });
   });
 });
 

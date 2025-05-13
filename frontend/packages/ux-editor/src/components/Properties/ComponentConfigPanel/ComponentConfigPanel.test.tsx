@@ -15,6 +15,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
+import type { AppContextProps } from '../../../AppContext';
 
 const editFormComponentTestId = 'content';
 const textTestId = 'text';
@@ -125,6 +126,55 @@ describe('ComponentConfigPanel', () => {
         name: textMock('right_menu.calculations'),
       });
       expect(calculationsAccordion).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('Component cleanup and conditional rendering', () => {
+    it('should return null when formItem is undefined', () => {
+      renderComponentConfig({
+        formItem: undefined,
+        formItemId: undefined,
+      });
+      expect(screen.queryByTestId('component-config-panel')).not.toBeInTheDocument();
+    });
+
+    it('should call setSelectedItem(undefined) when formItem becomes undefined', () => {
+      const mockSetSelectedItem = jest.fn();
+      renderComponentConfig(
+        {
+          formItem: componentMocks[ComponentType.Input],
+          formItemId: componentMocks[ComponentType.Input].id,
+        },
+        { setSelectedItem: mockSetSelectedItem },
+      );
+      renderComponentConfig(
+        {
+          formItem: undefined,
+          formItemId: undefined,
+        },
+        { setSelectedItem: mockSetSelectedItem },
+      );
+      expect(mockSetSelectedItem).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should not call setSelectedItem when formItem changes but stays defined', () => {
+      const mockSetSelectedItem = jest.fn();
+      renderComponentConfig(
+        {
+          formItem: componentMocks[ComponentType.Input],
+          formItemId: componentMocks[ComponentType.Input].id,
+        },
+        { setSelectedItem: mockSetSelectedItem },
+      );
+
+      renderComponentConfig(
+        {
+          formItem: componentMocks[ComponentType.Input],
+          formItemId: componentMocks[ComponentType.Input].id,
+        },
+        { setSelectedItem: mockSetSelectedItem },
+      );
+      expect(mockSetSelectedItem).not.toHaveBeenCalled();
     });
   });
 
@@ -310,6 +360,7 @@ const renderComponentConfig = (
     formItem: componentMocks[ComponentType.Input],
     formItemId: componentMocks[ComponentType.Input].id,
   },
+  appContextProps: Partial<AppContextProps> = {},
 ) => {
   const queryClientMock = createQueryClientMock();
 
@@ -323,5 +374,6 @@ const renderComponentConfig = (
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
+    appContextProps,
   });
 };
